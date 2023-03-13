@@ -16,7 +16,14 @@ import type { Contact } from "./backend";
 import type { CreateContactRequest } from "./backend";
 import type { GetPublicWalletDetailsResponse } from "./backend";
 import type { GetPublicWalletDetailsRequest } from "./backend";
-import type { JWK } from "./backend";
+import type { DeletePublicKeyRequest } from "./backend";
+import type { UpdatePublicKeyLimitsRequest } from "./backend";
+import type { PublicKeyLimits } from "./backend";
+import type { GetPublicKeyLimitsRequest } from "./backend";
+import type { PublicKey } from "./backend";
+import type { GetPublicKeyRequest } from "./backend";
+import type { ListPublicKeysResponse } from "./backend";
+import type { CreatePublicKeyRequest } from "./backend";
 import type { StatementPDF } from "./backend";
 import type { GetStatementPDFRequest } from "./backend";
 import type { UpdateClientLimitsRequest } from "./backend";
@@ -447,9 +454,29 @@ export interface IBackendServiceClient {
     /**
      * Client keys
      *
-     * @generated from protobuf rpc: CreateClientPublicKey(backend.v1.JWK) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreatePublicKey(backend.v1.CreatePublicKeyRequest) returns (backend.v1.Empty);
      */
-    createClientPublicKey(input: JWK, options?: RpcOptions): UnaryCall<JWK, Empty>;
+    createPublicKey(input: CreatePublicKeyRequest, options?: RpcOptions): UnaryCall<CreatePublicKeyRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: ListPublicKeys(backend.v1.Empty) returns (backend.v1.ListPublicKeysResponse);
+     */
+    listPublicKeys(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListPublicKeysResponse>;
+    /**
+     * @generated from protobuf rpc: GetPublicKey(backend.v1.GetPublicKeyRequest) returns (backend.v1.PublicKey);
+     */
+    getPublicKey(input: GetPublicKeyRequest, options?: RpcOptions): UnaryCall<GetPublicKeyRequest, PublicKey>;
+    /**
+     * @generated from protobuf rpc: GetPublicKeyLimits(backend.v1.GetPublicKeyLimitsRequest) returns (backend.v1.PublicKeyLimits);
+     */
+    getPublicKeyLimits(input: GetPublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<GetPublicKeyLimitsRequest, PublicKeyLimits>;
+    /**
+     * @generated from protobuf rpc: UpdatePublicKeyLimit(backend.v1.UpdatePublicKeyLimitsRequest) returns (backend.v1.Empty);
+     */
+    updatePublicKeyLimit(input: UpdatePublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<UpdatePublicKeyLimitsRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: DeletePublicKey(backend.v1.DeletePublicKeyRequest) returns (backend.v1.Empty);
+     */
+    deletePublicKey(input: DeletePublicKeyRequest, options?: RpcOptions): UnaryCall<DeletePublicKeyRequest, Empty>;
     /**
      * Public Wallet Data
      *
@@ -835,11 +862,46 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     /**
      * Client keys
      *
-     * @generated from protobuf rpc: CreateClientPublicKey(backend.v1.JWK) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreatePublicKey(backend.v1.CreatePublicKeyRequest) returns (backend.v1.Empty);
      */
-    createClientPublicKey(input: JWK, options?: RpcOptions): UnaryCall<JWK, Empty> {
+    createPublicKey(input: CreatePublicKeyRequest, options?: RpcOptions): UnaryCall<CreatePublicKeyRequest, Empty> {
         const method = this.methods[44], opt = this._transport.mergeOptions(options);
-        return stackIntercept<JWK, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<CreatePublicKeyRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListPublicKeys(backend.v1.Empty) returns (backend.v1.ListPublicKeysResponse);
+     */
+    listPublicKeys(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListPublicKeysResponse> {
+        const method = this.methods[45], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, ListPublicKeysResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetPublicKey(backend.v1.GetPublicKeyRequest) returns (backend.v1.PublicKey);
+     */
+    getPublicKey(input: GetPublicKeyRequest, options?: RpcOptions): UnaryCall<GetPublicKeyRequest, PublicKey> {
+        const method = this.methods[46], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPublicKeyRequest, PublicKey>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetPublicKeyLimits(backend.v1.GetPublicKeyLimitsRequest) returns (backend.v1.PublicKeyLimits);
+     */
+    getPublicKeyLimits(input: GetPublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<GetPublicKeyLimitsRequest, PublicKeyLimits> {
+        const method = this.methods[47], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPublicKeyLimitsRequest, PublicKeyLimits>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: UpdatePublicKeyLimit(backend.v1.UpdatePublicKeyLimitsRequest) returns (backend.v1.Empty);
+     */
+    updatePublicKeyLimit(input: UpdatePublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<UpdatePublicKeyLimitsRequest, Empty> {
+        const method = this.methods[48], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdatePublicKeyLimitsRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: DeletePublicKey(backend.v1.DeletePublicKeyRequest) returns (backend.v1.Empty);
+     */
+    deletePublicKey(input: DeletePublicKeyRequest, options?: RpcOptions): UnaryCall<DeletePublicKeyRequest, Empty> {
+        const method = this.methods[49], opt = this._transport.mergeOptions(options);
+        return stackIntercept<DeletePublicKeyRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * Public Wallet Data
@@ -847,7 +909,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetPublicWalletDetails(backend.v1.GetPublicWalletDetailsRequest) returns (backend.v1.GetPublicWalletDetailsResponse);
      */
     getPublicWalletDetails(input: GetPublicWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse> {
-        const method = this.methods[45], opt = this._transport.mergeOptions(options);
+        const method = this.methods[50], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -856,14 +918,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateContact(backend.v1.CreateContactRequest) returns (backend.v1.Contact);
      */
     createContact(input: CreateContactRequest, options?: RpcOptions): UnaryCall<CreateContactRequest, Contact> {
-        const method = this.methods[46], opt = this._transport.mergeOptions(options);
+        const method = this.methods[51], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateContactRequest, Contact>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListContacts(backend.v1.ListContactsRequest) returns (backend.v1.ListContactsResponse);
      */
     listContacts(input: ListContactsRequest, options?: RpcOptions): UnaryCall<ListContactsRequest, ListContactsResponse> {
-        const method = this.methods[47], opt = this._transport.mergeOptions(options);
+        const method = this.methods[52], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListContactsRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -872,42 +934,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListIdentities(backend.v1.Empty) returns (backend.v1.ListIdentitiesResponse);
      */
     listIdentities(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListIdentitiesResponse> {
-        const method = this.methods[48], opt = this._transport.mergeOptions(options);
+        const method = this.methods[53], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListIdentitiesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListPublicIdentities(backend.v1.ListPublicIdentitiesRequest) returns (backend.v1.ListIdentitiesResponse);
      */
     listPublicIdentities(input: ListPublicIdentitiesRequest, options?: RpcOptions): UnaryCall<ListPublicIdentitiesRequest, ListIdentitiesResponse> {
-        const method = this.methods[49], opt = this._transport.mergeOptions(options);
+        const method = this.methods[54], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListPublicIdentitiesRequest, ListIdentitiesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: AddIdentity(backend.v1.AddIdentityRequest) returns (backend.v1.IdentityVerificationInstructions);
      */
     addIdentity(input: AddIdentityRequest, options?: RpcOptions): UnaryCall<AddIdentityRequest, IdentityVerificationInstructions> {
-        const method = this.methods[50], opt = this._transport.mergeOptions(options);
+        const method = this.methods[55], opt = this._transport.mergeOptions(options);
         return stackIntercept<AddIdentityRequest, IdentityVerificationInstructions>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: DeleteIdentity(backend.v1.DeleteIdentityRequest) returns (backend.v1.Empty);
      */
     deleteIdentity(input: DeleteIdentityRequest, options?: RpcOptions): UnaryCall<DeleteIdentityRequest, Empty> {
-        const method = this.methods[51], opt = this._transport.mergeOptions(options);
+        const method = this.methods[56], opt = this._transport.mergeOptions(options);
         return stackIntercept<DeleteIdentityRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetIdentityPublic(backend.v1.SetIdentityPublicRequest) returns (backend.v1.Identity);
      */
     setIdentityPublic(input: SetIdentityPublicRequest, options?: RpcOptions): UnaryCall<SetIdentityPublicRequest, Identity> {
-        const method = this.methods[52], opt = this._transport.mergeOptions(options);
+        const method = this.methods[57], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetIdentityPublicRequest, Identity>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: StartIdentityVerification(backend.v1.StartIdentityVerificationRequest) returns (backend.v1.Identity);
      */
     startIdentityVerification(input: StartIdentityVerificationRequest, options?: RpcOptions): UnaryCall<StartIdentityVerificationRequest, Identity> {
-        const method = this.methods[53], opt = this._transport.mergeOptions(options);
+        const method = this.methods[58], opt = this._transport.mergeOptions(options);
         return stackIntercept<StartIdentityVerificationRequest, Identity>("unary", this._transport, method, opt, input);
     }
 }

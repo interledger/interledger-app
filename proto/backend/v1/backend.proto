@@ -242,7 +242,12 @@ service BackendService {
   rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
 
   //Client keys
-  rpc CreateClientPublicKey(JWK) returns (Empty);
+  rpc CreatePublicKey(CreatePublicKeyRequest) returns (Empty);
+  rpc ListPublicKeys(Empty) returns (ListPublicKeysResponse);
+  rpc GetPublicKey(GetPublicKeyRequest) returns (PublicKey);
+  rpc GetPublicKeyLimits(GetPublicKeyLimitsRequest) returns (PublicKeyLimits);
+  rpc UpdatePublicKeyLimit(UpdatePublicKeyLimitsRequest) returns (Empty);
+  rpc DeletePublicKey(DeletePublicKeyRequest) returns (Empty);
 
   // Public Wallet Data
   rpc GetPublicWalletDetails(GetPublicWalletDetailsRequest) returns (GetPublicWalletDetailsResponse);
@@ -260,22 +265,54 @@ service BackendService {
   rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
 }
 
-// example edDSA public key
-// {
-//   "kty": "OKP",
-//   "kid": "test-key",
-//   "alg": "EdDSA",
-//   "crv": "Ed25519",
-//   "use": "sign",
-//   "x": "<base64 encoded public key>"
-// }
-message JWK {
-  string kty = 1;
-  string kid = 2;
-  string alg = 3;
-  string x = 4;
-  string crv = 5;
-  string use = 6;
+message PublicKeyLimit {
+  string currency = 1;
+  uint64 amount = 2;  
+}
+
+message PublicKeyLimits {
+  PublicKeyLimit daily = 1;
+  PublicKeyLimit monthly = 2;
+  PublicKeyLimit overall = 3;
+}
+
+message PublicKey {
+  string id = 1;
+  string applicationName = 2;
+  string publicKey = 3; // base64 encoded public key
+  string createdAt = 4;
+  string lastUsedAt = 5;
+}
+
+message CreatePublicKeyRequest {
+  string applicationName = 1;
+  string publicKey = 2; // base64 encoded public key
+  PublicKeyLimit dailyLimit = 3;
+  PublicKeyLimit monthlyLimit = 4;
+  PublicKeyLimit overallLimit = 5;
+}
+
+message GetPublicKeyRequest {
+  string id = 1;
+}
+
+message GetPublicKeyLimitsRequest {
+  string id = 1;
+}
+
+message DeletePublicKeyRequest {
+  string id = 1;
+}
+
+message ListPublicKeysResponse {
+  repeated PublicKey keys = 1;
+}
+
+message UpdatePublicKeyLimitsRequest {
+  string id = 1;
+  PublicKeyLimit daily = 2;
+  PublicKeyLimit monthly = 3;
+  PublicKeyLimit overall = 4;
 }
 
 message Transfer {

@@ -466,43 +466,141 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
- * example edDSA public key
- * {
- *   "kty": "OKP",
- *   "kid": "test-key",
- *   "alg": "EdDSA",
- *   "crv": "Ed25519",
- *   "use": "sign",
- *   "x": "<base64 encoded public key>"
- * }
- *
- * @generated from protobuf message backend.v1.JWK
+ * @generated from protobuf message backend.v1.PublicKeyLimit
  */
-export interface JWK {
+export interface PublicKeyLimit {
     /**
-     * @generated from protobuf field: string kty = 1;
+     * @generated from protobuf field: string currency = 1;
      */
-    kty: string;
+    currency: string;
     /**
-     * @generated from protobuf field: string kid = 2;
+     * @generated from protobuf field: uint64 amount = 2;
      */
-    kid: string;
+    amount: string;
+}
+/**
+ * @generated from protobuf message backend.v1.PublicKeyLimits
+ */
+export interface PublicKeyLimits {
     /**
-     * @generated from protobuf field: string alg = 3;
+     * @generated from protobuf field: backend.v1.PublicKeyLimit daily = 1;
      */
-    alg: string;
+    daily?: PublicKeyLimit;
     /**
-     * @generated from protobuf field: string x = 4;
+     * @generated from protobuf field: backend.v1.PublicKeyLimit monthly = 2;
      */
-    x: string;
+    monthly?: PublicKeyLimit;
     /**
-     * @generated from protobuf field: string crv = 5;
+     * @generated from protobuf field: backend.v1.PublicKeyLimit overall = 3;
      */
-    crv: string;
+    overall?: PublicKeyLimit;
+}
+/**
+ * @generated from protobuf message backend.v1.PublicKey
+ */
+export interface PublicKey {
     /**
-     * @generated from protobuf field: string use = 6;
+     * @generated from protobuf field: string id = 1;
      */
-    use: string;
+    id: string;
+    /**
+     * @generated from protobuf field: string applicationName = 2;
+     */
+    applicationName: string;
+    /**
+     * @generated from protobuf field: string publicKey = 3;
+     */
+    publicKey: string; // base64 encoded public key
+    /**
+     * @generated from protobuf field: string createdAt = 4;
+     */
+    createdAt: string;
+    /**
+     * @generated from protobuf field: string lastUsedAt = 5;
+     */
+    lastUsedAt: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreatePublicKeyRequest
+ */
+export interface CreatePublicKeyRequest {
+    /**
+     * @generated from protobuf field: string applicationName = 1;
+     */
+    applicationName: string;
+    /**
+     * @generated from protobuf field: string publicKey = 2;
+     */
+    publicKey: string; // base64 encoded public key
+    /**
+     * @generated from protobuf field: backend.v1.PublicKeyLimit dailyLimit = 3;
+     */
+    dailyLimit?: PublicKeyLimit;
+    /**
+     * @generated from protobuf field: backend.v1.PublicKeyLimit monthlyLimit = 4;
+     */
+    monthlyLimit?: PublicKeyLimit;
+    /**
+     * @generated from protobuf field: backend.v1.PublicKeyLimit overallLimit = 5;
+     */
+    overallLimit?: PublicKeyLimit;
+}
+/**
+ * @generated from protobuf message backend.v1.GetPublicKeyRequest
+ */
+export interface GetPublicKeyRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetPublicKeyLimitsRequest
+ */
+export interface GetPublicKeyLimitsRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.DeletePublicKeyRequest
+ */
+export interface DeletePublicKeyRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ListPublicKeysResponse
+ */
+export interface ListPublicKeysResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.PublicKey keys = 1;
+     */
+    keys: PublicKey[];
+}
+/**
+ * @generated from protobuf message backend.v1.UpdatePublicKeyLimitsRequest
+ */
+export interface UpdatePublicKeyLimitsRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: backend.v1.PublicKeyLimit daily = 2;
+     */
+    daily?: PublicKeyLimit;
+    /**
+     * @generated from protobuf field: backend.v1.PublicKeyLimit monthly = 3;
+     */
+    monthly?: PublicKeyLimit;
+    /**
+     * @generated from protobuf field: backend.v1.PublicKeyLimit overall = 4;
+     */
+    overall?: PublicKeyLimit;
 }
 /**
  * @generated from protobuf message backend.v1.Transfer
@@ -3151,46 +3249,30 @@ class Empty$Type extends MessageType<Empty> {
  */
 export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class JWK$Type extends MessageType<JWK> {
+class PublicKeyLimit$Type extends MessageType<PublicKeyLimit> {
     constructor() {
-        super("backend.v1.JWK", [
-            { no: 1, name: "kty", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "kid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "alg", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "x", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "crv", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "use", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("backend.v1.PublicKeyLimit", [
+            { no: 1, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ }
         ]);
     }
-    create(value?: PartialMessage<JWK>): JWK {
-        const message = { kty: "", kid: "", alg: "", x: "", crv: "", use: "" };
+    create(value?: PartialMessage<PublicKeyLimit>): PublicKeyLimit {
+        const message = { currency: "", amount: "0" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<JWK>(this, message, value);
+            reflectionMergePartial<PublicKeyLimit>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: JWK): JWK {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PublicKeyLimit): PublicKeyLimit {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string kty */ 1:
-                    message.kty = reader.string();
+                case /* string currency */ 1:
+                    message.currency = reader.string();
                     break;
-                case /* string kid */ 2:
-                    message.kid = reader.string();
-                    break;
-                case /* string alg */ 3:
-                    message.alg = reader.string();
-                    break;
-                case /* string x */ 4:
-                    message.x = reader.string();
-                    break;
-                case /* string crv */ 5:
-                    message.crv = reader.string();
-                    break;
-                case /* string use */ 6:
-                    message.use = reader.string();
+                case /* uint64 amount */ 2:
+                    message.amount = reader.uint64().toString();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3203,25 +3285,13 @@ class JWK$Type extends MessageType<JWK> {
         }
         return message;
     }
-    internalBinaryWrite(message: JWK, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string kty = 1; */
-        if (message.kty !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.kty);
-        /* string kid = 2; */
-        if (message.kid !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.kid);
-        /* string alg = 3; */
-        if (message.alg !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.alg);
-        /* string x = 4; */
-        if (message.x !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.x);
-        /* string crv = 5; */
-        if (message.crv !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.crv);
-        /* string use = 6; */
-        if (message.use !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.use);
+    internalBinaryWrite(message: PublicKeyLimit, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string currency = 1; */
+        if (message.currency !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.currency);
+        /* uint64 amount = 2; */
+        if (message.amount !== "0")
+            writer.tag(2, WireType.Varint).uint64(message.amount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3229,9 +3299,476 @@ class JWK$Type extends MessageType<JWK> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.JWK
+ * @generated MessageType for protobuf message backend.v1.PublicKeyLimit
  */
-export const JWK = new JWK$Type();
+export const PublicKeyLimit = new PublicKeyLimit$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PublicKeyLimits$Type extends MessageType<PublicKeyLimits> {
+    constructor() {
+        super("backend.v1.PublicKeyLimits", [
+            { no: 1, name: "daily", kind: "message", T: () => PublicKeyLimit },
+            { no: 2, name: "monthly", kind: "message", T: () => PublicKeyLimit },
+            { no: 3, name: "overall", kind: "message", T: () => PublicKeyLimit }
+        ]);
+    }
+    create(value?: PartialMessage<PublicKeyLimits>): PublicKeyLimits {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PublicKeyLimits>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PublicKeyLimits): PublicKeyLimits {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.PublicKeyLimit daily */ 1:
+                    message.daily = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                    break;
+                case /* backend.v1.PublicKeyLimit monthly */ 2:
+                    message.monthly = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                    break;
+                case /* backend.v1.PublicKeyLimit overall */ 3:
+                    message.overall = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.overall);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PublicKeyLimits, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.PublicKeyLimit daily = 1; */
+        if (message.daily)
+            PublicKeyLimit.internalBinaryWrite(message.daily, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.PublicKeyLimit monthly = 2; */
+        if (message.monthly)
+            PublicKeyLimit.internalBinaryWrite(message.monthly, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.PublicKeyLimit overall = 3; */
+        if (message.overall)
+            PublicKeyLimit.internalBinaryWrite(message.overall, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PublicKeyLimits
+ */
+export const PublicKeyLimits = new PublicKeyLimits$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PublicKey$Type extends MessageType<PublicKey> {
+    constructor() {
+        super("backend.v1.PublicKey", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "applicationName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "lastUsedAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PublicKey>): PublicKey {
+        const message = { id: "", applicationName: "", publicKey: "", createdAt: "", lastUsedAt: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PublicKey>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PublicKey): PublicKey {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string applicationName */ 2:
+                    message.applicationName = reader.string();
+                    break;
+                case /* string publicKey */ 3:
+                    message.publicKey = reader.string();
+                    break;
+                case /* string createdAt */ 4:
+                    message.createdAt = reader.string();
+                    break;
+                case /* string lastUsedAt */ 5:
+                    message.lastUsedAt = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PublicKey, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string applicationName = 2; */
+        if (message.applicationName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.applicationName);
+        /* string publicKey = 3; */
+        if (message.publicKey !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.publicKey);
+        /* string createdAt = 4; */
+        if (message.createdAt !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.createdAt);
+        /* string lastUsedAt = 5; */
+        if (message.lastUsedAt !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.lastUsedAt);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PublicKey
+ */
+export const PublicKey = new PublicKey$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
+    constructor() {
+        super("backend.v1.CreatePublicKeyRequest", [
+            { no: 1, name: "applicationName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "dailyLimit", kind: "message", T: () => PublicKeyLimit },
+            { no: 4, name: "monthlyLimit", kind: "message", T: () => PublicKeyLimit },
+            { no: 5, name: "overallLimit", kind: "message", T: () => PublicKeyLimit }
+        ]);
+    }
+    create(value?: PartialMessage<CreatePublicKeyRequest>): CreatePublicKeyRequest {
+        const message = { applicationName: "", publicKey: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreatePublicKeyRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePublicKeyRequest): CreatePublicKeyRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string applicationName */ 1:
+                    message.applicationName = reader.string();
+                    break;
+                case /* string publicKey */ 2:
+                    message.publicKey = reader.string();
+                    break;
+                case /* backend.v1.PublicKeyLimit dailyLimit */ 3:
+                    message.dailyLimit = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.dailyLimit);
+                    break;
+                case /* backend.v1.PublicKeyLimit monthlyLimit */ 4:
+                    message.monthlyLimit = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.monthlyLimit);
+                    break;
+                case /* backend.v1.PublicKeyLimit overallLimit */ 5:
+                    message.overallLimit = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.overallLimit);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreatePublicKeyRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string applicationName = 1; */
+        if (message.applicationName !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.applicationName);
+        /* string publicKey = 2; */
+        if (message.publicKey !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.publicKey);
+        /* backend.v1.PublicKeyLimit dailyLimit = 3; */
+        if (message.dailyLimit)
+            PublicKeyLimit.internalBinaryWrite(message.dailyLimit, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.PublicKeyLimit monthlyLimit = 4; */
+        if (message.monthlyLimit)
+            PublicKeyLimit.internalBinaryWrite(message.monthlyLimit, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.PublicKeyLimit overallLimit = 5; */
+        if (message.overallLimit)
+            PublicKeyLimit.internalBinaryWrite(message.overallLimit, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreatePublicKeyRequest
+ */
+export const CreatePublicKeyRequest = new CreatePublicKeyRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPublicKeyRequest$Type extends MessageType<GetPublicKeyRequest> {
+    constructor() {
+        super("backend.v1.GetPublicKeyRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetPublicKeyRequest>): GetPublicKeyRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPublicKeyRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPublicKeyRequest): GetPublicKeyRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPublicKeyRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPublicKeyRequest
+ */
+export const GetPublicKeyRequest = new GetPublicKeyRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPublicKeyLimitsRequest$Type extends MessageType<GetPublicKeyLimitsRequest> {
+    constructor() {
+        super("backend.v1.GetPublicKeyLimitsRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetPublicKeyLimitsRequest>): GetPublicKeyLimitsRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPublicKeyLimitsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPublicKeyLimitsRequest): GetPublicKeyLimitsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPublicKeyLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPublicKeyLimitsRequest
+ */
+export const GetPublicKeyLimitsRequest = new GetPublicKeyLimitsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DeletePublicKeyRequest$Type extends MessageType<DeletePublicKeyRequest> {
+    constructor() {
+        super("backend.v1.DeletePublicKeyRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DeletePublicKeyRequest>): DeletePublicKeyRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<DeletePublicKeyRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeletePublicKeyRequest): DeletePublicKeyRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DeletePublicKeyRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.DeletePublicKeyRequest
+ */
+export const DeletePublicKeyRequest = new DeletePublicKeyRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListPublicKeysResponse$Type extends MessageType<ListPublicKeysResponse> {
+    constructor() {
+        super("backend.v1.ListPublicKeysResponse", [
+            { no: 1, name: "keys", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PublicKey }
+        ]);
+    }
+    create(value?: PartialMessage<ListPublicKeysResponse>): ListPublicKeysResponse {
+        const message = { keys: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListPublicKeysResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListPublicKeysResponse): ListPublicKeysResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.PublicKey keys */ 1:
+                    message.keys.push(PublicKey.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListPublicKeysResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.PublicKey keys = 1; */
+        for (let i = 0; i < message.keys.length; i++)
+            PublicKey.internalBinaryWrite(message.keys[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListPublicKeysResponse
+ */
+export const ListPublicKeysResponse = new ListPublicKeysResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UpdatePublicKeyLimitsRequest$Type extends MessageType<UpdatePublicKeyLimitsRequest> {
+    constructor() {
+        super("backend.v1.UpdatePublicKeyLimitsRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "daily", kind: "message", T: () => PublicKeyLimit },
+            { no: 3, name: "monthly", kind: "message", T: () => PublicKeyLimit },
+            { no: 4, name: "overall", kind: "message", T: () => PublicKeyLimit }
+        ]);
+    }
+    create(value?: PartialMessage<UpdatePublicKeyLimitsRequest>): UpdatePublicKeyLimitsRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<UpdatePublicKeyLimitsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdatePublicKeyLimitsRequest): UpdatePublicKeyLimitsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* backend.v1.PublicKeyLimit daily */ 2:
+                    message.daily = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                    break;
+                case /* backend.v1.PublicKeyLimit monthly */ 3:
+                    message.monthly = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                    break;
+                case /* backend.v1.PublicKeyLimit overall */ 4:
+                    message.overall = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.overall);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UpdatePublicKeyLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* backend.v1.PublicKeyLimit daily = 2; */
+        if (message.daily)
+            PublicKeyLimit.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.PublicKeyLimit monthly = 3; */
+        if (message.monthly)
+            PublicKeyLimit.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.PublicKeyLimit overall = 4; */
+        if (message.overall)
+            PublicKeyLimit.internalBinaryWrite(message.overall, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.UpdatePublicKeyLimitsRequest
+ */
+export const UpdatePublicKeyLimitsRequest = new UpdatePublicKeyLimitsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Transfer$Type extends MessageType<Transfer> {
     constructor() {
@@ -7571,7 +8108,12 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListLimits", options: {}, I: Empty, O: ListLimitsResponse },
     { name: "UpdateClientLimits", options: {}, I: UpdateClientLimitsRequest, O: Empty },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF },
-    { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty },
+    { name: "CreatePublicKey", options: {}, I: CreatePublicKeyRequest, O: Empty },
+    { name: "ListPublicKeys", options: {}, I: Empty, O: ListPublicKeysResponse },
+    { name: "GetPublicKey", options: {}, I: GetPublicKeyRequest, O: PublicKey },
+    { name: "GetPublicKeyLimits", options: {}, I: GetPublicKeyLimitsRequest, O: PublicKeyLimits },
+    { name: "UpdatePublicKeyLimit", options: {}, I: UpdatePublicKeyLimitsRequest, O: Empty },
+    { name: "DeletePublicKey", options: {}, I: DeletePublicKeyRequest, O: Empty },
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
     { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
     { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse },

@@ -558,7 +558,12 @@ type BackendServiceClient interface {
 	//Statements
 	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
 	//Client keys
-	CreateClientPublicKey(ctx context.Context, in *JWK, opts ...grpc.CallOption) (*Empty, error)
+	CreatePublicKey(ctx context.Context, in *CreatePublicKeyRequest, opts ...grpc.CallOption) (*Empty, error)
+	ListPublicKeys(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListPublicKeysResponse, error)
+	GetPublicKey(ctx context.Context, in *GetPublicKeyRequest, opts ...grpc.CallOption) (*PublicKey, error)
+	GetPublicKeyLimits(ctx context.Context, in *GetPublicKeyLimitsRequest, opts ...grpc.CallOption) (*PublicKeyLimits, error)
+	UpdatePublicKeyLimit(ctx context.Context, in *UpdatePublicKeyLimitsRequest, opts ...grpc.CallOption) (*Empty, error)
+	DeletePublicKey(ctx context.Context, in *DeletePublicKeyRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Public Wallet Data
 	GetPublicWalletDetails(ctx context.Context, in *GetPublicWalletDetailsRequest, opts ...grpc.CallOption) (*GetPublicWalletDetailsResponse, error)
 	// Contacts
@@ -977,9 +982,54 @@ func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetState
 	return out, nil
 }
 
-func (c *backendServiceClient) CreateClientPublicKey(ctx context.Context, in *JWK, opts ...grpc.CallOption) (*Empty, error) {
+func (c *backendServiceClient) CreatePublicKey(ctx context.Context, in *CreatePublicKeyRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateClientPublicKey", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreatePublicKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) ListPublicKeys(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListPublicKeysResponse, error) {
+	out := new(ListPublicKeysResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListPublicKeys", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetPublicKey(ctx context.Context, in *GetPublicKeyRequest, opts ...grpc.CallOption) (*PublicKey, error) {
+	out := new(PublicKey)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetPublicKey", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetPublicKeyLimits(ctx context.Context, in *GetPublicKeyLimitsRequest, opts ...grpc.CallOption) (*PublicKeyLimits, error) {
+	out := new(PublicKeyLimits)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetPublicKeyLimits", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UpdatePublicKeyLimit(ctx context.Context, in *UpdatePublicKeyLimitsRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/UpdatePublicKeyLimit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) DeletePublicKey(ctx context.Context, in *DeletePublicKeyRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/DeletePublicKey", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1127,7 +1177,12 @@ type BackendServiceServer interface {
 	//Statements
 	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
 	//Client keys
-	CreateClientPublicKey(context.Context, *JWK) (*Empty, error)
+	CreatePublicKey(context.Context, *CreatePublicKeyRequest) (*Empty, error)
+	ListPublicKeys(context.Context, *Empty) (*ListPublicKeysResponse, error)
+	GetPublicKey(context.Context, *GetPublicKeyRequest) (*PublicKey, error)
+	GetPublicKeyLimits(context.Context, *GetPublicKeyLimitsRequest) (*PublicKeyLimits, error)
+	UpdatePublicKeyLimit(context.Context, *UpdatePublicKeyLimitsRequest) (*Empty, error)
+	DeletePublicKey(context.Context, *DeletePublicKeyRequest) (*Empty, error)
 	// Public Wallet Data
 	GetPublicWalletDetails(context.Context, *GetPublicWalletDetailsRequest) (*GetPublicWalletDetailsResponse, error)
 	// Contacts
@@ -1278,8 +1333,23 @@ func (UnimplementedBackendServiceServer) UpdateClientLimits(context.Context, *Up
 func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
 }
-func (UnimplementedBackendServiceServer) CreateClientPublicKey(context.Context, *JWK) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateClientPublicKey not implemented")
+func (UnimplementedBackendServiceServer) CreatePublicKey(context.Context, *CreatePublicKeyRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePublicKey not implemented")
+}
+func (UnimplementedBackendServiceServer) ListPublicKeys(context.Context, *Empty) (*ListPublicKeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPublicKeys not implemented")
+}
+func (UnimplementedBackendServiceServer) GetPublicKey(context.Context, *GetPublicKeyRequest) (*PublicKey, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPublicKey not implemented")
+}
+func (UnimplementedBackendServiceServer) GetPublicKeyLimits(context.Context, *GetPublicKeyLimitsRequest) (*PublicKeyLimits, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPublicKeyLimits not implemented")
+}
+func (UnimplementedBackendServiceServer) UpdatePublicKeyLimit(context.Context, *UpdatePublicKeyLimitsRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePublicKeyLimit not implemented")
+}
+func (UnimplementedBackendServiceServer) DeletePublicKey(context.Context, *DeletePublicKeyRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePublicKey not implemented")
 }
 func (UnimplementedBackendServiceServer) GetPublicWalletDetails(context.Context, *GetPublicWalletDetailsRequest) (*GetPublicWalletDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPublicWalletDetails not implemented")
@@ -2112,20 +2182,110 @@ func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_CreateClientPublicKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JWK)
+func _BackendService_CreatePublicKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePublicKeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateClientPublicKey(ctx, in)
+		return srv.(BackendServiceServer).CreatePublicKey(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CreateClientPublicKey",
+		FullMethod: "/backend.v1.BackendService/CreatePublicKey",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateClientPublicKey(ctx, req.(*JWK))
+		return srv.(BackendServiceServer).CreatePublicKey(ctx, req.(*CreatePublicKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_ListPublicKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListPublicKeys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ListPublicKeys",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListPublicKeys(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetPublicKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetPublicKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetPublicKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetPublicKey(ctx, req.(*GetPublicKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetPublicKeyLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicKeyLimitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetPublicKeyLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetPublicKeyLimits",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetPublicKeyLimits(ctx, req.(*GetPublicKeyLimitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UpdatePublicKeyLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePublicKeyLimitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UpdatePublicKeyLimit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/UpdatePublicKeyLimit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UpdatePublicKeyLimit(ctx, req.(*UpdatePublicKeyLimitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_DeletePublicKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePublicKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).DeletePublicKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/DeletePublicKey",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).DeletePublicKey(ctx, req.(*DeletePublicKeyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2476,8 +2636,28 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_GetStatementPDF_Handler,
 		},
 		{
-			MethodName: "CreateClientPublicKey",
-			Handler:    _BackendService_CreateClientPublicKey_Handler,
+			MethodName: "CreatePublicKey",
+			Handler:    _BackendService_CreatePublicKey_Handler,
+		},
+		{
+			MethodName: "ListPublicKeys",
+			Handler:    _BackendService_ListPublicKeys_Handler,
+		},
+		{
+			MethodName: "GetPublicKey",
+			Handler:    _BackendService_GetPublicKey_Handler,
+		},
+		{
+			MethodName: "GetPublicKeyLimits",
+			Handler:    _BackendService_GetPublicKeyLimits_Handler,
+		},
+		{
+			MethodName: "UpdatePublicKeyLimit",
+			Handler:    _BackendService_UpdatePublicKeyLimit_Handler,
+		},
+		{
+			MethodName: "DeletePublicKey",
+			Handler:    _BackendService_DeletePublicKey_Handler,
 		},
 		{
 			MethodName: "GetPublicWalletDetails",
