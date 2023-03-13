@@ -277,7 +277,7 @@ class SignupRoute extends StatelessWidget {
                             ),
                             onPressed: () async {
                               Provider.of<Auth>(context, listen: false)
-                                  .signIn("username", "password");
+                                  .login("username", "password");
                               // context.read<Auth>().whoami();
                               context.go('/');
                             },
