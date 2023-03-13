@@ -95,11 +95,70 @@ func (s *rpcService) CreatePublicKey(
 }
 
 func (s *rpcService) ListPublicKeys(ctx context.Context, req *backendv1.Empty) (*backendv1.ListPublicKeysResponse, error) {
-	panic("TODO: implement me")
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	keys, err := s.b.Authorisation().ListKeys(ctx, pp.URL)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	keyset := make([]*backendv1.PublicKey, len(keys))
+	for i, k := range keys {
+		keyset[i] = &backendv1.PublicKey{
+			Id:              k.ID,
+			ApplicationName: k.Kid,
+			PublicKey:       k.X,
+			CreatedAt:       k.CreatedAt.Format("Jan 02, 2006"),
+			LastUsedAt:      "",
+		}
+	}
+
+	return &backendv1.ListPublicKeysResponse{
+		Keys: keyset,
+	}, nil
 }
 
 func (s *rpcService) GetPublicKey(ctx context.Context, req *backendv1.GetPublicKeyRequest) (*backendv1.PublicKey, error) {
-	panic("TODO: implement me")
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	key, err := s.b.Authorisation().GetPublicKeyByID(ctx, pp.URL, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.PublicKey{
+		Id:              key.ID,
+		ApplicationName: key.Kid,
+		PublicKey:       key.X,
+		CreatedAt:       key.CreatedAt.Format("Jan 02, 2006"),
+		LastUsedAt:      "",
+	}, nil
 }
 
 func (s *rpcService) GetPublicKeyLimits(ctx context.Context, req *backendv1.GetPublicKeyLimitsRequest) (*backendv1.PublicKeyLimits, error) {

@@ -1,5 +1,7 @@
 package authorisation
 
+import "time"
+
 type Client struct {
 	ID  string `db:"id"`
 	URL string `db:"url"`
@@ -70,14 +72,16 @@ type (
 	}
 
 	Jwk struct {
-		Kty string `json:"kty,omitempty"`
-		E   string `json:"e,omitempty"`
-		Kid string `json:"kid,omitempty"`
-		Alg string `json:"alg,omitempty"`
-		N   string `json:"n,omitempty"`
-		Crv string `json:"crv,omitempty"`
-		X   string `json:"x,omitempty"`
-		Use string `json:"use,omitempty"`
+		Kty       string    `json:"kty,omitempty"`
+		E         string    `json:"e,omitempty"`
+		Kid       string    `json:"kid,omitempty"`
+		Alg       string    `json:"alg,omitempty"`
+		N         string    `json:"n,omitempty"`
+		Crv       string    `json:"crv,omitempty"`
+		X         string    `json:"x,omitempty"`
+		Use       string    `json:"use,omitempty"`
+		ID        string    `json:"-"`
+		CreatedAt time.Time `json:"-"`
 	}
 
 	Key struct {

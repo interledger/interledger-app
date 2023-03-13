@@ -304,8 +304,8 @@ func CreateClientPublicKey(
 	return nil
 }
 
-func GetClientPublicKey(
-	ctx context.Context, b Backends, clientURL string, keyID string,
+func GetPublicKeyByID(
+	ctx context.Context, b Backends, clientURL string, id string,
 ) (*authorisation.Jwk, error) {
 	client, err := LookupClient(ctx, b, clientURL)
 	if err != nil {
@@ -313,8 +313,8 @@ func GetClientPublicKey(
 	}
 
 	var key dbClientKey
-	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE client_id=$1 AND key_id=$2;"
-	err = b.DB().GetContext(ctx, &key, sql, client.ID, keyID)
+	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE client_id=$1 AND id=$2;"
+	err = b.DB().GetContext(ctx, &key, sql, client.ID, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
@@ -325,14 +325,16 @@ func GetClientPublicKey(
 	}
 
 	return &authorisation.Jwk{
-		Kty: jwk.Kty,
-		E:   jwk.E,
-		Kid: jwk.Kid,
-		Alg: jwk.Alg,
-		N:   jwk.N,
-		Crv: jwk.Crv,
-		X:   jwk.X,
-		Use: jwk.Use,
+		Kty:       jwk.Kty,
+		E:         jwk.E,
+		Kid:       jwk.Kid,
+		Alg:       jwk.Alg,
+		N:         jwk.N,
+		Crv:       jwk.Crv,
+		X:         jwk.X,
+		Use:       jwk.Use,
+		ID:        key.ID,
+		CreatedAt: key.CreatedAt,
 	}, nil
 }
 
@@ -358,14 +360,16 @@ func ListKeys(
 			return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 		}
 		jwks[i] = authorisation.Jwk{
-			Kty: jwk.Kty,
-			E:   jwk.E,
-			Kid: jwk.Kid,
-			Alg: jwk.Alg,
-			N:   jwk.N,
-			Crv: jwk.Crv,
-			X:   jwk.X,
-			Use: jwk.Use,
+			Kty:       jwk.Kty,
+			E:         jwk.E,
+			Kid:       jwk.Kid,
+			Alg:       jwk.Alg,
+			N:         jwk.N,
+			Crv:       jwk.Crv,
+			X:         jwk.X,
+			Use:       jwk.Use,
+			ID:        keys[i].ID,
+			CreatedAt: keys[i].CreatedAt,
 		}
 	}
 

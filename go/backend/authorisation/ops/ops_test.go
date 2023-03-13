@@ -169,7 +169,17 @@ func TestCreateAndListClientKeys(t *testing.T) {
 	err = ops.CreateClientPublicKey(ctx, b, "https://fynbos.me/alice", key)
 	require.NoError(t, err)
 
-	getKey, err := ops.GetClientPublicKey(ctx, b, "https://fynbos.me/alice", "test-key-123")
+	keys, err := ops.ListKeys(ctx, b, "https://fynbos.me/alice")
+	require.NoError(t, err)
+	require.Len(t, keys, 1)
+	assert.Equal(t, key.Kty, keys[0].Kty)
+	assert.Equal(t, key.Alg, keys[0].Alg)
+	assert.Equal(t, key.Crv, keys[0].Crv)
+	assert.Equal(t, key.Kid, keys[0].Kid)
+	assert.Equal(t, key.Use, keys[0].Use)
+	assert.Equal(t, key.X, keys[0].X)
+
+	getKey, err := ops.GetPublicKeyByID(ctx, b, "https://fynbos.me/alice", keys[0].ID)
 	require.NoError(t, err)
 	assert.Equal(t, key.Kty, getKey.Kty)
 	assert.Equal(t, key.Alg, getKey.Alg)
@@ -177,14 +187,4 @@ func TestCreateAndListClientKeys(t *testing.T) {
 	assert.Equal(t, key.Kid, getKey.Kid)
 	assert.Equal(t, key.Use, getKey.Use)
 	assert.Equal(t, key.X, getKey.X)
-
-	keys, err := ops.ListKeys(ctx, b, "https://fynbos.me/alice")
-	require.NoError(t, err)
-	require.Len(t, keys, 1)
-	assert.Equal(t, keys[0].Kty, getKey.Kty)
-	assert.Equal(t, keys[0].Alg, getKey.Alg)
-	assert.Equal(t, keys[0].Crv, getKey.Crv)
-	assert.Equal(t, keys[0].Kid, getKey.Kid)
-	assert.Equal(t, keys[0].Use, getKey.Use)
-	assert.Equal(t, keys[0].X, getKey.X)
 }

@@ -50,6 +50,21 @@ func (mr *MockInternalClientMockRecorder) AddPublicKey(ctx, clientURL, key inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPublicKey", reflect.TypeOf((*MockInternalClient)(nil).AddPublicKey), ctx, clientURL, key)
 }
 
+// GetPublicKeyByID mocks base method.
+func (m *MockInternalClient) GetPublicKeyByID(ctx context.Context, clientURl, id string) (*authorisation.Jwk, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPublicKeyByID", ctx, clientURl, id)
+	ret0, _ := ret[0].(*authorisation.Jwk)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPublicKeyByID indicates an expected call of GetPublicKeyByID.
+func (mr *MockInternalClientMockRecorder) GetPublicKeyByID(ctx, clientURl, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKeyByID", reflect.TypeOf((*MockInternalClient)(nil).GetPublicKeyByID), ctx, clientURl, id)
+}
+
 // Introspect mocks base method.
 func (m *MockInternalClient) Introspect(ctx context.Context, token string) (*authorisation.Grant, error) {
 	m.ctrl.T.Helper()
