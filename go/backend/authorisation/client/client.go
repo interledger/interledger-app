@@ -31,6 +31,10 @@ func (c client) ListKeys(ctx context.Context, clientURL string) ([]authorisation
 	return ops.ListKeys(ctx, c.b, clientURL)
 }
 
+func (c client) GetPublicKeyByID(ctx context.Context, clientURL, uuid string) (*authorisation.Jwk, error) {
+	return ops.GetPublicKeyByID(ctx, c.b, clientURL, uuid)
+}
+
 func (c client) VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {
 	return ops.VerifyRequestSig(ctx, req, clientPaymentPointer, requiredParts)
 }
