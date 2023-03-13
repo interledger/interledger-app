@@ -284,24 +284,25 @@ func CreateClientPublicKey(
 	b Backends,
 	clientURL string,
 	publicKey authorisation.Jwk,
-) error {
+) (*authorisation.Jwk, error) {
 	client, err := CreateClient(ctx, b, clientURL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	serializedKey, err := json.Marshal(publicKey)
 	if err != nil {
-		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
-	sql := "INSERT INTO authorisation_keys (client_id, key_id, jwk) VALUES ($1, $2, $3);"
-	_, err = b.DB().ExecContext(ctx, sql, client.ID, publicKey.Kid, serializedKey)
+	sql := "INSERT INTO authorisation_keys (client_id, key_id, jwk) VALUES ($1, $2, $3) RETURNING id;"
+	var keyUuid string
+	err = b.DB().GetContext(ctx, &keyUuid, sql, client.ID, publicKey.Kid, serializedKey)
 	if err != nil {
-		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
-	return nil
+	return GetPublicKeyByID(ctx, b, clientURL, keyUuid)
 }
 
 func GetPublicKeyByID(

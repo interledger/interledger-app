@@ -20,7 +20,7 @@ func New(b ops.Backends) authorisation.InternalClient {
 	}
 }
 
-func (c client) AddPublicKey(ctx context.Context, clientURL string, publicKey authorisation.Jwk) error {
+func (c client) AddPublicKey(ctx context.Context, clientURL string, publicKey authorisation.Jwk) (*authorisation.Jwk, error) {
 	return ops.CreateClientPublicKey(ctx, c.b, clientURL, publicKey)
 }
 func (c client) Introspect(ctx context.Context, token string) (*authorisation.Grant, error) {

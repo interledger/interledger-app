@@ -35,6 +35,7 @@ func TestCreatePublicKey(t *testing.T) {
 		URL:      ppURL,
 	}, nil).AnyTimes()
 
+	keyUuid := uuid.NewString()
 	c.authorisation.EXPECT().AddPublicKey(gomock.Any(), ppURL, authorisation.Jwk{
 		Kty: "OKP",
 		Kid: "FynTest",
@@ -42,9 +43,17 @@ func TestCreatePublicKey(t *testing.T) {
 		Crv: "Ed25519",
 		X:   "le key",
 		Use: "sign",
-	}).AnyTimes()
+	}).Return(&authorisation.Jwk{
+		ID:  keyUuid,
+		Kty: "OKP",
+		Kid: "FynTest",
+		Alg: "EdDSA",
+		Crv: "Ed25519",
+		X:   "le key",
+		Use: "sign",
+	}, nil).AnyTimes()
 
-	c.limits.EXPECT().UpdateClientLimits(gomock.Any(), w.ID, ppURL, limits.Limit{
+	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), w.ID, keyUuid, limits.Limit{
 		Daily: currency.Amount{
 			Value:    10,
 			Currency: currency.Currency("USD"),

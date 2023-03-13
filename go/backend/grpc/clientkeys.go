@@ -61,7 +61,7 @@ func (s *rpcService) CreatePublicKey(
 		return nil, toGRPCError(err)
 	}
 
-	err = s.b.Authorisation().AddPublicKey(ctx, pp.URL, authorisation.Jwk{
+	key, err := s.b.Authorisation().AddPublicKey(ctx, pp.URL, authorisation.Jwk{
 		Kty: "OKP",
 		Kid: req.GetApplicationName(),
 		Alg: "EdDSA",
@@ -73,17 +73,17 @@ func (s *rpcService) CreatePublicKey(
 		return nil, toGRPCError(err)
 	}
 
-	err = s.b.Limits().UpdateClientLimits(ctx, wallet.ID, pp.URL, limits.Limit{
+	err = s.b.Limits().UpdatePublicKeyLimits(ctx, wallet.ID, key.ID, limits.Limit{
 		Daily: currency.Amount{
-			Value:    req.GetDailyLimit().GetAmount(),
+			Value:    req.GetDailyLimit().Amount,
 			Currency: currency.Currency(req.GetDailyLimit().GetCurrency()),
 		},
 		Monthly: currency.Amount{
-			Value:    req.GetMonthlyLimit().GetAmount(),
+			Value:    req.GetMonthlyLimit().Amount,
 			Currency: currency.Currency(req.GetMonthlyLimit().GetCurrency()),
 		},
 		Overall: currency.Amount{
-			Value:    req.GetOverallLimit().GetAmount(),
+			Value:    req.GetOverallLimit().Amount,
 			Currency: currency.Currency(req.GetOverallLimit().GetCurrency()),
 		},
 	})
