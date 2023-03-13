@@ -13,6 +13,7 @@ import type {
   IndividualKYCResponse,
   KYCStatusResponse,
   LinkedAccount,
+  ListContactsRequest,
   PaginationRequest,
   PaymentPointer,
   Transaction as GrpcTransaction
@@ -376,7 +377,7 @@ type getWalletContactsResponse = {
 
 export async function getWalletContacts(
   request: Request,
-  input: PaginationRequest
+  input: ListContactsRequest
 ): Promise<getWalletContactsResponse> {
   const cookie = String(request.headers.get('cookie'))
   return grpcClient

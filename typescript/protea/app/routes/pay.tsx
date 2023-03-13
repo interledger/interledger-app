@@ -1,7 +1,15 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Card, Icon, Layouts, Router, TextField } from '~/components'
+import {
+  Avatar,
+  Button,
+  Card,
+  Icon,
+  Layouts,
+  Router,
+  TextField
+} from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
@@ -29,7 +37,12 @@ export async function loader({ request }: LoaderArgs) {
 
   const paymentPointerQR = qrSvg(await generateQR(paymentPointer.url))
 
-  const contacts = (await getWalletContacts(request, { pageSize: 3 })).contacts
+  const contacts = (
+    await getWalletContacts(request, {
+      pageSize: 3,
+      orderBy: 'last_paid_at desc'
+    })
+  ).contacts
 
   return json({ contacts, flow, paymentPointer, paymentPointerQR })
 }
@@ -73,7 +86,6 @@ export default function Page() {
               ? 'paymentPointer-error'
               : undefined
           }
-          required
           errorMessage={actionData?.errors.paymentPointer}
         />
 
@@ -105,8 +117,9 @@ export default function Page() {
             name='paymentPointer'
             form='pay-payment-pointer'
             value={contact.paymentPointer}
-            className='mt-6 flex w-full flex items-center justify-between rounded-xl py-3'
+            className='mt-6 flex w-full flex items-center space-x-3 rounded-xl'
           >
+            <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
             <span className='text-medium'>{contact.name}</span>
           </button>
         ))}

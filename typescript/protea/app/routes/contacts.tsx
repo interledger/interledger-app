@@ -7,7 +7,7 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import { Card, Layouts } from '~/components'
+import { Avatar, Card, Layouts } from '~/components'
 import { getWalletContacts } from '~/lib/wallet.server'
 import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 import { useCallback, useEffect, useState } from 'react'
@@ -144,7 +144,7 @@ export default function Page() {
 
   return (
     <Card ref={divHeight}>
-      <h1 className='mb-6 font-display text-2xl font-medium'>Contacts</h1>
+      <h1 className='font-display text-2xl font-medium'>Contacts</h1>
       <Form
         id='pay-payment-pointer'
         action='/pay'
@@ -159,14 +159,15 @@ export default function Page() {
         </div>
       )}
       {contacts &&
-        contacts.map((contact) => (
+        contacts.map((contact, index) => (
           <button
             key={contact.id}
             name='paymentPointer'
             form='pay-payment-pointer'
             value={contact.paymentPointer}
-            className='mt-6 flex w-full flex items-center justify-between rounded-xl py-3 hover:bg-container'
+            className='mt-6 flex w-full flex items-center space-x-3 rounded-xl'
           >
+            <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
             <span className='text-medium'>{contact.name}</span>
           </button>
         ))}
