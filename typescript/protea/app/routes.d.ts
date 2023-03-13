@@ -18,6 +18,7 @@ declare module "routes-gen" {
     "/blog/our-fynbos-family-meet-omer": Record<string, never>;
     "/blog/our-fynbos-family-meet-don": Record<string, never>;
     "/blog/card-payments-still-suck": Record<string, never>;
+    "/connections/add-a-public-key": Record<string, never>;
     "/legal/electronic-disclosures": Record<string, never>;
     "/linked-account/:type/success": { "type": string };
     "/settings/profile-public/name": Record<string, never>;
@@ -53,6 +54,7 @@ declare module "routes-gen" {
     "/signup/phone": Record<string, never>;
     "/transactions": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
+    "/connections": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/pay/amount": Record<string, never>;
     "/contacts": Record<string, never>;
@@ -60,7 +62,6 @@ declare module "routes-gen" {
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/withdraw": Record<string, never>;
-    "/clients": Record<string, never>;
     "/contact": Record<string, never>;
     "/deposit": Record<string, never>;
     "/support": Record<string, never>;
@@ -94,6 +95,7 @@ declare module "routes-gen" {
       | ["/blog/our-fynbos-family-meet-omer"]
       | ["/blog/our-fynbos-family-meet-don"]
       | ["/blog/card-payments-still-suck"]
+      | ["/connections/add-a-public-key"]
       | ["/legal/electronic-disclosures"]
       | ["/linked-account/:type/success", RouteParams["/linked-account/:type/success"]]
       | ["/settings/profile-public/name"]
@@ -129,6 +131,7 @@ declare module "routes-gen" {
       | ["/signup/phone"]
       | ["/transactions"]
       | ["/api/sendOtp"]
+      | ["/connections"]
       | ["/pay/confirm"]
       | ["/pay/amount"]
       | ["/contacts"]
@@ -136,7 +139,6 @@ declare module "routes-gen" {
       | ["/settings"]
       | ["/waitlist"]
       | ["/withdraw"]
-      | ["/clients"]
       | ["/contact"]
       | ["/deposit"]
       | ["/support"]
