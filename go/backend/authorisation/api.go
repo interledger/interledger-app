@@ -6,7 +6,7 @@ import (
 )
 
 type InternalClient interface {
-	AddPublicKey(ctx context.Context, clientURL string, key Jwk) error
+	AddPublicKey(ctx context.Context, clientURL string, key Jwk) (*Jwk, error)
 	Introspect(ctx context.Context, token string) (*Grant, error)
 	ListKeys(ctx context.Context, clientURl string) ([]Jwk, error)
 	GetPublicKeyByID(ctx context.Context, clientURl, id string) (*Jwk, error)
