@@ -188,3 +188,38 @@ func TestCreateAndListClientKeys(t *testing.T) {
 	assert.Equal(t, key.Use, getKey.Use)
 	assert.Equal(t, key.X, getKey.X)
 }
+
+func TestDeletePublicKeys(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	op := openpayments_mock.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), op)
+
+	op.EXPECT().GetPaymentPointer(ctx, "https://fynbos.me/alice").Return(&openpayments.PaymentPointer{URL: "https://fynbos.me/alice"}, nil).AnyTimes()
+
+	_, err := ops.CreateClient(ctx, b, "https://fynbos.me/alice")
+	require.NoError(t, err)
+
+	key := authorisation.Jwk{
+		Kty: "OKP",
+		Kid: "test-key-123",
+		Crv: "ed25519",
+		Alg: "edDSA",
+		Use: "sign",
+		X:   "encoded key",
+	}
+	k, err := ops.CreateClientPublicKey(ctx, b, "https://fynbos.me/alice", key)
+	require.NoError(t, err)
+
+	keys, err := ops.ListKeys(ctx, b, "https://fynbos.me/alice")
+	require.NoError(t, err)
+	require.Len(t, keys, 1)
+
+	err = ops.DeletePublicKey(ctx, b, "https://fynbos.me/alice", k.ID)
+	require.NoError(t, err)
+
+	keys, err = ops.ListKeys(ctx, b, "https://fynbos.me/alice")
+	require.NoError(t, err)
+	require.Empty(t, keys)
+}
