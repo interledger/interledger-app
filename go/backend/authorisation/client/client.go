@@ -35,6 +35,10 @@ func (c client) GetPublicKeyByID(ctx context.Context, clientURL, uuid string) (*
 	return ops.GetPublicKeyByID(ctx, c.b, clientURL, uuid)
 }
 
+func (c client) DeletePublicKey(ctx context.Context, clientURL, keyUuid string) error {
+	return ops.DeletePublicKey(ctx, c.b, clientURL, keyUuid)
+}
+
 func (c client) VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {
 	return ops.VerifyRequestSig(ctx, req, clientPaymentPointer, requiredParts)
 }

@@ -37,17 +37,32 @@ func (m *MockInternalClient) EXPECT() *MockInternalClientMockRecorder {
 }
 
 // AddPublicKey mocks base method.
-func (m *MockInternalClient) AddPublicKey(ctx context.Context, clientURL string, key authorisation.Jwk) error {
+func (m *MockInternalClient) AddPublicKey(ctx context.Context, clientURL string, key authorisation.Jwk) (*authorisation.Jwk, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddPublicKey", ctx, clientURL, key)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*authorisation.Jwk)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddPublicKey indicates an expected call of AddPublicKey.
 func (mr *MockInternalClientMockRecorder) AddPublicKey(ctx, clientURL, key interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPublicKey", reflect.TypeOf((*MockInternalClient)(nil).AddPublicKey), ctx, clientURL, key)
+}
+
+// DeletePublicKey mocks base method.
+func (m *MockInternalClient) DeletePublicKey(ctx context.Context, clientURL, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePublicKey", ctx, clientURL, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePublicKey indicates an expected call of DeletePublicKey.
+func (mr *MockInternalClientMockRecorder) DeletePublicKey(ctx, clientURL, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePublicKey", reflect.TypeOf((*MockInternalClient)(nil).DeletePublicKey), ctx, clientURL, id)
 }
 
 // GetPublicKeyByID mocks base method.

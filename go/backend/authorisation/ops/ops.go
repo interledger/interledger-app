@@ -338,6 +338,22 @@ func GetPublicKeyByID(
 	}, nil
 }
 
+func DeletePublicKey(
+	ctx context.Context, b Backends, clientURL string, id string,
+) error {
+	client, err := LookupClient(ctx, b, clientURL)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "DELETE FROM authorisation_keys WHERE id=$1 AND client_id=$2;", id, client.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+
+	return nil
+}
+
 func ListKeys(
 	ctx context.Context, b Backends, clientURL string,
 ) ([]authorisation.Jwk, error) {

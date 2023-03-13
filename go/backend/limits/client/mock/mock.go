@@ -51,21 +51,6 @@ func (mr *MockClientMockRecorder) Exceeds(ctx, walletID, clientID, amount interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exceeds", reflect.TypeOf((*MockClient)(nil).Exceeds), ctx, walletID, clientID, amount)
 }
 
-// GetPublicKeyLimits mocks base method.
-func (m *MockClient) GetPublicKeyLimits(ctx context.Context, walletID, publicKeyUuid string) (*limits.Limit, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPublicKeyLimits", ctx, walletID, publicKeyUuid)
-	ret0, _ := ret[0].(*limits.Limit)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPublicKeyLimits indicates an expected call of GetPublicKeyLimits.
-func (mr *MockClientMockRecorder) GetPublicKeyLimits(ctx, walletID, publicKeyUuid interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKeyLimits", reflect.TypeOf((*MockClient)(nil).GetPublicKeyLimits), ctx, walletID, publicKeyUuid)
-}
-
 // List mocks base method.
 func (m *MockClient) List(ctx context.Context, walletID string) ([]limits.LimitConfigured, error) {
 	m.ctrl.T.Helper()

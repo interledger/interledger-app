@@ -263,5 +263,25 @@ func (s *rpcService) UpdatePublicKeyLimit(ctx context.Context, req *backendv1.Up
 }
 
 func (s *rpcService) DeletePublicKey(ctx context.Context, req *backendv1.DeletePublicKeyRequest) (*backendv1.Empty, error) {
-	panic("TODO: implement me")
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = s.b.Authorisation().DeletePublicKey(ctx, pp.URL, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.Empty{}, nil
 }
