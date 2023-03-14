@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/providers/machnet"
 )
 
 func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.PaymentPointer) error {
@@ -279,31 +278,6 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, fmt.Errorf("%w cannot send money to the same payment pointer", openpayments.ErrInvalidArgument)
 	}
 
-	// Validate machnet KYC levels of sender and receiver.
-	recvKYC, err := b.Machnet().GetUserByWalletID(ctx, recvPP.WalletID)
-	if errors.Is(err, machnet.ErrNotFound) {
-		return nil, fmt.Errorf("%w receive not enabled for payment pointer", openpayments.ErrPaymentPointerCannotRecv)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	if recvKYC.KYCStatus != machnet.KYCStatusVerified {
-		return nil, fmt.Errorf("%w receive not enabled for payment pointer", openpayments.ErrPaymentPointerCannotRecv)
-	}
-
-	sendKYC, err := b.Machnet().GetUserByWalletID(ctx, sendPP.WalletID)
-	if errors.Is(err, machnet.ErrNotFound) {
-		return nil, fmt.Errorf("%w send not enabled for payment pointer", openpayments.ErrPaymentPointerCannotSend)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	if sendKYC.KYCStatus != machnet.KYCStatusVerified {
-		return nil, fmt.Errorf("%w send not enabled for payment pointer", openpayments.ErrPaymentPointerCannotSend)
-	}
-
 	if args.LinkedAccID != "" {
 		la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccID)
 		if err != nil {
@@ -312,18 +286,6 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 
 		if la.WalletID != sendPP.WalletID {
 			return nil, fmt.Errorf("%w specified linked account not associated with the send payment pointer", openpayments.ErrInvalidArgument)
-		}
-
-		if la.Type == machnet.TypeWallet {
-			// Do balance check
-			wallet, err := b.Machnet().GetWallet(ctx, la.ProviderID)
-			if err != nil {
-				return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-			}
-
-			if wallet.AvailableBalance < args.SendAmount.Value {
-				return nil, fmt.Errorf("%w", openpayments.ErrInsufficientBalance)
-			}
 		}
 	}
 
@@ -489,14 +451,6 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 	}
 	if err != nil {
 		return false, err
-	}
-
-	_, err = b.Machnet().GetWalletByWalletID(ctx, pp.WalletID)
-	if errors.Is(err, machnet.ErrNotFound) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
 	if walletID == "" {
