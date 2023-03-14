@@ -29,9 +29,6 @@ import (
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-	"gitlab.com/fynbos/backend/providers/machnet"
-	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
-	machnet_external "gitlab.com/fynbos/backend/providers/machnet/external"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	temporal_client "gitlab.com/fynbos/backend/temporal"
@@ -75,24 +72,6 @@ func main() {
 						Action: actions.MakeUser(b),
 					},
 					{
-						Name:   "machnet_send_user",
-						Usage:  "create a new Machnet send user",
-						Flags:  actions.MakeMachnetSendUserFlags,
-						Action: actions.MakeMachnetSendUser(b),
-					},
-					{
-						Name:   "receive_bank_account",
-						Usage:  "create a new receive bank account",
-						Flags:  actions.MakeReceiveBankAccountFlags,
-						Action: actions.MakeReceiveBankAccount(b),
-					},
-					{
-						Name:   "machnet_transaction",
-						Usage:  "create a transaction that uses machnet provider",
-						Flags:  actions.MakeMachnetTransactionFlags,
-						Action: actions.MakeMachnetTransaction(b),
-					},
-					{
 						Name:   "ed25519_key_pair",
 						Usage:  "generate ed25519 key pair",
 						Flags:  nil,
@@ -119,7 +98,6 @@ type backends struct {
 	kratos         *kratos.APIClient
 	kyc            kyc.Client
 	linkedaccounts linkedaccounts.Client
-	machnet        machnet.Client
 	signup         signup.Client
 	temporal       temporal.Client
 	twilio         twilio.Service
@@ -212,21 +190,6 @@ func (b *backends) Twilio() twilio.Service {
 		b.twilio = tw
 	}
 	return b.twilio
-}
-
-func (b *backends) Machnet() machnet.Client {
-	if b.machnet == nil {
-		b.machnet = machnet_client.New(
-			b,
-			os.Getenv("MACHNET_CLIENT_ID"),
-			os.Getenv("MACHNET_CLIENT_SECRET"),
-		)
-	}
-	return b.machnet
-}
-
-func (b *backends) MachnetExternal() machnet_external.Client {
-	return b.Machnet().External()
 }
 
 func (b *backends) KYC() kyc.Client {
