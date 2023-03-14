@@ -265,15 +265,10 @@ service BackendService {
   rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
 }
 
-message PublicKeyLimit {
-  string currency = 1;
-  uint64 amount = 2;  
-}
-
 message PublicKeyLimits {
-  PublicKeyLimit daily = 1;
-  PublicKeyLimit monthly = 2;
-  PublicKeyLimit overall = 3;
+  Amount daily = 1;
+  Amount monthly = 2;
+  Amount overall = 3;
 }
 
 message PublicKey {
@@ -287,9 +282,9 @@ message PublicKey {
 message CreatePublicKeyRequest {
   string applicationName = 1;
   string publicKey = 2; // base64 encoded public key
-  PublicKeyLimit dailyLimit = 3;
-  PublicKeyLimit monthlyLimit = 4;
-  PublicKeyLimit overallLimit = 5;
+  Amount dailyLimit = 3;
+  Amount monthlyLimit = 4;
+  Amount overallLimit = 5;
 }
 
 message GetPublicKeyRequest {
@@ -310,9 +305,9 @@ message ListPublicKeysResponse {
 
 message UpdatePublicKeyLimitsRequest {
   string id = 1;
-  PublicKeyLimit daily = 2;
-  PublicKeyLimit monthly = 3;
-  PublicKeyLimit overall = 4;
+  Amount daily = 2;
+  Amount monthly = 3;
+  Amount overall = 4;
 }
 
 message Transfer {

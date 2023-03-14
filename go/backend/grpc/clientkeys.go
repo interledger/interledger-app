@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 
 	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/currency"
@@ -9,17 +10,12 @@ import (
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-type validateLimit struct {
-	Value    uint64 `validate:"required"`
-	Currency string `validate:"oneof=USD"`
-}
-
 type validateCreatePublicKeyArgs struct {
 	ApplicationName string `validate:"required"`
 	PublicKey       string `validate:"required"`
-	DailyLimit      validateLimit
-	MonthlyLimit    validateLimit
-	OverallLimit    validateLimit
+	DailyLimit      currency.Amount
+	MonthlyLimit    currency.Amount
+	OverallLimit    currency.Amount
 }
 
 func (s *rpcService) CreatePublicKey(
@@ -38,18 +34,9 @@ func (s *rpcService) CreatePublicKey(
 	err = s.b.Validator().StructCtx(ctx, validateCreatePublicKeyArgs{
 		ApplicationName: req.GetApplicationName(),
 		PublicKey:       req.GetPublicKey(),
-		DailyLimit: validateLimit{
-			Value:    req.GetDailyLimit().GetAmount(),
-			Currency: req.GetDailyLimit().GetCurrency(),
-		},
-		MonthlyLimit: validateLimit{
-			Value:    req.GetMonthlyLimit().GetAmount(),
-			Currency: req.GetMonthlyLimit().GetCurrency(),
-		},
-		OverallLimit: validateLimit{
-			Value:    req.GetOverallLimit().GetAmount(),
-			Currency: req.GetOverallLimit().GetCurrency(),
-		},
+		DailyLimit:      currency.FromPB(req.GetDailyLimit()),
+		MonthlyLimit:    currency.FromPB(req.GetMonthlyLimit()),
+		OverallLimit:    currency.FromPB(req.GetOverallLimit()),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -60,7 +47,6 @@ func (s *rpcService) CreatePublicKey(
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-
 	key, err := s.b.Authorisation().AddPublicKey(ctx, pp.URL, authorisation.Jwk{
 		Kty: "OKP",
 		Kid: req.GetApplicationName(),
@@ -74,18 +60,9 @@ func (s *rpcService) CreatePublicKey(
 	}
 
 	err = s.b.Limits().UpdatePublicKeyLimits(ctx, wallet.ID, key.ID, limits.Limit{
-		Daily: currency.Amount{
-			Value:    req.GetDailyLimit().Amount,
-			Currency: currency.Currency(req.GetDailyLimit().GetCurrency()),
-		},
-		Monthly: currency.Amount{
-			Value:    req.GetMonthlyLimit().Amount,
-			Currency: currency.Currency(req.GetMonthlyLimit().GetCurrency()),
-		},
-		Overall: currency.Amount{
-			Value:    req.GetOverallLimit().Amount,
-			Currency: currency.Currency(req.GetOverallLimit().GetCurrency()),
-		},
+		Daily:   currency.FromPB(req.GetDailyLimit()),
+		Monthly: currency.FromPB(req.GetMonthlyLimit()),
+		Overall: currency.FromPB(req.GetOverallLimit()),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -111,6 +88,11 @@ func (s *rpcService) ListPublicKeys(ctx context.Context, req *backendv1.Empty) (
 	}
 
 	keys, err := s.b.Authorisation().ListKeys(ctx, pp.URL)
+	if errors.Is(err, authorisation.ErrNotFound) {
+		return &backendv1.ListPublicKeysResponse{
+			Keys: nil, // no keys to return
+		}, nil
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -189,26 +171,17 @@ func (s *rpcService) GetPublicKeyLimits(ctx context.Context, req *backendv1.GetP
 	}
 
 	return &backendv1.PublicKeyLimits{
-		Daily: &backendv1.PublicKeyLimit{
-			Currency: string(keyLimit.Daily.Currency),
-			Amount:   keyLimit.Daily.Value,
-		},
-		Monthly: &backendv1.PublicKeyLimit{
-			Currency: string(keyLimit.Monthly.Currency),
-			Amount:   keyLimit.Monthly.Value,
-		},
-		Overall: &backendv1.PublicKeyLimit{
-			Currency: string(keyLimit.Overall.Currency),
-			Amount:   keyLimit.Overall.Value,
-		},
+		Daily:   keyLimit.Daily.ToPB(),
+		Monthly: keyLimit.Monthly.ToPB(),
+		Overall: keyLimit.Overall.ToPB(),
 	}, nil
 }
 
 type validateUpdatePublicKeyLimitArgs struct {
 	ID           string
-	DailyLimit   validateLimit
-	MonthlyLimit validateLimit
-	OverallLimit validateLimit
+	DailyLimit   currency.Amount
+	MonthlyLimit currency.Amount
+	OverallLimit currency.Amount
 }
 
 func (s *rpcService) UpdatePublicKeyLimit(ctx context.Context, req *backendv1.UpdatePublicKeyLimitsRequest) (*backendv1.Empty, error) {
@@ -223,37 +196,19 @@ func (s *rpcService) UpdatePublicKeyLimit(ctx context.Context, req *backendv1.Up
 	}
 
 	err = s.b.Validator().StructCtx(ctx, validateUpdatePublicKeyLimitArgs{
-		ID: req.GetId(),
-		DailyLimit: validateLimit{
-			Value:    req.GetDaily().GetAmount(),
-			Currency: req.GetDaily().GetCurrency(),
-		},
-		MonthlyLimit: validateLimit{
-			Value:    req.GetMonthly().GetAmount(),
-			Currency: req.GetMonthly().GetCurrency(),
-		},
-		OverallLimit: validateLimit{
-			Value:    req.GetOverall().GetAmount(),
-			Currency: req.GetOverall().GetCurrency(),
-		},
+		ID:           req.GetId(),
+		DailyLimit:   currency.FromPB(req.GetDaily()),
+		MonthlyLimit: currency.FromPB(req.GetMonthly()),
+		OverallLimit: currency.FromPB(req.GetOverall()),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	err = s.b.Limits().UpdatePublicKeyLimits(ctx, wallet.ID, req.GetId(), limits.Limit{
-		Daily: currency.Amount{
-			Value:    req.Daily.Amount,
-			Currency: currency.Currency(req.Daily.Currency),
-		},
-		Monthly: currency.Amount{
-			Value:    req.Monthly.Amount,
-			Currency: currency.Currency(req.Monthly.Currency),
-		},
-		Overall: currency.Amount{
-			Value:    req.Overall.Amount,
-			Currency: currency.Currency(req.Overall.Currency),
-		},
+		Daily:   currency.FromPB(req.GetDaily()),
+		Monthly: currency.FromPB(req.GetMonthly()),
+		Overall: currency.FromPB(req.GetOverall()),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)

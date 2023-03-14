@@ -57,31 +57,37 @@ func TestCreatePublicKey(t *testing.T) {
 		Daily: currency.Amount{
 			Value:    10,
 			Currency: currency.Currency("USD"),
+			Scale:    2,
 		},
 		Monthly: currency.Amount{
 			Value:    100,
 			Currency: currency.Currency("USD"),
+			Scale:    2,
 		},
 		Overall: currency.Amount{
 			Value:    1000,
 			Currency: currency.Currency("USD"),
+			Scale:    2,
 		},
 	}).AnyTimes()
 
 	_, err = client.CreatePublicKey(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreatePublicKeyRequest{
 		ApplicationName: "FynTest",
 		PublicKey:       "le key",
-		DailyLimit: &backendv1.PublicKeyLimit{
-			Currency: "USD",
-			Amount:   10,
+		DailyLimit: &backendv1.Amount{
+			Asset:      "USD",
+			AssetScale: 2,
+			Amount:     10,
 		},
-		MonthlyLimit: &backendv1.PublicKeyLimit{
-			Currency: "USD",
-			Amount:   100,
+		MonthlyLimit: &backendv1.Amount{
+			Asset:      "USD",
+			AssetScale: 2,
+			Amount:     100,
 		},
-		OverallLimit: &backendv1.PublicKeyLimit{
-			Currency: "USD",
-			Amount:   1000,
+		OverallLimit: &backendv1.Amount{
+			Asset:      "USD",
+			AssetScale: 2,
+			Amount:     1000,
 		},
 	})
 	require.NoError(t, err)
@@ -173,30 +179,36 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 		Daily: currency.Amount{
 			Value:    10,
 			Currency: "USD",
+			Scale:    2,
 		},
 		Monthly: currency.Amount{
 			Value:    100,
 			Currency: "USD",
+			Scale:    2,
 		},
 		Overall: currency.Amount{
 			Value:    1000,
 			Currency: "USD",
+			Scale:    2,
 		},
 	}).Return(nil).AnyTimes()
 
 	_, err = client.UpdatePublicKeyLimit(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdatePublicKeyLimitsRequest{
 		Id: publicKeyUuid,
-		Daily: &backendv1.PublicKeyLimit{
-			Amount:   10,
-			Currency: "USD",
+		Daily: &backendv1.Amount{
+			Asset:      "USD",
+			AssetScale: 2,
+			Amount:     10,
 		},
-		Monthly: &backendv1.PublicKeyLimit{
-			Amount:   100,
-			Currency: "USD",
+		Monthly: &backendv1.Amount{
+			Asset:      "USD",
+			AssetScale: 2,
+			Amount:     100,
 		},
-		Overall: &backendv1.PublicKeyLimit{
-			Amount:   1000,
-			Currency: "USD",
+		Overall: &backendv1.Amount{
+			Asset:      "USD",
+			AssetScale: 2,
+			Amount:     1000,
 		},
 	})
 	require.NoError(t, err)

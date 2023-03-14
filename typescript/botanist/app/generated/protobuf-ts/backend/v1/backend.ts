@@ -466,34 +466,21 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
- * @generated from protobuf message backend.v1.PublicKeyLimit
- */
-export interface PublicKeyLimit {
-    /**
-     * @generated from protobuf field: string currency = 1;
-     */
-    currency: string;
-    /**
-     * @generated from protobuf field: uint64 amount = 2;
-     */
-    amount: string;
-}
-/**
  * @generated from protobuf message backend.v1.PublicKeyLimits
  */
 export interface PublicKeyLimits {
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit daily = 1;
+     * @generated from protobuf field: backend.v1.Amount daily = 1;
      */
-    daily?: PublicKeyLimit;
+    daily?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit monthly = 2;
+     * @generated from protobuf field: backend.v1.Amount monthly = 2;
      */
-    monthly?: PublicKeyLimit;
+    monthly?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit overall = 3;
+     * @generated from protobuf field: backend.v1.Amount overall = 3;
      */
-    overall?: PublicKeyLimit;
+    overall?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.PublicKey
@@ -533,17 +520,17 @@ export interface CreatePublicKeyRequest {
      */
     publicKey: string; // base64 encoded public key
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit dailyLimit = 3;
+     * @generated from protobuf field: backend.v1.Amount dailyLimit = 3;
      */
-    dailyLimit?: PublicKeyLimit;
+    dailyLimit?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit monthlyLimit = 4;
+     * @generated from protobuf field: backend.v1.Amount monthlyLimit = 4;
      */
-    monthlyLimit?: PublicKeyLimit;
+    monthlyLimit?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit overallLimit = 5;
+     * @generated from protobuf field: backend.v1.Amount overallLimit = 5;
      */
-    overallLimit?: PublicKeyLimit;
+    overallLimit?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.GetPublicKeyRequest
@@ -590,17 +577,17 @@ export interface UpdatePublicKeyLimitsRequest {
      */
     id: string;
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit daily = 2;
+     * @generated from protobuf field: backend.v1.Amount daily = 2;
      */
-    daily?: PublicKeyLimit;
+    daily?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit monthly = 3;
+     * @generated from protobuf field: backend.v1.Amount monthly = 3;
      */
-    monthly?: PublicKeyLimit;
+    monthly?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.PublicKeyLimit overall = 4;
+     * @generated from protobuf field: backend.v1.Amount overall = 4;
      */
-    overall?: PublicKeyLimit;
+    overall?: Amount;
 }
 /**
  * @generated from protobuf message backend.v1.Transfer
@@ -3249,66 +3236,12 @@ class Empty$Type extends MessageType<Empty> {
  */
 export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class PublicKeyLimit$Type extends MessageType<PublicKeyLimit> {
-    constructor() {
-        super("backend.v1.PublicKeyLimit", [
-            { no: 1, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ }
-        ]);
-    }
-    create(value?: PartialMessage<PublicKeyLimit>): PublicKeyLimit {
-        const message = { currency: "", amount: "0" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<PublicKeyLimit>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PublicKeyLimit): PublicKeyLimit {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string currency */ 1:
-                    message.currency = reader.string();
-                    break;
-                case /* uint64 amount */ 2:
-                    message.amount = reader.uint64().toString();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: PublicKeyLimit, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string currency = 1; */
-        if (message.currency !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.currency);
-        /* uint64 amount = 2; */
-        if (message.amount !== "0")
-            writer.tag(2, WireType.Varint).uint64(message.amount);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.PublicKeyLimit
- */
-export const PublicKeyLimit = new PublicKeyLimit$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class PublicKeyLimits$Type extends MessageType<PublicKeyLimits> {
     constructor() {
         super("backend.v1.PublicKeyLimits", [
-            { no: 1, name: "daily", kind: "message", T: () => PublicKeyLimit },
-            { no: 2, name: "monthly", kind: "message", T: () => PublicKeyLimit },
-            { no: 3, name: "overall", kind: "message", T: () => PublicKeyLimit }
+            { no: 1, name: "daily", kind: "message", T: () => Amount },
+            { no: 2, name: "monthly", kind: "message", T: () => Amount },
+            { no: 3, name: "overall", kind: "message", T: () => Amount }
         ]);
     }
     create(value?: PartialMessage<PublicKeyLimits>): PublicKeyLimits {
@@ -3323,14 +3256,14 @@ class PublicKeyLimits$Type extends MessageType<PublicKeyLimits> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* backend.v1.PublicKeyLimit daily */ 1:
-                    message.daily = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                case /* backend.v1.Amount daily */ 1:
+                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
                     break;
-                case /* backend.v1.PublicKeyLimit monthly */ 2:
-                    message.monthly = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                case /* backend.v1.Amount monthly */ 2:
+                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
                     break;
-                case /* backend.v1.PublicKeyLimit overall */ 3:
-                    message.overall = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.overall);
+                case /* backend.v1.Amount overall */ 3:
+                    message.overall = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overall);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3344,15 +3277,15 @@ class PublicKeyLimits$Type extends MessageType<PublicKeyLimits> {
         return message;
     }
     internalBinaryWrite(message: PublicKeyLimits, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.PublicKeyLimit daily = 1; */
+        /* backend.v1.Amount daily = 1; */
         if (message.daily)
-            PublicKeyLimit.internalBinaryWrite(message.daily, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PublicKeyLimit monthly = 2; */
+            Amount.internalBinaryWrite(message.daily, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount monthly = 2; */
         if (message.monthly)
-            PublicKeyLimit.internalBinaryWrite(message.monthly, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PublicKeyLimit overall = 3; */
+            Amount.internalBinaryWrite(message.monthly, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount overall = 3; */
         if (message.overall)
-            PublicKeyLimit.internalBinaryWrite(message.overall, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+            Amount.internalBinaryWrite(message.overall, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3444,9 +3377,9 @@ class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
         super("backend.v1.CreatePublicKeyRequest", [
             { no: 1, name: "applicationName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "dailyLimit", kind: "message", T: () => PublicKeyLimit },
-            { no: 4, name: "monthlyLimit", kind: "message", T: () => PublicKeyLimit },
-            { no: 5, name: "overallLimit", kind: "message", T: () => PublicKeyLimit }
+            { no: 3, name: "dailyLimit", kind: "message", T: () => Amount },
+            { no: 4, name: "monthlyLimit", kind: "message", T: () => Amount },
+            { no: 5, name: "overallLimit", kind: "message", T: () => Amount }
         ]);
     }
     create(value?: PartialMessage<CreatePublicKeyRequest>): CreatePublicKeyRequest {
@@ -3467,14 +3400,14 @@ class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
                 case /* string publicKey */ 2:
                     message.publicKey = reader.string();
                     break;
-                case /* backend.v1.PublicKeyLimit dailyLimit */ 3:
-                    message.dailyLimit = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.dailyLimit);
+                case /* backend.v1.Amount dailyLimit */ 3:
+                    message.dailyLimit = Amount.internalBinaryRead(reader, reader.uint32(), options, message.dailyLimit);
                     break;
-                case /* backend.v1.PublicKeyLimit monthlyLimit */ 4:
-                    message.monthlyLimit = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.monthlyLimit);
+                case /* backend.v1.Amount monthlyLimit */ 4:
+                    message.monthlyLimit = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthlyLimit);
                     break;
-                case /* backend.v1.PublicKeyLimit overallLimit */ 5:
-                    message.overallLimit = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.overallLimit);
+                case /* backend.v1.Amount overallLimit */ 5:
+                    message.overallLimit = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overallLimit);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3494,15 +3427,15 @@ class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
         /* string publicKey = 2; */
         if (message.publicKey !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.publicKey);
-        /* backend.v1.PublicKeyLimit dailyLimit = 3; */
+        /* backend.v1.Amount dailyLimit = 3; */
         if (message.dailyLimit)
-            PublicKeyLimit.internalBinaryWrite(message.dailyLimit, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PublicKeyLimit monthlyLimit = 4; */
+            Amount.internalBinaryWrite(message.dailyLimit, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount monthlyLimit = 4; */
         if (message.monthlyLimit)
-            PublicKeyLimit.internalBinaryWrite(message.monthlyLimit, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PublicKeyLimit overallLimit = 5; */
+            Amount.internalBinaryWrite(message.monthlyLimit, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount overallLimit = 5; */
         if (message.overallLimit)
-            PublicKeyLimit.internalBinaryWrite(message.overallLimit, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+            Amount.internalBinaryWrite(message.overallLimit, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3706,9 +3639,9 @@ class UpdatePublicKeyLimitsRequest$Type extends MessageType<UpdatePublicKeyLimit
     constructor() {
         super("backend.v1.UpdatePublicKeyLimitsRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "daily", kind: "message", T: () => PublicKeyLimit },
-            { no: 3, name: "monthly", kind: "message", T: () => PublicKeyLimit },
-            { no: 4, name: "overall", kind: "message", T: () => PublicKeyLimit }
+            { no: 2, name: "daily", kind: "message", T: () => Amount },
+            { no: 3, name: "monthly", kind: "message", T: () => Amount },
+            { no: 4, name: "overall", kind: "message", T: () => Amount }
         ]);
     }
     create(value?: PartialMessage<UpdatePublicKeyLimitsRequest>): UpdatePublicKeyLimitsRequest {
@@ -3726,14 +3659,14 @@ class UpdatePublicKeyLimitsRequest$Type extends MessageType<UpdatePublicKeyLimit
                 case /* string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* backend.v1.PublicKeyLimit daily */ 2:
-                    message.daily = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.daily);
+                case /* backend.v1.Amount daily */ 2:
+                    message.daily = Amount.internalBinaryRead(reader, reader.uint32(), options, message.daily);
                     break;
-                case /* backend.v1.PublicKeyLimit monthly */ 3:
-                    message.monthly = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
+                case /* backend.v1.Amount monthly */ 3:
+                    message.monthly = Amount.internalBinaryRead(reader, reader.uint32(), options, message.monthly);
                     break;
-                case /* backend.v1.PublicKeyLimit overall */ 4:
-                    message.overall = PublicKeyLimit.internalBinaryRead(reader, reader.uint32(), options, message.overall);
+                case /* backend.v1.Amount overall */ 4:
+                    message.overall = Amount.internalBinaryRead(reader, reader.uint32(), options, message.overall);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3750,15 +3683,15 @@ class UpdatePublicKeyLimitsRequest$Type extends MessageType<UpdatePublicKeyLimit
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* backend.v1.PublicKeyLimit daily = 2; */
+        /* backend.v1.Amount daily = 2; */
         if (message.daily)
-            PublicKeyLimit.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PublicKeyLimit monthly = 3; */
+            Amount.internalBinaryWrite(message.daily, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount monthly = 3; */
         if (message.monthly)
-            PublicKeyLimit.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.PublicKeyLimit overall = 4; */
+            Amount.internalBinaryWrite(message.monthly, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount overall = 4; */
         if (message.overall)
-            PublicKeyLimit.internalBinaryWrite(message.overall, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+            Amount.internalBinaryWrite(message.overall, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
