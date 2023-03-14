@@ -25,7 +25,7 @@ func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.Paginati
 	for i, w := range wallets {
 		users, err := s.b.Users().ListUsers(ctx, w.ID)
 		if err != nil {
-			return nil, status.Error(codes.Internal, err.Error())
+			return nil, toGRPCError(err)
 		}
 
 		usersPB := make([]*adminv1.User, len(users))

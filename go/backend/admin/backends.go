@@ -8,7 +8,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
 )
@@ -21,7 +20,6 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	OpenPayments() openpayments.Client
-	Machnet() machnet.Client
 	Email() email.Client
 	LinkedAccounts() linkedaccounts.Client
 }
