@@ -30,7 +30,7 @@ export default function Page() {
     <>
       <Form
         id='add-public-key'
-        action={'/connections/add-public-key'}
+        action={'/connections/add-a-public-key'}
         method='post'
         className='hidden'
       />
@@ -63,10 +63,10 @@ export default function Page() {
         />
 
         <TextArea
-          id='key'
+          id='publicKey'
           form='add-public-key'
           label='Public key'
-          name='key'
+          name='publicKey'
           placeholder='base64 encoded public key'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.publicKey) || undefined}
@@ -91,8 +91,10 @@ export default function Page() {
           label='Daily'
           name='dailyLimit'
           form='add-public-key'
-          type='text'
-          defaultValue='100.00'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={100}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
@@ -108,8 +110,10 @@ export default function Page() {
           label='Monthly'
           name='monthlyLimit'
           form='add-public-key'
-          type='text'
-          defaultValue='1000.00'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={1000}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
@@ -125,8 +129,10 @@ export default function Page() {
           label='Overall'
           name='overallLimit'
           form='add-public-key'
-          type='text'
-          defaultValue='10000.00'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={10000}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
@@ -200,16 +206,25 @@ export async function action({ request }: ActionArgs) {
         applicationName: form.get('applicationName') as string,
         publicKey: form.get('publicKey') as string,
         dailyLimit: {
-          amount: form.get('dailyLimit') as string,
-          currency: 'USD'
+          amount: String(
+            Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
+          ),
+          asset: 'USD',
+          assetScale: 2
         },
         monthlyLimit: {
-          amount: form.get('monthlyLimit') as string,
-          currency: 'USD'
+          amount: String(
+            Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
+          ),
+          asset: 'USD',
+          assetScale: 2
         },
         overallLimit: {
-          amount: form.get('overallLimit') as string,
-          currency: 'USD'
+          amount: String(
+            Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
+          ),
+          asset: 'USD',
+          assetScale: 2
         }
       },
       {
@@ -220,6 +235,7 @@ export async function action({ request }: ActionArgs) {
     )
     .then((v) => v)
     .catch(StatusError)
+
   if (isGrpcError(response)) {
     if (response.code == Code.INVALID_ARGUMENT) {
       for (let violation of (response as GrpcError).details[0]
