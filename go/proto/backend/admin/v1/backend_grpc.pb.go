@@ -27,8 +27,6 @@ type BackendClient interface {
 	AllowWaitlistSignup(ctx context.Context, in *AllowWaitlistSignupRequest, opts ...grpc.CallOption) (*Empty, error)
 	ListWallets(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListWalletsResponse, error)
 	GetWalletDetails(ctx context.Context, in *GetWalletDetailsRequest, opts ...grpc.CallOption) (*WalletDetails, error)
-	//  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
-	EmailWalletStatement(ctx context.Context, in *EmailWalletStatementRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -75,15 +73,6 @@ func (c *backendClient) GetWalletDetails(ctx context.Context, in *GetWalletDetai
 	return out, nil
 }
 
-func (c *backendClient) EmailWalletStatement(ctx context.Context, in *EmailWalletStatementRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/EmailWalletStatement", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -92,8 +81,6 @@ type BackendServer interface {
 	AllowWaitlistSignup(context.Context, *AllowWaitlistSignupRequest) (*Empty, error)
 	ListWallets(context.Context, *PaginationRequest) (*ListWalletsResponse, error)
 	GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error)
-	//  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
-	EmailWalletStatement(context.Context, *EmailWalletStatementRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -111,9 +98,6 @@ func (UnimplementedBackendServer) ListWallets(context.Context, *PaginationReques
 }
 func (UnimplementedBackendServer) GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWalletDetails not implemented")
-}
-func (UnimplementedBackendServer) EmailWalletStatement(context.Context, *EmailWalletStatementRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method EmailWalletStatement not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -199,24 +183,6 @@ func _Backend_GetWalletDetails_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Backend_EmailWalletStatement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmailWalletStatementRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServer).EmailWalletStatement(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.admin.v1.Backend/EmailWalletStatement",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).EmailWalletStatement(ctx, req.(*EmailWalletStatementRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -239,10 +205,6 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWalletDetails",
 			Handler:    _Backend_GetWalletDetails_Handler,
-		},
-		{
-			MethodName: "EmailWalletStatement",
-			Handler:    _Backend_EmailWalletStatement_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
