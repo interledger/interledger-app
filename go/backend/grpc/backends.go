@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/transactions"
@@ -31,7 +30,6 @@ type Backends interface {
 	Agreements() agreements.Client
 	Countries() country.Client
 	LinkedAccounts() linkedaccounts.Client
-	Machnet() machnet.Client
 	HealthCheck() healthcheck.Service
 	Signup() signup.Client
 	SupportTickets() supporttickets.Client
