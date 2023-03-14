@@ -65,38 +65,6 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		return nil, fmt.Errorf("%w send linked account (%s) not send enabled", openpayments.ErrInternal, q.FromLinkedAccount)
 	}
 
-	limits, err := b.Machnet().GetUserLimits(ctx, sendLA.WalletID)
-	if err != nil {
-		return nil, err
-	}
-
-	fromCard := sendLA.Type == machnet.TypeSendCard
-
-	exceeds, exceedsType := limits.Transfer.Exceeds(q.SendAmount, false)
-	if exceeds {
-		switch exceedsType {
-		case "ANNUAL":
-			return nil, machnet.ErrUserAnnualLimit
-		case "MONTHLY":
-			return nil, machnet.ErrUserMonthlyLimit
-		case "DAILY":
-			return nil, machnet.ErrUserDailyLimit
-		}
-	}
-	exceeds, exceedsType = limits.FundWallet.Exceeds(q.SendAmount, true)
-	if fromCard && exceeds {
-		switch exceedsType {
-		case "ANNUAL":
-			return nil, machnet.ErrUserAnnualLimit
-		case "MONTHLY":
-			return nil, machnet.ErrUserMonthlyLimit
-		case "DAILY":
-			return nil, machnet.ErrUserDailyLimit
-		case "HOLD":
-			return nil, machnet.ErrUserHoldLimit
-		}
-	}
-
 	// Check if we have already created this outgoing transaction and just return it.
 	if args.IdempotencyKey != "" {
 		existing, err := ops.GetOutgoingPayment(ctx, b, args.IdempotencyKey)
