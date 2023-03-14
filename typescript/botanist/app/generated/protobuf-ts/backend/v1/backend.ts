@@ -466,9 +466,9 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
- * @generated from protobuf message backend.v1.PublicKeyLimits
+ * @generated from protobuf message backend.v1.ConnectionLimits
  */
-export interface PublicKeyLimits {
+export interface ConnectionLimits {
     /**
      * @generated from protobuf field: backend.v1.Amount daily = 1;
      */
@@ -483,9 +483,9 @@ export interface PublicKeyLimits {
     overall?: Amount;
 }
 /**
- * @generated from protobuf message backend.v1.PublicKey
+ * @generated from protobuf message backend.v1.Connection
  */
-export interface PublicKey {
+export interface Connection {
     /**
      * @generated from protobuf field: string id = 1;
      */
@@ -508,9 +508,9 @@ export interface PublicKey {
     lastUsedAt: string;
 }
 /**
- * @generated from protobuf message backend.v1.CreatePublicKeyRequest
+ * @generated from protobuf message backend.v1.CreateConnectionRequest
  */
-export interface CreatePublicKeyRequest {
+export interface CreateConnectionRequest {
     /**
      * @generated from protobuf field: string applicationName = 1;
      */
@@ -533,45 +533,45 @@ export interface CreatePublicKeyRequest {
     overallLimit?: Amount;
 }
 /**
- * @generated from protobuf message backend.v1.GetPublicKeyRequest
+ * @generated from protobuf message backend.v1.GetConnectionRequest
  */
-export interface GetPublicKeyRequest {
+export interface GetConnectionRequest {
     /**
      * @generated from protobuf field: string id = 1;
      */
     id: string;
 }
 /**
- * @generated from protobuf message backend.v1.GetPublicKeyLimitsRequest
+ * @generated from protobuf message backend.v1.GetConnectionLimitsRequest
  */
-export interface GetPublicKeyLimitsRequest {
+export interface GetConnectionLimitsRequest {
     /**
      * @generated from protobuf field: string id = 1;
      */
     id: string;
 }
 /**
- * @generated from protobuf message backend.v1.DeletePublicKeyRequest
+ * @generated from protobuf message backend.v1.DeleteConnectionRequest
  */
-export interface DeletePublicKeyRequest {
+export interface DeleteConnectionRequest {
     /**
      * @generated from protobuf field: string id = 1;
      */
     id: string;
 }
 /**
- * @generated from protobuf message backend.v1.ListPublicKeysResponse
+ * @generated from protobuf message backend.v1.ListConnectionsResponse
  */
-export interface ListPublicKeysResponse {
+export interface ListConnectionsResponse {
     /**
-     * @generated from protobuf field: repeated backend.v1.PublicKey keys = 1;
+     * @generated from protobuf field: repeated backend.v1.Connection keys = 1;
      */
-    keys: PublicKey[];
+    keys: Connection[];
 }
 /**
- * @generated from protobuf message backend.v1.UpdatePublicKeyLimitsRequest
+ * @generated from protobuf message backend.v1.UpdateConnectionLimitsRequest
  */
-export interface UpdatePublicKeyLimitsRequest {
+export interface UpdateConnectionLimitsRequest {
     /**
      * @generated from protobuf field: string id = 1;
      */
@@ -3236,22 +3236,22 @@ class Empty$Type extends MessageType<Empty> {
  */
 export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class PublicKeyLimits$Type extends MessageType<PublicKeyLimits> {
+class ConnectionLimits$Type extends MessageType<ConnectionLimits> {
     constructor() {
-        super("backend.v1.PublicKeyLimits", [
+        super("backend.v1.ConnectionLimits", [
             { no: 1, name: "daily", kind: "message", T: () => Amount },
             { no: 2, name: "monthly", kind: "message", T: () => Amount },
             { no: 3, name: "overall", kind: "message", T: () => Amount }
         ]);
     }
-    create(value?: PartialMessage<PublicKeyLimits>): PublicKeyLimits {
+    create(value?: PartialMessage<ConnectionLimits>): ConnectionLimits {
         const message = {};
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<PublicKeyLimits>(this, message, value);
+            reflectionMergePartial<ConnectionLimits>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PublicKeyLimits): PublicKeyLimits {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConnectionLimits): ConnectionLimits {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3276,7 +3276,7 @@ class PublicKeyLimits$Type extends MessageType<PublicKeyLimits> {
         }
         return message;
     }
-    internalBinaryWrite(message: PublicKeyLimits, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: ConnectionLimits, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* backend.v1.Amount daily = 1; */
         if (message.daily)
             Amount.internalBinaryWrite(message.daily, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
@@ -3293,13 +3293,13 @@ class PublicKeyLimits$Type extends MessageType<PublicKeyLimits> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.PublicKeyLimits
+ * @generated MessageType for protobuf message backend.v1.ConnectionLimits
  */
-export const PublicKeyLimits = new PublicKeyLimits$Type();
+export const ConnectionLimits = new ConnectionLimits$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class PublicKey$Type extends MessageType<PublicKey> {
+class Connection$Type extends MessageType<Connection> {
     constructor() {
-        super("backend.v1.PublicKey", [
+        super("backend.v1.Connection", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "applicationName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
@@ -3307,14 +3307,14 @@ class PublicKey$Type extends MessageType<PublicKey> {
             { no: 5, name: "lastUsedAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<PublicKey>): PublicKey {
+    create(value?: PartialMessage<Connection>): Connection {
         const message = { id: "", applicationName: "", publicKey: "", createdAt: "", lastUsedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<PublicKey>(this, message, value);
+            reflectionMergePartial<Connection>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PublicKey): PublicKey {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Connection): Connection {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3345,7 +3345,7 @@ class PublicKey$Type extends MessageType<PublicKey> {
         }
         return message;
     }
-    internalBinaryWrite(message: PublicKey, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: Connection, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
@@ -3368,13 +3368,13 @@ class PublicKey$Type extends MessageType<PublicKey> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.PublicKey
+ * @generated MessageType for protobuf message backend.v1.Connection
  */
-export const PublicKey = new PublicKey$Type();
+export const Connection = new Connection$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
+class CreateConnectionRequest$Type extends MessageType<CreateConnectionRequest> {
     constructor() {
-        super("backend.v1.CreatePublicKeyRequest", [
+        super("backend.v1.CreateConnectionRequest", [
             { no: 1, name: "applicationName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "dailyLimit", kind: "message", T: () => Amount },
@@ -3382,14 +3382,14 @@ class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
             { no: 5, name: "overallLimit", kind: "message", T: () => Amount }
         ]);
     }
-    create(value?: PartialMessage<CreatePublicKeyRequest>): CreatePublicKeyRequest {
+    create(value?: PartialMessage<CreateConnectionRequest>): CreateConnectionRequest {
         const message = { applicationName: "", publicKey: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CreatePublicKeyRequest>(this, message, value);
+            reflectionMergePartial<CreateConnectionRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePublicKeyRequest): CreatePublicKeyRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateConnectionRequest): CreateConnectionRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3420,7 +3420,7 @@ class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: CreatePublicKeyRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: CreateConnectionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string applicationName = 1; */
         if (message.applicationName !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.applicationName);
@@ -3443,24 +3443,24 @@ class CreatePublicKeyRequest$Type extends MessageType<CreatePublicKeyRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.CreatePublicKeyRequest
+ * @generated MessageType for protobuf message backend.v1.CreateConnectionRequest
  */
-export const CreatePublicKeyRequest = new CreatePublicKeyRequest$Type();
+export const CreateConnectionRequest = new CreateConnectionRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetPublicKeyRequest$Type extends MessageType<GetPublicKeyRequest> {
+class GetConnectionRequest$Type extends MessageType<GetConnectionRequest> {
     constructor() {
-        super("backend.v1.GetPublicKeyRequest", [
+        super("backend.v1.GetConnectionRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<GetPublicKeyRequest>): GetPublicKeyRequest {
+    create(value?: PartialMessage<GetConnectionRequest>): GetConnectionRequest {
         const message = { id: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetPublicKeyRequest>(this, message, value);
+            reflectionMergePartial<GetConnectionRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPublicKeyRequest): GetPublicKeyRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetConnectionRequest): GetConnectionRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3479,7 +3479,7 @@ class GetPublicKeyRequest$Type extends MessageType<GetPublicKeyRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: GetPublicKeyRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: GetConnectionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
@@ -3490,24 +3490,24 @@ class GetPublicKeyRequest$Type extends MessageType<GetPublicKeyRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetPublicKeyRequest
+ * @generated MessageType for protobuf message backend.v1.GetConnectionRequest
  */
-export const GetPublicKeyRequest = new GetPublicKeyRequest$Type();
+export const GetConnectionRequest = new GetConnectionRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetPublicKeyLimitsRequest$Type extends MessageType<GetPublicKeyLimitsRequest> {
+class GetConnectionLimitsRequest$Type extends MessageType<GetConnectionLimitsRequest> {
     constructor() {
-        super("backend.v1.GetPublicKeyLimitsRequest", [
+        super("backend.v1.GetConnectionLimitsRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<GetPublicKeyLimitsRequest>): GetPublicKeyLimitsRequest {
+    create(value?: PartialMessage<GetConnectionLimitsRequest>): GetConnectionLimitsRequest {
         const message = { id: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetPublicKeyLimitsRequest>(this, message, value);
+            reflectionMergePartial<GetConnectionLimitsRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPublicKeyLimitsRequest): GetPublicKeyLimitsRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetConnectionLimitsRequest): GetConnectionLimitsRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3526,7 +3526,7 @@ class GetPublicKeyLimitsRequest$Type extends MessageType<GetPublicKeyLimitsReque
         }
         return message;
     }
-    internalBinaryWrite(message: GetPublicKeyLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: GetConnectionLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
@@ -3537,24 +3537,24 @@ class GetPublicKeyLimitsRequest$Type extends MessageType<GetPublicKeyLimitsReque
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetPublicKeyLimitsRequest
+ * @generated MessageType for protobuf message backend.v1.GetConnectionLimitsRequest
  */
-export const GetPublicKeyLimitsRequest = new GetPublicKeyLimitsRequest$Type();
+export const GetConnectionLimitsRequest = new GetConnectionLimitsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class DeletePublicKeyRequest$Type extends MessageType<DeletePublicKeyRequest> {
+class DeleteConnectionRequest$Type extends MessageType<DeleteConnectionRequest> {
     constructor() {
-        super("backend.v1.DeletePublicKeyRequest", [
+        super("backend.v1.DeleteConnectionRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<DeletePublicKeyRequest>): DeletePublicKeyRequest {
+    create(value?: PartialMessage<DeleteConnectionRequest>): DeleteConnectionRequest {
         const message = { id: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<DeletePublicKeyRequest>(this, message, value);
+            reflectionMergePartial<DeleteConnectionRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeletePublicKeyRequest): DeletePublicKeyRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DeleteConnectionRequest): DeleteConnectionRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3573,7 +3573,7 @@ class DeletePublicKeyRequest$Type extends MessageType<DeletePublicKeyRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: DeletePublicKeyRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: DeleteConnectionRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
@@ -3584,30 +3584,30 @@ class DeletePublicKeyRequest$Type extends MessageType<DeletePublicKeyRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.DeletePublicKeyRequest
+ * @generated MessageType for protobuf message backend.v1.DeleteConnectionRequest
  */
-export const DeletePublicKeyRequest = new DeletePublicKeyRequest$Type();
+export const DeleteConnectionRequest = new DeleteConnectionRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class ListPublicKeysResponse$Type extends MessageType<ListPublicKeysResponse> {
+class ListConnectionsResponse$Type extends MessageType<ListConnectionsResponse> {
     constructor() {
-        super("backend.v1.ListPublicKeysResponse", [
-            { no: 1, name: "keys", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PublicKey }
+        super("backend.v1.ListConnectionsResponse", [
+            { no: 1, name: "keys", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Connection }
         ]);
     }
-    create(value?: PartialMessage<ListPublicKeysResponse>): ListPublicKeysResponse {
+    create(value?: PartialMessage<ListConnectionsResponse>): ListConnectionsResponse {
         const message = { keys: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<ListPublicKeysResponse>(this, message, value);
+            reflectionMergePartial<ListConnectionsResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListPublicKeysResponse): ListPublicKeysResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListConnectionsResponse): ListConnectionsResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.v1.PublicKey keys */ 1:
-                    message.keys.push(PublicKey.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated backend.v1.Connection keys */ 1:
+                    message.keys.push(Connection.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3620,10 +3620,10 @@ class ListPublicKeysResponse$Type extends MessageType<ListPublicKeysResponse> {
         }
         return message;
     }
-    internalBinaryWrite(message: ListPublicKeysResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.PublicKey keys = 1; */
+    internalBinaryWrite(message: ListConnectionsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.Connection keys = 1; */
         for (let i = 0; i < message.keys.length; i++)
-            PublicKey.internalBinaryWrite(message.keys[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+            Connection.internalBinaryWrite(message.keys[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3631,27 +3631,27 @@ class ListPublicKeysResponse$Type extends MessageType<ListPublicKeysResponse> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.ListPublicKeysResponse
+ * @generated MessageType for protobuf message backend.v1.ListConnectionsResponse
  */
-export const ListPublicKeysResponse = new ListPublicKeysResponse$Type();
+export const ListConnectionsResponse = new ListConnectionsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class UpdatePublicKeyLimitsRequest$Type extends MessageType<UpdatePublicKeyLimitsRequest> {
+class UpdateConnectionLimitsRequest$Type extends MessageType<UpdateConnectionLimitsRequest> {
     constructor() {
-        super("backend.v1.UpdatePublicKeyLimitsRequest", [
+        super("backend.v1.UpdateConnectionLimitsRequest", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "daily", kind: "message", T: () => Amount },
             { no: 3, name: "monthly", kind: "message", T: () => Amount },
             { no: 4, name: "overall", kind: "message", T: () => Amount }
         ]);
     }
-    create(value?: PartialMessage<UpdatePublicKeyLimitsRequest>): UpdatePublicKeyLimitsRequest {
+    create(value?: PartialMessage<UpdateConnectionLimitsRequest>): UpdateConnectionLimitsRequest {
         const message = { id: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<UpdatePublicKeyLimitsRequest>(this, message, value);
+            reflectionMergePartial<UpdateConnectionLimitsRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdatePublicKeyLimitsRequest): UpdatePublicKeyLimitsRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateConnectionLimitsRequest): UpdateConnectionLimitsRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -3679,7 +3679,7 @@ class UpdatePublicKeyLimitsRequest$Type extends MessageType<UpdatePublicKeyLimit
         }
         return message;
     }
-    internalBinaryWrite(message: UpdatePublicKeyLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: UpdateConnectionLimitsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
@@ -3699,9 +3699,9 @@ class UpdatePublicKeyLimitsRequest$Type extends MessageType<UpdatePublicKeyLimit
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.UpdatePublicKeyLimitsRequest
+ * @generated MessageType for protobuf message backend.v1.UpdateConnectionLimitsRequest
  */
-export const UpdatePublicKeyLimitsRequest = new UpdatePublicKeyLimitsRequest$Type();
+export const UpdateConnectionLimitsRequest = new UpdateConnectionLimitsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Transfer$Type extends MessageType<Transfer> {
     constructor() {
@@ -8041,12 +8041,12 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListLimits", options: {}, I: Empty, O: ListLimitsResponse },
     { name: "UpdateClientLimits", options: {}, I: UpdateClientLimitsRequest, O: Empty },
     { name: "GetStatementPDF", options: {}, I: GetStatementPDFRequest, O: StatementPDF },
-    { name: "CreatePublicKey", options: {}, I: CreatePublicKeyRequest, O: Empty },
-    { name: "ListPublicKeys", options: {}, I: Empty, O: ListPublicKeysResponse },
-    { name: "GetPublicKey", options: {}, I: GetPublicKeyRequest, O: PublicKey },
-    { name: "GetPublicKeyLimits", options: {}, I: GetPublicKeyLimitsRequest, O: PublicKeyLimits },
-    { name: "UpdatePublicKeyLimit", options: {}, I: UpdatePublicKeyLimitsRequest, O: Empty },
-    { name: "DeletePublicKey", options: {}, I: DeletePublicKeyRequest, O: Empty },
+    { name: "CreateConnection", options: {}, I: CreateConnectionRequest, O: Empty },
+    { name: "ListConnections", options: {}, I: Empty, O: ListConnectionsResponse },
+    { name: "GetConnection", options: {}, I: GetConnectionRequest, O: Connection },
+    { name: "GetConnectionLimits", options: {}, I: GetConnectionLimitsRequest, O: ConnectionLimits },
+    { name: "UpdateConnectionLimits", options: {}, I: UpdateConnectionLimitsRequest, O: Empty },
+    { name: "DeleteConnection", options: {}, I: DeleteConnectionRequest, O: Empty },
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
     { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
     { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse },

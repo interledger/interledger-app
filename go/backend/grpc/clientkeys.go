@@ -10,7 +10,7 @@ import (
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-type validateCreatePublicKeyArgs struct {
+type validateCreateConnectionArgs struct {
 	ApplicationName string `validate:"required"`
 	PublicKey       string `validate:"required"`
 	DailyLimit      currency.Amount
@@ -18,8 +18,8 @@ type validateCreatePublicKeyArgs struct {
 	OverallLimit    currency.Amount
 }
 
-func (s *rpcService) CreatePublicKey(
-	ctx context.Context, req *backendv1.CreatePublicKeyRequest,
+func (s *rpcService) CreateConnection(
+	ctx context.Context, req *backendv1.CreateConnectionRequest,
 ) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -31,7 +31,7 @@ func (s *rpcService) CreatePublicKey(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	err = s.b.Validator().StructCtx(ctx, validateCreatePublicKeyArgs{
+	err = s.b.Validator().StructCtx(ctx, validateCreateConnectionArgs{
 		ApplicationName: req.GetApplicationName(),
 		PublicKey:       req.GetPublicKey(),
 		DailyLimit:      currency.FromPB(req.GetDailyLimit()),
@@ -71,7 +71,7 @@ func (s *rpcService) CreatePublicKey(
 	return &backendv1.Empty{}, nil
 }
 
-func (s *rpcService) ListPublicKeys(ctx context.Context, req *backendv1.Empty) (*backendv1.ListPublicKeysResponse, error) {
+func (s *rpcService) ListConnections(ctx context.Context, req *backendv1.Empty) (*backendv1.ListConnectionsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
@@ -89,7 +89,7 @@ func (s *rpcService) ListPublicKeys(ctx context.Context, req *backendv1.Empty) (
 
 	keys, err := s.b.Authorisation().ListKeys(ctx, pp.URL)
 	if errors.Is(err, authorisation.ErrNotFound) {
-		return &backendv1.ListPublicKeysResponse{
+		return &backendv1.ListConnectionsResponse{
 			Keys: nil, // no keys to return
 		}, nil
 	}
@@ -97,9 +97,9 @@ func (s *rpcService) ListPublicKeys(ctx context.Context, req *backendv1.Empty) (
 		return nil, toGRPCError(err)
 	}
 
-	keyset := make([]*backendv1.PublicKey, len(keys))
+	keyset := make([]*backendv1.Connection, len(keys))
 	for i, k := range keys {
-		keyset[i] = &backendv1.PublicKey{
+		keyset[i] = &backendv1.Connection{
 			Id:              k.ID,
 			ApplicationName: k.Kid,
 			PublicKey:       k.X,
@@ -108,12 +108,12 @@ func (s *rpcService) ListPublicKeys(ctx context.Context, req *backendv1.Empty) (
 		}
 	}
 
-	return &backendv1.ListPublicKeysResponse{
+	return &backendv1.ListConnectionsResponse{
 		Keys: keyset,
 	}, nil
 }
 
-func (s *rpcService) GetPublicKey(ctx context.Context, req *backendv1.GetPublicKeyRequest) (*backendv1.PublicKey, error) {
+func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnectionRequest) (*backendv1.Connection, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
@@ -134,7 +134,7 @@ func (s *rpcService) GetPublicKey(ctx context.Context, req *backendv1.GetPublicK
 		return nil, toGRPCError(err)
 	}
 
-	return &backendv1.PublicKey{
+	return &backendv1.Connection{
 		Id:              key.ID,
 		ApplicationName: key.Kid,
 		PublicKey:       key.X,
@@ -143,7 +143,7 @@ func (s *rpcService) GetPublicKey(ctx context.Context, req *backendv1.GetPublicK
 	}, nil
 }
 
-func (s *rpcService) GetPublicKeyLimits(ctx context.Context, req *backendv1.GetPublicKeyLimitsRequest) (*backendv1.PublicKeyLimits, error) {
+func (s *rpcService) GetConnectionLimits(ctx context.Context, req *backendv1.GetConnectionLimitsRequest) (*backendv1.ConnectionLimits, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
@@ -170,21 +170,21 @@ func (s *rpcService) GetPublicKeyLimits(ctx context.Context, req *backendv1.GetP
 		return nil, NotFoundError("public key not found")
 	}
 
-	return &backendv1.PublicKeyLimits{
+	return &backendv1.ConnectionLimits{
 		Daily:   keyLimit.Daily.ToPB(),
 		Monthly: keyLimit.Monthly.ToPB(),
 		Overall: keyLimit.Overall.ToPB(),
 	}, nil
 }
 
-type validateUpdatePublicKeyLimitArgs struct {
+type validateUpdateConnectionLimitArgs struct {
 	ID           string
 	DailyLimit   currency.Amount
 	MonthlyLimit currency.Amount
 	OverallLimit currency.Amount
 }
 
-func (s *rpcService) UpdatePublicKeyLimit(ctx context.Context, req *backendv1.UpdatePublicKeyLimitsRequest) (*backendv1.Empty, error) {
+func (s *rpcService) UpdateConnectionLimits(ctx context.Context, req *backendv1.UpdateConnectionLimitsRequest) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
@@ -195,7 +195,7 @@ func (s *rpcService) UpdatePublicKeyLimit(ctx context.Context, req *backendv1.Up
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	err = s.b.Validator().StructCtx(ctx, validateUpdatePublicKeyLimitArgs{
+	err = s.b.Validator().StructCtx(ctx, validateUpdateConnectionLimitArgs{
 		ID:           req.GetId(),
 		DailyLimit:   currency.FromPB(req.GetDaily()),
 		MonthlyLimit: currency.FromPB(req.GetMonthly()),
@@ -217,7 +217,7 @@ func (s *rpcService) UpdatePublicKeyLimit(ctx context.Context, req *backendv1.Up
 	return &backendv1.Empty{}, nil
 }
 
-func (s *rpcService) DeletePublicKey(ctx context.Context, req *backendv1.DeletePublicKeyRequest) (*backendv1.Empty, error) {
+func (s *rpcService) DeleteConnection(ctx context.Context, req *backendv1.DeleteConnectionRequest) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
