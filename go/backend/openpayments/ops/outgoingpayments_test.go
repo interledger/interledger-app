@@ -10,9 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
-	"gitlab.com/fynbos/backend/providers/machnet"
-	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,13 +26,10 @@ func TestCreateOutgoingPayment(t *testing.T) {
 
 	db := db.MigrateTestDB(t, ctx)
 
-	mc := machnet_mock.NewMockClient(ctrl)
-	mc.EXPECT().GetUserByWalletID(gomock.Any(), gomock.Any()).Return(&machnet.User{KYCStatus: machnet.KYCStatusVerified}, nil).AnyTimes()
-
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
-	b := ops.NewTestBackends(t, db, nil, mc, txClient)
+	b := ops.NewTestBackends(t, db, nil, txClient)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
