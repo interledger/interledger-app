@@ -527,19 +527,6 @@ type BackendServiceClient interface {
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCountriesResponse, error)
 	GetCurrentWallet(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCurrentWalletResponse, error)
-	//Machnet
-	GetMachnetWidgetToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MachnetWidgetToken, error)
-	ListBanks(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListBanksResponse, error)
-	CreateReceiveBankAccount(ctx context.Context, in *CreateReceiveBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
-	StartMachnetKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
-	HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error)
-	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
-	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
-	GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error)
-	CheckMachnetWithdrawalLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error)
-	StartWithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*Empty, error)
-	CheckMachnetTopupLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error)
-	StartMachnetWalletTopup(ctx context.Context, in *StartMachnetWalletTopupRequest, opts ...grpc.CallOption) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error)
 	CanSignup(ctx context.Context, in *CanSignupRequest, opts ...grpc.CallOption) (*CanSignupResponse, error)
@@ -550,13 +537,9 @@ type BackendServiceClient interface {
 	ListTransactionsCompleted(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	ListTransactionsWithPending(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	LookupTransaction(ctx context.Context, in *LookupTransactionRequest, opts ...grpc.CallOption) (*Transaction, error)
-	// Limits (Machnet)
-	GetUserLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetUserLimitsResponse, error)
 	// Limits GNAP
 	ListLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListLimitsResponse, error)
 	UpdateClientLimits(ctx context.Context, in *UpdateClientLimitsRequest, opts ...grpc.CallOption) (*Empty, error)
-	//Statements
-	GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error)
 	//Connections
 	CreateConnection(ctx context.Context, in *CreateConnectionRequest, opts ...grpc.CallOption) (*Empty, error)
 	ListConnections(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListConnectionsResponse, error)
@@ -766,114 +749,6 @@ func (c *backendServiceClient) GetCurrentWallet(ctx context.Context, in *Empty, 
 	return out, nil
 }
 
-func (c *backendServiceClient) GetMachnetWidgetToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MachnetWidgetToken, error) {
-	out := new(MachnetWidgetToken)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetMachnetWidgetToken", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) ListBanks(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListBanksResponse, error) {
-	out := new(ListBanksResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListBanks", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateReceiveBankAccount(ctx context.Context, in *CreateReceiveBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
-	out := new(LinkedAccount)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateReceiveBankAccount", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) StartMachnetKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/StartMachnetKYC", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) HasSendUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*HasSendUserResponse, error) {
-	out := new(HasSendUserResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/HasSendUser", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error) {
-	out := new(KYCStatusResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/KYCStatus", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
-	out := new(LinkedAccount)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateWallet", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetWalletBalance(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletBalance, error) {
-	out := new(WalletBalance)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetWalletBalance", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CheckMachnetWithdrawalLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error) {
-	out := new(CheckMachnetTXLimitResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CheckMachnetWithdrawalLimit", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) StartWithdrawFromMachnetWallet(ctx context.Context, in *WithdrawFromMachnetWalletRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/StartWithdrawFromMachnetWallet", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CheckMachnetTopupLimit(ctx context.Context, in *CheckMachnetTXLimitRequest, opts ...grpc.CallOption) (*CheckMachnetTXLimitResponse, error) {
-	out := new(CheckMachnetTXLimitResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CheckMachnetTopupLimit", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) StartMachnetWalletTopup(ctx context.Context, in *StartMachnetWalletTopupRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/StartMachnetWalletTopup", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) JoinWaitlist(ctx context.Context, in *JoinWaitlistRequest, opts ...grpc.CallOption) (*JoinWaitlistResponse, error) {
 	out := new(JoinWaitlistResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/JoinWaitlist", in, out, opts...)
@@ -946,15 +821,6 @@ func (c *backendServiceClient) LookupTransaction(ctx context.Context, in *Lookup
 	return out, nil
 }
 
-func (c *backendServiceClient) GetUserLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetUserLimitsResponse, error) {
-	out := new(GetUserLimitsResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetUserLimits", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) ListLimits(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListLimitsResponse, error) {
 	out := new(ListLimitsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListLimits", in, out, opts...)
@@ -967,15 +833,6 @@ func (c *backendServiceClient) ListLimits(ctx context.Context, in *Empty, opts .
 func (c *backendServiceClient) UpdateClientLimits(ctx context.Context, in *UpdateClientLimitsRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/UpdateClientLimits", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) GetStatementPDF(ctx context.Context, in *GetStatementPDFRequest, opts ...grpc.CallOption) (*StatementPDF, error) {
-	out := new(StatementPDF)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetStatementPDF", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1146,19 +1003,6 @@ type BackendServiceServer interface {
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
 	GetCountries(context.Context, *Empty) (*GetCountriesResponse, error)
 	GetCurrentWallet(context.Context, *Empty) (*GetCurrentWalletResponse, error)
-	//Machnet
-	GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error)
-	ListBanks(context.Context, *Empty) (*ListBanksResponse, error)
-	CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error)
-	StartMachnetKYC(context.Context, *Empty) (*Empty, error)
-	HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error)
-	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
-	CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error)
-	GetWalletBalance(context.Context, *Empty) (*WalletBalance, error)
-	CheckMachnetWithdrawalLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error)
-	StartWithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*Empty, error)
-	CheckMachnetTopupLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error)
-	StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error)
 	//Waitlist
 	JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error)
 	CanSignup(context.Context, *CanSignupRequest) (*CanSignupResponse, error)
@@ -1169,13 +1013,9 @@ type BackendServiceServer interface {
 	ListTransactionsCompleted(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	ListTransactionsWithPending(context.Context, *PaginationRequest) (*ListTransactionsResponse, error)
 	LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error)
-	// Limits (Machnet)
-	GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error)
 	// Limits GNAP
 	ListLimits(context.Context, *Empty) (*ListLimitsResponse, error)
 	UpdateClientLimits(context.Context, *UpdateClientLimitsRequest) (*Empty, error)
-	//Statements
-	GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error)
 	//Connections
 	CreateConnection(context.Context, *CreateConnectionRequest) (*Empty, error)
 	ListConnections(context.Context, *Empty) (*ListConnectionsResponse, error)
@@ -1261,42 +1101,6 @@ func (UnimplementedBackendServiceServer) GetCountries(context.Context, *Empty) (
 func (UnimplementedBackendServiceServer) GetCurrentWallet(context.Context, *Empty) (*GetCurrentWalletResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCurrentWallet not implemented")
 }
-func (UnimplementedBackendServiceServer) GetMachnetWidgetToken(context.Context, *Empty) (*MachnetWidgetToken, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMachnetWidgetToken not implemented")
-}
-func (UnimplementedBackendServiceServer) ListBanks(context.Context, *Empty) (*ListBanksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListBanks not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateReceiveBankAccount(context.Context, *CreateReceiveBankAccountRequest) (*LinkedAccount, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateReceiveBankAccount not implemented")
-}
-func (UnimplementedBackendServiceServer) StartMachnetKYC(context.Context, *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartMachnetKYC not implemented")
-}
-func (UnimplementedBackendServiceServer) HasSendUser(context.Context, *Empty) (*HasSendUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HasSendUser not implemented")
-}
-func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method KYCStatus not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateWallet(context.Context, *CreateWalletRequest) (*LinkedAccount, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateWallet not implemented")
-}
-func (UnimplementedBackendServiceServer) GetWalletBalance(context.Context, *Empty) (*WalletBalance, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetWalletBalance not implemented")
-}
-func (UnimplementedBackendServiceServer) CheckMachnetWithdrawalLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckMachnetWithdrawalLimit not implemented")
-}
-func (UnimplementedBackendServiceServer) StartWithdrawFromMachnetWallet(context.Context, *WithdrawFromMachnetWalletRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartWithdrawFromMachnetWallet not implemented")
-}
-func (UnimplementedBackendServiceServer) CheckMachnetTopupLimit(context.Context, *CheckMachnetTXLimitRequest) (*CheckMachnetTXLimitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckMachnetTopupLimit not implemented")
-}
-func (UnimplementedBackendServiceServer) StartMachnetWalletTopup(context.Context, *StartMachnetWalletTopupRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartMachnetWalletTopup not implemented")
-}
 func (UnimplementedBackendServiceServer) JoinWaitlist(context.Context, *JoinWaitlistRequest) (*JoinWaitlistResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method JoinWaitlist not implemented")
 }
@@ -1321,17 +1125,11 @@ func (UnimplementedBackendServiceServer) ListTransactionsWithPending(context.Con
 func (UnimplementedBackendServiceServer) LookupTransaction(context.Context, *LookupTransactionRequest) (*Transaction, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupTransaction not implemented")
 }
-func (UnimplementedBackendServiceServer) GetUserLimits(context.Context, *Empty) (*GetUserLimitsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserLimits not implemented")
-}
 func (UnimplementedBackendServiceServer) ListLimits(context.Context, *Empty) (*ListLimitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListLimits not implemented")
 }
 func (UnimplementedBackendServiceServer) UpdateClientLimits(context.Context, *UpdateClientLimitsRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateClientLimits not implemented")
-}
-func (UnimplementedBackendServiceServer) GetStatementPDF(context.Context, *GetStatementPDFRequest) (*StatementPDF, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStatementPDF not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateConnection(context.Context, *CreateConnectionRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateConnection not implemented")
@@ -1750,222 +1548,6 @@ func _BackendService_GetCurrentWallet_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetMachnetWidgetToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetMachnetWidgetToken(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetMachnetWidgetToken",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetMachnetWidgetToken(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_ListBanks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).ListBanks(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/ListBanks",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).ListBanks(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateReceiveBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateReceiveBankAccountRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateReceiveBankAccount(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CreateReceiveBankAccount",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateReceiveBankAccount(ctx, req.(*CreateReceiveBankAccountRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_StartMachnetKYC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).StartMachnetKYC(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/StartMachnetKYC",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).StartMachnetKYC(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_HasSendUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).HasSendUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/HasSendUser",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).HasSendUser(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_KYCStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).KYCStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/KYCStatus",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).KYCStatus(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateWalletRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateWallet(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CreateWallet",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateWallet(ctx, req.(*CreateWalletRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetWalletBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetWalletBalance(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetWalletBalance",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetWalletBalance(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CheckMachnetWithdrawalLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckMachnetTXLimitRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CheckMachnetWithdrawalLimit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CheckMachnetWithdrawalLimit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CheckMachnetWithdrawalLimit(ctx, req.(*CheckMachnetTXLimitRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_StartWithdrawFromMachnetWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WithdrawFromMachnetWalletRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).StartWithdrawFromMachnetWallet(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/StartWithdrawFromMachnetWallet",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).StartWithdrawFromMachnetWallet(ctx, req.(*WithdrawFromMachnetWalletRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CheckMachnetTopupLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckMachnetTXLimitRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CheckMachnetTopupLimit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CheckMachnetTopupLimit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CheckMachnetTopupLimit(ctx, req.(*CheckMachnetTXLimitRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_StartMachnetWalletTopup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartMachnetWalletTopupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).StartMachnetWalletTopup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/StartMachnetWalletTopup",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).StartMachnetWalletTopup(ctx, req.(*StartMachnetWalletTopupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_JoinWaitlist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(JoinWaitlistRequest)
 	if err := dec(in); err != nil {
@@ -2110,24 +1692,6 @@ func _BackendService_LookupTransaction_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetUserLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetUserLimits(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetUserLimits",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetUserLimits(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_ListLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -2160,24 +1724,6 @@ func _BackendService_UpdateClientLimits_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).UpdateClientLimits(ctx, req.(*UpdateClientLimitsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_GetStatementPDF_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetStatementPDFRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetStatementPDF(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetStatementPDF",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetStatementPDF(ctx, req.(*GetStatementPDFRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2540,54 +2086,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_GetCurrentWallet_Handler,
 		},
 		{
-			MethodName: "GetMachnetWidgetToken",
-			Handler:    _BackendService_GetMachnetWidgetToken_Handler,
-		},
-		{
-			MethodName: "ListBanks",
-			Handler:    _BackendService_ListBanks_Handler,
-		},
-		{
-			MethodName: "CreateReceiveBankAccount",
-			Handler:    _BackendService_CreateReceiveBankAccount_Handler,
-		},
-		{
-			MethodName: "StartMachnetKYC",
-			Handler:    _BackendService_StartMachnetKYC_Handler,
-		},
-		{
-			MethodName: "HasSendUser",
-			Handler:    _BackendService_HasSendUser_Handler,
-		},
-		{
-			MethodName: "KYCStatus",
-			Handler:    _BackendService_KYCStatus_Handler,
-		},
-		{
-			MethodName: "CreateWallet",
-			Handler:    _BackendService_CreateWallet_Handler,
-		},
-		{
-			MethodName: "GetWalletBalance",
-			Handler:    _BackendService_GetWalletBalance_Handler,
-		},
-		{
-			MethodName: "CheckMachnetWithdrawalLimit",
-			Handler:    _BackendService_CheckMachnetWithdrawalLimit_Handler,
-		},
-		{
-			MethodName: "StartWithdrawFromMachnetWallet",
-			Handler:    _BackendService_StartWithdrawFromMachnetWallet_Handler,
-		},
-		{
-			MethodName: "CheckMachnetTopupLimit",
-			Handler:    _BackendService_CheckMachnetTopupLimit_Handler,
-		},
-		{
-			MethodName: "StartMachnetWalletTopup",
-			Handler:    _BackendService_StartMachnetWalletTopup_Handler,
-		},
-		{
 			MethodName: "JoinWaitlist",
 			Handler:    _BackendService_JoinWaitlist_Handler,
 		},
@@ -2620,20 +2118,12 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_LookupTransaction_Handler,
 		},
 		{
-			MethodName: "GetUserLimits",
-			Handler:    _BackendService_GetUserLimits_Handler,
-		},
-		{
 			MethodName: "ListLimits",
 			Handler:    _BackendService_ListLimits_Handler,
 		},
 		{
 			MethodName: "UpdateClientLimits",
 			Handler:    _BackendService_UpdateClientLimits_Handler,
-		},
-		{
-			MethodName: "GetStatementPDF",
-			Handler:    _BackendService_GetStatementPDF_Handler,
 		},
 		{
 			MethodName: "CreateConnection",
