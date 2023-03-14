@@ -92,13 +92,7 @@ func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLink
 		return nil, toGRPCError(linkedaccounts.ErrNotFound)
 	}
 
-	// TODO: One day we will have a switch statement to get the correct provider, but for now it's always machnet
-	await, err := s.b.Machnet().DeleteFundSource(ctx, req.Id)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	err = await(ctx, nil)
+	// TODO: Add provider for the linked account here.
 
 	return &pb.Empty{}, toGRPCError(err)
 }
