@@ -1,8 +1,16 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { Button, Card, Layouts, OutlineButton, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  Layouts,
+  OutlineButton,
+  Snackbar,
+  TextField
+} from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -11,7 +19,7 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export const handle = {
   layout: Layouts.FocusLayout
@@ -55,26 +63,45 @@ async function getKeyLimits(request: Request, id: string) {
     )
     .then((v) => v)
     .catch(StatusError)
-
   if (isGrpcError(rpc)) {
     throw json({}, httpMapping(rpc.code))
   }
 
-  return rpc.response
+  let limits = {
+    daily:
+      parseFloat(rpc.response.daily?.amount as string) *
+      Math.pow(10, -(rpc.response.daily?.assetScale || 0)),
+    monthly:
+      parseFloat(rpc.response.monthly?.amount as string) *
+      Math.pow(10, -(rpc.response.monthly?.assetScale || 0)),
+    overall:
+      parseFloat(rpc.response.overall?.amount as string) *
+      Math.pow(10, -(rpc.response.overall?.assetScale || 0))
+  }
+
+  return limits
 }
 
 export async function loader({ request, params }: LoaderArgs) {
   let data = await Promise.all([
     getKey(request, params.connectionId as string),
-    getKeyLimits(request, params.connectionId as string)
+    getKeyLimits(request, params.connectionId as string),
+    getSnackbar(request)
   ])
 
-  return json({ key: data[0], limits: data[1] })
+  return json({ key: data[0], limits: data[1], snackbar: data[2] })
 }
 
 export default function Page() {
-  const { key, limits } = useLoaderData<typeof loader>()
+  const { key, limits, snackbar } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
+  const [showSnackbar, setShowSnackbar] = useState<boolean>(
+    snackbar.show ?? false
+  )
+
+  useEffect(() => {
+    setShowSnackbar(snackbar.show ?? false)
+  }, [snackbar])
 
   return (
     <>
@@ -84,22 +111,29 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <input
+        form='update-key-limit'
+        defaultValue='update'
+        name='name'
+        type='hidden'
+      />
       <Form
         id='delete-key'
         action={`/connections/${key.id}`}
         method='post'
         className='hidden'
       />
+      <input
+        form='delete-key'
+        defaultValue='delete'
+        name='name'
+        type='hidden'
+      />
 
       <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-2xl font-medium'>
           {key.applicationName}
         </h1>
-        <p className='mt-6 text-medium'>
-          Add the public key of the external application that is connecting to
-          your wallet.
-        </p>
-
         <div className='my-4 flex flex items-center justify-between rounded-xl bg-container p-4'>
           {key.publicKey}
         </div>
@@ -121,8 +155,10 @@ export default function Page() {
           label='Daily'
           name='dailyLimit'
           form='update-key-limit'
-          type='text'
-          defaultValue={limits.daily?.amount}
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={limits.daily}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
@@ -138,8 +174,10 @@ export default function Page() {
           label='Monthly'
           name='monthlyLimit'
           form='update-key-limit'
-          type='text'
-          defaultValue={limits.monthly?.amount}
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={limits.monthly}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
@@ -155,8 +193,10 @@ export default function Page() {
           label='Overall'
           name='overallLimit'
           form='update-key-limit'
-          type='text'
-          defaultValue={limits.overall?.amount}
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={limits.overall}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
@@ -179,11 +219,21 @@ export default function Page() {
           >
             Delete
           </OutlineButton>
-          <Button className='col-span-2' form='add-public-key' type='submit'>
+          <Button className='col-span-2' form='update-key-limit' type='submit'>
             Save
           </Button>
         </div>
       </div>
+
+      <Snackbar
+        message={snackbar.message}
+        action={snackbar.action}
+        icon={snackbar.icon}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        dismissAfter={3000}
+        onClose={() => setShowSnackbar(false)}
+      />
     </>
   )
 }
@@ -208,17 +258,23 @@ function mapper(
 
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
-  const formName = await form.get('formName')
+  const formName = await form.get('name')
 
-  if (formName === 'delete-key') {
-    const response = await grpcClient.deletePublicKey(
-      { id: params.connectionId as string },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
+  if (formName === 'delete') {
+    const response = await grpcClient
+      .deletePublicKey(
+        { id: params.connectionId as string },
+        {
+          meta: {
+            cookies: String(request.headers.get('cookie')) || ''
+          }
         }
-      }
-    )
+      )
+      .then((v) => v)
+      .catch((e) => {
+        console.log(e)
+        return StatusError(e)
+      })
     if (isGrpcError(response)) {
       throw json({}, httpMapping(response.code))
     }
@@ -242,16 +298,25 @@ export async function action({ request, params }: ActionArgs) {
       {
         id: params.connectionId as string,
         daily: {
-          amount: form.get('dailyLimit') as string,
-          currency: 'USD'
+          amount: String(
+            Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
+          ),
+          asset: 'USD',
+          assetScale: 2
         },
         monthly: {
-          amount: form.get('monthlyLimit') as string,
-          currency: 'USD'
+          amount: String(
+            Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
+          ),
+          asset: 'USD',
+          assetScale: 2
         },
         overall: {
-          amount: form.get('overallLimit') as string,
-          currency: 'USD'
+          amount: String(
+            Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
+          ),
+          asset: 'USD',
+          assetScale: 2
         }
       },
       {
@@ -278,5 +343,5 @@ export async function action({ request, params }: ActionArgs) {
     icon: 'close'
   })
 
-  return redirect(route('/connections'))
+  return json({ errors: { ...fieldErrors } })
 }

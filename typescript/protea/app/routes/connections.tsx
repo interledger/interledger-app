@@ -1,9 +1,11 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import { Card, Icon, Layouts, Router } from '~/components'
+import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import { grpcClient } from '~/lib/proto.server'
+import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   let keys = await grpcClient
@@ -17,7 +19,9 @@ export async function loader({ request }: LoaderArgs) {
     )
     .then((resp) => resp.response.keys)
 
-  return json({ keys })
+  let snackbar = await getSnackbar(request)
+
+  return json({ keys, snackbar })
 }
 
 export const handle = {
@@ -31,7 +35,14 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { keys } = useLoaderData<typeof loader>()
+  const { keys, snackbar } = useLoaderData<typeof loader>()
+  const [showSnackbar, setShowSnackbar] = useState<boolean>(
+    snackbar.show ?? false
+  )
+
+  useEffect(() => {
+    setShowSnackbar(snackbar.show ?? false)
+  }, [snackbar])
 
   return (
     <>
@@ -50,20 +61,26 @@ export default function Page() {
                 key={key.id}
                 className='mt-6 bg-slate-100 col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
               >
-                <div className='flex justify-between space-x-4'>
-                  <div className='flex flex-col'>
-                    <p className='text-sm text-medium space-y-1'>
-                      {key.applicationName}
-                    </p>
-                    <p className='mt-1 text-xs'>Added {key.createdAt}</p>
-                    <p className='text-xs text-purple-500'>
-                      Last used {key.lastUsedAt}
-                    </p>
+                <Router
+                  to={route('/connections/:connectionId', {
+                    connectionId: key.id
+                  })}
+                >
+                  <div className='flex justify-between space-x-4'>
+                    <div className='flex flex-col'>
+                      <p className='text-sm text-medium space-y-1'>
+                        {key.applicationName}
+                      </p>
+                      <p className='mt-1 text-xs'>Added {key.createdAt}</p>
+                      <p className='text-xs text-purple-500'>
+                        Last used {key.lastUsedAt}
+                      </p>
+                    </div>
+                    <div className='flex content-start justify-between rounded-full bg-container text-medium'>
+                      <Icon>navigate_next</Icon>
+                    </div>
                   </div>
-                  <div className='flex content-start justify-between rounded-full bg-container text-medium'>
-                    <Icon>navigate_next</Icon>
-                  </div>
-                </div>
+                </Router>
               </Card>
             ))}
           </Card>
@@ -90,6 +107,16 @@ export default function Page() {
           </div>
         </div>
       </Card>
+
+      <Snackbar
+        message={snackbar.message}
+        action={snackbar.action}
+        icon={snackbar.icon}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        dismissAfter={3000}
+        onClose={() => setShowSnackbar(false)}
+      />
     </>
   )
 }
