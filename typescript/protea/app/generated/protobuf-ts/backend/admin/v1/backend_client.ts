@@ -4,7 +4,6 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
-import type { EmailWalletStatementRequest } from "./backend";
 import type { WalletDetails } from "./backend";
 import type { GetWalletDetailsRequest } from "./backend";
 import type { ListWalletsResponse } from "./backend";
@@ -33,15 +32,11 @@ export interface IBackendClient {
      */
     listWallets(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListWalletsResponse>;
     /**
+     *  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
+     *
      * @generated from protobuf rpc: GetWalletDetails(backend.admin.v1.GetWalletDetailsRequest) returns (backend.admin.v1.WalletDetails);
      */
     getWalletDetails(input: GetWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetWalletDetailsRequest, WalletDetails>;
-    /**
-     *  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
-     *
-     * @generated from protobuf rpc: EmailWalletStatement(backend.admin.v1.EmailWalletStatementRequest) returns (backend.admin.v1.Empty);
-     */
-    emailWalletStatement(input: EmailWalletStatementRequest, options?: RpcOptions): UnaryCall<EmailWalletStatementRequest, Empty$>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -74,19 +69,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
         return stackIntercept<PaginationRequest, ListWalletsResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     *  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
+     *
      * @generated from protobuf rpc: GetWalletDetails(backend.admin.v1.GetWalletDetailsRequest) returns (backend.admin.v1.WalletDetails);
      */
     getWalletDetails(input: GetWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetWalletDetailsRequest, WalletDetails> {
         const method = this.methods[3], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetWalletDetailsRequest, WalletDetails>("unary", this._transport, method, opt, input);
-    }
-    /**
-     *  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
-     *
-     * @generated from protobuf rpc: EmailWalletStatement(backend.admin.v1.EmailWalletStatementRequest) returns (backend.admin.v1.Empty);
-     */
-    emailWalletStatement(input: EmailWalletStatementRequest, options?: RpcOptions): UnaryCall<EmailWalletStatementRequest, Empty$> {
-        const method = this.methods[4], opt = this._transport.mergeOptions(options);
-        return stackIntercept<EmailWalletStatementRequest, Empty$>("unary", this._transport, method, opt, input);
     }
 }
