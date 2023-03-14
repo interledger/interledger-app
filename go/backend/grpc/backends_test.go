@@ -39,8 +39,6 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/providers/machnet"
-	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/signup"
 	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -67,7 +65,6 @@ type TestContainer struct {
 	AdminAuthService   auth.Service
 	UserService        user.Client
 	linkedaccounts     *linked_accounts_mock.MockClient
-	machnet            *machnet_mock.MockClient
 	TwilioService      *twilio.MockService
 	SignupService      *signup_mock.MockClient
 	WaitlistClient     *waitlist_mock.MockClient
@@ -125,10 +122,6 @@ func (t TestContainer) Countries() country.Client {
 
 func (t TestContainer) LinkedAccounts() linkedaccounts.Client {
 	return t.linkedaccounts
-}
-
-func (t TestContainer) Machnet() machnet.Client {
-	return t.machnet
 }
 
 func (t TestContainer) HealthCheck() healthcheck.Service {
@@ -192,7 +185,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		AdminAuthService:   auth.NewMockService(),
 		UserService:        user_mock.NewMock(),
 		linkedaccounts:     linked_accounts_mock.NewMockClient(ctrl),
-		machnet:            machnet_mock.NewMockClient(ctrl),
 		TwilioService:      twilio.NewMockService(ctrl),
 		SignupService:      signup_mock.NewMockClient(ctrl),
 		WaitlistClient:     waitlist_mock.NewMockClient(ctrl),
