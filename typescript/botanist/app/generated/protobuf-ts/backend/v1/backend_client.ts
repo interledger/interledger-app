@@ -16,14 +16,14 @@ import type { Contact } from "./backend";
 import type { CreateContactRequest } from "./backend";
 import type { GetPublicWalletDetailsResponse } from "./backend";
 import type { GetPublicWalletDetailsRequest } from "./backend";
-import type { DeletePublicKeyRequest } from "./backend";
-import type { UpdatePublicKeyLimitsRequest } from "./backend";
-import type { PublicKeyLimits } from "./backend";
-import type { GetPublicKeyLimitsRequest } from "./backend";
-import type { PublicKey } from "./backend";
-import type { GetPublicKeyRequest } from "./backend";
-import type { ListPublicKeysResponse } from "./backend";
-import type { CreatePublicKeyRequest } from "./backend";
+import type { DeleteConnectionRequest } from "./backend";
+import type { UpdateConnectionLimitsRequest } from "./backend";
+import type { ConnectionLimits } from "./backend";
+import type { GetConnectionLimitsRequest } from "./backend";
+import type { Connection } from "./backend";
+import type { GetConnectionRequest } from "./backend";
+import type { ListConnectionsResponse } from "./backend";
+import type { CreateConnectionRequest } from "./backend";
 import type { StatementPDF } from "./backend";
 import type { GetStatementPDFRequest } from "./backend";
 import type { UpdateClientLimitsRequest } from "./backend";
@@ -452,31 +452,31 @@ export interface IBackendServiceClient {
      */
     getStatementPDF(input: GetStatementPDFRequest, options?: RpcOptions): UnaryCall<GetStatementPDFRequest, StatementPDF>;
     /**
-     * Client keys
+     * Connections
      *
-     * @generated from protobuf rpc: CreatePublicKey(backend.v1.CreatePublicKeyRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreateConnection(backend.v1.CreateConnectionRequest) returns (backend.v1.Empty);
      */
-    createPublicKey(input: CreatePublicKeyRequest, options?: RpcOptions): UnaryCall<CreatePublicKeyRequest, Empty>;
+    createConnection(input: CreateConnectionRequest, options?: RpcOptions): UnaryCall<CreateConnectionRequest, Empty>;
     /**
-     * @generated from protobuf rpc: ListPublicKeys(backend.v1.Empty) returns (backend.v1.ListPublicKeysResponse);
+     * @generated from protobuf rpc: ListConnections(backend.v1.Empty) returns (backend.v1.ListConnectionsResponse);
      */
-    listPublicKeys(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListPublicKeysResponse>;
+    listConnections(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListConnectionsResponse>;
     /**
-     * @generated from protobuf rpc: GetPublicKey(backend.v1.GetPublicKeyRequest) returns (backend.v1.PublicKey);
+     * @generated from protobuf rpc: GetConnection(backend.v1.GetConnectionRequest) returns (backend.v1.Connection);
      */
-    getPublicKey(input: GetPublicKeyRequest, options?: RpcOptions): UnaryCall<GetPublicKeyRequest, PublicKey>;
+    getConnection(input: GetConnectionRequest, options?: RpcOptions): UnaryCall<GetConnectionRequest, Connection>;
     /**
-     * @generated from protobuf rpc: GetPublicKeyLimits(backend.v1.GetPublicKeyLimitsRequest) returns (backend.v1.PublicKeyLimits);
+     * @generated from protobuf rpc: GetConnectionLimits(backend.v1.GetConnectionLimitsRequest) returns (backend.v1.ConnectionLimits);
      */
-    getPublicKeyLimits(input: GetPublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<GetPublicKeyLimitsRequest, PublicKeyLimits>;
+    getConnectionLimits(input: GetConnectionLimitsRequest, options?: RpcOptions): UnaryCall<GetConnectionLimitsRequest, ConnectionLimits>;
     /**
-     * @generated from protobuf rpc: UpdatePublicKeyLimit(backend.v1.UpdatePublicKeyLimitsRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: UpdateConnectionLimits(backend.v1.UpdateConnectionLimitsRequest) returns (backend.v1.Empty);
      */
-    updatePublicKeyLimit(input: UpdatePublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<UpdatePublicKeyLimitsRequest, Empty>;
+    updateConnectionLimits(input: UpdateConnectionLimitsRequest, options?: RpcOptions): UnaryCall<UpdateConnectionLimitsRequest, Empty>;
     /**
-     * @generated from protobuf rpc: DeletePublicKey(backend.v1.DeletePublicKeyRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: DeleteConnection(backend.v1.DeleteConnectionRequest) returns (backend.v1.Empty);
      */
-    deletePublicKey(input: DeletePublicKeyRequest, options?: RpcOptions): UnaryCall<DeletePublicKeyRequest, Empty>;
+    deleteConnection(input: DeleteConnectionRequest, options?: RpcOptions): UnaryCall<DeleteConnectionRequest, Empty>;
     /**
      * Public Wallet Data
      *
@@ -860,48 +860,48 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetStatementPDFRequest, StatementPDF>("unary", this._transport, method, opt, input);
     }
     /**
-     * Client keys
+     * Connections
      *
-     * @generated from protobuf rpc: CreatePublicKey(backend.v1.CreatePublicKeyRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreateConnection(backend.v1.CreateConnectionRequest) returns (backend.v1.Empty);
      */
-    createPublicKey(input: CreatePublicKeyRequest, options?: RpcOptions): UnaryCall<CreatePublicKeyRequest, Empty> {
+    createConnection(input: CreateConnectionRequest, options?: RpcOptions): UnaryCall<CreateConnectionRequest, Empty> {
         const method = this.methods[44], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CreatePublicKeyRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<CreateConnectionRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListPublicKeys(backend.v1.Empty) returns (backend.v1.ListPublicKeysResponse);
+     * @generated from protobuf rpc: ListConnections(backend.v1.Empty) returns (backend.v1.ListConnectionsResponse);
      */
-    listPublicKeys(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListPublicKeysResponse> {
+    listConnections(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListConnectionsResponse> {
         const method = this.methods[45], opt = this._transport.mergeOptions(options);
-        return stackIntercept<Empty, ListPublicKeysResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<Empty, ListConnectionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: GetPublicKey(backend.v1.GetPublicKeyRequest) returns (backend.v1.PublicKey);
+     * @generated from protobuf rpc: GetConnection(backend.v1.GetConnectionRequest) returns (backend.v1.Connection);
      */
-    getPublicKey(input: GetPublicKeyRequest, options?: RpcOptions): UnaryCall<GetPublicKeyRequest, PublicKey> {
+    getConnection(input: GetConnectionRequest, options?: RpcOptions): UnaryCall<GetConnectionRequest, Connection> {
         const method = this.methods[46], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetPublicKeyRequest, PublicKey>("unary", this._transport, method, opt, input);
+        return stackIntercept<GetConnectionRequest, Connection>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: GetPublicKeyLimits(backend.v1.GetPublicKeyLimitsRequest) returns (backend.v1.PublicKeyLimits);
+     * @generated from protobuf rpc: GetConnectionLimits(backend.v1.GetConnectionLimitsRequest) returns (backend.v1.ConnectionLimits);
      */
-    getPublicKeyLimits(input: GetPublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<GetPublicKeyLimitsRequest, PublicKeyLimits> {
+    getConnectionLimits(input: GetConnectionLimitsRequest, options?: RpcOptions): UnaryCall<GetConnectionLimitsRequest, ConnectionLimits> {
         const method = this.methods[47], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetPublicKeyLimitsRequest, PublicKeyLimits>("unary", this._transport, method, opt, input);
+        return stackIntercept<GetConnectionLimitsRequest, ConnectionLimits>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: UpdatePublicKeyLimit(backend.v1.UpdatePublicKeyLimitsRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: UpdateConnectionLimits(backend.v1.UpdateConnectionLimitsRequest) returns (backend.v1.Empty);
      */
-    updatePublicKeyLimit(input: UpdatePublicKeyLimitsRequest, options?: RpcOptions): UnaryCall<UpdatePublicKeyLimitsRequest, Empty> {
+    updateConnectionLimits(input: UpdateConnectionLimitsRequest, options?: RpcOptions): UnaryCall<UpdateConnectionLimitsRequest, Empty> {
         const method = this.methods[48], opt = this._transport.mergeOptions(options);
-        return stackIntercept<UpdatePublicKeyLimitsRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<UpdateConnectionLimitsRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: DeletePublicKey(backend.v1.DeletePublicKeyRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: DeleteConnection(backend.v1.DeleteConnectionRequest) returns (backend.v1.Empty);
      */
-    deletePublicKey(input: DeletePublicKeyRequest, options?: RpcOptions): UnaryCall<DeletePublicKeyRequest, Empty> {
+    deleteConnection(input: DeleteConnectionRequest, options?: RpcOptions): UnaryCall<DeleteConnectionRequest, Empty> {
         const method = this.methods[49], opt = this._transport.mergeOptions(options);
-        return stackIntercept<DeletePublicKeyRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<DeleteConnectionRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * Public Wallet Data

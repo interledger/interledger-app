@@ -201,7 +201,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   const response = await grpcClient
-    .createPublicKey(
+    .createConnection(
       {
         applicationName: form.get('applicationName') as string,
         publicKey: form.get('publicKey') as string,

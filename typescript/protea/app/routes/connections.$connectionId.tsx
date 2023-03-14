@@ -31,9 +31,9 @@ export const meta: MetaFunction = () => {
   }
 }
 
-async function getKey(request: Request, id: string) {
+async function getConnection(request: Request, id: string) {
   let rpc = await grpcClient
-    .getPublicKey(
+    .getConnection(
       { id },
       {
         meta: {
@@ -51,9 +51,9 @@ async function getKey(request: Request, id: string) {
   return rpc.response
 }
 
-async function getKeyLimits(request: Request, id: string) {
+async function getConnectionLimits(request: Request, id: string) {
   let rpc = await grpcClient
-    .getPublicKeyLimits(
+    .getConnectionLimits(
       { id },
       {
         meta: {
@@ -84,16 +84,16 @@ async function getKeyLimits(request: Request, id: string) {
 
 export async function loader({ request, params }: LoaderArgs) {
   let data = await Promise.all([
-    getKey(request, params.connectionId as string),
-    getKeyLimits(request, params.connectionId as string),
+    getConnection(request, params.connectionId as string),
+    getConnectionLimits(request, params.connectionId as string),
     getSnackbar(request)
   ])
 
-  return json({ key: data[0], limits: data[1], snackbar: data[2] })
+  return json({ connection: data[0], limits: data[1], snackbar: data[2] })
 }
 
 export default function Page() {
-  const { key, limits, snackbar } = useLoaderData<typeof loader>()
+  const { connection, limits, snackbar } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     snackbar.show ?? false
@@ -107,7 +107,7 @@ export default function Page() {
     <>
       <Form
         id='update-key-limit'
-        action={`/connections/${key.id}`}
+        action={`/connections/${connection.id}`}
         method='post'
         className='hidden'
       />
@@ -119,7 +119,7 @@ export default function Page() {
       />
       <Form
         id='delete-key'
-        action={`/connections/${key.id}`}
+        action={`/connections/${connection.id}`}
         method='post'
         className='hidden'
       />
@@ -132,14 +132,14 @@ export default function Page() {
 
       <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
         <h1 className='font-display text-2xl font-medium'>
-          {key.applicationName}
+          {connection.applicationName}
         </h1>
         <div className='my-4 flex flex items-center justify-between rounded-xl bg-container p-4'>
-          {key.publicKey}
+          {connection.publicKey}
         </div>
 
-        <p className='text-sm'>Added {key.createdAt}</p>
-        <p className='text-sm text-purple-500'>Last used {key.lastUsedAt}</p>
+        <p className='text-sm'>Added {connection.createdAt}</p>
+        <p className='text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>
       </Card>
 
       <br />
@@ -262,7 +262,7 @@ export async function action({ request, params }: ActionArgs) {
 
   if (formName === 'delete') {
     const response = await grpcClient
-      .deletePublicKey(
+      .deleteConnection(
         { id: params.connectionId as string },
         {
           meta: {
@@ -294,7 +294,7 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   const response = await grpcClient
-    .updatePublicKeyLimit(
+    .updateConnectionLimits(
       {
         id: params.connectionId as string,
         daily: {

@@ -71,7 +71,7 @@ func TestCreatePublicKey(t *testing.T) {
 		},
 	}).AnyTimes()
 
-	_, err = client.CreatePublicKey(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreatePublicKeyRequest{
+	_, err = client.CreateConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateConnectionRequest{
 		ApplicationName: "FynTest",
 		PublicKey:       "le key",
 		DailyLimit: &backendv1.Amount{
@@ -139,7 +139,7 @@ func TestGetAndListPublicKeys(t *testing.T) {
 		nil,
 	).AnyTimes()
 
-	listRpc, err := client.ListPublicKeys(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.Empty{})
+	listRpc, err := client.ListConnections(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.Empty{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,7 +148,7 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	assert.Equal(t, "le key", listRpc.GetKeys()[0].PublicKey)
 	assert.Equal(t, "FynTest", listRpc.GetKeys()[0].ApplicationName)
 
-	getRpc, err := client.GetPublicKey(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.GetPublicKeyRequest{
+	getRpc, err := client.GetConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.GetConnectionRequest{
 		Id: keyUuid,
 	})
 	require.NoError(t, err)
@@ -193,7 +193,7 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 		},
 	}).Return(nil).AnyTimes()
 
-	_, err = client.UpdatePublicKeyLimit(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdatePublicKeyLimitsRequest{
+	_, err = client.UpdateConnectionLimits(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdateConnectionLimitsRequest{
 		Id: publicKeyUuid,
 		Daily: &backendv1.Amount{
 			Asset:      "USD",
@@ -235,7 +235,7 @@ func TestDeletePublicKey(t *testing.T) {
 	publicKeyUuid := uuid.NewString()
 	c.authorisation.EXPECT().DeletePublicKey(gomock.Any(), ppURL, publicKeyUuid).Return(nil).AnyTimes()
 
-	_, err = client.DeletePublicKey(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.DeletePublicKeyRequest{
+	_, err = client.DeleteConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.DeleteConnectionRequest{
 		Id: publicKeyUuid,
 	})
 	require.NoError(t, err)

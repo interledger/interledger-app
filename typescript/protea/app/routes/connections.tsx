@@ -8,8 +8,8 @@ import { grpcClient } from '~/lib/proto.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
-  let keys = await grpcClient
-    .listPublicKeys(
+  let connections = await grpcClient
+    .listConnections(
       {},
       {
         meta: {
@@ -21,7 +21,7 @@ export async function loader({ request }: LoaderArgs) {
 
   let snackbar = await getSnackbar(request)
 
-  return json({ keys, snackbar })
+  return json({ connections, snackbar })
 }
 
 export const handle = {
@@ -35,7 +35,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { keys, snackbar } = useLoaderData<typeof loader>()
+  const { connections, snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     snackbar.show ?? false
   )
@@ -51,29 +51,29 @@ export default function Page() {
         <p className='mt-6 text-medium'>Add and manage your connections.</p>
       </Card>
 
-      {keys.length > 0 && (
+      {connections.length > 0 && (
         <>
           <br />
           <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <h1 className='font-display text-2xl font-medium'>Public keys</h1>
-            {keys.map((key) => (
+            {connections.map((conn) => (
               <Card
-                key={key.id}
+                key={conn.id}
                 className='mt-6 bg-slate-100 col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
               >
                 <Router
                   to={route('/connections/:connectionId', {
-                    connectionId: key.id
+                    connectionId: conn.id
                   })}
                 >
                   <div className='flex justify-between space-x-4'>
                     <div className='flex flex-col'>
                       <p className='text-sm text-medium space-y-1'>
-                        {key.applicationName}
+                        {conn.applicationName}
                       </p>
-                      <p className='mt-1 text-xs'>Added {key.createdAt}</p>
+                      <p className='mt-1 text-xs'>Added {conn.createdAt}</p>
                       <p className='text-xs text-purple-500'>
-                        Last used {key.lastUsedAt}
+                        Last used {conn.lastUsedAt}
                       </p>
                     </div>
                     <div className='flex content-start justify-between rounded-full bg-container text-medium'>

@@ -241,13 +241,13 @@ service BackendService {
   //Statements
   rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
 
-  //Client keys
-  rpc CreatePublicKey(CreatePublicKeyRequest) returns (Empty);
-  rpc ListPublicKeys(Empty) returns (ListPublicKeysResponse);
-  rpc GetPublicKey(GetPublicKeyRequest) returns (PublicKey);
-  rpc GetPublicKeyLimits(GetPublicKeyLimitsRequest) returns (PublicKeyLimits);
-  rpc UpdatePublicKeyLimit(UpdatePublicKeyLimitsRequest) returns (Empty);
-  rpc DeletePublicKey(DeletePublicKeyRequest) returns (Empty);
+  //Connections
+  rpc CreateConnection(CreateConnectionRequest) returns (Empty);
+  rpc ListConnections(Empty) returns (ListConnectionsResponse);
+  rpc GetConnection(GetConnectionRequest) returns (Connection);
+  rpc GetConnectionLimits(GetConnectionLimitsRequest) returns (ConnectionLimits);
+  rpc UpdateConnectionLimits(UpdateConnectionLimitsRequest) returns (Empty);
+  rpc DeleteConnection(DeleteConnectionRequest) returns (Empty);
 
   // Public Wallet Data
   rpc GetPublicWalletDetails(GetPublicWalletDetailsRequest) returns (GetPublicWalletDetailsResponse);
@@ -265,13 +265,13 @@ service BackendService {
   rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
 }
 
-message PublicKeyLimits {
+message ConnectionLimits {
   Amount daily = 1;
   Amount monthly = 2;
   Amount overall = 3;
 }
 
-message PublicKey {
+message Connection {
   string id = 1;
   string applicationName = 2;
   string publicKey = 3; // base64 encoded public key
@@ -279,7 +279,7 @@ message PublicKey {
   string lastUsedAt = 5;
 }
 
-message CreatePublicKeyRequest {
+message CreateConnectionRequest {
   string applicationName = 1;
   string publicKey = 2; // base64 encoded public key
   Amount dailyLimit = 3;
@@ -287,23 +287,23 @@ message CreatePublicKeyRequest {
   Amount overallLimit = 5;
 }
 
-message GetPublicKeyRequest {
+message GetConnectionRequest {
   string id = 1;
 }
 
-message GetPublicKeyLimitsRequest {
+message GetConnectionLimitsRequest {
   string id = 1;
 }
 
-message DeletePublicKeyRequest {
+message DeleteConnectionRequest {
   string id = 1;
 }
 
-message ListPublicKeysResponse {
-  repeated PublicKey keys = 1;
+message ListConnectionsResponse {
+  repeated Connection keys = 1;
 }
 
-message UpdatePublicKeyLimitsRequest {
+message UpdateConnectionLimitsRequest {
   string id = 1;
   Amount daily = 2;
   Amount monthly = 3;
