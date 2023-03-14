@@ -295,6 +295,15 @@ func CreateClientPublicKey(
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
+	var existingID string
+	err = b.DB().GetContext(ctx, &existingID, "SELECT id FROM authorisation_keys WHERE client_id=$1 AND key_id=$2 AND jwk=$3;", client.ID, publicKey.Kid, serializedKey)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
+	}
+	if existingID != "" {
+		return GetPublicKeyByID(ctx, b, clientURL, existingID)
+	}
+
 	sql := "INSERT INTO authorisation_keys (client_id, key_id, jwk) VALUES ($1, $2, $3) RETURNING id;"
 	var keyUuid string
 	err = b.DB().GetContext(ctx, &keyUuid, sql, client.ID, publicKey.Kid, serializedKey)

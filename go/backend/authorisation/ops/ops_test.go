@@ -187,6 +187,15 @@ func TestCreateAndListClientKeys(t *testing.T) {
 	assert.Equal(t, key.Kid, getKey.Kid)
 	assert.Equal(t, key.Use, getKey.Use)
 	assert.Equal(t, key.X, getKey.X)
+
+	// idempotent
+	k, err = ops.CreateClientPublicKey(ctx, b, "https://fynbos.me/alice", key)
+	require.NoError(t, err)
+	assert.Equal(t, k.ID, keys[0].ID)
+
+	keys, err = ops.ListKeys(ctx, b, "https://fynbos.me/alice")
+	require.NoError(t, err)
+	require.Len(t, keys, 1)
 }
 
 func TestDeletePublicKeys(t *testing.T) {
