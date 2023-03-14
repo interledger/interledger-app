@@ -14,7 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	temporal "go.temporal.io/sdk/client"
@@ -27,7 +26,6 @@ type Backends interface {
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Email() email.Client
-	Machnet() machnet.Client
 	KYC() kyc.Client
 	Transactions() transactions.Client
 	Authorisation() authorisation.InternalClient
@@ -42,7 +40,6 @@ type testBackends struct {
 	la   linkedaccounts.Client
 	temp temporal.Client
 	em   email.Client
-	mc   machnet.Client
 	tr   transactions.Client
 	ac   analytics.Client
 	auth authorisation.InternalClient
@@ -56,10 +53,6 @@ func (t testBackends) Authorisation() authorisation.InternalClient {
 
 func (t testBackends) KYC() kyc.Client {
 	return nil
-}
-
-func (t testBackends) Machnet() machnet.Client {
-	return t.mc
 }
 
 func (t testBackends) Temporal() temporal.Client {
@@ -102,7 +95,7 @@ func (t testBackends) Contacts() contacts.Client {
 	return t.cc
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, mc machnet.Client, tr transactions.Client, auth authorisation.InternalClient, lmt limits.Client, cc contacts.Client) Backends {
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, tr transactions.Client, auth authorisation.InternalClient, lmt limits.Client, cc contacts.Client) Backends {
 	ac := analytics_client.New(nil, "")
-	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, mc: mc, tr: tr, ac: ac, auth: auth, lmt: lmt, cc: cc}
+	return &testBackends{db: db, val: validator.New(), la: la, temp: temp, tr: tr, ac: ac, auth: auth, lmt: lmt, cc: cc}
 }

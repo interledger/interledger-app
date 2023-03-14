@@ -33,7 +33,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	b := NewTestBackends(t,
 		db.MigrateTestDB(t, context.Background()),
 		nil,
-		la_mock, nil, nil, kyc_mock, nil)
+		la_mock, nil, kyc_mock, nil)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
@@ -85,7 +85,7 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	b := NewTestBackends(t,
 		db.MigrateTestDB(t, context.Background()),
 		nil,
-		la_mock, nil, nil, kyc_mock, nil)
+		la_mock, nil, kyc_mock, nil)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()

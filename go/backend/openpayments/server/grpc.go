@@ -6,11 +6,9 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/openpayments/workflows"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -336,49 +334,15 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, req.QuoteID)
+	_, err = ops.GetWalletQuote(ctx, g.b, wallet.ID, req.QuoteID)
 	if err != nil {
 		return nil, toGRPCError(err)
-	}
-
-	var sendLA *linkedaccounts.LinkedAccount
-	if q.FromLinkedAccount != "" {
-		sendLA, err = g.b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-	}
-
-	limits, err := g.b.Machnet().GetUserLimits(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	// If no linked account is specified, default to card, so check the limits
-	fromCard := sendLA == nil || (sendLA != nil && sendLA.Type == machnet.TypeSendCard)
-
-	exceeds, exceedType := limits.Transfer.Exceeds(q.SendAmount, false)
-
-	if fromCard && !exceeds {
-		// Check wallet fund limits if the user hasn't already exceeded the transfer limits
-		exceeds, exceedType = limits.FundWallet.Exceeds(q.SendAmount, true)
-	}
-
-	var insufficientBalance bool
-	// Check wallet balance
-	if !fromCard {
-		w, err := g.b.Machnet().GetWalletByWalletID(ctx, wallet.ID)
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-
-		insufficientBalance = w.AvailableBalance < q.SendAmount.Value
 	}
 
 	return &pb.PreCheckOutgoingPaymentResponse{
-		ExceedsLimits:       exceeds,
-		LimitType:           exceedType,
-		InsufficientBalance: insufficientBalance,
+		ExceedsLimits:       false,
+		LimitType:           "",
+		InsufficientBalance: false,
 	}, nil
 }
 
