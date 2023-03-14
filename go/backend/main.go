@@ -53,8 +53,6 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
-	"gitlab.com/fynbos/backend/providers/machnet"
-	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
@@ -175,8 +173,6 @@ func start(args *cli.StartArgs) {
 	b.signup = signup_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, logger)
-
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
 
 	b.auth = authorisation_client.New(b)
 
@@ -400,8 +396,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.linkedaccounts = linked_account_client.New(b)
 
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
-
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
 	b.openpayments = openpayments_client.New(b)
@@ -441,7 +435,6 @@ type backends struct {
 	agreements     agreements.Client
 	countries      country.Client
 	linkedaccounts linkedaccounts.Client
-	machnet        machnet.Client
 	healthcheck    healthcheck.Service
 	signup         signup.Client
 	supportTickets supporttickets.Client
@@ -524,10 +517,6 @@ func (b backends) Twilio() _twilio.Service {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
-}
-
-func (b backends) Machnet() machnet.Client {
-	return b.machnet
 }
 
 func (b backends) Email() email.Client {
