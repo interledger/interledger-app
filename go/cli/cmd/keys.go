@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/x509"
-	"encoding/base64"
-	"encoding/json"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"os"
@@ -113,19 +113,22 @@ func CreateKeyPair(ctx context.Context, b Backends, keyID string, force bool) er
 		return err
 	}
 
-	pubJwk := map[string]string{
-		"kty": "OKP",
-		"crv": "Ed25519",
-		"kid": keyID,
-		"x":   base64.StdEncoding.EncodeToString(pub),
-	}
-
-	marshalJWK, err := json.Marshal(pubJwk)
+	pkixEncodedPubKey, err := x509.MarshalPKIXPublicKey(pub)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(marshalJWK))
+	pemEncodedPubKey := pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: pkixEncodedPubKey,
+	})
+
+	fmt.Println("You can connect this cli to your wallet at https://fynbos.app/connections/add-a-public-key")
+	fmt.Println(string(pemEncodedPubKey))
+
+	fingerprint := sha256.Sum256(pemEncodedPubKey)
+	fmt.Println("The key fingerprint is:")
+	fmt.Println("SHA256:", string(hex.EncodeToString(fingerprint[:])))
 
 	return nil
 }
