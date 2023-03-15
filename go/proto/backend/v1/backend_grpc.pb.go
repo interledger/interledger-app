@@ -559,6 +559,8 @@ type BackendServiceClient interface {
 	DeleteIdentity(ctx context.Context, in *DeleteIdentityRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetIdentityPublic(ctx context.Context, in *SetIdentityPublicRequest, opts ...grpc.CallOption) (*Identity, error)
 	StartIdentityVerification(ctx context.Context, in *StartIdentityVerificationRequest, opts ...grpc.CallOption) (*Identity, error)
+	// KYC
+	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 }
 
 type backendServiceClient struct {
@@ -974,6 +976,15 @@ func (c *backendServiceClient) StartIdentityVerification(ctx context.Context, in
 	return out, nil
 }
 
+func (c *backendServiceClient) KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error) {
+	out := new(KYCStatusResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/KYCStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1035,6 +1046,8 @@ type BackendServiceServer interface {
 	DeleteIdentity(context.Context, *DeleteIdentityRequest) (*Empty, error)
 	SetIdentityPublic(context.Context, *SetIdentityPublicRequest) (*Identity, error)
 	StartIdentityVerification(context.Context, *StartIdentityVerificationRequest) (*Identity, error)
+	// KYC
+	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1175,6 +1188,9 @@ func (UnimplementedBackendServiceServer) SetIdentityPublic(context.Context, *Set
 }
 func (UnimplementedBackendServiceServer) StartIdentityVerification(context.Context, *StartIdentityVerificationRequest) (*Identity, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartIdentityVerification not implemented")
+}
+func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KYCStatus not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -1998,6 +2014,24 @@ func _BackendService_StartIdentityVerification_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_KYCStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).KYCStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/KYCStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).KYCStatus(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2184,6 +2218,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StartIdentityVerification",
 			Handler:    _BackendService_StartIdentityVerification_Handler,
+		},
+		{
+			MethodName: "KYCStatus",
+			Handler:    _BackendService_KYCStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
