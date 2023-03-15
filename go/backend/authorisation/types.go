@@ -1,6 +1,15 @@
 package authorisation
 
-import "time"
+import (
+	"crypto/ed25519"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/pem"
+	"fmt"
+	"time"
+)
 
 type Client struct {
 	ID  string `db:"id"`
@@ -133,4 +142,29 @@ func (key Jwk) IsEdDSAPublicKey() bool {
 	return key.Kty == "OKP" &&
 		key.Crv == "Ed25519" &&
 		key.X != ""
+}
+
+func (key Jwk) Fingerprint() (string, error) {
+	if key.X == "" {
+		return "", fmt.Errorf("%w Key is empty.", ErrInternal)
+	}
+
+	keyBytes, err := base64.StdEncoding.DecodeString(key.X)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	pkixBytes, err := x509.MarshalPKIXPublicKey(ed25519.PublicKey(keyBytes))
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	hashedPem := sha256.Sum256(pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: pkixBytes,
+	}))
+
+	fingerprint := fmt.Sprintf("SHA256:%s", hex.EncodeToString(hashedPem[:]))
+
+	return fingerprint, nil
 }

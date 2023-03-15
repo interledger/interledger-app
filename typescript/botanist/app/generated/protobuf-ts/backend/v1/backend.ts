@@ -495,9 +495,9 @@ export interface Connection {
      */
     applicationName: string;
     /**
-     * @generated from protobuf field: string publicKey = 3;
+     * @generated from protobuf field: string publicKeyFingerprint = 3;
      */
-    publicKey: string; // base64 encoded public key
+    publicKeyFingerprint: string;
     /**
      * @generated from protobuf field: string createdAt = 4;
      */
@@ -518,7 +518,7 @@ export interface CreateConnectionRequest {
     /**
      * @generated from protobuf field: string publicKey = 2;
      */
-    publicKey: string; // base64 encoded public key
+    publicKey: string; // pem encoded ed25519 public key
     /**
      * @generated from protobuf field: backend.v1.Amount dailyLimit = 3;
      */
@@ -3096,13 +3096,13 @@ class Connection$Type extends MessageType<Connection> {
         super("backend.v1.Connection", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "applicationName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "publicKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "publicKeyFingerprint", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "lastUsedAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Connection>): Connection {
-        const message = { id: "", applicationName: "", publicKey: "", createdAt: "", lastUsedAt: "" };
+        const message = { id: "", applicationName: "", publicKeyFingerprint: "", createdAt: "", lastUsedAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Connection>(this, message, value);
@@ -3119,8 +3119,8 @@ class Connection$Type extends MessageType<Connection> {
                 case /* string applicationName */ 2:
                     message.applicationName = reader.string();
                     break;
-                case /* string publicKey */ 3:
-                    message.publicKey = reader.string();
+                case /* string publicKeyFingerprint */ 3:
+                    message.publicKeyFingerprint = reader.string();
                     break;
                 case /* string createdAt */ 4:
                     message.createdAt = reader.string();
@@ -3146,9 +3146,9 @@ class Connection$Type extends MessageType<Connection> {
         /* string applicationName = 2; */
         if (message.applicationName !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.applicationName);
-        /* string publicKey = 3; */
-        if (message.publicKey !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.publicKey);
+        /* string publicKeyFingerprint = 3; */
+        if (message.publicKeyFingerprint !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.publicKeyFingerprint);
         /* string createdAt = 4; */
         if (message.createdAt !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.createdAt);
