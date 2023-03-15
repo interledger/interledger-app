@@ -179,7 +179,7 @@ func TestCreateAndListClientKeys(t *testing.T) {
 	assert.Equal(t, key.Use, keys[0].Use)
 	assert.Equal(t, key.X, keys[0].X)
 
-	getKey, err := ops.GetPublicKeyByID(ctx, b, "https://fynbos.me/alice", k.ID)
+	getKey, err := ops.GetPublicKeyByID(ctx, b, k.ID)
 	require.NoError(t, err)
 	assert.Equal(t, key.Kty, getKey.Kty)
 	assert.Equal(t, key.Alg, getKey.Alg)
@@ -225,7 +225,7 @@ func TestDeletePublicKeys(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, keys, 1)
 
-	err = ops.DeletePublicKey(ctx, b, "https://fynbos.me/alice", k.ID)
+	err = ops.DeletePublicKey(ctx, b, k.ID)
 	require.NoError(t, err)
 
 	keys, err = ops.ListKeys(ctx, b, "https://fynbos.me/alice")

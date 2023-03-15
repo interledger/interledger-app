@@ -129,9 +129,17 @@ func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnec
 		return nil, toGRPCError(err)
 	}
 
-	key, err := s.b.Authorisation().GetPublicKeyByID(ctx, pp.URL, req.GetId())
+	key, err := s.b.Authorisation().GetPublicKeyByID(ctx, req.GetId())
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	client, err := s.b.Authorisation().LookupClient(ctx, pp.URL)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if client.ID != key.ClientID {
+		return nil, NotFoundError("Connection not found.")
 	}
 
 	return &backendv1.Connection{
@@ -154,20 +162,9 @@ func (s *rpcService) GetConnectionLimits(ctx context.Context, req *backendv1.Get
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	lims, err := s.b.Limits().List(ctx, wallet.ID)
+	keyLimit, err := s.b.Limits().GetPublicKeyLimit(ctx, wallet.ID, req.GetId())
 	if err != nil {
 		return nil, toGRPCError(err)
-	}
-
-	var keyLimit *limits.Limit
-	for _, l := range lims {
-		if l.ForeignType == limits.FKTypeClientPublicKey && l.ForeignID == req.GetId() {
-			keyLimit = &l.Limit
-			break
-		}
-	}
-	if keyLimit == nil {
-		return nil, NotFoundError("public key not found")
 	}
 
 	return &backendv1.ConnectionLimits{
@@ -233,7 +230,20 @@ func (s *rpcService) DeleteConnection(ctx context.Context, req *backendv1.Delete
 		return nil, toGRPCError(err)
 	}
 
-	err = s.b.Authorisation().DeletePublicKey(ctx, pp.URL, req.GetId())
+	key, err := s.b.Authorisation().GetPublicKeyByID(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	client, err := s.b.Authorisation().LookupClient(ctx, pp.URL)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if client.ID != key.ClientID {
+		return &backendv1.Empty{}, nil
+	}
+
+	err = s.b.Authorisation().DeletePublicKey(ctx, req.GetId())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

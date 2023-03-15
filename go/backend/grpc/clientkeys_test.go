@@ -126,15 +126,23 @@ func TestGetAndListPublicKeys(t *testing.T) {
 		},
 		nil,
 	).AnyTimes()
-	c.authorisation.EXPECT().GetPublicKeyByID(gomock.Any(), ppURL, keyUuid).Return(
+	clientID := uuid.NewString()
+	c.authorisation.EXPECT().LookupClient(gomock.Any(), ppURL).Return(
+		&authorisation.Client{
+			ID: clientID,
+		},
+		nil,
+	).AnyTimes()
+	c.authorisation.EXPECT().GetPublicKeyByID(gomock.Any(), keyUuid).Return(
 		&authorisation.Jwk{
-			ID:  keyUuid,
-			Kty: "OKP",
-			Alg: "EdDSA",
-			Crv: "Ed25519",
-			X:   "le key",
-			Use: "sign",
-			Kid: "FynTest",
+			ClientID: clientID,
+			ID:       keyUuid,
+			Kty:      "OKP",
+			Alg:      "EdDSA",
+			Crv:      "Ed25519",
+			X:        "le key",
+			Use:      "sign",
+			Kid:      "FynTest",
 		},
 		nil,
 	).AnyTimes()
@@ -232,8 +240,29 @@ func TestDeletePublicKey(t *testing.T) {
 		URL:      ppURL,
 	}, nil).AnyTimes()
 
+	clientID := uuid.NewString()
+	c.authorisation.EXPECT().LookupClient(gomock.Any(), ppURL).Return(
+		&authorisation.Client{
+			ID: clientID,
+		},
+		nil,
+	).AnyTimes()
 	publicKeyUuid := uuid.NewString()
-	c.authorisation.EXPECT().DeletePublicKey(gomock.Any(), ppURL, publicKeyUuid).Return(nil).AnyTimes()
+	c.authorisation.EXPECT().GetPublicKeyByID(gomock.Any(), publicKeyUuid).Return(
+		&authorisation.Jwk{
+			ClientID: clientID,
+			ID:       publicKeyUuid,
+			Kty:      "OKP",
+			Alg:      "EdDSA",
+			Crv:      "Ed25519",
+			X:        "le key",
+			Use:      "sign",
+			Kid:      "FynTest",
+		},
+		nil,
+	).AnyTimes()
+
+	c.authorisation.EXPECT().DeletePublicKey(gomock.Any(), publicKeyUuid).Return(nil).AnyTimes()
 
 	_, err = client.DeleteConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.DeleteConnectionRequest{
 		Id: publicKeyUuid,

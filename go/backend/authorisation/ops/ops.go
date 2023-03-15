@@ -301,7 +301,7 @@ func CreateClientPublicKey(
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 	if existingID != "" {
-		return GetPublicKeyByID(ctx, b, clientURL, existingID)
+		return GetPublicKeyByID(ctx, b, existingID)
 	}
 
 	sql := "INSERT INTO authorisation_keys (client_id, key_id, jwk) VALUES ($1, $2, $3) RETURNING id;"
@@ -311,20 +311,15 @@ func CreateClientPublicKey(
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
-	return GetPublicKeyByID(ctx, b, clientURL, keyUuid)
+	return GetPublicKeyByID(ctx, b, keyUuid)
 }
 
 func GetPublicKeyByID(
-	ctx context.Context, b Backends, clientURL string, id string,
+	ctx context.Context, b Backends, id string,
 ) (*authorisation.Jwk, error) {
-	client, err := LookupClient(ctx, b, clientURL)
-	if err != nil {
-		return nil, err
-	}
-
 	var key dbClientKey
-	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE client_id=$1 AND id=$2;"
-	err = b.DB().GetContext(ctx, &key, sql, client.ID, id)
+	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE id=$1;"
+	err := b.DB().GetContext(ctx, &key, sql, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
@@ -345,18 +340,14 @@ func GetPublicKeyByID(
 		Use:       jwk.Use,
 		ID:        key.ID,
 		CreatedAt: key.CreatedAt,
+		ClientID:  key.ClientID,
 	}, nil
 }
 
 func DeletePublicKey(
-	ctx context.Context, b Backends, clientURL string, id string,
+	ctx context.Context, b Backends, id string,
 ) error {
-	client, err := LookupClient(ctx, b, clientURL)
-	if err != nil {
-		return err
-	}
-
-	_, err = b.DB().ExecContext(ctx, "DELETE FROM authorisation_keys WHERE id=$1 AND client_id=$2;", id, client.ID)
+	_, err := b.DB().ExecContext(ctx, "DELETE FROM authorisation_keys WHERE id=$1;", id)
 	if err != nil {
 		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
@@ -396,6 +387,7 @@ func ListKeys(
 			Use:       jwk.Use,
 			ID:        keys[i].ID,
 			CreatedAt: keys[i].CreatedAt,
+			ClientID:  key.ClientID,
 		}
 	}
 
