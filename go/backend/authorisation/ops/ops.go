@@ -271,12 +271,13 @@ func lookupGrant(ctx context.Context, b Backends, id string) (*authorisation.Gra
 }
 
 type dbClientKey struct {
-	ID        string    `db:"id"`
-	ClientID  string    `db:"client_id"`
-	KeyID     string    `db:"key_id"`
-	JWK       string    `db:"jwk"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID        string       `db:"id"`
+	ClientID  string       `db:"client_id"`
+	KeyID     string       `db:"key_id"`
+	JWK       string       `db:"jwk"`
+	CreatedAt time.Time    `db:"created_at"`
+	UpdatedAt time.Time    `db:"updated_at"`
+	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
 func CreateClientPublicKey(
@@ -296,7 +297,7 @@ func CreateClientPublicKey(
 	}
 
 	var existingID string
-	err = b.DB().GetContext(ctx, &existingID, "SELECT id FROM authorisation_keys WHERE client_id=$1 AND key_id=$2 AND jwk=$3;", client.ID, publicKey.Kid, serializedKey)
+	err = b.DB().GetContext(ctx, &existingID, "SELECT id FROM authorisation_keys WHERE client_id=$1 AND key_id=$2 AND jwk=$3 AND deleted_at IS NULL;", client.ID, publicKey.Kid, serializedKey)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
@@ -305,13 +306,13 @@ func CreateClientPublicKey(
 	}
 
 	sql := "INSERT INTO authorisation_keys (client_id, key_id, jwk) VALUES ($1, $2, $3) RETURNING id;"
-	var keyUuid string
-	err = b.DB().GetContext(ctx, &keyUuid, sql, client.ID, publicKey.Kid, serializedKey)
+	var id string
+	err = b.DB().GetContext(ctx, &id, sql, client.ID, publicKey.Kid, serializedKey)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
 
-	return GetPublicKeyByID(ctx, b, keyUuid)
+	return GetPublicKeyByID(ctx, b, id)
 }
 
 func GetPublicKeyByID(
@@ -341,13 +342,14 @@ func GetPublicKeyByID(
 		ID:        key.ID,
 		CreatedAt: key.CreatedAt,
 		ClientID:  key.ClientID,
+		DeletedAt: key.DeletedAt.Time,
 	}, nil
 }
 
 func DeletePublicKey(
 	ctx context.Context, b Backends, id string,
 ) error {
-	_, err := b.DB().ExecContext(ctx, "DELETE FROM authorisation_keys WHERE id=$1;", id)
+	_, err := b.DB().ExecContext(ctx, "UPDATE authorisation_keys SET deleted_at=$1 WHERE id=$2;", time.Now(), id)
 	if err != nil {
 		return fmt.Errorf("%w %s", authorisation.ErrInternal, err)
 	}
@@ -364,7 +366,7 @@ func ListKeys(
 	}
 
 	var keys []dbClientKey
-	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE client_id=$1;"
+	sql := "SELECT id, client_id, key_id, jwk, created_at, updated_at FROM authorisation_keys WHERE client_id=$1 AND deleted_at IS NULL;"
 	err = b.DB().SelectContext(ctx, &keys, sql, client.ID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", authorisation.ErrInternal, err)
@@ -387,6 +389,7 @@ func ListKeys(
 			Use:       jwk.Use,
 			ID:        keys[i].ID,
 			CreatedAt: keys[i].CreatedAt,
+			DeletedAt: keys[i].DeletedAt.Time,
 			ClientID:  key.ClientID,
 		}
 	}
