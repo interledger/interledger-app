@@ -233,6 +233,7 @@ service BackendService {
 
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
+  rpc StartKYC(Empty) returns (Empty);
 }
 
 // example edDSA public key

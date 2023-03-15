@@ -7,6 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/kyc/workflows"
+	"go.temporal.io/api/enums/v1"
+	temporal "go.temporal.io/sdk/client"
+	"time"
 )
 
 func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndividualDetails, bool, error) {
@@ -181,4 +185,20 @@ func GetKYCStatus(ctx context.Context, b Backends, walletID string) (kyc.Status,
 	}
 
 	return s, nil
+}
+
+func StartKYC(ctx context.Context, b Backends, walletID string) error {
+
+	workflowOptions := temporal.StartWorkflowOptions{
+		ID:                       "start_kyc_" + walletID,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.StartKYC, workflows.StartKYCArgs{
+		WalletID: walletID,
+	})
+
+	return err
 }

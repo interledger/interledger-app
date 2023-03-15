@@ -5518,7 +5518,7 @@ var file_backend_v1_backend_proto_rawDesc = []byte{
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e,
 	0x64, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x61, 0x6e, 0x53, 0x65, 0x6e, 0x64, 0x54, 0x6f, 0x50, 0x61,
 	0x79, 0x6d, 0x65, 0x6e, 0x74, 0x50, 0x6f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x32, 0x89, 0x16, 0x0a, 0x0e, 0x42, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64,
+	0x6f, 0x6e, 0x73, 0x65, 0x32, 0xbb, 0x16, 0x0a, 0x0e, 0x42, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64,
 	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x50, 0x0a, 0x13, 0x55, 0x70, 0x64, 0x61, 0x74,
 	0x65, 0x49, 0x6e, 0x64, 0x69, 0x76, 0x69, 0x64, 0x75, 0x61, 0x6c, 0x4b, 0x59, 0x43, 0x12, 0x26,
 	0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61,
@@ -5695,8 +5695,12 @@ var file_backend_v1_backend_proto_rawDesc = []byte{
 	0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6d, 0x70, 0x74,
 	0x79, 0x1a, 0x1d, 0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x4b,
 	0x59, 0x43, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x42, 0x16, 0x5a, 0x14, 0x2e, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x76, 0x31,
-	0x3b, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x12, 0x30, 0x0a, 0x08, 0x53, 0x74, 0x61, 0x72, 0x74, 0x4b, 0x59, 0x43, 0x12, 0x11, 0x2e, 0x62,
+	0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a,
+	0x11, 0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x42, 0x16, 0x5a, 0x14, 0x2e, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
+	0x76, 0x31, 0x3b, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (
@@ -5884,55 +5888,57 @@ var file_backend_v1_backend_proto_depIdxs = []int32{
 	76, // 87: backend.v1.BackendService.CreateContact:input_type -> backend.v1.CreateContactRequest
 	74, // 88: backend.v1.BackendService.ListContacts:input_type -> backend.v1.ListContactsRequest
 	23, // 89: backend.v1.BackendService.KYCStatus:input_type -> backend.v1.Empty
-	23, // 90: backend.v1.OpenPaymentService.CreatePaymentPointer:output_type -> backend.v1.Empty
-	22, // 91: backend.v1.OpenPaymentService.GetPaymentPointer:output_type -> backend.v1.PaymentPointer
-	18, // 92: backend.v1.OpenPaymentService.PaymentPointerExists:output_type -> backend.v1.PaymentPointerExistsResponse
-	20, // 93: backend.v1.OpenPaymentService.ListWalletPaymentPointers:output_type -> backend.v1.ListWalletPaymentPointersResponse
-	16, // 94: backend.v1.OpenPaymentService.CreateQuote:output_type -> backend.v1.Quote
-	16, // 95: backend.v1.OpenPaymentService.LookupQuote:output_type -> backend.v1.Quote
-	13, // 96: backend.v1.OpenPaymentService.CreateIncomingPayment:output_type -> backend.v1.IncomingPayment
-	13, // 97: backend.v1.OpenPaymentService.LookupIncomingPayment:output_type -> backend.v1.IncomingPayment
-	9,  // 98: backend.v1.OpenPaymentService.PreCheckOutgoingPayment:output_type -> backend.v1.PreCheckOutgoingPaymentResponse
-	7,  // 99: backend.v1.OpenPaymentService.CreateOutgoingPayment:output_type -> backend.v1.OutgoingPayment
-	7,  // 100: backend.v1.OpenPaymentService.LookupOutgoingPayment:output_type -> backend.v1.OutgoingPayment
-	2,  // 101: backend.v1.OpenPaymentService.CanSendToPaymentPointer:output_type -> backend.v1.CanSendToPaymentPointerResponse
-	23, // 102: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
-	28, // 103: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
-	31, // 104: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
-	39, // 105: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
-	23, // 106: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
-	41, // 107: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
-	23, // 108: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
-	23, // 109: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
-	23, // 110: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
-	23, // 111: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
-	23, // 112: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
-	46, // 113: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
-	48, // 114: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
-	53, // 115: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
-	36, // 116: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
-	36, // 117: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
-	23, // 118: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
-	23, // 119: backend.v1.BackendService.CreateSupportTicket:output_type -> backend.v1.Empty
-	58, // 120: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
-	64, // 121: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
-	50, // 122: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
-	60, // 123: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
-	23, // 124: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
-	52, // 125: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
-	4,  // 126: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
-	4,  // 127: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
-	4,  // 128: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
-	3,  // 129: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
-	70, // 130: backend.v1.BackendService.ListLimits:output_type -> backend.v1.ListLimitsResponse
-	23, // 131: backend.v1.BackendService.UpdateClientLimits:output_type -> backend.v1.Empty
-	23, // 132: backend.v1.BackendService.CreateClientPublicKey:output_type -> backend.v1.Empty
-	69, // 133: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
-	73, // 134: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
-	75, // 135: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
-	77, // 136: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
-	90, // [90:137] is the sub-list for method output_type
-	43, // [43:90] is the sub-list for method input_type
+	23, // 90: backend.v1.BackendService.StartKYC:input_type -> backend.v1.Empty
+	23, // 91: backend.v1.OpenPaymentService.CreatePaymentPointer:output_type -> backend.v1.Empty
+	22, // 92: backend.v1.OpenPaymentService.GetPaymentPointer:output_type -> backend.v1.PaymentPointer
+	18, // 93: backend.v1.OpenPaymentService.PaymentPointerExists:output_type -> backend.v1.PaymentPointerExistsResponse
+	20, // 94: backend.v1.OpenPaymentService.ListWalletPaymentPointers:output_type -> backend.v1.ListWalletPaymentPointersResponse
+	16, // 95: backend.v1.OpenPaymentService.CreateQuote:output_type -> backend.v1.Quote
+	16, // 96: backend.v1.OpenPaymentService.LookupQuote:output_type -> backend.v1.Quote
+	13, // 97: backend.v1.OpenPaymentService.CreateIncomingPayment:output_type -> backend.v1.IncomingPayment
+	13, // 98: backend.v1.OpenPaymentService.LookupIncomingPayment:output_type -> backend.v1.IncomingPayment
+	9,  // 99: backend.v1.OpenPaymentService.PreCheckOutgoingPayment:output_type -> backend.v1.PreCheckOutgoingPaymentResponse
+	7,  // 100: backend.v1.OpenPaymentService.CreateOutgoingPayment:output_type -> backend.v1.OutgoingPayment
+	7,  // 101: backend.v1.OpenPaymentService.LookupOutgoingPayment:output_type -> backend.v1.OutgoingPayment
+	2,  // 102: backend.v1.OpenPaymentService.CanSendToPaymentPointer:output_type -> backend.v1.CanSendToPaymentPointerResponse
+	23, // 103: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
+	28, // 104: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
+	31, // 105: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
+	39, // 106: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
+	23, // 107: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
+	41, // 108: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
+	23, // 109: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
+	23, // 110: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
+	23, // 111: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
+	23, // 112: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
+	23, // 113: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
+	46, // 114: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
+	48, // 115: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
+	53, // 116: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
+	36, // 117: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
+	36, // 118: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
+	23, // 119: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
+	23, // 120: backend.v1.BackendService.CreateSupportTicket:output_type -> backend.v1.Empty
+	58, // 121: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
+	64, // 122: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
+	50, // 123: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
+	60, // 124: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
+	23, // 125: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
+	52, // 126: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
+	4,  // 127: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
+	4,  // 128: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
+	4,  // 129: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
+	3,  // 130: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
+	70, // 131: backend.v1.BackendService.ListLimits:output_type -> backend.v1.ListLimitsResponse
+	23, // 132: backend.v1.BackendService.UpdateClientLimits:output_type -> backend.v1.Empty
+	23, // 133: backend.v1.BackendService.CreateClientPublicKey:output_type -> backend.v1.Empty
+	69, // 134: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
+	73, // 135: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
+	75, // 136: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
+	77, // 137: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
+	23, // 138: backend.v1.BackendService.StartKYC:output_type -> backend.v1.Empty
+	91, // [91:139] is the sub-list for method output_type
+	43, // [43:91] is the sub-list for method input_type
 	43, // [43:43] is the sub-list for extension type_name
 	43, // [43:43] is the sub-list for extension extendee
 	0,  // [0:43] is the sub-list for field type_name

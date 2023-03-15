@@ -5977,5 +5977,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
     { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
     { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse },
-    { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse }
+    { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
+    { name: "StartKYC", options: {}, I: Empty, O: Empty }
 ]);

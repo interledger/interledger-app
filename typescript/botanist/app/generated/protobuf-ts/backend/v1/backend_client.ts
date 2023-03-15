@@ -389,6 +389,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: KYCStatus(backend.v1.Empty) returns (backend.v1.KYCStatusResponse);
      */
     kYCStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, KYCStatusResponse>;
+    /**
+     * @generated from protobuf rpc: StartKYC(backend.v1.Empty) returns (backend.v1.Empty);
+     */
+    startKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -667,5 +671,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     kYCStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, KYCStatusResponse> {
         const method = this.methods[34], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, KYCStatusResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: StartKYC(backend.v1.Empty) returns (backend.v1.Empty);
+     */
+    startKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
+        const method = this.methods[35], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
 }
