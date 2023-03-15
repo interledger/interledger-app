@@ -6475,7 +6475,7 @@ var file_backend_v1_backend_proto_rawDesc = []byte{
 	0x6f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e,
 	0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x61, 0x6e, 0x53, 0x65,
 	0x6e, 0x64, 0x54, 0x6f, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x50, 0x6f, 0x69, 0x6e, 0x74,
-	0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xb4, 0x1d, 0x0a, 0x0e, 0x42,
+	0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0xe6, 0x1d, 0x0a, 0x0e, 0x42,
 	0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x50, 0x0a,
 	0x13, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x49, 0x6e, 0x64, 0x69, 0x76, 0x69, 0x64, 0x75, 0x61,
 	0x6c, 0x4b, 0x59, 0x43, 0x12, 0x26, 0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76,
@@ -6711,9 +6711,12 @@ var file_backend_v1_backend_proto_rawDesc = []byte{
 	0x11, 0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6d, 0x70,
 	0x74, 0x79, 0x1a, 0x1d, 0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e,
 	0x4b, 0x59, 0x43, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x42, 0x16, 0x5a, 0x14, 0x2e, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x76,
-	0x31, 0x3b, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x65, 0x12, 0x30, 0x0a, 0x08, 0x53, 0x74, 0x61, 0x72, 0x74, 0x4b, 0x59, 0x43, 0x12, 0x11, 0x2e,
+	0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
+	0x1a, 0x11, 0x2e, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x42, 0x16, 0x5a, 0x14, 0x2e, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64,
+	0x2f, 0x76, 0x31, 0x3b, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -6938,66 +6941,68 @@ var file_backend_v1_backend_proto_depIdxs = []int32{
 	89,  // 109: backend.v1.BackendService.SetIdentityPublic:input_type -> backend.v1.SetIdentityPublicRequest
 	90,  // 110: backend.v1.BackendService.StartIdentityVerification:input_type -> backend.v1.StartIdentityVerificationRequest
 	23,  // 111: backend.v1.BackendService.KYCStatus:input_type -> backend.v1.Empty
-	23,  // 112: backend.v1.OpenPaymentService.CreatePaymentPointer:output_type -> backend.v1.Empty
-	22,  // 113: backend.v1.OpenPaymentService.GetPaymentPointer:output_type -> backend.v1.PaymentPointer
-	18,  // 114: backend.v1.OpenPaymentService.PaymentPointerExists:output_type -> backend.v1.PaymentPointerExistsResponse
-	20,  // 115: backend.v1.OpenPaymentService.ListWalletPaymentPointers:output_type -> backend.v1.ListWalletPaymentPointersResponse
-	16,  // 116: backend.v1.OpenPaymentService.CreateQuote:output_type -> backend.v1.Quote
-	16,  // 117: backend.v1.OpenPaymentService.LookupQuote:output_type -> backend.v1.Quote
-	13,  // 118: backend.v1.OpenPaymentService.CreateIncomingPayment:output_type -> backend.v1.IncomingPayment
-	13,  // 119: backend.v1.OpenPaymentService.LookupIncomingPayment:output_type -> backend.v1.IncomingPayment
-	9,   // 120: backend.v1.OpenPaymentService.PreCheckOutgoingPayment:output_type -> backend.v1.PreCheckOutgoingPaymentResponse
-	7,   // 121: backend.v1.OpenPaymentService.CreateOutgoingPayment:output_type -> backend.v1.OutgoingPayment
-	7,   // 122: backend.v1.OpenPaymentService.LookupOutgoingPayment:output_type -> backend.v1.OutgoingPayment
-	2,   // 123: backend.v1.OpenPaymentService.CanSendToPaymentPointer:output_type -> backend.v1.CanSendToPaymentPointerResponse
-	23,  // 124: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
-	35,  // 125: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
-	38,  // 126: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
-	46,  // 127: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
-	23,  // 128: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
-	48,  // 129: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
-	23,  // 130: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
-	23,  // 131: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
-	23,  // 132: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
-	23,  // 133: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
-	23,  // 134: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
-	53,  // 135: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
-	55,  // 136: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
-	60,  // 137: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
-	43,  // 138: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
-	43,  // 139: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
-	23,  // 140: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
-	23,  // 141: backend.v1.BackendService.CreateSupportTicket:output_type -> backend.v1.Empty
-	65,  // 142: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
-	71,  // 143: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
-	57,  // 144: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
-	67,  // 145: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
-	23,  // 146: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
-	59,  // 147: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
-	4,   // 148: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
-	4,   // 149: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
-	4,   // 150: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
-	3,   // 151: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
-	77,  // 152: backend.v1.BackendService.ListLimits:output_type -> backend.v1.ListLimitsResponse
-	23,  // 153: backend.v1.BackendService.UpdateClientLimits:output_type -> backend.v1.Empty
-	23,  // 154: backend.v1.BackendService.CreateConnection:output_type -> backend.v1.Empty
-	30,  // 155: backend.v1.BackendService.ListConnections:output_type -> backend.v1.ListConnectionsResponse
-	25,  // 156: backend.v1.BackendService.GetConnection:output_type -> backend.v1.Connection
-	24,  // 157: backend.v1.BackendService.GetConnectionLimits:output_type -> backend.v1.ConnectionLimits
-	23,  // 158: backend.v1.BackendService.UpdateConnectionLimits:output_type -> backend.v1.Empty
-	23,  // 159: backend.v1.BackendService.DeleteConnection:output_type -> backend.v1.Empty
-	76,  // 160: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
-	80,  // 161: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
-	82,  // 162: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
-	84,  // 163: backend.v1.BackendService.ListIdentities:output_type -> backend.v1.ListIdentitiesResponse
-	84,  // 164: backend.v1.BackendService.ListPublicIdentities:output_type -> backend.v1.ListIdentitiesResponse
-	87,  // 165: backend.v1.BackendService.AddIdentity:output_type -> backend.v1.IdentityVerificationInstructions
-	23,  // 166: backend.v1.BackendService.DeleteIdentity:output_type -> backend.v1.Empty
-	85,  // 167: backend.v1.BackendService.SetIdentityPublic:output_type -> backend.v1.Identity
-	85,  // 168: backend.v1.BackendService.StartIdentityVerification:output_type -> backend.v1.Identity
-	92,  // 169: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
-	112, // [112:170] is the sub-list for method output_type
-	54,  // [54:112] is the sub-list for method input_type
+	23,  // 112: backend.v1.BackendService.StartKYC:input_type -> backend.v1.Empty
+	23,  // 113: backend.v1.OpenPaymentService.CreatePaymentPointer:output_type -> backend.v1.Empty
+	22,  // 114: backend.v1.OpenPaymentService.GetPaymentPointer:output_type -> backend.v1.PaymentPointer
+	18,  // 115: backend.v1.OpenPaymentService.PaymentPointerExists:output_type -> backend.v1.PaymentPointerExistsResponse
+	20,  // 116: backend.v1.OpenPaymentService.ListWalletPaymentPointers:output_type -> backend.v1.ListWalletPaymentPointersResponse
+	16,  // 117: backend.v1.OpenPaymentService.CreateQuote:output_type -> backend.v1.Quote
+	16,  // 118: backend.v1.OpenPaymentService.LookupQuote:output_type -> backend.v1.Quote
+	13,  // 119: backend.v1.OpenPaymentService.CreateIncomingPayment:output_type -> backend.v1.IncomingPayment
+	13,  // 120: backend.v1.OpenPaymentService.LookupIncomingPayment:output_type -> backend.v1.IncomingPayment
+	9,   // 121: backend.v1.OpenPaymentService.PreCheckOutgoingPayment:output_type -> backend.v1.PreCheckOutgoingPaymentResponse
+	7,   // 122: backend.v1.OpenPaymentService.CreateOutgoingPayment:output_type -> backend.v1.OutgoingPayment
+	7,   // 123: backend.v1.OpenPaymentService.LookupOutgoingPayment:output_type -> backend.v1.OutgoingPayment
+	2,   // 124: backend.v1.OpenPaymentService.CanSendToPaymentPointer:output_type -> backend.v1.CanSendToPaymentPointerResponse
+	23,  // 125: backend.v1.BackendService.UpdateIndividualKYC:output_type -> backend.v1.Empty
+	35,  // 126: backend.v1.BackendService.GetIndividualKYC:output_type -> backend.v1.IndividualKYCResponse
+	38,  // 127: backend.v1.BackendService.IsUSPSAddress:output_type -> backend.v1.IsUSPSAddressResponse
+	46,  // 128: backend.v1.BackendService.SetSignupUserData:output_type -> backend.v1.SetSignupUserDataResponse
+	23,  // 129: backend.v1.BackendService.SetSignupMobileNumber:output_type -> backend.v1.Empty
+	48,  // 130: backend.v1.BackendService.GetSignup:output_type -> backend.v1.Signup
+	23,  // 131: backend.v1.BackendService.CompleteSignup:output_type -> backend.v1.Empty
+	23,  // 132: backend.v1.BackendService.CreateUserDefaultWallet:output_type -> backend.v1.Empty
+	23,  // 133: backend.v1.BackendService.SetWalletName:output_type -> backend.v1.Empty
+	23,  // 134: backend.v1.BackendService.SendPhoneVerification:output_type -> backend.v1.Empty
+	23,  // 135: backend.v1.BackendService.SendOTP:output_type -> backend.v1.Empty
+	53,  // 136: backend.v1.BackendService.GetAgreement:output_type -> backend.v1.Agreement
+	55,  // 137: backend.v1.BackendService.SignAgreements:output_type -> backend.v1.SignAgreementsResponse
+	60,  // 138: backend.v1.BackendService.GetLinkedAccounts:output_type -> backend.v1.GetLinkedAccountsResponse
+	43,  // 139: backend.v1.BackendService.GetLinkedAccount:output_type -> backend.v1.LinkedAccount
+	43,  // 140: backend.v1.BackendService.SetNicknameLinkedAccount:output_type -> backend.v1.LinkedAccount
+	23,  // 141: backend.v1.BackendService.DeleteLinkedAccount:output_type -> backend.v1.Empty
+	23,  // 142: backend.v1.BackendService.CreateSupportTicket:output_type -> backend.v1.Empty
+	65,  // 143: backend.v1.BackendService.GetCountries:output_type -> backend.v1.GetCountriesResponse
+	71,  // 144: backend.v1.BackendService.GetCurrentWallet:output_type -> backend.v1.GetCurrentWalletResponse
+	57,  // 145: backend.v1.BackendService.JoinWaitlist:output_type -> backend.v1.JoinWaitlistResponse
+	67,  // 146: backend.v1.BackendService.CanSignup:output_type -> backend.v1.CanSignupResponse
+	23,  // 147: backend.v1.BackendService.SetSignupComplete:output_type -> backend.v1.Empty
+	59,  // 148: backend.v1.BackendService.IsMugAvailable:output_type -> backend.v1.IsMugAvailableResponse
+	4,   // 149: backend.v1.BackendService.ListTransactions:output_type -> backend.v1.ListTransactionsResponse
+	4,   // 150: backend.v1.BackendService.ListTransactionsCompleted:output_type -> backend.v1.ListTransactionsResponse
+	4,   // 151: backend.v1.BackendService.ListTransactionsWithPending:output_type -> backend.v1.ListTransactionsResponse
+	3,   // 152: backend.v1.BackendService.LookupTransaction:output_type -> backend.v1.Transaction
+	77,  // 153: backend.v1.BackendService.ListLimits:output_type -> backend.v1.ListLimitsResponse
+	23,  // 154: backend.v1.BackendService.UpdateClientLimits:output_type -> backend.v1.Empty
+	23,  // 155: backend.v1.BackendService.CreateConnection:output_type -> backend.v1.Empty
+	30,  // 156: backend.v1.BackendService.ListConnections:output_type -> backend.v1.ListConnectionsResponse
+	25,  // 157: backend.v1.BackendService.GetConnection:output_type -> backend.v1.Connection
+	24,  // 158: backend.v1.BackendService.GetConnectionLimits:output_type -> backend.v1.ConnectionLimits
+	23,  // 159: backend.v1.BackendService.UpdateConnectionLimits:output_type -> backend.v1.Empty
+	23,  // 160: backend.v1.BackendService.DeleteConnection:output_type -> backend.v1.Empty
+	76,  // 161: backend.v1.BackendService.GetPublicWalletDetails:output_type -> backend.v1.GetPublicWalletDetailsResponse
+	80,  // 162: backend.v1.BackendService.CreateContact:output_type -> backend.v1.Contact
+	82,  // 163: backend.v1.BackendService.ListContacts:output_type -> backend.v1.ListContactsResponse
+	84,  // 164: backend.v1.BackendService.ListIdentities:output_type -> backend.v1.ListIdentitiesResponse
+	84,  // 165: backend.v1.BackendService.ListPublicIdentities:output_type -> backend.v1.ListIdentitiesResponse
+	87,  // 166: backend.v1.BackendService.AddIdentity:output_type -> backend.v1.IdentityVerificationInstructions
+	23,  // 167: backend.v1.BackendService.DeleteIdentity:output_type -> backend.v1.Empty
+	85,  // 168: backend.v1.BackendService.SetIdentityPublic:output_type -> backend.v1.Identity
+	85,  // 169: backend.v1.BackendService.StartIdentityVerification:output_type -> backend.v1.Identity
+	92,  // 170: backend.v1.BackendService.KYCStatus:output_type -> backend.v1.KYCStatusResponse
+	23,  // 171: backend.v1.BackendService.StartKYC:output_type -> backend.v1.Empty
+	113, // [113:172] is the sub-list for method output_type
+	54,  // [54:113] is the sub-list for method input_type
 	54,  // [54:54] is the sub-list for extension type_name
 	54,  // [54:54] is the sub-list for extension extendee
 	0,   // [0:54] is the sub-list for field type_name

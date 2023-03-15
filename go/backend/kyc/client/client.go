@@ -49,3 +49,7 @@ func (c client) GetKYCStatus(ctx context.Context, walletID string) (kyc.Status, 
 func (c client) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
 	return ops.SetKYCStatus(ctx, c.b, walletID, status)
 }
+
+func (c client) StartKYC(ctx context.Context, walletID string) error {
+	return ops.StartKYC(ctx, c.b, walletID)
+}
