@@ -21,3 +21,43 @@ type Backends interface {
 	Transactions() transactions.Client
 	Validator() *validator.Validate
 }
+
+type testBackends struct {
+	db *sqlx.DB
+}
+
+func (t testBackends) DB() *sqlx.DB {
+	return t.db
+}
+
+func (t testBackends) Users() user.Client {
+	return nil
+}
+
+func (t testBackends) KYC() kyc.Client {
+	return nil
+}
+
+func (t testBackends) External() external.Service {
+	return nil
+}
+
+func (t testBackends) LinkedAccounts() linkedaccounts.Client {
+	return nil
+}
+
+func (t testBackends) Temporal() client.Client {
+	return nil
+}
+
+func (t testBackends) Transactions() transactions.Client {
+	return nil
+}
+
+func (t testBackends) Validator() *validator.Validate {
+	return nil
+}
+
+func NewTestBackends(db *sqlx.DB) Backends {
+	return &testBackends{db: db}
+}

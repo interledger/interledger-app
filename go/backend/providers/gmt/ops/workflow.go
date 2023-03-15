@@ -23,9 +23,15 @@ func OnboardUserWorkflow(ctx workflow.Context, walletID string) (string, error) 
 		logger.Error("failed to do OFAC checks", "err", err)
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.IndividualCompliance, walletID).Get(ctx, nil)
+	var cr ComplianceResp
+	err = workflow.ExecuteActivity(ctx, a.IndividualCompliance, walletID).Get(ctx, &cr)
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to upsert gmt send recv user", "err", err)
 	}
 
 	return "TODO", nil
