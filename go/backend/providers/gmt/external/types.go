@@ -10,16 +10,6 @@ import (
 
 type GMTDate time.Time
 
-/*Created, Hold, Authorized, Transmitted, Paid, Cancelled or Void and Expired*/
-const (
-	TransactionStatusCreated    = "Created"
-	TransactionStatusPaid       = "Paid"
-	TransactionStatusHold       = "Hold"
-	TransactionStatusAuthorized = "Authorized"
-	TransactionStatusCancelled  = "Cancelled"
-	TransactionStatusExpired    = "Expired"
-)
-
 func (gd GMTDate) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	t := time.Time(gd)
 	v := t.Format("2006/01/02")
@@ -70,14 +60,14 @@ type GetPaidTransactionsResponse struct {
 type ConfirmPayment struct {
 	XMLName xml.Name `xml:"http://tempuri.org/ ConfirmPayment"`
 	Alias   string   `xml:"alias,omitempty" json:"alias,omitempty"`
-	User    string   `xml:"user,omitempty" json:"user,omitempty"`
+	User    string   `xml:"user,omitempty " json:"user,omitempty"`
 	Pass    string   `xml:"pass,omitempty" json:"pass,omitempty"`
 	Receipt string   `xml:"receipt,omitempty" json:"receipt,omitempty"`
 }
 
 type ConfirmPaymentResponse struct {
 	XMLName              xml.Name    `xml:"http://tempuri.org/ ConfirmPaymentResponse"`
-	ConfirmPaymentResult *WsResponse `json:"ConfirmPaymentResult,omitempty"`
+	ConfirmPaymentResult *WsResponse `xml:"ConfirmPaymentResult,omitempty" json:"ConfirmPaymentResult,omitempty"`
 }
 
 type RequestCancellation struct {
@@ -91,7 +81,7 @@ type RequestCancellation struct {
 
 type RequestCancellationResponse struct {
 	XMLName                   xml.Name    `xml:"http://tempuri.org/ RequestCancellationResponse"`
-	RequestCancellationResult *WsResponse `json:"RequestCancellationResult,omitempty"`
+	RequestCancellationResult *WsResponse `xml:"RequestCancellationResult,omitempty" json:"RequestCancellationResult,omitempty"`
 }
 
 type GetCancelledTransactions struct {
@@ -116,7 +106,7 @@ type ConfirmCancellation struct {
 
 type ConfirmCancellationResponse struct {
 	XMLName                   xml.Name    `xml:"http://tempuri.org/ ConfirmCancellationResponse"`
-	ConfirmCancellationResult *WsResponse `json:"ConfirmCancellationResult,omitempty"`
+	ConfirmCancellationResult *WsResponse `xml:"ConfirmCancellationResult,omitempty" json:"ConfirmCancellationResult,omitempty"`
 }
 
 type RequestModification struct {
@@ -126,12 +116,12 @@ type RequestModification struct {
 	Pass    string               `xml:"pass,omitempty" json:"pass,omitempty"`
 	Receipt string               `xml:"receipt,omitempty" json:"receipt,omitempty"`
 	Comment string               `xml:"comment,omitempty" json:"comment,omitempty"`
-	Data    *WsChangeRequestData `json:"data,omitempty"`
+	Data    *WsChangeRequestData `xml:"data,omitempty" json:"data,omitempty"`
 }
 
 type RequestModificationResponse struct {
 	XMLName                   xml.Name    `xml:"http://tempuri.org/ RequestModificationResponse"`
-	RequestModificationResult *WsResponse `json:"RequestModificationResult,omitempty"`
+	RequestModificationResult *WsResponse `xml:"RequestModificationResult,omitempty" json:"RequestModificationResult,omitempty"`
 }
 
 type GetModifiedTransactions struct {
@@ -156,7 +146,7 @@ type ConfirmModification struct {
 
 type ConfirmModificationResponse struct {
 	XMLName                   xml.Name    `xml:"http://tempuri.org/ ConfirmModificationResponse"`
-	ConfirmModificationResult *WsResponse `json:"ConfirmModificationResult,omitempty"`
+	ConfirmModificationResult *WsResponse `xml:"ConfirmModificationResult,omitempty" json:"ConfirmModificationResult,omitempty"`
 }
 
 type GetReleasedTransactions struct {
@@ -181,7 +171,7 @@ type ConfirmRelease struct {
 
 type ConfirmReleaseResponse struct {
 	XMLName              xml.Name    `xml:"http://tempuri.org/ ConfirmReleaseResponse"`
-	ConfirmReleaseResult *WsResponse `json:"ConfirmReleaseResult,omitempty"`
+	ConfirmReleaseResult *WsResponse `xml:"ConfirmReleaseResult,omitempty" json:"ConfirmReleaseResult,omitempty"`
 }
 
 type GetClearedAchTransactions struct {
@@ -206,7 +196,7 @@ type ConfirmCollection struct {
 
 type ConfirmCollectionResponse struct {
 	XMLName                 xml.Name    `xml:"http://tempuri.org/ ConfirmCollectionResponse"`
-	ConfirmCollectionResult *WsResponse `json:"ConfirmCollectionResult,omitempty"`
+	ConfirmCollectionResult *WsResponse `xml:"ConfirmCollectionResult,omitempty" json:"ConfirmCollectionResult,omitempty"`
 }
 
 type GetNotifications struct {
@@ -231,7 +221,7 @@ type GetAchStatus struct {
 
 type GetAchStatusResponse struct {
 	XMLName            xml.Name     `xml:"http://tempuri.org/ GetAchStatusResponse"`
-	GetAchStatusResult *WsAchStatus `json:"GetAchStatusResult,omitempty"`
+	GetAchStatusResult *WsAchStatus `xml:"GetAchStatusResult,omitempty" json:"GetAchStatusResult,omitempty"`
 }
 
 type GetTransactionStatus struct {
@@ -244,7 +234,7 @@ type GetTransactionStatus struct {
 
 type GetTransactionStatusResponse struct {
 	XMLName                    xml.Name  `xml:"http://tempuri.org/ GetTransactionStatusResponse"`
-	GetTransactionStatusResult *WsStatus `json:"GetTransactionStatusResult,omitempty"`
+	GetTransactionStatusResult *WsStatus `xml:"GetTransactionStatusResult,omitempty" json:"GetTransactionStatusResult,omitempty"`
 }
 
 type GetSingleExchangeRate struct {
@@ -260,7 +250,7 @@ type GetSingleExchangeRate struct {
 
 type GetSingleExchangeRateResponse struct {
 	XMLName                     xml.Name  `xml:"http://tempuri.org/ GetSingleExchangeRateResponse"`
-	GetSingleExchangeRateResult *WsExRate `json:"GetSingleExchangeRateResult,omitempty"`
+	GetSingleExchangeRateResult *WsExRate `xml:"GetSingleExchangeRateResult,omitempty" json:"GetSingleExchangeRateResult,omitempty"`
 }
 
 type GetExchangeRates struct {
@@ -287,7 +277,7 @@ type OfacVerification struct {
 
 type OfacVerificationResponse struct {
 	XMLName                xml.Name `xml:"http://tempuri.org/ OfacVerificationResponse"`
-	OfacVerificationResult *WsOfac  `json:"OfacVerificationResult,omitempty"`
+	OfacVerificationResult *WsOfac  `xml:"OfacVerificationResult,omitempty" json:"OfacVerificationResult,omitempty"`
 }
 
 type ComplianceCheck struct {
@@ -295,14 +285,14 @@ type ComplianceCheck struct {
 	Alias    string          `xml:"alias,omitempty" json:"alias,omitempty"`
 	User     string          `xml:"user,omitempty" json:"user,omitempty"`
 	Pass     string          `xml:"pass,omitempty" json:"pass,omitempty"`
-	Sender   *WsSender       `json:"sender,omitempty"`
-	Receiver *WsReceiver     `json:"receiver,omitempty"`
-	Transfer *WsTransferInfo `json:"transfer,omitempty"`
+	Sender   *WsSender       `xml:"sender,omitempty" json:"sender,omitempty"`
+	Receiver *WsReceiver     `xml:"receiver,omitempty" json:"receiver,omitempty"`
+	Transfer *WsTransferInfo `xml:"transfer,omitempty" json:"transfer,omitempty"`
 }
 
 type ComplianceCheckResponse struct {
 	XMLName               xml.Name    `xml:"http://tempuri.org/ ComplianceCheckResponse"`
-	ComplianceCheckResult *WsResponse `json:"ComplianceCheckResult,omitempty"`
+	ComplianceCheckResult *WsResponse `xml:"ComplianceCheckResult,omitempty" json:"ComplianceCheckResult,omitempty"`
 }
 
 type SetVerified struct {
@@ -318,7 +308,7 @@ type SetVerified struct {
 
 type SetVerifiedResponse struct {
 	XMLName           xml.Name  `xml:"http://tempuri.org/ SetVerifiedResponse"`
-	SetVerifiedResult *WsResult `json:"SetVerifiedResult,omitempty"`
+	SetVerifiedResult *WsResult `xml:"SetVerifiedResult,omitempty" json:"SetVerifiedResult,omitempty"`
 }
 
 type PayersConsult struct {
@@ -377,7 +367,7 @@ type CheckPayerLimits struct {
 
 type CheckPayerLimitsResponse struct {
 	XMLName                xml.Name               `xml:"http://tempuri.org/ CheckPayerLimitsResponse"`
-	CheckPayerLimitsResult *Ws_LimitByPayerResult `json:"CheckPayerLimitsResult,omitempty"`
+	CheckPayerLimitsResult *Ws_LimitByPayerResult `xml:"CheckPayerLimitsResult,omitempty" json:"CheckPayerLimitsResult,omitempty"`
 }
 
 type PromotionsCode struct {
@@ -388,7 +378,7 @@ type PromotionsCode struct {
 
 type PromotionsCodeResponse struct {
 	XMLName              xml.Name               `xml:"http://tempuri.org/ PromotionsCodeResponse"`
-	PromotionsCodeResult *Ws_Select_PromoResult `json:"PromotionsCodeResult,omitempty"`
+	PromotionsCodeResult *Ws_Select_PromoResult `xml:"PromotionsCodeResult,omitempty" json:"PromotionsCodeResult,omitempty"`
 }
 
 type RegisterWallet struct {
@@ -396,13 +386,13 @@ type RegisterWallet struct {
 	Alias       string    `xml:"alias,omitempty" json:"alias,omitempty"`
 	User        string    `xml:"user,omitempty" json:"user,omitempty"`
 	Pass        string    `xml:"pass,omitempty" json:"pass,omitempty"`
-	Sender      *WsSender `json:"sender,omitempty"`
+	Sender      *WsSender `xml:"sender,omitempty" json:"sender,omitempty"`
 	External_id string    `xml:"external_id,omitempty" json:"external_id,omitempty"`
 }
 
 type RegisterWalletResponse struct {
 	XMLName              xml.Name  `xml:"http://tempuri.org/ RegisterWalletResponse"`
-	RegisterWalletResult *WsWallet `json:"RegisterWalletResult,omitempty"`
+	RegisterWalletResult *WsWallet `xml:"RegisterWalletResult,omitempty" json:"RegisterWalletResult,omitempty"`
 }
 
 type AddWalletFunds struct {
@@ -415,7 +405,7 @@ type AddWalletFunds struct {
 
 type AddWalletFundsResponse struct {
 	XMLName              xml.Name  `xml:"http://tempuri.org/ AddWalletFundsResponse"`
-	AddWalletFundsResult *WsWallet `json:"AddWalletFundsResult,omitempty"`
+	AddWalletFundsResult *WsWallet `xml:"AddWalletFundsResult,omitempty" json:"AddWalletFundsResult,omitempty"`
 }
 
 type WithdrawWalletFunds struct {
@@ -428,7 +418,7 @@ type WithdrawWalletFunds struct {
 
 type WithdrawWalletFundsResponse struct {
 	XMLName                   xml.Name  `xml:"http://tempuri.org/ WithdrawWalletFundsResponse"`
-	WithdrawWalletFundsResult *WsWallet `json:"WithdrawWalletFundsResult,omitempty"`
+	WithdrawWalletFundsResult *WsWallet `xml:"WithdrawWalletFundsResult,omitempty" json:"WithdrawWalletFundsResult,omitempty"`
 }
 
 type GetWalletBalance struct {
@@ -442,7 +432,7 @@ type GetWalletBalance struct {
 
 type GetWalletBalanceResponse struct {
 	XMLName                xml.Name  `xml:"http://tempuri.org/ GetWalletBalanceResponse"`
-	GetWalletBalanceResult *WsWallet `json:"GetWalletBalanceResult,omitempty"`
+	GetWalletBalanceResult *WsWallet `xml:"GetWalletBalanceResult,omitempty" json:"GetWalletBalanceResult,omitempty"`
 }
 
 type AddDocument struct {
@@ -450,12 +440,12 @@ type AddDocument struct {
 	Alias    string      `xml:"alias,omitempty" json:"alias,omitempty"`
 	User     string      `xml:"user,omitempty" json:"user,omitempty"`
 	Pass     string      `xml:"pass,omitempty" json:"pass,omitempty"`
-	Document *WsDocument `json:"Document,omitempty"`
+	Document *WsDocument `xml:"Document,omitempty" json:"Document,omitempty"`
 }
 
 type AddDocumentResponse struct {
 	XMLName           xml.Name    `xml:"http://tempuri.org/ AddDocumentResponse"`
-	AddDocumentResult *WsResponse `json:"AddDocumentResult,omitempty"`
+	AddDocumentResult *WsResponse `xml:"AddDocumentResult,omitempty" json:"AddDocumentResult,omitempty"`
 }
 
 type GetOccupations struct {
