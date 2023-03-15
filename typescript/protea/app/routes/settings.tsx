@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
   Card,
@@ -108,6 +108,16 @@ export default function Page() {
             <Icon>navigate_next</Icon>
           </Router>
         )}
+        <Router
+          to={route('/connections')}
+          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+        >
+          <div className='flex space-x-3'>
+            <Icon>sync</Icon>
+            <span>Connections</span>
+          </div>
+          <Icon>navigate_next</Icon>
+        </Router>
         <h2 className='mt-6 text-sm font-medium'>Security</h2>
         <Router
           to={route('/login/challenge')}
