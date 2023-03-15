@@ -17,7 +17,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil)
 
 	userID := uuid.NewString()
 
@@ -172,7 +172,7 @@ func TestKYCStatus(t *testing.T) {
 
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil)
 
 	userID := uuid.NewString()
 

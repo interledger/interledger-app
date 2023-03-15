@@ -246,6 +246,7 @@ service BackendService {
 
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
+  rpc StartKYC(Empty) returns (Empty);
 }
 
 message ConnectionLimits {
