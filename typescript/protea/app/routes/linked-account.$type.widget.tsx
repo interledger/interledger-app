@@ -133,6 +133,7 @@ export default function Page() {
           </p>
         </>
       )}
+      {/* TODO replace this with MX widget */}
       {params.type == 'bank' && (
         <>
           <div className='flex justify-between'>
