@@ -1,6 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { defer } from '@remix-run/node'
-import { Await, useLoaderData, useRevalidator } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   ButtonRouter,
@@ -22,14 +22,13 @@ import {
   getLinkedAccounts,
   getTransactionsWithPending
 } from '~/lib/wallet.server'
-import { Fragment, Suspense, useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { SnackbarType } from '~/lib/snackbar.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import type { PusherArgs } from '~/lib/usePusher'
 import { usePusher } from '~/lib/usePusher'
 import { getPusherArgs } from '~/lib/pusher.server'
-import { AnimatePresence, motion } from 'framer-motion'
 
 export enum KycStatus {
   Unknown = 0,
@@ -449,15 +448,12 @@ function AppPage() {
     firstName,
     paymentPointer,
     snackbar,
-    balance,
     transactions,
     kycStatus,
     canTopUp,
     nextStep,
     pusherArgs
   } = useLoaderData<typeof loader>()
-
-  const { revalidate } = useRevalidator()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
@@ -583,99 +579,6 @@ function AppPage() {
       {/*    </p>*/}
       {/*  </Card>*/}
       {/*)}*/}
-
-      {kycStatus == KycStatus.Verified && (
-        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h2 className='font-display text-lg font-medium'>Cash balance</h2>
-          <div className='flex mt-2 h-9 w-full'>
-            <AnimatePresence mode='wait'>
-              <Suspense
-                fallback={
-                  <motion.div
-                    key='placeholder'
-                    animate={{ opacity: 1, scale: 1 }}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    exit={{
-                      opacity: 0,
-                      scale: 0.5,
-                      transition: {
-                        duration: 0.1
-                      }
-                    }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 400,
-                      damping: 20,
-                      duration: 0.15
-                    }}
-                    className='bg-container rounded-lg h-[2.25rem] w-1/2'
-                  />
-                }
-              >
-                <Await
-                  resolve={balance}
-                  errorElement={
-                    <motion.div
-                      key='error'
-                      animate={{ opacity: 1, scale: 1 }}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      exit={{
-                        opacity: 0,
-                        scale: 0.5,
-                        transition: {
-                          duration: 0.1
-                        }
-                      }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 400,
-                        damping: 20,
-                        duration: 0.15
-                      }}
-                      className='flex h-7 w-full justify-between items-center'
-                    >
-                      <p className='text-sm text-disabled'>
-                        Error loading cash balance
-                      </p>
-                      <div
-                        onClick={revalidate}
-                        className='cursor-pointer flex items-center space-x-1 text-medium'
-                      >
-                        <Icon>refresh</Icon>{' '}
-                        <span className='font-medium text-sm'>Refresh</span>
-                      </div>
-                    </motion.div>
-                  }
-                >
-                  {(balance) => (
-                    <motion.h1
-                      key={`balance-${balance}`}
-                      animate={{ opacity: 1, scale: 1 }}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      exit={{
-                        opacity: 0,
-                        scale: 0.5,
-                        transition: {
-                          duration: 0.1
-                        }
-                      }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 400,
-                        damping: 20,
-                        duration: 0.15
-                      }}
-                      className='text-3xl font-medium'
-                    >
-                      {balance}
-                    </motion.h1>
-                  )}
-                </Await>
-              </Suspense>
-            </AnimatePresence>
-          </div>
-        </Card>
-      )}
 
       {nextStep.show && (
         <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>

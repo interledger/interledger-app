@@ -7038,5 +7038,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "DeleteIdentity", options: {}, I: DeleteIdentityRequest, O: Empty },
     { name: "SetIdentityPublic", options: {}, I: SetIdentityPublicRequest, O: Identity },
     { name: "StartIdentityVerification", options: {}, I: StartIdentityVerificationRequest, O: Identity },
-    { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse }
+    { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
+    { name: "StartKYC", options: {}, I: Empty, O: Empty }
 ]);
