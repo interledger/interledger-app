@@ -38,7 +38,7 @@ func NewActivity(b Backends) *Activity {
 	return a
 }
 
-func (a *Activity) CheckIndividualOFAC(ctx context.Context, walletID string) error {
+func (a *Activity) CheckOFAC(ctx context.Context, walletID string) error {
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
 		return err
