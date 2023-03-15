@@ -1426,6 +1426,10 @@ table "authorisation_keys" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
+  column "deleted_at" {
+    null    = true
+    type    = timestamp
+  }
   primary_key {
     columns = [column.id]
   }

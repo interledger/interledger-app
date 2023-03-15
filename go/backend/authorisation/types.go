@@ -82,6 +82,7 @@ type (
 		Use       string    `json:"use,omitempty"`
 		ID        string    `json:"-"`
 		CreatedAt time.Time `json:"-"`
+		DeletedAt time.Time `json:"-"`
 		ClientID  string    `json:"-"`
 	}
 

@@ -31,12 +31,12 @@ func (c client) ListKeys(ctx context.Context, clientURL string) ([]authorisation
 	return ops.ListKeys(ctx, c.b, clientURL)
 }
 
-func (c client) GetPublicKeyByID(ctx context.Context, uuid string) (*authorisation.Jwk, error) {
-	return ops.GetPublicKeyByID(ctx, c.b, uuid)
+func (c client) GetPublicKeyByID(ctx context.Context, id string) (*authorisation.Jwk, error) {
+	return ops.GetPublicKeyByID(ctx, c.b, id)
 }
 
-func (c client) DeletePublicKey(ctx context.Context, keyUuid string) error {
-	return ops.DeletePublicKey(ctx, c.b, keyUuid)
+func (c client) DeletePublicKey(ctx context.Context, id string) error {
+	return ops.DeletePublicKey(ctx, c.b, id)
 }
 
 func (c client) VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {
