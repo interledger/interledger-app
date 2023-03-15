@@ -18,5 +18,6 @@ type LimitConfigured struct {
 type FKType string
 
 const (
-	FKTypeClient FKType = "client"
+	FKTypeClient          FKType = "client"
+	FKTypeClientPublicKey FKType = "clientPublicKey"
 )
