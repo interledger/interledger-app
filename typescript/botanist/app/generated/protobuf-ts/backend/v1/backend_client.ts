@@ -2,6 +2,7 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { KYCStatusResponse } from "./backend";
 import type { StartIdentityVerificationRequest } from "./backend";
 import type { Identity } from "./backend";
 import type { SetIdentityPublicRequest } from "./backend";
@@ -443,6 +444,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: StartIdentityVerification(backend.v1.StartIdentityVerificationRequest) returns (backend.v1.Identity);
      */
     startIdentityVerification(input: StartIdentityVerificationRequest, options?: RpcOptions): UnaryCall<StartIdentityVerificationRequest, Identity>;
+    /**
+     * KYC
+     *
+     * @generated from protobuf rpc: KYCStatus(backend.v1.Empty) returns (backend.v1.KYCStatusResponse);
+     */
+    kYCStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, KYCStatusResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -791,5 +798,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     startIdentityVerification(input: StartIdentityVerificationRequest, options?: RpcOptions): UnaryCall<StartIdentityVerificationRequest, Identity> {
         const method = this.methods[44], opt = this._transport.mergeOptions(options);
         return stackIntercept<StartIdentityVerificationRequest, Identity>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * KYC
+     *
+     * @generated from protobuf rpc: KYCStatus(backend.v1.Empty) returns (backend.v1.KYCStatusResponse);
+     */
+    kYCStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, KYCStatusResponse> {
+        const method = this.methods[45], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, KYCStatusResponse>("unary", this._transport, method, opt, input);
     }
 }
