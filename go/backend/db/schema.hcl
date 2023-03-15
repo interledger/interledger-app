@@ -1828,5 +1828,39 @@ table "wallet_kyc_status" {
   }
 }
 
+table "gmt_users" {
+  schema = schema.public
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "sender_id" {
+    null = true
+    type = bigint
+  }
+  column "receiver_id" {
+    null = true
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.wallet_id]
+  }
+  foreign_key "fk_wallet_id" {
+    columns     = [column.wallet_id]
+    ref_columns = [table.wallets.column.id]
+    on_update   = NO_ACTION
+    on_delete   = NO_ACTION
+  }
+}
 schema "public" {
 }
