@@ -48,3 +48,7 @@ const (
 func (s Status) ToInt32() int32 {
 	return int32(s)
 }
+
+func (a *Address) String() string {
+	return a.Line2 + a.Line1
+}
