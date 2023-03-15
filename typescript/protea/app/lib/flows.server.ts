@@ -129,18 +129,13 @@ const flowTemplate = (type: flowType): Flow => {
         data: {},
         returnTo: '/'
       }
-    case flowType.LinkCardAccount:
-      return {
-        startRoute: route('/linked-account/:type/widget', { type: 'card' }),
-        data: {},
-        returnTo: route('/settings/linked-accounts')
-      }
-    case flowType.LinkBankAccount:
-      return {
-        startRoute: route('/linked-account/:type/widget', { type: 'bank' }),
-        data: {},
-        returnTo: route('/settings/linked-accounts')
-      }
+    // TODO Temp
+    // case flowType.LinkCardAccount:
+    //   return {
+    //     startRoute: route('/linked-account/:type/widget', { type: 'card' }),
+    //     data: {},
+    //     returnTo: route('/settings/linked-accounts')
+    //   }
     case flowType.Signup:
       return {
         startRoute: route('/signup'),
@@ -158,18 +153,6 @@ const flowTemplate = (type: flowType): Flow => {
         startRoute: route('/login/challenge'),
         data: {},
         returnTo: route('/settings/password')
-      }
-    case flowType.TopUp:
-      return {
-        startRoute: route('/deposit'),
-        data: {},
-        returnTo: route('/')
-      }
-    case flowType.Withdraw:
-      return {
-        startRoute: route('/withdraw'),
-        data: {},
-        returnTo: route('/')
       }
     default:
       throw json(
