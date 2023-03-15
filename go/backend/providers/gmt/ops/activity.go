@@ -3,9 +3,9 @@ package ops
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"os"
+	"strconv"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gmt"
@@ -16,6 +16,7 @@ type Credentials struct {
 	Alias    string
 	User     string
 	Password string
+	MTS      int32
 }
 
 type Activity struct {
@@ -25,20 +26,35 @@ type Activity struct {
 }
 
 func NewActivity(b Backends) *Activity {
+	mtsStr := getEnvDefault("GMT_MTS_ID", "1")
+	mts, err := strconv.Atoi(mtsStr)
+	if err != nil {
+		return nil
+	}
 	a := &Activity{
 		b:   b,
 		ext: external.New(),
 		creds: Credentials{
-			Alias:    os.Getenv("GMT_ALIAS"),
-			User:     os.Getenv("GMT_USER"),
-			Password: os.Getenv("GMT_PASSWORD"),
+			Alias:    getEnvDefault("GMT_ALIAS", "FYN001"),
+			User:     getEnvDefault("GMT_USER", "Fynbos_api"),
+			Password: getEnvDefault("GMT_PASSWORD", "VUJ6bnkxN2dQVXkwMjZaOA=="),
+			MTS:      int32(mts),
 		},
 	}
 
 	return a
 }
 
-func (a *Activity) CheckOFAC(ctx context.Context, walletID string) error {
+func getEnvDefault(key, fallback string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return fallback
+	}
+
+	return val
+}
+
+func (a *Activity) CheckIndividualOFAC(ctx context.Context, walletID string) error {
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
 		return err
@@ -99,7 +115,7 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 			DestinationCurrency:    "USD",
 			ExchangeRate:           1,
 			Fee:                    0,
-			MTSID:                  0, // TODO from GMT
+			MTSID:                  a.creds.MTS,
 			NetAmount:              1.0,
 			OfficeCode:             "0", // TODO from GMT
 			OriginalCurrency:       "USD",
@@ -173,7 +189,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 			DestinationCurrency:    args.Amount.Currency.String(),
 			ExchangeRate:           1,
 			Fee:                    0,
-			MTSID:                  0, // TODO from GMT
+			MTSID:                  a.creds.MTS,
 			NetAmount:              args.Amount.Float64(),
 			OfficeCode:             "0", // TODO from GMT
 			OriginalCurrency:       args.Amount.Currency.String(),
@@ -188,7 +204,6 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 			ServicioCodigo:         "DCASH", // TODO from type of transaction.. WTF
 			SucursalBanco:          "",      // Bank branch or routing number
 			ThirdPartyReceipt:      "FYN",   // TODO
-
 		},
 	})
 	if err != nil {
@@ -324,7 +339,7 @@ func senderFromWallet(ctx context.Context, b Backends, walletID string) (*extern
 func getSenderID(ctx context.Context, b Backends, walletID string) (int64, error) {
 	var id sql.NullInt64
 	err := b.DB().GetContext(ctx, &id, "SELECT sender_id from gmt_users WHERE wallet_id=$1", walletID)
-	if err == nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
 		return 0, err
 	}
 
@@ -334,7 +349,7 @@ func getSenderID(ctx context.Context, b Backends, walletID string) (int64, error
 func getReceiverID(ctx context.Context, b Backends, walletID string) (int64, error) {
 	var id sql.NullInt64
 	err := b.DB().GetContext(ctx, &id, "SELECT receiver_id from gmt_users WHERE wallet_id=$1", walletID)
-	if err == nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil {
 		return 0, err
 	}
 
@@ -349,7 +364,7 @@ func (a *Activity) UpdateSendRecvUser(ctx context.Context, cr ComplianceResp) er
 	}
 
 	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO gmt_users (wallet_id, receiver_id) VALUES ($1, $2)  ON CONFLICT (wallet_id) DO UPDATE SET receiver_id = excluded.receiver_id, updated_at=now()",
-		cr.SenderWalletID, cr.SenderID)
+		cr.ReceiverWalletID, cr.ReceiverID)
 	if err != nil {
 		return err
 	}
