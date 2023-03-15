@@ -2,6 +2,10 @@ package grpc
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"errors"
 
 	"gitlab.com/fynbos/backend/authorisation"
@@ -42,6 +46,21 @@ func (s *rpcService) CreateConnection(
 		return nil, toGRPCError(err)
 	}
 
+	pemBlock, _ := pem.Decode([]byte(req.GetPublicKey()))
+	if pemBlock.Type != "PUBLIC KEY" {
+		return nil, NewValidationError("PublicKey", "Must be an Ed25519 public key in pem format.")
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(pemBlock.Bytes)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	ed25519PubKey, ok := pub.(ed25519.PublicKey)
+	if !ok {
+		return nil, NewValidationError("PublicKey", "Must be an Ed25519 public key in pem format.")
+	}
+
 	// using payment pointer as client url for now
 	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
 	if err != nil {
@@ -52,7 +71,7 @@ func (s *rpcService) CreateConnection(
 		Kid: req.GetApplicationName(),
 		Alg: "EdDSA",
 		Crv: "Ed25519",
-		X:   req.GetPublicKey(),
+		X:   base64.StdEncoding.EncodeToString(ed25519PubKey),
 		Use: "sign",
 	})
 	if err != nil {
@@ -99,12 +118,17 @@ func (s *rpcService) ListConnections(ctx context.Context, req *backendv1.Empty) 
 
 	keyset := make([]*backendv1.Connection, len(keys))
 	for i, k := range keys {
+		fingerprint, err := k.Fingerprint()
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
 		keyset[i] = &backendv1.Connection{
-			Id:              k.ID,
-			ApplicationName: k.Kid,
-			PublicKey:       k.X,
-			CreatedAt:       k.CreatedAt.Format("Jan 02, 2006"),
-			LastUsedAt:      "",
+			Id:                   k.ID,
+			ApplicationName:      k.Kid,
+			PublicKeyFingerprint: fingerprint,
+			CreatedAt:            k.CreatedAt.Format("Jan 02, 2006"),
+			LastUsedAt:           "",
 		}
 	}
 
@@ -142,12 +166,17 @@ func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnec
 		return nil, NotFoundError("Connection not found.")
 	}
 
+	fingerprint, err := key.Fingerprint()
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	return &backendv1.Connection{
-		Id:              key.ID,
-		ApplicationName: key.Kid,
-		PublicKey:       key.X,
-		CreatedAt:       key.CreatedAt.Format("Jan 02, 2006"),
-		LastUsedAt:      "",
+		Id:                   key.ID,
+		ApplicationName:      key.Kid,
+		PublicKeyFingerprint: fingerprint,
+		CreatedAt:            key.CreatedAt.Format("Jan 02, 2006"),
+		LastUsedAt:           "",
 	}, nil
 }
 
