@@ -243,6 +243,9 @@ service BackendService {
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
   rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
+
+  // KYC
+  rpc KYCStatus(Empty) returns (KYCStatusResponse);
 }
 
 message ConnectionLimits {
@@ -618,4 +621,8 @@ message StartIdentityVerificationRequest {
 
 message ListPublicIdentitiesRequest {
   string wallet_id = 1;
+}
+
+message KYCStatusResponse {
+  int32 kyc_status = 1;
 }

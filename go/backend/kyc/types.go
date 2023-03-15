@@ -34,3 +34,17 @@ type Address struct {
 	FormattedAddress string `json:"formatted_address,omitempty"`
 	PlaceID          string `json:"place_id,omitempty"`
 }
+
+type Status int
+
+const (
+	StatusUnknown           Status = 0
+	StatusPending           Status = 1
+	StatusDocumentsRequired Status = 2
+	StatusApproved          Status = 3
+	StatusDenied            Status = 4
+)
+
+func (s Status) ToInt32() int32 {
+	return int32(s)
+}

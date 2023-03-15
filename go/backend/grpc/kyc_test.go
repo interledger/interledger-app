@@ -177,3 +177,26 @@ func TestGetIndividualKYC(t *testing.T) {
 	require.Equal(t, int32(ud.Gender), details.Gender)
 	require.True(t, details.DateOfBirth.AsTime().Equal(ud.DateOfBirth))
 }
+
+func TestKYCStatus(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	u := &user.User{
+		ID: uuid.NewString(),
+	}
+	wallet, err := c.Users().CreateNewWallet(context.Background(), u.ID, "default")
+	require.NoError(t, err)
+
+	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusApproved, nil)
+
+	status, err := client.KYCStatus(user_mock.ActingAsContext(t, context.Background(), u), &pb.Empty{})
+	require.NoError(t, err)
+
+	require.Equal(t, kyc.StatusApproved.ToInt32(), status.KycStatus)
+}
