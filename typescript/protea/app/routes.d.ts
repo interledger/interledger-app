@@ -22,13 +22,11 @@ declare module "routes-gen" {
     "/linked-account/:type/success": { "type": string };
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
-    "/linked-account/:type/widget": { "type": string };
     "/settings/profile-personal": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/personal-details/address": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
     "/settings/profile-contact": Record<string, never>;
-    "/settings/account-limits": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
     "/personal-details/about": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
@@ -41,9 +39,7 @@ declare module "routes-gen" {
     "/api/maps/geocode": Record<string, never>;
     "/personal-details": Record<string, never>;
     "/waitlist/success": Record<string, never>;
-    "/withdraw/confirm": Record<string, never>;
     "/contact/success": Record<string, never>;
-    "/deposit/confirm": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/payment-pointer": Record<string, never>;
     "/signup/password": Record<string, never>;
@@ -58,10 +54,8 @@ declare module "routes-gen" {
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
-    "/withdraw": Record<string, never>;
     "/clients": Record<string, never>;
     "/contact": Record<string, never>;
-    "/deposit": Record<string, never>;
     "/support": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
@@ -97,13 +91,11 @@ declare module "routes-gen" {
       | ["/linked-account/:type/success", RouteParams["/linked-account/:type/success"]]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
-      | ["/linked-account/:type/widget", RouteParams["/linked-account/:type/widget"]]
       | ["/settings/profile-personal"]
       | ["/what-is-a-payment-pointer"]
       | ["/personal-details/address"]
       | ["/settings/linked-accounts"]
       | ["/settings/profile-contact"]
-      | ["/settings/account-limits"]
       | ["/settings/profile-public"]
       | ["/personal-details/about"]
       | ["/temp-cloudflare-error"]
@@ -116,9 +108,7 @@ declare module "routes-gen" {
       | ["/api/maps/geocode"]
       | ["/personal-details"]
       | ["/waitlist/success"]
-      | ["/withdraw/confirm"]
       | ["/contact/success"]
-      | ["/deposit/confirm"]
       | ["/login/challenge"]
       | ["/payment-pointer"]
       | ["/signup/password"]
@@ -133,10 +123,8 @@ declare module "routes-gen" {
       | ["/recovery"]
       | ["/settings"]
       | ["/waitlist"]
-      | ["/withdraw"]
       | ["/clients"]
       | ["/contact"]
-      | ["/deposit"]
       | ["/support"]
       | ["/logout"]
       | ["/signup"]

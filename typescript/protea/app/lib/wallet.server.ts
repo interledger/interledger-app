@@ -8,7 +8,6 @@ import {
 import { json, redirect } from '@remix-run/node'
 import type {
   Amount,
-  GetUserLimitsResponse,
   IndividualKYCResponse,
   KYCStatusResponse,
   LinkedAccount,
@@ -16,7 +15,6 @@ import type {
   PaymentPointer,
   Transaction as GrpcTransaction
 } from '~/generated/protobuf-ts/backend/v1/backend'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import type { GetPublicWalletDetailsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
@@ -57,27 +55,6 @@ export async function getKycDetails(
 ): Promise<IndividualKYCResponse> {
   const response = await grpcClient
     .getIndividualKYC(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
-
-  return response.response
-}
-
-export async function getAccountLimits(
-  request: Request
-): Promise<GetUserLimitsResponse> {
-  let response = await grpcClient
-    .getUserLimits(
       {},
       {
         meta: {
@@ -161,31 +138,6 @@ export async function getWalletPaymentPointer(
   }
 
   return response.response.pointers[0]
-}
-
-export async function getWalletBalance(request: Request): Promise<string> {
-  const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
-    .getWalletBalance(
-      {},
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    if (response.code == Code.NOT_FOUND) return 'No balance.'
-    throw json({}, httpMapping(response.code))
-  }
-
-  return formatAmount({
-    asset: 'USD',
-    assetScale: 2,
-    amount: response.response.available
-  })
 }
 
 type FormattedLinkedAccount = {
