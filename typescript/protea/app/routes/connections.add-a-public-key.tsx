@@ -67,7 +67,7 @@ export default function Page() {
           form='add-public-key'
           label='Public key'
           name='publicKey'
-          placeholder='base64 encoded public key'
+          placeholder='-----BEGIN PUBLIC KEY-----'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.publicKey) || undefined}
           aria-describedby={
