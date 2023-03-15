@@ -162,11 +162,104 @@ func (s *rpcService) GetPublicKey(ctx context.Context, req *backendv1.GetPublicK
 }
 
 func (s *rpcService) GetPublicKeyLimits(ctx context.Context, req *backendv1.GetPublicKeyLimitsRequest) (*backendv1.PublicKeyLimits, error) {
-	panic("TODO: implement me")
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	lims, err := s.b.Limits().List(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var keyLimit *limits.Limit
+	for _, l := range lims {
+		if l.ForeignType == limits.FKTypeClientPublicKey && l.ForeignID == req.GetId() {
+			keyLimit = &l.Limit
+			break
+		}
+	}
+	if keyLimit == nil {
+		return nil, NotFoundError("public key not found")
+	}
+
+	return &backendv1.PublicKeyLimits{
+		Daily: &backendv1.PublicKeyLimit{
+			Currency: string(keyLimit.Daily.Currency),
+			Amount:   keyLimit.Daily.Value,
+		},
+		Monthly: &backendv1.PublicKeyLimit{
+			Currency: string(keyLimit.Monthly.Currency),
+			Amount:   keyLimit.Monthly.Value,
+		},
+		Overall: &backendv1.PublicKeyLimit{
+			Currency: string(keyLimit.Overall.Currency),
+			Amount:   keyLimit.Overall.Value,
+		},
+	}, nil
+}
+
+type validateUpdatePublicKeyLimitArgs struct {
+	ID           string
+	DailyLimit   validateLimit
+	MonthlyLimit validateLimit
+	OverallLimit validateLimit
 }
 
 func (s *rpcService) UpdatePublicKeyLimit(ctx context.Context, req *backendv1.UpdatePublicKeyLimitsRequest) (*backendv1.Empty, error) {
-	panic("TODO: implement me")
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	err = s.b.Validator().StructCtx(ctx, validateUpdatePublicKeyLimitArgs{
+		ID: req.GetId(),
+		DailyLimit: validateLimit{
+			Value:    req.GetDaily().GetAmount(),
+			Currency: req.GetDaily().GetCurrency(),
+		},
+		MonthlyLimit: validateLimit{
+			Value:    req.GetMonthly().GetAmount(),
+			Currency: req.GetMonthly().GetCurrency(),
+		},
+		OverallLimit: validateLimit{
+			Value:    req.GetOverall().GetAmount(),
+			Currency: req.GetOverall().GetCurrency(),
+		},
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = s.b.Limits().UpdatePublicKeyLimits(ctx, wallet.ID, req.GetId(), limits.Limit{
+		Daily: currency.Amount{
+			Value:    req.Daily.Amount,
+			Currency: currency.Currency(req.Daily.Currency),
+		},
+		Monthly: currency.Amount{
+			Value:    req.Monthly.Amount,
+			Currency: currency.Currency(req.Monthly.Currency),
+		},
+		Overall: currency.Amount{
+			Value:    req.Overall.Amount,
+			Currency: currency.Currency(req.Overall.Currency),
+		},
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.Empty{}, nil
 }
 
 func (s *rpcService) DeletePublicKey(ctx context.Context, req *backendv1.DeletePublicKeyRequest) (*backendv1.Empty, error) {

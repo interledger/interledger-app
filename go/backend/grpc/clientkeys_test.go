@@ -140,3 +140,55 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	assert.Equal(t, "le key", getRpc.GetPublicKey())
 	assert.Equal(t, "FynTest", getRpc.GetApplicationName())
 }
+
+func TestUpdatePublicKeyLimits(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	c := NewTestContainer(t, ctrl)
+	_, _, client := startTestServer(t, c)
+	u := &user.User{
+		ID: uuid.NewString(),
+	}
+	w, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
+	require.NoError(t, err)
+
+	ppURL := "https://local.fynbos.me/test"
+	c.OPClient.EXPECT().GetWalletPaymentPointer(gomock.Any(), w.ID).Return(&openpayments.PaymentPointer{
+		ID:       uuid.NewString(),
+		WalletID: w.ID,
+		URL:      ppURL,
+	}, nil).AnyTimes()
+
+	publicKeyUuid := uuid.NewString()
+	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), w.ID, publicKeyUuid, limits.Limit{
+		Daily: currency.Amount{
+			Value:    10,
+			Currency: "USD",
+		},
+		Monthly: currency.Amount{
+			Value:    100,
+			Currency: "USD",
+		},
+		Overall: currency.Amount{
+			Value:    1000,
+			Currency: "USD",
+		},
+	}).Return(nil).AnyTimes()
+
+	_, err = client.UpdatePublicKeyLimit(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdatePublicKeyLimitsRequest{
+		Id: publicKeyUuid,
+		Daily: &backendv1.PublicKeyLimit{
+			Amount:   10,
+			Currency: "USD",
+		},
+		Monthly: &backendv1.PublicKeyLimit{
+			Amount:   100,
+			Currency: "USD",
+		},
+		Overall: &backendv1.PublicKeyLimit{
+			Amount:   1000,
+			Currency: "USD",
+		},
+	})
+	require.NoError(t, err)
+}
