@@ -35,3 +35,7 @@ func (c client) UpdatePublicKeyLimits(ctx context.Context, walletID, keyUuid str
 func (c client) List(ctx context.Context, walletID string) ([]limits.LimitConfigured, error) {
 	return ops.ListLimits(ctx, c.b, walletID)
 }
+
+func (c client) GetPublicKeyLimit(ctx context.Context, walletID, publicKeyUUid string) (*limits.Limit, error) {
+	return ops.GetPublicKeyLimit(ctx, c.b, walletID, publicKeyUUid)
+}
