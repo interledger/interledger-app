@@ -41,3 +41,11 @@ func (c client) GetIndividualDetails(ctx context.Context, walletID string) (*kyc
 func (c client) UpdateIndividualDetails(ctx context.Context, args kyc.IndividualDetails) (*kyc.IndividualDetails, error) {
 	return ops.UpdateIndividualDetails(ctx, c.b, args)
 }
+
+func (c client) GetKYCStatus(ctx context.Context, walletID string) (kyc.Status, error) {
+	return ops.GetKYCStatus(ctx, c.b, walletID)
+}
+
+func (c client) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
+	return ops.SetKYCStatus(ctx, c.b, walletID, status)
+}

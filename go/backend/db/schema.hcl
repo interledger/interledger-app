@@ -1678,5 +1678,40 @@ table "authorisation_limits" {
     columns = [column.wallet_id, column.foreign_id, column.currency]
   }
 }
+
+table "wallet_kyc_status" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "status" {
+    null = false
+    type = int
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_id" {
+    unique  = true
+    columns = [column.wallet_id]
+  }
+}
+
 schema "public" {
 }

@@ -161,3 +161,24 @@ func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.I
 
 	return resp, nil
 }
+
+func (s *rpcService) KYCStatus(ctx context.Context, req *pb.Empty) (*pb.KYCStatusResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	status, err := s.b.KYC().GetKYCStatus(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.KYCStatusResponse{
+		KycStatus: status.ToInt32(),
+	}, nil
+}

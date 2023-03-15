@@ -230,6 +230,9 @@ service BackendService {
   // Contacts
   rpc CreateContact(CreateContactRequest) returns (Contact);
   rpc ListContacts(ListContactsRequest) returns (ListContactsResponse);
+
+  // KYC
+  rpc KYCStatus(Empty) returns (KYCStatusResponse);
 }
 
 // example edDSA public key
@@ -534,4 +537,8 @@ message ListContactsResponse {
 
 message CreateContactRequest {
   string payment_pointer = 1;
+}
+
+message KYCStatusResponse {
+  int32 kyc_status = 1;
 }

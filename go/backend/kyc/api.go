@@ -6,4 +6,6 @@ type Client interface {
 	GetIndividualDetails(ctx context.Context, walletID string) (*IndividualDetails, error)
 	UpdateIndividualDetails(ctx context.Context, args IndividualDetails) (*IndividualDetails, error)
 	IsUSPSAddress(ctx context.Context, address Address) (bool, error)
+	GetKYCStatus(ctx context.Context, walletID string) (Status, error)
+	SetKYCStatus(ctx context.Context, walletID string, status Status) error
 }

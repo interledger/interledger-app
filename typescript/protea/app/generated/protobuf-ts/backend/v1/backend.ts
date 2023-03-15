@@ -1288,6 +1288,15 @@ export interface CreateContactRequest {
      */
     paymentPointer: string;
 }
+/**
+ * @generated from protobuf message backend.v1.KYCStatusResponse
+ */
+export interface KYCStatusResponse {
+    /**
+     * @generated from protobuf field: int32 kyc_status = 1;
+     */
+    kycStatus: number;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -5866,6 +5875,53 @@ class CreateContactRequest$Type extends MessageType<CreateContactRequest> {
  * @generated MessageType for protobuf message backend.v1.CreateContactRequest
  */
 export const CreateContactRequest = new CreateContactRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class KYCStatusResponse$Type extends MessageType<KYCStatusResponse> {
+    constructor() {
+        super("backend.v1.KYCStatusResponse", [
+            { no: 1, name: "kyc_status", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<KYCStatusResponse>): KYCStatusResponse {
+        const message = { kycStatus: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<KYCStatusResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: KYCStatusResponse): KYCStatusResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 kyc_status */ 1:
+                    message.kycStatus = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: KYCStatusResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 kyc_status = 1; */
+        if (message.kycStatus !== 0)
+            writer.tag(1, WireType.Varint).int32(message.kycStatus);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.KYCStatusResponse
+ */
+export const KYCStatusResponse = new KYCStatusResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -5920,5 +5976,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateClientPublicKey", options: {}, I: JWK, O: Empty },
     { name: "GetPublicWalletDetails", options: {}, I: GetPublicWalletDetailsRequest, O: GetPublicWalletDetailsResponse },
     { name: "CreateContact", options: {}, I: CreateContactRequest, O: Contact },
-    { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse }
+    { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse },
+    { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse }
 ]);

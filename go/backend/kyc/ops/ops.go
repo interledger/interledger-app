@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"gitlab.com/fynbos/backend/kyc"
 )
 
@@ -157,4 +156,29 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 	resp.Address = &address
 
 	return resp, nil
+}
+
+func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status) error {
+	_, err := b.DB().ExecContext(ctx,
+		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
+		walletID, status)
+	if err != nil {
+		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func GetKYCStatus(ctx context.Context, b Backends, walletID string) (kyc.Status, error) {
+	var s kyc.Status
+	err := b.DB().GetContext(ctx, &s, "select status from wallet_kyc_status where wallet_id = $1", walletID)
+	if err != nil {
+		// Return unknown if it doesn't exist yet
+		if errors.Is(err, sql.ErrNoRows) {
+			s = kyc.StatusUnknown
+			return s, nil
+		}
+	}
+
+	return s, nil
 }
