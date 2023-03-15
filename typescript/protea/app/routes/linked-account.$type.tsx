@@ -1,12 +1,10 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { Form, useParams } from '@remix-run/react'
 import { getUserSession } from '~/lib/kratos.server'
 import type { RadioGroupOption } from '~/components'
 import { Button, Card, Layouts, RadioGroup, Shape } from '~/components'
-import { flowType, requireFlow } from '~/lib/flows.server'
 import { useState } from 'react'
-import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   await getUserSession(request)
@@ -162,30 +160,33 @@ function BankPage() {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const form = await request.formData()
-  const radioType = form.get('radioType') as string
-  let flow
-  if (params.type == 'card') {
-    flow = await requireFlow(request, flowType.LinkCardAccount, {
-      startRoute: route('/linked-account/:type/widget', { type: 'card' }),
-      data: {},
-      returnTo: route('/deposit')
-    })
-  } else if (params.type == 'new' && radioType == 'card') {
-    flow = await requireFlow(request, flowType.LinkCardAccount)
-  } else if (params.type == 'bank') {
-    flow = await requireFlow(request, flowType.LinkBankAccount, {
-      startRoute: route('/linked-account/:type/widget', { type: 'bank' }),
-      data: {},
-      returnTo: route('/withdraw')
-    })
-  } else if (params.type == 'new' && radioType == 'bank') {
-    flow = await requireFlow(request, flowType.LinkBankAccount)
-  } else
-    throw json(
-      { title: `Linking type ${params.type} not allowed.` },
-      { status: 400 }
-    )
+  // const form = await request.formData()
+  // const radioType = form.get('radioType') as string
+  // let flow
+  // if (params.type == 'card') {
+  //   flow = await requireFlow(request, flowType.LinkCardAccount, {
+  //     startRoute: route('/linked-account/:type/widget', { type: 'card' }),
+  //     data: {},
+  //     returnTo: route('/deposit')
+  //   })
+  // } else if (params.type == 'new' && radioType == 'card') {
+  //   flow = await requireFlow(request, flowType.LinkCardAccount)
+  // } else if (params.type == 'bank') {
+  //   flow = await requireFlow(request, flowType.LinkBankAccount, {
+  //     startRoute: route('/linked-account/:type/widget', { type: 'bank' }),
+  //     data: {},
+  //     returnTo: route('/withdraw')
+  //   })
+  // } else if (params.type == 'new' && radioType == 'bank') {
+  //   flow = await requireFlow(request, flowType.LinkBankAccount)
+  // } else
+  //   throw json(
+  //     { title: `Linking type ${params.type} not allowed.` },
+  //     { status: 400 }
+  //   )
+  //
+  // return redirect(flow.startRoute)
 
-  return redirect(flow.startRoute)
+  // TODO Temp
+  return redirect('/')
 }

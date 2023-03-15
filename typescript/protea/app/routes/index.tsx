@@ -18,7 +18,6 @@ import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import type { Transaction } from '~/lib/wallet.server'
 import {
   getKycStatus,
-  getWalletBalance,
   getWalletPaymentPointer,
   getLinkedAccounts,
   getTransactionsWithPending
@@ -33,12 +32,11 @@ import { getPusherArgs } from '~/lib/pusher.server'
 import { AnimatePresence, motion } from 'framer-motion'
 
 export enum KycStatus {
-  Unknown,
-  InProgress,
-  Verified,
-  Retry,
-  Suspended,
-  ReviewPending
+  Unknown = 0,
+  InProgress = 1,
+  DocumentsRequired = 2,
+  Verified = 3,
+  Suspended = 4
 }
 
 export async function loader({ request }: LoaderArgs) {
@@ -96,7 +94,6 @@ export async function loader({ request }: LoaderArgs) {
       ...data,
       firstName: session.identity.traits.firstName,
       paymentPointer,
-      balance: getWalletBalance(request),
       transactions: transactions.transactions,
       kycStatus: kycStatus.kycStatus,
       canTopUp: linkedAccounts.canTopUp,
@@ -132,7 +129,8 @@ export async function loader({ request }: LoaderArgs) {
           'Add a debit card to easily send payments or top up your cash balance.',
         icon: 'add_card',
         action: {
-          to: route('/linked-account/:type/widget', { type: 'card' }),
+          to: route('/'),
+          // to: route('/linked-account/:type/widget', { type: 'card' }),
           text: 'Add a debit card'
         },
         show: true
@@ -147,7 +145,8 @@ export async function loader({ request }: LoaderArgs) {
           'Add a bank account to securely withdraw from your cash balance at any time.',
         icon: 'account_balance',
         action: {
-          to: route('/linked-account/:type/widget', { type: 'bank' }),
+          to: route('/'),
+          // to: route('/linked-account/:type/widget', { type: 'bank' }),
           text: 'Add bank account'
         },
         show: true
@@ -539,23 +538,23 @@ function AppPage() {
           <p className='mt-4'>Just a moment, we are verifying your details.</p>
         </Card>
       )}
-      {kycStatus == KycStatus.Retry && (
-        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h2 className='font-display text-lg font-medium'>
-            Activation failed
-          </h2>
-          <p className='mt-4'>
-            Some of the details you provided were not correct. Please fix them
-            and submit again.
-          </p>
-          <Router
-            className='mt-4 text-sm font-medium text-primary'
-            to={route('/personal-details')}
-          >
-            Fix personal details
-          </Router>
-        </Card>
-      )}
+      {/*{kycStatus == KycStatus.Retry && (*/}
+      {/*  <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>*/}
+      {/*    <h2 className='font-display text-lg font-medium'>*/}
+      {/*      Activation failed*/}
+      {/*    </h2>*/}
+      {/*    <p className='mt-4'>*/}
+      {/*      Some of the details you provided were not correct. Please fix them*/}
+      {/*      and submit again.*/}
+      {/*    </p>*/}
+      {/*    <Router*/}
+      {/*      className='mt-4 text-sm font-medium text-primary'*/}
+      {/*      to={route('/personal-details')}*/}
+      {/*    >*/}
+      {/*      Fix personal details*/}
+      {/*    </Router>*/}
+      {/*  </Card>*/}
+      {/*)}*/}
       {kycStatus == KycStatus.Suspended && (
         <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display text-lg font-medium'>
@@ -573,17 +572,17 @@ function AppPage() {
           </Router>
         </Card>
       )}
-      {kycStatus == KycStatus.ReviewPending && (
-        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h2 className='font-display text-lg font-medium'>
-            Reviewing activation
-          </h2>
-          <p className='mt-4'>
-            We need to manually review your verification details. We will notify
-            you when this process completes.
-          </p>
-        </Card>
-      )}
+      {/*{kycStatus == KycStatus.ReviewPending && (*/}
+      {/*  <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>*/}
+      {/*    <h2 className='font-display text-lg font-medium'>*/}
+      {/*      Reviewing activation*/}
+      {/*    </h2>*/}
+      {/*    <p className='mt-4'>*/}
+      {/*      We need to manually review your verification details. We will notify*/}
+      {/*      you when this process completes.*/}
+      {/*    </p>*/}
+      {/*  </Card>*/}
+      {/*)}*/}
 
       {kycStatus == KycStatus.Verified && (
         <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
@@ -674,21 +673,6 @@ function AppPage() {
                 </Await>
               </Suspense>
             </AnimatePresence>
-          </div>
-
-          <div className='mt-5 flex w-full justify-end space-x-6'>
-            <Router
-              className='text-sm font-medium text-primary'
-              to={route('/deposit')}
-            >
-              Top up
-            </Router>
-            <Router
-              className='text-sm font-medium text-primary'
-              to={route('/withdraw')}
-            >
-              Withdraw
-            </Router>
           </div>
         </Card>
       )}
