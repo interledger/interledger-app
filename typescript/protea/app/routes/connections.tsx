@@ -4,7 +4,12 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
-import { grpcClient } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -18,6 +23,11 @@ export async function loader({ request }: LoaderArgs) {
       }
     )
     .then((resp) => resp.response.keys)
+    .catch(StatusError)
+
+  if (isGrpcError(connections)) {
+    throw json({}, httpMapping(connections.code))
+  }
 
   let snackbar = await getSnackbar(request)
 
@@ -46,55 +56,48 @@ export default function Page() {
 
   return (
     <>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card>
         <h1 className='font-display text-2xl font-medium'>Connections</h1>
         <p className='mt-6 text-medium'>Add and manage your connections.</p>
       </Card>
 
       {connections.length > 0 && (
         <>
-          <br />
-          <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <Card className='mt-6'>
             <h1 className='font-display text-2xl font-medium'>Public keys</h1>
             {connections.map((conn) => (
-              <Card
+              <Router
+                to={route('/connections/:connectionId', {
+                  connectionId: conn.id
+                })}
+                className='mt-6 p-3 rounded-xl bg-container flex justify-between'
                 key={conn.id}
-                className='mt-6 bg-slate-100 col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
               >
-                <Router
-                  to={route('/connections/:connectionId', {
-                    connectionId: conn.id
-                  })}
-                >
-                  <div className='flex justify-between space-x-4'>
-                    <div className='flex flex-col'>
-                      <p className='text-sm text-medium space-y-1'>
-                        {conn.applicationName}
-                      </p>
-                      <p className='mt-1 text-xs'>Added {conn.createdAt}</p>
-                      <p className='text-xs text-purple-500'>
-                        Last used {conn.lastUsedAt}
-                      </p>
-                    </div>
-                    <div className='flex content-start justify-between rounded-full bg-container text-medium'>
-                      <Icon>navigate_next</Icon>
-                    </div>
-                  </div>
-                </Router>
-              </Card>
+                <div className='flex-col'>
+                  <p className='font-medium text-medium'>
+                    {conn.applicationName}
+                  </p>
+                  <p className='mt-2 text-sm text-medium'>
+                    Added {conn.createdAt}
+                  </p>
+                  {/*TODO: implement last used*/}
+                  {/*<p className='mt-1 text-sm text-purple-500'>
+                                      Last used {conn.lastUsedAt}
+                                    </p>*/}
+                </div>
+                <Icon>navigate_next</Icon>
+              </Router>
             ))}
           </Card>
         </>
       )}
 
-      <br />
-
-      <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card className='mt-6'>
         <div className='flex items-start space-x-4'>
           <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
             <Icon>key</Icon>
           </div>
-          <div className='flex flex-col space-y-4'>
+          <div className='flex flex-col space-y-2'>
             <p className='text-sm text-medium'>
               Add a public key for access and integration to your wallet.
             </p>
