@@ -18,7 +18,7 @@ func OnboardUserWorkflow(ctx workflow.Context, walletID string) (string, error) 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("OnboardUserWorkflow workflow started", "walletID", walletID)
 
-	err := workflow.ExecuteActivity(ctx, a.CheckOFAC, walletID).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CheckIndividualOFAC, walletID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to do OFAC checks", "err", err)
 	}
@@ -48,7 +48,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (stri
 	logger := workflow.GetLogger(ctx)
 	logger.Info("ACH2ACHTransferWorkflow workflow started", "From", args.FromLinkedAccountID, "Amount", args.Amount)
 
-	err := workflow.ExecuteActivity(ctx, a.CheckOFAC, args).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CheckIndividualOFAC, args).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to do OFAC checks", "err", err)
 	}
