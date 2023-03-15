@@ -35,7 +35,7 @@ export default function Page() {
         className='hidden'
       />
 
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card>
         <h1 className='font-display text-2xl font-medium'>Add a public key</h1>
         <p className='mt-6 text-medium'>
           Add the public key of the external application that is connecting to
@@ -78,9 +78,7 @@ export default function Page() {
         />
       </Card>
 
-      <br />
-
-      <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card className='mt-6'>
         <h1 className='font-display text-2xl font-medium'>Limits</h1>
         <p>
           Providing access to your Fynbos wallet allows the external application
@@ -144,13 +142,7 @@ export default function Page() {
         />
       </Card>
 
-      <br />
-
-      <Button
-        className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
-        form='add-public-key'
-        type='submit'
-      >
+      <Button className='mt-6' form='add-public-key' type='submit'>
         Add key
       </Button>
     </>
@@ -248,7 +240,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   await flashSnackbar(request, {
-    message: 'Your public key was added.',
+    message: 'Public key was added.',
     icon: 'close'
   })
 

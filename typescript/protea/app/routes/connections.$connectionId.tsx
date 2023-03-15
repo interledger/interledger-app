@@ -12,6 +12,7 @@ import {
   TextField
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { getConnection, getConnectionLimits } from '~/lib/connections.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   grpcClient,
@@ -29,57 +30,6 @@ export const meta: MetaFunction = () => {
   return {
     title: 'Connections'
   }
-}
-
-async function getConnection(request: Request, id: string) {
-  let rpc = await grpcClient
-    .getConnection(
-      { id },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
-  }
-
-  return rpc.response
-}
-
-async function getConnectionLimits(request: Request, id: string) {
-  let rpc = await grpcClient
-    .getConnectionLimits(
-      { id },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
-  }
-
-  let limits = {
-    daily:
-      parseFloat(rpc.response.daily?.amount as string) *
-      Math.pow(10, -(rpc.response.daily?.assetScale || 0)),
-    monthly:
-      parseFloat(rpc.response.monthly?.amount as string) *
-      Math.pow(10, -(rpc.response.monthly?.assetScale || 0)),
-    overall:
-      parseFloat(rpc.response.overall?.amount as string) *
-      Math.pow(10, -(rpc.response.overall?.assetScale || 0))
-  }
-
-  return limits
 }
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -130,23 +80,22 @@ export default function Page() {
         type='hidden'
       />
 
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card>
         <h1 className='font-display text-2xl font-medium'>
           {connection.applicationName}
         </h1>
-        <div className='my-4 flex flex items-center justify-between rounded-xl bg-container p-4'>
+        <code className='mt-6 flex items-center justify-between rounded-xl bg-container p-2 font-mono text-medium break-all'>
           {connection.publicKey}
-        </div>
+        </code>
 
-        <p className='text-sm'>Added {connection.createdAt}</p>
-        <p className='text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>
+        <p className='mt-4 text-sm text-medium'>Added {connection.createdAt}</p>
+        {/*TODO: implement last used*/}
+        {/*<p className='mt-1 text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>*/}
       </Card>
 
-      <br />
-
-      <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Card className='mt-6'>
         <h1 className='font-display text-2xl font-medium'>Limits</h1>
-        <p>
+        <p className='mt-6'>
           Providing access to your Fynbos wallet allows the external application
           to make payments. Set the limits below.
         </p>
@@ -208,21 +157,18 @@ export default function Page() {
         />
       </Card>
 
-      <br />
-
-      <div className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='grid grid-cols-3 gap-2'>
-          <OutlineButton
-            className='outline-red-700 focus-visible:outline-red-800 text-red-700'
-            form='delete-key'
-            type='submit'
-          >
-            Delete
-          </OutlineButton>
-          <Button className='col-span-2' form='update-key-limit' type='submit'>
-            Save
-          </Button>
-        </div>
+      <div className='mt-6 flex w-full space-x-2'>
+        <OutlineButton
+          shrink
+          className='outline-red-700 focus-visible:outline-red-800 text-red-700'
+          form='delete-key'
+          type='submit'
+        >
+          Delete
+        </OutlineButton>
+        <Button className='col-span-2' form='update-key-limit' type='submit'>
+          Save
+        </Button>
       </div>
 
       <Snackbar
@@ -280,7 +226,7 @@ export async function action({ request, params }: ActionArgs) {
     }
 
     await flashSnackbar(request, {
-      message: 'Your public key was deleted.',
+      message: 'Public key was deleted.',
       icon: 'close'
     })
 
@@ -339,7 +285,7 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   await flashSnackbar(request, {
-    message: 'Your public key was updated.',
+    message: 'Public key was updated.',
     icon: 'close'
   })
 
