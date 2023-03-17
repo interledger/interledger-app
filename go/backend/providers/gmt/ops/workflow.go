@@ -18,20 +18,23 @@ func OnboardUserWorkflow(ctx workflow.Context, walletID string) (string, error) 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("OnboardUserWorkflow workflow started", "walletID", walletID)
 
-	err := workflow.ExecuteActivity(ctx, a.CheckIndividualOFAC, walletID).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, walletID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to do OFAC checks", "err", err)
+		return "", err
 	}
 
 	var cr ComplianceResp
 	err = workflow.ExecuteActivity(ctx, a.IndividualCompliance, walletID).Get(ctx, &cr)
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
+		return "", err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to upsert gmt send recv user", "err", err)
+		return "", err
 	}
 
 	return "TODO", nil
@@ -48,15 +51,55 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (stri
 	logger := workflow.GetLogger(ctx)
 	logger.Info("ACH2ACHTransferWorkflow workflow started", "From", args.FromLinkedAccountID, "Amount", args.Amount)
 
-	err := workflow.ExecuteActivity(ctx, a.CheckIndividualOFAC, args).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CheckAccountOFAC, args.ToLinkedAccountID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do OFAC checks", "err", err)
+		logger.Error("failed to do to linked account OFAC checks", "err", err)
+		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CheckAccountOFAC, args.FromLinkedAccountID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to do from linked account OFAC checks", "err", err)
+		return "", err
+	}
+
+	var cr ComplianceResp
+	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, &cr)
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
+		return "", err
 	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to upsert gmt send recv user", "err", err)
+		return "", err
+	}
+
+	var tr TransactionResp
+	err = workflow.ExecuteActivity(ctx, a.InsertACH, args).Get(ctx, &tr)
+	if err != nil {
+		logger.Error("failed to insert gmt transaction", "err", err)
+		return "", err
+	}
+
+	// TODO: Insert/update transactions
+
+	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, tr).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to save gmt transaction receipt", "err", err)
+		return "", err
+	}
+
+	// TODO: risk Scores if we want
+
+	err = workflow.ExecuteActivity(ctx, a.VerifyTransaction, tr.ID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to verify gmt transaction", "err", err)
+		return "", err
+	}
+
+	// TODO: await transaction result
 
 	return "TODO", nil
 }
