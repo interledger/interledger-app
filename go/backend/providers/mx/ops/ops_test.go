@@ -39,6 +39,9 @@ func TestGetWidget(t *testing.T) {
 	b.ExternalClient.EXPECT().GetWidgetURL(gomock.Any(), external.GetWidgetURLArgs{
 		UserGuid:            externalUserGuid,
 		IncludeTransactions: false,
+		IncludeIdentity:     true,
+		Mode:                "verification",
+		WidgetType:          "connect_widget",
 	}).Return(
 		&external.WidgetURL{
 			URL: widgetURL,

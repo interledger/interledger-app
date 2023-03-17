@@ -31,6 +31,9 @@ func GetWidget(ctx context.Context, b Backends, walletID string) (string, error)
 	widget, err := b.External().GetWidgetURL(ctx, external.GetWidgetURLArgs{
 		UserGuid:            user.Guid,
 		IncludeTransactions: false,
+		IncludeIdentity:     true,
+		Mode:                "verification",
+		WidgetType:          "connect_widget",
 	})
 	if err != nil {
 		return "", fmt.Errorf("%w %s", mx.ErrInternal, err)
