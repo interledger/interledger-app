@@ -6,8 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/kyc/workflows"
+	"go.temporal.io/api/enums/v1"
+	temporal "go.temporal.io/sdk/client"
+	"time"
 )
 
 func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndividualDetails, bool, error) {
@@ -157,4 +160,45 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 	resp.Address = &address
 
 	return resp, nil
+}
+
+func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status) error {
+	_, err := b.DB().ExecContext(ctx,
+		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
+		walletID, status)
+	if err != nil {
+		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func GetKYCStatus(ctx context.Context, b Backends, walletID string) (kyc.Status, error) {
+	var s kyc.Status
+	err := b.DB().GetContext(ctx, &s, "select status from wallet_kyc_status where wallet_id = $1", walletID)
+	if err != nil {
+		// Return unknown if it doesn't exist yet
+		if errors.Is(err, sql.ErrNoRows) {
+			s = kyc.StatusUnknown
+			return s, nil
+		}
+	}
+
+	return s, nil
+}
+
+func StartKYC(ctx context.Context, b Backends, walletID string) error {
+
+	workflowOptions := temporal.StartWorkflowOptions{
+		ID:                       "start_kyc_" + walletID,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.StartKYC, workflows.StartKYCArgs{
+		WalletID: walletID,
+	})
+
+	return err
 }

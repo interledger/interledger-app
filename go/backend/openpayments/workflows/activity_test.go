@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"testing"
 	"time"
 
@@ -18,8 +19,6 @@ import (
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	"gitlab.com/fynbos/backend/providers/machnet"
-	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	users_client "gitlab.com/fynbos/backend/user/client"
 	"go.temporal.io/sdk/testsuite"
 )
@@ -35,10 +34,7 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 
-	mc := machnet_mock.NewMockClient(ctrl)
-	mc.EXPECT().GetUserByWalletID(gomock.Any(), gomock.Any()).Return(&machnet.User{KYCStatus: machnet.KYCStatusVerified}, nil).AnyTimes()
-
-	b := NewTestBackends(t, db, nil, la_mock, txClient, mc, nil, nil)
+	b := NewTestBackends(t, db, nil, la_mock, txClient, nil, nil)
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()

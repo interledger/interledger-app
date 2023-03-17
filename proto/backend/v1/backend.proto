@@ -205,20 +205,6 @@ service BackendService {
   rpc GetCountries(Empty) returns (GetCountriesResponse);
   rpc GetCurrentWallet(Empty) returns (GetCurrentWalletResponse);
 
-  //Machnet
-  rpc GetMachnetWidgetToken(Empty) returns (MachnetWidgetToken);
-  rpc ListBanks(Empty) returns (ListBanksResponse);
-  rpc CreateReceiveBankAccount(CreateReceiveBankAccountRequest) returns (LinkedAccount);
-  rpc StartMachnetKYC(Empty) returns(Empty);
-  rpc HasSendUser(Empty) returns (HasSendUserResponse);
-  rpc KYCStatus(Empty) returns (KYCStatusResponse);
-  rpc CreateWallet(CreateWalletRequest) returns (LinkedAccount);
-  rpc GetWalletBalance(Empty) returns (WalletBalance);
-  rpc CheckMachnetWithdrawalLimit(CheckMachnetTXLimitRequest) returns (CheckMachnetTXLimitResponse);
-  rpc StartWithdrawFromMachnetWallet(WithdrawFromMachnetWalletRequest) returns (Empty);
-  rpc CheckMachnetTopupLimit(CheckMachnetTXLimitRequest) returns (CheckMachnetTXLimitResponse);
-  rpc StartMachnetWalletTopup(StartMachnetWalletTopupRequest) returns(Empty);
-
   //Waitlist
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
   rpc CanSignup(CanSignupRequest) returns(CanSignupResponse);
@@ -231,15 +217,9 @@ service BackendService {
   rpc ListTransactionsWithPending(PaginationRequest) returns (ListTransactionsResponse);
   rpc LookupTransaction(LookupTransactionRequest) returns (Transaction);
 
-  // Limits (Machnet)
-  rpc GetUserLimits(Empty) returns (GetUserLimitsResponse);
-
   // Limits GNAP
   rpc ListLimits(Empty) returns (ListLimitsResponse);
   rpc UpdateClientLimits(UpdateClientLimitsRequest) returns (Empty);
-
-  //Statements
-  rpc GetStatementPDF(GetStatementPDFRequest) returns (StatementPDF);
 
   //Connections
   rpc CreateConnection(CreateConnectionRequest) returns (Empty);
@@ -263,6 +243,10 @@ service BackendService {
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
   rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
+
+  // KYC
+  rpc KYCStatus(Empty) returns (KYCStatusResponse);
+  rpc StartKYC(Empty) returns (Empty);
 }
 
 message ConnectionLimits {
@@ -322,14 +306,6 @@ message Transfer {
 message ListStatementsResponse {
   repeated string periods = 1;
   string nextPageToken = 2;
-}
-
-message GetStatementPDFRequest {
-  string period = 1;
-}
-
-message StatementPDF {
-  bytes chunks = 1;
 }
 
 message CreateSupportTicketRequest {
@@ -506,36 +482,6 @@ message GetCountriesResponse {
   repeated Country countries = 1;
 }
 
-message MachnetWidgetToken {
-  string value = 1;
-  int64 expiresInMinutes = 2;
-  string userId = 3;
-}
-
-message Branch {
-  uint32 id = 1;
-  string name = 2;
-}
-
-message Bank {
-  uint32 id = 1;
-  string name = 2;
-  repeated Branch branches = 3;
-}
-
-message ListBanksResponse {
-  repeated Bank banks = 1;
-}
-
-message CreateReceiveBankAccountRequest {
-  string name = 1;
-  uint32 bank_id = 2;
-  uint32 branch_id = 3;
-  string account_type = 4;
-  string account_number = 5;
-  string otp = 6;
-}
-
 message CanSignupRequest{
   string id = 1;
 }
@@ -547,42 +493,6 @@ message CanSignupResponse{
 message SetSignupCompleteRequest{
   string id = 1;
   string userId = 2;
-}
-
-message HasSendUserResponse{
-  bool hasSendUser = 1;
-}
-
-message KYCStatusResponse {
-  bool hasSendUser = 1;
-  int32 kycStatus = 2;
-  repeated string failedFields = 3;
-}
-
-message CreateWalletRequest{
-  string nickname = 1;
-}
-
-message WalletBalance{
-  uint64 balance = 1;
-  uint64 available = 2;
-}
-
-message WithdrawFromMachnetWalletRequest {
-  string toLinkedAccountId = 1;
-  uint64 amount = 2;  
-  string ipAddress = 3;
-  string idempotencyKey = 4;
-}
-
-message CheckMachnetTXLimitRequest {
-  uint64 amount = 1;
-  string currency = 2;
-}
-
-message CheckMachnetTXLimitResponse {
-  bool exceedsLimits = 1;
-  string limitType = 2; // ANNUAL, MONTHLY, DAILY, HOLD (MAX BALANCE)
 }
 
 message StartMachnetWalletTopupRequest {
@@ -599,12 +509,6 @@ message LookupTransactionRequest {
 
 message GetCurrentWalletResponse {
   string id = 1;
-}
-
-message GetUserLimitsResponse {
-  Limit FundWallet = 1;
-  Limit Withdrawal = 2;
-  Limit Transfer = 3;
 }
 
 message Limit {
@@ -718,4 +622,8 @@ message StartIdentityVerificationRequest {
 
 message ListPublicIdentitiesRequest {
   string wallet_id = 1;
+}
+
+message KYCStatusResponse {
+  int32 kyc_status = 1;
 }

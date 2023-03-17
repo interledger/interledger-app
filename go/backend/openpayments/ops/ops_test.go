@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"strings"
 	"testing"
 	"time"
@@ -11,10 +12,8 @@ import (
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/machnet"
 
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	machnet_mock_client "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 
 	"github.com/golang/mock/gomock"
 
@@ -32,7 +31,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -169,7 +168,7 @@ func TestGetWalletPaymentPointer(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 	userID := uuid.NewString()
@@ -261,7 +260,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -309,7 +308,7 @@ func TestValidatePaymentPointer(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	cases := []struct {
 		name   string
@@ -417,7 +416,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()
@@ -534,12 +533,11 @@ func TestCreateQuote(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	laClient := linked_account_mock.NewMockClient(ctrl)
-	mClient := machnet_mock_client.NewMockClient(ctrl)
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, laClient, mClient, txClient)
+	b := ops.NewTestBackends(t, db, laClient, txClient)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -603,38 +601,6 @@ func TestCreateQuote(t *testing.T) {
 			},
 		},
 		{
-			name:    "recv address not kyc verified",
-			sendKYC: machnet.KYCStatusVerified,
-			recvKYC: machnet.KYCStatusReviewPending,
-			err:     openpayments.ErrPaymentPointerCannotRecv,
-			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "https://fynbos.me/paysend5",
-				ReceivePaymentPointer: "https://fynbos.me/payrecv6",
-				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: currency.Amount{
-					Value:    100,
-					Currency: "ZAR",
-					Scale:    2,
-				},
-			},
-		},
-		{
-			name:    "send address not kyc verified",
-			sendKYC: machnet.KYCStatusReviewPending,
-			recvKYC: machnet.KYCStatusVerified,
-			err:     openpayments.ErrPaymentPointerCannotSend,
-			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "https://fynbos.me/paysend7",
-				ReceivePaymentPointer: "https://fynbos.me/payrecv8",
-				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: currency.Amount{
-					Value:    100,
-					Currency: "ZAR",
-					Scale:    2,
-				},
-			},
-		},
-		{
 			name:    "success send from wallet",
 			sendKYC: machnet.KYCStatusVerified,
 			recvKYC: machnet.KYCStatusVerified,
@@ -650,24 +616,6 @@ func TestCreateQuote(t *testing.T) {
 				LinkedAccID: "4153f92e-158a-46dc-b298-4b71635c2093",
 			},
 			balance: 10000,
-		},
-		{
-			name:    "send from wallet insufficient balance",
-			sendKYC: machnet.KYCStatusVerified,
-			recvKYC: machnet.KYCStatusVerified,
-			err:     openpayments.ErrInsufficientBalance,
-			args: openpayments.CreateQuoteArgs{
-				SendPaymentPointer:    "https://fynbos.me/paysend11",
-				ReceivePaymentPointer: "https://fynbos.me/payrecv12",
-				ExpiresAt:             time.Now().Add(time.Hour),
-				SendAmount: currency.Amount{
-					Value:    1000,
-					Currency: currency.ParseCurrency("USD"),
-					Scale:    2,
-				},
-				LinkedAccID: "b1e5d317-0d28-4310-8512-4e9606f13627",
-			},
-			balance: 1,
 		},
 	}
 
@@ -702,9 +650,6 @@ func TestCreateQuote(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			mClient.EXPECT().GetUserByWalletID(ctx, sendWallet.ID).Return(&machnet.User{KYCStatus: tc.sendKYC}, nil).AnyTimes()
-			mClient.EXPECT().GetUserByWalletID(ctx, recvWallet.ID).Return(&machnet.User{KYCStatus: tc.recvKYC}, nil).AnyTimes()
-
 			if tc.args.LinkedAccID != "" {
 				providerID := uuid.NewString()
 				_, err = db.ExecContext(ctx, "insert into linked_accounts (id, wallet_id, name, mask, provider, provider_id, type) values ($1, $2, $3, $4, $5, $6, $7)",
@@ -715,11 +660,6 @@ func TestCreateQuote(t *testing.T) {
 					WalletID:   sendWallet.ID,
 					ProviderID: providerID,
 					Type:       machnet.TypeWallet,
-				}, nil)
-				mClient.EXPECT().GetWallet(ctx, providerID).Return(&machnet.Wallet{
-					ID:               providerID,
-					AvailableBalance: tc.balance,
-					Balance:          tc.balance,
 				}, nil)
 			}
 
@@ -757,12 +697,11 @@ func TestValidateCanSend(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	laClient := linked_account_mock.NewMockClient(ctrl)
-	mClient := machnet_mock_client.NewMockClient(ctrl)
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, laClient, mClient, txClient)
+	b := ops.NewTestBackends(t, db, laClient, txClient)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
@@ -793,14 +732,6 @@ func TestValidateCanSend(t *testing.T) {
 			expected:  false,
 		},
 		{
-			name:      "no_wallet",
-			sendPP:    "https://fynbos.me/samesend",
-			recvPP:    "https://fynbos.me/differenrt",
-			hasWallet: false,
-			hasPP:     true,
-			expected:  false,
-		},
-		{
 			name:      "no_such_pointer",
 			sendPP:    "https://fynbos.me/senderpoint",
 			recvPP:    "https://fynbos.me/notreal",
@@ -824,15 +755,6 @@ func TestValidateCanSend(t *testing.T) {
 			unauthed:  true,
 			hasPP:     true,
 			expected:  true,
-		},
-		{
-			name:      "un_authed_no_wallet",
-			sendPP:    "$fynbos.me/notloggedinagain",
-			recvPP:    "$fynbos.me/thisisnotKYC",
-			hasWallet: false,
-			unauthed:  true,
-			hasPP:     true,
-			expected:  false,
 		},
 		{
 			name:      "un_authed_no_pp",
@@ -874,13 +796,6 @@ func TestValidateCanSend(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			if tc.hasWallet {
-				mClient.EXPECT().GetWalletByWalletID(ctx, recvWallet.ID).Return(&machnet.Wallet{}, nil).AnyTimes()
-				mClient.EXPECT().GetWalletByWalletID(ctx, sendWallet.ID).Return(&machnet.Wallet{}, nil).AnyTimes()
-			} else {
-				mClient.EXPECT().GetWalletByWalletID(ctx, sendWallet.ID).Return(nil, machnet.ErrNotFound).AnyTimes()
-				mClient.EXPECT().GetWalletByWalletID(ctx, recvWallet.ID).Return(nil, machnet.ErrNotFound).AnyTimes()
-			}
 			walletID := sendWallet.ID
 			if tc.unauthed {
 				walletID = ""

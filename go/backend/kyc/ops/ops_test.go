@@ -2,14 +2,12 @@ package ops_test
 
 import (
 	"context"
-	"testing"
-
-	"gitlab.com/fynbos/backend/db"
-	user_client "gitlab.com/fynbos/backend/user/client"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/db"
+	user_client "gitlab.com/fynbos/backend/user/client"
+	"testing"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/ops"
@@ -19,7 +17,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db)
+	b := ops.NewTestBackends(t, db, nil)
 
 	userID := uuid.NewString()
 
@@ -167,4 +165,43 @@ func TestUpdateUserDetails(t *testing.T) {
 	err = db.GetContext(ctx, &revisionCnt, "select count(*) from individual_kyc_details where wallet_id=$1", walletID)
 	require.NoError(t, err)
 	assert.Equal(t, 3, revisionCnt)
+}
+
+func TestKYCStatus(t *testing.T) {
+	ctx := context.Background()
+
+	db := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, db, nil)
+
+	userID := uuid.NewString()
+
+	users := user_client.New(b, "kratosURL", "kratosAdminURL")
+	wallet, err := users.CreateNewWallet(ctx, userID, "testing")
+	require.NoError(t, err)
+
+	walletID := wallet.ID
+
+	// Defaults to unknown if not set
+	s, err := ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusUnknown, s)
+
+	// Can set status
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusPending)
+	require.NoError(t, err)
+
+	// status should be pending
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusPending, s)
+
+	// Can set already set status
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusApproved)
+	require.NoError(t, err)
+
+	// status should be pending
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusApproved, s)
 }

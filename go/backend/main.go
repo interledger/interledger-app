@@ -53,9 +53,6 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
-	"gitlab.com/fynbos/backend/providers/machnet"
-	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
-	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/statements"
@@ -176,8 +173,6 @@ func start(args *cli.StartArgs) {
 
 	b.waitlist = waitlist_client.New(b, logger)
 
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
-
 	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
@@ -190,7 +185,6 @@ func start(args *cli.StartArgs) {
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 	}))
-	router.Handle("/webhooks/machnet", machnet_webhook.New(b, args.MachnetWebhookSecret, args.MachnetClientID, args.MachnetClientSecret))
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
@@ -400,8 +394,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.linkedaccounts = linked_account_client.New(b)
 
-	b.machnet = machnet_client.New(b, args.MachnetClientID, args.MachnetClientSecret)
-
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
 	b.openpayments = openpayments_client.New(b)
@@ -441,7 +433,6 @@ type backends struct {
 	agreements     agreements.Client
 	countries      country.Client
 	linkedaccounts linkedaccounts.Client
-	machnet        machnet.Client
 	healthcheck    healthcheck.Service
 	signup         signup.Client
 	supportTickets supporttickets.Client
@@ -524,10 +515,6 @@ func (b backends) Twilio() _twilio.Service {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
-}
-
-func (b backends) Machnet() machnet.Client {
-	return b.machnet
 }
 
 func (b backends) Email() email.Client {
