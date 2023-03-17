@@ -247,6 +247,13 @@ service BackendService {
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc StartKYC(Empty) returns (Empty);
+
+  // MX
+  rpc GetMXWidget(Empty) returns (MXWidgetResponse);
+}
+
+message MXWidgetResponse {
+  string url = 1;
 }
 
 message ConnectionLimits {
