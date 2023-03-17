@@ -2,17 +2,13 @@ package workflows
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"testing"
 
-	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-	"gitlab.com/fynbos/backend/transactions"
-
 	"gitlab.com/fynbos/backend/currency"
+	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 
 	"gitlab.com/fynbos/backend/db"
-	machnet_workflows "gitlab.com/fynbos/backend/providers/machnet/workflows"
-
-	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"github.com/google/uuid"
 
@@ -37,7 +33,6 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	env.RegisterWorkflow(machnet_workflows.CreateTransactionWorkflow)
 
 	a := NewActivity(b)
 
@@ -59,12 +54,9 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
-	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return(&machnet.CreateTransactionResponse{
-		TransactionState: transactions.StateCompleted,
-		ExternalID:       "external_id",
-	}, nil)
-	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, "external_id").Return(nil)
-	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, "external_id").Return(nil)
+
+	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, mock.Anything).Return(nil)
+	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, mock.Anything).Return(nil)
 	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id).Return(nil)
 
 	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.4")
@@ -73,11 +65,10 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	var result string
 	require.NoError(t, env.GetWorkflowResult(&result))
-	require.Equal(t, "external_id", result)
 }
 
 func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
-
+	t.Skip("Skip until trx are back")
 	ctrl := gomock.NewController(t)
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)
@@ -89,7 +80,6 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
-	env.RegisterWorkflow(machnet_workflows.CreateTransactionWorkflow)
 
 	a := NewActivity(b)
 
@@ -110,10 +100,6 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
-	env.OnWorkflow(machnet_workflows.CreateTransactionWorkflow, mock.Anything, mArgs, trxID).Return(&machnet.CreateTransactionResponse{
-		TransactionState: transactions.StateFailed,
-		ExternalID:       "external_id",
-	}, nil)
 	env.OnActivity(a.FailOutgoingPayment, mock.Anything, id).Return(nil)
 	env.OnActivity(a.SendFailedOutgoingPaymentMail, mock.Anything, id).Return(nil)
 

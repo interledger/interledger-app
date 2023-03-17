@@ -118,42 +118,6 @@ func (mr *MockClientMockRecorder) TrackWalletCreated(walletID, userID interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletCreated", reflect.TypeOf((*MockClient)(nil).TrackWalletCreated), walletID, userID)
 }
 
-// TrackWalletMachnetBankAdded mocks base method.
-func (m *MockClient) TrackWalletMachnetBankAdded(args analytics.MachnetBankAddedArgs) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "TrackWalletMachnetBankAdded", args)
-}
-
-// TrackWalletMachnetBankAdded indicates an expected call of TrackWalletMachnetBankAdded.
-func (mr *MockClientMockRecorder) TrackWalletMachnetBankAdded(args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletMachnetBankAdded", reflect.TypeOf((*MockClient)(nil).TrackWalletMachnetBankAdded), args)
-}
-
-// TrackWalletMachnetCardAdded mocks base method.
-func (m *MockClient) TrackWalletMachnetCardAdded(args analytics.MachnetCardAddedArgs) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "TrackWalletMachnetCardAdded", args)
-}
-
-// TrackWalletMachnetCardAdded indicates an expected call of TrackWalletMachnetCardAdded.
-func (mr *MockClientMockRecorder) TrackWalletMachnetCardAdded(args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletMachnetCardAdded", reflect.TypeOf((*MockClient)(nil).TrackWalletMachnetCardAdded), args)
-}
-
-// TrackWalletMachnetKYCStatus mocks base method.
-func (m *MockClient) TrackWalletMachnetKYCStatus(args analytics.MachnetKYCArgs) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "TrackWalletMachnetKYCStatus", args)
-}
-
-// TrackWalletMachnetKYCStatus indicates an expected call of TrackWalletMachnetKYCStatus.
-func (mr *MockClientMockRecorder) TrackWalletMachnetKYCStatus(args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackWalletMachnetKYCStatus", reflect.TypeOf((*MockClient)(nil).TrackWalletMachnetKYCStatus), args)
-}
-
 // TrackWalletPaymentPointerCreated mocks base method.
 func (m *MockClient) TrackWalletPaymentPointerCreated(walletID string) {
 	m.ctrl.T.Helper()
