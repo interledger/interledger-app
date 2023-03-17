@@ -39,6 +39,8 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/providers/mx"
+	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/signup"
 	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -78,6 +80,7 @@ type TestContainer struct {
 	OPClient           *openpayments_mock.MockClient
 	authorisation      *auth_mock.MockInternalClient
 	limits             *limit_mock.MockClient
+	mx                 *mx_mock.MockClient
 }
 
 func (t TestContainer) Identities() identities.Client {
@@ -168,6 +171,10 @@ func (t TestContainer) Contacts() contacts.Client {
 	return t.ContactsClient
 }
 
+func (t TestContainer) MX() mx.Client {
+	return t.mx
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -197,6 +204,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		OPClient:           openpayments_mock.NewMockClient(ctrl),
 		authorisation:      auth_mock.NewMockInternalClient(ctrl),
 		limits:             limit_mock.NewMockClient(ctrl),
+		mx:                 mx_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {
