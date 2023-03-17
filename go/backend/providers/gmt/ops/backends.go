@@ -3,6 +3,8 @@ package ops
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
@@ -20,10 +22,16 @@ type Backends interface {
 	Temporal() client.Client
 	Transactions() transactions.Client
 	Validator() *validator.Validate
+	Analytics() analytics.Client
 }
 
 type testBackends struct {
 	db *sqlx.DB
+	ac analytics.Client
+}
+
+func (t testBackends) Analytics() analytics.Client {
+	return t.ac
 }
 
 func (t testBackends) DB() *sqlx.DB {
@@ -59,5 +67,5 @@ func (t testBackends) Validator() *validator.Validate {
 }
 
 func NewTestBackends(db *sqlx.DB) Backends {
-	return &testBackends{db: db}
+	return &testBackends{db: db, ac: analytics_client.New(nil, "")}
 }

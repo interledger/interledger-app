@@ -1862,5 +1862,50 @@ table "gmt_users" {
     on_delete   = NO_ACTION
   }
 }
+table "gmt_receipts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    null = true
+    type = text
+  }
+  column "receipt" {
+    null = true
+    type = text
+  }
+  column "licence" {
+    null = true
+    type = text
+  }
+  column "right_to_return" {
+    null = true
+    type = text
+  }
+  column "error_msg" {
+    null = true
+    type = text
+  }
+  column "contact" {
+    null = true
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
 schema "public" {
 }
