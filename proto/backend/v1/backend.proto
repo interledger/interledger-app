@@ -258,14 +258,14 @@ message ConnectionLimits {
 message Connection {
   string id = 1;
   string applicationName = 2;
-  string publicKey = 3; // base64 encoded public key
+  string publicKeyFingerprint = 3;
   string createdAt = 4;
   string lastUsedAt = 5;
 }
 
 message CreateConnectionRequest {
   string applicationName = 1;
-  string publicKey = 2; // base64 encoded public key
+  string publicKey = 2; // pem encoded ed25519 public key
   Amount dailyLimit = 3;
   Amount monthlyLimit = 4;
   Amount overallLimit = 5;

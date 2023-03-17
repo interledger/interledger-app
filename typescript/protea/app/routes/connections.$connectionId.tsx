@@ -85,7 +85,7 @@ export default function Page() {
           {connection.applicationName}
         </h1>
         <code className='mt-6 flex items-center justify-between rounded-xl bg-container p-2 font-mono text-medium break-all'>
-          {connection.publicKey}
+          {connection.publicKeyFingerprint}
         </code>
 
         <p className='mt-4 text-sm text-medium'>Added {connection.createdAt}</p>

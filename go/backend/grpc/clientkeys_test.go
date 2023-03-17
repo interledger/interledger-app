@@ -35,13 +35,18 @@ func TestCreatePublicKey(t *testing.T) {
 		URL:      ppURL,
 	}, nil).AnyTimes()
 
+	pemEncodedPublicKey := `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
+-----END PUBLIC KEY-----`
+	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
+
 	keyUuid := uuid.NewString()
 	c.authorisation.EXPECT().AddPublicKey(gomock.Any(), ppURL, authorisation.Jwk{
 		Kty: "OKP",
 		Kid: "FynTest",
 		Alg: "EdDSA",
 		Crv: "Ed25519",
-		X:   "le key",
+		X:   base64PublicKey,
 		Use: "sign",
 	}).Return(&authorisation.Jwk{
 		ID:  keyUuid,
@@ -49,7 +54,7 @@ func TestCreatePublicKey(t *testing.T) {
 		Kid: "FynTest",
 		Alg: "EdDSA",
 		Crv: "Ed25519",
-		X:   "le key",
+		X:   base64PublicKey,
 		Use: "sign",
 	}, nil).AnyTimes()
 
@@ -73,7 +78,7 @@ func TestCreatePublicKey(t *testing.T) {
 
 	_, err = client.CreateConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateConnectionRequest{
 		ApplicationName: "FynTest",
-		PublicKey:       "le key",
+		PublicKey:       pemEncodedPublicKey,
 		DailyLimit: &backendv1.Amount{
 			Asset:      "USD",
 			AssetScale: 2,
@@ -104,6 +109,8 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	w, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
 	require.NoError(t, err)
 
+	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
+	keyFingerprint := "SHA256:22ce02aa18eb1ee5f39482d0f57a6ba56f4d549f81db547f3bea2863207c8a01"
 	ppURL := "https://local.fynbos.me/test"
 	c.OPClient.EXPECT().GetWalletPaymentPointer(gomock.Any(), w.ID).Return(&openpayments.PaymentPointer{
 		ID:       uuid.NewString(),
@@ -119,7 +126,7 @@ func TestGetAndListPublicKeys(t *testing.T) {
 				Kty: "OKP",
 				Alg: "EdDSA",
 				Crv: "Ed25519",
-				X:   "le key",
+				X:   base64PublicKey,
 				Use: "sign",
 				Kid: "FynTest",
 			},
@@ -140,7 +147,7 @@ func TestGetAndListPublicKeys(t *testing.T) {
 			Kty:      "OKP",
 			Alg:      "EdDSA",
 			Crv:      "Ed25519",
-			X:        "le key",
+			X:        base64PublicKey,
 			Use:      "sign",
 			Kid:      "FynTest",
 		},
@@ -153,14 +160,14 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	}
 	require.NoError(t, err)
 	require.Len(t, listRpc.GetKeys(), 1)
-	assert.Equal(t, "le key", listRpc.GetKeys()[0].PublicKey)
+	assert.Equal(t, keyFingerprint, listRpc.GetKeys()[0].PublicKeyFingerprint)
 	assert.Equal(t, "FynTest", listRpc.GetKeys()[0].ApplicationName)
 
 	getRpc, err := client.GetConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.GetConnectionRequest{
 		Id: keyUuid,
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "le key", getRpc.GetPublicKey())
+	assert.Equal(t, keyFingerprint, getRpc.GetPublicKeyFingerprint())
 	assert.Equal(t, "FynTest", getRpc.GetApplicationName())
 }
 
