@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/paymentpointers"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"strings"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )

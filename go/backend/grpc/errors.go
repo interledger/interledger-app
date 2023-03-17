@@ -8,7 +8,6 @@ import (
 	"gitlab.com/fynbos/backend/signup"
 
 	"github.com/go-playground/validator/v10"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
@@ -21,15 +20,10 @@ import (
 var errorStatus = map[error]error{
 	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
 	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
-	twilio.ErrInvalidOTP:             NewValidationError("OTP", "Could not validate OTP"),
-	user.ErrDuplicateWallet:          status.Error(codes.AlreadyExists, "Wallet already exists"),
-	machnet.ErrUserHasExistingWallet: status.Error(codes.AlreadyExists, "Machnet wallet already exists"),
-	machnet.ErrUserAnnualLimit:       status.Error(codes.ResourceExhausted, "Annual limit exceeded"),
-	machnet.ErrUserMonthlyLimit:      status.Error(codes.ResourceExhausted, "Monthly limit exceeded"),
-	machnet.ErrUserDailyLimit:        status.Error(codes.ResourceExhausted, "Daily limit exceeded"),
-	machnet.ErrUserHoldLimit:         status.Error(codes.ResourceExhausted, "Wallet max balance limit exceeded"),
-	linkedaccounts.ErrNotFound:       NotFoundError("linked account not found"),
-	signup.ErrDuplicatePhone:         status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
+	twilio.ErrInvalidOTP:       NewValidationError("OTP", "Could not validate OTP"),
+	user.ErrDuplicateWallet:    status.Error(codes.AlreadyExists, "Wallet already exists"),
+	linkedaccounts.ErrNotFound: NotFoundError("linked account not found"),
+	signup.ErrDuplicatePhone:   status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
 }
 
 func validationDesc(fe validator.FieldError) string {

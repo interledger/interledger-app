@@ -2,12 +2,12 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

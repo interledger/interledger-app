@@ -12,8 +12,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/providers/machnet"
-	machnet_mock "gitlab.com/fynbos/backend/providers/machnet/client/mock"
 	"gitlab.com/fynbos/backend/user"
 
 	"gitlab.com/fynbos/backend/admin"
@@ -48,7 +46,6 @@ type TestContainer struct {
 	Auth           auth.Service
 	WaitlistImpl   *waitlist_mock.MockClient
 	email          *email_mock.MockClient
-	machnet        *machnet_mock.MockClient
 	linkedaccounts *linkedaccounts_mock.MockClient
 }
 
@@ -86,10 +83,6 @@ func (c *TestContainer) DB() *sqlx.DB {
 
 func (c *TestContainer) Email() email.Client {
 	return c.email
-}
-
-func (c *TestContainer) Machnet() machnet.Client {
-	return c.machnet
 }
 
 func (c *TestContainer) LinkedAccounts() linkedaccounts.Client {
