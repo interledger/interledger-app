@@ -56,6 +56,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/machnet"
 	machnet_client "gitlab.com/fynbos/backend/providers/machnet/client"
 	machnet_webhook "gitlab.com/fynbos/backend/providers/machnet/webhook"
+	vgs_webhook "gitlab.com/fynbos/backend/providers/verygoodsecurity/webhook"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/statements"
@@ -194,6 +195,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
+
+	router.Handle("/webhooks/verygoodsecurity", vgs_webhook.NewHandleInbound(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
