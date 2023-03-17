@@ -263,6 +263,13 @@ service BackendService {
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
   rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
+
+  // MX
+  rpc GetMXWidget(Empty) returns (MXWidgetResponse);
+}
+
+message MXWidgetResponse {
+  string url = 1;
 }
 
 message ConnectionLimits {

@@ -576,6 +576,8 @@ type BackendServiceClient interface {
 	DeleteIdentity(ctx context.Context, in *DeleteIdentityRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetIdentityPublic(ctx context.Context, in *SetIdentityPublicRequest, opts ...grpc.CallOption) (*Identity, error)
 	StartIdentityVerification(ctx context.Context, in *StartIdentityVerificationRequest, opts ...grpc.CallOption) (*Identity, error)
+	// MX
+	GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error)
 }
 
 type backendServiceClient struct {
@@ -1117,6 +1119,15 @@ func (c *backendServiceClient) StartIdentityVerification(ctx context.Context, in
 	return out, nil
 }
 
+func (c *backendServiceClient) GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error) {
+	out := new(MXWidgetResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetMXWidget", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1195,6 +1206,8 @@ type BackendServiceServer interface {
 	DeleteIdentity(context.Context, *DeleteIdentityRequest) (*Empty, error)
 	SetIdentityPublic(context.Context, *SetIdentityPublicRequest) (*Identity, error)
 	StartIdentityVerification(context.Context, *StartIdentityVerificationRequest) (*Identity, error)
+	// MX
+	GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1377,6 +1390,9 @@ func (UnimplementedBackendServiceServer) SetIdentityPublic(context.Context, *Set
 }
 func (UnimplementedBackendServiceServer) StartIdentityVerification(context.Context, *StartIdentityVerificationRequest) (*Identity, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartIdentityVerification not implemented")
+}
+func (UnimplementedBackendServiceServer) GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMXWidget not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2452,6 +2468,24 @@ func _BackendService_StartIdentityVerification_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetMXWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetMXWidget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetMXWidget",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetMXWidget(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2694,6 +2728,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StartIdentityVerification",
 			Handler:    _BackendService_StartIdentityVerification_Handler,
+		},
+		{
+			MethodName: "GetMXWidget",
+			Handler:    _BackendService_GetMXWidget_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -2,6 +2,7 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { MXWidgetResponse } from "./backend";
 import type { StartIdentityVerificationRequest } from "./backend";
 import type { Identity } from "./backend";
 import type { SetIdentityPublicRequest } from "./backend";
@@ -519,6 +520,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: StartIdentityVerification(backend.v1.StartIdentityVerificationRequest) returns (backend.v1.Identity);
      */
     startIdentityVerification(input: StartIdentityVerificationRequest, options?: RpcOptions): UnaryCall<StartIdentityVerificationRequest, Identity>;
+    /**
+     * MX
+     *
+     * @generated from protobuf rpc: GetMXWidget(backend.v1.Empty) returns (backend.v1.MXWidgetResponse);
+     */
+    getMXWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, MXWidgetResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -971,5 +978,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     startIdentityVerification(input: StartIdentityVerificationRequest, options?: RpcOptions): UnaryCall<StartIdentityVerificationRequest, Identity> {
         const method = this.methods[58], opt = this._transport.mergeOptions(options);
         return stackIntercept<StartIdentityVerificationRequest, Identity>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * MX
+     *
+     * @generated from protobuf rpc: GetMXWidget(backend.v1.Empty) returns (backend.v1.MXWidgetResponse);
+     */
+    getMXWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, MXWidgetResponse> {
+        const method = this.methods[59], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, MXWidgetResponse>("unary", this._transport, method, opt, input);
     }
 }
