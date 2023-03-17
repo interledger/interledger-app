@@ -53,6 +53,8 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
+	"gitlab.com/fynbos/backend/providers/mx"
+	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/statements"
@@ -233,6 +235,8 @@ func start(args *cli.StartArgs) {
 
 	b.contacts = contacts_client.New(b)
 
+	b.mx = mx_client.New(args.MxClientID, args.MxApiKey)
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -412,6 +416,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.contacts = contacts_client.New(b)
 
+	b.mx = mx_client.New(args.MxClientID, args.MxApiKey)
+
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
 	if err != nil {
@@ -451,6 +457,7 @@ type backends struct {
 	contacts       contacts.Client
 	limits         limits.Client
 	ident          identities.Client
+	mx             mx.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -547,4 +554,8 @@ func (b backends) Limits() limits.Client {
 
 func (b backends) Identities() identities.Client {
 	return b.ident
+}
+
+func (b backends) MX() mx.Client {
+	return b.mx
 }

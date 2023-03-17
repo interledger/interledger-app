@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/transactions"
@@ -48,4 +49,5 @@ type Backends interface {
 	Limits() limits.Client
 	Contacts() contacts.Client
 	Identities() identities.Client
+	MX() mx.Client
 }
