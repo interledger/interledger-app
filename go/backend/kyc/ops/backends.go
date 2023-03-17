@@ -3,6 +3,7 @@ package ops
 import (
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	temporal "go.temporal.io/sdk/client"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -13,12 +14,14 @@ type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Analytics() analytics.Client
+	Temporal() temporal.Client
 }
 
 type testBackends struct {
 	db        *sqlx.DB
 	val       *validator.Validate
 	analytics analytics.Client
+	tp        temporal.Client
 }
 
 func (t testBackends) Validator() *validator.Validate {
@@ -33,6 +36,10 @@ func (t testBackends) Analytics() analytics.Client {
 	return t.analytics
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB) Backends {
-	return &testBackends{db: db, val: validator.New(), analytics: analytics_client.New(nil, "")}
+func (t testBackends) Temporal() temporal.Client {
+	return t.tp
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), analytics: analytics_client.New(nil, ""), tp: tp}
 }

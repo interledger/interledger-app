@@ -10,12 +10,6 @@ import {
   Shape
 } from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
-import {
-  grpcClient,
-  httpMapping,
-  isGrpcError,
-  StatusError
-} from '~/lib/proto.server'
 import { getUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -146,19 +140,20 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
-  let res = await grpcClient
-    .startMachnetKYC(
-      {},
-      {
-        meta: {
-          cookies: request.headers.get('cookie') || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(res)) throw json({}, httpMapping(res.code))
+  // TODO add back some sort of KYC
+  // let res = await grpcClient
+  //   .startMachnetKYC(
+  //     {},
+  //     {
+  //       meta: {
+  //         cookies: request.headers.get('cookie') || ''
+  //       }
+  //     }
+  //   )
+  //   .then((v) => v)
+  //   .catch(StatusError)
+  //
+  // if (isGrpcError(res)) throw json({}, httpMapping(res.code))
 
   const flow = await requireFlow(request, flowType.PersonalDetails)
   // NOTE Temporarily not exciting this flow so that if the user needs to fix something their data will be there.

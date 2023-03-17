@@ -30,7 +30,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, nil, nil, tc)
+	b := ops.NewTestBackends(t, db, nil, tc)
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 

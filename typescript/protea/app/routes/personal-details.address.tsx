@@ -28,6 +28,7 @@ import { useCallback } from 'react'
 import type { Address } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getClientIP } from '~/lib/ip.server'
 import { route } from 'routes-gen'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -206,11 +207,6 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
 
-  const fieldErrors = {
-    form: '',
-    address: ''
-  }
-
   const line1 = form.get('line1') as string
   const line2 = form.get('line2') as string
   const building = form.get('building') as string
@@ -235,27 +231,14 @@ export async function action({ request }: ActionArgs) {
     formattedAddress
   }
 
-  let isUpsAddressResponse = await grpcClient.isUSPSAddress(address, {
-    meta: {
-      cookies: request.headers.get('cookie') || ''
-    }
-  })
-
-  if (!isUpsAddressResponse.response.valid) {
-    fieldErrors.address = 'Your address is not a valid USPS address.'
-    return json(
-      {
-        errors: {
-          ...fieldErrors
-        }
-      },
-      { status: 400 }
-    )
+  const fieldErrors = {
+    form: '',
+    address: ''
   }
 
   const clientIpAddress = getClientIP(request)
 
-  let response = await grpcClient
+  let updateResp = await grpcClient
     .updateIndividualKYC(
       {
         address,
@@ -270,10 +253,38 @@ export async function action({ request }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
 
-  if (isGrpcError(response)) throw json({}, httpMapping(response.code))
+  if (isGrpcError(updateResp)) {
+    if (updateResp.code == Code.INVALID_ARGUMENT) {
+      fieldErrors.address = 'Your address is not a valid address.'
+      return json(
+        {
+          errors: {
+            ...fieldErrors
+          }
+        },
+        { status: 400 }
+      )
+    }
+
+    throw json({}, httpMapping(updateResp.code))
+  }
+
+  // Approve KYC...
+  let startKycResp = await grpcClient
+    .startKYC(
+      {},
+      {
+        meta: {
+          cookies: request.headers.get('cookie') || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(startKycResp)) throw json({}, httpMapping(startKycResp.code))
 
   // NOTE Temporarily not exciting this flow so that if the user needs to fix something their data will be there.
   // We should find a better way to do this.
   // await exitFlow(request, flowType.PersonalDetails)
-  return redirect(route('/machnet-terms'))
+  return redirect(route('/'))
 }
