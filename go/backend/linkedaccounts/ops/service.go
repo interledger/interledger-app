@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/providers/machnet"
 
 	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 

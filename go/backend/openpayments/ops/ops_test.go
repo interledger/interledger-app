@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"strings"
 	"testing"
 	"time"
@@ -11,7 +12,6 @@ import (
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/machnet"
 
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 

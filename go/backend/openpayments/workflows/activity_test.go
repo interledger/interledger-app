@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/machnet"
 	"testing"
 	"time"
 
@@ -18,7 +19,6 @@ import (
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	users_client "gitlab.com/fynbos/backend/user/client"
 	"go.temporal.io/sdk/testsuite"
 )
