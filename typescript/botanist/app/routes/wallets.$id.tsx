@@ -1,23 +1,15 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 
-import { Button, TextField, WalletGrid } from '~/components'
+import { WalletGrid } from '~/components'
 import { json } from '@remix-run/node'
-import { Form, useNavigation, useLoaderData } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 import { GetWalletDetails } from '~/lib/wallet.server'
 import { DateTime } from 'luxon'
-import type { GrpcError } from '~/lib/proto.server'
-import {
-  grpcClient,
-  httpMapping,
-  isGrpcError,
-  StatusError
-} from '~/lib/proto.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
 
   return json({
-    defaultMonth: DateTime.now().toFormat('yyyy-MM'),
     // TODO: Refactor formatting into wallet.server
     wallet: {
       ...wallet,
@@ -37,8 +29,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export default function Page() {
-  const { defaultMonth, wallet } = useLoaderData<typeof loader>()
-  const navigation = useNavigation()
+  const { wallet } = useLoaderData<typeof loader>()
 
   return (
     <WalletGrid>
@@ -102,84 +93,6 @@ export default function Page() {
           </dl>
         </div>
       </div>
-      <div className='col-span-6 flex flex-col rounded-2xl bg-page p-4 pb-6'>
-        <div>
-          <h3 className='text-lg font-medium leading-6 text-gray-900'>
-            Statement
-          </h3>
-          <p className='mt-1 mb-5 max-w-2xl text-sm text-gray-500'>
-            Send the user a copy of their statement for a given month.
-          </p>
-        </div>
-        <Form
-          id='statement'
-          action={`/wallets/${wallet.walletID}`}
-          method='post'
-          className='hidden'
-        />
-        <TextField
-          id='month'
-          label='Month'
-          name='month'
-          form='statement'
-          className='mt-6'
-          defaultValue={defaultMonth}
-          max={defaultMonth}
-          type='month'
-        />
-        <Button form='statement' type='submit'>
-          {navigation.state == 'submitting' ? 'Sending...' : 'Send email'}
-        </Button>
-      </div>
     </WalletGrid>
   )
-}
-
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'Period'
-
-function mapper(field: fieldErrorsMap): 'month' | null {
-  switch (field) {
-    case 'Period':
-      return 'month'
-    default:
-      return null
-  }
-}
-
-export async function action({ request, params }: ActionArgs) {
-  const form = await request.formData()
-  const month = form.get('month') as string
-  console.log('month', month)
-
-  const fieldErrors = {
-    form: '',
-    month: ''
-  }
-  const response = await grpcClient
-    .emailWalletStatement(
-      {
-        period: month,
-        walletID: params.id as string
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
-  }
-
-  return json({ errors: { ...fieldErrors } }, { status: 200 })
 }
