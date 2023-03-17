@@ -72,6 +72,8 @@ type StartArgs struct {
 	MachnetClientID      string
 	MachnetClientSecret  string
 	MachnetWebhookSecret string
+	MxClientID           string
+	MxApiKey             string
 	RafikiGraphqlUrl     string
 	TemporalUrl          string
 	TwilioSid            string
@@ -193,6 +195,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		MachnetClientID:      os.Getenv("MACHNET_CLIENT_ID"),
 		MachnetClientSecret:  os.Getenv("MACHNET_CLIENT_SECRET"),
 		MachnetWebhookSecret: os.Getenv("MACHNET_WEBHOOK_SECRET"),
+		MxClientID:           os.Getenv("MX_CLIENT_ID"),
+		MxApiKey:             os.Getenv("MX_API_KEY"),
 		RafikiGraphqlUrl:     rafikiGraphqlUrl,
 		TemporalUrl:          temporalUrl,
 		TwilioSid:            TwilioSid,
