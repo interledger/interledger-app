@@ -2,6 +2,7 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { MXWidgetResponse } from "./backend";
 import type { KYCStatusResponse } from "./backend";
 import type { StartIdentityVerificationRequest } from "./backend";
 import type { Identity } from "./backend";
@@ -454,6 +455,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: StartKYC(backend.v1.Empty) returns (backend.v1.Empty);
      */
     startKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
+    /**
+     * MX
+     *
+     * @generated from protobuf rpc: GetMXWidget(backend.v1.Empty) returns (backend.v1.MXWidgetResponse);
+     */
+    getMXWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, MXWidgetResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -818,5 +825,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     startKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
         const method = this.methods[46], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * MX
+     *
+     * @generated from protobuf rpc: GetMXWidget(backend.v1.Empty) returns (backend.v1.MXWidgetResponse);
+     */
+    getMXWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, MXWidgetResponse> {
+        const method = this.methods[47], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, MXWidgetResponse>("unary", this._transport, method, opt, input);
     }
 }
