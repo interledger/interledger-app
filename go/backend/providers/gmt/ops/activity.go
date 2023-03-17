@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -54,7 +55,7 @@ func getEnvDefault(key, fallback string) string {
 	return val
 }
 
-func (a *Activity) CheckIndividualOFAC(ctx context.Context, walletID string) error {
+func (a *Activity) CheckWalletOFAC(ctx context.Context, walletID string) error {
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
 		return err
@@ -76,6 +77,16 @@ func (a *Activity) CheckIndividualOFAC(ctx context.Context, walletID string) err
 	}
 
 	return nil
+}
+
+func (a *Activity) CheckAccountOFAC(ctx context.Context, linkedAccID string) error {
+
+	la, err := a.b.LinkedAccounts().Get(ctx, linkedAccID)
+	if err != nil {
+		return err
+	}
+
+	return a.CheckWalletOFAC(ctx, la.WalletID)
 }
 
 type ComplianceResp struct {
@@ -170,10 +181,14 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 		return nil, err
 	}
 
+	// TODO: fill in sender ACH details
+
 	receiver, err := receiverFromWallet(ctx, a.b, toLA.WalletID)
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: fill in receiver ACH details
 
 	res, err := a.ext.ComplianceCheckContext(ctx, &external.ComplianceCheck{
 		Alias:    a.creds.Alias,
@@ -339,7 +354,7 @@ func senderFromWallet(ctx context.Context, b Backends, walletID string) (*extern
 func getSenderID(ctx context.Context, b Backends, walletID string) (int64, error) {
 	var id sql.NullInt64
 	err := b.DB().GetContext(ctx, &id, "SELECT sender_id from gmt_users WHERE wallet_id=$1", walletID)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return 0, err
 	}
 
@@ -349,7 +364,7 @@ func getSenderID(ctx context.Context, b Backends, walletID string) (int64, error
 func getReceiverID(ctx context.Context, b Backends, walletID string) (int64, error) {
 	var id sql.NullInt64
 	err := b.DB().GetContext(ctx, &id, "SELECT receiver_id from gmt_users WHERE wallet_id=$1", walletID)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return 0, err
 	}
 
@@ -357,16 +372,136 @@ func getReceiverID(ctx context.Context, b Backends, walletID string) (int64, err
 }
 
 func (a *Activity) UpdateSendRecvUser(ctx context.Context, cr ComplianceResp) error {
-	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO gmt_users (wallet_id, sender_id) VALUES ($1, $2)  ON CONFLICT (wallet_id) DO UPDATE SET sender_id = excluded.sender_id, updated_at=now()",
-		cr.SenderWalletID, cr.SenderID)
+	if cr.SenderID != 0 {
+		_, err := a.b.DB().ExecContext(ctx, "INSERT INTO gmt_users (wallet_id, sender_id) VALUES ($1, $2)  ON CONFLICT (wallet_id) DO UPDATE SET sender_id = excluded.sender_id, updated_at=now()",
+			cr.SenderWalletID, cr.SenderID)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cr.ReceiverID != 0 {
+		_, err := a.b.DB().ExecContext(ctx, "INSERT INTO gmt_users (wallet_id, receiver_id) VALUES ($1, $2)  ON CONFLICT (wallet_id) DO UPDATE SET receiver_id = excluded.receiver_id, updated_at=now()",
+			cr.ReceiverWalletID, cr.ReceiverID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type TransactionResp struct {
+	ID         string
+	ReceiptRef string // GMT interal reference
+	Status     string
+	//Receipt information
+	Licence  string
+	RTR      string // Right to refund
+	ErrorMsg string
+	Contact  string
+}
+
+func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*TransactionResp, error) {
+	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	toID, err := a.b.KYC().GetIndividualDetails(ctx, toLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := senderFromWallet(ctx, a.b, fromLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: fill in sender ACH details
+
+	receiver, err := receiverFromWallet(ctx, a.b, toLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: fill in receiver ACH details
+
+	res, err := a.ext.InsertTransactionContext(ctx, &external.InsertTransaction{
+		Alias:    a.creds.Alias,
+		User:     a.creds.User,
+		Pass:     a.creds.Password,
+		Sender:   sender,
+		Receiver: receiver,
+		Transfer: &external.WsTransferInfo{
+			AgenciaCodigo:          "",
+			AgencySpecialDiscounts: "",
+			AmountToReceive:        args.Amount.Float64(),
+			CorrespondentCode:      "", // TODO Get from GMT
+			DestinationCurrency:    args.Amount.Currency.String(),
+			ExchangeRate:           1,
+			Fee:                    0,
+			MTSID:                  a.creds.MTS,
+			NetAmount:              args.Amount.Float64(),
+			OfficeCode:             "0", // TODO from GMT
+			OriginalCurrency:       args.Amount.Currency.String(),
+			OriginalPaymentMethod:  "ACH", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
+			ReceiverCity:           toID.Address.City,
+			ReceiverState:          toID.Address.State,
+			SaveSenderReceiver:     true,
+			SenderAchAccount:       "",
+			SenderAchRouting:       "",
+			SenderAchType:          "",
+			SenderID:               0,       // TODO
+			ServicioCodigo:         "DCASH", // TODO from type of transaction.. WTF
+			SucursalBanco:          "",      // Bank branch or routing number
+			ThirdPartyReceipt:      "FYN",   // TODO
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if res.InsertTransactionResult.Error != 0 {
+		return nil, fmt.Errorf("error code (%d) message (%s)", res.InsertTransactionResult.Error, res.InsertTransactionResult.Message)
+	}
+
+	return &TransactionResp{
+		ID:         res.InsertTransactionResult.Password,
+		ReceiptRef: res.InsertTransactionResult.Receipt,
+		Status:     res.InsertTransactionResult.Status,
+		Licence:    res.InsertTransactionResult.Receipt_License,
+		RTR:        res.InsertTransactionResult.Receipt_RTR_EN,
+		ErrorMsg:   res.InsertTransactionResult.Receipt_Error_EN,
+		Contact:    res.InsertTransactionResult.Status,
+	}, nil
+}
+
+func (a *Activity) SaveReceipt(ctx context.Context, tr TransactionResp) error {
+	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO gmt_receipts (external_id, receipt, licence, right_to_return, error_msg, contact) VALUES ($1, $2, $3, $4, $5, $6)",
+		tr.ID, tr.ReceiptRef, tr.Licence, tr.RTR, tr.ErrorMsg, tr.Contact)
+	return err
+}
+
+func (a *Activity) VerifyTransaction(ctx context.Context, id string) error {
+	res, err := a.ext.SetVerifiedContext(ctx, &external.SetVerified{
+		Alias:   a.creds.Alias,
+		User:    a.creds.User,
+		Pass:    a.creds.Password,
+		Receipt: id,
+		Passed:  true,
+	})
 	if err != nil {
 		return err
 	}
 
-	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO gmt_users (wallet_id, receiver_id) VALUES ($1, $2)  ON CONFLICT (wallet_id) DO UPDATE SET receiver_id = excluded.receiver_id, updated_at=now()",
-		cr.ReceiverWalletID, cr.ReceiverID)
-	if err != nil {
-		return err
+	if !res.SetVerifiedResult.Valid {
+		return fmt.Errorf("error code (%d) message (%s)", res.SetVerifiedResult.Error, res.SetVerifiedResult.Message)
 	}
 
 	return nil
