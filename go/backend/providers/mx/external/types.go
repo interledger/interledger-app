@@ -9,10 +9,10 @@ type (
 
 	GetWidgetURLArgs struct {
 		UserGuid                 string `json:"-"`
-		CurrentMemberGuid        string `json:"currentMemberGuid,omitempty"`
-		DisableInstitutionSearch bool   `json:"disableInstitutionSearch,omitempty"`
-		IncludeTransactions      bool   `json:"includeTransactions,omitempty"`
-		IncludeIdentity          bool   `json:"includeIdentity,omitempty"`
+		CurrentMemberGuid        string `json:"current_member_guid,omitempty"`
+		DisableInstitutionSearch bool   `json:"disable_institution_search,omitempty"`
+		IncludeTransactions      bool   `json:"include_transactions,omitempty"`
+		IncludeIdentity          bool   `json:"include_identity,omitempty"`
 		Mode                     string `json:"mode"`
 		WidgetType               string `json:"widget_type"`
 	}

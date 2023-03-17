@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -66,8 +67,10 @@ func (c *client) CreateUser(ctx context.Context, id string) (*external.User, err
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	payload := map[string]string{
-		"id": id,
+	payload := map[string]map[string]string{
+		"user": {
+			"id": id,
+		},
 	}
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -105,7 +108,10 @@ func (c *client) GetWidgetURL(ctx context.Context, args external.GetWidgetURLArg
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	jsonPayload, err := json.Marshal(args)
+	payload := map[string]external.GetWidgetURLArgs{
+		"widget_url": args,
+	}
+	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -141,7 +147,7 @@ func (c *client) ListUsersByID(ctx context.Context, id string) (*external.ListUs
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("GET", endpoint, nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s?id=%s", endpoint, url.QueryEscape(id)), nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -171,28 +177,33 @@ func checkResponseStatusCode(r *http.Response) error {
 		return nil
 	}
 
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
 	switch r.StatusCode {
 	case http.StatusBadRequest:
-		return external.ErrBadRequest
+		return fmt.Errorf("%w %s, path=%s", external.ErrBadRequest, string(body), r.Request.URL.Path)
 	case http.StatusUnauthorized:
-		return external.ErrUnauthorized
+		return fmt.Errorf("%w %s, path=%s", external.ErrUnauthorized, string(body), r.Request.URL.Path)
 	case http.StatusForbidden:
-		return external.ErrForbidden
+		return fmt.Errorf("%w %s, path=%s", external.ErrForbidden, string(body), r.Request.URL.Path)
 	case http.StatusNotFound:
-		return external.ErrNotFound
+		return fmt.Errorf("%w %s, path=%s", external.ErrNotFound, string(body), r.Request.URL.Path)
 	case http.StatusMethodNotAllowed:
-		return external.ErrMethodNotAllowed
+		return fmt.Errorf("%w %s, path=%s", external.ErrMethodNotAllowed, string(body), r.Request.URL.Path)
 	case http.StatusNotAcceptable:
-		return external.ErrNotAcceptable
+		return fmt.Errorf("%w %s, path=%s", external.ErrNotAcceptable, string(body), r.Request.URL.Path)
 	case http.StatusConflict:
-		return external.ErrConflict
+		return fmt.Errorf("%w %s, path=%s", external.ErrConflict, string(body), r.Request.URL.Path)
 	case http.StatusUnprocessableEntity:
-		return external.ErrUnprocessableEntity
+		return fmt.Errorf("%w %s, path=%s", external.ErrUnprocessableEntity, string(body), r.Request.URL.Path)
 	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusGatewayTimeout:
-		return external.ErrServer
+		return fmt.Errorf("%w %s, path=%s", external.ErrServer, string(body), r.Request.URL.Path)
 	case http.StatusServiceUnavailable:
-		return external.ErrServiceUnavailable
+		return fmt.Errorf("%w %s, path=%s", external.ErrServiceUnavailable, string(body), r.Request.URL.Path)
 	default:
-		return fmt.Errorf("%w Unknown status code=%d", external.ErrInternal, r.StatusCode)
+		return fmt.Errorf("%w Unknown status code=%d, message=%s, path=%s", external.ErrInternal, r.StatusCode, string(body), r.Request.URL.Path)
 	}
 }
