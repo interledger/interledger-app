@@ -27,6 +27,7 @@
     "@grpc/grpc-js": "^1.8.12",
     "@headlessui/react": "^1.7.13",
     "@mapbox/rehype-prism": "^0.8.0",
+    "@mxenabled/web-widget-sdk": "^0.0.10",
     "@ory/kratos-client": "0.10.1",
     "@protobuf-ts/grpc-transport": "^2.8.2",
     "@protobuf-ts/runtime": "^2.8.2",
