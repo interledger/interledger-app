@@ -50,6 +50,21 @@ func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClient)(nil).Create), ctx, args)
 }
 
+// CreateBatch mocks base method.
+func (m *MockClient) CreateBatch(ctx context.Context, args []linkedaccounts.CreateArgs) ([]linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBatch", ctx, args)
+	ret0, _ := ret[0].([]linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBatch indicates an expected call of CreateBatch.
+func (mr *MockClientMockRecorder) CreateBatch(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBatch", reflect.TypeOf((*MockClient)(nil).CreateBatch), ctx, args)
+}
+
 // Delete mocks base method.
 func (m *MockClient) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
@@ -109,19 +124,19 @@ func (mr *MockClientMockRecorder) ListByWalletId(ctx, walletId interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByWalletId", reflect.TypeOf((*MockClient)(nil).ListByWalletId), ctx, walletId)
 }
 
-// ListMachnetWallets mocks base method.
-func (m *MockClient) ListMachnetWallets(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
+// ListMXBankAccounts mocks base method.
+func (m *MockClient) ListMXBankAccounts(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMachnetWallets", ctx)
+	ret := m.ctrl.Call(m, "ListMXBankAccounts", ctx)
 	ret0, _ := ret[0].([]linkedaccounts.LinkedAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListMachnetWallets indicates an expected call of ListMachnetWallets.
-func (mr *MockClientMockRecorder) ListMachnetWallets(ctx interface{}) *gomock.Call {
+// ListMXBankAccounts indicates an expected call of ListMXBankAccounts.
+func (mr *MockClientMockRecorder) ListMXBankAccounts(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMachnetWallets", reflect.TypeOf((*MockClient)(nil).ListMachnetWallets), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMXBankAccounts", reflect.TypeOf((*MockClient)(nil).ListMXBankAccounts), ctx)
 }
 
 // SetNickname mocks base method.

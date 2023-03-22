@@ -42,6 +42,10 @@ func (c client) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (fs
 	return ops.Create(ctx, c.b, args)
 }
 
+func (c client) CreateBatch(ctx context.Context, args []linkedaccounts.CreateArgs) ([]linkedaccounts.LinkedAccount, error) {
+	return ops.CreateBatch(ctx, c.b, args)
+}
+
 func (c client) Get(ctx context.Context, id string) (fs *linkedaccounts.LinkedAccount, err error) {
 	defer func(begin time.Time) {
 		if err != nil {
@@ -114,8 +118,8 @@ func (c client) Delete(ctx context.Context, id string) error {
 	return ops.Delete(ctx, c.b, id)
 }
 
-func (c client) ListMachnetWallets(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
-	return ops.ListMachnetWallets(ctx, c.b)
+func (c client) ListMXBankAccounts(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
+	return ops.ListMXBankAccounts(ctx, c.b)
 }
 
 func (c client) SetNickname(ctx context.Context, id, nickname string) (*linkedaccounts.LinkedAccount, error) {
