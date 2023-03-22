@@ -4,6 +4,7 @@ import (
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	"gitlab.com/fynbos/backend/identities/platforms"
 	openpayments_workflows "gitlab.com/fynbos/backend/openpayments/workflows"
+	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"go.temporal.io/sdk/worker"
 )
 
@@ -18,6 +19,13 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	w.RegisterActivity(platforms.NewDevActivity(b))
 	w.RegisterWorkflow(platforms.DevVerifyWorkflow)
+
+	w.RegisterActivity(gmt_workflows.NewActivity(b))
+	w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow)
+	w.RegisterWorkflow(gmt_workflows.OnboardUserWorkflow)
+	w.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
+
+	gmt_workflows.StartNotificationsPolling(b)
 
 	return w, nil
 }

@@ -1907,5 +1907,50 @@ table "gmt_receipts" {
     columns = [column.id]
   }
 }
+table "gmt_workflow_refs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    null = false
+    type = text
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "workflow_run_id" {
+    null = false
+    type = text
+  }
+  column "activity_name" {
+    null = false
+    type = text
+  }
+  column "completed" {
+    null = false
+    type = boolean
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "ref_completed" {
+    unique  = false
+    columns = [column.completed]
+  }
+}
 schema "public" {
 }

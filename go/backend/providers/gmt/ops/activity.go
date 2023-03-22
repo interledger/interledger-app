@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/db"
 	"os"
 	"strconv"
 
@@ -12,6 +14,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 )
+
+const gmtEventsChannel = "gmt_events"
 
 type Credentials struct {
 	Alias    string
@@ -504,5 +508,46 @@ func (a *Activity) VerifyTransaction(ctx context.Context, id string) error {
 		return fmt.Errorf("error code (%d) message (%s)", res.SetVerifiedResult.Error, res.SetVerifiedResult.Message)
 	}
 
+	return nil
+}
+
+type CreateWorkflowRefArgs struct {
+	ExternalID    string
+	WorkflowID    string
+	WorkflowRunID string
+	ActivityName  string
+}
+
+func (a *Activity) CreateWorkflowRef(ctx context.Context, args CreateWorkflowRefArgs) (string, error) {
+	id := uuid.NewString()
+	insert := db.NewInsert("gmt_workflow_refs").
+		Value("id", id).
+		Value("external_id", args.ExternalID).
+		Value("workflow_id", args.WorkflowID).
+		Value("workflow_run_id", args.WorkflowRunID).
+		Value("activity_name", args.ActivityName).
+		Value("completed", false)
+
+	statement, values, err := insert.GetStatement()
+	if err != nil {
+		return "", err
+	}
+
+	_, err = a.b.DB().ExecContext(
+		ctx,
+		statement,
+		values...,
+	)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
+func (a *Activity) CompleteWorkflowRef(ctx context.Context, refID string) error {
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE gmt_workflow_refs SET completed=true, updated_at=now() WHERE id=$1", refID)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"gitlab.com/fynbos/backend/providers/gmt/external"
+	"gitlab.com/fynbos/log"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/gmt"
@@ -99,7 +101,36 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (stri
 		return "", err
 	}
 
-	// TODO: await transaction result
+	var refID string
+	err = workflow.ExecuteActivity(ctx, a.CreateWorkflowRef, CreateWorkflowRefArgs{
+		ExternalID:    tr.ID,
+		WorkflowID:    workflow.GetInfo(ctx).WorkflowExecution.ID,
+		WorkflowRunID: workflow.GetInfo(ctx).WorkflowExecution.RunID,
+		ActivityName:  "ACH_to_ACH",
+	}).Get(ctx, &refID)
+
+	gmtChan := workflow.GetSignalChannel(ctx, gmtEventsChannel)
+	for {
+		var notify external.WsNotifications
+		gmtChan.Receive(ctx, &notify)
+		if notify.Password != tr.ID {
+			log.Error("received notification for different transaction")
+			continue
+		}
+
+		if notify.Status == external.TransactionStatusPaid {
+			break
+		}
+
+		logger.Info("transaction status notification received", "id", notify.Password, "status", notify.Status)
+		// TODO: handle edge cases
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CompleteWorkflowRef, refID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to complete workflow ref", "err", err)
+		return "", err
+	}
 
 	return "TODO", nil
 }
