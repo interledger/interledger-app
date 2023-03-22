@@ -103,3 +103,36 @@ func TestActivity_SaveReceipt(t *testing.T) {
 	assert.Equal(t, tr.ErrorMsg, res.ErrMsg)
 	assert.Equal(t, tr.Contact, res.Contact)
 }
+
+func TestActivity_CreateWorkflowRef(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	b := NewTestBackends(db.MigrateTestDB(t, ctx))
+
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	a := NewActivity(b)
+	env.RegisterActivity(a.CreateWorkflowRef)
+
+	args := CreateWorkflowRefArgs{
+		ExternalID:    "123456789",
+		WorkflowID:    uuid.NewString(),
+		WorkflowRunID: uuid.NewString(),
+		ActivityName:  "Test_Ref",
+	}
+	res, err := env.ExecuteActivity(a.CreateWorkflowRef, args)
+	require.NoError(t, err)
+
+	var refID string
+	err = res.Get(&refID)
+	require.NoError(t, err)
+	assert.NotEmpty(t, refID)
+
+	var ref WorkflowRef
+	err = a.b.DB().GetContext(ctx, &ref, "SELECT external_id, workflow_id, workflow_run_id  FROM  gmt_workflow_refs WHERE id=$1", refID)
+	require.NoError(t, err)
+
+	assert.Equal(t, args.ExternalID, ref.ExternalID)
+	assert.Equal(t, args.WorkflowID, ref.WorkflowID)
+	assert.Equal(t, args.WorkflowRunID, ref.WorkflowRunID)
+}
