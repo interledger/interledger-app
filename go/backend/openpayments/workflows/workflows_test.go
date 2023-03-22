@@ -2,8 +2,12 @@ package workflows
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"testing"
+
+	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
+	"gitlab.com/fynbos/backend/transactions"
+
+	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"gitlab.com/fynbos/backend/currency"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -40,25 +44,31 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	trxID := uuid.NewString()
 
 	amt := currency.FromFloat64(10.55, currency.USD)
-	mArgs := machnet.CreateTransactionArgs{
+	mArgs := gmt.TransfersArgs{
 		FromForeignID:       uuid.NewString(),
 		ToForeignID:         uuid.NewString(),
 		FromPaymentPointer:  uuid.NewString(),
 		ToPaymentPointer:    uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
 		ToLinkedAccountID:   uuid.NewString(),
+		FromWalletID:        uuid.NewString(),
+		ToWalletID:          uuid.NewString(),
 		Amount:              amt,
-		IPAddress:           "198.0.0.4",
+		FromTransactionID:   trxID,
 	}
 
-	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
+	env.OnActivity(a.GetGMTProviderArgs, mock.Anything, id).Return(&mArgs, nil)
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
-
+	env.OnWorkflow(gmt_workflows.ACH2ACHTransferWorkflow, mock.Anything, mArgs).Return(&gmt.TransferResponse{
+		State:      transactions.StateCompleted,
+		ExternalID: "external_id",
+	}, nil)
 	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, mock.Anything).Return(nil)
 	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, mock.Anything).Return(nil)
 	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id).Return(nil)
 
+	env.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
 	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.4")
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -86,18 +96,19 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	id := uuid.NewString()
 	trxID := uuid.NewString()
 
-	mArgs := machnet.CreateTransactionArgs{
+	mArgs := gmt.TransfersArgs{
 		FromForeignID:       uuid.NewString(),
 		ToForeignID:         uuid.NewString(),
 		FromPaymentPointer:  uuid.NewString(),
 		ToPaymentPointer:    uuid.NewString(),
 		FromLinkedAccountID: uuid.NewString(),
 		ToLinkedAccountID:   uuid.NewString(),
+		FromWalletID:        uuid.NewString(),
+		ToWalletID:          uuid.NewString(),
 		Amount:              currency.FromFloat64(10.5, currency.ParseCurrency("USD")),
-		IPAddress:           "198.0.0.3",
 	}
 
-	env.OnActivity(a.GetProviderArgs, mock.Anything, id).Return(&mArgs, nil)
+	env.OnActivity(a.GetGMTProviderArgs, mock.Anything, id).Return(&mArgs, nil)
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
 	env.OnActivity(a.FailOutgoingPayment, mock.Anything, id).Return(nil)

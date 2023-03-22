@@ -5,16 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/paymentpointers"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
+	"gitlab.com/fynbos/backend/paymentpointers"
+	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )
@@ -55,8 +55,7 @@ func getProviderLinkedAccount(ctx context.Context, b Backends, pointer, provider
 	return found, nil
 }
 
-func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*machnet.CreateTransactionArgs, error) {
-	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
+func (a *Activity) GetGMTProviderArgs(ctx context.Context, outgoingID string) (*gmt.TransfersArgs, error) {
 	idxSlash := strings.LastIndex(outgoingID, "/")
 	if idxSlash > 0 {
 		outgoingID = outgoingID[idxSlash+1:]
@@ -83,7 +82,7 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to parse payment pointer URL from receiver (%s)", op.Receiver), "ErrInvalidURL", err)
 	}
 
-	recvAcc, err := getProviderLinkedAccount(ctx, a.b, recvPPURL, machnet.ProviderName, machnet.TypeWallet)
+	recvAcc, err := getProviderLinkedAccount(ctx, a.b, recvPPURL, gmt.ProviderName, gmt.TypeBankAccount)
 	if errors.Is(err, openpayments.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
 	}
@@ -91,28 +90,30 @@ func (a *Activity) GetProviderArgs(ctx context.Context, outgoingID string) (*mac
 		return nil, err
 	}
 
-	sendAccID := op.FromLinkedAccount
-
-	if sendAccID == "" {
-		sendAcc, err := getProviderLinkedAccount(ctx, a.b, op.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
-		if errors.Is(err, openpayments.ErrNotFound) {
-			return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		sendAccID = sendAcc.ID
+	var sendAcc *linkedaccounts.LinkedAccount
+	if op.FromLinkedAccount == "" {
+		sendAcc, err = getProviderLinkedAccount(ctx, a.b, op.PaymentPointer, gmt.ProviderName, gmt.TypeBankAccount)
+	} else {
+		sendAcc, err = a.b.LinkedAccounts().Get(ctx, op.FromLinkedAccount)
+	}
+	if errors.Is(err, openpayments.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	return &machnet.CreateTransactionArgs{
+	return &gmt.TransfersArgs{
 		FromForeignID:       outgoingID,
 		ToForeignID:         incomingID,
 		FromPaymentPointer:  op.PaymentPointer,
 		ToPaymentPointer:    op.ToPaymentPointer,
-		FromLinkedAccountID: sendAccID,
+		FromLinkedAccountID: sendAcc.ID,
 		ToLinkedAccountID:   recvAcc.ID,
+		FromWalletID:        sendAcc.WalletID,
+		ToWalletID:          recvAcc.WalletID,
 		Amount:              op.SendAmount,
+		FromTransactionID:   "TODO",
 	}, nil
 }
 

@@ -239,6 +239,9 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 	}
 
 	rid, err := getReceiverID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
 
 	gender := "Male"
 	if recvID.Gender == kyc.GenderFemale {

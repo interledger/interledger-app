@@ -7,10 +7,11 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 )
 
-type CreateTransactionResponse struct {
-	TransactionState transactions.State
-	ExternalID       string
-}
+const (
+	ProviderName    = "gmt"
+	TypeBankAccount = "bankAccount"
+	TypeSendCard    = "sendCard"
+)
 
 type TransfersArgs struct {
 	FromForeignID       string // ID against which to create transfers

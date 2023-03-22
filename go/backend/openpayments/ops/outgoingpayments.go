@@ -114,7 +114,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 			WalletID:    fromPP.WalletID,
 			ForeignID:   id,
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-			Provider:    transactions.ProviderMachnet,
+			Provider:    transactions.ProviderGMT,
 			Note:        args.Description,
 			State:       transactions.StatePending,
 			Source:      fromPP.URL,

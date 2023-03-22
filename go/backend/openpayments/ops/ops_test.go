@@ -2,10 +2,11 @@ package ops_test
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"strings"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -545,15 +546,11 @@ func TestCreateQuote(t *testing.T) {
 		name      string
 		args      openpayments.CreateQuoteArgs
 		recvAsset string
-		recvKYC   machnet.KYCStatus
-		sendKYC   machnet.KYCStatus
 		balance   uint64
 		err       error
 	}{
 		{
-			name:    "success",
-			sendKYC: machnet.KYCStatusVerified,
-			recvKYC: machnet.KYCStatusVerified,
+			name: "success",
 			args: openpayments.CreateQuoteArgs{
 				SendPaymentPointer:    "https://fynbos.me/paysend",
 				ReceivePaymentPointer: "https://fynbos.me/payrecv",
@@ -569,8 +566,6 @@ func TestCreateQuote(t *testing.T) {
 		},
 		{
 			name:      "different assets",
-			sendKYC:   machnet.KYCStatusVerified,
-			recvKYC:   machnet.KYCStatusVerified,
 			recvAsset: "ZAR",
 			err:       openpayments.ErrInvalidArgument,
 			args: openpayments.CreateQuoteArgs{
@@ -585,10 +580,8 @@ func TestCreateQuote(t *testing.T) {
 			},
 		},
 		{
-			name:    "expiry in the past",
-			sendKYC: machnet.KYCStatusVerified,
-			recvKYC: machnet.KYCStatusVerified,
-			err:     openpayments.ErrInvalidArgument,
+			name: "expiry in the past",
+			err:  openpayments.ErrInvalidArgument,
 			args: openpayments.CreateQuoteArgs{
 				SendPaymentPointer:    "https://fynbos.me/paysend3",
 				ReceivePaymentPointer: "https://fynbos.me/payrecv4",
@@ -601,9 +594,7 @@ func TestCreateQuote(t *testing.T) {
 			},
 		},
 		{
-			name:    "success send from wallet",
-			sendKYC: machnet.KYCStatusVerified,
-			recvKYC: machnet.KYCStatusVerified,
+			name: "success send from wallet",
 			args: openpayments.CreateQuoteArgs{
 				SendPaymentPointer:    "https://fynbos.me/paysend9",
 				ReceivePaymentPointer: "https://fynbos.me/payrecv10",
@@ -653,13 +644,13 @@ func TestCreateQuote(t *testing.T) {
 			if tc.args.LinkedAccID != "" {
 				providerID := uuid.NewString()
 				_, err = db.ExecContext(ctx, "insert into linked_accounts (id, wallet_id, name, mask, provider, provider_id, type) values ($1, $2, $3, $4, $5, $6, $7)",
-					tc.args.LinkedAccID, sendWallet.ID, "testing", "mask", machnet.ProviderName, providerID, machnet.TypeWallet)
+					tc.args.LinkedAccID, sendWallet.ID, "testing", "mask", gmt.ProviderName, providerID, gmt.TypeBankAccount)
 				require.NoError(t, err)
 				laClient.EXPECT().Get(ctx, tc.args.LinkedAccID).Return(&linkedaccounts.LinkedAccount{
 					ID:         tc.args.LinkedAccID,
 					WalletID:   sendWallet.ID,
 					ProviderID: providerID,
-					Type:       machnet.TypeWallet,
+					Type:       gmt.TypeBankAccount,
 				}, nil)
 			}
 

@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
@@ -364,16 +365,16 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 
 		la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{{
 			ID:       uuid.NewString(),
-			Provider: machnet.ProviderName,
-			Type:     machnet.TypeSendCard,
+			Provider: gmt.ProviderName,
+			Type:     gmt.TypeBankAccount,
 		}, {
 			ID:       uuid.NewString(),
-			Provider: machnet.ProviderName,
-			Type:     machnet.TypeReceiveBankAccount,
+			Provider: gmt.ProviderName,
+			Type:     gmt.TypeBankAccount,
 		}, {
 			ID:       uuid.NewString(),
-			Provider: machnet.ProviderName,
-			Type:     machnet.TypeWallet,
+			Provider: gmt.ProviderName,
+			Type:     gmt.TypeBankAccount,
 		},
 		}, nil).Times(2)
 
