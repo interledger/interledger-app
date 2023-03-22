@@ -74,16 +74,17 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 		}
 	}
 
+	const insertColumns = 8
 	var placeholders []string
 	var values []interface{}
 	for i, arg := range args {
-		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*7+1, i*7+2, i*7+3, i*7+4, i*7+5, i*7+6, i*7+7))
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8))
 
 		linkedAccountID := arg.ID
 		if linkedAccountID == "" {
 			linkedAccountID = uuid.NewString()
 		}
-		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Mask, arg.Provider, arg.ProviderID, arg.Type)
+		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Nickname, arg.Mask, arg.Provider, arg.ProviderID, arg.Type)
 	}
 
 	var linkedAccounts []linkedaccounts.LinkedAccount
@@ -92,7 +93,7 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 		&linkedAccounts,
 		fmt.Sprintf(`
 			INSERT INTO linked_accounts (
-				id, wallet_id, name, mask, provider, provider_id, type
+				id, wallet_id, name, nickname, mask, provider, provider_id, type
 			)
 			VALUES %s
 			RETURNING id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at;

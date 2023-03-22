@@ -3,6 +3,8 @@ package mx
 var (
 	ProviderName    = "mx"
 	TypeBankAccount = "bankAccount"
+	TypeSavings     = "SAVINGS"
+	TypeChecking    = "CHECKING"
 )
 
 type CreateBankAccountsArgs struct {

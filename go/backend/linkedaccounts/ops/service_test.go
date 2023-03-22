@@ -155,6 +155,7 @@ func TestListMXBankAccounts(t *testing.T) {
 		{
 			WalletID:   wallet.ID,
 			Name:       "Test",
+			Nickname:   "TestNickname",
 			Mask:       "1234",
 			Provider:   mx.ProviderName,
 			Type:       mx.TypeBankAccount,
@@ -163,6 +164,7 @@ func TestListMXBankAccounts(t *testing.T) {
 		{
 			WalletID:   wallet.ID,
 			Name:       "Test2",
+			Nickname:   "Test2Nickname",
 			Mask:       "4321",
 			Provider:   mx.ProviderName,
 			Type:       mx.TypeBankAccount,
@@ -178,9 +180,11 @@ func TestListMXBankAccounts(t *testing.T) {
 	for _, la := range mxBankAccounts {
 		if la.ProviderID == "2345" {
 			assert.Equal(t, "Test", la.Name)
+			assert.Equal(t, "TestNickname", la.Nickname)
 			assert.Equal(t, "1234", la.Mask)
 		} else {
 			assert.Equal(t, "Test2", la.Name)
+			assert.Equal(t, "Test2Nickname", la.Nickname)
 			assert.Equal(t, "4321", la.Mask)
 		}
 	}

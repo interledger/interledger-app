@@ -17,6 +17,7 @@ type CreateArgs struct {
 	ID         string `validate:"omitempty,uuid4"`
 	WalletID   string `validate:"required,uuid4"`
 	Name       string `validate:"required"`
+	Nickname   string
 	Mask       string
 	Provider   string `validate:"oneof=mx machnet"`
 	ProviderID string
