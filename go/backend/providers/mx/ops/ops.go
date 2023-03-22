@@ -9,6 +9,9 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/mx/external"
+	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 func GetWidget(ctx context.Context, b Backends, walletID string) (string, error) {
@@ -88,11 +91,21 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 	var createLinkedAccounts []linkedaccounts.CreateArgs
 	for _, accountGuid := range accountsToCreate {
 		for _, account := range accountsResponse.Accounts {
+			// only add checking or savings
+			if account.Type != mx.TypeChecking && account.Type != mx.TypeSavings {
+				continue
+			}
+
 			if account.GUID == accountGuid {
+				mask := account.AccountNumber
+				if len(mask) > 4 {
+					mask = mask[len(mask)-4:]
+				}
 				createLinkedAccounts = append(createLinkedAccounts, linkedaccounts.CreateArgs{
 					WalletID:   args.WalletID,
 					Name:       account.Name,
-					Mask:       account.Nickname,
+					Nickname:   account.Nickname,
+					Mask:       mask,
 					Provider:   mx.ProviderName,
 					ProviderID: account.GUID,
 					Type:       mx.TypeBankAccount,
@@ -110,5 +123,15 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 }
 
 func isAccountOwner(walletOwner *kyc.IndividualDetails, accountOwner external.AccountOwners) bool {
+	if !env.IsProd() {
+		log.Info(
+			"checking mx account ownership",
+			zap.String("mx account guid", accountOwner.AccountGuid),
+			zap.String("mx owner name", accountOwner.OwnerName),
+			zap.String("fynbos wallet owner name", fmt.Sprintf("%s %s", walletOwner.FirstName, walletOwner.LastName)),
+		)
+		return true
+	}
+
 	return strings.EqualFold(fmt.Sprintf("%s %s", walletOwner.FirstName, walletOwner.LastName), accountOwner.OwnerName)
 }
