@@ -65,6 +65,51 @@ func (mr *MockClientMockRecorder) GetWidgetURL(ctx, args interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidgetURL", reflect.TypeOf((*MockClient)(nil).GetWidgetURL), ctx, args)
 }
 
+// ListAccountNumbersByMember mocks base method.
+func (m *MockClient) ListAccountNumbersByMember(ctx context.Context, userGuid, memberGuid string) (*external.ListAccountNumbersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAccountNumbersByMember", ctx, userGuid, memberGuid)
+	ret0, _ := ret[0].(*external.ListAccountNumbersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAccountNumbersByMember indicates an expected call of ListAccountNumbersByMember.
+func (mr *MockClientMockRecorder) ListAccountNumbersByMember(ctx, userGuid, memberGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountNumbersByMember", reflect.TypeOf((*MockClient)(nil).ListAccountNumbersByMember), ctx, userGuid, memberGuid)
+}
+
+// ListAccountOwnersByMember mocks base method.
+func (m *MockClient) ListAccountOwnersByMember(ctx context.Context, userGuid, memberGuid string) (*external.ListAccountOwnersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAccountOwnersByMember", ctx, userGuid, memberGuid)
+	ret0, _ := ret[0].(*external.ListAccountOwnersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAccountOwnersByMember indicates an expected call of ListAccountOwnersByMember.
+func (mr *MockClientMockRecorder) ListAccountOwnersByMember(ctx, userGuid, memberGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountOwnersByMember", reflect.TypeOf((*MockClient)(nil).ListAccountOwnersByMember), ctx, userGuid, memberGuid)
+}
+
+// ListAccountsByMember mocks base method.
+func (m *MockClient) ListAccountsByMember(ctx context.Context, userGuid, memberGuid string) (*external.ListAccountsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAccountsByMember", ctx, userGuid, memberGuid)
+	ret0, _ := ret[0].(*external.ListAccountsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAccountsByMember indicates an expected call of ListAccountsByMember.
+func (mr *MockClientMockRecorder) ListAccountsByMember(ctx, userGuid, memberGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsByMember", reflect.TypeOf((*MockClient)(nil).ListAccountsByMember), ctx, userGuid, memberGuid)
+}
+
 // ListUsersByID mocks base method.
 func (m *MockClient) ListUsersByID(ctx context.Context, id string) (*external.ListUsersResponse, error) {
 	m.ctrl.T.Helper()
