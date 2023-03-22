@@ -19,7 +19,7 @@ type CreateArgs struct {
 	Name       string `validate:"required"`
 	Nickname   string
 	Mask       string
-	Provider   string `validate:"oneof=mx machnet"`
+	Provider   string `validate:"oneof=mx machnet gmt"`
 	ProviderID string
 	Type       string `validate:"required"`
 }

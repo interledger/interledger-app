@@ -9,10 +9,8 @@ import (
 type TransactionType string
 
 const (
-	TransactionTypeOpenPaymentIncoming     TransactionType = "open_payments_incoming"
-	TransactionTypeOpenOutgoingPayment     TransactionType = "open_payments_outgoing"
-	TransactionTypeMachnetWalletTopUp      TransactionType = "machnet_wallet_topup"
-	TransactionTypeMachnetWalletWithdrawal TransactionType = "machnet_wallet_withdrawal"
+	TransactionTypeOpenPaymentIncoming TransactionType = "open_payments_incoming"
+	TransactionTypeOpenOutgoingPayment TransactionType = "open_payments_outgoing"
 )
 
 type State string
@@ -27,17 +25,15 @@ type Provider string
 
 const (
 	ProviderOpenPayments Provider = "open_payments"
-	ProviderMachnet      Provider = "machnet"
+	ProviderGMT          Provider = "machnet"
 )
 
 type TransferType string
 
 const (
-	TransferTypeDebitCard           TransferType = "debit_card"
-	TransferTypeCreditMachnetWallet TransferType = "credit_wallet"
-	TransferTypeDebitMachnetWallet  TransferType = "debit_wallet"
-	TransferTypeDebitBankAccount    TransferType = "debit_bank_acc"
-	TransferTypeCreditBankAccount   TransferType = "credit_bank_acc"
+	TransferTypeDebitCard         TransferType = "debit_card"
+	TransferTypeDebitBankAccount  TransferType = "debit_bank_acc"
+	TransferTypeCreditBankAccount TransferType = "credit_bank_acc"
 )
 
 type CreateTransactionArgs struct {

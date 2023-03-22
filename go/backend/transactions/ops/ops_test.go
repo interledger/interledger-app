@@ -40,7 +40,7 @@ func TestCreateTransaction(t *testing.T) {
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -57,7 +57,7 @@ func TestCreateTransaction(t *testing.T) {
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -73,7 +73,7 @@ func TestCreateTransaction(t *testing.T) {
 			args: transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -90,7 +90,7 @@ func TestCreateTransaction(t *testing.T) {
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -112,7 +112,7 @@ func TestCreateTransaction(t *testing.T) {
 					},
 					{
 						ForeignID: uuid.NewString(),
-						Type:      transactions.TransferTypeCreditMachnetWallet,
+						Type:      transactions.TransferTypeCreditBankAccount,
 						State:     transactions.StateFailed,
 						Amount: currency.Amount{
 							Value:    1000,
@@ -122,7 +122,7 @@ func TestCreateTransaction(t *testing.T) {
 					},
 					{
 						ForeignID: uuid.NewString(),
-						Type:      transactions.TransferTypeDebitMachnetWallet,
+						Type:      transactions.TransferTypeDebitBankAccount,
 						State:     transactions.StateFailed,
 						Amount: currency.Amount{
 							Value:    1000,
@@ -146,7 +146,7 @@ func TestCreateTransaction(t *testing.T) {
 				WalletID:   wallet.ID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "machnet",
+				Provider:   "gmt",
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -187,7 +187,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -205,7 +205,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -223,7 +223,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -245,7 +245,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 					},
 					{
 						ForeignID: uuid.NewString(),
-						Type:      transactions.TransferTypeCreditMachnetWallet,
+						Type:      transactions.TransferTypeCreditBankAccount,
 						State:     transactions.StateFailed,
 						Amount: currency.Amount{
 							Value:    1000,
@@ -255,7 +255,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 					},
 					{
 						ForeignID: uuid.NewString(),
-						Type:      transactions.TransferTypeDebitMachnetWallet,
+						Type:      transactions.TransferTypeDebitBankAccount,
 						State:     transactions.StateFailed,
 						Amount: currency.Amount{
 							Value:    1000,
@@ -280,7 +280,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 				WalletID:   wallet.ID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "machnet",
+				Provider:   "gmt",
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -338,7 +338,7 @@ func TestListWithPendingPagination(t *testing.T) {
 			WalletID:    uuid.NewString(),
 			ForeignID:   uuid.NewString(),
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-			Provider:    transactions.ProviderMachnet,
+			Provider:    transactions.ProviderGMT,
 			State:       transactions.StatePending,
 			Source:      "$fynbos.me/alice",
 			Destination: "$fynbos.me/bob",
@@ -440,7 +440,7 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 			args: transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -467,7 +467,7 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 				WalletID:   wallet.ID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "machnet",
+				Provider:   "gmt",
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -515,7 +515,7 @@ func TestSetTransferForeignID(t *testing.T) {
 			args: transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -553,7 +553,7 @@ func TestSetTransferForeignID(t *testing.T) {
 				WalletID:   wallet.ID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "machnet",
+				Provider:   "gmt",
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -606,7 +606,7 @@ func TestSetTransactionState(t *testing.T) {
 				WalletID:    uuid.NewString(),
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -633,7 +633,7 @@ func TestSetTransactionState(t *testing.T) {
 				WalletID:   wallet.ID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "machnet",
+				Provider:   "gmt",
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -681,7 +681,7 @@ func TestSetTransferState(t *testing.T) {
 			args: transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderMachnet,
+				Provider:    transactions.ProviderGMT,
 				State:       transactions.StatePending,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
@@ -719,7 +719,7 @@ func TestSetTransferState(t *testing.T) {
 				WalletID:   wallet.ID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "machnet",
+				Provider:   "gmt",
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})

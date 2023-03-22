@@ -1,8 +1,8 @@
 package temporal
 
 import (
-	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	"gitlab.com/fynbos/backend/identities/platforms"
+	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	openpayments_workflows "gitlab.com/fynbos/backend/openpayments/workflows"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"go.temporal.io/sdk/worker"

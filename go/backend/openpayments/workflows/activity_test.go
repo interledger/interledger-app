@@ -2,9 +2,10 @@ package workflows
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"gitlab.com/fynbos/backend/currency"
 
@@ -23,7 +24,7 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
-func TestActivity_GetProviderArgs(t *testing.T) {
+func TestActivity_GetGMTProviderArgs(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
@@ -42,7 +43,7 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
-	env.RegisterActivity(a.GetProviderArgs)
+	env.RegisterActivity(a.GetGMTProviderArgs)
 
 	cases := []struct {
 		name      string
@@ -107,19 +108,19 @@ func TestActivity_GetProviderArgs(t *testing.T) {
 			la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
 				{
 					ID:       uuid.NewString(),
-					Provider: machnet.ProviderName,
-					Type:     machnet.TypeSendCard,
+					Provider: gmt.ProviderName,
+					Type:     gmt.TypeBankAccount,
 				}, {
 					ID:       uuid.NewString(),
-					Provider: machnet.ProviderName,
-					Type:     machnet.TypeWallet,
+					Provider: gmt.ProviderName,
+					Type:     gmt.TypeBankAccount,
 				},
 			}, nil).Times(2)
 
-			argsEnc, err := env.ExecuteActivity(a.GetProviderArgs, opID)
+			argsEnc, err := env.ExecuteActivity(a.GetGMTProviderArgs, opID)
 			require.NoError(t, err)
 
-			var args machnet.CreateTransactionArgs
+			var args gmt.TransfersArgs
 			err = argsEnc.Get(&args)
 			require.NoError(t, err)
 

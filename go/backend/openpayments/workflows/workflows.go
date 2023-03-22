@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
+	"gitlab.com/fynbos/backend/providers/gmt"
+	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
+	"gitlab.com/fynbos/backend/transactions"
 	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
@@ -40,7 +42,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	recvPPURL := ip.PaymentPointer
 
 	// Check that the recv payment pointer can receive
-	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, machnet.ProviderName, machnet.TypeWallet)
+	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, gmt.ProviderName, gmt.TypeBankAccount)
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
@@ -51,15 +53,15 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	if q.FromLinkedAccount != "" {
 		sendLA, err = b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
 	} else {
-		// Default to send card if no linked account is specified
-		sendLA, err = getProviderLinkedAccount(ctx, b, q.PaymentPointer, machnet.ProviderName, machnet.TypeSendCard)
+		// Default to bank account card if no linked account is specified
+		sendLA, err = getProviderLinkedAccount(ctx, b, q.PaymentPointer, gmt.ProviderName, gmt.TypeBankAccount)
 	}
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
 	}
-	if sendLA.Provider != machnet.ProviderName ||
-		(sendLA.Type != machnet.TypeSendCard && sendLA.Type != machnet.TypeWallet) {
+	if sendLA.Provider != gmt.ProviderName ||
+		(sendLA.Type != gmt.TypeBankAccount && sendLA.Type != gmt.TypeSendCard) {
 		return nil, fmt.Errorf("%w send linked account (%s) not send enabled", openpayments.ErrInternal, q.FromLinkedAccount)
 	}
 
@@ -113,8 +115,8 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	logger := workflow.GetLogger(ctx)
 	logger.Info("OutgoingTransactionWorkflow workflow started", "outgoingID", outgoingID, "trxID", trxID)
 
-	var tArgs machnet.CreateTransactionArgs
-	err := workflow.ExecuteActivity(ctx, a.GetProviderArgs, outgoingID).Get(ctx, &tArgs)
+	var tArgs gmt.TransfersArgs
+	err := workflow.ExecuteActivity(ctx, a.GetGMTProviderArgs, outgoingID).Get(ctx, &tArgs)
 	if err != nil {
 		if temporal_utils.IsNonRetryableError(err) {
 			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
@@ -125,7 +127,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		logger.Error("GetProviderArgs Activity failed.", "Error", err)
 		return "", err
 	}
-	tArgs.IPAddress = ipAddress
+	tArgs.FromTransactionID = trxID
 
 	err = workflow.ExecuteActivity(ctx, a.AddContact, tArgs.FromPaymentPointer, tArgs.ToPaymentPointer).Get(ctx, nil)
 	if err != nil {
@@ -142,16 +144,42 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+	var resp gmt.TransferResponse
+	err = workflow.ExecuteChildWorkflow(ctx, gmt_workflows.ACH2ACHTransferWorkflow, tArgs).Get(ctx, &resp)
+	if err != nil {
+		logger.Error("ACH2ACHTransferWorkflow child workflow failed.", "Error", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
+			if innerErr != nil {
+				return "", err
+			}
+		}
+		return "", err
+	}
+	if resp.State == transactions.StateFailed {
+		err = workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
+		if err != nil {
+			logger.Error("FailOutgoingPayment Activity failed for failed transaction state.", "Error", err)
+			return "", err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.SendFailedOutgoingPaymentMail, outgoingID).Get(ctx, nil)
+		if err != nil {
+			logger.Error("SendFailedOutgoingPaymentMail Activity failed.", "Error", err)
+			return "", err
+		}
+		return "", nil
+	}
 
 	// TODO: Temp external ID
 	// Update Outgoing payment
-	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, "resp.ExternalID").Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp.ExternalID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("GetProviderArgs Activity failed.", "Error", err)
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, "resp.ExternalID").Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, resp.ExternalID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("SendOutgoingPaymentReceipt Activity failed.", "Error", err)
 		return "", err
@@ -163,5 +191,5 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		return "", err
 	}
 
-	return "resp.ExternalID", nil
+	return resp.ExternalID, nil
 }
