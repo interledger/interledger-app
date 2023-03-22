@@ -466,6 +466,32 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.CreateMXBankAccountsRequest
+ */
+export interface CreateMXBankAccountsRequest {
+    /**
+     * @generated from protobuf field: string sessionGuid = 1;
+     */
+    sessionGuid: string;
+    /**
+     * @generated from protobuf field: string userGuid = 2;
+     */
+    userGuid: string;
+    /**
+     * @generated from protobuf field: string memberGuid = 3;
+     */
+    memberGuid: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreateMXBankAccountsResponse
+ */
+export interface CreateMXBankAccountsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.LinkedAccount linkedAccounts = 1;
+     */
+    linkedAccounts: LinkedAccount[];
+}
+/**
  * @generated from protobuf message backend.v1.MXWidgetResponse
  */
 export interface MXWidgetResponse {
@@ -3038,6 +3064,114 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateMXBankAccountsRequest$Type extends MessageType<CreateMXBankAccountsRequest> {
+    constructor() {
+        super("backend.v1.CreateMXBankAccountsRequest", [
+            { no: 1, name: "sessionGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "userGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "memberGuid", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateMXBankAccountsRequest>): CreateMXBankAccountsRequest {
+        const message = { sessionGuid: "", userGuid: "", memberGuid: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateMXBankAccountsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateMXBankAccountsRequest): CreateMXBankAccountsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string sessionGuid */ 1:
+                    message.sessionGuid = reader.string();
+                    break;
+                case /* string userGuid */ 2:
+                    message.userGuid = reader.string();
+                    break;
+                case /* string memberGuid */ 3:
+                    message.memberGuid = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateMXBankAccountsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string sessionGuid = 1; */
+        if (message.sessionGuid !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionGuid);
+        /* string userGuid = 2; */
+        if (message.userGuid !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.userGuid);
+        /* string memberGuid = 3; */
+        if (message.memberGuid !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.memberGuid);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateMXBankAccountsRequest
+ */
+export const CreateMXBankAccountsRequest = new CreateMXBankAccountsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateMXBankAccountsResponse$Type extends MessageType<CreateMXBankAccountsResponse> {
+    constructor() {
+        super("backend.v1.CreateMXBankAccountsResponse", [
+            { no: 1, name: "linkedAccounts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => LinkedAccount }
+        ]);
+    }
+    create(value?: PartialMessage<CreateMXBankAccountsResponse>): CreateMXBankAccountsResponse {
+        const message = { linkedAccounts: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateMXBankAccountsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateMXBankAccountsResponse): CreateMXBankAccountsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.LinkedAccount linkedAccounts */ 1:
+                    message.linkedAccounts.push(LinkedAccount.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateMXBankAccountsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.LinkedAccount linkedAccounts = 1; */
+        for (let i = 0; i < message.linkedAccounts.length; i++)
+            LinkedAccount.internalBinaryWrite(message.linkedAccounts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateMXBankAccountsResponse
+ */
+export const CreateMXBankAccountsResponse = new CreateMXBankAccountsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class MXWidgetResponse$Type extends MessageType<MXWidgetResponse> {
     constructor() {
@@ -7096,5 +7230,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "StartIdentityVerification", options: {}, I: StartIdentityVerificationRequest, O: Identity },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "StartKYC", options: {}, I: Empty, O: Empty },
-    { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse }
+    { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse },
+    { name: "CreateMXBankAccounts", options: {}, I: CreateMXBankAccountsRequest, O: CreateMXBankAccountsResponse }
 ]);
