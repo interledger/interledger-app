@@ -1,8 +1,9 @@
 import * as widgetSdk from '@mxenabled/web-widget-sdk'
-import type { LoaderArgs } from '@remix-run/node';
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { ActionArgs, LoaderArgs} from '@remix-run/node';
+import { json, redirect } from '@remix-run/node'
+import { Form, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
+import { route } from 'routes-gen'
 import { Layouts } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import {
@@ -32,13 +33,21 @@ export async function loader({ request }: LoaderArgs) {
 export const handle = { layout: Layouts.FocusLayout }
 
 export default function Page() {
+  const submit = useSubmit()
   const { url } = useLoaderData<typeof loader>()
   useEffect(() => {
     const widget = new widgetSdk.ConnectWidget({
       container: '#widget',
       url,
-      onMessage: (event) => {
-        console.log(event.data)
+      onMemberConnected: (event) => {
+        let formData = new FormData()
+        formData.append('userGuid', event.user_guid)
+        formData.append('memberGuid', event.member_guid)
+        formData.append('sessionGuid', event.session_guid)
+        submit(formData, {
+          action: '/linked-account/bank/widget',
+          method: 'post'
+        })
       }
     })
 
@@ -51,4 +60,29 @@ export default function Page() {
       <div id='widget' />
     </>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  let rpc = await grpcClient
+    .createMXBankAccounts(
+      {
+        memberGuid: form.get('memberGuid') as string,
+        sessionGuid: form.get('sessionGuid') as string,
+        userGuid: form.get('userGuid') as string
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie'))
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json(null, httpMapping(rpc.code))
+  }
+
+  return redirect(route('/settings/linked-accounts'))
 }
