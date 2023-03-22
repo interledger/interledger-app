@@ -10,6 +10,16 @@ import (
 
 type GMTDate time.Time
 
+/*Created, Hold, Authorized, Transmitted, Paid, Cancelled or Void and Expired*/
+const (
+	TransactionStatusCreated    = "Created"
+	TransactionStatusPaid       = "Paid"
+	TransactionStatusHold       = "Hold"
+	TransactionStatusAuthorized = "Authorized"
+	TransactionStatusCancelled  = "Cancelled"
+	TransactionStatusExpired    = "Expired"
+)
+
 func (gd GMTDate) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	t := time.Time(gd)
 	v := t.Format("2006/01/02")
