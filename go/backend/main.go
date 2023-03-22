@@ -235,7 +235,7 @@ func start(args *cli.StartArgs) {
 
 	b.contacts = contacts_client.New(b)
 
-	b.mx = mx_client.New(args.MxClientID, args.MxApiKey)
+	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
 
 	server, err := _grpc.NewServer(b)
 	if err != nil {
@@ -416,7 +416,7 @@ func startWorker(args *cli.StartArgs) {
 
 	b.contacts = contacts_client.New(b)
 
-	b.mx = mx_client.New(args.MxClientID, args.MxApiKey)
+	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
 
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
