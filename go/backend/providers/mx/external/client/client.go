@@ -172,6 +172,99 @@ func (c *client) ListUsersByID(ctx context.Context, id string) (*external.ListUs
 	return &listResponse, nil
 }
 
+func (c *client) ListAccountOwnersByMember(ctx context.Context, userGuid, memberGuid string) (*external.ListAccountOwnersResponse, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "users", userGuid, "members", memberGuid, "account_owners")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var listResponse external.ListAccountOwnersResponse
+	err = json.NewDecoder(resp.Body).Decode(&listResponse)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &listResponse, nil
+}
+
+func (c *client) ListAccountNumbersByMember(ctx context.Context, userGuid, memberGuid string) (*external.ListAccountNumbersResponse, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "users", userGuid, "members", memberGuid, "account_numbers")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var listResponse external.ListAccountNumbersResponse
+	err = json.NewDecoder(resp.Body).Decode(&listResponse)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &listResponse, nil
+}
+
+func (c *client) ListAccountsByMember(ctx context.Context, userGuid, memberGuid string) (*external.ListAccountsResponse, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "users", userGuid, "members", memberGuid, "accounts")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var listResponse external.ListAccountsResponse
+	err = json.NewDecoder(resp.Body).Decode(&listResponse)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &listResponse, nil
+}
+
 func checkResponseStatusCode(r *http.Response) error {
 	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil
