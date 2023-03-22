@@ -99,6 +99,10 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 			ForeignID:       tr.ID,
 		},
 	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("error updating transaction transfer", "Error", err)
+		return nil, err
+	}
 
 	// Insert incoming transfer
 	var recvTrxID string
@@ -124,12 +128,16 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 			{
 				ForeignID:       tr.ID,
 				LinkedAccountID: args.ToLinkedAccountID,
-				Type:            transactions.TransferTypeCreditMachnetWallet,
+				Type:            transactions.TransferTypeCreditBankAccount,
 				Amount:          args.Amount,
 				State:           transactions.StatePending,
 			},
 		},
 	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to add transaction for recipient", "err", err)
+		return nil, err
+	}
 
 	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, tr).Get(ctx, nil)
 	if err != nil {
@@ -152,6 +160,10 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 		WorkflowRunID: workflow.GetInfo(ctx).WorkflowExecution.RunID,
 		ActivityName:  "ACH_to_ACH",
 	}).Get(ctx, &refID)
+	if err != nil {
+		logger.Error("failed to create workflow reference", "err", err)
+		return nil, err
+	}
 
 	gmtChan := workflow.GetSignalChannel(ctx, gmtEventsChannel)
 	state := transactions.StateCompleted
