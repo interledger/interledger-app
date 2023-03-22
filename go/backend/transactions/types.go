@@ -36,6 +36,7 @@ const (
 	TransferTypeDebitCard           TransferType = "debit_card"
 	TransferTypeCreditMachnetWallet TransferType = "credit_wallet"
 	TransferTypeDebitMachnetWallet  TransferType = "debit_wallet"
+	TransferTypeDebitBankAccount    TransferType = "debit_bank_acc"
 	TransferTypeCreditBankAccount   TransferType = "credit_bank_acc"
 )
 

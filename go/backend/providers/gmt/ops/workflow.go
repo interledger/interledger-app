@@ -1,9 +1,13 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/providers/gmt/external"
-	"gitlab.com/fynbos/log"
 	"time"
+
+	"github.com/google/uuid"
+
+	"gitlab.com/fynbos/backend/providers/gmt/external"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/log"
 
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"go.temporal.io/sdk/workflow"
@@ -42,7 +46,7 @@ func OnboardUserWorkflow(ctx workflow.Context, walletID string) (string, error) 
 	return "TODO", nil
 }
 
-func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (string, error) {
+func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt.TransferResponse, error) {
 	var a *Activity
 
 	ao := workflow.ActivityOptions{
@@ -53,44 +57,84 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (stri
 	logger := workflow.GetLogger(ctx)
 	logger.Info("ACH2ACHTransferWorkflow workflow started", "From", args.FromLinkedAccountID, "Amount", args.Amount)
 
-	err := workflow.ExecuteActivity(ctx, a.CheckAccountOFAC, args.ToLinkedAccountID).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.ToWalletID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to do to linked account OFAC checks", "err", err)
-		return "", err
+		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CheckAccountOFAC, args.FromLinkedAccountID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.FromWalletID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to do from linked account OFAC checks", "err", err)
-		return "", err
+		return nil, err
 	}
 
 	var cr ComplianceResp
 	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, &cr)
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
-		return "", err
+		return nil, err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to upsert gmt send recv user", "err", err)
-		return "", err
+		return nil, err
 	}
 
 	var tr TransactionResp
 	err = workflow.ExecuteActivity(ctx, a.InsertACH, args).Get(ctx, &tr)
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
-		return "", err
+		return nil, err
 	}
 
-	// TODO: Insert/update transactions
+	// Insert/update transfers
+	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, args.FromTransactionID, []transactions.TransferArgs{
+		{
+			LinkedAccountID: args.FromLinkedAccountID,
+			Type:            transactions.TransferTypeCreditBankAccount,
+			Amount:          args.Amount,
+			State:           transactions.StatePending,
+			ForeignID:       tr.ID,
+		},
+	}).Get(ctx, nil)
+
+	// Insert incoming transfer
+	var recvTrxID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&recvTrxID)
+	if err != nil {
+		logger.Error("error generating transactionID as side effect", "Error", err)
+		return nil, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+		ID:          recvTrxID,
+		WalletID:    args.ToWalletID,
+		ForeignID:   args.ToForeignID,
+		ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
+		Provider:    transactions.ProviderOpenPayments,
+		State:       transactions.StatePending,
+		Source:      args.FromPaymentPointer,
+		Destination: args.ToPaymentPointer,
+		Amount:      args.Amount,
+		Transfers: []transactions.TransferArgs{
+			{
+				ForeignID:       tr.ID,
+				LinkedAccountID: args.ToLinkedAccountID,
+				Type:            transactions.TransferTypeCreditMachnetWallet,
+				Amount:          args.Amount,
+				State:           transactions.StatePending,
+			},
+		},
+	}).Get(ctx, nil)
 
 	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, tr).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to save gmt transaction receipt", "err", err)
-		return "", err
+		return nil, err
 	}
 
 	// TODO: risk Scores if we want
@@ -98,7 +142,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (stri
 	err = workflow.ExecuteActivity(ctx, a.VerifyTransaction, tr.ID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to verify gmt transaction", "err", err)
-		return "", err
+		return nil, err
 	}
 
 	var refID string
@@ -110,6 +154,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (stri
 	}).Get(ctx, &refID)
 
 	gmtChan := workflow.GetSignalChannel(ctx, gmtEventsChannel)
+	state := transactions.StateCompleted
 	for {
 		var notify external.WsNotifications
 		gmtChan.Receive(ctx, &notify)
@@ -123,14 +168,29 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (stri
 		}
 
 		logger.Info("transaction status notification received", "id", notify.Password, "status", notify.Status)
-		// TODO: handle edge cases
+		// TODO: handle edge cases and set state to some error state
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.CompleteWorkflowRef, refID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to complete workflow ref", "err", err)
-		return "", err
+		return nil, err
 	}
 
-	return "TODO", nil
+	// update send and receive transaction state.
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, args.FromTransactionID, args.FromWalletID, transactions.TransferTypeDebitBankAccount, state).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to update transaction state", "error", err, "state", state)
+		return nil, err
+	}
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, recvTrxID, args.ToWalletID, transactions.TransferTypeCreditBankAccount, state).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to update transaction state", "error", err, "state", state)
+		return nil, err
+	}
+
+	return &gmt.TransferResponse{
+		State:      state,
+		ExternalID: tr.ID,
+	}, nil
 }
