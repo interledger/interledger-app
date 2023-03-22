@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/db"
 	"os"
 	"strconv"
+
+	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/db"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gmt"
@@ -83,16 +84,6 @@ func (a *Activity) CheckWalletOFAC(ctx context.Context, walletID string) error {
 	return nil
 }
 
-func (a *Activity) CheckAccountOFAC(ctx context.Context, linkedAccID string) error {
-
-	la, err := a.b.LinkedAccounts().Get(ctx, linkedAccID)
-	if err != nil {
-		return err
-	}
-
-	return a.CheckWalletOFAC(ctx, la.WalletID)
-}
-
 type ComplianceResp struct {
 	SenderID         int64
 	SenderWalletID   string
@@ -165,29 +156,19 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 }
 
 func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*ComplianceResp, error) {
-	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
+	toID, err := a.b.KYC().GetIndividualDetails(ctx, args.ToWalletID)
 	if err != nil {
 		return nil, err
 	}
 
-	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
-	if err != nil {
-		return nil, err
-	}
-
-	toID, err := a.b.KYC().GetIndividualDetails(ctx, toLA.WalletID)
-	if err != nil {
-		return nil, err
-	}
-
-	sender, err := senderFromWallet(ctx, a.b, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args.FromWalletID)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: fill in sender ACH details
 
-	receiver, err := receiverFromWallet(ctx, a.b, toLA.WalletID)
+	receiver, err := receiverFromWallet(ctx, a.b, args.ToWalletID)
 	if err != nil {
 		return nil, err
 	}
@@ -235,9 +216,9 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 
 	return &ComplianceResp{
 		SenderID:         int64(res.ComplianceCheckResult.SenderID),
-		SenderWalletID:   fromLA.WalletID,
+		SenderWalletID:   args.FromWalletID,
 		ReceiverID:       int64(res.ComplianceCheckResult.ReceiverID),
-		ReceiverWalletID: fromLA.WalletID,
+		ReceiverWalletID: args.ToWalletID,
 	}, nil
 }
 
