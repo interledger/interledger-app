@@ -3,7 +3,10 @@ package ops
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/mx/external"
 )
@@ -40,4 +43,72 @@ func GetWidget(ctx context.Context, b Backends, walletID string) (string, error)
 	}
 
 	return widget.URL, nil
+}
+
+func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccountsArgs) ([]linkedaccounts.LinkedAccount, error) {
+	accountOwnersResponse, err := b.External().ListAccountOwnersByMember(ctx, args.UserGuid, args.MemberGuid)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	walletOwner, err := b.KYC().GetIndividualDetails(ctx, args.WalletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	existingAccounts, err := b.LinkedAccounts().ListMXBankAccounts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	var accountsToCreate []string
+	for _, accountOwner := range accountOwnersResponse.AccountOwners {
+		var skip bool
+		for _, existingAccount := range existingAccounts {
+			if accountOwner.AccountGuid == existingAccount.ProviderID {
+				skip = true
+				break
+			}
+		}
+		if skip {
+			continue
+		}
+
+		if !isAccountOwner(walletOwner, accountOwner) {
+			return nil, mx.ErrInvalidAccountOwner
+		}
+		accountsToCreate = append(accountsToCreate, accountOwner.AccountGuid)
+	}
+
+	accountsResponse, err := b.External().ListAccountsByMember(ctx, args.UserGuid, args.MemberGuid)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	var createLinkedAccounts []linkedaccounts.CreateArgs
+	for _, accountGuid := range accountsToCreate {
+		for _, account := range accountsResponse.Accounts {
+			if account.GUID == accountGuid {
+				createLinkedAccounts = append(createLinkedAccounts, linkedaccounts.CreateArgs{
+					WalletID:   args.WalletID,
+					Name:       account.Name,
+					Mask:       account.Nickname,
+					Provider:   mx.ProviderName,
+					ProviderID: account.GUID,
+					Type:       mx.TypeBankAccount,
+				})
+			}
+		}
+	}
+
+	las, err := b.LinkedAccounts().CreateBatch(ctx, createLinkedAccounts)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	return las, nil
+}
+
+func isAccountOwner(walletOwner *kyc.IndividualDetails, accountOwner external.AccountOwners) bool {
+	return strings.EqualFold(fmt.Sprintf("%s %s", walletOwner.FirstName, walletOwner.LastName), accountOwner.OwnerName)
 }

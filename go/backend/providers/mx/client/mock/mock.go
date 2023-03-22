@@ -9,6 +9,8 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
+	mx "gitlab.com/fynbos/backend/providers/mx"
 )
 
 // MockClient is a mock of Client interface.
@@ -32,6 +34,21 @@ func NewMockClient(ctrl *gomock.Controller) *MockClient {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
+}
+
+// CreateBankAccounts mocks base method.
+func (m *MockClient) CreateBankAccounts(ctx context.Context, args mx.CreateBankAccountsArgs) ([]linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBankAccounts", ctx, args)
+	ret0, _ := ret[0].([]linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBankAccounts indicates an expected call of CreateBankAccounts.
+func (mr *MockClientMockRecorder) CreateBankAccounts(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccounts", reflect.TypeOf((*MockClient)(nil).CreateBankAccounts), ctx, args)
 }
 
 // GetWidget mocks base method.
