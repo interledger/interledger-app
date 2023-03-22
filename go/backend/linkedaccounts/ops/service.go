@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/providers/machnet"
+	"strings"
+
+	"gitlab.com/fynbos/backend/providers/mx"
 
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
@@ -58,6 +60,65 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 	}
 
 	return &linkedAccount, nil
+}
+
+func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateArgs) ([]linkedaccounts.LinkedAccount, error) {
+	if len(args) == 0 {
+		return nil, nil
+	}
+
+	for _, arg := range args {
+		err := b.Validator().Struct(arg)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInvalidArgument, err.Error())
+		}
+	}
+
+	var placeholders []string
+	var values []interface{}
+	for i, arg := range args {
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*7+1, i*7+2, i*7+3, i*7+4, i*7+5, i*7+6, i*7+7))
+
+		linkedAccountID := arg.ID
+		if linkedAccountID == "" {
+			linkedAccountID = uuid.NewString()
+		}
+		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Mask, arg.Provider, arg.ProviderID, arg.Type)
+	}
+
+	var linkedAccounts []linkedaccounts.LinkedAccount
+	err := b.DB().SelectContext(
+		ctx,
+		&linkedAccounts,
+		fmt.Sprintf(`
+			INSERT INTO linked_accounts (
+				id, wallet_id, name, mask, provider, provider_id, type
+			)
+			VALUES %s
+			RETURNING id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at;
+		`, strings.Join(placeholders, ",")),
+		values...,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	notifiedWallets := map[string]bool{}
+	for _, la := range linkedAccounts {
+		notified := notifiedWallets[la.WalletID]
+		if notified {
+			continue
+		}
+
+		err = b.Notify().NotifyWallet(ctx, la.WalletID, notify.NotificationTypeLinkedAccount)
+		if err != nil {
+			log.Error("notify failed for linked account", zap.String("walletId", la.WalletID), zap.Error(err))
+		}
+
+		notifiedWallets[la.WalletID] = true
+	}
+
+	return linkedAccounts, nil
 }
 
 func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAccount, error) {
@@ -137,13 +198,13 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 	return linkedAccounts, nil
 }
 
-func ListMachnetWallets(ctx context.Context, b Backends) ([]linkedaccounts.LinkedAccount, error) {
+func ListMXBankAccounts(ctx context.Context, b Backends) ([]linkedaccounts.LinkedAccount, error) {
 	var linkedAccounts []linkedaccounts.LinkedAccount
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
 		"SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND type=$2;",
-		machnet.ProviderName, machnet.TypeWallet,
+		mx.ProviderName, mx.TypeBankAccount,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)

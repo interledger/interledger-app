@@ -2,8 +2,9 @@ package ops_test
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/providers/machnet"
 	"testing"
+
+	"gitlab.com/fynbos/backend/providers/mx"
 
 	"github.com/stretchr/testify/require"
 
@@ -138,7 +139,7 @@ func TestDelete(t *testing.T) {
 	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)
 }
 
-func TestListMachnetWallets(t *testing.T) {
+func TestListMXBankAccounts(t *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
@@ -150,20 +151,39 @@ func TestListMachnetWallets(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID: wallet.ID,
-		Name:     "Test",
-		Mask:     "1234",
-		Provider: machnet.ProviderName,
-		Type:     machnet.TypeWallet,
+	linkedAccounts, err := c.LinkedAccounts.CreateBatch(ctx, []linkedaccounts.CreateArgs{
+		{
+			WalletID:   wallet.ID,
+			Name:       "Test",
+			Mask:       "1234",
+			Provider:   mx.ProviderName,
+			Type:       mx.TypeBankAccount,
+			ProviderID: "2345",
+		},
+		{
+			WalletID:   wallet.ID,
+			Name:       "Test2",
+			Mask:       "4321",
+			Provider:   mx.ProviderName,
+			Type:       mx.TypeBankAccount,
+			ProviderID: "5432",
+		},
 	})
 	require.NoError(t, err)
+	require.Len(t, linkedAccounts, 2)
 
-	machnetWallets, err := c.LinkedAccounts.ListMachnetWallets(ctx)
+	mxBankAccounts, err := c.LinkedAccounts.ListMXBankAccounts(ctx)
 	require.NoError(t, err)
-
-	assert.Equal(t, 1, len(machnetWallets))
-	assert.Equal(t, linkedAccount.ID, machnetWallets[0].ID)
+	require.Len(t, mxBankAccounts, 2)
+	for _, la := range mxBankAccounts {
+		if la.ProviderID == "2345" {
+			assert.Equal(t, "Test", la.Name)
+			assert.Equal(t, "1234", la.Mask)
+		} else {
+			assert.Equal(t, "Test2", la.Name)
+			assert.Equal(t, "4321", la.Mask)
+		}
+	}
 }
 
 func TestSetNickname(s *testing.T) {
