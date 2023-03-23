@@ -2,9 +2,12 @@ package ops
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -134,4 +137,50 @@ func isAccountOwner(walletOwner *kyc.IndividualDetails, accountOwner external.Ac
 	}
 
 	return strings.EqualFold(fmt.Sprintf("%s %s", walletOwner.FirstName, walletOwner.LastName), accountOwner.OwnerName)
+}
+
+func GetAccount(ctx context.Context, b Backends, walletID, guid string) (*mx.Account, error) {
+	externalUsers, err := b.External().ListUsersByID(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	var user *external.User
+	for _, u := range externalUsers.Users {
+		if u.ID == walletID {
+			user = &u
+			break
+		}
+	}
+	if user == nil {
+		return nil, mx.ErrNotFound
+	}
+
+	externalAccount, err := b.External().ReadUsersAccount(ctx, user.Guid, guid)
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, mx.ErrNotFound
+	} else if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	updatedAt, err := time.Parse(time.RFC3339, externalAccount.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	return &mx.Account{
+		Guid:             externalAccount.GUID,
+		MemberGuid:       externalAccount.MemberGUID,
+		UserGuid:         externalAccount.UserGUID,
+		Name:             externalAccount.Name,
+		Nickname:         externalAccount.Nickname,
+		AccountNumber:    externalAccount.AccountNumber,
+		RoutingNumber:    externalAccount.RoutingNumber,
+		InstitutionCode:  externalAccount.InstitutionCode,
+		IsHidden:         externalAccount.IsHidden,
+		Type:             externalAccount.Type,
+		UpdatedAt:        updatedAt,
+		Balance:          currency.FromFloat64(externalAccount.Balance, currency.Currency(externalAccount.CurrencyCode)),
+		AvailableBalance: currency.FromFloat64(externalAccount.AvailableBalance, currency.Currency(externalAccount.CurrencyCode)),
+	}, nil
 }
