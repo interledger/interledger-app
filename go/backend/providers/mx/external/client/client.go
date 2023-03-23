@@ -77,7 +77,7 @@ func (c *client) CreateUser(ctx context.Context, id string) (*external.User, err
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -116,7 +116,7 @@ func (c *client) GetWidgetURL(ctx context.Context, args external.GetWidgetURLArg
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonPayload))
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -147,7 +147,7 @@ func (c *client) ListUsersByID(ctx context.Context, id string) (*external.ListUs
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s?id=%s", endpoint, url.QueryEscape(id)), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s?id=%s", endpoint, url.QueryEscape(id)), nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -178,7 +178,7 @@ func (c *client) ListAccountOwnersByMember(ctx context.Context, userGuid, member
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("GET", endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -209,7 +209,7 @@ func (c *client) ListAccountNumbersByMember(ctx context.Context, userGuid, membe
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("GET", endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -240,7 +240,7 @@ func (c *client) ListAccountsByMember(ctx context.Context, userGuid, memberGuid 
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("GET", endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -271,7 +271,7 @@ func (c *client) ReadUsersAccount(ctx context.Context, userGuid, accountGuid str
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("GET", endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
