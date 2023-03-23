@@ -236,6 +236,59 @@ table "linked_accounts" {
     columns = [column.wallet_id, column.provider, column.provider_id]
   }
 }
+table "very_good_security_card" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "card_token" {
+    null = false
+    type = text
+  }
+  column "expiry" {
+    null = false
+    type = text
+  }
+  column "card_security_code" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "last4" {
+    null = false
+    type = text
+  }
+  column "card_type" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "deleted_at" {
+    null = true
+    type = timestamp
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "card_token_wallet_id_uniq" {
+    unique  = true
+    columns = [column.card_token, column.wallet_id]
+  }
+}
 table "machnet_receive_bank_accounts" {
   schema = schema.public
   column "id" {
