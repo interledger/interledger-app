@@ -55,3 +55,7 @@ func (c *Client) GetWidget(ctx context.Context, walletID string) (string, error)
 func (c *Client) CreateBankAccounts(ctx context.Context, args mx.CreateBankAccountsArgs) ([]linkedaccounts.LinkedAccount, error) {
 	return ops.CreateBankAccounts(ctx, c.b, args)
 }
+
+func (c *Client) GetAccount(ctx context.Context, walletID, accountGuid string) (*mx.Account, error) {
+	return ops.GetAccount(ctx, c.b, walletID, accountGuid)
+}

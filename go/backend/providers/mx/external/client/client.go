@@ -265,6 +265,37 @@ func (c *client) ListAccountsByMember(ctx context.Context, userGuid, memberGuid 
 	return &listResponse, nil
 }
 
+func (c *client) ReadUsersAccount(ctx context.Context, userGuid, accountGuid string) (*external.Account, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "users", userGuid, "accounts", accountGuid)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var accountResponse struct{ Account external.Account }
+	err = json.NewDecoder(resp.Body).Decode(&accountResponse)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &accountResponse.Account, nil
+}
+
 func checkResponseStatusCode(r *http.Response) error {
 	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil

@@ -9,4 +9,5 @@ type Client interface {
 	ListAccountOwnersByMember(ctx context.Context, userGuid, memberGuid string) (*ListAccountOwnersResponse, error)
 	ListAccountNumbersByMember(ctx context.Context, userGuid, memberGuid string) (*ListAccountNumbersResponse, error)
 	ListAccountsByMember(ctx context.Context, userGuid, memberGuid string) (*ListAccountsResponse, error)
+	ReadUsersAccount(ctx context.Context, userGuid, accountGuid string) (*Account, error)
 }

@@ -51,6 +51,21 @@ func (mr *MockClientMockRecorder) CreateBankAccounts(ctx, args interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccounts", reflect.TypeOf((*MockClient)(nil).CreateBankAccounts), ctx, args)
 }
 
+// GetAccount mocks base method.
+func (m *MockClient) GetAccount(ctx context.Context, walletID, accountGuid string) (*mx.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccount", ctx, walletID, accountGuid)
+	ret0, _ := ret[0].(*mx.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccount indicates an expected call of GetAccount.
+func (mr *MockClientMockRecorder) GetAccount(ctx, walletID, accountGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockClient)(nil).GetAccount), ctx, walletID, accountGuid)
+}
+
 // GetWidget mocks base method.
 func (m *MockClient) GetWidget(ctx context.Context, walletID string) (string, error) {
 	m.ctrl.T.Helper()

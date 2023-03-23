@@ -124,3 +124,18 @@ func (mr *MockClientMockRecorder) ListUsersByID(ctx, id interface{}) *gomock.Cal
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsersByID", reflect.TypeOf((*MockClient)(nil).ListUsersByID), ctx, id)
 }
+
+// ReadUsersAccount mocks base method.
+func (m *MockClient) ReadUsersAccount(ctx context.Context, userGuid, accountGuid string) (*external.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadUsersAccount", ctx, userGuid, accountGuid)
+	ret0, _ := ret[0].(*external.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadUsersAccount indicates an expected call of ReadUsersAccount.
+func (mr *MockClientMockRecorder) ReadUsersAccount(ctx, userGuid, accountGuid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadUsersAccount", reflect.TypeOf((*MockClient)(nil).ReadUsersAccount), ctx, userGuid, accountGuid)
+}
