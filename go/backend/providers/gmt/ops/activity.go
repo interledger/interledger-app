@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
-
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
@@ -27,7 +26,7 @@ type Credentials struct {
 
 type Activity struct {
 	b     Backends
-	ext   external.Service
+	ext   external.Client
 	creds Credentials
 }
 
@@ -39,7 +38,7 @@ func NewActivity(b Backends) *Activity {
 	}
 	a := &Activity{
 		b:   b,
-		ext: external.New(),
+		ext: external.NewClient(),
 		creds: Credentials{
 			Alias:    getEnvDefault("GMT_ALIAS", "FYN001"),
 			User:     getEnvDefault("GMT_USER", "Fynbos_api"),
@@ -66,7 +65,7 @@ func (a *Activity) CheckWalletOFAC(ctx context.Context, walletID string) error {
 		return err
 	}
 
-	res, err := a.ext.OfacVerificationContext(ctx, &external.OfacVerification{
+	res, err := a.ext.OfacVerification(ctx, external.OfacVerification{
 		Alias:     a.creds.Alias,
 		User:      a.creds.User,
 		Pass:      a.creds.Password,
@@ -77,8 +76,8 @@ func (a *Activity) CheckWalletOFAC(ctx context.Context, walletID string) error {
 		return err
 	}
 
-	if res.OfacVerificationResult.Error != 0 {
-		return fmt.Errorf("error code (%d) Message (%s)", res.OfacVerificationResult.Error, res.OfacVerificationResult.Message)
+	if res.Error != 0 {
+		return fmt.Errorf("error code (%d) Message (%s)", res.Error, res.Message)
 	}
 
 	return nil
@@ -107,7 +106,7 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 		return nil, err
 	}
 
-	res, err := a.ext.ComplianceCheckContext(ctx, &external.ComplianceCheck{
+	res, err := a.ext.ComplianceCheck(ctx, external.ComplianceCheck{
 		Alias:    a.creds.Alias,
 		User:     a.creds.User,
 		Pass:     a.creds.Password,
@@ -117,7 +116,7 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 			AgenciaCodigo:          "",
 			AgencySpecialDiscounts: "",
 			AmountToReceive:        1.0,
-			CorrespondentCode:      "", // TODO Get from GMT
+			CorrespondentCode:      "GACH", // TODO Get from GMT
 			DestinationCurrency:    "USD",
 			ExchangeRate:           1,
 			Fee:                    0,
@@ -135,7 +134,6 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 			SenderID:               sender.SenderId,
 			ServicioCodigo:         "DCASH", // TODO from type of transaction.. WTF
 			SucursalBanco:          "",      // Bank branch or routing number
-			ThirdPartyReceipt:      "FYN",   // TODO
 
 		},
 	})
@@ -143,14 +141,14 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 		return nil, err
 	}
 
-	if res.ComplianceCheckResult.Error != 0 {
-		return nil, fmt.Errorf("error code (%d) message (%s)", res.ComplianceCheckResult.Error, res.ComplianceCheckResult.Message)
+	if res.Error != 0 {
+		return nil, fmt.Errorf("error code (%d) message (%s)", res.Error, res.Message)
 	}
 
 	return &ComplianceResp{
-		SenderID:         int64(res.ComplianceCheckResult.SenderID),
+		SenderID:         int64(res.SenderID),
 		SenderWalletID:   walletID,
-		ReceiverID:       int64(res.ComplianceCheckResult.ReceiverID),
+		ReceiverID:       int64(res.ReceiverID),
 		ReceiverWalletID: walletID,
 	}, nil
 }
@@ -175,7 +173,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 
 	// TODO: fill in receiver ACH details
 
-	res, err := a.ext.ComplianceCheckContext(ctx, &external.ComplianceCheck{
+	res, err := a.ext.ComplianceCheck(ctx, external.ComplianceCheck{
 		Alias:    a.creds.Alias,
 		User:     a.creds.User,
 		Pass:     a.creds.Password,
@@ -185,7 +183,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 			AgenciaCodigo:          "",
 			AgencySpecialDiscounts: "",
 			AmountToReceive:        args.Amount.Float64(),
-			CorrespondentCode:      "", // TODO Get from GMT
+			CorrespondentCode:      "GACH",
 			DestinationCurrency:    args.Amount.Currency.String(),
 			ExchangeRate:           1,
 			Fee:                    0,
@@ -210,14 +208,14 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 		return nil, err
 	}
 
-	if res.ComplianceCheckResult.Error != 0 {
-		return nil, fmt.Errorf("error code (%d) message (%s)", res.ComplianceCheckResult.Error, res.ComplianceCheckResult.Message)
+	if res.Error != 0 {
+		return nil, fmt.Errorf("error code (%d) message (%s)", res.Error, res.Message)
 	}
 
 	return &ComplianceResp{
-		SenderID:         int64(res.ComplianceCheckResult.SenderID),
+		SenderID:         int64(res.SenderID),
 		SenderWalletID:   args.FromWalletID,
-		ReceiverID:       int64(res.ComplianceCheckResult.ReceiverID),
+		ReceiverID:       int64(res.ReceiverID),
 		ReceiverWalletID: args.ToWalletID,
 	}, nil
 }
@@ -249,30 +247,20 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 	}
 
 	return &external.WsReceiver{
-		ReceiverAchAccount:          "",
-		ReceiverAchRouting:          "",
-		ReceiverAchType:             "",
-		ReceiverAddress:             recvID.Address.FormattedAddress,
-		ReceiverAverageMonth:        0,
-		ReceiverBirthDate:           external.GMTDate(recvID.DateOfBirth),
-		ReceiverCity:                recvID.Address.City,
-		ReceiverCompany:             "",
-		ReceiverCountry:             recvID.Address.CountryCode,
-		ReceiverCountryNationallity: "",
-		ReceiverCurrency:            "USD",
-		ReceiverDocExpiration:       external.GMTDate{},
-		ReceiverEmail:               "",
-		ReceiverFileImg:             "",
-		ReceiverFileImg2:            "",
-		ReceiverGender:              gender,
-		ReceiverId:                  int32(rid),
-		ReceiverLastName:            recvID.LastName,
-		ReceiverMobile:              recvUsers[0].PhoneNumber,
-		ReceiverMoneyOrigin:         "",
-		ReceiverName:                recvID.FirstName,
-		ReceiverState:               recvID.Address.State,
-		ReceiverZip:                 recvID.Address.ZipCode,
-		SenderID:                    int32(sid),
+		ReceiverAddress:   recvID.Address.FormattedAddress,
+		ReceiverBirthDate: external.GMTDate(recvID.DateOfBirth),
+		ReceiverCity:      recvID.Address.City,
+		ReceiverCountry:   recvID.Address.CountryCode,
+		ReceiverCurrency:  "USD",
+		ReceiverEmail:     recvUsers[0].Email,
+		ReceiverGender:    gender,
+		ReceiverId:        int32(rid),
+		ReceiverLastName:  recvID.LastName,
+		ReceiverMobile:    recvUsers[0].PhoneNumber,
+		ReceiverName:      recvID.FirstName,
+		ReceiverState:     recvID.Address.State,
+		ReceiverZip:       recvID.Address.ZipCode,
+		SenderID:          int32(sid),
 	}, nil
 }
 
@@ -297,24 +285,11 @@ func senderFromWallet(ctx context.Context, b Backends, walletID string) (*extern
 		gender = "Female"
 	}
 	return &external.WsSender{
-		Debit:                       false,
-		RepresentativeID:            "",
-		SenderAchAccount:            "",
-		SenderAchRouting:            "",
-		SenderAchType:               "",
 		SenderAddress:               senderID.Address.FormattedAddress,
 		SenderAddressStreet:         senderID.Address.Apartment,
-		SenderBank:                  "",
 		SenderBirthDate:             external.GMTDate(senderID.DateOfBirth),
-		SenderCardBank:              "",
-		SenderCardExpiration:        external.GMTDate{},
-		SenderCardName:              "",
-		SenderCardNumber:            "",
-		SenderCardType:              0,
 		SenderCity:                  senderID.Address.City,
 		SenderCountryCode:           senderID.Address.CountryCode,
-		SenderCountryNationallity:   "",
-		SenderCountryResidence:      "",
 		SenderCurrencyCode:          "USD",
 		SenderEmail:                 senderUsers[0].Email,
 		SenderForceNew:              false,
@@ -324,7 +299,6 @@ func senderFromWallet(ctx context.Context, b Backends, walletID string) (*extern
 		SenderIsBusiness:            false,
 		SenderLastName:              senderID.LastName,
 		SenderMobile:                senderUsers[0].PhoneNumber,
-		SenderMonthAverage:          0,
 		SenderName:                  senderID.FirstName,
 		SenderResidenceAddress:      senderID.Address.String(),
 		SenderResidenceAddressExtra: senderID.Address.Apartment,
@@ -332,9 +306,7 @@ func senderFromWallet(ctx context.Context, b Backends, walletID string) (*extern
 		SenderResidenceCountryCode:  senderID.Address.CountryCode,
 		SenderResidenceState:        senderID.Address.State,
 		SenderResidenceZip:          senderID.Address.ZipCode,
-		SenderSendingReason:         "",
 		SenderState:                 senderID.Address.State,
-		SenderTrackingNumber:        "",
 		SenderZip:                   senderID.Address.ZipCode,
 	}, nil
 }
@@ -420,7 +392,7 @@ func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*Tran
 
 	// TODO: fill in receiver ACH details
 
-	res, err := a.ext.InsertTransactionContext(ctx, &external.InsertTransaction{
+	res, err := a.ext.InsertTransaction(ctx, external.InsertTransaction{
 		Alias:    a.creds.Alias,
 		User:     a.creds.User,
 		Pass:     a.creds.Password,
@@ -430,7 +402,7 @@ func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*Tran
 			AgenciaCodigo:          "",
 			AgencySpecialDiscounts: "",
 			AmountToReceive:        args.Amount.Float64(),
-			CorrespondentCode:      "", // TODO Get from GMT
+			CorrespondentCode:      "GACH",
 			DestinationCurrency:    args.Amount.Currency.String(),
 			ExchangeRate:           1,
 			Fee:                    0,
@@ -455,18 +427,18 @@ func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*Tran
 		return nil, err
 	}
 
-	if res.InsertTransactionResult.Error != 0 {
-		return nil, fmt.Errorf("error code (%d) message (%s)", res.InsertTransactionResult.Error, res.InsertTransactionResult.Message)
+	if res.Error != 0 {
+		return nil, fmt.Errorf("error code (%d) message (%s)", res.Error, res.Message)
 	}
 
 	return &TransactionResp{
-		ID:         res.InsertTransactionResult.Password,
-		ReceiptRef: res.InsertTransactionResult.Receipt,
-		Status:     res.InsertTransactionResult.Status,
-		Licence:    res.InsertTransactionResult.Receipt_License,
-		RTR:        res.InsertTransactionResult.Receipt_RTR_EN,
-		ErrorMsg:   res.InsertTransactionResult.Receipt_Error_EN,
-		Contact:    res.InsertTransactionResult.Status,
+		ID:         res.Password,
+		ReceiptRef: res.Receipt,
+		Status:     res.Status,
+		Licence:    res.Receipt_License,
+		RTR:        res.Receipt_RTR_EN,
+		ErrorMsg:   res.Receipt_Error_EN,
+		Contact:    res.Status,
 	}, nil
 }
 
@@ -477,7 +449,7 @@ func (a *Activity) SaveReceipt(ctx context.Context, tr TransactionResp) error {
 }
 
 func (a *Activity) VerifyTransaction(ctx context.Context, id string) error {
-	res, err := a.ext.SetVerifiedContext(ctx, &external.SetVerified{
+	res, err := a.ext.SetVerified(ctx, external.SetVerified{
 		Alias:   a.creds.Alias,
 		User:    a.creds.User,
 		Pass:    a.creds.Password,
@@ -488,8 +460,8 @@ func (a *Activity) VerifyTransaction(ctx context.Context, id string) error {
 		return err
 	}
 
-	if !res.SetVerifiedResult.Valid {
-		return fmt.Errorf("error code (%d) message (%s)", res.SetVerifiedResult.Error, res.SetVerifiedResult.Message)
+	if !res.Valid {
+		return fmt.Errorf("error code (%d) message (%s)", res.Error, res.Message)
 	}
 
 	return nil
@@ -533,5 +505,24 @@ func (a *Activity) CompleteWorkflowRef(ctx context.Context, refID string) error 
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (a *Activity) ConfirmNotification(ctx context.Context, externalID string) error {
+	resp, err := a.ext.ConfirmCollection(ctx, external.ConfirmCollection{
+		Alias:   a.creds.Alias,
+		User:    a.creds.User,
+		Pass:    a.creds.Password,
+		Receipt: externalID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if resp.Error != 0 {
+		return fmt.Errorf("error code (%d) Message (%s)", resp.Error, resp.Message)
+	}
+
 	return nil
 }

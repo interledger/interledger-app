@@ -73,7 +73,7 @@ func (a *Activity) PollNotifications(ctx context.Context) error {
 		refMap[ref.ExternalID] = ref
 	}
 
-	nr, err := a.ext.GetNotificationsContext(ctx, &external.GetNotifications{
+	nr, err := a.ext.GetNotifications(ctx, external.GetNotifications{
 		Alias: a.creds.Alias,
 		User:  a.creds.User,
 		Pass:  a.creds.Password,
@@ -82,7 +82,7 @@ func (a *Activity) PollNotifications(ctx context.Context) error {
 		return err
 	}
 
-	for _, n := range nr.GetNotificationsResult.WsNotifications {
+	for _, n := range nr {
 		ref, ok := refMap[n.Password]
 		if !ok {
 			logger.Error("notification received with no waiting workflow", "id", n.Password, "status", n.Status)

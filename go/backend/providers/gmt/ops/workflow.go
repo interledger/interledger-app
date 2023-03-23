@@ -201,6 +201,12 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 		return nil, err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.ConfirmNotification, tr.ID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to clear notification", "error", err, "ext ID", tr.ID)
+		return nil, err
+	}
+
 	return &gmt.TransferResponse{
 		State:      state,
 		ExternalID: tr.ID,
