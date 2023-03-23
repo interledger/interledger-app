@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
 	"net"
 	"net/http"
 	"os"
@@ -53,6 +54,8 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
+	vgs_client "gitlab.com/fynbos/backend/providers/verygoodsecurity/client"
+	vgs_webhook "gitlab.com/fynbos/backend/providers/verygoodsecurity/webhook"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/statements"
@@ -173,6 +176,8 @@ func start(args *cli.StartArgs) {
 
 	b.waitlist = waitlist_client.New(b, logger)
 
+	b.verygoodsecurity = vgs_client.New(b)
+
 	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
@@ -188,6 +193,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
+
+	router.Handle("/webhooks/verygoodsecurity/card", vgs_webhook.NewHandleInboundCard(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
@@ -429,28 +436,29 @@ type backends struct {
 	val *validator.Validate
 	db  *sqlx.DB
 
-	adminAuth      auth.Service
-	agreements     agreements.Client
-	countries      country.Client
-	linkedaccounts linkedaccounts.Client
-	healthcheck    healthcheck.Service
-	signup         signup.Client
-	supportTickets supporttickets.Client
-	temporal       client.Client
-	twilio         _twilio.Service
-	users          user.Client
-	waitlist       waitlist.Client
-	kyc            kyc.Client
-	email          email.Client
-	openpayments   openpayments.Client
-	transactions   transactions.Client
-	notify         notify.Client
-	statements     statements.Client
-	auth           authorisation.InternalClient
-	analytics      analytics.Client
-	contacts       contacts.Client
-	limits         limits.Client
-	ident          identities.Client
+	adminAuth        auth.Service
+	agreements       agreements.Client
+	countries        country.Client
+	linkedaccounts   linkedaccounts.Client
+	verygoodsecurity verygoodsecurity.Client
+	healthcheck      healthcheck.Service
+	signup           signup.Client
+	supportTickets   supporttickets.Client
+	temporal         client.Client
+	twilio           _twilio.Service
+	users            user.Client
+	waitlist         waitlist.Client
+	kyc              kyc.Client
+	email            email.Client
+	openpayments     openpayments.Client
+	transactions     transactions.Client
+	notify           notify.Client
+	statements       statements.Client
+	auth             authorisation.InternalClient
+	analytics        analytics.Client
+	contacts         contacts.Client
+	limits           limits.Client
+	ident            identities.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -515,6 +523,10 @@ func (b backends) Twilio() _twilio.Service {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
+}
+
+func (b backends) VGS() verygoodsecurity.Client {
+	return b.verygoodsecurity
 }
 
 func (b backends) Email() email.Client {
