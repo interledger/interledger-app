@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
 	"net"
 	"net/http"
 	"os"
@@ -58,6 +57,7 @@ import (
 	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
+	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
 	vgs_client "gitlab.com/fynbos/backend/providers/verygoodsecurity/client"
 	vgs_webhook "gitlab.com/fynbos/backend/providers/verygoodsecurity/webhook"
 	"gitlab.com/fynbos/backend/signup"
@@ -448,31 +448,31 @@ type backends struct {
 	val *validator.Validate
 	db  *sqlx.DB
 
-	adminAuth      auth.Service
-	agreements     agreements.Client
-	countries      country.Client
+	adminAuth        auth.Service
+	agreements       agreements.Client
+	countries        country.Client
 	verygoodsecurity verygoodsecurity.Client
-	linkedaccounts linkedaccounts.Client
-	healthcheck    healthcheck.Service
-	signup         signup.Client
-	supportTickets supporttickets.Client
-	temporal       client.Client
-	twilio         _twilio.Service
-	users          user.Client
-	waitlist       waitlist.Client
-	kyc            kyc.Client
-	email          email.Client
-	openpayments   openpayments.Client
-	transactions   transactions.Client
-	notify         notify.Client
-	statements     statements.Client
-	auth           authorisation.InternalClient
-	analytics      analytics.Client
-	contacts       contacts.Client
-	limits         limits.Client
-	ident          identities.Client
-	mx             mx.Client
-	gmt            gmt.Client
+	linkedaccounts   linkedaccounts.Client
+	healthcheck      healthcheck.Service
+	signup           signup.Client
+	supportTickets   supporttickets.Client
+	temporal         client.Client
+	twilio           _twilio.Service
+	users            user.Client
+	waitlist         waitlist.Client
+	kyc              kyc.Client
+	email            email.Client
+	openpayments     openpayments.Client
+	transactions     transactions.Client
+	notify           notify.Client
+	statements       statements.Client
+	auth             authorisation.InternalClient
+	analytics        analytics.Client
+	contacts         contacts.Client
+	limits           limits.Client
+	ident            identities.Client
+	mx               mx.Client
+	gmt              gmt.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
