@@ -383,9 +383,22 @@ func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*Tran
 		return nil, err
 	}
 
+	fromAcc, err := a.b.MX().GetAccount(ctx, args.FromWalletID, fromLA.ProviderID)
+	if err != nil {
+		return nil, err
+	}
+
+	sender.SenderAchAccount = fromAcc.AccountNumber
+	sender.SenderAchType = fromAcc.Type
+
 	// TODO: fill in sender ACH details
 
 	receiver, err := receiverFromWallet(ctx, a.b, toLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	toAcc, err := a.b.MX().GetAccount(ctx, args.ToWalletID, toLA.ProviderID)
 	if err != nil {
 		return nil, err
 	}
