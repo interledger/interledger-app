@@ -1,6 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { RouteMatch, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   AnchorRouter,
@@ -8,8 +8,7 @@ import {
   Icon,
   Layouts,
   Router,
-  Snackbar,
-  WalletGrid
+  Snackbar
 } from '~/components'
 import {
   getPublicWalletDetails,
@@ -32,7 +31,8 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  layout: Layouts.WalletLayout
+  title: 'Public information',
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {
@@ -40,12 +40,9 @@ export default function Page() {
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   return (
-    <WalletGrid>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-2xl font-medium'>
-          Public information
-        </h1>
-        <p className='mt-4'>
+    <>
+      <Card>
+        <p>
           The information below will appear on your{' '}
           <AnchorRouter className='text-primary' to={paymentPointer.url}>
             public payment pointer
@@ -74,6 +71,6 @@ export default function Page() {
         offset
         onClose={() => setSnackbar(false)}
       />
-    </WalletGrid>
+    </>
   )
 }

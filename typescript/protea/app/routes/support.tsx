@@ -5,7 +5,6 @@ import {
   AnchorRouter,
   Button,
   Card,
-  HomeShapes,
   Icon,
   Layouts,
   TextArea,
@@ -26,6 +25,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Support',
   layout: Layouts.WalletLayout
 }
 
@@ -41,13 +41,7 @@ export default function Page() {
   return (
     <WalletGrid>
       <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='mt-2'>
-          <HomeShapes />
-        </div>
-        <span className='mt-6 font-display text-2xl font-medium'>
-          Contact us
-        </span>
-        <span className='mt-6 text-medium'>
+        <span className='text-medium'>
           Get in touch and let us know how we can help.
         </span>
         <Form

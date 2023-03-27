@@ -2,7 +2,7 @@ import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
+import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/index'
 import { useState } from 'react'
@@ -28,7 +28,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  layout: Layouts.WalletLayout
+  layout: Layouts.FocusLayout
 }
 
 export const meta: MetaFunction = () => {
@@ -44,8 +44,8 @@ export default function Page() {
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   return (
-    <WalletGrid>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+    <>
+      <Card>
         <h1 className='font-display text-2xl font-medium'>Linked accounts</h1>
         {linkedAccounts.length == 0 && (
           <p className='mt-6'>You do not have any linked accounts.</p>
@@ -155,6 +155,6 @@ export default function Page() {
         offset
         onClose={() => setSnackbar(false)}
       />
-    </WalletGrid>
+    </>
   )
 }

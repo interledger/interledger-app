@@ -22,6 +22,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Log out',
   layout: Layouts.FocusLayout
 }
 
@@ -35,22 +36,21 @@ export default function Page() {
   const { logoutToken } = useLoaderData<typeof loader>()
 
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>Log out</h1>
-      <span>Are you sure you want to log out?</span>
-
+    <>
       <Form id='logout' action='/logout' method='post' className='hidden' />
-      <div className='mt-6'>
-        <Button
-          type='submit'
-          form='logout'
-          name='logoutToken'
-          value={logoutToken}
-        >
-          Log out
-        </Button>
-      </div>
-    </Card>
+      <Card>
+        <span>Are you sure you want to log out?</span>
+      </Card>
+      <Button
+        className='mt-6'
+        type='submit'
+        form='logout'
+        name='logoutToken'
+        value={logoutToken}
+      >
+        Log out
+      </Button>
+    </>
   )
 }
 

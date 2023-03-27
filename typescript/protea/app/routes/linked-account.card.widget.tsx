@@ -1,5 +1,5 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, LinksFunction } from '@remix-run/node'
+import type { LoaderArgs, MetaFunction, LinksFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 
@@ -8,12 +8,12 @@ import { Button, Card, Layouts, Shape } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { getLinkedAccounts, getWalletId } from '~/lib/wallet.server'
 import { loadVGSCollect } from '@vgs/collect-js'
-import {
+import type {
   ICollectFormPayloadStructure,
-  VGSCollectForm,
   VGSCollectFormState,
   VGSCollectVaultEnvironment
 } from '@vgs/collect-js-react'
+import { VGSCollectForm } from '@vgs/collect-js-react'
 
 export async function loader({ request, params }: LoaderArgs) {
   const linkedAccounts = await getLinkedAccounts(request)

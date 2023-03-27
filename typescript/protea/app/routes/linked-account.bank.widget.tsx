@@ -1,11 +1,10 @@
 import * as widgetSdk from '@mxenabled/web-widget-sdk'
-import type { ActionArgs, LoaderArgs} from '@remix-run/node';
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
+import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import { Layouts } from '~/components'
-import { getUserSession } from '~/lib/kratos.server'
 import {
   grpcClient,
   httpMapping,

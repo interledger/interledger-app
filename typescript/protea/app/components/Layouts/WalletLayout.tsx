@@ -1,11 +1,20 @@
-import { Outlet } from '@remix-run/react'
+import { Outlet, useMatches } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { useState } from 'react'
-import { Icon, IconButton, Logo, Router } from '~/components'
+import {
+  Icon,
+  IconButton,
+  Logo,
+  Router,
+  WalletGrid,
+  WalletShapes
+} from '~/components'
 import { NavDrawer } from './NavDrawer'
 
 export function WalletLayout() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
+  const matches = useMatches()
+  const title = matches[matches.length - 1].handle?.title
   return (
     <div className='inset-0 flex min-h-screen flex-col lg:flex-row'>
       <div className='fixed top-0 hidden lg:flex'>
@@ -56,12 +65,19 @@ export function WalletLayout() {
           >
             menu
           </IconButton>
-          <Router to={route('/')} aria-label='Fynbos logo'>
-            <Logo className='h-8' />
-          </Router>
+          {title && <h1 className='font-medium text-xl'>{title}</h1>}
+          {!title && <Logo className='h-8' />}
         </header>
         <div className='mt-16 mb-32 lg:my-[5.5rem] lg:ml-64'>
           <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
+            {title && (
+              <WalletGrid>
+                <div className='hidden lg:flex pb-6 justify-between col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+                  <h1 className='text-2xl font-medium'>{title}</h1>
+                  <WalletShapes />
+                </div>
+              </WalletGrid>
+            )}
             <Outlet />
           </div>
         </div>

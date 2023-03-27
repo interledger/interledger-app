@@ -9,7 +9,6 @@ import {
 import {
   Button,
   Card,
-  HomeShapes,
   Layouts,
   Router,
   Snackbar,
@@ -67,6 +66,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Log in',
   layout: Layouts.FocusLayout
 }
 
@@ -95,11 +95,7 @@ export default function Page() {
 
   return (
     <Card>
-      <div className='mt-2'>
-        <HomeShapes />
-      </div>
-      <h1 className='mt-6 font-display text-2xl font-medium'>Log in</h1>
-      <p className='mt-6 text-medium'>
+      <p className='text-medium'>
         New to Fynbos?{' '}
         {isSignupGated && (
           <Router className='text-primary' to={route('/waitlist')}>

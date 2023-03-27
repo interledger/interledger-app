@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  RouteMatch,
+  useActionData,
+  useLoaderData
+} from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
@@ -23,6 +28,9 @@ import {
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export const handle = {
+  title: (match: RouteMatch) => {
+    return match.data.connection.applicationName
+  },
   layout: Layouts.FocusLayout
 }
 
