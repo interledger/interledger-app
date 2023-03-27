@@ -467,6 +467,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: CreateMXBankAccounts(backend.v1.CreateMXBankAccountsRequest) returns (backend.v1.CreateMXBankAccountsResponse);
      */
     createMXBankAccounts(input: CreateMXBankAccountsRequest, options?: RpcOptions): UnaryCall<CreateMXBankAccountsRequest, CreateMXBankAccountsResponse>;
+    /**
+     * GMT
+     *
+     * @generated from protobuf rpc: OnboardGMTUser(backend.v1.Empty) returns (backend.v1.Empty);
+     */
+    onboardGMTUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -847,5 +853,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     createMXBankAccounts(input: CreateMXBankAccountsRequest, options?: RpcOptions): UnaryCall<CreateMXBankAccountsRequest, CreateMXBankAccountsResponse> {
         const method = this.methods[48], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateMXBankAccountsRequest, CreateMXBankAccountsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * GMT
+     *
+     * @generated from protobuf rpc: OnboardGMTUser(backend.v1.Empty) returns (backend.v1.Empty);
+     */
+    onboardGMTUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
+        const method = this.methods[49], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
 }

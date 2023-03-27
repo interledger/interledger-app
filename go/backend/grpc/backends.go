@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -50,4 +51,5 @@ type Backends interface {
 	Contacts() contacts.Client
 	Identities() identities.Client
 	MX() mx.Client
+	GMT() gmt.Client
 }

@@ -54,6 +54,8 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
+	"gitlab.com/fynbos/backend/providers/gmt"
+	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	vgs_client "gitlab.com/fynbos/backend/providers/verygoodsecurity/client"
@@ -244,6 +246,8 @@ func start(args *cli.StartArgs) {
 
 	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
 
+	b.gmt = gmt_client.New(b)
+
 	server, err := _grpc.NewServer(b)
 	if err != nil {
 		log.Fatalln(err)
@@ -423,6 +427,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.contacts = contacts_client.New(b)
 
+	b.gmt = gmt_client.New(b)
+
 	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
 
 	log.Info("Worker creating")
@@ -442,30 +448,31 @@ type backends struct {
 	val *validator.Validate
 	db  *sqlx.DB
 
-	adminAuth        auth.Service
-	agreements       agreements.Client
-	countries        country.Client
-	linkedaccounts   linkedaccounts.Client
+	adminAuth      auth.Service
+	agreements     agreements.Client
+	countries      country.Client
 	verygoodsecurity verygoodsecurity.Client
-	healthcheck      healthcheck.Service
-	signup           signup.Client
-	supportTickets   supporttickets.Client
-	temporal         client.Client
-	twilio           _twilio.Service
-	users            user.Client
-	waitlist         waitlist.Client
-	kyc              kyc.Client
-	email            email.Client
-	openpayments     openpayments.Client
-	transactions     transactions.Client
-	notify           notify.Client
-	statements       statements.Client
-	auth             authorisation.InternalClient
-	analytics        analytics.Client
-	contacts         contacts.Client
-	limits           limits.Client
-	ident            identities.Client
-	mx               mx.Client
+	linkedaccounts linkedaccounts.Client
+	healthcheck    healthcheck.Service
+	signup         signup.Client
+	supportTickets supporttickets.Client
+	temporal       client.Client
+	twilio         _twilio.Service
+	users          user.Client
+	waitlist       waitlist.Client
+	kyc            kyc.Client
+	email          email.Client
+	openpayments   openpayments.Client
+	transactions   transactions.Client
+	notify         notify.Client
+	statements     statements.Client
+	auth           authorisation.InternalClient
+	analytics      analytics.Client
+	contacts       contacts.Client
+	limits         limits.Client
+	ident          identities.Client
+	mx             mx.Client
+	gmt            gmt.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -570,4 +577,8 @@ func (b backends) Identities() identities.Client {
 
 func (b backends) MX() mx.Client {
 	return b.mx
+}
+
+func (b backends) GMT() gmt.Client {
+	return b.gmt
 }

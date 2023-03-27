@@ -171,7 +171,6 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		return "", nil
 	}
 
-	// TODO: Temp external ID
 	// Update Outgoing payment
 	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp.ExternalID).Get(ctx, nil)
 	if err != nil {
