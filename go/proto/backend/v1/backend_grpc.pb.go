@@ -565,6 +565,8 @@ type BackendServiceClient interface {
 	// MX
 	GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error)
 	CreateMXBankAccounts(ctx context.Context, in *CreateMXBankAccountsRequest, opts ...grpc.CallOption) (*CreateMXBankAccountsResponse, error)
+	// GMT
+	OnboardGMTUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1016,6 +1018,15 @@ func (c *backendServiceClient) CreateMXBankAccounts(ctx context.Context, in *Cre
 	return out, nil
 }
 
+func (c *backendServiceClient) OnboardGMTUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/OnboardGMTUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1083,6 +1094,8 @@ type BackendServiceServer interface {
 	// MX
 	GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error)
 	CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error)
+	// GMT
+	OnboardGMTUser(context.Context, *Empty) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1235,6 +1248,9 @@ func (UnimplementedBackendServiceServer) GetMXWidget(context.Context, *Empty) (*
 }
 func (UnimplementedBackendServiceServer) CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateMXBankAccounts not implemented")
+}
+func (UnimplementedBackendServiceServer) OnboardGMTUser(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnboardGMTUser not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2130,6 +2146,24 @@ func _BackendService_CreateMXBankAccounts_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_OnboardGMTUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).OnboardGMTUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/OnboardGMTUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).OnboardGMTUser(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2332,6 +2366,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateMXBankAccounts",
 			Handler:    _BackendService_CreateMXBankAccounts_Handler,
+		},
+		{
+			MethodName: "OnboardGMTUser",
+			Handler:    _BackendService_OnboardGMTUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

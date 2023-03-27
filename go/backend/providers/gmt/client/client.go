@@ -15,6 +15,10 @@ type client struct {
 	b ops.Backends
 }
 
+func New(b ops.Backends) gmt.Client {
+	return &client{b: b}
+}
+
 func (c client) StartUserOnboarding(ctx context.Context, walletID string) (gmt.Await, error) {
 	workflowOptions := temporal.StartWorkflowOptions{
 		ID:                    "gmt_onboard_user_" + walletID,
@@ -27,8 +31,5 @@ func (c client) StartUserOnboarding(ctx context.Context, walletID string) (gmt.A
 		return nil, err
 	}
 
-	return func(ctx context.Context, out interface{}) error {
-		// Wait for the Workflow to complete.
-		return wf.Get(ctx, &out)
-	}, nil
+	return wf.Get, nil
 }

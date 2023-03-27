@@ -251,6 +251,9 @@ service BackendService {
   // MX
   rpc GetMXWidget(Empty) returns (MXWidgetResponse);
   rpc CreateMXBankAccounts(CreateMXBankAccountsRequest) returns (CreateMXBankAccountsResponse);
+
+  // GMT
+  rpc OnboardGMTUser(Empty) returns (Empty);
 }
 
 message CreateMXBankAccountsRequest {

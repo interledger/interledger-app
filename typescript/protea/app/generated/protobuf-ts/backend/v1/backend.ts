@@ -7231,5 +7231,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "StartKYC", options: {}, I: Empty, O: Empty },
     { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse },
-    { name: "CreateMXBankAccounts", options: {}, I: CreateMXBankAccountsRequest, O: CreateMXBankAccountsResponse }
+    { name: "CreateMXBankAccounts", options: {}, I: CreateMXBankAccountsRequest, O: CreateMXBankAccountsResponse },
+    { name: "OnboardGMTUser", options: {}, I: Empty, O: Empty }
 ]);
