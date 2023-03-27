@@ -7,6 +7,7 @@ import (
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
@@ -21,11 +22,16 @@ type Backends interface {
 	Transactions() transactions.Client
 	Validator() *validator.Validate
 	Analytics() analytics.Client
+	MX() mx.Client
 }
 
 type testBackends struct {
 	db *sqlx.DB
 	ac analytics.Client
+}
+
+func (t testBackends) MX() mx.Client {
+	return nil
 }
 
 func (t testBackends) Analytics() analytics.Client {
