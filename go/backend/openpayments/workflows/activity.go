@@ -113,7 +113,6 @@ func (a *Activity) GetGMTProviderArgs(ctx context.Context, outgoingID string) (*
 		FromWalletID:        sendAcc.WalletID,
 		ToWalletID:          recvAcc.WalletID,
 		Amount:              op.SendAmount,
-		FromTransactionID:   "TODO",
 	}, nil
 }
 

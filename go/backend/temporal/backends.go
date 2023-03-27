@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
@@ -28,4 +29,5 @@ type Backends interface {
 	Statements() statements.Client
 	Analytics() analytics.Client
 	Contacts() contacts.Client
+	MX() mx.Client
 }

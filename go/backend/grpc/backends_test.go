@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/gmt"
+
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
 	"gitlab.com/fynbos/backend/identities"
@@ -81,6 +83,10 @@ type TestContainer struct {
 	authorisation      *auth_mock.MockInternalClient
 	limits             *limit_mock.MockClient
 	mx                 *mx_mock.MockClient
+}
+
+func (t TestContainer) GMT() gmt.Client {
+	return nil
 }
 
 func (t TestContainer) Identities() identities.Client {
