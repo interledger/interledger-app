@@ -7,13 +7,19 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+
+	"gitlab.com/fynbos/env"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type client struct {
-	cl  http.Client
-	url string
+	cl       http.Client
+	url      string
+	alias    string
+	user     string
+	password string
 }
 
 type Client interface {
@@ -22,11 +28,35 @@ type Client interface {
 	ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsResponse, error)
 	SetVerified(ctx context.Context, req SetVerified) (*WsResult, error)
 	ConfirmCollection(ctx context.Context, req ConfirmCollection) (*WsResponse, error)
-	GetNotifications(ctx context.Context, req GetNotifications) ([]*WsNotifications, error)
+	GetNotifications(ctx context.Context) ([]*WsNotifications, error)
 }
 
 func NewClient() Client {
-	return &client{url: "http://35.166.119.115/gmtpay/Service1.svc", cl: http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}}
+
+	var alias, user, pass, url string
+	if !env.IsProd() {
+		alias = "FYN001"
+		user = "Fynbos_api"
+		pass = "VUJ6bnkxN2dQVXkwMjZaOA=="
+		url = "http://35.166.119.115/gmtpay/Service1.svc"
+	}
+
+	return &client{
+		cl:       http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
+		url:      getEnvDefault("GMT_URL", url),
+		alias:    getEnvDefault("GMT_ALIAS", alias),
+		user:     getEnvDefault("GMT_USER", user),
+		password: getEnvDefault("GMT_PASSWORD", pass),
+	}
+}
+
+func getEnvDefault(key, fallback string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return fallback
+	}
+
+	return val
 }
 
 func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*WsResponse, error) {
@@ -35,6 +65,11 @@ func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*
 		Resp InsertTransactionResponse `xml:"InsertTransactionResponse"`
 	}
 	response := txBody{}
+
+	tx.Alias = c.alias
+	tx.User = c.user
+	tx.Pass = c.password
+
 	err := c.call(ctx, "http://tempuri.org/IService1/InsertTransaction", tx, response)
 	if err != nil {
 		return nil, err
@@ -49,6 +84,11 @@ func (c *client) ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsR
 		Resp ComplianceCheckResponse `xml:"ComplianceCheckResponse"`
 	}
 	response := cmpBody{}
+
+	req.Alias = c.alias
+	req.User = c.user
+	req.Pass = c.password
+
 	err := c.call(ctx, "http://tempuri.org/IService1/ComplianceCheck", req, response)
 	if err != nil {
 		return nil, err
@@ -63,6 +103,11 @@ func (c *client) OfacVerification(ctx context.Context, req OfacVerification) (*W
 		Resp OfacVerificationResponse `xml:"OfacVerificationResponse"`
 	}
 	response := ofacBody{}
+
+	req.Alias = c.alias
+	req.User = c.user
+	req.Pass = c.password
+
 	err := c.call(ctx, "http://tempuri.org/IService1/OfacVerification", req, &response)
 	if err != nil {
 		return nil, err
@@ -77,6 +122,11 @@ func (c *client) SetVerified(ctx context.Context, req SetVerified) (*WsResult, e
 		Resp SetVerifiedResponse `xml:"SetVerifiedResponse"`
 	}
 	response := verBody{}
+
+	req.Alias = c.alias
+	req.User = c.user
+	req.Pass = c.password
+
 	err := c.call(ctx, "http://tempuri.org/IService1/SetVerified", req, response)
 	if err != nil {
 		return nil, err
@@ -91,6 +141,11 @@ func (c *client) ConfirmCollection(ctx context.Context, req ConfirmCollection) (
 		Resp ConfirmCollectionResponse `xml:"ConfirmCollectionResponse"`
 	}
 	response := cnfrmBody{}
+
+	req.Alias = c.alias
+	req.User = c.user
+	req.Pass = c.password
+
 	err := c.call(ctx, "http://tempuri.org/IService1/ConfirmCollection", req, response)
 	if err != nil {
 		return nil, err
@@ -99,12 +154,18 @@ func (c *client) ConfirmCollection(ctx context.Context, req ConfirmCollection) (
 	return response.Resp.ConfirmCollectionResult, err
 }
 
-func (c *client) GetNotifications(ctx context.Context, req GetNotifications) ([]*WsNotifications, error) {
+func (c *client) GetNotifications(ctx context.Context) ([]*WsNotifications, error) {
 	type ntfBody struct {
 		Text string                   `xml:",chardata"`
 		Resp GetNotificationsResponse `xml:"GetNotificationsResponse"`
 	}
 	response := ntfBody{}
+	req := GetNotifications{
+		Alias: c.alias,
+		User:  c.user,
+		Pass:  c.password,
+	}
+
 	err := c.call(ctx, "http://tempuri.org/IService1/GetNotifications", req, response)
 	if err != nil {
 		return nil, err

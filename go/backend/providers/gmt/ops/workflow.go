@@ -108,11 +108,17 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 		return nil, err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, tr).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to save gmt transaction receipt", "err", err)
+		return nil, err
+	}
+
 	// Insert/update transfers
 	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, args.FromTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: args.FromLinkedAccountID,
-			Type:            transactions.TransferTypeCreditBankAccount,
+			Type:            transactions.TransferTypeDebitBankAccount,
 			Amount:          args.Amount,
 			State:           transactions.StatePending,
 			ForeignID:       tr.ID,
@@ -161,12 +167,6 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 				ExternalID: tr.ID,
 			}, nil
 		}
-		return nil, err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, tr).Get(ctx, nil)
-	if err != nil {
-		logger.Error("failed to save gmt transaction receipt", "err", err)
 		return nil, err
 	}
 
@@ -220,7 +220,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 		return nil, err
 	}
 
-	// update send and receive transaction state.
+	// update send and receive transfer state.
 	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, args.FromTransactionID, args.FromWalletID, transactions.TransferTypeDebitBankAccount, state).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update transaction state", "error", err, "state", state)
