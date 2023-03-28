@@ -472,18 +472,18 @@ function AppPage() {
           Welcome {firstName}
         </h1>
         {kycStatus != KycStatus.Verified && (
-          <p className='mt-4 text-center'>
+          <p className='mt-4 mb-2 text-center'>
             Thank you for signing up to Fynbos.
           </p>
         )}
         {kycStatus == KycStatus.Verified && !canTopUp && (
-          <p className='mt-4 text-center'>
+          <p className='mt-4 mb-2 text-center'>
             Your payment pointer is activated. You are now able to send and
             receive payments.
           </p>
         )}
         {kycStatus == KycStatus.Verified && canTopUp && (
-          <p className='mt-4 text-center'>
+          <p className='mt-4 mb-2 text-center'>
             Send and receive payments with your payment pointer.
           </p>
         )}

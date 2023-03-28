@@ -14,6 +14,7 @@ import {
 import { flashSnackbar } from '~/lib/snackbar.server'
 
 export const handle = {
+  title: 'Add a public key',
   layout: Layouts.FocusLayout
 }
 
@@ -36,8 +37,7 @@ export default function Page() {
       />
 
       <Card>
-        <h1 className='font-display text-2xl font-medium'>Add a public key</h1>
-        <p className='mt-6 text-medium'>
+        <p className='text-medium'>
           Add the public key of the external application that is connecting to
           your wallet.
         </p>

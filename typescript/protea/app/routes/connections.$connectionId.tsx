@@ -11,6 +11,7 @@ import { route } from 'routes-gen'
 import {
   Button,
   Card,
+  FocusGrid,
   Layouts,
   OutlineButton,
   Snackbar,
@@ -62,7 +63,7 @@ export default function Page() {
   }, [snackbar])
 
   return (
-    <>
+    <FocusGrid>
       <Form
         id='update-key-limit'
         action={`/connections/${connection.id}`}
@@ -89,10 +90,7 @@ export default function Page() {
       />
 
       <Card>
-        <h1 className='font-display text-2xl font-medium'>
-          {connection.applicationName}
-        </h1>
-        <code className='mt-6 flex items-center justify-between rounded-xl bg-container p-2 font-mono text-medium break-all'>
+        <code className='flex items-center justify-between rounded-xl bg-container p-2 font-mono text-medium break-all'>
           {connection.publicKeyFingerprint}
         </code>
 
@@ -101,7 +99,7 @@ export default function Page() {
         {/*<p className='mt-1 text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>*/}
       </Card>
 
-      <Card className='mt-6'>
+      <Card>
         <h1 className='font-display text-2xl font-medium'>Limits</h1>
         <p className='mt-6'>
           Providing access to your Fynbos wallet allows the external application
@@ -188,7 +186,7 @@ export default function Page() {
         dismissAfter={3000}
         onClose={() => setShowSnackbar(false)}
       />
-    </>
+    </FocusGrid>
   )
 }
 

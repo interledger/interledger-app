@@ -31,9 +31,7 @@ export function FocusLayout() {
           </Router>
         )}
       </header>
-      <div className='col-span-full mt-16 px-4 sm:px-0 lg:col-span-6 lg:col-start-4 lg:mt-36'>
-        <Outlet />
-      </div>
+      <Outlet />
       <footer className='col-span-full flex space-x-3 self-end overflow-hidden px-4 py-6 sm:px-0 lg:col-span-6 lg:col-start-4'>
         <span className='text-xs font-medium text-medium'>
           &copy;&nbsp;Fynbos

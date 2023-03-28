@@ -7,7 +7,7 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import { Avatar, Card, Layouts } from '~/components'
+import { Avatar, Card, FocusGrid, Layouts } from '~/components'
 import { getWalletContacts } from '~/lib/wallet.server'
 import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 import { useCallback, useEffect, useState } from 'react'
@@ -57,6 +57,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Contacts',
   layout: Layouts.FocusLayout
 }
 
@@ -143,34 +144,35 @@ export default function Page() {
   }, [fetcher.data])
 
   return (
-    <Card ref={divHeight}>
-      <h1 className='font-display text-2xl font-medium'>Contacts</h1>
-      <Form
-        id='pay-payment-pointer'
-        action='/pay'
-        method='post'
-        className='hidden'
-      />
-      {contacts.length == 0 && (
-        <div className='mt-4 flex flex-col space-y-4'>
-          <span className='text-sm text-medium'>
-            You haven't paid anyone yet.
-          </span>
-        </div>
-      )}
-      {contacts &&
-        contacts.map((contact, index) => (
-          <button
-            key={contact.id}
-            name='paymentPointer'
-            form='pay-payment-pointer'
-            value={contact.paymentPointer}
-            className='mt-6 flex w-full flex items-center space-x-3 rounded-xl'
-          >
-            <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
-            <span className='text-medium'>{contact.name}</span>
-          </button>
-        ))}
-    </Card>
+    <FocusGrid ref={divHeight}>
+      <Card>
+        <Form
+          id='pay-payment-pointer'
+          action='/pay'
+          method='post'
+          className='hidden'
+        />
+        {contacts.length == 0 && (
+          <div className='mt-4 flex flex-col space-y-4'>
+            <span className='text-sm text-medium'>
+              You haven't paid anyone yet.
+            </span>
+          </div>
+        )}
+        {contacts &&
+          contacts.map((contact, index) => (
+            <button
+              key={contact.id}
+              name='paymentPointer'
+              form='pay-payment-pointer'
+              value={contact.paymentPointer}
+              className='mt-6 flex w-full flex items-center space-x-3 rounded-xl'
+            >
+              <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
+              <span className='text-medium'>{contact.name}</span>
+            </button>
+          ))}
+      </Card>
+    </FocusGrid>
   )
 }

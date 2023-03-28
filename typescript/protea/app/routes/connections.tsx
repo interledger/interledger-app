@@ -35,6 +35,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Connections',
   layout: Layouts.FocusLayout
 }
 
@@ -57,8 +58,7 @@ export default function Page() {
   return (
     <>
       <Card>
-        <h1 className='font-display text-2xl font-medium'>Connections</h1>
-        <p className='mt-6 text-medium'>Add and manage your connections.</p>
+        <p className='text-medium'>Add and manage your connections.</p>
       </Card>
 
       {connections.length > 0 && (

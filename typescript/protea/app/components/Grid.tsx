@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { forwardRef } from 'react'
+import { Outlet } from '@remix-run/react'
 
 interface WalletGridProps extends HTMLAttributes<HTMLDivElement> {
   children?: ReactNode
@@ -19,3 +20,22 @@ export const WalletGrid = forwardRef<any, WalletGridProps>(
 )
 
 WalletGrid.displayName = 'WalletGrid'
+
+interface FocusGridProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode
+}
+
+export const FocusGrid = forwardRef<any, FocusGridProps>(
+  ({ children }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className='col-span-full mt-16 px-4 space-y-6 sm:px-0 lg:col-span-6 lg:col-start-4 lg:mt-36'
+      >
+        {children}
+      </div>
+    )
+  }
+)
+
+FocusGrid.displayName = 'WalletGrid'

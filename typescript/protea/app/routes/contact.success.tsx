@@ -3,6 +3,7 @@ import { route } from 'routes-gen'
 import type { MetaFunction } from '@remix-run/node'
 
 export const handle = {
+  title: 'Success',
   layout: Layouts.FocusLayout
 }
 
