@@ -1,15 +1,38 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
+	external_mock "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
+	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
 	External() external.Client
-	KYC() kyc.Client
-	LinkedAccounts() linkedaccounts.Client
 	Temporal() temporal.Client
+}
+
+var _ Backends = &TestBackends{}
+
+func NewTestBackends(opts ...func(*TestBackends)) *TestBackends {
+	b := &TestBackends{}
+
+	for _, opt := range opts {
+		opt(b)
+	}
+
+	return b
+}
+
+type TestBackends struct {
+	ExternalClient *external_mock.MockClient
+	TemporalClient *temporal_mock.MockClient
+}
+
+func (b *TestBackends) External() external.Client {
+	return b.ExternalClient
+}
+
+func (b *TestBackends) Temporal() temporal.Client {
+	return b.TemporalClient
 }

@@ -65,6 +65,21 @@ func (mr *MockClientMockRecorder) CreateTransaction(ctx, args interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, args)
 }
 
+// QueryCard mocks base method.
+func (m *MockClient) QueryCard(ctx context.Context, args external.QueryCardArgs) (*external.QueryCardResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "QueryCard", ctx, args)
+	ret0, _ := ret[0].(*external.QueryCardResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// QueryCard indicates an expected call of QueryCard.
+func (mr *MockClientMockRecorder) QueryCard(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryCard", reflect.TypeOf((*MockClient)(nil).QueryCard), ctx, args)
+}
+
 // RetrieveAccount mocks base method.
 func (m *MockClient) RetrieveAccount(ctx context.Context, id string) (*external.RetrieveAccountResponse, error) {
 	m.ctrl.T.Helper()
