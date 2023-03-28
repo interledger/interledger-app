@@ -32,6 +32,14 @@ var (
 	AccountTypeBusinessChecking AccountType = "B"
 )
 
+type CardType string
+
+var (
+	CardTypeCredit  CardType = "Credit"
+	CardTypeDebit   CardType = "Debit"
+	CardTypePrepaid CardType = "Prepaid"
+)
+
 type (
 	CreateTransactionArgs struct {
 		ReferenceID string `json:"referenceID"`
@@ -114,9 +122,11 @@ type (
 	}
 
 	CardResponse struct {
-		NameFI         string `json:"nameFI,omitempty"`
-		Last4          string `json:"last4"`
-		ExpirationDate string `json:"expirationDate"`
+		NameFI         string     `json:"nameFI,omitempty"`
+		Last4          string     `json:"last4"`
+		ExpirationDate string     `json:"expirationDate,omitempty"`
+		Push           PushObject `json:"push,omitempty"`
+		Pull           PullObject `json:"pull,omitempty"`
 	}
 
 	RetrieveTransactionResponse struct {
@@ -163,5 +173,36 @@ type (
 		AccountID string        `json:"accountID"`
 		Card      *CardResponse `json:"card,omitempty"`
 		Notices   string
+	}
+
+	QueryCardArgs struct {
+		Card  *Card  `json:"card,omitempty"`
+		Owner *Owner `json:"owner,omitempty"`
+	}
+
+	PullObject struct {
+		Enabled   string
+		Network   string
+		Type      CardType
+		Regulated bool
+		Currency  string
+		Country   string
+	}
+
+	PushObject struct {
+		Enabled      string
+		Network      string
+		Type         CardType
+		Regulated    bool
+		Currency     string
+		Country      string
+		Availability string
+	}
+
+	QueryCardResponse struct {
+		SC   int          `json:"SC"`
+		EC   string       `json:"EC"`
+		EM   string       `jsonL:"EM"`
+		Card CardResponse `json:"card,omitempty"`
 	}
 )
