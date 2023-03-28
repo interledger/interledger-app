@@ -33,5 +33,5 @@ func TestApiWithoutProxy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	fmt.Println(fmt.Sprintf("%+v", queryCard))
+	fmt.Printf("%+v\n", queryCard)
 }
