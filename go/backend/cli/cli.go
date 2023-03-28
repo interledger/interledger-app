@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/joho/godotenv"
 )
 
@@ -180,6 +182,16 @@ func ParseStartArgs() (*StartArgs, error) {
 	zendeskToken := os.Getenv("ZENDESK_TOKEN")
 	if zendeskToken == "" {
 		return nil, errors.New("ZENDESK_TOKEN is required")
+	}
+
+	gmtUser := os.Getenv("GMT_USER")
+	if gmtUser == "" && env.IsProd() {
+		return nil, errors.New("GMT_USER is required in prod")
+	}
+
+	gmtPassword := os.Getenv("GMT_PASSWORD")
+	if gmtPassword == "" && env.IsProd() {
+		return nil, errors.New("GMT_PASSWORD is required in prod")
 	}
 
 	return &StartArgs{

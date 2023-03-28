@@ -20,17 +20,10 @@ import (
 
 const gmtEventsChannel = "gmt_events"
 
-type Credentials struct {
-	Alias    string
-	User     string
-	Password string
-	MTS      int32
-}
-
 type Activity struct {
-	b     Backends
-	ext   external.Client
-	creds Credentials
+	b   Backends
+	ext external.Client
+	mts int32
 }
 
 func NewActivity(b Backends) *Activity {
@@ -42,12 +35,7 @@ func NewActivity(b Backends) *Activity {
 	a := &Activity{
 		b:   b,
 		ext: external.NewClient(),
-		creds: Credentials{
-			Alias:    getEnvDefault("GMT_ALIAS", "FYN001"),
-			User:     getEnvDefault("GMT_USER", "Fynbos_api"),
-			Password: getEnvDefault("GMT_PASSWORD", "VUJ6bnkxN2dQVXkwMjZaOA=="),
-			MTS:      int32(mts),
-		},
+		mts: int32(mts),
 	}
 
 	return a
@@ -72,9 +60,6 @@ func (a *Activity) CheckWalletOFAC(ctx context.Context, walletID string) error {
 	}
 
 	res, err := a.ext.OfacVerification(ctx, external.OfacVerification{
-		Alias:     a.creds.Alias,
-		User:      a.creds.User,
-		Pass:      a.creds.Password,
 		LastName:  id.LastName,
 		FirstName: id.FirstName,
 	})
@@ -96,6 +81,7 @@ type ComplianceResp struct {
 	ReceiverWalletID string
 }
 
+// IndividualCompliance does a compliance check by doing a $1 payment where the user is both the sender and receiver.
 func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*ComplianceResp, error) {
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
@@ -115,45 +101,7 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 		return nil, err
 	}
 
-	las, err := a.b.LinkedAccounts().ListByWalletId(ctx, walletID)
-	if err != nil {
-		return nil, err
-	}
-
-	var la linkedaccounts.LinkedAccount
-	var found bool
-	for _, l := range las {
-		if l.Provider == mx.ProviderName && l.Type == mx.TypeBankAccount {
-			la = l
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return nil, temporal.NewNonRetryableApplicationError("no linked account found for wallet", "NotFound", linkedaccounts.ErrNotFound)
-	}
-
-	acc, err := a.b.MX().GetAccount(ctx, walletID, la.ProviderID)
-	if errors.Is(err, mx.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	sender.SenderAchAccount = acc.AccountNumber
-	sender.SenderAchRouting = acc.RoutingNumber
-	if acc.Type == mx.TypeSavings {
-		sender.SenderAchType = "SV"
-	} else if acc.Type == mx.TypeChecking {
-		sender.SenderAchType = "CHK"
-	}
-
 	res, err := a.ext.ComplianceCheck(ctx, external.ComplianceCheck{
-		Alias:    a.creds.Alias,
-		User:     a.creds.User,
-		Pass:     a.creds.Password,
 		Sender:   sender,
 		Receiver: recv,
 		Transfer: &external.WsTransferInfo{
@@ -164,7 +112,7 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 			DestinationCurrency:    "USD",
 			ExchangeRate:           1,
 			Fee:                    0,
-			MTSID:                  a.creds.MTS,
+			MTSID:                  a.mts,
 			NetAmount:              1.0,
 			OriginalCurrency:       "USD",
 			OriginalPaymentMethod:  "ACH", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
@@ -172,9 +120,6 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 			ReceiverState:          id.Address.State,
 			SaveSenderReceiver:     true,
 			SenderID:               sender.SenderId,
-			SucursalBanco:          acc.RoutingNumber, // Bank branch or routing number
-			BankAccount:            acc.AccountNumber,
-			BankCode:               acc.InstitutionCode,
 		},
 	})
 	if err != nil {
@@ -253,9 +198,6 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 	}
 
 	res, err := a.ext.ComplianceCheck(ctx, external.ComplianceCheck{
-		Alias:    a.creds.Alias,
-		User:     a.creds.User,
-		Pass:     a.creds.Password,
 		Sender:   sender,
 		Receiver: receiver,
 		Transfer: &external.WsTransferInfo{
@@ -264,7 +206,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*
 			DestinationCurrency:   args.Amount.Currency.String(),
 			ExchangeRate:          1,
 			Fee:                   0,
-			MTSID:                 a.creds.MTS,
+			MTSID:                 a.mts,
 			NetAmount:             args.Amount.Float64(),
 			OriginalCurrency:      args.Amount.Currency.String(),
 			OriginalPaymentMethod: "ACH", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
@@ -500,9 +442,6 @@ func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*Tran
 	}
 
 	res, err := a.ext.InsertTransaction(ctx, external.InsertTransaction{
-		Alias:    a.creds.Alias,
-		User:     a.creds.User,
-		Pass:     a.creds.Password,
 		Sender:   sender,
 		Receiver: receiver,
 		Transfer: &external.WsTransferInfo{
@@ -511,7 +450,7 @@ func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*Tran
 			DestinationCurrency:   args.Amount.Currency.String(),
 			ExchangeRate:          1,
 			Fee:                   0,
-			MTSID:                 a.creds.MTS,
+			MTSID:                 a.mts,
 			NetAmount:             args.Amount.Float64(),
 			OriginalCurrency:      args.Amount.Currency.String(),
 			OriginalPaymentMethod: "ACH", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
@@ -551,9 +490,6 @@ func (a *Activity) SaveReceipt(ctx context.Context, tr TransactionResp) error {
 
 func (a *Activity) VerifyTransaction(ctx context.Context, id string) error {
 	res, err := a.ext.SetVerified(ctx, external.SetVerified{
-		Alias:   a.creds.Alias,
-		User:    a.creds.User,
-		Pass:    a.creds.Password,
 		Receipt: id,
 		Passed:  true,
 	})
@@ -611,9 +547,6 @@ func (a *Activity) CompleteWorkflowRef(ctx context.Context, refID string) error 
 
 func (a *Activity) ConfirmNotification(ctx context.Context, externalID string) error {
 	resp, err := a.ext.ConfirmCollection(ctx, external.ConfirmCollection{
-		Alias:   a.creds.Alias,
-		User:    a.creds.User,
-		Pass:    a.creds.Password,
 		Receipt: externalID,
 	})
 

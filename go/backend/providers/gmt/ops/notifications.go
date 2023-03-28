@@ -7,8 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/providers/gmt/external"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/workflow"
@@ -16,11 +15,12 @@ import (
 
 func StartNotificationsPolling(b Backends) {
 	// This workflow ID can be user business logic identifier as well.
-	workflowID := "cron_" + uuid.NewString()
+	workflowID := "cron_gmt_notifications"
 	workflowOptions := client.StartWorkflowOptions{
-		ID:           workflowID,
-		TaskQueue:    "cron",
-		CronSchedule: "*/5 * * * *", // Every 5 minutes
+		ID:                    workflowID,
+		TaskQueue:             "cron",
+		CronSchedule:          "*/1 * * * *",                                       // Every minute
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
 	}
 
 	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, PollNotificationsWorkflow)
@@ -73,11 +73,7 @@ func (a *Activity) PollNotifications(ctx context.Context) error {
 		refMap[ref.ExternalID] = ref
 	}
 
-	nr, err := a.ext.GetNotifications(ctx, external.GetNotifications{
-		Alias: a.creds.Alias,
-		User:  a.creds.User,
-		Pass:  a.creds.Password,
-	})
+	nr, err := a.ext.GetNotifications(ctx)
 	if err != nil {
 		return err
 	}
