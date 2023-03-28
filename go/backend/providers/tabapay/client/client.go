@@ -19,7 +19,7 @@ type NewClientArgs = external_client.NewClientArgs
 type Backends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
-	Temproal() temporal.Client
+	Temporal() temporal.Client
 }
 
 type opsBackends struct {
@@ -40,7 +40,7 @@ func (ob *opsBackends) LinkedAccounts() linkedaccounts.Client {
 }
 
 func (ob *opsBackends) Temporal() temporal.Client {
-	return ob.b.Temproal()
+	return ob.b.Temporal()
 }
 
 func New(args NewClientArgs, b Backends) (*Client, error) {

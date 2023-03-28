@@ -15,6 +15,28 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 }
 
+type InputBackends interface {
+	KYC() kyc.Client
+	LinkedAccounts() linkedaccounts.Client
+}
+
+type backends struct {
+	external external.Client
+	b        InputBackends
+}
+
+func (ob *backends) External() external.Client {
+	return ob.external
+}
+
+func (ob *backends) KYC() kyc.Client {
+	return ob.b.KYC()
+}
+
+func (ob *backends) LinkedAccounts() linkedaccounts.Client {
+	return ob.b.LinkedAccounts()
+}
+
 type TestBackends struct {
 	ExternalClient *mock_client.MockClient
 	Kyc            *kyc_mock.MockClient

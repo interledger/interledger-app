@@ -16,6 +16,8 @@ import (
 )
 
 func TestOutgoingTransactionWorkflow(t *testing.T) {
+	t.Setenv("TABAPAY_CLIENT_ID", "test")
+	t.Setenv("TABAPAY_BEARER_TOKEN", "test")
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 	b := workflows.NewTestBackends()
