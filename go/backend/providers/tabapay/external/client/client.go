@@ -10,9 +10,12 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
+	"gitlab.com/fynbos/env"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var _ external.Client = &client{}
@@ -24,10 +27,10 @@ type client struct {
 }
 
 type NewClientArgs struct {
-	VgsProxyURL string         `validate:"required"`
-	ClientID    string         `validate:"required"`
-	BearerToken string         `validate:"required"`
-	CaCertPool  *x509.CertPool `validate:"required"`
+	VgsProxyURL string
+	ClientID    string `validate:"required"`
+	BearerToken string `validate:"required"`
+	CaCertPool  *x509.CertPool
 }
 
 func New(args NewClientArgs) (*client, error) {
@@ -40,17 +43,28 @@ func New(args NewClientArgs) (*client, error) {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
+	transport := &http.Transport{}
+	if args.VgsProxyURL != "" {
+		transport.Proxy = http.ProxyURL(proxyUrl)
+	}
+	if args.CaCertPool != nil {
+		transport.TLSClientConfig = &tls.Config{
+			RootCAs:            args.CaCertPool,
+			InsecureSkipVerify: true,
+		}
+	}
+
+	baseUrl := fmt.Sprintf("https://%s/v1/clients/%s", "api.sandbox.tabapay.net:10443", args.ClientID)
+	if env.IsProd() {
+		baseUrl = fmt.Sprintf("https://FQDN/v1/clients/%s", args.ClientID)
+	}
+
 	return &client{
-		baseUrl:     fmt.Sprintf("https://FQDN/v1/clients/%s", args.ClientID),
+		baseUrl:     baseUrl,
 		bearerToken: args.BearerToken,
 		api: &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyUrl),
-				TLSClientConfig: &tls.Config{
-					RootCAs:            args.CaCertPool,
-					InsecureSkipVerify: true,
-				},
-			},
+			Transport: otelhttp.NewTransport(transport),
+			Timeout:   5 * time.Second,
 		},
 	}, nil
 }
@@ -218,6 +232,46 @@ func (c *client) RetrieveAccount(
 	}
 
 	return &retrieveResp, nil
+}
+
+func (c *client) QueryCard(
+	ctx context.Context, args external.QueryCardArgs,
+) (*external.QueryCardResponse, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "cards")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	payload := bytes.NewBuffer(nil)
+	err = json.NewEncoder(payload).Encode(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, payload)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	c.setAuth(req)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var cardResp external.QueryCardResponse
+	err = json.NewDecoder(resp.Body).Decode(&cardResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &cardResp, nil
 }
 
 func checkResponseStatusCode(r *http.Response) error {
