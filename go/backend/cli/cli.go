@@ -62,34 +62,39 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 }
 
 type StartArgs struct {
-	Port                 string
-	OpenPaymentsPort     string
-	AuthorisationPort    string
-	DbConnectionString   string
-	KratosUrl            string
-	KratosAdminUrl       string
-	UsdLedgerID          uint32
-	LogLevel             string
-	LogOutputPath        string
-	MachnetClientID      string
-	MachnetClientSecret  string
-	MachnetWebhookSecret string
-	MxClientID           string
-	MxApiKey             string
-	RafikiGraphqlUrl     string
-	TemporalUrl          string
-	TwilioSid            string
-	TwilioSecret         string
-	TwilioServiceSid     string
-	ZendeskUser          string
-	ZendeskToken         string
-	AdminPolicyAud       string
-	AdminTeamDomain      string
-	SendgridAPIKey       string
-	SmartyAuthID         string
-	SmartyAuthToken      string
-	PusherAddr           string
-	SegmentKey           string
+	Port                       string
+	OpenPaymentsPort           string
+	AuthorisationPort          string
+	DbConnectionString         string
+	KratosUrl                  string
+	KratosAdminUrl             string
+	UsdLedgerID                uint32
+	LogLevel                   string
+	LogOutputPath              string
+	MachnetClientID            string
+	MachnetClientSecret        string
+	MachnetWebhookSecret       string
+	MxClientID                 string
+	MxApiKey                   string
+	RafikiGraphqlUrl           string
+	TemporalUrl                string
+	TwilioSid                  string
+	TwilioSecret               string
+	TwilioServiceSid           string
+	ZendeskUser                string
+	ZendeskToken               string
+	AdminPolicyAud             string
+	AdminTeamDomain            string
+	SendgridAPIKey             string
+	SmartyAuthID               string
+	SmartyAuthToken            string
+	PusherAddr                 string
+	SegmentKey                 string
+	TabapayClientID            string
+	TabapayBearerToken         string
+	TabapaySettlementAccountID string
+	VGSCaCertPath              string
+	VGSProxyURL                string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -195,33 +200,38 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	return &StartArgs{
-		Port:                 port,
-		OpenPaymentsPort:     openPaymentsPort,
-		AuthorisationPort:    authorisationPort,
-		DbConnectionString:   dbUrl,
-		KratosUrl:            kratosUrl,
-		KratosAdminUrl:       kratosAdminUrl,
-		UsdLedgerID:          uint32(usdLedgerID),
-		LogLevel:             logLevel,
-		LogOutputPath:        logOutputPath,
-		MachnetClientID:      os.Getenv("MACHNET_CLIENT_ID"),
-		MachnetClientSecret:  os.Getenv("MACHNET_CLIENT_SECRET"),
-		MachnetWebhookSecret: os.Getenv("MACHNET_WEBHOOK_SECRET"),
-		MxClientID:           os.Getenv("MX_CLIENT_ID"),
-		MxApiKey:             os.Getenv("MX_API_KEY"),
-		RafikiGraphqlUrl:     rafikiGraphqlUrl,
-		TemporalUrl:          temporalUrl,
-		TwilioSid:            TwilioSid,
-		TwilioSecret:         TwilioSecret,
-		TwilioServiceSid:     twilioServiceSid,
-		ZendeskUser:          zendeskUser,
-		ZendeskToken:         zendeskToken,
-		AdminPolicyAud:       os.Getenv("ADMIN_POLICY_AUD"),
-		AdminTeamDomain:      os.Getenv("ADMIN_TEAM_DOMAIN"),
-		SendgridAPIKey:       os.Getenv("SENDGRID_API_KEY"),
-		SmartyAuthID:         os.Getenv("SMARTY_AUTH_ID"),
-		SmartyAuthToken:      os.Getenv("SMARTY_AUTH_TOKEN"),
-		PusherAddr:           os.Getenv("PUSHER_ADDR"),
-		SegmentKey:           os.Getenv("SEGMENT_KEY"),
+		Port:                       port,
+		OpenPaymentsPort:           openPaymentsPort,
+		AuthorisationPort:          authorisationPort,
+		DbConnectionString:         dbUrl,
+		KratosUrl:                  kratosUrl,
+		KratosAdminUrl:             kratosAdminUrl,
+		UsdLedgerID:                uint32(usdLedgerID),
+		LogLevel:                   logLevel,
+		LogOutputPath:              logOutputPath,
+		MachnetClientID:            os.Getenv("MACHNET_CLIENT_ID"),
+		MachnetClientSecret:        os.Getenv("MACHNET_CLIENT_SECRET"),
+		MachnetWebhookSecret:       os.Getenv("MACHNET_WEBHOOK_SECRET"),
+		MxClientID:                 os.Getenv("MX_CLIENT_ID"),
+		MxApiKey:                   os.Getenv("MX_API_KEY"),
+		RafikiGraphqlUrl:           rafikiGraphqlUrl,
+		TemporalUrl:                temporalUrl,
+		TwilioSid:                  TwilioSid,
+		TwilioSecret:               TwilioSecret,
+		TwilioServiceSid:           twilioServiceSid,
+		ZendeskUser:                zendeskUser,
+		ZendeskToken:               zendeskToken,
+		AdminPolicyAud:             os.Getenv("ADMIN_POLICY_AUD"),
+		AdminTeamDomain:            os.Getenv("ADMIN_TEAM_DOMAIN"),
+		SendgridAPIKey:             os.Getenv("SENDGRID_API_KEY"),
+		SmartyAuthID:               os.Getenv("SMARTY_AUTH_ID"),
+		SmartyAuthToken:            os.Getenv("SMARTY_AUTH_TOKEN"),
+		PusherAddr:                 os.Getenv("PUSHER_ADDR"),
+		SegmentKey:                 os.Getenv("SEGMENT_KEY"),
+		TabapayClientID:            os.Getenv("TABAPAY_CLIENT_ID"),
+		TabapayBearerToken:         os.Getenv("TABAPAY_BEARER_TOKEN"),
+		TabapaySettlementAccountID: os.Getenv("TABAPAY_SETTLEMENT_ACCOUNT_ID"),
+		VGSCaCertPath:              os.Getenv("VGS_CA_CERT_PATH"),
+		VGSProxyURL:                os.Getenv("VGS_PROXY_URL"),
 	}, nil
 }
