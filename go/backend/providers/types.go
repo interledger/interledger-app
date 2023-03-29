@@ -28,4 +28,5 @@ type WorkflowKey string
 const (
 	GMTACH2ACH  WorkflowKey = "gmt_ach_2_ach"
 	GMTCARD2ACH WorkflowKey = "gmt_card_2_ach"
+	GMTACH2CARD WorkflowKey = "gmt_ach_2_card"
 )
