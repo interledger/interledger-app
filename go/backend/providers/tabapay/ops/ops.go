@@ -2,9 +2,12 @@ package ops
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	"gitlab.com/fynbos/backend/providers/tabapay/workflows"
@@ -39,4 +42,64 @@ func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (t
 	}
 
 	return await.Get, nil
+}
+
+func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (string, error) {
+	transactionResponse, err := b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
+		ReferenceID: args.ReferenceID,
+		Type:        external.TransactionTypePull,
+		Currency:    args.Amount.Currency.String(),
+		Amount:      fmt.Sprintf("%f", args.Amount.Float64()),
+		Accounts: external.CreateTransactionAccounts{
+			SourceAccountID:      args.ProviderID,
+			DestinationAccountID: args.SettlementAccountID,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return transactionResponse.TransactionID, nil
+}
+
+func PushToCard(ctx context.Context, b Backends, args PullFromCardArgs) (string, error) {
+	transactionResponse, err := b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
+		ReferenceID: args.ReferenceID,
+		Type:        external.TransactionTypePush,
+		Currency:    args.Amount.Currency.String(),
+		Amount:      fmt.Sprintf("%f", args.Amount.Float64()),
+		Accounts: external.CreateTransactionAccounts{
+			SourceAccountID:      args.SettlementAccountID,
+			DestinationAccountID: args.ProviderID,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return transactionResponse.TransactionID, nil
+}
+
+func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transaction, error) {
+	trxResp, err := b.External().RetrieveTransaction(ctx, id)
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, tabapay.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	floatAmount, err := strconv.ParseFloat(trxResp.AmountUSD, 64)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return &tabapay.Transaction{
+		ID:             id,
+		ReferenceID:    trxResp.ReferenceID,
+		Status:         trxResp.Status,
+		OriginalStatus: trxResp.Originally,
+		Amount:         currency.FromFloat64(floatAmount, "USD"),
+		ReversalStatus: trxResp.ReversalStatus,
+	}, nil
 }
