@@ -1,11 +1,9 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/blog/the-future-digital-wallets-and-payment-pointers": Record<string, never>;
-    "/transaction/machnet_wallet_withdrawal/:transactionId": { "transactionId": string };
     "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/blog/how-technical-standards-promote-innovation": Record<string, never>;
-    "/transaction/machnet_wallet_topup/:transactionId": { "transactionId": string };
     "/blog/connecting-the-internet-economy": Record<string, never>;
     "/blog/our-fynbos-family-meet-barnard": Record<string, never>;
     "/settings/linked-accounts/:accountId": { "accountId": string };
@@ -24,6 +22,7 @@ declare module "routes-gen" {
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/linked-account/bank/widget": Record<string, never>;
+    "/linked-account/card/widget": Record<string, never>;
     "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
@@ -47,7 +46,6 @@ declare module "routes-gen" {
     "/payment-pointer": Record<string, never>;
     "/signup/password": Record<string, never>;
     "/support/success": Record<string, never>;
-    "/machnet-terms": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/transactions": Record<string, never>;
@@ -74,11 +72,9 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/blog/the-future-digital-wallets-and-payment-pointers"]
-      | ["/transaction/machnet_wallet_withdrawal/:transactionId", RouteParams["/transaction/machnet_wallet_withdrawal/:transactionId"]]
       | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
       | ["/blog/how-technical-standards-promote-innovation"]
-      | ["/transaction/machnet_wallet_topup/:transactionId", RouteParams["/transaction/machnet_wallet_topup/:transactionId"]]
       | ["/blog/connecting-the-internet-economy"]
       | ["/blog/our-fynbos-family-meet-barnard"]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
@@ -97,6 +93,7 @@ declare module "routes-gen" {
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/linked-account/bank/widget"]
+      | ["/linked-account/card/widget"]
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
       | ["/what-is-a-payment-pointer"]
@@ -120,7 +117,6 @@ declare module "routes-gen" {
       | ["/payment-pointer"]
       | ["/signup/password"]
       | ["/support/success"]
-      | ["/machnet-terms"]
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/transactions"]

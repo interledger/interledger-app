@@ -116,37 +116,6 @@ export default function Page() {
             support@fynbos.app
           </AnchorRouter>
         </div>
-        <span className='mt-4 text-sm'>
-          The banking services of the Fynbos are powered by Machnet. Machnet is
-          a financial technology company and not a bank. Banking services are
-          provided by Machnet's partner banks who are Member FDIC. Machnet
-          provides the Bank services through its banking software provider,
-          Synapse. To report a complaint relating to the bank services,
-          email&nbsp;
-          <AnchorRouter
-            to='mailto:help@synapsefi.com'
-            className='text-sm text-primary'
-          >
-            help@synapsefi.com
-          </AnchorRouter>
-          . In case your grievances are not addressed by Fynbos or for any
-          escalation purposes, please contact Machnet either through
-          email&nbsp;(
-          <AnchorRouter
-            to='mailto:help@machnetinc.com'
-            className='text-sm text-primary'
-          >
-            help@machnetinc.com
-          </AnchorRouter>
-          ) or call us at&nbsp;
-          <AnchorRouter
-            to='tel:+1 (408) 539-6455'
-            className='text-sm text-primary'
-          >
-            +1 (408) 539-6455
-          </AnchorRouter>
-          .
-        </span>
       </Card>
     </WalletGrid>
   )
