@@ -33,6 +33,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Make a payment',
   layout: Layouts.FocusLayout
 }
 
@@ -69,12 +70,12 @@ export default function Page() {
   return (
     <>
       <Card>
-        <h1 className='mb-6 font-display text-2xl font-medium'>Pay</h1>
         <span>You are about to pay:</span>
         <span className='mt-4'>{flow.data.paymentPointer.legalName}</span>
         <div className='mt-2 flex items-center justify-between rounded-xl bg-container p-4 text-medium'>
           <span>{flow.data.paymentPointer.formatted}</span>
         </div>
+        {/*TODO Add a submit form*/}
         <fetcher.Form
           id='amount-form'
           action='/pay/amount'
@@ -150,12 +151,10 @@ export default function Page() {
           }
           errorMessage={fetcher.data?.errors.note}
         />
-        <div className='mt-8'>
-          <Button form='amount-form' type='submit' name='route-to' value='next'>
-            Continue
-          </Button>
-        </div>
       </Card>
+      <Button form='amount-form' type='submit' name='route-to' value='next'>
+        Continue
+      </Button>
       <div className='mt-6 flex w-full space-x-2'>
         <span className='text-xs text-medium'>*</span>
         <span className='text-xs text-medium'>

@@ -5,7 +5,13 @@ import { IconButton, Logo, Router } from '~/components'
 export function FocusLayout() {
   const matches = useMatches()
   const navigate = useNavigate()
-  const backTo = matches[matches.length - 1]?.data?.backTo
+  const match = matches[matches.length - 1]
+  const backTo = match?.data?.backTo
+
+  let title
+  const titleHandle = match.handle?.title
+  if (typeof titleHandle === 'function') title = titleHandle(match)
+  else title = titleHandle
 
   return (
     <div className='relative mx-auto grid min-h-screen w-full grid-cols-4 grid-rows-[auto_1fr_auto] content-start gap-4 gap-y-2 bg-app sm:max-w-lg sm:grid-cols-8 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
@@ -18,11 +24,14 @@ export function FocusLayout() {
         >
           arrow_back
         </IconButton>
-        <Router to={route('/')} aria-label='Fynbos logo'>
-          <Logo className='h-8' />
-        </Router>
+        {title && <h1 className='font-medium text-xl'>{title}</h1>}
+        {!title && (
+          <Router to={route('/')} aria-label='Fynbos logo'>
+            <Logo className='h-8' />
+          </Router>
+        )}
       </header>
-      <div className='col-span-full mt-16 px-4 sm:px-0 lg:col-span-6 lg:col-start-4 lg:mt-36'>
+      <div className='grid grid-cols-1 col-span-full gap-y-6 mt-16 px-4 sm:px-0 lg:col-span-6 lg:col-start-4 lg:mt-36'>
         <Outlet />
       </div>
       <footer className='col-span-full flex space-x-3 self-end overflow-hidden px-4 py-6 sm:px-0 lg:col-span-6 lg:col-start-4'>

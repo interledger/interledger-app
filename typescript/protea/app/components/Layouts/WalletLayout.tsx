@@ -40,7 +40,7 @@ export function WalletLayout() {
               Settings
             </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/support')}>
-              Contact
+              Support
             </NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
@@ -104,7 +104,7 @@ export function WalletLayout() {
               Settings
             </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/support')}>
-              Contact
+              Support
             </NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>

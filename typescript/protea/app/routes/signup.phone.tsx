@@ -10,13 +10,12 @@ import {
 import type { PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
+  ButtonRouter,
   Card,
   Dialog,
   Icon,
   Layouts,
   PhoneTextField,
-  Router,
-  Shape,
   TextButton,
   TextField
 } from '~/components'
@@ -60,6 +59,7 @@ export function links() {
 }
 
 export const handle = {
+  title: 'Mobile phone number',
   layout: Layouts.FocusLayout
 }
 
@@ -95,84 +95,60 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <Card>
-      <div className='flex flex-col space-y-6'>
-        <div className='flex justify-between'>
-          <span className='font-display text-2xl font-medium'>
-            Mobile phone number
-          </span>
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-bl-full'}
-              color={'bg-rose-400'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-full'}
-              color={'bg-lime-500'}
-            />
-          </div>
-        </div>
-        {hasVerified && <p>Your mobile phone number is verified.</p>}
-        {!hasVerified && <p>We require you to verify a mobile phone number.</p>}
-      </div>
+    <>
       <otpFetcher.Form
         id='signup-phone-otp'
         action='/api/sendOtp'
         method='post'
         className='hidden'
       />
+      <Card>
+        {hasVerified && <p>Your mobile phone number is verified.</p>}
+        {!hasVerified && <p>We require you to verify a mobile phone number.</p>}
 
-      {hasVerified && (
-        <div className='mt-6 flex space-x-2 rounded-xl bg-container p-3 text-medium'>
-          <Icon>call</Icon>
-          <span>{flow?.data?.phone}</span>
-        </div>
-      )}
-
-      {!hasVerified && (
-        <PhoneTextField
-          id='phone'
-          form='signup-phone-otp'
-          name='phone'
-          defaultCountry={flow?.data.country}
-          options={countries as PhoneAutocompleteOptions[]}
-          label='Mobile number'
-          className='mt-6'
-          aria-invalid={
-            Boolean(
-              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-            ) || undefined
-          }
-          aria-describedby={
-            otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-              ? 'phone-error'
-              : undefined
-          }
-          errorMessage={
-            otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-          }
-        />
-      )}
-
-      <div className='mt-12'>
         {hasVerified && (
-          <Router
-            to={route('/signup/password')}
-            className='flex h-[50px] w-full items-center justify-center rounded-full bg-primary px-10'
-          >
-            <span className='font-display font-medium text-white'>
-              Continue
-            </span>
-          </Router>
+          <div className='mt-6 flex space-x-2 rounded-xl bg-container p-3 text-medium'>
+            <Icon>call</Icon>
+            <span>{flow?.data?.phone}</span>
+          </div>
         )}
+
         {!hasVerified && (
-          <Button form='signup-phone-otp' type='submit'>
-            Continue
-          </Button>
+          <PhoneTextField
+            id='phone'
+            form='signup-phone-otp'
+            name='phone'
+            defaultCountry={flow?.data.country}
+            options={countries as PhoneAutocompleteOptions[]}
+            label='Mobile number'
+            className='mt-6'
+            aria-invalid={
+              Boolean(
+                otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+              ) || undefined
+            }
+            aria-describedby={
+              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+                ? 'phone-error'
+                : undefined
+            }
+            errorMessage={
+              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+            }
+          />
         )}
-      </div>
+      </Card>
+      {hasVerified && (
+        <ButtonRouter to={route('/signup/password')}>
+          <span className='font-display font-medium text-white'>Continue</span>
+        </ButtonRouter>
+      )}
+      {!hasVerified && (
+        <Button form='signup-phone-otp' type='submit'>
+          Continue
+        </Button>
+      )}
+
       <Dialog open={showDialog} setOpen={setShowDialog}>
         <Form
           id='signup-phone-otp-validation'
@@ -216,7 +192,7 @@ export default function Page() {
           </TextButton>
         </div>
       </Dialog>
-    </Card>
+    </>
   )
 }
 

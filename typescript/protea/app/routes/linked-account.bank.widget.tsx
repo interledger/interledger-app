@@ -4,7 +4,7 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
-import { Layouts } from '~/components'
+import { Card, Layouts } from '~/components'
 import {
   grpcClient,
   httpMapping,
@@ -29,7 +29,10 @@ export async function loader({ request }: LoaderArgs) {
   return json({ url: rpc.response.url })
 }
 
-export const handle = { layout: Layouts.FocusLayout }
+export const handle = {
+  title: 'Bank details',
+  layout: Layouts.FocusLayout
+}
 
 export default function Page() {
   const submit = useSubmit()
@@ -56,9 +59,9 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return (
-    <>
+    <Card>
       <div id='widget' />
-    </>
+    </Card>
   )
 }
 

@@ -35,6 +35,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Connections',
   layout: Layouts.FocusLayout
 }
 
@@ -57,42 +58,39 @@ export default function Page() {
   return (
     <>
       <Card>
-        <h1 className='font-display text-2xl font-medium'>Connections</h1>
-        <p className='mt-6 text-medium'>Add and manage your connections.</p>
+        <p className='text-medium'>Add and manage your connections.</p>
       </Card>
 
       {connections.length > 0 && (
-        <>
-          <Card className='mt-6'>
-            <h1 className='font-display text-2xl font-medium'>Public keys</h1>
-            {connections.map((conn) => (
-              <Router
-                to={route('/connections/:connectionId', {
-                  connectionId: conn.id
-                })}
-                className='mt-6 p-3 rounded-xl bg-container flex justify-between'
-                key={conn.id}
-              >
-                <div className='flex-col'>
-                  <p className='font-medium text-medium'>
-                    {conn.applicationName}
-                  </p>
-                  <p className='mt-2 text-sm text-medium'>
-                    Added {conn.createdAt}
-                  </p>
-                  {/*TODO: implement last used*/}
-                  {/*<p className='mt-1 text-sm text-purple-500'>
+        <Card>
+          <h1 className='font-display text-2xl font-medium'>Public keys</h1>
+          {connections.map((conn) => (
+            <Router
+              to={route('/connections/:connectionId', {
+                connectionId: conn.id
+              })}
+              className='mt-6 p-3 rounded-xl bg-container flex justify-between'
+              key={conn.id}
+            >
+              <div className='flex-col'>
+                <p className='font-medium text-medium'>
+                  {conn.applicationName}
+                </p>
+                <p className='mt-2 text-sm text-medium'>
+                  Added {conn.createdAt}
+                </p>
+                {/*TODO: implement last used*/}
+                {/*<p className='mt-1 text-sm text-purple-500'>
                                       Last used {conn.lastUsedAt}
                                     </p>*/}
-                </div>
-                <Icon>navigate_next</Icon>
-              </Router>
-            ))}
-          </Card>
-        </>
+              </div>
+              <Icon>navigate_next</Icon>
+            </Router>
+          ))}
+        </Card>
       )}
 
-      <Card className='mt-6'>
+      <Card>
         <div className='flex items-start space-x-4'>
           <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
             <Icon>key</Icon>
