@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
@@ -23,6 +24,7 @@ type Backends interface {
 	Validator() *validator.Validate
 	Analytics() analytics.Client
 	MX() mx.Client
+	Tabapay() tabapay.Client
 }
 
 type testBackends struct {
@@ -63,6 +65,10 @@ func (t testBackends) Transactions() transactions.Client {
 }
 
 func (t testBackends) Validator() *validator.Validate {
+	return nil
+}
+
+func (t testBackends) Tabapay() tabapay.Client {
 	return nil
 }
 
