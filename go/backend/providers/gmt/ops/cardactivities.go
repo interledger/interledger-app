@@ -43,3 +43,32 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (str
 
 	return externalTransactionID, nil
 }
+
+type PushToCard = PullFromCardArgs
+
+func (a *Activity) PushToCard(ctx context.Context, args PushToCard) (string, error) {
+	// fetch the linked account
+	linkedCard, err := a.b.LinkedAccounts().Get(ctx, args.CardLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("Linked card not found.", "ErrNotFound", err)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	if linkedCard.Provider != tabapay.ProviderName {
+		return "", temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
+	}
+
+	externalTransactionID, err := a.b.Tabapay().PushToCard(ctx, tabapay.PushToCardArgs{
+		WalletID:    linkedCard.WalletID,
+		ProviderID:  linkedCard.ProviderID,
+		ReferenceID: args.TransactionID,
+		Amount:      args.Amount,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return externalTransactionID, nil
+}
