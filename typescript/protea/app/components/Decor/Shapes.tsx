@@ -184,13 +184,101 @@ export function SuccessShapes() {
   )
 }
 
-type HomeShapesProps = {
+export function WalletShapes() {
+  const radii: Radius[] = useMemo(
+    () => [
+      'rounded-full',
+      'rounded-tl-full',
+      'rounded-tr-full',
+      'rounded-bl-full',
+      'rounded-br-full',
+      'rounded-t-full',
+      'rounded-b-full',
+      'rounded-l-full',
+      'rounded-r-full'
+    ],
+    []
+  )
+  const colours = useMemo(
+    () => [
+      'bg-slate-600',
+      'bg-rose-300',
+      'bg-lime-400',
+      'bg-rose-500',
+      'bg-lime-300',
+      'bg-lime-500',
+      'bg-rose-400',
+      'bg-slate-300',
+      'bg-yellow-200',
+      'bg-slate-500',
+      'bg-rose-100',
+      'bg-yellow-400'
+    ],
+    []
+  )
+  const shapes = Array(3)
+    .fill({})
+    .map((shape: MotionShapeProps, index: number) => {
+      const colourIndex = Math.floor(Math.random() * colours.length)
+      const radiiIndex = Math.floor(Math.random() * radii.length)
+      return {
+        color: colours[colourIndex],
+        radius: radii[radiiIndex],
+        width: 'w-0 lg:w-6',
+        animate: { opacity: 1, scale: 1 },
+        initial: { opacity: 0, scale: 0.5 },
+        exit: {
+          opacity: 0,
+          scale: 0.5,
+          transition: {
+            duration: 0.2
+          }
+        },
+        transition: {
+          type: 'spring',
+          stiffness: 400,
+          damping: 20,
+          duration: 0.3
+        }
+      }
+    })
+
+  return (
+    <div className='flex justify-center items-center'>
+      <AnimatePresence mode='popLayout'>
+        {shapes.map((shape, index) => (
+          <MotionShape key={`shape${index}${shape?.color}`} {...shape} />
+        ))}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+export function HomeShapes() {
+  return (
+    <div className='mt-4 flex flex-col w-full justify-center items-center'>
+      <div className='flex'>
+        <Shape color='bg-yellow-200' radius='rounded-tr-full' width='w-8' />
+        <Shape color='bg-rose-500' radius='rounded-full' width='w-8' />
+      </div>
+      <div className='flex'>
+        <Shape color='bg-lime-500' radius='rounded-bl-full' width='w-8' />
+        <Shape color='bg-lime-300' radius='rounded-br-full' width='w-8' />
+      </div>
+    </div>
+  )
+}
+
+type LoadingShapesProps = {
   // Whether or not to animate the shapes in and out after initial load
   animate?: boolean
   rows?: number
 }
 
-export function HomeShapes({ animate, rows = 2 }: HomeShapesProps) {
+export function LoadingShapes({
+  animate = true,
+  rows = 4
+}: LoadingShapesProps) {
   const radii: Radius[] = useMemo(
     () => [
       'rounded-full',

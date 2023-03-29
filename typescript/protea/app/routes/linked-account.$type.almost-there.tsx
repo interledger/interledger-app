@@ -1,4 +1,4 @@
-import { Card, HomeShapes, Layouts } from '~/components'
+import { Card, LoadingShapes, Layouts } from '~/components'
 import { useFetcher, useParams } from '@remix-run/react'
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -60,7 +60,7 @@ export default function Page() {
 
   return (
     <Card>
-      <HomeShapes rows={4} animate />
+      <LoadingShapes />
 
       <span className='mt-6 font-display text-2xl font-medium'>
         Almost there
