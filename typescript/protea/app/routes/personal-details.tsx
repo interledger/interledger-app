@@ -67,27 +67,6 @@ export default function Page() {
           <p className='text-xs text-medium'>Your physical address details.</p>
         </div>
       </div>
-      <div className='mt-10 flex items-start'>
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-tl-full'}
-          color={'bg-yellow-300'}
-        />
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-tr-full'}
-          color={'bg-rose-400'}
-        />
-        <div className='ml-5'>
-          <h3 className='mb-1 font-medium text-strong'>Privacy and terms</h3>
-          <p className='text-xs text-medium'>
-            Please read and agree to the Machnet privacy policy and terms of
-            service.
-          </p>
-        </div>
-      </div>
 
       <Form
         id='personal-details'
