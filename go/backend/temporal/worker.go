@@ -5,6 +5,7 @@ import (
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	openpayments_workflows "gitlab.com/fynbos/backend/openpayments/workflows"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
+	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
 	"go.temporal.io/sdk/worker"
 )
 
@@ -25,10 +26,10 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gmt_workflows.OnboardUserWorkflow)
 	w.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
 	w.RegisterWorkflow(gmt_workflows.Card2ACHTransferWorkflow)
+	w.RegisterWorkflow(gmt_workflows.ACH2CardTransferWorkflow)
 
-	// TODO: Add once integration is done
-	// w.RegisterActivity(tabapay_workflows.NewActivity(b))
-	// w.RegisterActivity(tabapay_workflows.CreateTabapayCardWorkflow)
+	w.RegisterActivity(tabapay_workflows.NewActivity(b))
+	w.RegisterActivity(tabapay_workflows.CreateTabapayCardWorkflow)
 
 	gmt_workflows.StartNotificationsPolling(b)
 
