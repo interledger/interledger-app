@@ -3,8 +3,9 @@ package ops
 import (
 	"time"
 
+	"gitlab.com/fynbos/backend/providers"
+
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
@@ -45,7 +46,7 @@ func OnboardUserWorkflow(ctx workflow.Context, walletID string) (string, error) 
 	return "TODO", nil
 }
 
-func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt.TransferResponse, error) {
+func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs) (*providers.TransferResponse, error) {
 	var a *Activity
 
 	ao := workflow.ActivityOptions{
@@ -60,7 +61,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 	if err != nil {
 		logger.Error("failed to do to linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
-			return &gmt.TransferResponse{
+			return &providers.TransferResponse{
 				State: transactions.StateFailed,
 			}, nil
 		}
@@ -71,7 +72,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 	if err != nil {
 		logger.Error("failed to do from linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
-			return &gmt.TransferResponse{
+			return &providers.TransferResponse{
 				State: transactions.StateFailed,
 			}, nil
 		}
@@ -83,7 +84,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
-			return &gmt.TransferResponse{
+			return &providers.TransferResponse{
 				State: transactions.StateFailed,
 			}, nil
 		}
@@ -101,7 +102,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
-			return &gmt.TransferResponse{
+			return &providers.TransferResponse{
 				State: transactions.StateFailed,
 			}, nil
 		}
@@ -162,7 +163,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 	if err != nil {
 		logger.Error("failed to add transaction for recipient", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
-			return &gmt.TransferResponse{
+			return &providers.TransferResponse{
 				State:      transactions.StateFailed,
 				ExternalID: tr.ID,
 			}, nil
@@ -176,7 +177,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 	if err != nil {
 		logger.Error("failed to verify gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
-			return &gmt.TransferResponse{
+			return &providers.TransferResponse{
 				State:      transactions.StateFailed,
 				ExternalID: tr.ID,
 			}, nil
@@ -236,7 +237,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 	if err != nil {
 		logger.Error("failed to clear notification", "error", err, "ext ID", tr.ID)
 		if temporal_utils.IsNonRetryableError(err) {
-			return &gmt.TransferResponse{
+			return &providers.TransferResponse{
 				State:      transactions.StateFailed,
 				ExternalID: tr.ID,
 			}, nil
@@ -244,7 +245,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args gmt.TransfersArgs) (*gmt
 		return nil, err
 	}
 
-	return &gmt.TransferResponse{
+	return &providers.TransferResponse{
 		State:      state,
 		ExternalID: tr.ID,
 	}, nil

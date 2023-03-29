@@ -12,7 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/gmt"
+	"gitlab.com/fynbos/backend/providers"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"go.temporal.io/sdk/temporal"
@@ -138,7 +138,7 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 	}, nil
 }
 
-func (a *Activity) ACHCompliance(ctx context.Context, args gmt.TransfersArgs) (*ComplianceResp, error) {
+func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
@@ -382,7 +382,7 @@ type TransactionResp struct {
 	Contact  string
 }
 
-func (a *Activity) InsertACH(ctx context.Context, args gmt.TransfersArgs) (*TransactionResp, error) {
+func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) (*TransactionResp, error) {
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)

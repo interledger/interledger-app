@@ -4,10 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"gitlab.com/fynbos/backend/transactions"
-
-	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"gitlab.com/fynbos/backend/currency"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -44,23 +43,26 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	trxID := uuid.NewString()
 
 	amt := currency.FromFloat64(10.55, currency.USD)
-	mArgs := gmt.TransfersArgs{
-		FromForeignID:       uuid.NewString(),
-		ToForeignID:         uuid.NewString(),
-		FromPaymentPointer:  uuid.NewString(),
-		ToPaymentPointer:    uuid.NewString(),
-		FromLinkedAccountID: uuid.NewString(),
-		ToLinkedAccountID:   uuid.NewString(),
-		FromWalletID:        uuid.NewString(),
-		ToWalletID:          uuid.NewString(),
-		Amount:              amt,
-		FromTransactionID:   trxID,
+	mArgs := ProviderWorkflowArgs{
+		Args: providers.TransfersArgs{
+			FromForeignID:       uuid.NewString(),
+			ToForeignID:         uuid.NewString(),
+			FromPaymentPointer:  uuid.NewString(),
+			ToPaymentPointer:    uuid.NewString(),
+			FromLinkedAccountID: uuid.NewString(),
+			ToLinkedAccountID:   uuid.NewString(),
+			FromWalletID:        uuid.NewString(),
+			ToWalletID:          uuid.NewString(),
+			Amount:              amt,
+			FromTransactionID:   trxID,
+		},
+		Key: providers.GMTACH2ACH,
 	}
 
-	env.OnActivity(a.GetGMTProviderArgs, mock.Anything, id).Return(&mArgs, nil)
-	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
-	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
-	env.OnWorkflow(gmt_workflows.ACH2ACHTransferWorkflow, mock.Anything, mArgs).Return(&gmt.TransferResponse{
+	env.OnActivity(a.GetProviderWorkflowArgs, mock.Anything, id).Return(&mArgs, nil)
+	env.OnActivity(a.AddContact, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
+	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
+	env.OnWorkflow(gmt_workflows.ACH2ACHTransferWorkflow, mock.Anything, mArgs.Args).Return(&providers.TransferResponse{
 		State:      transactions.StateCompleted,
 		ExternalID: "external_id",
 	}, nil)
@@ -78,7 +80,6 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 }
 
 func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
-	t.Skip("Skip until trx are back")
 	ctrl := gomock.NewController(t)
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)
@@ -96,24 +97,33 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	id := uuid.NewString()
 	trxID := uuid.NewString()
 
-	mArgs := gmt.TransfersArgs{
-		FromForeignID:       uuid.NewString(),
-		ToForeignID:         uuid.NewString(),
-		FromPaymentPointer:  uuid.NewString(),
-		ToPaymentPointer:    uuid.NewString(),
-		FromLinkedAccountID: uuid.NewString(),
-		ToLinkedAccountID:   uuid.NewString(),
-		FromWalletID:        uuid.NewString(),
-		ToWalletID:          uuid.NewString(),
-		Amount:              currency.FromFloat64(10.5, currency.ParseCurrency("USD")),
+	mArgs := ProviderWorkflowArgs{
+		Args: providers.TransfersArgs{
+			FromForeignID:       uuid.NewString(),
+			ToForeignID:         uuid.NewString(),
+			FromPaymentPointer:  uuid.NewString(),
+			ToPaymentPointer:    uuid.NewString(),
+			FromLinkedAccountID: uuid.NewString(),
+			ToLinkedAccountID:   uuid.NewString(),
+			FromWalletID:        uuid.NewString(),
+			ToWalletID:          uuid.NewString(),
+			Amount:              currency.FromFloat64(10.5, currency.ParseCurrency("USD")),
+			FromTransactionID:   trxID,
+		},
+		Key: providers.GMTACH2ACH,
 	}
 
-	env.OnActivity(a.GetGMTProviderArgs, mock.Anything, id).Return(&mArgs, nil)
-	env.OnActivity(a.AddContact, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
-	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.FromPaymentPointer, mArgs.ToPaymentPointer).Return(nil)
+	env.OnActivity(a.GetProviderWorkflowArgs, mock.Anything, id).Return(&mArgs, nil)
+	env.OnActivity(a.AddContact, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
+	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
+	env.OnWorkflow(gmt_workflows.ACH2ACHTransferWorkflow, mock.Anything, mArgs.Args).Return(&providers.TransferResponse{
+		State:      transactions.StateFailed,
+		ExternalID: "external_id",
+	}, nil)
 	env.OnActivity(a.FailOutgoingPayment, mock.Anything, id).Return(nil)
 	env.OnActivity(a.SendFailedOutgoingPaymentMail, mock.Anything, id).Return(nil)
 
+	env.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
 	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.3")
 
 	require.True(t, env.IsWorkflowCompleted())

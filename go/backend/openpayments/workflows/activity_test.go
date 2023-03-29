@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers"
+
 	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -24,7 +26,7 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
-func TestActivity_GetGMTProviderArgs(t *testing.T) {
+func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
@@ -43,7 +45,7 @@ func TestActivity_GetGMTProviderArgs(t *testing.T) {
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
-	env.RegisterActivity(a.GetGMTProviderArgs)
+	env.RegisterActivity(a.GetProviderWorkflowArgs)
 
 	cases := []struct {
 		name      string
@@ -117,15 +119,16 @@ func TestActivity_GetGMTProviderArgs(t *testing.T) {
 				},
 			}, nil).Times(2)
 
-			argsEnc, err := env.ExecuteActivity(a.GetGMTProviderArgs, opID)
+			argsEnc, err := env.ExecuteActivity(a.GetProviderWorkflowArgs, opID)
 			require.NoError(t, err)
 
-			var args gmt.TransfersArgs
+			var args ProviderWorkflowArgs
 			err = argsEnc.Get(&args)
 			require.NoError(t, err)
 
-			assert.Equal(t, 1.00, args.Amount.Float64())
-			assert.Equal(t, "USD", args.Amount.Currency.String())
+			assert.Equal(t, providers.GMTACH2ACH, args.Key)
+			assert.Equal(t, 1.00, args.Args.Amount.Float64())
+			assert.Equal(t, "USD", args.Args.Amount.Currency.String())
 		})
 	}
 }
