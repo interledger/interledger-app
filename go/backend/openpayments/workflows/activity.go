@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers"
+
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -27,7 +29,29 @@ func NewActivity(b Backends) *Activity {
 	return &Activity{b: b}
 }
 
-func getProviderLinkedAccount(ctx context.Context, b Backends, pointer, providerName, providerType string) (*linkedaccounts.LinkedAccount, error) {
+func accCanSend(la linkedaccounts.LinkedAccount) bool {
+	switch la.Provider {
+	case gmt.ProviderName:
+		if la.Type == gmt.TypeBankAccount {
+			return true
+		}
+	}
+
+	return false
+}
+
+func accCanRecv(la linkedaccounts.LinkedAccount) bool {
+	switch la.Provider {
+	case gmt.ProviderName:
+		if la.Type == gmt.TypeBankAccount {
+			return true
+		}
+	}
+
+	return false
+}
+
+func getDefaultSendAcc(ctx context.Context, b Backends, pointer string) (*linkedaccounts.LinkedAccount, error) {
 	pp, err := ops.GetPaymentPointer(ctx, b, pointer)
 	if err != nil {
 		return nil, err
@@ -38,24 +62,45 @@ func getProviderLinkedAccount(ctx context.Context, b Backends, pointer, provider
 		return nil, err
 	}
 
-	var found *linkedaccounts.LinkedAccount
+	// Search all linked accounts and check for the first account that can send funds.
+	// TODO: Add default flags to linked accounts and add more providers
 	for _, ra := range accs {
-		if ra.Provider != providerName ||
-			ra.Type != providerType {
-			continue
+		if accCanSend(ra) {
+			return &ra, nil
 		}
-		found = &ra
-		break
 	}
 
-	if found == nil {
-		return nil, fmt.Errorf("%w no account type (%s) for provider (%s) account payment pointer (%s)", openpayments.ErrNotFound, providerType, providerName, pointer)
-	}
-
-	return found, nil
+	return nil, fmt.Errorf("%w no account capable of receiving found for payment pointer (%s)", openpayments.ErrNotFound, pointer)
 }
 
-func (a *Activity) GetGMTProviderArgs(ctx context.Context, outgoingID string) (*gmt.TransfersArgs, error) {
+func getDefaultRecvAcc(ctx context.Context, b Backends, pointer string) (*linkedaccounts.LinkedAccount, error) {
+	pp, err := ops.GetPaymentPointer(ctx, b, pointer)
+	if err != nil {
+		return nil, err
+	}
+
+	accs, err := b.LinkedAccounts().ListByWalletId(ctx, pp.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Search all linked accounts and check for the first account that can receive funds.
+	// TODO: Add default flags to linked accounts and add more providers
+	for _, ra := range accs {
+		if accCanRecv(ra) {
+			return &ra, nil
+		}
+	}
+
+	return nil, fmt.Errorf("%w no account capable of receiving found for payment pointer (%s)", openpayments.ErrNotFound, pointer)
+}
+
+type ProviderWorkflowArgs struct {
+	Args providers.TransfersArgs
+	Key  providers.WorkflowKey
+}
+
+func (a *Activity) GetProviderWorkflowArgs(ctx context.Context, outgoingID string) (*ProviderWorkflowArgs, error) {
 	idxSlash := strings.LastIndex(outgoingID, "/")
 	if idxSlash > 0 {
 		outgoingID = outgoingID[idxSlash+1:]
@@ -82,7 +127,7 @@ func (a *Activity) GetGMTProviderArgs(ctx context.Context, outgoingID string) (*
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("failed to parse payment pointer URL from receiver (%s)", op.Receiver), "ErrInvalidURL", err)
 	}
 
-	recvAcc, err := getProviderLinkedAccount(ctx, a.b, recvPPURL, gmt.ProviderName, gmt.TypeBankAccount)
+	recvAcc, err := getDefaultRecvAcc(ctx, a.b, recvPPURL)
 	if errors.Is(err, openpayments.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
 	}
@@ -92,7 +137,7 @@ func (a *Activity) GetGMTProviderArgs(ctx context.Context, outgoingID string) (*
 
 	var sendAcc *linkedaccounts.LinkedAccount
 	if op.FromLinkedAccount == "" {
-		sendAcc, err = getProviderLinkedAccount(ctx, a.b, op.PaymentPointer, gmt.ProviderName, gmt.TypeBankAccount)
+		sendAcc, err = getDefaultSendAcc(ctx, a.b, op.PaymentPointer)
 	} else {
 		sendAcc, err = a.b.LinkedAccounts().Get(ctx, op.FromLinkedAccount)
 	}
@@ -103,16 +148,19 @@ func (a *Activity) GetGMTProviderArgs(ctx context.Context, outgoingID string) (*
 		return nil, err
 	}
 
-	return &gmt.TransfersArgs{
-		FromForeignID:       outgoingID,
-		ToForeignID:         incomingID,
-		FromPaymentPointer:  op.PaymentPointer,
-		ToPaymentPointer:    op.ToPaymentPointer,
-		FromLinkedAccountID: sendAcc.ID,
-		ToLinkedAccountID:   recvAcc.ID,
-		FromWalletID:        sendAcc.WalletID,
-		ToWalletID:          recvAcc.WalletID,
-		Amount:              op.SendAmount,
+	return &ProviderWorkflowArgs{
+		Args: providers.TransfersArgs{
+			FromForeignID:       outgoingID,
+			ToForeignID:         incomingID,
+			FromPaymentPointer:  op.PaymentPointer,
+			ToPaymentPointer:    op.ToPaymentPointer,
+			FromLinkedAccountID: sendAcc.ID,
+			ToLinkedAccountID:   recvAcc.ID,
+			FromWalletID:        sendAcc.WalletID,
+			ToWalletID:          recvAcc.WalletID,
+			Amount:              op.SendAmount,
+		},
+		Key: providers.GMTACH2ACH,
 	}, nil
 }
 

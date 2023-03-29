@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	"gitlab.com/fynbos/backend/providers/gmt"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
@@ -42,7 +43,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	recvPPURL := ip.PaymentPointer
 
 	// Check that the recv payment pointer can receive
-	_, err = getProviderLinkedAccount(ctx, b, recvPPURL, gmt.ProviderName, gmt.TypeBankAccount)
+	_, err = getDefaultRecvAcc(ctx, b, recvPPURL)
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
@@ -53,15 +54,14 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	if q.FromLinkedAccount != "" {
 		sendLA, err = b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
 	} else {
-		// Default to bank account card if no linked account is specified
-		sendLA, err = getProviderLinkedAccount(ctx, b, q.PaymentPointer, gmt.ProviderName, gmt.TypeBankAccount)
+		// Default to bank account or card if no linked account is specified
+		sendLA, err = getDefaultSendAcc(ctx, b, q.PaymentPointer)
 	}
 	if err != nil {
 		span.RecordError(err)
 		return nil, err
 	}
-	if sendLA.Provider != gmt.ProviderName ||
-		(sendLA.Type != gmt.TypeBankAccount && sendLA.Type != gmt.TypeSendCard) {
+	if !accCanSend(*sendLA) {
 		return nil, fmt.Errorf("%w send linked account (%s) not send enabled", openpayments.ErrInternal, q.FromLinkedAccount)
 	}
 
@@ -115,8 +115,8 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	logger := workflow.GetLogger(ctx)
 	logger.Info("OutgoingTransactionWorkflow workflow started", "outgoingID", outgoingID, "trxID", trxID)
 
-	var tArgs gmt.TransfersArgs
-	err := workflow.ExecuteActivity(ctx, a.GetGMTProviderArgs, outgoingID).Get(ctx, &tArgs)
+	var wfArgs ProviderWorkflowArgs
+	err := workflow.ExecuteActivity(ctx, a.GetProviderWorkflowArgs, outgoingID).Get(ctx, &wfArgs)
 	if err != nil {
 		if temporal_utils.IsNonRetryableError(err) {
 			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
@@ -127,6 +127,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		logger.Error("GetProviderArgs Activity failed.", "Error", err)
 		return "", err
 	}
+	tArgs := wfArgs.Args
 	tArgs.FromTransactionID = trxID
 
 	err = workflow.ExecuteActivity(ctx, a.AddContact, tArgs.FromPaymentPointer, tArgs.ToPaymentPointer).Get(ctx, nil)
@@ -144,8 +145,13 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
 	}
 	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
-	var resp gmt.TransferResponse
-	err = workflow.ExecuteChildWorkflow(ctx, gmt_workflows.ACH2ACHTransferWorkflow, tArgs).Get(ctx, &resp)
+	var resp providers.TransferResponse
+	switch wfArgs.Key {
+	case providers.GMTACH2ACH:
+		err = workflow.ExecuteChildWorkflow(ctx, gmt_workflows.ACH2ACHTransferWorkflow, tArgs).Get(ctx, &resp)
+	default:
+		return "", fmt.Errorf("unknown transfer worklfow (%s)", wfArgs.Key)
+	}
 	if err != nil {
 		logger.Error("ACH2ACHTransferWorkflow child workflow failed.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
