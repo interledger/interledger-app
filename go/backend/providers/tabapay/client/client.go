@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"crypto/x509"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -14,7 +15,13 @@ import (
 
 var _ tabapay.Client = &Client{}
 
-type NewClientArgs = external_client.NewClientArgs
+type NewClientArgs struct {
+	VgsProxyURL         string
+	ClientID            string
+	BearerToken         string
+	CaCertPool          *x509.CertPool
+	SettlementAccountID string
+}
 
 type Backends interface {
 	KYC() kyc.Client
@@ -44,7 +51,12 @@ func (ob *opsBackends) Temporal() temporal.Client {
 }
 
 func New(args NewClientArgs, b Backends) (*Client, error) {
-	externalClient, err := external_client.New(args)
+	externalClient, err := external_client.New(external_client.NewClientArgs{
+		VgsProxyURL: args.VgsProxyURL,
+		ClientID:    args.ClientID,
+		BearerToken: args.BearerToken,
+		CaCertPool:  args.CaCertPool,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +66,39 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 			external: externalClient,
 			b:        b,
 		},
+		settlementAccountID: args.SettlementAccountID,
 	}, nil
 }
 
 type Client struct {
-	b ops.Backends
+	b                   ops.Backends
+	settlementAccountID string
 }
 
 func (c *Client) CreateCard(ctx context.Context, args tabapay.CreateCardArgs) (tabapay.Await, error) {
 	return ops.CreateCard(ctx, c.b, args)
+}
+
+func (c *Client) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs) (string, error) {
+	return ops.PullFromCard(ctx, c.b, ops.PullFromCardArgs{
+		WalletID:            args.WalletID,
+		ProviderID:          args.ProviderID,
+		ReferenceID:         args.ReferenceID,
+		Amount:              args.Amount,
+		SettlementAccountID: c.settlementAccountID,
+	})
+}
+
+func (c *Client) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (string, error) {
+	return ops.PushToCard(ctx, c.b, ops.PullFromCardArgs{
+		WalletID:            args.WalletID,
+		ProviderID:          args.ProviderID,
+		ReferenceID:         args.ReferenceID,
+		Amount:              args.Amount,
+		SettlementAccountID: c.settlementAccountID,
+	})
+}
+
+func (c *Client) GetTransaction(ctx context.Context, id string) (*tabapay.Transaction, error) {
+	return ops.GetTransaction(ctx, c.b, id)
 }

@@ -1,6 +1,10 @@
 package tabapay
 
-import "context"
+import (
+	"context"
+
+	"gitlab.com/fynbos/backend/currency"
+)
 
 var (
 	ProviderName = "tabapay"
@@ -14,6 +18,24 @@ type CreateCardArgs struct {
 	CardNumber     string
 	CVV            string
 	ExpirationDate string
+}
+
+type PullFromCardArgs struct {
+	WalletID    string
+	ProviderID  string
+	ReferenceID string
+	Amount      currency.Amount
+}
+
+type PushToCardArgs = PullFromCardArgs
+
+type Transaction struct {
+	ID             string
+	ReferenceID    string
+	Status         string
+	OriginalStatus string
+	Amount         currency.Amount
+	ReversalStatus string
 }
 
 type Await func(ctx context.Context, result interface{}) error
