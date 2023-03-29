@@ -149,6 +149,10 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	switch wfArgs.Key {
 	case providers.GMTACH2ACH:
 		err = workflow.ExecuteChildWorkflow(ctx, gmt_workflows.ACH2ACHTransferWorkflow, tArgs).Get(ctx, &resp)
+	case providers.GMTACH2CARD:
+		err = workflow.ExecuteChildWorkflow(ctx, gmt_workflows.ACH2CardTransferWorkflow, tArgs).Get(ctx, &resp)
+	case providers.GMTCARD2ACH:
+		err = workflow.ExecuteChildWorkflow(ctx, gmt_workflows.Card2ACHTransferWorkflow, tArgs).Get(ctx, &resp)
 	default:
 		return "", fmt.Errorf("unknown transfer worklfow (%s)", wfArgs.Key)
 	}
