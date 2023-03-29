@@ -6,7 +6,6 @@ import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   Card,
-  HomeShapes,
   Icon,
   Layouts,
   Router,
@@ -72,6 +71,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Transactions',
   layout: Layouts.WalletLayout
 }
 
@@ -174,13 +174,9 @@ export default function Page() {
 
   return (
     <WalletGrid ref={divHeight}>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='mt-2'>
-          <HomeShapes />
-        </div>
-        <h1 className='mt-6 font-display text-2xl font-medium'>Transactions</h1>
-        {transactions && transactions.length == 0 && (
-          <div className='mt-4 flex flex-col space-y-4'>
+      {transactions && transactions.length == 0 && (
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <div className='flex flex-col space-y-4'>
             <span className='text-sm text-medium'>
               Your payment activity will appear here once you start using your
               payment pointer.
@@ -192,8 +188,8 @@ export default function Page() {
               Send or receive payments now
             </Router>
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
       {transactions &&
         transactions.map((transactionGroup, index) => (
           <Card
