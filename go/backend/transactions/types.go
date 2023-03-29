@@ -32,6 +32,7 @@ type TransferType string
 
 const (
 	TransferTypeDebitCard         TransferType = "debit_card"
+	TransferTypeCreditCard        TransferType = "credit_card"
 	TransferTypeDebitBankAccount  TransferType = "debit_bank_acc"
 	TransferTypeCreditBankAccount TransferType = "credit_bank_acc"
 )
