@@ -57,6 +57,7 @@ import (
 	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
 	vgs_client "gitlab.com/fynbos/backend/providers/verygoodsecurity/client"
 	vgs_webhook "gitlab.com/fynbos/backend/providers/verygoodsecurity/webhook"
@@ -473,6 +474,7 @@ type backends struct {
 	ident            identities.Client
 	mx               mx.Client
 	gmt              gmt.Client
+	tabapay          tabapay.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -581,4 +583,8 @@ func (b backends) MX() mx.Client {
 
 func (b backends) GMT() gmt.Client {
 	return b.gmt
+}
+
+func (b backends) Tabapay() tabapay.Client {
+	return b.tabapay
 }
