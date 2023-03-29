@@ -382,7 +382,12 @@ type TransactionResp struct {
 	Contact  string
 }
 
-func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) (*TransactionResp, error) {
+type InsertACHArgs struct {
+	providers.TransfersArgs
+	OriginalPaymentMethod string
+}
+
+func (a *Activity) InsertACH(ctx context.Context, args InsertACHArgs) (*TransactionResp, error) {
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
@@ -453,7 +458,7 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 			MTSID:                 a.mts,
 			NetAmount:             args.Amount.Float64(),
 			OriginalCurrency:      args.Amount.Currency.String(),
-			OriginalPaymentMethod: "ACH", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
+			OriginalPaymentMethod: args.OriginalPaymentMethod, // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
 			ReceiverCity:          toID.Address.City,
 			ReceiverState:         toID.Address.State,
 			SaveSenderReceiver:    true,

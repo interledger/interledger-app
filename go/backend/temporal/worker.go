@@ -24,6 +24,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow)
 	w.RegisterWorkflow(gmt_workflows.OnboardUserWorkflow)
 	w.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
+	w.RegisterWorkflow(gmt_workflows.Card2ACHTransferWorkflow)
 
 	// TODO: Add once integration is done
 	// w.RegisterActivity(tabapay_workflows.NewActivity(b))
