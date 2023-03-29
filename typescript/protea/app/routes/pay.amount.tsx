@@ -28,7 +28,7 @@ export async function loader({ request }: LoaderArgs) {
   const { linkedAccounts } = await getLinkedAccounts(request)
   return json({
     flow,
-    linkedAccounts: linkedAccounts.filter((account) => account.type != 'bank')
+    linkedAccounts
   })
 }
 

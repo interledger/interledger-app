@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/mx"
+
 	"gitlab.com/fynbos/backend/providers"
 
 	"gitlab.com/fynbos/backend/contacts"
@@ -35,6 +37,10 @@ func accCanSend(la linkedaccounts.LinkedAccount) bool {
 		if la.Type == gmt.TypeBankAccount {
 			return true
 		}
+	case mx.ProviderName:
+		if la.Type == mx.TypeBankAccount {
+			return true
+		}
 	}
 
 	return false
@@ -44,6 +50,10 @@ func accCanRecv(la linkedaccounts.LinkedAccount) bool {
 	switch la.Provider {
 	case gmt.ProviderName:
 		if la.Type == gmt.TypeBankAccount {
+			return true
+		}
+	case mx.ProviderName:
+		if la.Type == mx.TypeBankAccount {
 			return true
 		}
 	}

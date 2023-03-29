@@ -3,6 +3,7 @@ package external
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -36,7 +37,7 @@ func NewClient() Client {
 	var alias, user, pass, url string
 	if !env.IsProd() {
 		alias = "FYN001"
-		user = "Fynbos_api"
+		user = "Fynbos_api_barnard_hjatesyou"
 		pass = "VUJ6bnkxN2dQVXkwMjZaOA=="
 		url = "http://35.166.119.115/gmtpay/Service1.svc"
 	}
@@ -88,6 +89,9 @@ func (c *client) ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsR
 	req.Alias = c.alias
 	req.User = c.user
 	req.Pass = c.password
+
+	rj, _ := json.Marshal(req)
+	fmt.Println("jjjjjjj", rj)
 
 	err := c.call(ctx, "http://tempuri.org/IService1/ComplianceCheck", req, response)
 	if err != nil {

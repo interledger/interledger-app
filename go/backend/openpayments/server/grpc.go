@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -368,11 +369,13 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 
 	err = g.b.Validator().Struct(args)
 	if err != nil {
+		fmt.Println("aaaaaaaa")
 		return nil, toGRPCError(err)
 	}
 
 	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)
 	if err != nil {
+		fmt.Println("XXXXXXXXX")
 		return nil, toGRPCError(err)
 	}
 
@@ -381,6 +384,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 
 	op, err := workflows.StartOutgoingPayment(ctx, g.b, args)
 	if err != nil {
+		fmt.Println("ppppppppp")
 		return nil, toGRPCError(err)
 	}
 

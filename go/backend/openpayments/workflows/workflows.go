@@ -31,12 +31,14 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	// Validate the incoming, outgoing provider accounts exist
 	q, err := ops.GetQuote(ctx, b, args.QuoteID)
 	if err != nil {
+		fmt.Println("qqqqqqqqqqqqqqq")
 		span.RecordError(err)
 		return nil, err
 	}
 
 	ip, err := ops.GetIncomingPayment(ctx, b, q.IncomingPayment)
 	if err != nil {
+		fmt.Println("rrrrrrrrrrrrrrrrrrrr")
 		span.RecordError(err)
 		return nil, err
 	}
@@ -45,6 +47,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	// Check that the recv payment pointer can receive
 	_, err = getDefaultRecvAcc(ctx, b, recvPPURL)
 	if err != nil {
+		fmt.Println("tttttttttttttttttt")
 		span.RecordError(err)
 		return nil, err
 	}
@@ -58,6 +61,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		sendLA, err = getDefaultSendAcc(ctx, b, q.PaymentPointer)
 	}
 	if err != nil {
+		fmt.Println("uuuuuuuuuuuuuuuuuu")
 		span.RecordError(err)
 		return nil, err
 	}
@@ -79,6 +83,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 
 	id, trxID, err := ops.CreateOutgoingPayment(ctx, b, args)
 	if err != nil {
+		fmt.Println("pppppppppppppppppppp")
 		span.RecordError(err)
 		return nil, err
 	}

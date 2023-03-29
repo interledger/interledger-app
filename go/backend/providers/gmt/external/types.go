@@ -695,7 +695,7 @@ type WsTransferInfo struct {
 	IsBlocked                                 bool     `xml:"IsBlocked,omitempty"`
 	IsSuspended                               bool     `xml:"IsSuspended,omitempty"`
 	LegalIdBeneficiario                       string   `xml:"LegalIdBeneficiario,omitempty"`
-	MTSID                                     int32    `xml:"MTSID,omitempty"`
+	MTSID                                     int32    `xml:"MTSID"`
 	MarkUp                                    float64  `xml:"MarkUp,omitempty"`
 	MovilRemitente                            string   `xml:"MovilRemitente,omitempty"`
 	NetAmount                                 float64  `xml:"NetAmount,omitempty"`
