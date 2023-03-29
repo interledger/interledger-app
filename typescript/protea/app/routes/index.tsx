@@ -4,7 +4,6 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import {
   ButtonRouter,
-  HomeShapes,
   Icon,
   Layouts,
   Router,
@@ -12,7 +11,8 @@ import {
   Snackbar,
   AnimatedSchedule,
   WalletGrid,
-  Card
+  Card,
+  HomeShapes
 } from '~/components'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import type { Transaction } from '~/lib/wallet.server'
@@ -468,20 +468,22 @@ function AppPage() {
         <div className='mt-2'>
           <HomeShapes />
         </div>
-        <h1 className='mt-6 font-display text-2xl font-medium'>
+        <h1 className='mt-6 text-center font-display text-2xl font-medium'>
           Welcome {firstName}
         </h1>
         {kycStatus != KycStatus.Verified && (
-          <p className='mt-4'>Thank you for signing up to Fynbos.</p>
+          <p className='mt-4 mb-2 text-center'>
+            Thank you for signing up to Fynbos.
+          </p>
         )}
         {kycStatus == KycStatus.Verified && !canTopUp && (
-          <p className='mt-4'>
+          <p className='mt-4 mb-2 text-center'>
             Your payment pointer is activated. You are now able to send and
             receive payments.
           </p>
         )}
         {kycStatus == KycStatus.Verified && canTopUp && (
-          <p className='mt-4'>
+          <p className='mt-4 mb-2 text-center'>
             Send and receive payments with your payment pointer.
           </p>
         )}
