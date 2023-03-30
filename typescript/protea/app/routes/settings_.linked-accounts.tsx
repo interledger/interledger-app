@@ -4,7 +4,7 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
-import { KycStatus } from '~/routes/index'
+import { KycStatus } from '~/routes/_index/app-page'
 import { useState } from 'react'
 import { getSnackbar } from '~/lib/snackbar.server'
 
