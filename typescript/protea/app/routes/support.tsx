@@ -5,7 +5,6 @@ import {
   AnchorRouter,
   Button,
   Card,
-  HomeShapes,
   Icon,
   Layouts,
   TextArea,
@@ -26,6 +25,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Support',
   layout: Layouts.WalletLayout
 }
 
@@ -41,13 +41,7 @@ export default function Page() {
   return (
     <WalletGrid>
       <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='mt-2'>
-          <HomeShapes />
-        </div>
-        <span className='mt-6 font-display text-2xl font-medium'>
-          Contact us
-        </span>
-        <span className='mt-6 text-medium'>
+        <span className='text-medium'>
           Get in touch and let us know how we can help.
         </span>
         <Form
@@ -116,37 +110,6 @@ export default function Page() {
             support@fynbos.app
           </AnchorRouter>
         </div>
-        <span className='mt-4 text-sm'>
-          The banking services of the Fynbos are powered by Machnet. Machnet is
-          a financial technology company and not a bank. Banking services are
-          provided by Machnet's partner banks who are Member FDIC. Machnet
-          provides the Bank services through its banking software provider,
-          Synapse. To report a complaint relating to the bank services,
-          email&nbsp;
-          <AnchorRouter
-            to='mailto:help@synapsefi.com'
-            className='text-sm text-primary'
-          >
-            help@synapsefi.com
-          </AnchorRouter>
-          . In case your grievances are not addressed by Fynbos or for any
-          escalation purposes, please contact Machnet either through
-          email&nbsp;(
-          <AnchorRouter
-            to='mailto:help@machnetinc.com'
-            className='text-sm text-primary'
-          >
-            help@machnetinc.com
-          </AnchorRouter>
-          ) or call us at&nbsp;
-          <AnchorRouter
-            to='tel:+1 (408) 539-6455'
-            className='text-sm text-primary'
-          >
-            +1 (408) 539-6455
-          </AnchorRouter>
-          .
-        </span>
       </Card>
     </WalletGrid>
   )

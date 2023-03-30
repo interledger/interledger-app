@@ -1,4 +1,4 @@
-import { Card, HomeShapes, Layouts } from '~/components'
+import { Card, LoadingShapes, Layouts } from '~/components'
 import { useFetcher, useParams } from '@remix-run/react'
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -30,6 +30,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Almost there',
   layout: Layouts.FocusLayout
 }
 
@@ -59,16 +60,14 @@ export default function Page() {
   }, [fetcher, params.type])
 
   return (
-    <Card>
-      <HomeShapes rows={4} animate />
-
-      <span className='mt-6 font-display text-2xl font-medium'>
-        Almost there
-      </span>
-      <span className='mt-6 text-medium'>
-        Please wait a moment while we verify a few final details. You will be
-        redirected shortly.
-      </span>
-    </Card>
+    <>
+      <Card>
+        <LoadingShapes />
+        <span className='mt-6 text-medium'>
+          Please wait a moment while we verify a few final details. You will be
+          redirected shortly.
+        </span>
+      </Card>
+    </>
   )
 }

@@ -3,15 +3,7 @@ import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import {
-  Button,
-  Card,
-  Icon,
-  Layouts,
-  Shape,
-  Snackbar,
-  TextField
-} from '~/components'
+import { Button, Card, Icon, Layouts, Snackbar, TextField } from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   httpMapping,
@@ -78,6 +70,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Payment pointer',
   layout: Layouts.FocusLayout
 }
 
@@ -104,75 +97,56 @@ export default function Page() {
   )
 
   return (
-    <Card>
-      <div className='flex flex-col space-y-6'>
-        <div className='flex justify-between'>
-          <span className='font-display text-2xl font-medium'>
-            Payment pointer
-          </span>
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-full'}
-              color={'bg-rose-500'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-tr-full'}
-              color={'bg-lime-300'}
-            />
-          </div>
-        </div>
-        <p>Create your unique, memorable payment pointer.</p>
-      </div>
+    <>
       <fetcher.Form
         id='payment-pointer'
         action='/payment-pointer'
         method='post'
         className='hidden'
       />
+      <Card>
+        <p>Create your unique, memorable payment pointer.</p>
 
-      <TextField
-        id='username'
-        form='payment-pointer'
-        label='Payment pointer'
-        name='username'
-        prefix={`$${paymentPointerBase}/`}
-        appendIcon={
-          username == '' &&
-          typeof fetcher.data == 'undefined' ? undefined : fetcher.data?.errors
-              .username ? (
-            <Icon className='text-error'>error</Icon>
-          ) : (
-            <Icon className='text-success'>check</Icon>
-          )
-        }
-        defaultValue={username}
-        onChange={_onChangeInput}
-        type='text'
-        className='mt-6'
-        aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
-        aria-describedby={
-          fetcher.data?.errors.username ? 'username-error' : undefined
-        }
-        errorMessage={fetcher.data?.errors.username || undefined}
-        successMessage={
-          fetcher.data?.errors.username || username == ''
-            ? undefined
-            : 'This payment pointer is available.'
-        }
-      />
-      <input
-        form='payment-pointer'
-        value='true'
-        name='canSubmit'
-        type='hidden'
-      />
-
-      <Button className='mt-12' form='payment-pointer' type='submit'>
+        <TextField
+          id='username'
+          form='payment-pointer'
+          label='Payment pointer'
+          name='username'
+          prefix={`$${paymentPointerBase}/`}
+          appendIcon={
+            username == '' &&
+            typeof fetcher.data == 'undefined' ? undefined : fetcher.data
+                ?.errors.username ? (
+              <Icon className='text-error'>error</Icon>
+            ) : (
+              <Icon className='text-success'>check</Icon>
+            )
+          }
+          defaultValue={username}
+          onChange={_onChangeInput}
+          type='text'
+          className='mt-6'
+          aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
+          aria-describedby={
+            fetcher.data?.errors.username ? 'username-error' : undefined
+          }
+          errorMessage={fetcher.data?.errors.username || undefined}
+          successMessage={
+            fetcher.data?.errors.username || username == ''
+              ? undefined
+              : 'This payment pointer is available.'
+          }
+        />
+        <input
+          form='payment-pointer'
+          value='true'
+          name='canSubmit'
+          type='hidden'
+        />
+      </Card>
+      <Button form='payment-pointer' type='submit'>
         Save
       </Button>
-
       <Snackbar
         message={snackbar.message}
         icon={snackbar.icon}
@@ -182,7 +156,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
         dismissAfter={3000}
       />
-    </Card>
+    </>
   )
 }
 

@@ -54,6 +54,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Confirmation',
   layout: Layouts.FocusLayout
 }
 
@@ -80,46 +81,44 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>
-        Confirm it's you
-      </h1>
-      <span>You are trying to edit sensitive account information.</span>
+    <>
       <Form
         id='login-challenge'
         action={`/login/challenge?flow=${flow.id}`}
         method='post'
         className='hidden'
       />
-      <TextField
-        id='password'
-        form='login-challenge'
-        label='Password'
-        name='password'
-        type='password'
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-        aria-describedby={
-          actionData?.errors?.password ? 'password-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors?.password}
-      />
+      <Card>
+        <span>To continue, type your password.</span>
+        <TextField
+          id='password'
+          form='login-challenge'
+          label='Password'
+          name='password'
+          type='password'
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-describedby={
+            actionData?.errors?.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.password}
+        />
 
-      <input
-        form='login-challenge'
-        defaultValue={email}
-        name='email'
-        type='hidden'
-      />
-      <input
-        form='login-challenge'
-        defaultValue={csrfToken}
-        name='csrf_token'
-        type='hidden'
-      />
-
-      <Button className='mt-6' form='login-challenge' type='submit'>
+        <input
+          form='login-challenge'
+          defaultValue={email}
+          name='email'
+          type='hidden'
+        />
+        <input
+          form='login-challenge'
+          defaultValue={csrfToken}
+          name='csrf_token'
+          type='hidden'
+        />
+      </Card>
+      <Button form='login-challenge' type='submit'>
         Continue
       </Button>
       <Snackbar
@@ -132,7 +131,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </Card>
+    </>
   )
 }
 

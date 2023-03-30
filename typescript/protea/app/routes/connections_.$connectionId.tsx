@@ -1,5 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
+import type { RouteMatch } from '@remix-run/react'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
@@ -23,6 +24,7 @@ import {
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export const handle = {
+  title: (match: RouteMatch) => match.data.connection.applicationName,
   layout: Layouts.FocusLayout
 }
 
@@ -81,10 +83,7 @@ export default function Page() {
       />
 
       <Card>
-        <h1 className='font-display text-2xl font-medium'>
-          {connection.applicationName}
-        </h1>
-        <code className='mt-6 flex items-center justify-between rounded-xl bg-container p-2 font-mono text-medium break-all'>
+        <code className='flex items-center justify-between rounded-xl bg-container p-2 font-mono text-medium break-all'>
           {connection.publicKeyFingerprint}
         </code>
 
@@ -93,8 +92,8 @@ export default function Page() {
         {/*<p className='mt-1 text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>*/}
       </Card>
 
-      <Card className='mt-6'>
-        <h1 className='font-display text-2xl font-medium'>Limits</h1>
+      <Card>
+        <h1 className='font-display text-lg font-medium'>Limits</h1>
         <p className='mt-6'>
           Providing access to your Fynbos wallet allows the external application
           to make payments. Set the limits below.
@@ -157,7 +156,7 @@ export default function Page() {
         />
       </Card>
 
-      <div className='mt-6 flex w-full space-x-2'>
+      <div className='flex w-full space-x-2'>
         <OutlineButton
           shrink
           className='outline-red-700 focus-visible:outline-red-800 text-red-700'

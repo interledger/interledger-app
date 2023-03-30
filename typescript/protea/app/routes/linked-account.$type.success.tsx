@@ -21,6 +21,7 @@ export async function loader({ request, params }: LoaderArgs) {
   return json({ flow })
 }
 export const handle = {
+  title: 'Success',
   layout: Layouts.FocusLayout
 }
 
@@ -34,20 +35,18 @@ export default function Page() {
   const params = useParams()
   const { flow } = useLoaderData<typeof loader>()
   return (
-    <Card>
-      <SuccessShapes />
+    <>
+      <Card>
+        <SuccessShapes />
 
-      <span className='mt-6 font-display text-2xl font-medium'>Success</span>
-      <span className='mt-6 text-medium'>
-        Your {params.type == 'card' ? 'debit card' : 'bank account'} has been
-        added.
-      </span>
-
-      <div className='flex justify-end pt-12'>
-        <ButtonRouter to={flow.returnTo ?? route('/settings/linked-accounts')}>
-          Close
-        </ButtonRouter>
-      </div>
-    </Card>
+        <span className='mt-6 text-medium'>
+          Your {params.type == 'card' ? 'debit card' : 'bank account'} has been
+          added.
+        </span>
+      </Card>
+      <ButtonRouter to={flow.returnTo ?? route('/settings/linked-accounts')}>
+        Close
+      </ButtonRouter>
+    </>
   )
 }

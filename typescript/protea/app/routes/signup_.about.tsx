@@ -4,14 +4,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import {
-  Autocomplete,
-  Button,
-  Card,
-  Layouts,
-  Shape,
-  TextField
-} from '~/components'
+import { Autocomplete, Button, Card, Layouts, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -47,6 +40,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Profile details',
   layout: Layouts.FocusLayout
 }
 
@@ -91,33 +85,16 @@ export default function Page() {
 
   return (
     <>
+      <Form
+        id='signup-about-details'
+        action='/signup/about'
+        method='post'
+        className='hidden'
+      />
       <Card>
-        <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>Profile details</h1>
-
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-tl-full'}
-              color={'bg-yellow-300'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-bl-full'}
-              color={'bg-slate-500'}
-            />
-          </div>
-        </div>
-        <p className='mt-6 text-medium'>
+        <p className='text-medium'>
           Please provide a few details about yourself.
         </p>
-
-        <Form
-          id='signup-about-details'
-          action='/signup/about'
-          method='post'
-          className='hidden'
-        />
 
         <TextField
           id='firstName'
@@ -189,12 +166,11 @@ export default function Page() {
           name='country'
           type='hidden'
         />
-
-        <Button className='mt-12' form='signup-about-details' type='submit'>
-          Continue
-        </Button>
       </Card>
-      <div className='mt-6 flex w-full space-x-2'>
+      <Button form='signup-about-details' type='submit'>
+        Continue
+      </Button>
+      <div className='flex w-full space-x-2'>
         <span className='text-xs text-medium'>
           <sup>&dagger;</sup>
         </span>
