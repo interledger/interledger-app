@@ -25,7 +25,7 @@ import {
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
 import { generateQR, qrSvg } from '~/lib/qr.server'
-import { KycStatus } from '~/routes/index'
+import { KycStatus } from '~/routes/_index/app-page'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Pay)
