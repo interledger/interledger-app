@@ -4,7 +4,7 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 
 import styles from '~/styles/VGS.css'
-import { Button, Card, Layouts, Shape } from '~/components'
+import { Button, Card, Layouts } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { getLinkedAccounts, getWalletId } from '~/lib/wallet.server'
 import { loadVGSCollect } from '@vgs/collect-js'
@@ -35,6 +35,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Debit card',
   layout: Layouts.FocusLayout
 }
 
@@ -185,122 +186,98 @@ export default function Page() {
     setFieldErrors(fieldErrors)
   }
 
-  return (
-    <Card>
-      <div className='flex justify-between'>
-        <h1 className='font-display text-2xl font-medium'>Debit card</h1>
-        <div className='hidden sm:flex'>
-          <Shape
-            width={'w-8'}
-            radius={'rounded-tl-full'}
-            color={'bg-lime-500'}
-          />
-          <Shape
-            width={'w-8'}
-            radius={'rounded-tl-full'}
-            color={'bg-slate-600'}
-          />
-        </div>
-      </div>
-      <p className='mt-6 text-medium'>
-        Please provide your debit card details.
-      </p>
-      {isVGSCollectScriptLoaded && (
-        <>
-          {/**
-           * VGS Collect form wrapper element. Abstraction over the VGSCollect.create()
-           * https://www.verygoodsecurity.com/docs/api/collect/#api-vgscollectcreate
-           */}
-          <VGSCollectForm
-            vaultId={vaultId as string}
-            environment={environment as VGSCollectVaultEnvironment}
-            // TODO Set this to the endpoint configured on the backend
-            action='/webhooks/verygoodsecurity/card'
-            submitParameters={{
-              // JSON request body generated on the form submission including custom parameters
-              // https://www.verygoodsecurity.com/docs/vgs-collect/js/integration#form-submit
-              data: (fields: ICollectFormPayloadStructure) => {
-                return {
-                  ...fields,
-                  walletId,
-                  last4: cardInfo.last4,
-                  cardType: cardInfo.cardType
-                }
-              }
-            }}
-            onUpdateCallback={handleFormStateChange}
-            onSubmitCallback={onSubmitCallback}
-            onErrorCalback={handleFormStateChange}
-          >
-            <label className='block mt-6'>
+  if (isVGSCollectScriptLoaded)
+    return (
+      <VGSCollectForm
+        vaultId={vaultId as string}
+        environment={environment as VGSCollectVaultEnvironment}
+        // TODO Set this to the endpoint configured on the backend
+        action='/webhooks/verygoodsecurity/card'
+        submitParameters={{
+          // JSON request body generated on the form submission including custom parameters
+          // https://www.verygoodsecurity.com/docs/vgs-collect/js/integration#form-submit
+          data: (fields: ICollectFormPayloadStructure) => {
+            return {
+              ...fields,
+              walletId,
+              last4: cardInfo.last4,
+              cardType: cardInfo.cardType
+            }
+          }
+        }}
+        onUpdateCallback={handleFormStateChange}
+        onSubmitCallback={onSubmitCallback}
+        onErrorCalback={handleFormStateChange}
+      >
+        <Card>
+          <p className='text-medium'>Please provide your debit card details.</p>
+          <label className='block mt-6'>
+            <span className='ml-2 block text-sm font-medium text-medium'>
+              Card number
+            </span>
+            <VGSCollectForm.CardNumberField
+              placeholder=''
+              className='w-full'
+              validations={['required', 'validCardNumber']}
+              showCardIcon={{
+                right: '1rem'
+              }}
+              name='card-number'
+              css={VGSCollectFieldStyles}
+            />
+            <div className='h-7 pt-2 pl-2'>
+              {fieldErrors.cardNumber && (
+                <p className='text-sm text-error'>{fieldErrors.cardNumber}</p>
+              )}
+            </div>
+          </label>
+          <div className='flex space-x-4'>
+            <label className='block mt-1'>
               <span className='ml-2 block text-sm font-medium text-medium'>
-                Card number
+                Expiry date
               </span>
-              <VGSCollectForm.CardNumberField
-                placeholder=''
-                className='w-full'
-                validations={['required', 'validCardNumber']}
-                showCardIcon={{
-                  right: '1rem'
-                }}
-                name='card-number'
-                css={VGSCollectFieldStyles}
+              <VGSCollectForm.CardExpirationDateField
+                placeholder='MM / YY'
+                className='flex w-full'
+                validations={['required', 'validCardExpirationDate']}
+                yearLength={2}
+                css={{ ...VGSCollectFieldStyles, paddingRight: '0' }}
+                name='exp-date'
               />
               <div className='h-7 pt-2 pl-2'>
-                {fieldErrors.cardNumber && (
-                  <p className='text-sm text-error'>{fieldErrors.cardNumber}</p>
+                {fieldErrors.expDate && (
+                  <p className='text-sm text-error'>{fieldErrors.expDate}</p>
                 )}
               </div>
             </label>
-            <div className='flex space-x-4'>
-              <label className='block mt-1'>
-                <span className='ml-2 block text-sm font-medium text-medium'>
-                  Expiry date
-                </span>
-                <VGSCollectForm.CardExpirationDateField
-                  placeholder='MM / YY'
-                  className='flex w-full'
-                  validations={['required', 'validCardExpirationDate']}
-                  yearLength={2}
-                  css={{ ...VGSCollectFieldStyles, paddingRight: '0' }}
-                  name='exp-date'
-                />
-                <div className='h-7 pt-2 pl-2'>
-                  {fieldErrors.expDate && (
-                    <p className='text-sm text-error'>{fieldErrors.expDate}</p>
-                  )}
-                </div>
-              </label>
-              <label className='block mt-1'>
-                <span className='ml-2 block text-sm font-medium text-medium'>
-                  Security code
-                </span>
-                <VGSCollectForm.CardSecurityCodeField
-                  placeholder=''
-                  className='w-full'
-                  name='card-security-code'
-                  validations={['required', 'validCardSecurityCode']}
-                  css={VGSCollectFieldStyles}
-                  showCardIcon={{
-                    right: '1rem'
-                  }}
-                />
-                <div className='h-7 pt-2 pl-2'>
-                  {fieldErrors.cardSecurityCode && (
-                    <p className='text-sm text-error'>
-                      {fieldErrors.cardSecurityCode}
-                    </p>
-                  )}
-                </div>
-              </label>
-            </div>
+            <label className='block mt-1'>
+              <span className='ml-2 block text-sm font-medium text-medium'>
+                Security code
+              </span>
+              <VGSCollectForm.CardSecurityCodeField
+                placeholder=''
+                className='w-full'
+                name='card-security-code'
+                validations={['required', 'validCardSecurityCode']}
+                css={VGSCollectFieldStyles}
+                showCardIcon={{
+                  right: '1rem'
+                }}
+              />
+              <div className='h-7 pt-2 pl-2'>
+                {fieldErrors.cardSecurityCode && (
+                  <p className='text-sm text-error'>
+                    {fieldErrors.cardSecurityCode}
+                  </p>
+                )}
+              </div>
+            </label>
+          </div>
+        </Card>
 
-            <Button className='mt-12' type='submit'>
-              Submit
-            </Button>
-          </VGSCollectForm>
-        </>
-      )}
-    </Card>
-  )
+        <Button className='mt-6' type='submit'>
+          Submit
+        </Button>
+      </VGSCollectForm>
+    )
 }

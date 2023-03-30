@@ -7,7 +7,6 @@ import {
   Checkbox,
   Layouts,
   Router,
-  Shape,
   Snackbar,
   TextField
 } from '~/components'
@@ -69,6 +68,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Password',
   layout: Layouts.FocusLayout
 }
 
@@ -95,85 +95,73 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <Card>
-      <div className='flex flex-col space-y-6'>
-        <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>Password</h1>
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-tl-full'}
-              color={'bg-yellow-300'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-bl-full'}
-              color={'bg-slate-300'}
-            />
-          </div>
-        </div>
-        <p>Create a password to log in to your account securely.</p>
-      </div>
-
+    <>
       <Form
         id='signup-password'
         action={`/signup/password?flow=${kratosFlowId}`}
         method='post'
         className='hidden'
       />
-      <TextField
-        id='password'
-        label='Password'
-        name='password'
-        form='signup-password'
-        type='password'
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors.password) || undefined}
-        aria-describedby={
-          actionData?.errors.password ? 'password-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors.password}
-      />
+      <Card>
+        <p>Create a password to log in to your account securely.</p>
 
-      <Checkbox
-        id='service-agreement'
-        name='service-agreement'
-        form='signup-password'
-        className='mt-8 flex'
-        aria-invalid={Boolean(actionData?.errors.serviceAgreement) || undefined}
-        aria-describedby={
-          actionData?.errors.serviceAgreement
-            ? 'serviceAgreement-error'
-            : undefined
-        }
-        errorMessage={actionData?.errors.serviceAgreement}
-      >
-        I agree to the Fynbos&nbsp;
-        <Router className='text-primary' to={route('/legal/privacy-policy')}>
-          Privacy Policy
-        </Router>
-        ,&nbsp;
-        <Router className='text-primary' to={route('/legal/terms-of-use')}>
-          Terms of Use
-        </Router>
-        , and&nbsp;
-        <Router
-          className='text-primary'
-          to={route('/legal/electronic-disclosures')}
+        <TextField
+          id='password'
+          label='Password'
+          name='password'
+          form='signup-password'
+          type='password'
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors.password) || undefined}
+          aria-describedby={
+            actionData?.errors.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.password}
+        />
+      </Card>
+      <Card>
+        <Checkbox
+          id='service-agreement'
+          name='service-agreement'
+          form='signup-password'
+          className='flex'
+          aria-invalid={
+            Boolean(actionData?.errors.serviceAgreement) || undefined
+          }
+          aria-describedby={
+            actionData?.errors.serviceAgreement
+              ? 'serviceAgreement-error'
+              : undefined
+          }
+          errorMessage={actionData?.errors.serviceAgreement}
         >
-          Electronic Disclosures
-        </Router>
-        .
-      </Checkbox>
+          I agree to the Fynbos&nbsp;
+          <Router className='text-primary' to={route('/legal/privacy-policy')}>
+            Privacy Policy
+          </Router>
+          ,&nbsp;
+          <Router className='text-primary' to={route('/legal/terms-of-use')}>
+            Terms of Use
+          </Router>
+          , and&nbsp;
+          <Router
+            className='text-primary'
+            to={route('/legal/electronic-disclosures')}
+          >
+            Electronic Disclosures
+          </Router>
+          .
+        </Checkbox>
 
-      <input
-        defaultValue={csrfToken}
-        name='csrf_token'
-        form='signup-password'
-        type='hidden'
-      />
-      <Button className='mt-12' form='signup-password' type='submit'>
+        <input
+          defaultValue={csrfToken}
+          name='csrf_token'
+          form='signup-password'
+          type='hidden'
+        />
+      </Card>
+      <Button form='signup-password' type='submit'>
         Confirm
       </Button>
       <Snackbar
@@ -186,7 +174,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </Card>
+    </>
   )
 }
 

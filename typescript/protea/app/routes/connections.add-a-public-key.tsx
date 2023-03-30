@@ -14,6 +14,7 @@ import {
 import { flashSnackbar } from '~/lib/snackbar.server'
 
 export const handle = {
+  title: 'Add a public key',
   layout: Layouts.FocusLayout
 }
 
@@ -36,8 +37,7 @@ export default function Page() {
       />
 
       <Card>
-        <h1 className='font-display text-2xl font-medium'>Add a public key</h1>
-        <p className='mt-6 text-medium'>
+        <p className='text-medium'>
           Add the public key of the external application that is connecting to
           your wallet.
         </p>
@@ -78,9 +78,9 @@ export default function Page() {
         />
       </Card>
 
-      <Card className='mt-6'>
-        <h1 className='font-display text-2xl font-medium'>Limits</h1>
-        <p>
+      <Card>
+        <h2 className='font-display text-lg font-medium'>Limits</h2>
+        <p className='mt-6'>
           Providing access to your Fynbos wallet allows the external application
           to make payments. Set the limits below.
         </p>
@@ -142,7 +142,7 @@ export default function Page() {
         />
       </Card>
 
-      <Button className='mt-6' form='add-public-key' type='submit'>
+      <Button form='add-public-key' type='submit'>
         Add key
       </Button>
     </>
