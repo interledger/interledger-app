@@ -15,7 +15,7 @@ class Card extends StatelessWidget {
             borderRadius: BorderRadius.circular(20), color: Colors.white),
         width: double.infinity,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: const EdgeInsets.all(16),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, children: children));
   }

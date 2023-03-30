@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:watsonia/components/floating_action_button.dart';
+import 'package:watsonia/components/nav_drawer.dart';
 import 'package:watsonia/styles/colors.dart';
 
 class TransactionsRoute extends StatefulWidget {
-  const TransactionsRoute({super.key, required this.title});
-
-  final String title;
+  const TransactionsRoute({super.key});
 
   @override
   State<TransactionsRoute> createState() => _TransactionsRouteState();
@@ -15,7 +15,7 @@ class _TransactionsRouteState extends State<TransactionsRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // We don't need an app bar on this page because the shell route scaffold will render it for us.
+      appBar: AppBar(title: const Text("Transactions"),),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: <Widget>[
@@ -38,6 +38,9 @@ class _TransactionsRouteState extends State<TransactionsRoute> {
           )
         ],
       ),
+      drawerScrimColor: TWColors.bgScrim,
+      drawer: const NavDrawer(),
+      floatingActionButton: const PayFAB(),
     );
   }
 }

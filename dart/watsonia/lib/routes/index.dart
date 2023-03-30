@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:watsonia/components/floating_action_button.dart';
+import 'package:watsonia/components/nav_drawer.dart';
 import 'package:watsonia/styles/colors.dart';
 
 class IndexRoute extends StatefulWidget {
-  const IndexRoute({super.key, required this.title});
+  const IndexRoute({super.key});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
 
   @override
   State<IndexRoute> createState() => _IndexRouteState();
@@ -24,7 +16,7 @@ class _IndexRouteState extends State<IndexRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // We don't need an app bar on this page because the ShellRoute Scaffold will render it for us.
+      appBar: AppBar(title: const Text("Home"),),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: <Widget>[
@@ -47,6 +39,9 @@ class _IndexRouteState extends State<IndexRoute> {
           )
         ],
       ),
+      drawerScrimColor: TWColors.bgScrim,
+      drawer: const NavDrawer(),
+      floatingActionButton: const PayFAB(),
     );
   }
 }

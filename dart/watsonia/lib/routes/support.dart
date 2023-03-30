@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:watsonia/components/floating_action_button.dart';
+import 'package:watsonia/components/nav_drawer.dart';
 import 'package:watsonia/styles/colors.dart';
 
-class PayRoute extends StatefulWidget {
-  const PayRoute({super.key});
+class SupportRoute extends StatefulWidget {
+  const SupportRoute({super.key});
 
   @override
-  State<PayRoute> createState() => _PayPagePageState();
+  State<SupportRoute> createState() => _SupportRouteState();
 }
 
-class _PayPagePageState extends State<PayRoute> {
+class _SupportRouteState extends State<SupportRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Image.asset(
-          'images/Logo.png',
-          height: 32,
-        ),
-      ),
+      // We don't need an app bar on this page because the shell route scaffold will render it for us.
+      appBar: AppBar(title: const Text("Support"),),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: <Widget>[
@@ -29,7 +27,7 @@ class _PayPagePageState extends State<PayRoute> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               child: Text(
-                'Pay',
+                'Transactions',
                 style: GoogleFonts.poppins(
                   textStyle: const TextStyle(
                     fontWeight: FontWeight.w500,
@@ -41,6 +39,9 @@ class _PayPagePageState extends State<PayRoute> {
           )
         ],
       ),
+      drawerScrimColor: TWColors.bgScrim,
+      drawer: const NavDrawer(),
+      floatingActionButton: const PayFAB(),
     );
   }
 }

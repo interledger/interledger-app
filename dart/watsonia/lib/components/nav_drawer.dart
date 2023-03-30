@@ -76,24 +76,10 @@ class NavDrawer extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: ListTile(
-                title: Text(
-                  'Contact',
-                  style: GoogleFonts.poppins(
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                selected: GoRouterState.of(context).location == '/contact',
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                selectedTileColor: TWColors.bgContainerHover,
-                selectedColor: TWColors.textStrong,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: ListTile(
+                onTap: () {
+                  context.go('/settings');
+                  Navigator.of(context).pop();
+                },
                 title: Text(
                   'Settings',
                   style: GoogleFonts.poppins(
@@ -109,6 +95,29 @@ class NavDrawer extends StatelessWidget {
                 selectedColor: TWColors.textStrong,
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: ListTile(
+                onTap: () {
+                  context.go('/support');
+                  Navigator.of(context).pop();
+                },
+                title: Text(
+                  'Support',
+                  style: GoogleFonts.poppins(
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                selected: GoRouterState.of(context).location == '/support',
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                selectedTileColor: TWColors.bgContainerHover,
+                selectedColor: TWColors.textStrong,
+              ),
+            ),
+
           ],
         ),
       ),
