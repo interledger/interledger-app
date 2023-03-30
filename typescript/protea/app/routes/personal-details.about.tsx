@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { SelectOptions } from '~/components'
-import { Button, Card, Layouts, Select, Shape, TextField } from '~/components'
+import { Button, Card, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -38,6 +38,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Personal details',
   layout: Layouts.FocusLayout
 }
 
@@ -64,34 +65,16 @@ export default function Page() {
 
   return (
     <>
+      <Form
+        id='personal-details-about'
+        action='/personal-details/about'
+        method='post'
+        className='hidden'
+      />
       <Card>
-        <div className='flex justify-between'>
-          <h1 className='font-display text-2xl font-medium'>
-            Personal details
-          </h1>
-          <div className='hidden sm:flex'>
-            <Shape
-              width={'w-8'}
-              radius={'rounded-br-full'}
-              color={'bg-rose-300'}
-            />
-            <Shape
-              width={'w-8'}
-              radius={'rounded-full'}
-              color={'bg-lime-500'}
-            />
-          </div>
-        </div>
-        <p className='mt-6 text-medium'>
-          Please provide your personal details.
+        <p className='text-medium'>
+          Please provide a few details about yourself.
         </p>
-
-        <Form
-          id='personal-details-about'
-          action='/personal-details/about'
-          method='post'
-          className='hidden'
-        />
 
         <TextField
           id='firstName'
@@ -162,12 +145,11 @@ export default function Page() {
           name='gender'
           type='hidden'
         />
-
-        <Button className='mt-12' form='personal-details-about' type='submit'>
-          Continue
-        </Button>
       </Card>
-      <div className='mt-6 flex w-full space-x-2'>
+      <Button form='personal-details-about' type='submit'>
+        Continue
+      </Button>
+      <div className='flex w-full space-x-2'>
         <span className='text-xs text-medium'>
           <sup>&dagger;</sup>
         </span>

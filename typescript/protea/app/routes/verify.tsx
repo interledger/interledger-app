@@ -77,6 +77,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Verify your email',
   layout: Layouts.FocusLayout
 }
 
@@ -90,30 +91,29 @@ export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()
 
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>
-        Verify your email
-      </h1>
-      <span>
-        We've sent a verification link to your email: <br /> {email}
-      </span>
+    <>
       <Form
         id='verify'
         action={`/verify?flow=${flow.id}`}
         method='post'
         className='hidden'
       />
-      <input
-        form='verify'
-        defaultValue={csrfToken}
-        name='csrf_token'
-        type='hidden'
-      />
-      <input form='verify' defaultValue={email} name='email' type='hidden' />
-      <Button className='mt-6' form='verify' type='submit'>
+      <Card>
+        <span>
+          We've sent a verification link to your email: <br /> {email}
+        </span>
+        <input
+          form='verify'
+          defaultValue={csrfToken}
+          name='csrf_token'
+          type='hidden'
+        />
+        <input form='verify' defaultValue={email} name='email' type='hidden' />
+      </Card>
+      <Button form='verify' type='submit'>
         Resend verification
       </Button>
-    </Card>
+    </>
   )
 }
 

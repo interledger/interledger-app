@@ -48,6 +48,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Pay',
   layout: Layouts.FocusLayout
 }
 
@@ -63,15 +64,14 @@ export default function Page() {
 
   return (
     <>
+      <Form
+        id='pay-payment-pointer'
+        action='/pay'
+        method='post'
+        className='hidden'
+      />
       <Card>
-        <h1 className='mb-6 font-display text-2xl font-medium'>Pay</h1>
         <span>Enter the recipient’s payment pointer.</span>
-        <Form
-          id='pay-payment-pointer'
-          action='/pay'
-          method='post'
-          className='hidden'
-        />
         <TextField
           id='paymentPointer'
           label='Payment pointer'
@@ -88,14 +88,11 @@ export default function Page() {
           }
           errorMessage={actionData?.errors.paymentPointer}
         />
-
-        <div className='mt-6'>
-          <Button form='pay-payment-pointer' type='submit'>
-            Pay
-          </Button>
-        </div>
       </Card>
-      <Card className='mt-6 col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+      <Button form='pay-payment-pointer' type='submit'>
+        Pay
+      </Button>
+      <Card>
         <div className='flex items-center justify-between'>
           <h1 className='font-display text-lg font-medium'>
             Last transacted with
