@@ -52,6 +52,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Set password',
   layout: Layouts.FocusLayout
 }
 
@@ -78,38 +79,38 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>Set password</h1>
-      <span>Set a new password to continue.</span>
+    <>
       <Form
         id='settings-password'
         action={`/settings/password?flow=${flow.id}`}
         method='post'
         className='hidden'
       />
-      <TextField
-        id='new-password'
-        form='settings-password'
-        label='New password'
-        name='new-password'
-        type='password'
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-        aria-describedby={
-          actionData?.errors?.password ? 'password-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors?.password}
-      />
+      <Card>
+        <span>Set a new password to continue.</span>
+        <TextField
+          id='new-password'
+          form='settings-password'
+          label='New password'
+          name='new-password'
+          type='password'
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-describedby={
+            actionData?.errors?.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.password}
+        />
 
-      <input
-        form='settings-password'
-        defaultValue={csrfToken}
-        name='csrf_token'
-        type='hidden'
-      />
-
-      <Button className='mt-6' form='settings-password' type='submit'>
+        <input
+          form='settings-password'
+          defaultValue={csrfToken}
+          name='csrf_token'
+          type='hidden'
+        />
+      </Card>
+      <Button form='settings-password' type='submit'>
         Continue
       </Button>
       <Snackbar
@@ -122,7 +123,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </Card>
+    </>
   )
 }
 

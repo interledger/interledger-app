@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { Card, Icon, Layouts, Snackbar, WalletGrid } from '~/components'
+import { Card, Icon, Layouts, Snackbar } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 
@@ -18,7 +18,8 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  layout: Layouts.WalletLayout
+  title: 'Contact information',
+  layout: Layouts.FocusLayout
 }
 
 export const meta: MetaFunction = () => {
@@ -31,12 +32,9 @@ export default function Page() {
   const { traits, snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   return (
-    <WalletGrid>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-2xl font-medium'>
-          Contact information
-        </h1>
-        <h2 className='mt-6 text-sm font-medium'>Email address</h2>
+    <>
+      <Card>
+        <h2 className='text-sm font-medium'>Email address</h2>
         <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
           <div className='flex space-x-3'>
             <Icon>mail</Icon>
@@ -61,6 +59,6 @@ export default function Page() {
         offset
         onClose={() => setSnackbar(false)}
       />
-    </WalletGrid>
+    </>
   )
 }

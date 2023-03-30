@@ -9,7 +9,6 @@ import {
 import {
   Button,
   Card,
-  HomeShapes,
   Layouts,
   Router,
   Snackbar,
@@ -67,6 +66,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Log in',
   layout: Layouts.FocusLayout
 }
 
@@ -94,70 +94,57 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <Card>
-      <div className='mt-2'>
-        <HomeShapes />
-      </div>
-      <h1 className='mt-6 font-display text-2xl font-medium'>Log in</h1>
-      <p className='mt-6 text-medium'>
-        New to Fynbos?{' '}
-        {isSignupGated && (
-          <Router className='text-primary' to={route('/waitlist')}>
-            Join waitlist
-          </Router>
-        )}
-        {!isSignupGated && (
-          <Router className='text-primary' to={route('/signup')}>
-            Sign up
-          </Router>
-        )}
-      </p>
+    <>
       <Form
         id='login'
         action={`/login?${searchParams[0]}`}
         method='post'
         className='hidden'
       />
-      <TextField
-        id='email'
-        label='Email'
-        name='email'
-        type='email'
-        form='login'
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-        aria-describedby={actionData?.errors?.email ? 'email-error' : undefined}
-        required
-        errorMessage={actionData?.errors?.email}
-      />
-      <TextField
-        id='password'
-        label='Password'
-        name='password'
-        type='password'
-        form='login'
-        className='mt-1'
-        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-        aria-describedby={
-          actionData?.errors?.password ? 'password-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors?.password}
-      />
+      <Card>
+        <TextField
+          id='email'
+          label='Email'
+          name='email'
+          type='email'
+          form='login'
+          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+          aria-describedby={
+            actionData?.errors?.email ? 'email-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.email}
+        />
+        <TextField
+          id='password'
+          label='Password'
+          name='password'
+          type='password'
+          form='login'
+          className='mt-1'
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-describedby={
+            actionData?.errors?.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.password}
+        />
 
-      <input
-        form='login'
-        defaultValue={csrfToken}
-        name='csrf_token'
-        type='hidden'
-      />
-      <div className='mt-4 flex justify-end'>
-        <Router to={route('/recovery')} aria-label='Forgot password?'>
-          <span className='text-primary'>Forgot password?</span>
-        </Router>
-      </div>
-
-      <Button className='mt-12' form='login' type='submit'>
+        <input
+          form='login'
+          defaultValue={csrfToken}
+          name='csrf_token'
+          type='hidden'
+        />
+        <div className='mt-4'>
+          <Router to={route('/recovery')} aria-label='Forgot password?'>
+            <span className='text-primary font-medium text-sm'>
+              Forgot password
+            </span>
+          </Router>
+        </div>
+      </Card>
+      <Button form='login' type='submit'>
         Log in
       </Button>
       <Snackbar
@@ -170,7 +157,20 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </Card>
+      <p className='text-center font-medium text-sm text-medium'>
+        New to Fynbos?{' '}
+        {isSignupGated && (
+          <Router className='text-primary' to={route('/waitlist')}>
+            Join waitlist
+          </Router>
+        )}
+        {!isSignupGated && (
+          <Router className='text-primary' to={route('/signup')}>
+            Sign up
+          </Router>
+        )}
+      </p>
+    </>
   )
 }
 

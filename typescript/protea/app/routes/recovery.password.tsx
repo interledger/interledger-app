@@ -14,6 +14,7 @@ import { flashSnackbar } from '~/lib/snackbar.server'
 import { useEffect, useState } from 'react'
 
 export const handle = {
+  title: 'Set password',
   layout: Layouts.FocusLayout
 }
 
@@ -75,41 +76,41 @@ export default function Page() {
   }, [actionData])
 
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>Set password</h1>
-      <span>
-        You've successfully recovered your account. Set a new password to
-        continue.
-      </span>
+    <>
       <Form
         id='recovery-password'
         action={`/recovery/password?flow=${flow.id}`}
         method='post'
         className='hidden'
       />
-      <TextField
-        id='new-password'
-        form='recovery-password'
-        label='New password'
-        name='new-password'
-        type='password'
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-        aria-describedby={
-          actionData?.errors?.password ? 'password-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors?.password}
-      />
+      <Card>
+        <span>
+          You've successfully recovered your account. Set a new password to
+          continue.
+        </span>
+        <TextField
+          id='new-password'
+          form='recovery-password'
+          label='New password'
+          name='new-password'
+          type='password'
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-describedby={
+            actionData?.errors?.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.password}
+        />
 
-      <input
-        form='recovery-password'
-        defaultValue={csrfToken}
-        name='csrf_token'
-        type='hidden'
-      />
-
-      <Button className='mt-6' form='recovery-password' type='submit'>
+        <input
+          form='recovery-password'
+          defaultValue={csrfToken}
+          name='csrf_token'
+          type='hidden'
+        />
+      </Card>
+      <Button form='recovery-password' type='submit'>
         Continue
       </Button>
       <Snackbar
@@ -122,7 +123,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-    </Card>
+    </>
   )
 }
 

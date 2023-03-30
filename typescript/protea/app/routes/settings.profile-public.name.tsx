@@ -27,12 +27,13 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Edit public name',
   layout: Layouts.FocusLayout
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Settings | Edit public name'
+    title: 'Edit public name'
   }
 }
 
@@ -41,36 +42,33 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
 
   return (
-    <Card>
-      <div className='flex flex-col space-y-6'>
-        <h1 className='font-display text-2xl font-medium'>Edit public name</h1>
-      </div>
-
+    <>
       <Form
         id='edit-public-name'
         action='/settings/profile-public/name'
         method='post'
         className='hidden'
       />
-      <TextField
-        id='name'
-        label='Public name'
-        name='name'
-        form='edit-public-name'
-        type='text'
-        defaultValue={name}
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors.name) || undefined}
-        aria-describedby={
-          actionData?.errors.name ? 'password-error' : undefined
-        }
-        required
-        errorMessage={actionData?.errors.name}
-      />
-      <Button className='mt-12' form='edit-public-name' type='submit'>
+      <Card>
+        <TextField
+          id='name'
+          label='Public name'
+          name='name'
+          form='edit-public-name'
+          type='text'
+          defaultValue={name}
+          aria-invalid={Boolean(actionData?.errors.name) || undefined}
+          aria-describedby={
+            actionData?.errors.name ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.name}
+        />
+      </Card>
+      <Button form='edit-public-name' type='submit'>
         Save
       </Button>
-    </Card>
+    </>
   )
 }
 

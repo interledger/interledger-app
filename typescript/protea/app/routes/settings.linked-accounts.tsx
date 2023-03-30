@@ -2,7 +2,7 @@ import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
+import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/index'
 import { useState } from 'react'
@@ -28,7 +28,8 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  layout: Layouts.WalletLayout
+  title: 'Linked accounts',
+  layout: Layouts.FocusLayout
 }
 
 export const meta: MetaFunction = () => {
@@ -44,16 +45,10 @@ export default function Page() {
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   return (
-    <WalletGrid>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-2xl font-medium'>Linked accounts</h1>
-        {linkedAccounts.length == 0 && (
-          <p className='mt-6'>You do not have any linked accounts.</p>
-        )}
-
-        {linkedAccounts &&
-          linkedAccounts.length > 0 &&
-          linkedAccounts.map((method) => (
+    <>
+      {linkedAccounts && linkedAccounts.length > 0 && (
+        <Card>
+          {linkedAccounts.map((method) => (
             <Router
               key={method.id}
               to={route('/settings/linked-accounts/:accountId', {
@@ -70,17 +65,21 @@ export default function Page() {
               <Icon>navigate_next</Icon>
             </Router>
           ))}
-        {linkedAccounts.length > 0 && (
           <Router
             className='mt-6 text-sm font-medium text-primary'
             to={route('/linked-account/:type', { type: 'new' })}
           >
             Link another account
           </Router>
-        )}
-      </Card>
+        </Card>
+      )}
+      {linkedAccounts && linkedAccounts.length == 0 && (
+        <Card>
+          <p>You do not have any linked accounts.</p>
+        </Card>
+      )}
       {kycStatus == KycStatus.Unknown && (
-        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='space-y-4'>
           <h1 className='font-display text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
@@ -102,7 +101,7 @@ export default function Page() {
         </Card>
       )}
       {kycStatus == KycStatus.Verified && !canTopUp && (
-        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='space-y-6'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
               <Icon>credit_card</Icon>
@@ -124,7 +123,7 @@ export default function Page() {
         </Card>
       )}
       {kycStatus == KycStatus.Verified && !canWithdraw && (
-        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <Card className='space-y-6'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
               <Icon>account_balance</Icon>
@@ -155,6 +154,6 @@ export default function Page() {
         offset
         onClose={() => setSnackbar(false)}
       />
-    </WalletGrid>
+    </>
   )
 }
