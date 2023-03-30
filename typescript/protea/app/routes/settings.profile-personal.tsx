@@ -1,7 +1,7 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { Card, Icon, Layouts, WalletGrid } from '~/components'
+import { Card, Icon, Layouts } from '~/components'
 import {
   grpcClient,
   httpMapping,
@@ -60,64 +60,60 @@ export async function loader({ request }: LoaderArgs) {
 // TODO: page title
 
 export const handle = {
-  layout: Layouts.WalletLayout
+  title: 'Personal information',
+  layout: Layouts.FocusLayout
 }
 
 export default function Page() {
   const { dateOfBirth, gender, kycDetails, country } =
     useLoaderData<typeof loader>()
   return (
-    <WalletGrid>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h1 className='font-display text-2xl font-medium'>
-          Personal information
-        </h1>
-        <h2 className='mt-6 text-sm font-medium'>Legal name</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
-          <div className='flex space-x-3'>
-            <Icon>face</Icon>
-            <span>
-              {kycDetails.firstName} {kycDetails.lastName}
-            </span>
-          </div>
+    <Card>
+      <h2 className='mt-6 text-sm font-medium'>Legal name</h2>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+        <div className='flex space-x-3'>
+          <Icon>face</Icon>
+          <span>
+            {kycDetails.firstName} {kycDetails.lastName}
+          </span>
         </div>
-        <h2 className='mt-6 text-sm font-medium'>Address</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
-          <div className='flex space-x-3'>
-            <Icon>location_on</Icon>
-            <span>
-              {kycDetails.address?.formattedAddress?.split(',').map((line) => (
-                <>
-                  <span>{line}</span>
-                  <br />
-                </>
-              ))}
-            </span>
-          </div>
+      </div>
+      <h2 className='mt-6 text-sm font-medium'>Address</h2>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+        <div className='flex space-x-3'>
+          <Icon>location_on</Icon>
+          <span>
+            {kycDetails.address?.formattedAddress?.split(',').map((line) => (
+              <>
+                <span>{line}</span>
+                <br />
+              </>
+            ))}
+          </span>
         </div>
-        <h2 className='mt-6 text-sm font-medium'>Country of residence</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
-          <div className='flex space-x-3'>
-            <Icon>flag</Icon>
-            <span>{country}</span>
-            <span>{kycDetails.countryCode}</span>
-          </div>
+      </div>
+      <h2 className='mt-6 text-sm font-medium'>Country of residence</h2>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+        <div className='flex space-x-3'>
+          <Icon>flag</Icon>
+          <span>{country}</span>
+          <span>{kycDetails.countryCode}</span>
         </div>
-        <h2 className='mt-6 text-sm font-medium'>Gender</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
-          <div className='flex space-x-3'>
-            <Icon>{gender.icon}</Icon>
-            <span>{gender.title}</span>
-          </div>
+      </div>
+      <h2 className='mt-6 text-sm font-medium'>Gender</h2>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+        <div className='flex space-x-3'>
+          <Icon>{gender.icon}</Icon>
+          <span>{gender.title}</span>
         </div>
-        <h2 className='mt-6 text-sm font-medium'>Birth date</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
-          <div className='flex space-x-3'>
-            <Icon>calendar_today</Icon>
-            <span>{dateOfBirth}</span>
-          </div>
+      </div>
+      <h2 className='mt-6 text-sm font-medium'>Birth date</h2>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+        <div className='flex space-x-3'>
+          <Icon>calendar_today</Icon>
+          <span>{dateOfBirth}</span>
         </div>
-      </Card>
-    </WalletGrid>
+      </div>
+    </Card>
   )
 }

@@ -56,6 +56,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Recover account',
   layout: Layouts.FocusLayout
 }
 
@@ -79,41 +80,41 @@ export default function Page() {
   }, [navigation.state, snackbar.show])
 
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>
-        Recover account
-      </h1>
-      <span>
-        Enter your email address and we will email you a link to change your
-        password.
-      </span>
-      <Form
-        id='recovery'
-        action={`/recovery?flow=${flow.id}`}
-        method='post'
-        className='hidden'
-      />
-      <TextField
-        id='email'
-        form='recovery'
-        label='Email'
-        name='email'
-        type='email'
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-        aria-describedby={actionData?.errors?.email ? 'email-error' : undefined}
-        required
-        errorMessage={actionData?.errors?.email}
-      />
+    <>
+      <Card>
+        <span>
+          Enter your email address and we will email you a link to change your
+          password.
+        </span>
+        <Form
+          id='recovery'
+          action={`/recovery?flow=${flow.id}`}
+          method='post'
+          className='hidden'
+        />
+        <TextField
+          id='email'
+          form='recovery'
+          label='Email'
+          name='email'
+          type='email'
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+          aria-describedby={
+            actionData?.errors?.email ? 'email-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.email}
+        />
 
-      <input
-        form='recovery'
-        defaultValue={csrfToken}
-        name='csrf_token'
-        type='hidden'
-      />
-
-      <Button className='mt-6' form='recovery' type='submit'>
+        <input
+          form='recovery'
+          defaultValue={csrfToken}
+          name='csrf_token'
+          type='hidden'
+        />
+      </Card>
+      <Button form='recovery' type='submit'>
         Recover account
       </Button>
       <Snackbar
@@ -125,7 +126,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
         dismissAfter={3000}
       />
-    </Card>
+    </>
   )
 }
 

@@ -12,6 +12,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Add linked account',
   layout: Layouts.FocusLayout
 }
 
@@ -50,33 +51,36 @@ function GenericPage() {
   const [value, setValue] = useState<RadioGroupOption>(options[0])
 
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>
-        Add linked account
-      </h1>
-      <span>Select the type of account to add.</span>
-
-      <RadioGroup
-        id={'type'}
-        className='mt-6'
-        label='Account type'
-        value={value}
-        onChange={setValue}
-        options={options}
-      />
-      <input form='link-card' value={value.id} name='radioType' type='hidden' />
+    <>
       <Form
         id='link-card'
         action={'/linked-account/new'}
         method='post'
         className='hidden'
       />
-      <div className='mt-12'>
-        <Button form='link-card' type='submit'>
-          Continue
-        </Button>
-      </div>
-    </Card>
+      <Card>
+        <span>Select the type of account to add.</span>
+
+        <RadioGroup
+          id={'type'}
+          className='mt-6'
+          label='Account type'
+          value={value}
+          onChange={setValue}
+          options={options}
+        />
+        <input
+          form='link-card'
+          value={value.id}
+          name='radioType'
+          type='hidden'
+        />
+      </Card>
+
+      <Button form='link-card' type='submit'>
+        Continue
+      </Button>
+    </>
   )
 }
 

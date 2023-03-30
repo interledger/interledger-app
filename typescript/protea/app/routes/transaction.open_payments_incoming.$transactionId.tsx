@@ -66,6 +66,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Received payment',
   layout: Layouts.FocusLayout
 }
 
@@ -83,12 +84,7 @@ export default function Page() {
   return (
     <>
       <Card>
-        <div className='flex justify-between'>
-          <span className='font-display text-2xl font-medium capitalize'>
-            Received
-          </span>
-        </div>
-        <Card.Item className='mt-6' variant='col'>
+        <Card.Item variant='col'>
           <span className='text-sm'>From</span>
           <span className='text-sm text-strong'>{paymentPointer}</span>
         </Card.Item>
@@ -117,7 +113,7 @@ export default function Page() {
           </span>
         </Card.Item>
       </Card>
-      <Card className='mt-6'>
+      <Card>
         <Card.Item>
           <span className='text-sm text-medium'>Payment date</span>
           <span className='text-sm text-strong'>
@@ -137,7 +133,7 @@ export default function Page() {
           )}
         </Card.Item>
       </Card>
-      <Card className='mt-6'>
+      <Card>
         <Card.Item variant='col'>
           <span className='text-sm text-medium'>Transaction ID</span>
           <span className='text-sm text-strong'>{transaction.id}</span>

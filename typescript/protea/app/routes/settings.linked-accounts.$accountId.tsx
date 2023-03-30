@@ -26,6 +26,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Linked account name',
   layout: Layouts.FocusLayout
 }
 
@@ -41,37 +42,39 @@ export default function Page() {
   const params = useParams()
 
   return (
-    <Card>
-      <div className='flex flex-col space-y-6'>
-        <h1 className='font-display text-2xl font-medium'>
-          Linked account nickname
-        </h1>
-      </div>
-
+    <>
       <Form
         id='edit-linked-account-name'
         action={`/settings/linked-accounts/${params.accountId}`}
         method='post'
         className='hidden'
       />
-      <TextField
-        id='name'
-        label='Nickname'
-        name='name'
-        form='edit-linked-account-name'
-        type='text'
-        defaultValue={name}
-        className='mt-6'
-        aria-invalid={Boolean(actionData?.errors.name) || undefined}
-        aria-describedby={
-          actionData?.errors.name ? 'password-error' : undefined
-        }
-        errorMessage={actionData?.errors.name}
-      />
-      <Button className='mt-12' form='edit-linked-account-name' type='submit'>
+      <Card>
+        <div className='flex flex-col space-y-6'>
+          <h1 className='font-display text-2xl font-medium'>
+            Linked account nickname
+          </h1>
+        </div>
+
+        <TextField
+          id='name'
+          label='Nickname'
+          name='name'
+          form='edit-linked-account-name'
+          type='text'
+          defaultValue={name}
+          className='mt-6'
+          aria-invalid={Boolean(actionData?.errors.name) || undefined}
+          aria-describedby={
+            actionData?.errors.name ? 'password-error' : undefined
+          }
+          errorMessage={actionData?.errors.name}
+        />
+      </Card>
+      <Button form='edit-linked-account-name' type='submit'>
         Save
       </Button>
-    </Card>
+    </>
   )
 }
 
