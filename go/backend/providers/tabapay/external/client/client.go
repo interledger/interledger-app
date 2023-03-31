@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -28,16 +27,12 @@ type client struct {
 
 type NewClientArgs struct {
 	VgsProxyURL string
-	ClientID    string `validate:"required"`
-	BearerToken string `validate:"required"`
+	ClientID    string
+	BearerToken string
 	CaCertPool  *x509.CertPool
 }
 
 func New(args NewClientArgs) (*client, error) {
-	if err := validator.New().Struct(args); err != nil {
-		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
-	}
-
 	proxyUrl, err := url.Parse(args.VgsProxyURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
