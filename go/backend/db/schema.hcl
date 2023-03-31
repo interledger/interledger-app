@@ -1952,5 +1952,39 @@ table "gmt_workflow_refs" {
     columns = [column.completed]
   }
 }
+table "wallet_keys" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "key_type" {
+    null = false
+    type = text
+  }
+  column "location" {
+    null = false
+    type = text
+  }
+  column "reference" {
+    null = false
+    type = text
+  }
+  column "name" {
+    null = true
+    type = text
+    columns = [column.id]
+  }
+  index "wallet_id" {
+    unique  = false
+    columns = [column.wallet_id]
+  }
+}
+
 schema "public" {
 }
