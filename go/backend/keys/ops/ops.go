@@ -80,3 +80,58 @@ func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBas
 		return nil
 	})
 }
+
+func getKey(ctx context.Context, b Backends, keyID string) (*keys.Key, error) {
+	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where id = $1"
+
+	var k keys.Key
+	err := b.DB().GetContext(ctx, &k, sqlQuery, keyID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("%w %s", keys.ErrNotFound, err)
+		}
+		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
+	}
+
+	return &k, nil
+}
+
+func Sign(ctx context.Context, b Backends, keyID string, message []byte) ([]byte, error) {
+	k, err := getKey(ctx, b, keyID)
+	if err != nil {
+		return nil, err
+	}
+
+	if k.Type != keys.Custodial {
+		return nil, fmt.Errorf("%w can only sign with custodial keys", keys.ErrInternal)
+	}
+
+	refBytes, err := base64.StdEncoding.DecodeString(k.Reference)
+	if err != nil {
+		return nil, err
+	}
+
+	pk := ed25519.NewKeyFromSeed(refBytes)
+	return ed25519.Sign(pk, message), nil
+}
+
+func Verify(ctx context.Context, b Backends, keyID string, message, sig []byte) (bool, error) {
+	k, err := getKey(ctx, b, keyID)
+	if err != nil {
+		return false, err
+	}
+
+	refBytes, err := base64.StdEncoding.DecodeString(k.Reference)
+	if err != nil {
+		return false, err
+	}
+	var pubKey ed25519.PublicKey
+	if k.Type == keys.NonCustodial {
+		pubKey = refBytes
+	} else {
+		pk := ed25519.NewKeyFromSeed(refBytes)
+		pubKey = pk.Public().(ed25519.PublicKey)
+	}
+
+	return ed25519.Verify(pubKey, message, sig), nil
+}
