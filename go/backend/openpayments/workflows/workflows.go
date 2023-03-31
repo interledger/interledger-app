@@ -166,7 +166,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		}
 		return "", err
 	}
-	if resp.State == transactions.StateFailed {
+	if resp.OutgoingTransferState == transactions.StateFailed {
 		err = workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
 		if err != nil {
 			logger.Error("FailOutgoingPayment Activity failed for failed transaction state.", "Error", err)
@@ -182,13 +182,13 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	}
 
 	// Update Outgoing payment
-	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp.ExternalID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp.OutgoingTransferExternalID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("GetProviderArgs Activity failed.", "Error", err)
 		return "", err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, resp.ExternalID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, resp.OutgoingTransferExternalID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("SendOutgoingPaymentReceipt Activity failed.", "Error", err)
 		return "", err
@@ -200,5 +200,5 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		return "", err
 	}
 
-	return resp.ExternalID, nil
+	return resp.OutgoingTransferExternalID, nil
 }

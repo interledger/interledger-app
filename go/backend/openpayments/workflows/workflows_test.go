@@ -63,8 +63,11 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
 	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
 	env.OnWorkflow(gmt_workflows.ACH2ACHTransferWorkflow, mock.Anything, mArgs.Args).Return(&providers.TransferResponse{
-		State:      transactions.StateCompleted,
-		ExternalID: "external_id",
+		Type:                       providers.GMTACH2ACH,
+		OutgoingTransferState:      transactions.StateCompleted,
+		OutgoingTransferExternalID: "external_id",
+		IncomingTransferState:      transactions.StateCompleted,
+		IncomingTransferExternalID: "external_id",
 	}, nil)
 	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, mock.Anything).Return(nil)
 	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, mock.Anything).Return(nil)
@@ -117,8 +120,11 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	env.OnActivity(a.AddContact, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
 	env.OnActivity(a.MarkContactLastPaid, mock.Anything, mArgs.Args.FromPaymentPointer, mArgs.Args.ToPaymentPointer).Return(nil)
 	env.OnWorkflow(gmt_workflows.ACH2ACHTransferWorkflow, mock.Anything, mArgs.Args).Return(&providers.TransferResponse{
-		State:      transactions.StateFailed,
-		ExternalID: "external_id",
+		Type:                       providers.GMTACH2ACH,
+		OutgoingTransferState:      transactions.StateFailed,
+		OutgoingTransferExternalID: "external_id",
+		IncomingTransferState:      transactions.StateFailed,
+		IncomingTransferExternalID: "external_id",
 	}, nil)
 	env.OnActivity(a.FailOutgoingPayment, mock.Anything, id).Return(nil)
 	env.OnActivity(a.SendFailedOutgoingPaymentMail, mock.Anything, id).Return(nil)
