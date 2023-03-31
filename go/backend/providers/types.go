@@ -19,8 +19,11 @@ type TransfersArgs struct {
 }
 
 type TransferResponse struct {
-	State      transactions.State
-	ExternalID string
+	Type                       WorkflowKey
+	OutgoingTransferState      transactions.State
+	OutgoingTransferExternalID string
+	IncomingTransferState      transactions.State
+	IncomingTransferExternalID string
 }
 
 type WorkflowKey string
