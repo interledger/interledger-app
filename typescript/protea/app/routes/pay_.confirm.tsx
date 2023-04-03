@@ -28,6 +28,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Confirm payment',
   layout: Layouts.FocusLayout
 }
 
@@ -44,9 +45,6 @@ export default function Page() {
   return (
     <>
       <Card>
-        <h1 className='mb-6 font-display text-2xl font-medium'>
-          Confirm payment
-        </h1>
         <span>Please check the details and confirm the payment.</span>
         <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
           <span className='text-sm'>To</span>
@@ -121,12 +119,10 @@ export default function Page() {
           debiting my account, so long as the transaction corresponds to the
           terms in this online form and my agreement with Fynbos.
         </Checkbox>
-        <div className='mt-6'>
-          <Button form='pay-confirm' type='submit'>
-            Confirm payment
-          </Button>
-        </div>
       </Card>
+      <Button form='pay-confirm' type='submit'>
+        Confirm payment
+      </Button>
       <div className='mt-6 flex w-full space-x-2'>
         <span className='text-xs text-medium'>*</span>
         <span className='text-xs text-medium'>

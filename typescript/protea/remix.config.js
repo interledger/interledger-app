@@ -2,6 +2,9 @@
  * @type {import('@remix-run/dev/config').AppConfig}
  */
 module.exports = {
+  future: {
+    v2_routeConvention: true
+  },
   appDirectory: 'app',
   serverBuildTarget: 'node-cjs',
   assetsBuildDirectory: 'public/build',

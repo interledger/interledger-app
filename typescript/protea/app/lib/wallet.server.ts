@@ -257,10 +257,6 @@ function transactionIcon(type: string): string {
       return 'north_east'
     case 'open_payments_incoming':
       return 'south_west'
-    case 'machnet_wallet_topup':
-      return 'credit_card'
-    case 'machnet_wallet_withdrawal':
-      return 'account_balance'
     default:
       return ''
   }
@@ -272,10 +268,6 @@ function transactionTitle(trx: GrpcTransaction): string {
       return trx.destination
     case 'open_payments_incoming':
       return trx.source
-    case 'machnet_wallet_topup':
-      return 'Top up'
-    case 'machnet_wallet_withdrawal':
-      return 'Withdrawal'
     default:
       return ''
   }

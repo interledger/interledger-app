@@ -3,18 +3,10 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
-import {
-  Card,
-  HomeShapes,
-  Icon,
-  Layouts,
-  Router,
-  Snackbar,
-  WalletGrid
-} from '~/components'
+import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus } from '~/lib/wallet.server'
-import { KycStatus } from '~/routes/index'
+import { KycStatus } from '~/routes/_index/app-page'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -33,6 +25,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Settings',
   layout: Layouts.WalletLayout
 }
 
@@ -48,11 +41,7 @@ export default function Page() {
   return (
     <WalletGrid>
       <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='mt-2'>
-          <HomeShapes />
-        </div>
-        <h1 className='mt-6 font-display text-2xl font-medium'>Settings</h1>
-        <h2 className='mt-6 text-sm font-medium'>Profile</h2>
+        <h2 className='text-sm font-medium'>Profile</h2>
         {kycStatus != KycStatus.Unknown && (
           <Router
             to={route('/settings/profile-personal')}

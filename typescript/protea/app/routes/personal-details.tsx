@@ -11,6 +11,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Activate payment pointer',
   layout: Layouts.FocusLayout
 }
 
@@ -22,85 +23,63 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   return (
-    <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>
-        Activate payment pointer
-      </h1>
-      <span>
-        Here’s what we will need in order to activate your payment pointer:
-      </span>
-      <div className='mt-6 flex items-start'>
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-br-full'}
-          color={'bg-rose-300'}
-        />
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-full'}
-          color={'bg-lime-500'}
-        />
-        <div className='ml-5'>
-          <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
-          <p className='text-xs text-medium'>
-            Confirmation of first and last name, your date of birth and gender.
-          </p>
-        </div>
-      </div>
-      <div className='mt-10 flex items-start'>
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-tl-full'}
-          color={'bg-slate-300'}
-        />
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-full'}
-          color={'bg-yellow-300'}
-        />
-        <div className='ml-5'>
-          <h3 className='mb-1 font-medium text-strong'>Address details</h3>
-          <p className='text-xs text-medium'>Your physical address details.</p>
-        </div>
-      </div>
-      <div className='mt-10 flex items-start'>
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-tl-full'}
-          color={'bg-yellow-300'}
-        />
-        <Shape
-          flex='flex-none'
-          width={'w-8'}
-          radius={'rounded-tr-full'}
-          color={'bg-rose-400'}
-        />
-        <div className='ml-5'>
-          <h3 className='mb-1 font-medium text-strong'>Privacy and terms</h3>
-          <p className='text-xs text-medium'>
-            Please read and agree to the Machnet privacy policy and terms of
-            service.
-          </p>
-        </div>
-      </div>
-
+    <>
       <Form
         id='personal-details'
         action='/personal-details'
         method='post'
         className='hidden'
       />
-      <div className='mt-12'>
-        <Button form='personal-details' type='submit'>
-          Continue
-        </Button>
-      </div>
-    </Card>
+      <Card>
+        <span>
+          Here’s what we will need in order to activate your payment pointer:
+        </span>
+        <div className='mt-6 flex items-start'>
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-br-full'}
+            color={'bg-rose-300'}
+          />
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-full'}
+            color={'bg-lime-500'}
+          />
+          <div className='ml-5'>
+            <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
+            <p className='text-xs text-medium'>
+              Confirmation of first and last name, your date of birth and
+              gender.
+            </p>
+          </div>
+        </div>
+        <div className='mt-10 flex items-start'>
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-tl-full'}
+            color={'bg-slate-300'}
+          />
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-full'}
+            color={'bg-yellow-300'}
+          />
+          <div className='ml-5'>
+            <h3 className='mb-1 font-medium text-strong'>Address details</h3>
+            <p className='text-xs text-medium'>
+              Your physical address details.
+            </p>
+          </div>
+        </div>
+      </Card>
+      <Button form='personal-details' type='submit'>
+        Continue
+      </Button>
+    </>
   )
 }
 

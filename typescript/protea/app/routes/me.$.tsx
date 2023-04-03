@@ -3,15 +3,7 @@ import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import {
-  Button,
-  Card,
-  HomeShapes,
-  Icon,
-  Layouts,
-  Router,
-  Snackbar
-} from '~/components'
+import { Button, Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import { hasUserSession } from '~/lib/kratos.server'
 import {
   getPublicWalletDetails,
@@ -94,10 +86,7 @@ export default function Page() {
 
   return (
     <Card>
-      <div className='mt-2'>
-        <HomeShapes />
-      </div>
-      <h1 className='mt-6 flex items-center justify-between font-display text-2xl font-medium'>
+      <h1 className='flex items-center justify-between font-display text-2xl font-medium'>
         <span>{wallet.publicName}</span>
         {editable && (
           <Router to={route('/settings/profile-public')}>

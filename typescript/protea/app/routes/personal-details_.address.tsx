@@ -13,7 +13,6 @@ import {
   Card,
   Icon,
   Layouts,
-  Shape,
   TextField
 } from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
@@ -41,6 +40,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
+  title: 'Address details',
   layout: Layouts.FocusLayout
 }
 
@@ -82,125 +82,115 @@ export default function Page() {
     flow?.data?.address.formattedAddress
 
   return (
-    <Card>
-      <div className='flex justify-between'>
-        <h1 className='font-display text-2xl font-medium'>Address details</h1>
-        <div className='hidden sm:flex'>
-          <Shape
-            width={'w-8'}
-            radius={'rounded-full'}
-            color={'bg-yellow-300'}
-          />
-          <Shape
-            width={'w-8'}
-            radius={'rounded-bl-full'}
-            color={'bg-slate-300'}
-          />
-        </div>
-      </div>
-      <p className='mt-6 text-medium'>Please provide your address.</p>
-
+    <>
       <Form
         id='personal-details-address'
         action='/personal-details/address'
         method='post'
         className='hidden'
       />
-      <Autocomplete
-        id='street'
-        value={geocodeFetcher.data?.street}
-        onChange={_onPlaceChange}
-        onQuery={_onQueryChange}
-        options={
-          placeAutocompleteFetcher.data?.predictions || [
-            { id: 'ID', name: 'Searching for addresses...' }
-          ]
-        }
-        aria-invalid={Boolean(actionData?.errors.address) || undefined}
-        aria-describedby={
-          actionData?.errors.address ? 'address-error' : undefined
-        }
-        errorMessage={actionData?.errors.address}
-        label='Address'
-        prefixIcon={<Icon>search</Icon>}
-        button={false}
-        className='mt-6'
-      />
-      <input
-        form='personal-details-address'
-        value={geocodeFetcher.data?.line1 || flow?.data.address.line1 || ''}
-        name='line1'
-        type='hidden'
-      />
-      <input
-        form='personal-details-address'
-        value={geocodeFetcher.data?.line2 || flow?.data.address.line2 || ''}
-        name='line2'
-        type='hidden'
-      />
-      <input
-        form='personal-details-address'
-        value={
-          geocodeFetcher.data?.building || flow?.data.address.building || ''
-        }
-        name='building'
-        type='hidden'
-      />
-      <input
-        form='personal-details-address'
-        value={geocodeFetcher.data?.city || flow?.data.address.city || ''}
-        name='city'
-        type='hidden'
-      />
-      <input
-        form='personal-details-address'
-        value={geocodeFetcher.data?.state || flow?.data.address.state || ''}
-        name='state'
-        type='hidden'
-      />
-      <input
-        form='personal-details-address'
-        value={geocodeFetcher.data?.zipCode || flow?.data.address.zipCode || ''}
-        name='zipCode'
-        type='hidden'
-      />
-      <input
-        type='hidden'
-        form='personal-details-address'
-        name='countryCode'
-        value={
-          geocodeFetcher.data?.countryCode ||
-          flow?.data.address.countryCode ||
-          ''
-        }
-      />
-      <input
-        form='personal-details-address'
-        value={formattedAddress || ''}
-        name='formattedAddress'
-        type='hidden'
-      />
-      <input
-        form='personal-details-address'
-        value={geocodeFetcher.data?.placeID || flow?.data.address.placeID || ''}
-        name='placeID'
-        type='hidden'
-      />
-      <TextField
-        id='apartment'
-        form='personal-details-address'
-        label='Building name / number'
-        name='apartment'
-        defaultValue={flow?.data.address.apartment}
-        type='text'
-        disabled={!formattedAddress}
-        className='mt-6'
-      />
+      <Card>
+        <p className='text-medium'>Please provide your address.</p>
 
-      <Button className='mt-12' form='personal-details-address' type='submit'>
+        <Autocomplete
+          id='street'
+          value={geocodeFetcher.data?.street}
+          onChange={_onPlaceChange}
+          onQuery={_onQueryChange}
+          options={
+            placeAutocompleteFetcher.data?.predictions || [
+              { id: 'ID', name: 'Searching for addresses...' }
+            ]
+          }
+          aria-invalid={Boolean(actionData?.errors.address) || undefined}
+          aria-describedby={
+            actionData?.errors.address ? 'address-error' : undefined
+          }
+          errorMessage={actionData?.errors.address}
+          label='Address'
+          prefixIcon={<Icon>search</Icon>}
+          button={false}
+          className='mt-6'
+        />
+        <input
+          form='personal-details-address'
+          value={geocodeFetcher.data?.line1 || flow?.data.address.line1 || ''}
+          name='line1'
+          type='hidden'
+        />
+        <input
+          form='personal-details-address'
+          value={geocodeFetcher.data?.line2 || flow?.data.address.line2 || ''}
+          name='line2'
+          type='hidden'
+        />
+        <input
+          form='personal-details-address'
+          value={
+            geocodeFetcher.data?.building || flow?.data.address.building || ''
+          }
+          name='building'
+          type='hidden'
+        />
+        <input
+          form='personal-details-address'
+          value={geocodeFetcher.data?.city || flow?.data.address.city || ''}
+          name='city'
+          type='hidden'
+        />
+        <input
+          form='personal-details-address'
+          value={geocodeFetcher.data?.state || flow?.data.address.state || ''}
+          name='state'
+          type='hidden'
+        />
+        <input
+          form='personal-details-address'
+          value={
+            geocodeFetcher.data?.zipCode || flow?.data.address.zipCode || ''
+          }
+          name='zipCode'
+          type='hidden'
+        />
+        <input
+          type='hidden'
+          form='personal-details-address'
+          name='countryCode'
+          value={
+            geocodeFetcher.data?.countryCode ||
+            flow?.data.address.countryCode ||
+            ''
+          }
+        />
+        <input
+          form='personal-details-address'
+          value={formattedAddress || ''}
+          name='formattedAddress'
+          type='hidden'
+        />
+        <input
+          form='personal-details-address'
+          value={
+            geocodeFetcher.data?.placeID || flow?.data.address.placeID || ''
+          }
+          name='placeID'
+          type='hidden'
+        />
+        <TextField
+          id='apartment'
+          form='personal-details-address'
+          label='Building name / number'
+          name='apartment'
+          defaultValue={flow?.data.address.apartment}
+          type='text'
+          disabled={!formattedAddress}
+          className='mt-6'
+        />
+      </Card>
+      <Button form='personal-details-address' type='submit'>
         Continue
       </Button>
-    </Card>
+    </>
   )
 }
 
