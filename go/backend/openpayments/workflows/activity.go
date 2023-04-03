@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/paymentpointers"
 	"gitlab.com/fynbos/backend/providers/gmt"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )
@@ -35,6 +36,10 @@ func accCanSend(la linkedaccounts.LinkedAccount) bool {
 		if la.Type == gmt.TypeBankAccount {
 			return true
 		}
+	case mx.ProviderName:
+		if la.Type == mx.TypeBankAccount {
+			return true
+		}
 	}
 
 	return false
@@ -44,6 +49,10 @@ func accCanRecv(la linkedaccounts.LinkedAccount) bool {
 	switch la.Provider {
 	case gmt.ProviderName:
 		if la.Type == gmt.TypeBankAccount {
+			return true
+		}
+	case mx.ProviderName:
+		if la.Type == mx.TypeBankAccount {
 			return true
 		}
 	}

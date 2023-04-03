@@ -176,6 +176,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 		return nil, err
 	}
 
+	sender.SenderTrackingNumber = args.FromTransactionID
 	sender.SenderAchAccount = fromAcc.AccountNumber
 	sender.SenderAchRouting = fromAcc.RoutingNumber
 	if fromAcc.Type == mx.TypeSavings {
@@ -425,6 +426,7 @@ func (a *Activity) InsertACH(ctx context.Context, args InsertACHArgs) (*Transact
 		return nil, err
 	}
 
+	sender.SenderTrackingNumber = args.FromTransactionID
 	sender.SenderAchAccount = fromAcc.AccountNumber
 	sender.SenderAchRouting = fromAcc.RoutingNumber
 	if fromAcc.Type == mx.TypeSavings {
@@ -463,9 +465,11 @@ func (a *Activity) InsertACH(ctx context.Context, args InsertACHArgs) (*Transact
 			ReceiverState:         toID.Address.State,
 			SaveSenderReceiver:    true,
 			SenderID:              sender.SenderId,
+			ServicioCodigo:        "BD",                // DCASH | BD | MW | PIX
 			SucursalBanco:         toAcc.RoutingNumber, // Bank branch or routing number
 			BankAccount:           toAcc.AccountNumber,
 			BankCode:              toAcc.InstitutionCode,
+			OfficeCode:            "0",
 		},
 	})
 	if err != nil {
