@@ -5,6 +5,7 @@ import 'package:watsonia/auth.dart';
 import 'package:watsonia/routes/index.dart';
 import 'package:watsonia/routes/pay.dart';
 import 'package:watsonia/routes/settings.dart';
+import 'package:watsonia/routes/signup.about.dart';
 import 'package:watsonia/routes/signup.dart';
 import 'package:watsonia/routes/support.dart';
 import 'package:watsonia/routes/transactions.dart';
@@ -22,6 +23,7 @@ final appRouter = GoRouter(
     AppRoute('/support', (_) => const SupportRoute(), true),
     AppRoute('/pay', (_) => const PayRoute()),
     AppRoute('/signup', (_) => const SignupRoute()),
+    AppRoute('/signup/about', (_) => const SignupAboutRoute()),
   ],
 );
 
@@ -32,7 +34,7 @@ String? _authGuard(BuildContext context, GoRouterState state) {
   // Go to /signin if the user is not signed in
   if (!isUser && !loggingIn) {
     // Probably need to figure out signup
-    return '/signup';
+    return '/signup/about';
   }
   // Go to / if the user is signed in and tries to go to /signin.
   // else if (isUser && loggingIn) {

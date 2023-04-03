@@ -62,8 +62,8 @@ class TWColors {
   static const Color bgScrim = Color(0xCC475569);
   static const Color bgSnackbar = Color(0x00000000);
 
-  static const Color borderBase = Color(0x00000000);
-  static const Color borderFocus = Color(0x00000000);
+  static const Color borderBase = Color(0xffCBD5E1);
+  static const Color borderFocus = Color(0xff2563EB);
   static const Color borderHover = Color(0x00000000);
   static const Color borderActive = Color(0x00000000);
   static const Color borderError = Color(0x00000000);

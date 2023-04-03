@@ -95,3 +95,111 @@ export const TextField = forwardRef<any, TextFieldProps>(
 )
 
 TextField.displayName = 'TextField'
+
+// Convert this component to dart to be used in a flutter project.
+// Path: dart/watsonia/lib/components/text_field.dart
+// Compare this snippet from dart/watsonia/lib/components/card.dart:
+// class Card extends StatelessWidget {
+//   const Card({
+//     super.key,
+//     required this.children,
+//   });
+//
+//   final List<Widget> children;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//         decoration: BoxDecoration(
+//             borderRadius: BorderRadius.circular(20), color: Colors.white),
+//         width: double.infinity,
+//         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+//         padding: const EdgeInsets.all(16),
+//         child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start, children: children));
+//   }
+// }
+//
+// class TextField extends StatelessWidget {
+//   const TextField({
+//     super.key,
+//     required this.label,
+//     required this.controller,
+//     required this.hint,
+//     this.obscureText = false,
+//     this.autocorrect = false,
+//     this.autofocus = false,
+//     this.keyboardType,
+//     this.validator,
+//     this.onSaved,
+//     this.onChanged,
+//   });
+//
+//   final String label;
+//   final TextEditingController controller;
+//   final String hint;
+//   final bool obscureText;
+//   final bool autocorrect;
+//   final bool autofocus;
+//   final TextInputType? keyboardType;
+//   final String? Function(String?)? validator;
+//   final void Function(String?)? onSaved;
+//   final void Function(String?)? onChanged;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Text(
+//           label,
+//           style: const TextStyle(
+//             color: Colors.black,
+//             fontSize: 16,
+//             fontWeight: FontWeight.w600,
+//           ),
+//         ),
+//         const SizedBox(height: 8),
+//         TextFormField(
+//           controller: controller,
+//           obscureText: obscureText,
+//           autocorrect: autocorrect,
+//           autofocus: autofocus,
+//           keyboardType: keyboardType,
+//           validator: validator,
+//           onSaved: onSaved,
+//           onChanged: onChanged,
+//           style: const TextStyle(
+//             color: Colors.black,
+//             fontSize: 16,
+//           ),
+//           decoration: InputDecoration(
+//             hintText: hint,
+//             hintStyle: const TextStyle(
+//               color: Colors.grey,
+//               fontSize: 16,
+//             ),
+//             contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+//             enabledBorder: OutlineInputBorder(
+//               borderSide: const BorderSide(color: Colors.grey, width: 1),
+//               borderRadius: BorderRadius.circular(8),
+//             ),
+//             focusedBorder: OutlineInputBorder(
+//               borderSide: const BorderSide(color: Colors.grey, width: 1),
+//               borderRadius: BorderRadius.circular(8),
+//             ),
+//             errorBorder: OutlineInputBorder(
+//               borderSide: const BorderSide(color: Colors.red, width: 1),
+//               borderRadius: BorderRadius.circular(8),
+//             ),
+//             focusedErrorBorder: OutlineInputBorder(
+//               borderSide: const BorderSide(color: Colors.red, width: 1),
+//               borderRadius: BorderRadius.circular(8),
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
+//
