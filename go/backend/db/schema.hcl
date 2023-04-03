@@ -1373,7 +1373,7 @@ table "transfers" {
   }
   column "foreign_id" {
     null = true
-    type = uuid
+    type = text
   }
   column "type" {
     null = false

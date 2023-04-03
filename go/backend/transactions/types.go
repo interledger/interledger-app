@@ -66,8 +66,8 @@ type UpdateForeignIDArgs struct {
 }
 
 type TransferArgs struct {
-	LinkedAccountID string       `validate:"omitempty,uuid"`
-	ForeignID       string       `validate:"omitempty,uuid"`
+	LinkedAccountID string `validate:"omitempty,uuid"`
+	ForeignID       string
 	Type            TransferType `validate:"required"`
 	Amount          currency.Amount
 	State           State `validate:"required"`
