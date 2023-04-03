@@ -60,6 +60,15 @@ func getEnvDefault(key, fallback string) string {
 }
 
 func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*WsResponse, error) {
+	if tx.Sender != nil {
+		tx.Sender.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
+	}
+	if tx.Receiver != nil {
+		tx.Receiver.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
+	}
+	if tx.Transfer != nil {
+		tx.Transfer.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
+	}
 	type txBody struct {
 		Text string                    `xml:",chardata"`
 		Resp InsertTransactionResponse `xml:"InsertTransactionResponse"`
@@ -70,7 +79,7 @@ func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*
 	tx.User = c.user
 	tx.Pass = c.password
 
-	err := c.call(ctx, "http://tempuri.org/IService1/InsertTransaction", tx, response)
+	err := c.call(ctx, "http://tempuri.org/IService1/InsertTransaction", tx, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +88,15 @@ func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*
 }
 
 func (c *client) ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsResponse, error) {
+	if req.Sender != nil {
+		req.Sender.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
+	}
+	if req.Receiver != nil {
+		req.Receiver.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
+	}
+	if req.Transfer != nil {
+		req.Transfer.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
+	}
 	type cmpBody struct {
 		Text string                  `xml:",chardata"`
 		Resp ComplianceCheckResponse `xml:"ComplianceCheckResponse"`
@@ -89,7 +107,7 @@ func (c *client) ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsR
 	req.User = c.user
 	req.Pass = c.password
 
-	err := c.call(ctx, "http://tempuri.org/IService1/ComplianceCheck", req, response)
+	err := c.call(ctx, "http://tempuri.org/IService1/ComplianceCheck", req, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +145,7 @@ func (c *client) SetVerified(ctx context.Context, req SetVerified) (*WsResult, e
 	req.User = c.user
 	req.Pass = c.password
 
-	err := c.call(ctx, "http://tempuri.org/IService1/SetVerified", req, response)
+	err := c.call(ctx, "http://tempuri.org/IService1/SetVerified", req, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +164,7 @@ func (c *client) ConfirmCollection(ctx context.Context, req ConfirmCollection) (
 	req.User = c.user
 	req.Pass = c.password
 
-	err := c.call(ctx, "http://tempuri.org/IService1/ConfirmCollection", req, response)
+	err := c.call(ctx, "http://tempuri.org/IService1/ConfirmCollection", req, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +184,7 @@ func (c *client) GetNotifications(ctx context.Context) ([]*WsNotifications, erro
 		Pass:  c.password,
 	}
 
-	err := c.call(ctx, "http://tempuri.org/IService1/GetNotifications", req, response)
+	err := c.call(ctx, "http://tempuri.org/IService1/GetNotifications", req, &response)
 	if err != nil {
 		return nil, err
 	}
