@@ -78,13 +78,12 @@ func (c *client) CreateTransaction(
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	payload := bytes.NewBuffer(nil)
-	err = json.NewEncoder(payload).Encode(args)
+	payload, err := json.Marshal(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, payload)
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -163,13 +162,12 @@ func (c *client) CreateAccount(
 		endpoint = fmt.Sprintf("%s?OKToAddDuplicateCard=", endpoint)
 	}
 
-	payload := bytes.NewBuffer(nil)
-	err = json.NewEncoder(payload).Encode(args)
+	payload, err := json.Marshal(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, payload)
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -237,13 +235,12 @@ func (c *client) QueryCard(
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	payload := bytes.NewBuffer(nil)
-	err = json.NewEncoder(payload).Encode(args)
+	payload, err := json.Marshal(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, payload)
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -269,8 +266,120 @@ func (c *client) QueryCard(
 	return &cardResp, nil
 }
 
+func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*external.Init3DSResponse, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "init")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	c.setAuth(req)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var initResp external.Init3DSResponse
+	err = json.NewDecoder(resp.Body).Decode(&initResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &initResp, nil
+}
+
+func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*external.Lookup3DSResponse, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "lookup")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	c.setAuth(req)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var lookupResp external.Lookup3DSResponse
+	err = json.NewDecoder(resp.Body).Decode(&lookupResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &lookupResp, nil
+}
+
+func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate3DSArgs) (*external.Authenticate3DSResponse, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "authenticate")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	c.setAuth(req)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var authResp external.Authenticate3DSResponse
+	err = json.NewDecoder(resp.Body).Decode(&authResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return &authResp, nil
+}
+
 func checkResponseStatusCode(r *http.Response) error {
-	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
+	if r.StatusCode != http.StatusMultiStatus &&
+		(http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices) {
 		return nil
 	}
 
@@ -280,6 +389,8 @@ func checkResponseStatusCode(r *http.Response) error {
 	}
 
 	switch r.StatusCode {
+	case http.StatusMultiStatus:
+		return fmt.Errorf("%w %s, path=%s", external.ErrBadRequest, string(body), r.Request.URL.Path)
 	case http.StatusBadRequest:
 		return fmt.Errorf("%w %s, path=%s", external.ErrBadRequest, string(body), r.Request.URL.Path)
 	case http.StatusUnauthorized:

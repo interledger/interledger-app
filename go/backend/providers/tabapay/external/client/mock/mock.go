@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// Authenticate3DS mocks base method.
+func (m *MockClient) Authenticate3DS(ctx context.Context, args external.Authenticate3DSArgs) (*external.Authenticate3DSResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Authenticate3DS", ctx, args)
+	ret0, _ := ret[0].(*external.Authenticate3DSResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Authenticate3DS indicates an expected call of Authenticate3DS.
+func (mr *MockClientMockRecorder) Authenticate3DS(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate3DS", reflect.TypeOf((*MockClient)(nil).Authenticate3DS), ctx, args)
+}
+
 // CreateAccount mocks base method.
 func (m *MockClient) CreateAccount(ctx context.Context, args external.CreateAccountArgs) (*external.CreateAccountResponse, error) {
 	m.ctrl.T.Helper()
@@ -63,6 +78,36 @@ func (m *MockClient) CreateTransaction(ctx context.Context, args external.Create
 func (mr *MockClientMockRecorder) CreateTransaction(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, args)
+}
+
+// Init3DS mocks base method.
+func (m *MockClient) Init3DS(ctx context.Context, args external.Init3DSArgs) (*external.Init3DSResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Init3DS", ctx, args)
+	ret0, _ := ret[0].(*external.Init3DSResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Init3DS indicates an expected call of Init3DS.
+func (mr *MockClientMockRecorder) Init3DS(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Init3DS", reflect.TypeOf((*MockClient)(nil).Init3DS), ctx, args)
+}
+
+// Lookup3DS mocks base method.
+func (m *MockClient) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*external.Lookup3DSResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Lookup3DS", ctx, args)
+	ret0, _ := ret[0].(*external.Lookup3DSResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Lookup3DS indicates an expected call of Lookup3DS.
+func (mr *MockClientMockRecorder) Lookup3DS(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lookup3DS", reflect.TypeOf((*MockClient)(nil).Lookup3DS), ctx, args)
 }
 
 // QueryCard mocks base method.

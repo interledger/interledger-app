@@ -1,5 +1,7 @@
 package external
 
+import "fmt"
+
 type TransactionType string
 
 var (
@@ -38,6 +40,46 @@ var (
 	CardTypeCredit  CardType = "Credit"
 	CardTypeDebit   CardType = "Debit"
 	CardTypePrepaid CardType = "Prepaid"
+)
+
+type DeviceChannelType string
+
+var (
+	DeviceChannelBrowser DeviceChannelType = "Browser"
+	DeviceChannelSDK     DeviceChannelType = "SDK"
+)
+
+type BrowserInfo string
+
+func NewBrowserInfo(fields BrowserInfoFields) BrowserInfo {
+	return BrowserInfo(
+		fmt.Sprintf(
+			"%t|%s|%s|%t|%s|%s|%s|%s|%s|%s",
+			fields.JavascriptEnabled,
+			fields.UserAgent,
+			fields.Header,
+			fields.JavaEnabled,
+			fields.Language,
+			fields.ColorDepth,
+			fields.ScreenHeight,
+			fields.ScreenWidth,
+			fields.TimeZone,
+			fields.IpAddress,
+		),
+	)
+}
+
+type ColorDepth string
+
+var (
+	ColorDepth1  ColorDepth = "1"
+	ColorDepth4  ColorDepth = "4"
+	ColorDepth8  ColorDepth = "8"
+	ColorDepth15 ColorDepth = "15"
+	ColorDepth16 ColorDepth = "16"
+	ColorDepth24 ColorDepth = "24"
+	ColorDepth32 ColorDepth = "32"
+	ColorDepth48 ColorDepth = "48"
 )
 
 type (
@@ -204,5 +246,93 @@ type (
 		EC   string       `json:"EC"`
 		EM   string       `jsonL:"EM"`
 		Card CardResponse `json:"card,omitempty"`
+	}
+
+	Account struct {
+		AccountID string `json:"accountID"`
+		Owner     *Owner `json:"owner,omitempty"`
+	}
+
+	Order struct {
+		OrderID  string `json:"orderID"`
+		Currency string
+		Amount   string
+	}
+
+	Init3DSArgs struct {
+		Account Account `json:"account"`
+		Order   Order
+	}
+
+	Init3DSResponse struct {
+		SC                  int    `json:"SC"`
+		EC                  string `json:"EC"`
+		EM                  string `jsonL:"EM"`
+		ID3DS               string `json:"3dsID"`
+		JWT                 string `json:"jwt"`
+		DeviceCollectionURL string `json:"deviceCollectionURL"`
+	}
+
+	Browser struct {
+		BrowserInfo   BrowserInfo       `json:"browserInfo"`
+		DeviceChannel DeviceChannelType `json:"deviceChannel"`
+	}
+
+	BrowserInfoFields struct {
+		JavascriptEnabled bool
+		UserAgent         string
+		Header            string
+		JavaEnabled       bool
+		Language          string
+		ColorDepth        ColorDepth
+		ScreenHeight      string
+		ScreenWidth       string
+		TimeZone          string
+		IpAddress         string
+	}
+
+	Lookup3DSArgs struct {
+		ID3DS                   string `json:"3dsID"`
+		AuthenticationIndicator string `json:"authenticationIndicator"`
+		TransactionMode         string `json:"transactionMode"`
+		TransactionType         string `json:"transactionType"`
+		ProductCode             string `json:"productCode"`
+		Account                 Account
+		Order                   Order
+	}
+
+	Lookup3DSResponse struct {
+		SC                     int    `json:"SC"`
+		EC                     string `json:"EC"`
+		EM                     string `json:"EM"`
+		Version3DS             string `json:"3dsVersion"`
+		Enrolled               string
+		ProcessorTransactionID string `json:"processorTransactionID"`
+		DsTransactionID        string `json:"dsTransactionID"`
+		Status                 string
+		ECI                    string `json:"ECI"`
+		UCAF                   string `json:"UCAF"`
+		XID                    string `json:"XID"`
+		ChallengeURL           string `json:"challengeURL"`
+		Payload                string
+	}
+
+	Authenticate3DSArgs struct {
+		ID3DS string `json:"3dsID"`
+		JWT   string `json:"jwt"`
+	}
+
+	Authenticate3DSResponse struct {
+		SC                     int    `json:"SC"`
+		EC                     string `json:"EC"`
+		EM                     string `json:"EM"`
+		Version3DS             string `json:"3dsVersion"`
+		Enrolled               string
+		ProcessorTransactionID string `json:"processorTransactionID"`
+		DsTransactionID        string `json:"dsTransactionID"`
+		Status                 string
+		ECI                    string `json:"ECI"`
+		UCAF                   string `json:"UCAF"`
+		XID                    string `json:"XID"`
 	}
 )
