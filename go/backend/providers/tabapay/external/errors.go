@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrInternal               = errors.New("tabapay external: internal error.")
+	ErrMultiStatus            = errors.New("tabapay external: multi status.")
 	ErrBadRequest             = errors.New("tabapay external: bad request.")
 	ErrUnauthorized           = errors.New("tabapay external: unauthorized.")
 	ErrForbidden              = errors.New("tabapay external: forbidden.")
