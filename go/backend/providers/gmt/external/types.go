@@ -33,7 +33,7 @@ func (gd *GMTDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	if err != nil {
 		return err
 	}
-	t, err := time.Parse("2006-01-02", s)
+	t, err := time.Parse("2006-01-02T15:04:05", s)
 	if err != nil {
 		return err
 	}

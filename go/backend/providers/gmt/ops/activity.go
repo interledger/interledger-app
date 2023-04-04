@@ -554,8 +554,8 @@ func (a *Activity) CompleteWorkflowRef(ctx context.Context, refID string) error 
 	return nil
 }
 
-func (a *Activity) ConfirmNotification(ctx context.Context, externalID string) error {
-	resp, err := a.ext.ConfirmCollection(ctx, external.ConfirmCollection{
+func (a *Activity) ConfirmPaidNotification(ctx context.Context, externalID string) error {
+	resp, err := a.ext.ConfirmPayment(ctx, external.ConfirmPayment{
 		Receipt: externalID,
 	})
 
