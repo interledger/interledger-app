@@ -28,6 +28,7 @@ type Client interface {
 	ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsResponse, error)
 	SetVerified(ctx context.Context, req SetVerified) (*WsResult, error)
 	ConfirmCollection(ctx context.Context, req ConfirmCollection) (*WsResponse, error)
+	ConfirmPayment(ctx context.Context, req ConfirmPayment) (*WsResponse, error)
 	GetNotifications(ctx context.Context) ([]*WsNotifications, error)
 }
 
@@ -170,6 +171,25 @@ func (c *client) ConfirmCollection(ctx context.Context, req ConfirmCollection) (
 	}
 
 	return response.Resp.ConfirmCollectionResult, err
+}
+
+func (c *client) ConfirmPayment(ctx context.Context, req ConfirmPayment) (*WsResponse, error) {
+	type cnfrmBody struct {
+		Text string                 `xml:",chardata"`
+		Resp ConfirmPaymentResponse `xml:"ConfirmPaymentResponse"`
+	}
+	response := cnfrmBody{}
+
+	req.Alias = c.alias
+	req.User = c.user
+	req.Pass = c.password
+
+	err := c.call(ctx, "http://tempuri.org/IService1/ConfirmPayment", req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Resp.ConfirmPaymentResult, err
 }
 
 func (c *client) GetNotifications(ctx context.Context) ([]*WsNotifications, error) {

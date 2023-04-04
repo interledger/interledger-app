@@ -18,7 +18,7 @@ func StartNotificationsPolling(b Backends) {
 	workflowID := "cron_gmt_notifications"
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                    workflowID,
-		TaskQueue:             "cron",
+		TaskQueue:             "backend",
 		CronSchedule:          "*/1 * * * *",                                       // Every minute
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
 	}

@@ -250,9 +250,9 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.ConfirmNotification, tr.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.ConfirmPaidNotification, tr.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to clear notification", "error", err, "ext ID", tr.ID)
+		logger.Error("failed to clear paid notification", "error", err, "ext ID", tr.ID)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2ACH,
@@ -487,9 +487,9 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.ConfirmNotification, achTransaction.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.ConfirmPaidNotification, achTransaction.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to clear notification", "error", err, "ext ID", achTransaction.ID)
+		logger.Error("failed to clear paid notification", "error", err, "ext ID", achTransaction.ID)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
@@ -665,9 +665,9 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.ConfirmNotification, achTransaction.ID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.ConfirmPaidNotification, achTransaction.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to clear notification", "error", err, "ext ID", achTransaction.ID)
+		logger.Error("failed to clear paid notification", "error", err, "ext ID", achTransaction.ID)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2CARD,
