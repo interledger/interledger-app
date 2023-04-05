@@ -34,7 +34,7 @@ String? _authGuard(BuildContext context, GoRouterState state) {
   // Go to /signin if the user is not signed in
   if (!isUser && !loggingIn) {
     // Probably need to figure out signup
-    return '/signup/about';
+    // return '/signup/about';
   }
   // Go to / if the user is signed in and tries to go to /signin.
   // else if (isUser && loggingIn) {
