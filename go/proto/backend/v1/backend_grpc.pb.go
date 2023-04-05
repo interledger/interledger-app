@@ -567,6 +567,9 @@ type BackendServiceClient interface {
 	CreateMXBankAccounts(ctx context.Context, in *CreateMXBankAccountsRequest, opts ...grpc.CallOption) (*CreateMXBankAccountsResponse, error)
 	// GMT
 	OnboardGMTUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	// Tabapay 3DS
+	Lookup3DS(ctx context.Context, in *Lookup3DSRequest, opts ...grpc.CallOption) (*Lookup3DSResponse, error)
+	Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error)
 }
 
 type backendServiceClient struct {
@@ -1027,6 +1030,24 @@ func (c *backendServiceClient) OnboardGMTUser(ctx context.Context, in *Empty, op
 	return out, nil
 }
 
+func (c *backendServiceClient) Lookup3DS(ctx context.Context, in *Lookup3DSRequest, opts ...grpc.CallOption) (*Lookup3DSResponse, error) {
+	out := new(Lookup3DSResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/Lookup3DS", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error) {
+	out := new(Authenticate3DSResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/Authenticate3DS", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1096,6 +1117,9 @@ type BackendServiceServer interface {
 	CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error)
 	// GMT
 	OnboardGMTUser(context.Context, *Empty) (*Empty, error)
+	// Tabapay 3DS
+	Lookup3DS(context.Context, *Lookup3DSRequest) (*Lookup3DSResponse, error)
+	Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1251,6 +1275,12 @@ func (UnimplementedBackendServiceServer) CreateMXBankAccounts(context.Context, *
 }
 func (UnimplementedBackendServiceServer) OnboardGMTUser(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OnboardGMTUser not implemented")
+}
+func (UnimplementedBackendServiceServer) Lookup3DS(context.Context, *Lookup3DSRequest) (*Lookup3DSResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Lookup3DS not implemented")
+}
+func (UnimplementedBackendServiceServer) Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Authenticate3DS not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2164,6 +2194,42 @@ func _BackendService_OnboardGMTUser_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_Lookup3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Lookup3DSRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).Lookup3DS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/Lookup3DS",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).Lookup3DS(ctx, req.(*Lookup3DSRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_Authenticate3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Authenticate3DSRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).Authenticate3DS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/Authenticate3DS",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).Authenticate3DS(ctx, req.(*Authenticate3DSRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2370,6 +2436,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OnboardGMTUser",
 			Handler:    _BackendService_OnboardGMTUser_Handler,
+		},
+		{
+			MethodName: "Lookup3DS",
+			Handler:    _BackendService_Lookup3DS_Handler,
+		},
+		{
+			MethodName: "Authenticate3DS",
+			Handler:    _BackendService_Authenticate3DS_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -24,7 +24,7 @@ service OpenPaymentService {
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
   rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
-  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
+  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment); // change to have 3DS jwt and deviceCollectionURL
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc CanSendToPaymentPointer(CanSendToPaymentPointerRequest) returns (CanSendToPaymentPointerResponse);
 }
@@ -254,6 +254,26 @@ service BackendService {
 
   // GMT
   rpc OnboardGMTUser(Empty) returns (Empty);
+
+  // Tabapay 3DS
+  rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
+  rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
+}
+
+message Lookup3DSResponse {
+
+}
+
+message Lookup3DSRequest {
+
+}
+
+message Authenticate3DSRequest {
+
+}
+
+message Authenticate3DSResponse {
+  
 }
 
 message CreateMXBankAccountsRequest {
