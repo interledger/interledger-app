@@ -466,6 +466,26 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.Lookup3DSResponse
+ */
+export interface Lookup3DSResponse {
+}
+/**
+ * @generated from protobuf message backend.v1.Lookup3DSRequest
+ */
+export interface Lookup3DSRequest {
+}
+/**
+ * @generated from protobuf message backend.v1.Authenticate3DSRequest
+ */
+export interface Authenticate3DSRequest {
+}
+/**
+ * @generated from protobuf message backend.v1.Authenticate3DSResponse
+ */
+export interface Authenticate3DSResponse {
+}
+/**
  * @generated from protobuf message backend.v1.CreateMXBankAccountsRequest
  */
 export interface CreateMXBankAccountsRequest {
@@ -3064,6 +3084,110 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Lookup3DSResponse$Type extends MessageType<Lookup3DSResponse> {
+    constructor() {
+        super("backend.v1.Lookup3DSResponse", []);
+    }
+    create(value?: PartialMessage<Lookup3DSResponse>): Lookup3DSResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Lookup3DSResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Lookup3DSResponse): Lookup3DSResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: Lookup3DSResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Lookup3DSResponse
+ */
+export const Lookup3DSResponse = new Lookup3DSResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
+    constructor() {
+        super("backend.v1.Lookup3DSRequest", []);
+    }
+    create(value?: PartialMessage<Lookup3DSRequest>): Lookup3DSRequest {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Lookup3DSRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Lookup3DSRequest): Lookup3DSRequest {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: Lookup3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Lookup3DSRequest
+ */
+export const Lookup3DSRequest = new Lookup3DSRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
+    constructor() {
+        super("backend.v1.Authenticate3DSRequest", []);
+    }
+    create(value?: PartialMessage<Authenticate3DSRequest>): Authenticate3DSRequest {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Authenticate3DSRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Authenticate3DSRequest): Authenticate3DSRequest {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: Authenticate3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Authenticate3DSRequest
+ */
+export const Authenticate3DSRequest = new Authenticate3DSRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Authenticate3DSResponse$Type extends MessageType<Authenticate3DSResponse> {
+    constructor() {
+        super("backend.v1.Authenticate3DSResponse", []);
+    }
+    create(value?: PartialMessage<Authenticate3DSResponse>): Authenticate3DSResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Authenticate3DSResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Authenticate3DSResponse): Authenticate3DSResponse {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: Authenticate3DSResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Authenticate3DSResponse
+ */
+export const Authenticate3DSResponse = new Authenticate3DSResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateMXBankAccountsRequest$Type extends MessageType<CreateMXBankAccountsRequest> {
     constructor() {
@@ -7232,5 +7356,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "StartKYC", options: {}, I: Empty, O: Empty },
     { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse },
     { name: "CreateMXBankAccounts", options: {}, I: CreateMXBankAccountsRequest, O: CreateMXBankAccountsResponse },
-    { name: "OnboardGMTUser", options: {}, I: Empty, O: Empty }
+    { name: "OnboardGMTUser", options: {}, I: Empty, O: Empty },
+    { name: "Lookup3DS", options: {}, I: Lookup3DSRequest, O: Lookup3DSResponse },
+    { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse }
 ]);

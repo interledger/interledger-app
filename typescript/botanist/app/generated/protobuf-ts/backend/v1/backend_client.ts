@@ -2,6 +2,10 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { Authenticate3DSResponse } from "./backend";
+import type { Authenticate3DSRequest } from "./backend";
+import type { Lookup3DSResponse } from "./backend";
+import type { Lookup3DSRequest } from "./backend";
 import type { CreateMXBankAccountsResponse } from "./backend";
 import type { CreateMXBankAccountsRequest } from "./backend";
 import type { MXWidgetResponse } from "./backend";
@@ -133,6 +137,8 @@ export interface IOpenPaymentServiceClient {
      */
     preCheckOutgoingPayment(input: PreCheckOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<PreCheckOutgoingPaymentRequest, PreCheckOutgoingPaymentResponse>;
     /**
+     * change to have 3DS jwt and deviceCollectionURL
+     *
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment>;
@@ -218,6 +224,8 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<PreCheckOutgoingPaymentRequest, PreCheckOutgoingPaymentResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * change to have 3DS jwt and deviceCollectionURL
+     *
      * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
     createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment> {
@@ -473,6 +481,16 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: OnboardGMTUser(backend.v1.Empty) returns (backend.v1.Empty);
      */
     onboardGMTUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
+    /**
+     * Tabapay 3DS
+     *
+     * @generated from protobuf rpc: Lookup3DS(backend.v1.Lookup3DSRequest) returns (backend.v1.Lookup3DSResponse);
+     */
+    lookup3DS(input: Lookup3DSRequest, options?: RpcOptions): UnaryCall<Lookup3DSRequest, Lookup3DSResponse>;
+    /**
+     * @generated from protobuf rpc: Authenticate3DS(backend.v1.Authenticate3DSRequest) returns (backend.v1.Authenticate3DSResponse);
+     */
+    authenticate3DS(input: Authenticate3DSRequest, options?: RpcOptions): UnaryCall<Authenticate3DSRequest, Authenticate3DSResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -862,5 +880,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     onboardGMTUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
         const method = this.methods[49], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Tabapay 3DS
+     *
+     * @generated from protobuf rpc: Lookup3DS(backend.v1.Lookup3DSRequest) returns (backend.v1.Lookup3DSResponse);
+     */
+    lookup3DS(input: Lookup3DSRequest, options?: RpcOptions): UnaryCall<Lookup3DSRequest, Lookup3DSResponse> {
+        const method = this.methods[50], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Lookup3DSRequest, Lookup3DSResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: Authenticate3DS(backend.v1.Authenticate3DSRequest) returns (backend.v1.Authenticate3DSResponse);
+     */
+    authenticate3DS(input: Authenticate3DSRequest, options?: RpcOptions): UnaryCall<Authenticate3DSRequest, Authenticate3DSResponse> {
+        const method = this.methods[51], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Authenticate3DSRequest, Authenticate3DSResponse>("unary", this._transport, method, opt, input);
     }
 }
