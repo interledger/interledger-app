@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/tabapay/external"
 )
 
 var (
@@ -51,5 +52,58 @@ type (
 		ID                  string
 		JWT                 string
 		DeviceCollectionURL string
+	}
+)
+
+type AuthenticationIndicator string
+
+var (
+	AuthenticatorIndicatorPayment AuthenticationIndicator = "01"
+	AuthenticatorIndicatorAddCard AuthenticationIndicator = "04"
+)
+
+type TransactionMode string
+
+var (
+	TransactionModeMobile   TransactionMode = "P"
+	TransactionModeComputer TransactionMode = "S"
+)
+
+type ProductCode string
+
+var (
+	ProductCodeAccountFunding       ProductCode = "ACF"
+	ProductCodeQuasiCashTransaction ProductCode = "QCT"
+)
+
+type BrowserInfo = external.BrowserInfo
+type DeviceChannelType = external.DeviceChannelType
+
+var (
+	DeviceChannelBrowser = external.DeviceChannelBrowser
+	DeviceChannelSDK     = external.DeviceChannelSDK
+)
+
+type (
+	Lookup3DSArgs struct {
+		OutgoingPaymentID       string
+		CardID                  string
+		ThreeDSID               string
+		AuthenticationIndicator AuthenticationIndicator
+		TransactionMode         TransactionMode
+		ProductCode             ProductCode
+		BrowserInfo             BrowserInfo
+		DeviceChannel           DeviceChannelType
+		Amount                  currency.Amount
+	}
+
+	Lookup3DSResponse struct {
+		Version                string
+		Enrolled               string
+		ProcessorTransactionID string
+		DsTransactionID        string
+		Status                 string
+		ChallengeURL           string
+		Payload                string
 	}
 )

@@ -18,6 +18,7 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/transactions"
@@ -52,4 +53,5 @@ type Backends interface {
 	Identities() identities.Client
 	MX() mx.Client
 	GMT() gmt.Client
+	Tabapay() tabapay.Client
 }

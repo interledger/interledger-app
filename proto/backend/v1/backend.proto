@@ -278,19 +278,23 @@ service BackendService {
 }
 
 message Lookup3DSResponse {
-
+  string processorTransactionID = 1;
+  string challengeURL = 2;
+  string payload = 3;
 }
 
 message Lookup3DSRequest {
-
+  string outgoingPaymentID = 1;
+  string threeDSID = 2;
 }
 
 message Authenticate3DSRequest {
-
+  string threeDSID = 1;
+  string jwt = 2;
 }
 
 message Authenticate3DSResponse {
-
+  string status = 1;
 }
 
 message CreateMXBankAccountsRequest {
