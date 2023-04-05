@@ -530,21 +530,53 @@ export interface Empty {
  * @generated from protobuf message backend.v1.Lookup3DSResponse
  */
 export interface Lookup3DSResponse {
+    /**
+     * @generated from protobuf field: string processorTransactionID = 1;
+     */
+    processorTransactionID: string;
+    /**
+     * @generated from protobuf field: string challengeURL = 2;
+     */
+    challengeURL: string;
+    /**
+     * @generated from protobuf field: string payload = 3;
+     */
+    payload: string;
 }
 /**
  * @generated from protobuf message backend.v1.Lookup3DSRequest
  */
 export interface Lookup3DSRequest {
+    /**
+     * @generated from protobuf field: string outgoingPaymentID = 1;
+     */
+    outgoingPaymentID: string;
+    /**
+     * @generated from protobuf field: string threeDSID = 2;
+     */
+    threeDSID: string;
 }
 /**
  * @generated from protobuf message backend.v1.Authenticate3DSRequest
  */
 export interface Authenticate3DSRequest {
+    /**
+     * @generated from protobuf field: string threeDSID = 1;
+     */
+    threeDSID: string;
+    /**
+     * @generated from protobuf field: string jwt = 2;
+     */
+    jwt: string;
 }
 /**
  * @generated from protobuf message backend.v1.Authenticate3DSResponse
  */
 export interface Authenticate3DSResponse {
+    /**
+     * @generated from protobuf field: string status = 1;
+     */
+    status: string;
 }
 /**
  * @generated from protobuf message backend.v1.CreateMXBankAccountsRequest
@@ -3286,19 +3318,54 @@ export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Lookup3DSResponse$Type extends MessageType<Lookup3DSResponse> {
     constructor() {
-        super("backend.v1.Lookup3DSResponse", []);
+        super("backend.v1.Lookup3DSResponse", [
+            { no: 1, name: "processorTransactionID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "challengeURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "payload", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<Lookup3DSResponse>): Lookup3DSResponse {
-        const message = {};
+        const message = { processorTransactionID: "", challengeURL: "", payload: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Lookup3DSResponse>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Lookup3DSResponse): Lookup3DSResponse {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string processorTransactionID */ 1:
+                    message.processorTransactionID = reader.string();
+                    break;
+                case /* string challengeURL */ 2:
+                    message.challengeURL = reader.string();
+                    break;
+                case /* string payload */ 3:
+                    message.payload = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: Lookup3DSResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string processorTransactionID = 1; */
+        if (message.processorTransactionID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.processorTransactionID);
+        /* string challengeURL = 2; */
+        if (message.challengeURL !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.challengeURL);
+        /* string payload = 3; */
+        if (message.payload !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.payload);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3312,19 +3379,47 @@ export const Lookup3DSResponse = new Lookup3DSResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
     constructor() {
-        super("backend.v1.Lookup3DSRequest", []);
+        super("backend.v1.Lookup3DSRequest", [
+            { no: 1, name: "outgoingPaymentID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<Lookup3DSRequest>): Lookup3DSRequest {
-        const message = {};
+        const message = { outgoingPaymentID: "", threeDSID: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Lookup3DSRequest>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Lookup3DSRequest): Lookup3DSRequest {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string outgoingPaymentID */ 1:
+                    message.outgoingPaymentID = reader.string();
+                    break;
+                case /* string threeDSID */ 2:
+                    message.threeDSID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: Lookup3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string outgoingPaymentID = 1; */
+        if (message.outgoingPaymentID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.outgoingPaymentID);
+        /* string threeDSID = 2; */
+        if (message.threeDSID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.threeDSID);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3338,19 +3433,47 @@ export const Lookup3DSRequest = new Lookup3DSRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
     constructor() {
-        super("backend.v1.Authenticate3DSRequest", []);
+        super("backend.v1.Authenticate3DSRequest", [
+            { no: 1, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<Authenticate3DSRequest>): Authenticate3DSRequest {
-        const message = {};
+        const message = { threeDSID: "", jwt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Authenticate3DSRequest>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Authenticate3DSRequest): Authenticate3DSRequest {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string threeDSID */ 1:
+                    message.threeDSID = reader.string();
+                    break;
+                case /* string jwt */ 2:
+                    message.jwt = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: Authenticate3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string threeDSID = 1; */
+        if (message.threeDSID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.threeDSID);
+        /* string jwt = 2; */
+        if (message.jwt !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.jwt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3364,19 +3487,40 @@ export const Authenticate3DSRequest = new Authenticate3DSRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Authenticate3DSResponse$Type extends MessageType<Authenticate3DSResponse> {
     constructor() {
-        super("backend.v1.Authenticate3DSResponse", []);
+        super("backend.v1.Authenticate3DSResponse", [
+            { no: 1, name: "status", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
     }
     create(value?: PartialMessage<Authenticate3DSResponse>): Authenticate3DSResponse {
-        const message = {};
+        const message = { status: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Authenticate3DSResponse>(this, message, value);
         return message;
     }
     internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Authenticate3DSResponse): Authenticate3DSResponse {
-        return target ?? this.create();
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string status */ 1:
+                    message.status = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
     }
     internalBinaryWrite(message: Authenticate3DSResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string status = 1; */
+        if (message.status !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.status);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

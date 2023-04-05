@@ -26,3 +26,7 @@ func (c client) GetWalletPaymentPointer(ctx context.Context, walletID string) (*
 func (c client) GetPaymentPointer(ctx context.Context, ppURL string) (*openpayments.PaymentPointer, error) {
 	return ops.GetPaymentPointer(ctx, c.b, ppURL)
 }
+
+func (c client) GetOutgoingPayment(ctx context.Context, id string) (*openpayments.OutgoingPayment, error) {
+	return ops.GetOutgoingPayment(ctx, c.b, id)
+}

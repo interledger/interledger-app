@@ -10,4 +10,5 @@ type Client interface {
 	PushToCard(ctx context.Context, args PushToCardArgs) (string, error)
 	GetTransaction(ctx context.Context, id string) (*Transaction, error)
 	Init3DS(ctx context.Context, args Init3DSArgs) (*Init3DSResponse, error)
+	Lookup3DS(ctx context.Context, args Lookup3DSArgs) (*Lookup3DSResponse, error)
 }

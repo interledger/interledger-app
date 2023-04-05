@@ -127,3 +127,36 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 		DeviceCollectionURL: resp.DeviceCollectionURL,
 	}, nil
 }
+
+func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*tabapay.Lookup3DSResponse, error) {
+	resp, err := b.External().Lookup3DS(ctx, external.Lookup3DSArgs{
+		ID3DS:                   args.ThreeDSID,
+		TransactionMode:         string(args.TransactionMode),
+		TransactionType:         "C",
+		AuthenticationIndicator: string(args.AuthenticationIndicator),
+		ProductCode:             string(args.ProductCode),
+		Account: external.Account{
+			AccountID: args.CardID,
+		},
+		Order: external.Order{
+			OrderID:  args.OutgoingPaymentID,
+			Currency: args.Amount.Currency.ISO4217(),
+			Amount:   args.Amount.FormatAmount(),
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	// TODO: handle resp.SC
+
+	return &tabapay.Lookup3DSResponse{
+		Version:                resp.Version3DS,
+		Enrolled:               resp.Enrolled,
+		ProcessorTransactionID: resp.ProcessorTransactionID,
+		DsTransactionID:        resp.DsTransactionID,
+		Status:                 resp.Status,
+		ChallengeURL:           resp.ChallengeURL,
+		Payload:                resp.Payload,
+	}, nil
+}

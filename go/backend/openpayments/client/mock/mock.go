@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// GetOutgoingPayment mocks base method.
+func (m *MockClient) GetOutgoingPayment(ctx context.Context, id string) (*openpayments.OutgoingPayment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOutgoingPayment", ctx, id)
+	ret0, _ := ret[0].(*openpayments.OutgoingPayment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOutgoingPayment indicates an expected call of GetOutgoingPayment.
+func (mr *MockClientMockRecorder) GetOutgoingPayment(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOutgoingPayment", reflect.TypeOf((*MockClient)(nil).GetOutgoingPayment), ctx, id)
+}
+
 // GetPaymentPointer mocks base method.
 func (m *MockClient) GetPaymentPointer(ctx context.Context, ppURL string) (*openpayments.PaymentPointer, error) {
 	m.ctrl.T.Helper()

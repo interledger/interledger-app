@@ -106,3 +106,7 @@ func (c *Client) GetTransaction(ctx context.Context, id string) (*tabapay.Transa
 func (c *Client) Init3DS(ctx context.Context, args tabapay.Init3DSArgs) (*tabapay.Init3DSResponse, error) {
 	return ops.Init3DS(ctx, c.b, args)
 }
+
+func (c *Client) Lookup3DS(ctx context.Context, args tabapay.Lookup3DSArgs) (*tabapay.Lookup3DSResponse, error) {
+	return ops.Lookup3DS(ctx, c.b, args)
+}
