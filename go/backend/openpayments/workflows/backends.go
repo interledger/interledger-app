@@ -1,10 +1,12 @@
 package workflows
 
 import (
+	"testing"
+
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/contacts"
-	"testing"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/transactions"
@@ -31,6 +33,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Analytics() analytics.Client
 	Contacts() contacts.Client
+	Tabapay() tabapay.Client
 }
 
 type testBackends struct {
@@ -43,6 +46,7 @@ type testBackends struct {
 	kyc kyc.Client
 	ac  analytics.Client
 	cc  contacts.Client
+	tbc tabapay.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -83,6 +87,10 @@ func (t testBackends) Analytics() analytics.Client {
 
 func (t testBackends) Contacts() contacts.Client {
 	return t.cc
+}
+
+func (t testBackends) Tabapay() tabapay.Client {
+	return t.tbc
 }
 
 func NewTestBackends(_ *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, kyc kyc.Client, cc contacts.Client) Backends {

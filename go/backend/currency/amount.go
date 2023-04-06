@@ -36,6 +36,16 @@ func (c Currency) Scale() int {
 	return scale
 }
 
+func (c Currency) ISO4217() string {
+	code, ok := iso4217[c]
+	if !ok {
+		log.Warn("unknown iso4217 code for currency", zap.String("currency", string(c)))
+		return ""
+	}
+
+	return code
+}
+
 const (
 	USD Currency = "USD"
 )
@@ -46,6 +56,10 @@ var currencyScale = map[Currency]int{
 
 var currencyFormat = map[Currency]string{
 	USD: "$ %s",
+}
+
+var iso4217 = map[Currency]string{
+	USD: "840",
 }
 
 type Amount struct {

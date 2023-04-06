@@ -39,3 +39,17 @@ type Transaction struct {
 }
 
 type Await func(ctx context.Context, result interface{}) error
+
+type (
+	Init3DSArgs struct {
+		Amount            currency.Amount
+		OutgoingPaymentID string
+		CardID            string
+	}
+
+	Init3DSResponse struct {
+		ID                  string
+		JWT                 string
+		DeviceCollectionURL string
+	}
+)

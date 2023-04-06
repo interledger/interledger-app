@@ -24,7 +24,7 @@ service OpenPaymentService {
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
   rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
-  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment); // change to have 3DS jwt and deviceCollectionURL
+  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (CreateOutgoingPaymentResponse);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc CanSendToPaymentPointer(CanSendToPaymentPointerRequest) returns (CanSendToPaymentPointerResponse);
 }
@@ -62,6 +62,23 @@ message Amount {
 
 message LookupOutgoingPaymentRequest {
   string id = 1;
+}
+
+message CreateOutgoingPaymentResponse {
+  string id = 1;
+  string paymentPointer = 2;
+  string toPaymentPointer = 11;
+  bool failed = 3;
+  string receiver = 4;
+  Amount sendAmount = 5;
+  Amount receiveAmount = 6;
+  Amount sentAmount = 7;
+  string description = 8;
+  google.protobuf.Timestamp createdAt = 9;
+  google.protobuf.Timestamp updatedAt = 10;
+  string threeDSID = 12;
+  string threeDSJWT = 13;
+  string threeDSDeviceCollectionURL = 14;
 }
 
 message OutgoingPayment {
@@ -273,7 +290,7 @@ message Authenticate3DSRequest {
 }
 
 message Authenticate3DSResponse {
-  
+
 }
 
 message CreateMXBankAccountsRequest {

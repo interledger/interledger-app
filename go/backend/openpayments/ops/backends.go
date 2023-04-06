@@ -1,9 +1,11 @@
 package ops
 
 import (
+	"testing"
+
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"testing"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/transactions"
 
@@ -19,6 +21,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Transactions() transactions.Client
 	Analytics() analytics.Client
+	Tabapay() tabapay.Client
 }
 
 type testBackends struct {
@@ -27,6 +30,7 @@ type testBackends struct {
 	la  linkedaccounts.Client
 	tc  transactions.Client
 	ac  analytics.Client
+	tbc tabapay.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -47,6 +51,10 @@ func (t testBackends) DB() *sqlx.DB {
 
 func (t testBackends) Analytics() analytics.Client {
 	return t.ac
+}
+
+func (t testBackends) Tabapay() tabapay.Client {
+	return t.tbc
 }
 
 func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc transactions.Client) Backends {

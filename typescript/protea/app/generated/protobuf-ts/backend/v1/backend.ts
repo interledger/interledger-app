@@ -125,6 +125,67 @@ export interface LookupOutgoingPaymentRequest {
     id: string;
 }
 /**
+ * @generated from protobuf message backend.v1.CreateOutgoingPaymentResponse
+ */
+export interface CreateOutgoingPaymentResponse {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string paymentPointer = 2;
+     */
+    paymentPointer: string;
+    /**
+     * @generated from protobuf field: string toPaymentPointer = 11;
+     */
+    toPaymentPointer: string;
+    /**
+     * @generated from protobuf field: bool failed = 3;
+     */
+    failed: boolean;
+    /**
+     * @generated from protobuf field: string receiver = 4;
+     */
+    receiver: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount sendAmount = 5;
+     */
+    sendAmount?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount receiveAmount = 6;
+     */
+    receiveAmount?: Amount;
+    /**
+     * @generated from protobuf field: backend.v1.Amount sentAmount = 7;
+     */
+    sentAmount?: Amount;
+    /**
+     * @generated from protobuf field: string description = 8;
+     */
+    description: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp createdAt = 9;
+     */
+    createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp updatedAt = 10;
+     */
+    updatedAt?: Timestamp;
+    /**
+     * @generated from protobuf field: string threeDSID = 12;
+     */
+    threeDSID: string;
+    /**
+     * @generated from protobuf field: string threeDSJWT = 13;
+     */
+    threeDSJWT: string;
+    /**
+     * @generated from protobuf field: string threeDSDeviceCollectionURL = 14;
+     */
+    threeDSDeviceCollectionURL: string;
+}
+/**
  * @generated from protobuf message backend.v1.OutgoingPayment
  */
 export interface OutgoingPayment {
@@ -1970,6 +2031,144 @@ class LookupOutgoingPaymentRequest$Type extends MessageType<LookupOutgoingPaymen
  * @generated MessageType for protobuf message backend.v1.LookupOutgoingPaymentRequest
  */
 export const LookupOutgoingPaymentRequest = new LookupOutgoingPaymentRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateOutgoingPaymentResponse$Type extends MessageType<CreateOutgoingPaymentResponse> {
+    constructor() {
+        super("backend.v1.CreateOutgoingPaymentResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "paymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "toPaymentPointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "failed", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "receiver", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "sendAmount", kind: "message", T: () => Amount },
+            { no: 6, name: "receiveAmount", kind: "message", T: () => Amount },
+            { no: 7, name: "sentAmount", kind: "message", T: () => Amount },
+            { no: 8, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "createdAt", kind: "message", T: () => Timestamp },
+            { no: 10, name: "updatedAt", kind: "message", T: () => Timestamp },
+            { no: 12, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "threeDSJWT", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "threeDSDeviceCollectionURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateOutgoingPaymentResponse>): CreateOutgoingPaymentResponse {
+        const message = { id: "", paymentPointer: "", toPaymentPointer: "", failed: false, receiver: "", description: "", threeDSID: "", threeDSJWT: "", threeDSDeviceCollectionURL: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateOutgoingPaymentResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateOutgoingPaymentResponse): CreateOutgoingPaymentResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string paymentPointer */ 2:
+                    message.paymentPointer = reader.string();
+                    break;
+                case /* string toPaymentPointer */ 11:
+                    message.toPaymentPointer = reader.string();
+                    break;
+                case /* bool failed */ 3:
+                    message.failed = reader.bool();
+                    break;
+                case /* string receiver */ 4:
+                    message.receiver = reader.string();
+                    break;
+                case /* backend.v1.Amount sendAmount */ 5:
+                    message.sendAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.sendAmount);
+                    break;
+                case /* backend.v1.Amount receiveAmount */ 6:
+                    message.receiveAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.receiveAmount);
+                    break;
+                case /* backend.v1.Amount sentAmount */ 7:
+                    message.sentAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.sentAmount);
+                    break;
+                case /* string description */ 8:
+                    message.description = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp createdAt */ 9:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
+                case /* google.protobuf.Timestamp updatedAt */ 10:
+                    message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
+                    break;
+                case /* string threeDSID */ 12:
+                    message.threeDSID = reader.string();
+                    break;
+                case /* string threeDSJWT */ 13:
+                    message.threeDSJWT = reader.string();
+                    break;
+                case /* string threeDSDeviceCollectionURL */ 14:
+                    message.threeDSDeviceCollectionURL = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateOutgoingPaymentResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string paymentPointer = 2; */
+        if (message.paymentPointer !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.paymentPointer);
+        /* string toPaymentPointer = 11; */
+        if (message.toPaymentPointer !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.toPaymentPointer);
+        /* bool failed = 3; */
+        if (message.failed !== false)
+            writer.tag(3, WireType.Varint).bool(message.failed);
+        /* string receiver = 4; */
+        if (message.receiver !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.receiver);
+        /* backend.v1.Amount sendAmount = 5; */
+        if (message.sendAmount)
+            Amount.internalBinaryWrite(message.sendAmount, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount receiveAmount = 6; */
+        if (message.receiveAmount)
+            Amount.internalBinaryWrite(message.receiveAmount, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount sentAmount = 7; */
+        if (message.sentAmount)
+            Amount.internalBinaryWrite(message.sentAmount, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* string description = 8; */
+        if (message.description !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.description);
+        /* google.protobuf.Timestamp createdAt = 9; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(9, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp updatedAt = 10; */
+        if (message.updatedAt)
+            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(10, WireType.LengthDelimited).fork(), options).join();
+        /* string threeDSID = 12; */
+        if (message.threeDSID !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.threeDSID);
+        /* string threeDSJWT = 13; */
+        if (message.threeDSJWT !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.threeDSJWT);
+        /* string threeDSDeviceCollectionURL = 14; */
+        if (message.threeDSDeviceCollectionURL !== "")
+            writer.tag(14, WireType.LengthDelimited).string(message.threeDSDeviceCollectionURL);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateOutgoingPaymentResponse
+ */
+export const CreateOutgoingPaymentResponse = new CreateOutgoingPaymentResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class OutgoingPayment$Type extends MessageType<OutgoingPayment> {
     constructor() {
@@ -7299,7 +7498,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
     { name: "PreCheckOutgoingPayment", options: {}, I: PreCheckOutgoingPaymentRequest, O: PreCheckOutgoingPaymentResponse },
-    { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: OutgoingPayment },
+    { name: "CreateOutgoingPayment", options: {}, I: CreateOutgoingPaymentRequest, O: CreateOutgoingPaymentResponse },
     { name: "LookupOutgoingPayment", options: {}, I: LookupOutgoingPaymentRequest, O: OutgoingPayment },
     { name: "CanSendToPaymentPointer", options: {}, I: CanSendToPaymentPointerRequest, O: CanSendToPaymentPointerResponse }
 ]);
