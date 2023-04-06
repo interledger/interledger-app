@@ -14,6 +14,8 @@ type PullFromCardArgs struct {
 	TransactionID       string
 	CardLinkedAccountID string
 	Amount              currency.Amount
+	ThreeDSID           string
+	ThreeDSJWT          string
 }
 
 // Pulls from the card to the GMT account.

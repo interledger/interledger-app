@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
@@ -331,6 +332,31 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
+	var threeDSRefID string
+	err = workflow.ExecuteActivity(ctx, a.CreateWorkflowRef, CreateWorkflowRefArgs{
+		ExternalID:    args.FromForeignID,
+		WorkflowID:    workflow.GetInfo(ctx).WorkflowExecution.ID,
+		WorkflowRunID: workflow.GetInfo(ctx).WorkflowExecution.RunID,
+		ActivityName:  card2AchAuthenticate3ds,
+	}).Get(ctx, &threeDSRefID)
+	if err != nil {
+		logger.Error("failed to create workflow reference", "err", err)
+		return nil, err
+	}
+
+	gmt3DSChannel := workflow.GetSignalChannel(ctx, gmt3DSChannel)
+	var threeDSAuthenticationArgs tabapay.Authenticate3DSArgs
+	for {
+		gmt3DSChannel.Receive(ctx, &threeDSAuthenticationArgs)
+		if threeDSAuthenticationArgs.OutgoingPaymentID != args.FromForeignID {
+			log.Error("received 3DS notification for different transaction")
+			continue
+		}
+
+		logger.Info("3DS notification received")
+		break
+	}
+
 	var tabapayTransactionID string
 	err = workflow.ExecuteActivity(ctx, a.PullFromCard, PullFromCardArgs{
 		TransactionID:       args.FromTransactionID,
@@ -450,7 +476,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		WorkflowID:    workflow.GetInfo(ctx).WorkflowExecution.ID,
 		WorkflowRunID: workflow.GetInfo(ctx).WorkflowExecution.RunID,
 		ActivityName:  "CARD_to_ACH",
-	}).Get(ctx, &refID)
+	}).Get(ctx, &threeDSRefID)
 	if err != nil {
 		logger.Error("failed to create workflow reference", "err", err)
 		return nil, err

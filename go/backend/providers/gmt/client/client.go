@@ -33,3 +33,7 @@ func (c client) StartUserOnboarding(ctx context.Context, walletID string) (gmt.A
 
 	return wf.Get, nil
 }
+
+func (c client) Authenticate3DS(ctx context.Context, args gmt.Authenticate3DSArgs) error {
+	return ops.Authenticate3DS(ctx, c.b, args)
+}

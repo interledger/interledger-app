@@ -160,3 +160,24 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 		Payload:                resp.Payload,
 	}, nil
 }
+
+func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3DSArgs) (*tabapay.Authenticate3DSResponse, error) {
+	resp, err := b.External().Authenticate3DS(ctx, external.Authenticate3DSArgs{
+		ID3DS: args.ThreeDSID,
+		JWT:   args.JWT,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return &tabapay.Authenticate3DSResponse{
+		Status:                 resp.Status,
+		Version3DS:             resp.Version3DS,
+		Enrolled:               resp.Enrolled,
+		ProcessorTransactionID: resp.ProcessorTransactionID,
+		DsTransactionID:        resp.DsTransactionID,
+		ECI:                    resp.ECI,
+		UCAF:                   resp.UCAF,
+		XID:                    resp.XID,
+	}, nil
+}

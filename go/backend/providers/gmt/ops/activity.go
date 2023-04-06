@@ -18,7 +18,14 @@ import (
 	"go.temporal.io/sdk/temporal"
 )
 
-const gmtEventsChannel = "gmt_events"
+const (
+	gmtEventsChannel = "gmt_events"
+	gmt3DSChannel    = "gmt_3ds"
+)
+
+const (
+	card2AchAuthenticate3ds = "CARD_2_ACH_AUTHENTICATE_3DS"
+)
 
 type Activity struct {
 	b   Backends

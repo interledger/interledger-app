@@ -561,11 +561,15 @@ export interface Lookup3DSRequest {
  */
 export interface Authenticate3DSRequest {
     /**
-     * @generated from protobuf field: string threeDSID = 1;
+     * @generated from protobuf field: string outgoingPaymentID = 1;
+     */
+    outgoingPaymentID: string;
+    /**
+     * @generated from protobuf field: string threeDSID = 2;
      */
     threeDSID: string;
     /**
-     * @generated from protobuf field: string jwt = 2;
+     * @generated from protobuf field: string jwt = 3;
      */
     jwt: string;
 }
@@ -3434,12 +3438,13 @@ export const Lookup3DSRequest = new Lookup3DSRequest$Type();
 class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
     constructor() {
         super("backend.v1.Authenticate3DSRequest", [
-            { no: 1, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "outgoingPaymentID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Authenticate3DSRequest>): Authenticate3DSRequest {
-        const message = { threeDSID: "", jwt: "" };
+        const message = { outgoingPaymentID: "", threeDSID: "", jwt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Authenticate3DSRequest>(this, message, value);
@@ -3450,10 +3455,13 @@ class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string threeDSID */ 1:
+                case /* string outgoingPaymentID */ 1:
+                    message.outgoingPaymentID = reader.string();
+                    break;
+                case /* string threeDSID */ 2:
                     message.threeDSID = reader.string();
                     break;
-                case /* string jwt */ 2:
+                case /* string jwt */ 3:
                     message.jwt = reader.string();
                     break;
                 default:
@@ -3468,12 +3476,15 @@ class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
         return message;
     }
     internalBinaryWrite(message: Authenticate3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string threeDSID = 1; */
+        /* string outgoingPaymentID = 1; */
+        if (message.outgoingPaymentID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.outgoingPaymentID);
+        /* string threeDSID = 2; */
         if (message.threeDSID !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.threeDSID);
-        /* string jwt = 2; */
+            writer.tag(2, WireType.LengthDelimited).string(message.threeDSID);
+        /* string jwt = 3; */
         if (message.jwt !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.jwt);
+            writer.tag(3, WireType.LengthDelimited).string(message.jwt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
