@@ -107,3 +107,22 @@ type (
 		Payload                string
 	}
 )
+
+type (
+	Authenticate3DSArgs struct {
+		OutgoingPaymentID string
+		ThreeDSID         string
+		JWT               string
+	}
+
+	Authenticate3DSResponse struct {
+		Version3DS             string
+		Enrolled               string
+		ProcessorTransactionID string
+		DsTransactionID        string
+		Status                 string
+		ECI                    string
+		UCAF                   string
+		XID                    string
+	}
+)

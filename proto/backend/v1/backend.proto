@@ -289,8 +289,9 @@ message Lookup3DSRequest {
 }
 
 message Authenticate3DSRequest {
-  string threeDSID = 1;
-  string jwt = 2;
+  string outgoingPaymentID = 1;
+  string threeDSID = 2;
+  string jwt = 3;
 }
 
 message Authenticate3DSResponse {

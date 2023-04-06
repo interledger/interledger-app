@@ -110,3 +110,7 @@ func (c *Client) Init3DS(ctx context.Context, args tabapay.Init3DSArgs) (*tabapa
 func (c *Client) Lookup3DS(ctx context.Context, args tabapay.Lookup3DSArgs) (*tabapay.Lookup3DSResponse, error) {
 	return ops.Lookup3DS(ctx, c.b, args)
 }
+
+func (c *Client) Authenticate3DS(ctx context.Context, args tabapay.Authenticate3DSArgs) (*tabapay.Authenticate3DSResponse, error) {
+	return ops.Authenticate3DS(ctx, c.b, args)
+}
