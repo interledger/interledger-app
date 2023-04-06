@@ -31,7 +31,7 @@ type OpenPaymentServiceClient interface {
 	CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error)
-	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
+	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*CreateOutgoingPaymentResponse, error)
 	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
 	CanSendToPaymentPointer(ctx context.Context, in *CanSendToPaymentPointerRequest, opts ...grpc.CallOption) (*CanSendToPaymentPointerResponse, error)
 }
@@ -125,8 +125,8 @@ func (c *openPaymentServiceClient) PreCheckOutgoingPayment(ctx context.Context, 
 	return out, nil
 }
 
-func (c *openPaymentServiceClient) CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error) {
-	out := new(OutgoingPayment)
+func (c *openPaymentServiceClient) CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*CreateOutgoingPaymentResponse, error) {
+	out := new(CreateOutgoingPaymentResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CreateOutgoingPayment", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ type OpenPaymentServiceServer interface {
 	CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error)
 	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
 	PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error)
-	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
+	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*CreateOutgoingPaymentResponse, error)
 	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
 	CanSendToPaymentPointer(context.Context, *CanSendToPaymentPointerRequest) (*CanSendToPaymentPointerResponse, error)
 }
@@ -201,7 +201,7 @@ func (UnimplementedOpenPaymentServiceServer) LookupIncomingPayment(context.Conte
 func (UnimplementedOpenPaymentServiceServer) PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PreCheckOutgoingPayment not implemented")
 }
-func (UnimplementedOpenPaymentServiceServer) CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error) {
+func (UnimplementedOpenPaymentServiceServer) CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*CreateOutgoingPaymentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOutgoingPayment not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error) {

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
@@ -228,4 +229,13 @@ func SetNickname(ctx context.Context, b Backends, id, nickname string) error {
 	}
 
 	return nil
+}
+
+func Requires3DS(ctx context.Context, b Backends, id string) (bool, error) {
+	la, err := Get(ctx, b, id)
+	if err != nil {
+		return false, err
+	}
+
+	return la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard, nil
 }

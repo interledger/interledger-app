@@ -102,3 +102,7 @@ func (c *Client) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (s
 func (c *Client) GetTransaction(ctx context.Context, id string) (*tabapay.Transaction, error) {
 	return ops.GetTransaction(ctx, c.b, id)
 }
+
+func (c *Client) Init3DS(ctx context.Context, args tabapay.Init3DSArgs) (*tabapay.Init3DSResponse, error) {
+	return ops.Init3DS(ctx, c.b, args)
+}

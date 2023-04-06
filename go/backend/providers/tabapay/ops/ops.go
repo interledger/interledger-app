@@ -103,3 +103,27 @@ func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transa
 		ReversalStatus: trxResp.ReversalStatus,
 	}, nil
 }
+
+func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapay.Init3DSResponse, error) {
+	resp, err := b.External().Init3DS(ctx, external.Init3DSArgs{
+		Account: external.Account{
+			AccountID: args.CardID,
+		},
+		Order: external.Order{
+			OrderID:  args.OutgoingPaymentID,
+			Currency: args.Amount.Currency.ISO4217(),
+			Amount:   args.Amount.FormatAmount(),
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	// TODO: handle resp.SC
+
+	return &tabapay.Init3DSResponse{
+		ID:                  resp.ID3DS,
+		JWT:                 resp.JWT,
+		DeviceCollectionURL: resp.DeviceCollectionURL,
+	}, nil
+}

@@ -1,8 +1,10 @@
 package server
 
 import (
-	"gitlab.com/fynbos/backend/contacts"
 	"testing"
+
+	"gitlab.com/fynbos/backend/contacts"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/limits"
 
@@ -32,6 +34,7 @@ type Backends interface {
 	Analytics() analytics.Client
 	Limits() limits.Client
 	Contacts() contacts.Client
+	Tabapay() tabapay.Client
 }
 
 type testBackends struct {
@@ -45,6 +48,7 @@ type testBackends struct {
 	auth authorisation.InternalClient
 	lmt  limits.Client
 	cc   contacts.Client
+	tbc  tabapay.Client
 }
 
 func (t testBackends) Authorisation() authorisation.InternalClient {
@@ -93,6 +97,10 @@ func (t testBackends) Limits() limits.Client {
 
 func (t testBackends) Contacts() contacts.Client {
 	return t.cc
+}
+
+func (t testBackends) Tabapay() tabapay.Client {
+	return t.tbc
 }
 
 func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, temp temporal.Client, tr transactions.Client, auth authorisation.InternalClient, lmt limits.Client, cc contacts.Client) Backends {

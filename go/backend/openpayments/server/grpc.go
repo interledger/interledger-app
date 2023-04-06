@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/openpayments/workflows"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -346,7 +347,7 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 	}, nil
 }
 
-func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
+func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.CreateOutgoingPaymentResponse, error) {
 
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -384,18 +385,38 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.OutgoingPayment{
-		Id:               op.ID,
-		PaymentPointer:   op.PaymentPointer,
-		ToPaymentPointer: op.ToPaymentPointer,
-		Failed:           op.Failed,
-		Receiver:         op.Receiver,
-		SendAmount:       op.SendAmount.ToPB(),
-		ReceiveAmount:    op.ReceiveAmount.ToPB(),
-		SentAmount:       op.SentAmount.ToPB(),
-		Description:      op.Description,
-		CreatedAt:        timestamppb.New(op.CreatedAt),
-		UpdatedAt:        timestamppb.New(op.UpdatedAt),
+	requires3DS, err := g.b.LinkedAccounts().Requires3DS(ctx, q.FromLinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var threeDSID, threeDSJWT, threeDSDeviceCollectionURL string
+	if requires3DS {
+		threeDSInit, err := g.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{})
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		threeDSID = threeDSInit.ID
+		threeDSJWT = threeDSInit.JWT
+		threeDSDeviceCollectionURL = threeDSInit.DeviceCollectionURL
+	}
+
+	return &pb.CreateOutgoingPaymentResponse{
+		Id:                         op.ID,
+		PaymentPointer:             op.PaymentPointer,
+		ToPaymentPointer:           op.ToPaymentPointer,
+		Failed:                     op.Failed,
+		Receiver:                   op.Receiver,
+		SendAmount:                 op.SendAmount.ToPB(),
+		ReceiveAmount:              op.ReceiveAmount.ToPB(),
+		SentAmount:                 op.SentAmount.ToPB(),
+		Description:                op.Description,
+		CreatedAt:                  timestamppb.New(op.CreatedAt),
+		UpdatedAt:                  timestamppb.New(op.UpdatedAt),
+		ThreeDSJWT:                 threeDSJWT,
+		ThreeDSDeviceCollectionURL: threeDSDeviceCollectionURL,
+		ThreeDSID:                  threeDSID,
 	}, nil
 }
 
