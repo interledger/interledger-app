@@ -43,6 +43,8 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identities"
 	identities_client "gitlab.com/fynbos/backend/identities/client"
+	"gitlab.com/fynbos/backend/keys"
+	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/limits"
@@ -276,6 +278,8 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	b.tabapay = tabapayClient
+
+	b.keys = keys_client.New(b)
 
 	server, err := _grpc.NewServer(b)
 	if err != nil {
@@ -516,6 +520,7 @@ type backends struct {
 	users            user.Client
 	waitlist         waitlist.Client
 	kyc              kyc.Client
+	keys             keys.Client
 	email            email.Client
 	openpayments     openpayments.Client
 	transactions     transactions.Client
@@ -641,4 +646,8 @@ func (b backends) GMT() gmt.Client {
 
 func (b backends) Tabapay() tabapay.Client {
 	return b.tabapay
+}
+
+func (b backends) Keys() keys.Client {
+	return b.keys
 }
