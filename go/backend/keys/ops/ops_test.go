@@ -101,10 +101,10 @@ func TestCanSignAndVerifyCustodialKeys(t *testing.T) {
 	require.NoError(t, err)
 	k := keys[0]
 	message := []byte("Random message to sign")
-	sig, err := ops.Sign(ctx, b, k.ID, message)
+	sig, err := ops.Sign(ctx, b, k.ID, k.WalletID, message)
 	require.NoError(t, err)
 
-	valid, err := ops.Verify(ctx, b, k.ID, message, sig)
+	valid, err := ops.Verify(ctx, b, k.ID, k.WalletID, message, sig)
 	require.NoError(t, err)
 
 	require.True(t, valid)
@@ -123,7 +123,7 @@ func TestCantSignWithNonCustodialKeys(t *testing.T) {
 	k := keys[0]
 
 	message := []byte("Random message to sign")
-	sig, err := ops.Sign(ctx, b, k.ID, message)
+	sig, err := ops.Sign(ctx, b, k.ID, k.WalletID, message)
 
 	require.Error(t, err)
 	require.Nil(t, sig)
@@ -144,7 +144,7 @@ func TestCanVerifyNonCustodialKeys(t *testing.T) {
 	message := []byte("Random message to sign")
 	sig := ed25519.Sign(privKey, message)
 
-	valid, err := ops.Verify(ctx, b, k.ID, message, sig)
+	valid, err := ops.Verify(ctx, b, k.ID, k.WalletID, message, sig)
 	require.NoError(t, err)
 
 	require.True(t, valid)
