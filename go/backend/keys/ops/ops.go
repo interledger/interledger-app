@@ -81,11 +81,11 @@ func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBas
 	})
 }
 
-func getKey(ctx context.Context, b Backends, keyID string) (*keys.Key, error) {
-	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where id = $1"
+func getKey(ctx context.Context, b Backends, keyID string, walletID string) (*keys.Key, error) {
+	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where id = $1 and wallet_id = $2"
 
 	var k keys.Key
-	err := b.DB().GetContext(ctx, &k, sqlQuery, keyID)
+	err := b.DB().GetContext(ctx, &k, sqlQuery, keyID, walletID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("%w %s", keys.ErrNotFound, err)
@@ -96,8 +96,8 @@ func getKey(ctx context.Context, b Backends, keyID string) (*keys.Key, error) {
 	return &k, nil
 }
 
-func Sign(ctx context.Context, b Backends, keyID string, message []byte) ([]byte, error) {
-	k, err := getKey(ctx, b, keyID)
+func Sign(ctx context.Context, b Backends, keyID string, walletID string, message []byte) ([]byte, error) {
+	k, err := getKey(ctx, b, keyID, walletID)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +115,8 @@ func Sign(ctx context.Context, b Backends, keyID string, message []byte) ([]byte
 	return ed25519.Sign(pk, message), nil
 }
 
-func Verify(ctx context.Context, b Backends, keyID string, message, sig []byte) (bool, error) {
-	k, err := getKey(ctx, b, keyID)
+func Verify(ctx context.Context, b Backends, keyID string, walletID string, message, sig []byte) (bool, error) {
+	k, err := getKey(ctx, b, keyID, walletID)
 	if err != nil {
 		return false, err
 	}
