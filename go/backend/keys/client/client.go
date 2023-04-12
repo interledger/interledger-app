@@ -22,7 +22,7 @@ func (c client) ProvisionPrivateKey(ctx context.Context, walletID string) error 
 	return ops.GeneratePrivateKey(ctx, c.b, walletID)
 }
 
-func (c client) AddPublicKey(ctx context.Context, walletID string, publicKeyBase64 string, name string) error {
+func (c client) AddPublicKey(ctx context.Context, walletID, publicKeyBase64 string, name string) error {
 	return ops.AddPublicKey(ctx, c.b, walletID, publicKeyBase64, name)
 }
 
@@ -30,10 +30,10 @@ func (c client) List(ctx context.Context, walletID string) ([]keys.Key, error) {
 	return ops.ListKeys(ctx, c.b, walletID)
 }
 
-func (c client) Verify(ctx context.Context, keyID string, walletID string, message, signature []byte) (bool, error) {
+func (c client) Verify(ctx context.Context, keyID, walletID string, message, signature []byte) (bool, error) {
 	return ops.Verify(ctx, c.b, keyID, walletID, message, signature)
 }
 
-func (c client) Sign(ctx context.Context, keyID string, walletID string, message []byte) ([]byte, error) {
+func (c client) Sign(ctx context.Context, keyID, walletID string, message []byte) ([]byte, error) {
 	return ops.Sign(ctx, c.b, keyID, walletID, message)
 }
