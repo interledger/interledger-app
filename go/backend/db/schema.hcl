@@ -1980,7 +1980,7 @@ table "wallet_keys" {
     type = text
     columns = [column.id]
   }
-  index "wallet_id" {
+  index "wallet_id_ind" {
     unique  = false
     columns = [column.wallet_id]
   }
