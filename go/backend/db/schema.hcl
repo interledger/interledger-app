@@ -1984,6 +1984,10 @@ table "wallet_keys" {
     unique  = false
     columns = [column.wallet_id]
   }
+  index "wallet_key_type_reference_ind" {
+    unique  = true
+    columns = [column.wallet_id, column.key_type, column.reference]
+  }
 }
 
 schema "public" {
