@@ -2,12 +2,13 @@ package ops_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	user_client "gitlab.com/fynbos/backend/user/client"
-	"testing"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/ops"
@@ -17,7 +18,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userID := uuid.NewString()
 
@@ -172,7 +173,7 @@ func TestKYCStatus(t *testing.T) {
 
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	userID := uuid.NewString()
 

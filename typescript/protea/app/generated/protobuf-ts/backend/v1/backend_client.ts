@@ -9,6 +9,8 @@ import type { Lookup3DSRequest } from "./backend";
 import type { CreateMXBankAccountsResponse } from "./backend";
 import type { CreateMXBankAccountsRequest } from "./backend";
 import type { MXWidgetResponse } from "./backend";
+import type { KYCPersonaInquiryResponse } from "./backend";
+import type { KYCPersonaInquiryRequest } from "./backend";
 import type { KYCStatusResponse } from "./backend";
 import type { StartIdentityVerificationRequest } from "./backend";
 import type { Identity } from "./backend";
@@ -463,6 +465,10 @@ export interface IBackendServiceClient {
      */
     startKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
     /**
+     * @generated from protobuf rpc: GetPersonaInquiry(backend.v1.KYCPersonaInquiryRequest) returns (backend.v1.KYCPersonaInquiryResponse);
+     */
+    getPersonaInquiry(input: KYCPersonaInquiryRequest, options?: RpcOptions): UnaryCall<KYCPersonaInquiryRequest, KYCPersonaInquiryResponse>;
+    /**
      * MX
      *
      * @generated from protobuf rpc: GetMXWidget(backend.v1.Empty) returns (backend.v1.MXWidgetResponse);
@@ -854,19 +860,26 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: GetPersonaInquiry(backend.v1.KYCPersonaInquiryRequest) returns (backend.v1.KYCPersonaInquiryResponse);
+     */
+    getPersonaInquiry(input: KYCPersonaInquiryRequest, options?: RpcOptions): UnaryCall<KYCPersonaInquiryRequest, KYCPersonaInquiryResponse> {
+        const method = this.methods[47], opt = this._transport.mergeOptions(options);
+        return stackIntercept<KYCPersonaInquiryRequest, KYCPersonaInquiryResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
      * MX
      *
      * @generated from protobuf rpc: GetMXWidget(backend.v1.Empty) returns (backend.v1.MXWidgetResponse);
      */
     getMXWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, MXWidgetResponse> {
-        const method = this.methods[47], opt = this._transport.mergeOptions(options);
+        const method = this.methods[48], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, MXWidgetResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateMXBankAccounts(backend.v1.CreateMXBankAccountsRequest) returns (backend.v1.CreateMXBankAccountsResponse);
      */
     createMXBankAccounts(input: CreateMXBankAccountsRequest, options?: RpcOptions): UnaryCall<CreateMXBankAccountsRequest, CreateMXBankAccountsResponse> {
-        const method = this.methods[48], opt = this._transport.mergeOptions(options);
+        const method = this.methods[49], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateMXBankAccountsRequest, CreateMXBankAccountsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -875,7 +888,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: OnboardGMTUser(backend.v1.Empty) returns (backend.v1.Empty);
      */
     onboardGMTUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
-        const method = this.methods[49], opt = this._transport.mergeOptions(options);
+        const method = this.methods[50], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -884,14 +897,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: Lookup3DS(backend.v1.Lookup3DSRequest) returns (backend.v1.Lookup3DSResponse);
      */
     lookup3DS(input: Lookup3DSRequest, options?: RpcOptions): UnaryCall<Lookup3DSRequest, Lookup3DSResponse> {
-        const method = this.methods[50], opt = this._transport.mergeOptions(options);
+        const method = this.methods[51], opt = this._transport.mergeOptions(options);
         return stackIntercept<Lookup3DSRequest, Lookup3DSResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: Authenticate3DS(backend.v1.Authenticate3DSRequest) returns (backend.v1.Authenticate3DSResponse);
      */
     authenticate3DS(input: Authenticate3DSRequest, options?: RpcOptions): UnaryCall<Authenticate3DSRequest, Authenticate3DSResponse> {
-        const method = this.methods[51], opt = this._transport.mergeOptions(options);
+        const method = this.methods[52], opt = this._transport.mergeOptions(options);
         return stackIntercept<Authenticate3DSRequest, Authenticate3DSResponse>("unary", this._transport, method, opt, input);
     }
 }

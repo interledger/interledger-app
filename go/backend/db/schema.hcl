@@ -1989,6 +1989,75 @@ table "wallet_keys" {
     columns = [column.wallet_id, column.key_type, column.reference]
   }
 }
-
+table "kyc_persona_inquiries" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    null = false
+    type = text
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_id_ind" {
+    unique  = false
+    columns = [column.wallet_id]
+  }
+}
+table "kyc_persona_accounts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "external_id" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_id_ind" {
+    unique  = true
+    columns = [column.wallet_id]
+  }
+}
 schema "public" {
 }

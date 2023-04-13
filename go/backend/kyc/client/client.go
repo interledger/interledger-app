@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/kyc/persona"
+
 	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -16,6 +18,7 @@ var _ kyc.Client = client{}
 type client struct {
 	b   ops.Backends
 	val address.Validator
+	pc  persona.Client
 }
 
 func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, error) {
@@ -27,6 +30,7 @@ func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, erro
 	return &client{
 		b:   b,
 		val: address.New(smartyAuthID, smartyAuthToken),
+		pc:  persona.New(),
 	}, nil
 }
 
@@ -52,4 +56,8 @@ func (c client) SetKYCStatus(ctx context.Context, walletID string, status kyc.St
 
 func (c client) StartKYC(ctx context.Context, walletID string) error {
 	return ops.StartKYC(ctx, c.b, walletID)
+}
+
+func (c client) GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
+	return ops.GetPersonaInquiry(ctx, c.b, c.pc, walletID, idempotencyKey)
 }

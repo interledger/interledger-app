@@ -3,6 +3,7 @@ package kyc
 import "errors"
 
 var (
-	ErrNoKYCInfo = errors.New("kyc: no data found")
-	ErrInternal  = errors.New("kyc: internal error")
+	ErrNoKYCInfo    = errors.New("kyc: no data found")
+	ErrInternal     = errors.New("kyc: internal error")
+	ErrKYCCompleted = errors.New("kyc: already completed")
 )

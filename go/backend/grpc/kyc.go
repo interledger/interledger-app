@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -203,4 +204,30 @@ func (s *rpcService) StartKYC(ctx context.Context, _ *pb.Empty) (*pb.Empty, erro
 	}
 
 	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) GetPersonaInquiry(ctx context.Context, req *pb.KYCPersonaInquiryRequest) (*pb.KYCPersonaInquiryResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	inq, err := s.b.KYC().GetPersonaInquiry(ctx, wallet.ID, req.GetIdempotencyKey())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	resp := &pb.KYCPersonaInquiryResponse{
+		Id: inq.ID,
+	}
+	if inq.SessionToken != "" {
+		resp.SessionToken = &inq.SessionToken
+	}
+
+	return resp, nil
 }

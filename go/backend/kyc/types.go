@@ -52,3 +52,8 @@ func (s Status) ToInt32() int32 {
 func (a *Address) String() string {
 	return a.Line2 + a.Line1
 }
+
+type PersonaInquiry struct {
+	ID           string
+	SessionToken string
+}
