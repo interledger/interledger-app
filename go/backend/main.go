@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/vault"
 	"net"
 	"net/http"
 	"os"
@@ -283,6 +284,11 @@ func start(args *cli.StartArgs) {
 	b.tabapay = tabapayClient
 
 	b.keys = keys_client.New(b)
+
+	_, err = vault.NewVaultClient()
+	if err != nil {
+		log.Error("error vault", zap.Error(err))
+	}
 
 	server, err := _grpc.NewServer(b)
 	if err != nil {
