@@ -199,6 +199,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("GMT_PASSWORD is required in prod")
 	}
 
+	personaToken := os.Getenv("PERSONA_TOKEN")
+	if personaToken == "" && env.IsProd() {
+		return nil, errors.New("PERSONA_TOKEN is required in prod")
+	}
+
+	personaWebhook := os.Getenv("PERSONA_WEBHOOK")
+	if personaWebhook == "" && env.IsProd() {
+		return nil, errors.New("PERSONA_WEBHOOK is required in prod")
+	}
+
 	return &StartArgs{
 		Port:                       port,
 		OpenPaymentsPort:           openPaymentsPort,

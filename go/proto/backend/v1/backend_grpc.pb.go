@@ -562,6 +562,7 @@ type BackendServiceClient interface {
 	// KYC
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	StartKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error)
 	// MX
 	GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error)
 	CreateMXBankAccounts(ctx context.Context, in *CreateMXBankAccountsRequest, opts ...grpc.CallOption) (*CreateMXBankAccountsResponse, error)
@@ -1003,6 +1004,15 @@ func (c *backendServiceClient) StartKYC(ctx context.Context, in *Empty, opts ...
 	return out, nil
 }
 
+func (c *backendServiceClient) GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error) {
+	out := new(KYCPersonaInquiryResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetPersonaInquiry", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error) {
 	out := new(MXWidgetResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetMXWidget", in, out, opts...)
@@ -1112,6 +1122,7 @@ type BackendServiceServer interface {
 	// KYC
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	StartKYC(context.Context, *Empty) (*Empty, error)
+	GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error)
 	// MX
 	GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error)
 	CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error)
@@ -1266,6 +1277,9 @@ func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KY
 }
 func (UnimplementedBackendServiceServer) StartKYC(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartKYC not implemented")
+}
+func (UnimplementedBackendServiceServer) GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPersonaInquiry not implemented")
 }
 func (UnimplementedBackendServiceServer) GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMXWidget not implemented")
@@ -2140,6 +2154,24 @@ func _BackendService_StartKYC_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetPersonaInquiry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KYCPersonaInquiryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetPersonaInquiry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetPersonaInquiry",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetPersonaInquiry(ctx, req.(*KYCPersonaInquiryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_GetMXWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -2424,6 +2456,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StartKYC",
 			Handler:    _BackendService_StartKYC_Handler,
+		},
+		{
+			MethodName: "GetPersonaInquiry",
+			Handler:    _BackendService_GetPersonaInquiry_Handler,
 		},
 		{
 			MethodName: "GetMXWidget",

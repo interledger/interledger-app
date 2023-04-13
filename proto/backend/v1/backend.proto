@@ -268,6 +268,7 @@ service BackendService {
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
   rpc StartKYC(Empty) returns (Empty);
+  rpc GetPersonaInquiry(KYCPersonaInquiryRequest) returns (KYCPersonaInquiryResponse);
 
   // MX
   rpc GetMXWidget(Empty) returns (MXWidgetResponse);
@@ -693,4 +694,13 @@ message ListPublicIdentitiesRequest {
 
 message KYCStatusResponse {
   int32 kyc_status = 1;
+}
+
+message KYCPersonaInquiryRequest {
+  optional string idempotency_key = 1;
+}
+
+message KYCPersonaInquiryResponse {
+  string id = 1;
+  optional string session_token = 2;
 }

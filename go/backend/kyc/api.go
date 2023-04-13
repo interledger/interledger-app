@@ -9,4 +9,5 @@ type Client interface {
 	GetKYCStatus(ctx context.Context, walletID string) (Status, error)
 	SetKYCStatus(ctx context.Context, walletID string, status Status) error
 	StartKYC(ctx context.Context, walletID string) error
+	GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*PersonaInquiry, error)
 }
