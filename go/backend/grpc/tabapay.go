@@ -13,12 +13,12 @@ func (s *rpcService) Lookup3DS(
 ) (*backendv1.Lookup3DSResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	op, err := s.b.OpenPayments().GetOutgoingPayment(ctx, req.GetOutgoingPaymentID())
@@ -63,12 +63,12 @@ func (s *rpcService) Authenticate3DS(
 ) (*backendv1.Authenticate3DSResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	op, err := s.b.OpenPayments().GetOutgoingPayment(ctx, req.GetOutgoingPaymentID())
