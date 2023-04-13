@@ -125,6 +125,23 @@ export interface LookupOutgoingPaymentRequest {
     id: string;
 }
 /**
+ * @generated from protobuf message backend.v1.ThreeDS
+ */
+export interface ThreeDS {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string jwt = 2;
+     */
+    jwt: string;
+    /**
+     * @generated from protobuf field: string deviceCollectionURL = 3;
+     */
+    deviceCollectionURL: string;
+}
+/**
  * @generated from protobuf message backend.v1.CreateOutgoingPaymentResponse
  */
 export interface CreateOutgoingPaymentResponse {
@@ -173,17 +190,9 @@ export interface CreateOutgoingPaymentResponse {
      */
     updatedAt?: Timestamp;
     /**
-     * @generated from protobuf field: string threeDSID = 12;
+     * @generated from protobuf field: optional backend.v1.ThreeDS threeDS = 12;
      */
-    threeDSID: string;
-    /**
-     * @generated from protobuf field: string threeDSJWT = 13;
-     */
-    threeDSJWT: string;
-    /**
-     * @generated from protobuf field: string threeDSDeviceCollectionURL = 14;
-     */
-    threeDSDeviceCollectionURL: string;
+    threeDS?: ThreeDS;
 }
 /**
  * @generated from protobuf message backend.v1.OutgoingPayment
@@ -2068,6 +2077,67 @@ class LookupOutgoingPaymentRequest$Type extends MessageType<LookupOutgoingPaymen
  */
 export const LookupOutgoingPaymentRequest = new LookupOutgoingPaymentRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ThreeDS$Type extends MessageType<ThreeDS> {
+    constructor() {
+        super("backend.v1.ThreeDS", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "deviceCollectionURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ThreeDS>): ThreeDS {
+        const message = { id: "", jwt: "", deviceCollectionURL: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ThreeDS>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ThreeDS): ThreeDS {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string jwt */ 2:
+                    message.jwt = reader.string();
+                    break;
+                case /* string deviceCollectionURL */ 3:
+                    message.deviceCollectionURL = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ThreeDS, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string jwt = 2; */
+        if (message.jwt !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.jwt);
+        /* string deviceCollectionURL = 3; */
+        if (message.deviceCollectionURL !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.deviceCollectionURL);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ThreeDS
+ */
+export const ThreeDS = new ThreeDS$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CreateOutgoingPaymentResponse$Type extends MessageType<CreateOutgoingPaymentResponse> {
     constructor() {
         super("backend.v1.CreateOutgoingPaymentResponse", [
@@ -2082,13 +2152,11 @@ class CreateOutgoingPaymentResponse$Type extends MessageType<CreateOutgoingPayme
             { no: 8, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "createdAt", kind: "message", T: () => Timestamp },
             { no: 10, name: "updatedAt", kind: "message", T: () => Timestamp },
-            { no: 12, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 13, name: "threeDSJWT", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 14, name: "threeDSDeviceCollectionURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 12, name: "threeDS", kind: "message", T: () => ThreeDS }
         ]);
     }
     create(value?: PartialMessage<CreateOutgoingPaymentResponse>): CreateOutgoingPaymentResponse {
-        const message = { id: "", paymentPointer: "", toPaymentPointer: "", failed: false, receiver: "", description: "", threeDSID: "", threeDSJWT: "", threeDSDeviceCollectionURL: "" };
+        const message = { id: "", paymentPointer: "", toPaymentPointer: "", failed: false, receiver: "", description: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateOutgoingPaymentResponse>(this, message, value);
@@ -2132,14 +2200,8 @@ class CreateOutgoingPaymentResponse$Type extends MessageType<CreateOutgoingPayme
                 case /* google.protobuf.Timestamp updatedAt */ 10:
                     message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
                     break;
-                case /* string threeDSID */ 12:
-                    message.threeDSID = reader.string();
-                    break;
-                case /* string threeDSJWT */ 13:
-                    message.threeDSJWT = reader.string();
-                    break;
-                case /* string threeDSDeviceCollectionURL */ 14:
-                    message.threeDSDeviceCollectionURL = reader.string();
+                case /* optional backend.v1.ThreeDS threeDS */ 12:
+                    message.threeDS = ThreeDS.internalBinaryRead(reader, reader.uint32(), options, message.threeDS);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2186,15 +2248,9 @@ class CreateOutgoingPaymentResponse$Type extends MessageType<CreateOutgoingPayme
         /* google.protobuf.Timestamp updatedAt = 10; */
         if (message.updatedAt)
             Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(10, WireType.LengthDelimited).fork(), options).join();
-        /* string threeDSID = 12; */
-        if (message.threeDSID !== "")
-            writer.tag(12, WireType.LengthDelimited).string(message.threeDSID);
-        /* string threeDSJWT = 13; */
-        if (message.threeDSJWT !== "")
-            writer.tag(13, WireType.LengthDelimited).string(message.threeDSJWT);
-        /* string threeDSDeviceCollectionURL = 14; */
-        if (message.threeDSDeviceCollectionURL !== "")
-            writer.tag(14, WireType.LengthDelimited).string(message.threeDSDeviceCollectionURL);
+        /* optional backend.v1.ThreeDS threeDS = 12; */
+        if (message.threeDS)
+            ThreeDS.internalBinaryWrite(message.threeDS, writer.tag(12, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

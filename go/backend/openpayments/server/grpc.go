@@ -403,20 +403,22 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 	}
 
 	return &pb.CreateOutgoingPaymentResponse{
-		Id:                         op.ID,
-		PaymentPointer:             op.PaymentPointer,
-		ToPaymentPointer:           op.ToPaymentPointer,
-		Failed:                     op.Failed,
-		Receiver:                   op.Receiver,
-		SendAmount:                 op.SendAmount.ToPB(),
-		ReceiveAmount:              op.ReceiveAmount.ToPB(),
-		SentAmount:                 op.SentAmount.ToPB(),
-		Description:                op.Description,
-		CreatedAt:                  timestamppb.New(op.CreatedAt),
-		UpdatedAt:                  timestamppb.New(op.UpdatedAt),
-		ThreeDSJWT:                 threeDSJWT,
-		ThreeDSDeviceCollectionURL: threeDSDeviceCollectionURL,
-		ThreeDSID:                  threeDSID,
+		Id:               op.ID,
+		PaymentPointer:   op.PaymentPointer,
+		ToPaymentPointer: op.ToPaymentPointer,
+		Failed:           op.Failed,
+		Receiver:         op.Receiver,
+		SendAmount:       op.SendAmount.ToPB(),
+		ReceiveAmount:    op.ReceiveAmount.ToPB(),
+		SentAmount:       op.SentAmount.ToPB(),
+		Description:      op.Description,
+		CreatedAt:        timestamppb.New(op.CreatedAt),
+		UpdatedAt:        timestamppb.New(op.UpdatedAt),
+		ThreeDS: &pb.ThreeDS{
+			Jwt:                 threeDSJWT,
+			DeviceCollectionURL: threeDSDeviceCollectionURL,
+			Id:                  threeDSID,
+		},
 	}, nil
 }
 
