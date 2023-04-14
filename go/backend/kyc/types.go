@@ -43,6 +43,7 @@ const (
 	StatusDocumentsRequired Status = 2
 	StatusApproved          Status = 3
 	StatusDenied            Status = 4
+	StatusInReview          Status = 5
 )
 
 func (s Status) ToInt32() int32 {
