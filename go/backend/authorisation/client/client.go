@@ -20,23 +20,8 @@ func New(b ops.Backends) authorisation.InternalClient {
 	}
 }
 
-func (c client) AddPublicKey(ctx context.Context, clientURL string, publicKey authorisation.Jwk) (*authorisation.Jwk, error) {
-	return ops.CreateClientPublicKey(ctx, c.b, clientURL, publicKey)
-}
 func (c client) Introspect(ctx context.Context, token string) (*authorisation.Grant, error) {
 	return ops.Introspect(ctx, c.b, token)
-}
-
-func (c client) ListKeys(ctx context.Context, clientURL string) ([]authorisation.Jwk, error) {
-	return ops.ListKeys(ctx, c.b, clientURL)
-}
-
-func (c client) GetPublicKeyByID(ctx context.Context, id string) (*authorisation.Jwk, error) {
-	return ops.GetPublicKeyByID(ctx, c.b, id)
-}
-
-func (c client) DeletePublicKey(ctx context.Context, id string) error {
-	return ops.DeletePublicKey(ctx, c.b, id)
 }
 
 func (c client) VerifyRequestSig(ctx context.Context, req *http.Request, clientPaymentPointer string, requiredParts []string) bool {

@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/env"
@@ -44,7 +45,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 }
 
 func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
-	sql := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where wallet_id = $1"
+	sql := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
 
 	var ks []keys.Key
 	err := b.DB().SelectContext(ctx, &ks, sql, walletID)
@@ -55,21 +56,50 @@ func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, err
 	return ks, nil
 }
 
-func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBase64 string, name string) error {
-	// Check if it exists yet?
+func ListPublicKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
+	sql := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL AND key_type=$2;"
+
+	var ks []keys.Key
+	err := b.DB().SelectContext(ctx, &ks, sql, walletID, keys.NonCustodial)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
+	}
+
+	return ks, nil
+}
+
+func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBase64 string, name string) (*keys.Key, error) {
 	var id string
 	err := b.DB().GetContext(ctx, &id,
 		"select id from wallet_keys where wallet_id = $1 and key_type = $2 and reference = $3", walletID, keys.NonCustodial.String(), publicKeyBase64)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("%w %s", keys.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
 	if id != "" {
-		return keys.ErrDuplicate
+		return nil, keys.ErrDuplicate
 	}
 
+	createdAt := time.Now()
 	err = b.DB().GetContext(ctx, &id,
-		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name) values ($1, $2, $3, $4, $5) returning id",
-		walletID, keys.NonCustodial.String(), "database", publicKeyBase64, name)
+		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, created_at) values ($1, $2, $3, $4, $5, $6) returning id",
+		walletID, keys.NonCustodial.String(), "database", publicKeyBase64, name, createdAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
+	}
+
+	return &keys.Key{
+		ID:        id,
+		Name:      name,
+		WalletID:  walletID,
+		Type:      keys.NonCustodial,
+		Location:  "database",
+		Reference: publicKeyBase64,
+		CreatedAt: createdAt,
+	}, nil
+}
+
+func DeletePublicKey(ctx context.Context, b Backends, id string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE wallet_keys SET deleted_at=now():::TIMESTAMP WHERE id=$1 AND key_type=$2;", id, keys.NonCustodial)
 	if err != nil {
 		return fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}

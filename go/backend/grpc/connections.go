@@ -6,10 +6,9 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"errors"
 
-	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/limits"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -61,19 +60,7 @@ func (s *rpcService) CreateConnection(
 		return nil, NewValidationError("PublicKey", "Must be an Ed25519 public key in pem format.")
 	}
 
-	// using payment pointer as client url for now
-	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-	key, err := s.b.Authorisation().AddPublicKey(ctx, pp.URL, authorisation.Jwk{
-		Kty: "OKP",
-		Kid: req.GetApplicationName(),
-		Alg: "EdDSA",
-		Crv: "Ed25519",
-		X:   base64.StdEncoding.EncodeToString(ed25519PubKey),
-		Use: "sign",
-	})
+	key, err := s.b.Keys().AddPublicKey(ctx, wallet.ID, base64.StdEncoding.EncodeToString(ed25519PubKey), req.GetApplicationName())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -101,17 +88,7 @@ func (s *rpcService) ListConnections(ctx context.Context, req *backendv1.Empty) 
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	keys, err := s.b.Authorisation().ListKeys(ctx, pp.URL)
-	if errors.Is(err, authorisation.ErrNotFound) {
-		return &backendv1.ListConnectionsResponse{
-			Keys: nil, // no keys to return
-		}, nil
-	}
+	keys, err := s.b.Keys().ListPublicKeys(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -125,7 +102,7 @@ func (s *rpcService) ListConnections(ctx context.Context, req *backendv1.Empty) 
 
 		keyset[i] = &backendv1.Connection{
 			Id:                   k.ID,
-			ApplicationName:      k.Kid,
+			ApplicationName:      k.Name,
 			PublicKeyFingerprint: fingerprint,
 			CreatedAt:            k.CreatedAt.Format("Jan 02, 2006"),
 			LastUsedAt:           "",
@@ -148,22 +125,20 @@ func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnec
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
+	keyset, err := s.b.Keys().ListPublicKeys(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	key, err := s.b.Authorisation().GetPublicKeyByID(ctx, req.GetId())
-	if err != nil {
-		return nil, toGRPCError(err)
+	var key *keys.Key
+	for _, k := range keyset {
+		if k.ID == req.GetId() {
+			key = &k
+			break
+		}
 	}
-
-	client, err := s.b.Authorisation().LookupClient(ctx, pp.URL)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-	if client.ID != key.ClientID {
-		return nil, NotFoundError("Connection not found.")
+	if key == nil {
+		return nil, NotFoundError("Not found.")
 	}
 
 	fingerprint, err := key.Fingerprint()
@@ -173,7 +148,7 @@ func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnec
 
 	return &backendv1.Connection{
 		Id:                   key.ID,
-		ApplicationName:      key.Kid,
+		ApplicationName:      key.Name,
 		PublicKeyFingerprint: fingerprint,
 		CreatedAt:            key.CreatedAt.Format("Jan 02, 2006"),
 		LastUsedAt:           "",
@@ -254,25 +229,23 @@ func (s *rpcService) DeleteConnection(ctx context.Context, req *backendv1.Delete
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, wallet.ID)
+	keyset, err := s.b.Keys().ListPublicKeys(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	key, err := s.b.Authorisation().GetPublicKeyByID(ctx, req.GetId())
-	if err != nil {
-		return nil, toGRPCError(err)
+	var key *keys.Key
+	for _, k := range keyset {
+		if k.ID == req.GetId() {
+			key = &k
+			break
+		}
 	}
-
-	client, err := s.b.Authorisation().LookupClient(ctx, pp.URL)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-	if client.ID != key.ClientID {
+	if key == nil {
 		return &backendv1.Empty{}, nil
 	}
 
-	err = s.b.Authorisation().DeletePublicKey(ctx, req.GetId())
+	err = s.b.Keys().DeletePublicKey(ctx, key.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

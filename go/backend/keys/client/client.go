@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/keys/ops"
 )
@@ -22,12 +23,20 @@ func (c client) ProvisionPrivateKey(ctx context.Context, walletID string) error 
 	return ops.GeneratePrivateKey(ctx, c.b, walletID)
 }
 
-func (c client) AddPublicKey(ctx context.Context, walletID, publicKeyBase64 string, name string) error {
+func (c client) AddPublicKey(ctx context.Context, walletID, publicKeyBase64 string, name string) (*keys.Key, error) {
 	return ops.AddPublicKey(ctx, c.b, walletID, publicKeyBase64, name)
+}
+
+func (c client) DeletePublicKey(ctx context.Context, id string) error {
+	return ops.DeletePublicKey(ctx, c.b, id)
 }
 
 func (c client) List(ctx context.Context, walletID string) ([]keys.Key, error) {
 	return ops.ListKeys(ctx, c.b, walletID)
+}
+
+func (c client) ListPublicKeys(ctx context.Context, walletID string) ([]keys.Key, error) {
+	return ops.ListPublicKeys(ctx, c.b, walletID)
 }
 
 func (c client) Verify(ctx context.Context, keyID, walletID string, message, signature []byte) (bool, error) {
