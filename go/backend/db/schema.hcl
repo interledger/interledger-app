@@ -1988,6 +1988,20 @@ table "wallet_keys" {
     unique  = true
     columns = [column.wallet_id, column.key_type, column.reference]
   }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "deleted_at" {
+    null    = true
+    type    = timestamp
+  }
 }
 table "kyc_persona_inquiries" {
   schema = schema.public

@@ -3,6 +3,7 @@ package keys
 import (
 	"database/sql/driver"
 	"fmt"
+	"time"
 )
 
 type Key struct {
@@ -12,6 +13,9 @@ type Key struct {
 	Type      Type   `db:"key_type"`
 	Location  string
 	Reference string
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DeletedAt time.Time `db:"deleted_at"`
 }
 
 type Type string
