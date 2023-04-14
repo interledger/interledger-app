@@ -6,8 +6,10 @@ import (
 
 type Client interface {
 	ProvisionPrivateKey(ctx context.Context, walletID string) error
-	AddPublicKey(ctx context.Context, walletID, publicKeyBase64, name string) error
+	AddPublicKey(ctx context.Context, walletID, publicKeyBase64, name string) (*Key, error)
+	DeletePublicKey(ctx context.Context, id string) error
 	List(ctx context.Context, walletID string) ([]Key, error)
+	ListPublicKeys(ctx context.Context, walletID string) ([]Key, error)
 
 	Verify(ctx context.Context, keyID, walletID string, message, signature []byte) (bool, error)
 	Sign(ctx context.Context, keyID, walletID string, message []byte) ([]byte, error)

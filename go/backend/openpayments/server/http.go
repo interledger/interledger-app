@@ -410,7 +410,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	switch suffix {
 	case "jwks.json":
-		listClientKeys(b, pp, w, req)
+		listKeys(b, pp.WalletID, w, req)
 		return
 	}
 
@@ -424,26 +424,32 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func listClientKeys(b Backends, pp *openpayments.PaymentPointer, w http.ResponseWriter, req *http.Request) {
-	// we assume the client url has been registered as the pp
-	clientURL := pp.URL
-	keys, err := b.Authorisation().ListKeys(req.Context(), clientURL)
-	if errors.Is(err, authorisation.ErrNotFound) {
-		log.Error("Failed to list client keys. clientURL not found.", zap.Error(err), zap.String("clientURL", clientURL))
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-	}
+func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Request) {
+	keys, err := b.Keys().ListPublicKeys(req.Context(), walletID)
 	if err != nil {
-		log.Error("error listing client public keys", zap.Error(err), zap.String("clientURL", clientURL))
+		log.Error("error listing client public keys", zap.Error(err), zap.String("walletID", walletID))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
-	keySet := struct {
-		Keys []authorisation.Jwk `json:"keys"`
+	jwks := make([]openpayments.Jwk, len(keys))
+	for i, k := range keys {
+		jwks[i] = openpayments.Jwk{
+			Kty: "OKP",
+			Kid: k.Name,
+			Crv: "Ed25519",
+			Alg: "edDSA",
+			Use: "sign",
+			X:   k.Reference,
+		}
+	}
+
+	resp := struct {
+		Keys []openpayments.Jwk `json:"keys"`
 	}{
-		Keys: keys,
+		Keys: jwks,
 	}
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(keySet)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

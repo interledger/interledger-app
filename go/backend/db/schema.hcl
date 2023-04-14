@@ -1450,49 +1450,6 @@ table "authorisation_clients" {
     columns = [column.url]
   }
 }
-table "authorisation_keys" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "client_id" {
-    null = false
-    type = uuid
-  }
-  column "key_id" {
-    null = false
-    type = text
-  }
-  column "jwk" {
-    null = false
-    type = text
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now():::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now():::TIMESTAMP")
-  }
-  column "deleted_at" {
-    null    = true
-    type    = timestamp
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  foreign_key "fk_keys_clients" {
-    columns     = [column.client_id]
-    ref_columns = [table.authorisation_clients.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
-}
 table "authorisation_grants" {
   schema = schema.public
   column "id" {
@@ -1987,6 +1944,20 @@ table "wallet_keys" {
   index "wallet_key_type_reference_ind" {
     unique  = true
     columns = [column.wallet_id, column.key_type, column.reference]
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "deleted_at" {
+    null    = true
+    type    = timestamp
   }
 }
 table "kyc_persona_inquiries" {
