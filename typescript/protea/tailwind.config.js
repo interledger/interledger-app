@@ -17,61 +17,61 @@ module.exports = {
       },
       // Token colours
       textColor: {
-        strong: 'rgba(var(--text-strong), <alpha-value>)',
-        medium: 'rgba(var(--text-medium), <alpha-value>)',
-        weak: 'rgba(var(--text-weak), <alpha-value>)',
-        disabled: 'rgba(var(--text-disabled), <alpha-value>)',
-        primary: 'rgba(var(--text-primary), <alpha-value>)',
-        'primary-hover': 'rgba(var(--text-primary-hover), <alpha-value>)',
-        error: 'rgba(var(--text-error), <alpha-value>)',
-        success: 'rgba(var(--text-success), <alpha-value>)'
+        strong: 'rgb(var(--text-strong) / <alpha-value>)',
+        medium: 'rgb(var(--text-medium) / <alpha-value>)',
+        weak: 'rgb(var(--text-weak) / <alpha-value>)',
+        disabled: 'rgb(var(--text-disabled) / <alpha-value>)',
+        primary: 'rgb(var(--text-primary) / <alpha-value>)',
+        'primary-hover': 'rgb(var(--text-primary-hover) / <alpha-value>)',
+        error: 'rgb(var(--text-error) / <alpha-value>)',
+        success: 'rgb(var(--text-success) / <alpha-value>)'
       },
       backgroundColor: {
-        app: 'rgba(var(--bg-app), <alpha-value>)',
-        page: 'rgba(var(--bg-page), <alpha-value>)',
-        container: 'rgba(var(--bg-container), <alpha-value>)',
-        'container-hover': 'rgba(var(--bg-container-hover), <alpha-value>)',
-        strong: 'rgba(var(--bg-strong), <alpha-value>)',
-        disabled: 'rgba(var(--bg-disabled), <alpha-value>)',
-        primary: 'rgba(var(--bg-primary), <alpha-value>)',
-        'container-primary': 'rgba(var(--bg-container-primary), <alpha-value>)',
+        app: 'rgb(var(--bg-app) / <alpha-value>)',
+        page: 'rgb(var(--bg-page) / <alpha-value>)',
+        container: 'rgb(var(--bg-container) / <alpha-value>)',
+        'container-hover': 'rgb(var(--bg-container-hover) / <alpha-value>)',
+        strong: 'rgb(var(--bg-strong) / <alpha-value>)',
+        disabled: 'rgb(var(--bg-disabled) / <alpha-value>)',
+        primary: 'rgb(var(--bg-primary) / <alpha-value>)',
+        'container-primary': 'rgb(var(--bg-container-primary) / <alpha-value>)',
         'container-primary-hover':
-          'rgba(var(--bg-container-primary-hover), <alpha-value>)',
+          'rgb(var(--bg-container-primary-hover) / <alpha-value>)',
         'container-primary-active':
-          'rgba(var(--bg-container-primary-active), <alpha-value>)',
+          'rgb(var(--bg-container-primary-active) / <alpha-value>)',
         'container-secondary':
-          'rgba(var(--bg-container-secondary), <alpha-value>)',
-        scrim: 'rgba(var(--bg-scrim), <alpha-value>)',
-        snackbar: 'rgba(var(--bg-snackbar), <alpha-value>)',
-        footer: 'rgba(var(--bg-footer), <alpha-value>)'
+          'rgb(var(--bg-container-secondary) / <alpha-value>)',
+        scrim: 'rgb(var(--bg-scrim) / <alpha-value>)',
+        snackbar: 'rgb(var(--bg-snackbar) / <alpha-value>)',
+        footer: 'rgb(var(--bg-footer) / <alpha-value>)'
       },
       borderColor: {
-        base: 'rgba(var(--border-base), <alpha-value>)',
-        focus: 'rgba(var(--border-focus), <alpha-value>)',
-        hover: 'rgba(var(--border-hover), <alpha-value>)',
-        active: 'rgba(var(--border-active), <alpha-value>)',
-        error: 'rgba(var(--border-error), <alpha-value>)'
+        base: 'rgb(var(--border-base) / <alpha-value>)',
+        focus: 'rgb(var(--border-focus) / <alpha-value>)',
+        hover: 'rgb(var(--border-hover) / <alpha-value>)',
+        active: 'rgb(var(--border-active) / <alpha-value>)',
+        error: 'rgb(var(--border-error) / <alpha-value>)'
       },
       ringColor: {
-        base: 'rgba(var(--border-base), <alpha-value>)',
-        focus: 'rgba(var(--border-focus), <alpha-value>)',
-        hover: 'rgba(var(--border-hover), <alpha-value>)',
-        active: 'rgba(var(--border-active), <alpha-value>)',
-        error: 'rgba(var(--border-error), <alpha-value>)'
+        base: 'rgb(var(--border-base) / <alpha-value>)',
+        focus: 'rgb(var(--border-focus) / <alpha-value>)',
+        hover: 'rgb(var(--border-hover) / <alpha-value>)',
+        active: 'rgb(var(--border-active) / <alpha-value>)',
+        error: 'rgb(var(--border-error) / <alpha-value>)'
       },
       outlineColor: {
-        base: 'rgba(var(--border-base), <alpha-value>)',
-        focus: 'rgba(var(--border-focus), <alpha-value>)',
-        hover: 'rgba(var(--border-hover), <alpha-value>)',
-        active: 'rgba(var(--border-active), <alpha-value>)',
-        error: 'rgba(var(--border-error), <alpha-value>)'
+        base: 'rgb(var(--border-base) / <alpha-value>)',
+        focus: 'rgb(var(--border-focus) / <alpha-value>)',
+        hover: 'rgb(var(--border-hover) / <alpha-value>)',
+        active: 'rgb(var(--border-active) / <alpha-value>)',
+        error: 'rgb(var(--border-error) / <alpha-value>)'
       },
       divideColor: {
-        base: 'rgba(var(--border-base), <alpha-value>)',
-        focus: 'rgba(var(--border-focus), <alpha-value>)',
-        hover: 'rgba(var(--border-hover), <alpha-value>)',
-        active: 'rgba(var(--border-active), <alpha-value>)',
-        error: 'rgba(var(--border-error), <alpha-value>)'
+        base: 'rgb(var(--border-base) / <alpha-value>)',
+        focus: 'rgb(var(--border-focus) / <alpha-value>)',
+        hover: 'rgb(var(--border-hover) / <alpha-value>)',
+        active: 'rgb(var(--border-active) / <alpha-value>)',
+        error: 'rgb(var(--border-error) / <alpha-value>)'
       }
       // End token colours
     }

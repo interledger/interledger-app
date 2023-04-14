@@ -11,65 +11,78 @@
 @layer base {
   :root {
     /* Text */
-    --text-strong: 0, 0, 0;
-    --text-medium: 55, 65, 81;
-    --text-weak: 75, 85, 99;
-    --text-disabled: 156, 163, 175;
-    --text-primary: 243, 81, 103;
-    --text-error: 185, 28, 28;
-
+    --text-strong: 15 23 42;
+    --text-medium: 51 65 85;
+    --text-weak: 100 116 139;
+    --text-disabled: 148 163 184;
+    --text-primary: 59 130 246;
+    --text-error: 185 28 28;
+    --text-success: 34 197 94;
+    --text-white: 255 255 255;
+    --text-primary-hover: 96 165 250;
+    --text-snackbar: 255 255 255;
     /* Background */
-    --bg-app: 255, 255, 255;
-    --bg-container: 243, 244, 246;
-    --bg-container-hover: 229, 231, 235;
-    --bg-strong: 156, 163, 175;
-    --bg-disabled: 229, 231, 235;
-    --bg-primary: 243, 81, 103;
-    --bg-container-primary: 253, 226, 230;
-    --bg-container-primary-hover: 252, 207, 214;
-    --bg-container-primary-active: 252, 207, 214;
-    --bg-snackbar: 31, 41, 55;
-
+    --bg-page-base: 248 250 252;
+    --bg-app: 248 250 252;
+    --bg-container: 241 245 249;
+    --bg-container-hover: 226 232 240;
+    --bg-strong: 148 163 184;
+    --bg-disabled: 226 232 240;
+    --bg-primary: 59 130 246;
+    --bg-container-primary: 219 234 254;
+    --bg-container-primary-hover: 96 165 250;
+    --bg-container-primary-active: 191 219 254;
+    --bg-snackbar: 30 41 59;
+    --bg-container-secondary: 255 247 237;
+    --bg-footer: 11 32 69;
+    --bg-nav-active: 226 232 240;
+    --bg-nav-hover: 226 232 240;
+    --bg-nav: 241 245 249;
+    --bg-nav-disabled: 241 245 249;
     /* Border */
-    --border-base: 209, 213, 219;
-    --border-focus: 243, 81, 103;
-    --border-hover: 247, 140, 155;
-    --border-active: 247, 140, 155;
-    --border-error: 185, 28, 28;
+    --border-base: 203 213 225;
+    --border-focus: 59 130 246;
+    --border-hover: 147 197 253;
+    --border-active: 147 197 253;
+    --border-error: 185 28 28;
   }
-  .theme-blue {
+
+  .theme-dark {
     /* Text */
-    --text-strong: 15, 23, 42;
-    --text-medium: 51, 65, 85;
-    --text-weak: 71, 85, 105;
-    --text-disabled: 148, 163, 184;
-    --text-primary: 59, 130, 246;
-    --text-primary-hover: 96, 165, 250;
-    --text-error: 185, 28, 28;
-    --text-success: 34, 197, 94;
-
+    --text-strong: 255 255 255;
+    --text-medium: 241 245 249;
+    --text-weak: 100 116 139;
+    --text-disabled: 148 163 184;
+    --text-primary: 59 130 246;
+    --text-error: 239 68 68;
+    --text-success: 34 197 94;
+    --text-white: 255 255 255;
+    --text-primary-hover: 96 165 250;
+    --text-snackbar: 0 0 0;
     /* Background */
-    --bg-app: 248, 250, 252;
-    --bg-page: 255, 255, 255;
-    --bg-container: 241, 245, 249;
-    --bg-container-hover: 226, 232, 240;
-    --bg-strong: 148, 163, 184;
-    --bg-disabled: 226, 232, 240;
-    --bg-primary: 59, 130, 246;
-    --bg-container-primary: 219, 234, 254;
-    --bg-container-primary-hover: 96, 165, 250;
-    --bg-container-primary-active: 96, 165, 250;
-    --bg-container-secondary: 255, 247, 237;
-    --bg-scrim: 71, 85, 105;
-    --bg-snackbar: 30, 41, 59;
-    --bg-footer: 11, 32, 69;
-
+    --bg-page-base: 2 6 23;
+    --bg-container-strong: 30 41 59;
+    --bg-snackbar: 241 245 249;
+    --bg-app: 51 65 85;
+    --bg-container-hover: 226 232 240;
+    --bg-strong: 148 163 184;
+    --bg-disabled: 226 232 240;
+    --bg-primary: 59 130 246;
+    --bg-container-primary: 219 234 254;
+    --bg-container-primary-hover: 96 165 250;
+    --bg-container-primary-active: 191 219 254;
+    --bg-footer: 11 32 69;
+    --bg-container-secondary: 255 247 237;
+    --bg-nav-active: 30 41 59;
+    --bg-nav-active-hover: 30 41 59;
+    --bg-nav: 51 65 85;
+    --bg-nav-disabled: 51 65 85;
     /* Border */
-    --border-base: 203, 213, 225;
-    --border-focus: 37, 99, 235;
-    --border-hover: 96, 165, 250;
-    --border-active: 96, 165, 250;
-    --border-error: 185, 28, 28;
+    --border-base: 100 116 139;
+    --border-focus: 59 130 246;
+    --border-hover: 147 197 253;
+    --border-active: 147 197 253;
+    --border-error: 239 68 68;
   }
 }
 
