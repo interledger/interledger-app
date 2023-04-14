@@ -2,19 +2,23 @@ package webhook_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
-	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
-	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
-	verygoodsecurity_mock "gitlab.com/fynbos/backend/providers/verygoodsecurity/client/mock"
-	"gitlab.com/fynbos/backend/providers/verygoodsecurity/webhook"
-	"go.uber.org/zap"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"gitlab.com/fynbos/backend/providers/tabapay"
+	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
+	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
+	verygoodsecurity_mock "gitlab.com/fynbos/backend/providers/verygoodsecurity/client/mock"
+	"gitlab.com/fynbos/backend/providers/verygoodsecurity/webhook"
+	"go.uber.org/zap"
 
 	"github.com/golang/mock/gomock"
 )
@@ -23,10 +27,15 @@ type TestContainer struct {
 	Logger        *zap.Logger
 	vgs           *verygoodsecurity_mock.MockClient
 	ValidatorImpl *validator.Validate
+	tabapay       *tabapay_mock.MockClient
 }
 
 func (t TestContainer) VGS() verygoodsecurity.Client {
 	return t.vgs
+}
+
+func (t TestContainer) Tabapay() tabapay.Client {
+	return t.tabapay
 }
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller) (*TestContainer, error) {
@@ -39,6 +48,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller) (*TestContainer, er
 	c.Logger = logger
 
 	c.vgs = verygoodsecurity_mock.NewMockClient(ctrl)
+	c.tabapay = tabapay_mock.NewMockClient(ctrl)
 
 	return c, nil
 }
@@ -71,6 +81,15 @@ func TestNewHandleInboundCard(s *testing.T) {
 		CreatedAt: "",
 		UpdatedAt: "",
 	}, nil).AnyTimes()
+
+	c.tabapay.EXPECT().CreateCard(gomock.Any(), tabapay.CreateCardArgs{
+		IdempotencyKey: "4111112436781111",
+		WalletID:       walletID,
+		CardNumber:     "4111112436781111",
+		ExpirationDate: "some_token_2937648273",
+		CVV:            "some_token_7281687254",
+		Name:           "visa 1111",
+	}).Return(func(ctx context.Context, result interface{}) error { return nil }, nil).AnyTimes()
 
 	s.Run("OPTIONS returns OK", func(t *testing.T) {
 		optionsReq, err := http.NewRequest("OPTIONS", "/webhooks/verygoodsecurity/card", nil)
