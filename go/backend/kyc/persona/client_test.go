@@ -16,6 +16,6 @@ func TestClient_ValidateWebhook(t *testing.T) {
 	require.NoError(t, err)
 	req.Header.Set("Persona-Signature", "t=123,v1=sjpFkbUQTj9Ej8IwV3gqRWuVM7ZP7jeS5zLWuyVdAp0=")
 
-	valid := pc.ValidateWebhook(req)
+	valid := pc.ValidateWebhook(req, []byte("this is content"))
 	require.True(t, valid)
 }
