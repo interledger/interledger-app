@@ -56,6 +56,18 @@ func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, err
 	return ks, nil
 }
 
+func ListPublicKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
+	sql := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL AND key_type=$2;"
+
+	var ks []keys.Key
+	err := b.DB().SelectContext(ctx, &ks, sql, walletID, keys.NonCustodial)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
+	}
+
+	return ks, nil
+}
+
 func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBase64 string, name string) (*keys.Key, error) {
 	var id string
 	err := b.DB().GetContext(ctx, &id,

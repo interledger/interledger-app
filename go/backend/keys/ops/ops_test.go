@@ -37,6 +37,10 @@ func TestGeneratePrivateAndListKeys(t *testing.T) {
 	require.Equal(t, "database", key.Location)
 	require.Equal(t, keys.Custodial.String(), key.Type.String())
 	require.Equal(t, "Fynbos Managed", key.Name)
+
+	ks, err = ops.ListPublicKeys(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Empty(t, ks)
 }
 
 func TestCantGeneratePrivateDuplicateKeys(t *testing.T) {
@@ -68,7 +72,7 @@ func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
 	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
 	require.NoError(t, err)
 
-	ks, err := ops.ListKeys(ctx, b, walletID)
+	ks, err := ops.ListPublicKeys(ctx, b, walletID)
 	require.NoError(t, err)
 	require.Len(t, ks, 1)
 	key := ks[0]
@@ -80,7 +84,7 @@ func TestCanAddAndSoftDeleteAPublicKey(t *testing.T) {
 	err = ops.DeletePublicKey(ctx, b, key.ID)
 	require.NoError(t, err)
 
-	ks, err = ops.ListKeys(ctx, b, walletID)
+	ks, err = ops.ListPublicKeys(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Empty(t, ks)
 }
@@ -127,7 +131,7 @@ func TestCantSignWithNonCustodialKeys(t *testing.T) {
 	require.NoError(t, err)
 	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
 	require.NoError(t, err)
-	keys, err := ops.ListKeys(ctx, b, walletID)
+	keys, err := ops.ListPublicKeys(ctx, b, walletID)
 	require.NoError(t, err)
 	k := keys[0]
 
@@ -146,7 +150,7 @@ func TestCanVerifyNonCustodialKeys(t *testing.T) {
 	require.NoError(t, err)
 	_, err = ops.AddPublicKey(ctx, b, walletID, base64.StdEncoding.EncodeToString(pubKey), "My Key")
 	require.NoError(t, err)
-	keys, err := ops.ListKeys(ctx, b, walletID)
+	keys, err := ops.ListPublicKeys(ctx, b, walletID)
 	require.NoError(t, err)
 	k := keys[0]
 

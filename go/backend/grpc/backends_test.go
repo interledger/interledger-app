@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/keys"
+	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
@@ -84,6 +86,11 @@ type TestContainer struct {
 	authorisation      *auth_mock.MockInternalClient
 	limits             *limit_mock.MockClient
 	mx                 *mx_mock.MockClient
+	keys               *keys_mock.MockClient
+}
+
+func (t TestContainer) Keys() keys.Client {
+	return t.keys
 }
 
 func (t TestContainer) Tabapay() tabapay.Client {
@@ -216,6 +223,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		authorisation:      auth_mock.NewMockInternalClient(ctrl),
 		limits:             limit_mock.NewMockClient(ctrl),
 		mx:                 mx_mock.NewMockClient(ctrl),
+		keys:               keys_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {
