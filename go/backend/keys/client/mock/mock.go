@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	keys "gitlab.com/fynbos/backend/keys"
 )
 
 // MockClient is a mock of Client interface.
@@ -35,17 +36,47 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddPublicKey mocks base method.
-func (m *MockClient) AddPublicKey(ctx context.Context, walletID, publicKeyBase64, name string) error {
+func (m *MockClient) AddPublicKey(ctx context.Context, walletID, publicKeyBase64, name string) (*keys.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddPublicKey", ctx, walletID, publicKeyBase64, name)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*keys.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddPublicKey indicates an expected call of AddPublicKey.
 func (mr *MockClientMockRecorder) AddPublicKey(ctx, walletID, publicKeyBase64, name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPublicKey", reflect.TypeOf((*MockClient)(nil).AddPublicKey), ctx, walletID, publicKeyBase64, name)
+}
+
+// DeletePublicKey mocks base method.
+func (m *MockClient) DeletePublicKey(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePublicKey", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePublicKey indicates an expected call of DeletePublicKey.
+func (mr *MockClientMockRecorder) DeletePublicKey(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePublicKey", reflect.TypeOf((*MockClient)(nil).DeletePublicKey), ctx, id)
+}
+
+// List mocks base method.
+func (m *MockClient) List(ctx context.Context, walletID string) ([]keys.Key, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", ctx, walletID)
+	ret0, _ := ret[0].([]keys.Key)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockClientMockRecorder) List(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClient)(nil).List), ctx, walletID)
 }
 
 // ProvisionPrivateKey mocks base method.
@@ -60,4 +91,34 @@ func (m *MockClient) ProvisionPrivateKey(ctx context.Context, walletID string) e
 func (mr *MockClientMockRecorder) ProvisionPrivateKey(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProvisionPrivateKey", reflect.TypeOf((*MockClient)(nil).ProvisionPrivateKey), ctx, walletID)
+}
+
+// Sign mocks base method.
+func (m *MockClient) Sign(ctx context.Context, keyID, walletID string, message []byte) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sign", ctx, keyID, walletID, message)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Sign indicates an expected call of Sign.
+func (mr *MockClientMockRecorder) Sign(ctx, keyID, walletID, message interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sign", reflect.TypeOf((*MockClient)(nil).Sign), ctx, keyID, walletID, message)
+}
+
+// Verify mocks base method.
+func (m *MockClient) Verify(ctx context.Context, keyID, walletID string, message, signature []byte) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", ctx, keyID, walletID, message, signature)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Verify indicates an expected call of Verify.
+func (mr *MockClientMockRecorder) Verify(ctx, keyID, walletID, message, signature interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockClient)(nil).Verify), ctx, keyID, walletID, message, signature)
 }
