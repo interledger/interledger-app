@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
 	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi-vault/sdk/v5/go/vault"
@@ -93,6 +92,12 @@ func main() {
 		}
 
 		err = createCrdbClientRole(ctx, k8sAuth.Accessor, pulumi.String("pki/dev-int"))
+		if err != nil {
+			return err
+		}
+
+		// Create the transit engine for backend keys
+		err = enableTransitEngine(ctx, "transit/k8s-dev-euw1/backend/backend", "K8s Dev EUW1 backend transit engine")
 		if err != nil {
 			return err
 		}
@@ -211,5 +216,18 @@ func createCrdbClientRole(ctx *pulumi.Context, authAccessor pulumi.StringOutput,
 		},
 		MaxTtl: pulumi.String("2765000"), // 32days in seconds
 	})
+	return err
+}
+
+func enableTransitEngine(ctx *pulumi.Context, path string, description string) error {
+	_, err := vault.NewMount(ctx, "transit", &vault.MountArgs{
+		Path:        pulumi.String(path),
+		Type:        pulumi.String("transit"),
+		Description: pulumi.String(description),
+	})
+	if err != nil {
+		return err
+	}
+
 	return err
 }
