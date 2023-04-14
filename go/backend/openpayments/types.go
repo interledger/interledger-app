@@ -101,3 +101,14 @@ type CompleteOutgoingPaymentArgs struct {
 	ID         string
 	SentAmount currency.Amount
 }
+
+type Jwk struct {
+	Kty string `json:"kty,omitempty"`
+	E   string `json:"e,omitempty"`
+	Kid string `json:"kid,omitempty"`
+	Alg string `json:"alg,omitempty"`
+	N   string `json:"n,omitempty"`
+	Crv string `json:"crv,omitempty"`
+	X   string `json:"x,omitempty"`
+	Use string `json:"use,omitempty"`
+}

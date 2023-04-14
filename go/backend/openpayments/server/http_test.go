@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"github.com/go-chi/chi/v5"
@@ -22,6 +23,7 @@ import (
 	mock_auth "gitlab.com/fynbos/backend/authorisation/client/mock"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	mock_keys "gitlab.com/fynbos/backend/keys/client/mock"
 	limits_mock "gitlab.com/fynbos/backend/limits/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -37,8 +39,9 @@ func TestGetHandler(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
-
-	b := NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
+	b := NewTestBackends(t, func(tb *testBackends) {
+		tb.db = db
+	})
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -119,10 +122,12 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	auth := mock_auth.NewMockInternalClient(ctrl)
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
-
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-
-	b := NewTestBackends(t, db, nil, nil, tc, auth, nil, nil)
+	b := NewTestBackends(t, func(tb *testBackends) {
+		tb.db = db
+		tb.auth = auth
+		tb.tr = tc
+	})
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	cases := []struct {
@@ -285,8 +290,14 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	tmp_mock := &mocks.Client{}
 	lmt_mock := limits_mock.NewMockClient(ctrl)
 	lmt_mock.EXPECT().Exceeds(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes()
-
-	b := NewTestBackends(t, db, la_mock, tmp_mock, tc, auth, lmt_mock, nil)
+	b := NewTestBackends(t, func(tb *testBackends) {
+		tb.db = db
+		tb.auth = auth
+		tb.tr = tc
+		tb.la = la_mock
+		tb.lmt = lmt_mock
+		tb.temp = tmp_mock
+	})
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
@@ -411,9 +422,11 @@ func TestListKeys(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	db := db.MigrateTestDB(t, ctx)
-	authClient := mock_auth.NewMockInternalClient(ctrl)
-	b := NewTestBackends(t, db, nil, nil, nil, authClient, nil, nil)
+	keyClient := mock_keys.NewMockClient(ctrl)
+	b := NewTestBackends(t, func(tb *testBackends) {
+		tb.db = db.MigrateTestDB(t, ctx)
+		tb.keys = keyClient
+	})
 	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
 
 	userID := uuid.NewString()
@@ -431,10 +444,11 @@ func TestListKeys(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	authClient.EXPECT().ListKeys(gomock.Any(), "https://fynbos.local.me/found_me").Return([]authorisation.Jwk{
+	keyClient.EXPECT().ListPublicKeys(gomock.Any(), wallet.ID).Return([]keys.Key{
 		{
-			Kty: "OKP",
-			X:   "encoded key",
+			ID:        uuid.NewString(),
+			Type:      keys.NonCustodial,
+			Reference: "encoded key",
 		},
 	}, nil)
 
@@ -449,7 +463,7 @@ func TestListKeys(t *testing.T) {
 	require.NoError(t, err)
 
 	var keySet struct {
-		Keys []authorisation.Jwk
+		Keys []openpayments.Jwk
 	}
 	err = json.Unmarshal(respBytes, &keySet)
 	require.NoError(t, err)
