@@ -6,6 +6,7 @@ package mock
 
 import (
 	context "context"
+	http "net/http"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -78,4 +79,18 @@ func (m *MockClient) ResumeInquiry(ctx context.Context, inquiryID, idempotencyKe
 func (mr *MockClientMockRecorder) ResumeInquiry(ctx, inquiryID, idempotencyKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResumeInquiry", reflect.TypeOf((*MockClient)(nil).ResumeInquiry), ctx, inquiryID, idempotencyKey)
+}
+
+// ValidateWebhook mocks base method.
+func (m *MockClient) ValidateWebhook(req *http.Request) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateWebhook", req)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ValidateWebhook indicates an expected call of ValidateWebhook.
+func (mr *MockClientMockRecorder) ValidateWebhook(req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), req)
 }

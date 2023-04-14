@@ -47,6 +47,7 @@ import (
 	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_client "gitlab.com/fynbos/backend/kyc/client"
+	kyc_ops "gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/limits"
 	limits_client "gitlab.com/fynbos/backend/limits/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -204,6 +205,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 
 	router.Handle("/webhooks/verygoodsecurity/card", vgs_webhook.NewHandleInboundCard(b))
+
+	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 

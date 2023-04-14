@@ -2,7 +2,6 @@ package persona
 
 import (
 	"encoding/json"
-	"time"
 )
 
 type Webhook struct {
@@ -30,9 +29,9 @@ type CreateInquiryReqData struct {
 
 type IndividualAttributes struct {
 	ReferenceID           string          `json:"reference-id,omitempty"`
-	CreatedAt             time.Time       `json:"created-at,omitempty"`
-	UpdatedAt             time.Time       `json:"updated-at,omitempty"`
-	RedactedAt            time.Time       `json:"redacted-at,omitempty"`
+	CreatedAt             string          `json:"created-at,omitempty"`
+	UpdatedAt             string          `json:"updated-at,omitempty"`
+	RedactedAt            string          `json:"redacted-at,omitempty"`
 	NameFirst             string          `json:"name-first,omitempty"`
 	NameMiddle            string          `json:"name-middle,omitempty"`
 	NameLast              string          `json:"name-last,omitempty"`
@@ -44,7 +43,7 @@ type IndividualAttributes struct {
 	AddressSubdivision    string          `json:"address-subdivision,omitempty"`
 	AddressPostalCode     string          `json:"address-postal-code,omitempty"`
 	CountryCode           string          `json:"country-code,omitempty"`
-	Birthdate             time.Time       `json:"birthdate,omitempty"`
+	Birthdate             string          `json:"birthdate,omitempty"`
 	SocialSecurityNumber  string          `json:"social-security-number,omitempty"`
 	Tags                  []string        `json:"tags,omitempty"`
 	IdentificationNumbers json.RawMessage `json:"identification-numbers,omitempty"`
@@ -62,22 +61,24 @@ type InquiryData struct {
 }
 
 type InquiryAttributes struct {
-	Status      string    `json:"status"`
-	Subject     string    `json:"subject"`
-	ReferenceID string    `json:"reference-id"`
-	CreatedAt   time.Time `json:"created-at"`
-	CompletedAt time.Time `json:"completed-at"`
-	ExpiredAt   time.Time `json:"expired-at"`
+	Status      string `json:"status"`
+	Subject     string `json:"subject"`
+	ReferenceID string `json:"reference-id"`
+	CreatedAt   string `json:"created-at"`
+	CompletedAt string `json:"completed-at"`
+	ExpiredAt   string `json:"expired-at"`
 }
 
 type InquiryMeta struct {
 	SessionToken string `json:"session-token"`
 }
 
+type Account struct {
+	Data AccountData `json:"data"`
+}
+
 type AccountData struct {
-	Data struct {
-		Type       string               `json:"type"`
-		ID         string               `json:"id"`
-		Attributes IndividualAttributes `json:"attributes"`
-	} `json:"data"`
+	Type       string               `json:"type"`
+	ID         string               `json:"id"`
+	Attributes IndividualAttributes `json:"attributes"`
 }
