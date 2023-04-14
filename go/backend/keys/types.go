@@ -1,7 +1,13 @@
 package keys
 
 import (
+	"crypto/ed25519"
+	"crypto/sha256"
+	"crypto/x509"
 	"database/sql/driver"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/pem"
 	"fmt"
 	"time"
 )
@@ -16,6 +22,47 @@ type Key struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	DeletedAt time.Time `db:"deleted_at"`
+}
+
+func (key Key) Fingerprint() (string, error) {
+	if key.Reference == "" {
+		return "", fmt.Errorf("%w Key is empty.", ErrInternal)
+	}
+	keyBytes, err := base64.StdEncoding.DecodeString(key.Reference)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	switch key.Type {
+	case NonCustodial:
+		pkixBytes, err := x509.MarshalPKIXPublicKey(ed25519.PublicKey(keyBytes))
+		if err != nil {
+			return "", fmt.Errorf("%w %s", ErrInternal, err)
+		}
+
+		hashedPem := sha256.Sum256(pem.EncodeToMemory(&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: pkixBytes,
+		}))
+
+		fingerprint := fmt.Sprintf("SHA256:%s", hex.EncodeToString(hashedPem[:]))
+		return fingerprint, nil
+	case Custodial:
+		pkixBytes, err := x509.MarshalPKCS8PrivateKey(ed25519.PrivateKey(keyBytes))
+		if err != nil {
+			return "", fmt.Errorf("%w %s", ErrInternal, err)
+		}
+
+		hashedPem := sha256.Sum256(pem.EncodeToMemory(&pem.Block{
+			Type:  "PRIVATE KEY",
+			Bytes: pkixBytes,
+		}))
+
+		fingerprint := fmt.Sprintf("SHA256:%s", hex.EncodeToString(hashedPem[:]))
+		return fingerprint, nil
+	default:
+		return "", fmt.Errorf("%w Unknown key type=%s", ErrInternal, key.Type)
+	}
 }
 
 type Type string

@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -54,4 +55,5 @@ type Backends interface {
 	MX() mx.Client
 	GMT() gmt.Client
 	Tabapay() tabapay.Client
+	Keys() keys.Client
 }
