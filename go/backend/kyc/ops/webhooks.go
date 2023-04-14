@@ -21,19 +21,20 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if !pc.ValidateWebhook(r) {
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Error("failed to read webhook body", zap.Error(err))
+			return
+		}
+
+		if !pc.ValidateWebhook(r, data) {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Error("failed to validate webhook sig")
 			return
 		}
 
 		var wh persona.Webhook
-		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			log.Error("failed to process webhook", zap.Error(err))
-			return
-		}
 
 		err = json.Unmarshal(data, &wh)
 		if err != nil {

@@ -82,15 +82,15 @@ func (mr *MockClientMockRecorder) ResumeInquiry(ctx, inquiryID, idempotencyKey i
 }
 
 // ValidateWebhook mocks base method.
-func (m *MockClient) ValidateWebhook(req *http.Request) bool {
+func (m *MockClient) ValidateWebhook(req *http.Request, body []byte) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ValidateWebhook", req)
+	ret := m.ctrl.Call(m, "ValidateWebhook", req, body)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // ValidateWebhook indicates an expected call of ValidateWebhook.
-func (mr *MockClientMockRecorder) ValidateWebhook(req interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ValidateWebhook(req, body interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateWebhook", reflect.TypeOf((*MockClient)(nil).ValidateWebhook), req, body)
 }
