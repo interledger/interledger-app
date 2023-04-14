@@ -67,7 +67,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 			EmailAddress: ul[0].Email,
 			PhoneNumber:  ul[0].PhoneNumber,
 			CountryCode:  id.CountryCode,
-			Birthdate:    id.DateOfBirth,
+			Birthdate:    id.DateOfBirth.Format("2006-01-02"),
 		}
 	}
 
