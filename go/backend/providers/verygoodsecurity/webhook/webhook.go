@@ -2,9 +2,11 @@ package webhook
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
 )
 
@@ -34,7 +36,18 @@ func NewHandleInboundCard(b Backends) http.HandlerFunc {
 			return
 		}
 
-		// TODO: Should create new LinkedAccount by newCard.ID
+		_, err = b.Tabapay().CreateCard(r.Context(), tabapay.CreateCardArgs{
+			IdempotencyKey: card.Token,
+			WalletID:       card.WalletID,
+			Name:           fmt.Sprintf("%s %s", card.Type, card.Last4),
+			CardNumber:     card.Token,
+			CVV:            card.CVV,
+			ExpirationDate: card.Expiry,
+		})
+		if err != nil {
+			http.Error(w, "failed to create card", http.StatusInternalServerError)
+			return
+		}
 
 		w.WriteHeader(http.StatusOK)
 	}
