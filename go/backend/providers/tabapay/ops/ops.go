@@ -34,7 +34,7 @@ func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (t
 		ID:                       "tabapay_create_card" + args.IdempotencyKey,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: 2 * time.Minute,
-		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 	await, err := b.Temporal().ExecuteWorkflow(ctx, wo, workflows.CreateTabapayCardWorkflow, args)
 	if err != nil {
