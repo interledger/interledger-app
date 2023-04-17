@@ -117,7 +117,7 @@ type (
 	}
 
 	Owner struct {
-		Name    Name
+		Name    Name     `json:"name"`
 		Address *Address `json:"address,omitempty"`
 		Phone   *Phone   `json:"phone,omitempty"`
 	}
@@ -145,22 +145,22 @@ type (
 	}
 
 	CreateTransactionResponse struct {
-		SC            int    `json:"SC"`
-		EC            string `json:"EC"`
-		TransactionID string `json:"transactionID"`
-		Network       string
-		NetworkRC     string `json:"networkRC"`
-		Status        string
-		ApprovalCode  string `json:"approvalCode"`
-		Errors        []string
+		SC            int           `json:"SC"`
+		EC            string        `json:"EC"`
+		TransactionID string        `json:"transactionID"`
+		Network       string        `json:"network"`
+		NetworkRC     string        `json:"networkRC"`
+		Status        string        `json:"status"`
+		ApprovalCode  string        `json:"approvalCode"`
+		Errors        []string      `json:"errors"`
 		Fees          *Fees         `json:"fees,omitempty"`
 		Card          *CardResponse `json:"card,omitempty"`
 	}
 
 	Fees struct {
-		Interchange string
-		Network     string
-		Tabapay     string
+		Interchange string `json:"interchange"`
+		Network     string `json:"network"`
+		Tabapay     string `json:"tabapay"`
 	}
 
 	CardResponse struct {
@@ -172,14 +172,14 @@ type (
 	}
 
 	RetrieveTransactionResponse struct {
-		SC             int    `json:"SC"`
-		EC             string `json:"EC"`
-		ReferenceID    string `json:"referenceID"`
-		Network        string
-		NetworkRC      string `json:"networkRC"`
-		Status         string
-		Originally     string
-		Amount         string
+		SC             int       `json:"SC"`
+		EC             string    `json:"EC"`
+		ReferenceID    string    `json:"referenceID"`
+		Network        string    `json:"network"`
+		NetworkRC      string    `json:"networkRC"`
+		Status         string    `json:"status"`
+		Originally     string    `json:"originally"`
+		Amount         string    `json:"amount"`
 		AmountUSD      string    `json:"amountUSD"`
 		Fees           *Fees     `json:"fees,omitempty"`
 		ReversalStatus string    `json:"reversalStatus"`
@@ -189,7 +189,7 @@ type (
 	Reversal struct {
 		NetworkRC  string `json:"networkRC"`
 		NetworkRC2 string `json:"networkRC2"`
-		Error      string
+		Error      string `json:"error"`
 	}
 
 	RetrieveAccountResponse struct {
@@ -198,7 +198,7 @@ type (
 		ReferenceID string        `json:"referenceID"`
 		Bank        *Bank         `json:"bank,omitempty"`
 		Card        *CardResponse `json:"card,omitempty"`
-		Owner       Owner
+		Owner       Owner         `json:"owner"`
 	}
 
 	CreateAccountArgs struct {
@@ -223,22 +223,22 @@ type (
 	}
 
 	PullObject struct {
-		Enabled   bool
-		Network   string
-		Type      CardType
-		Regulated bool
-		Currency  string
-		Country   string
+		Enabled   bool     `json:"enabled"`
+		Network   string   `json:"network"`
+		Type      CardType `json:"type"`
+		Regulated bool     `json:"regulated"`
+		Currency  string   `json:"currency"`
+		Country   string   `json:"country"`
 	}
 
 	PushObject struct {
-		Enabled      bool
-		Network      string
-		Type         CardType
-		Regulated    bool
-		Currency     string
-		Country      string
-		Availability string
+		Enabled      bool     `json:"enabled"`
+		Network      string   `json:"network"`
+		Type         CardType `json:"type"`
+		Regulated    bool     `json:"regulated"`
+		Currency     string   `json:"currency"`
+		Country      string   `json:"country"`
+		Availability string   `json:"availability"`
 	}
 
 	QueryCardResponse struct {
@@ -255,13 +255,13 @@ type (
 
 	Order struct {
 		OrderID  string `json:"orderID"`
-		Currency string
-		Amount   string
+		Currency string `json:"currency"`
+		Amount   string `json:"amount"`
 	}
 
 	Init3DSArgs struct {
 		Account Account `json:"account"`
-		Order   Order
+		Order   Order   `json:"order"`
 	}
 
 	Init3DSResponse struct {
@@ -306,15 +306,15 @@ type (
 		EC                     string `json:"EC"`
 		EM                     string `json:"EM"`
 		Version3DS             string `json:"3dsVersion"`
-		Enrolled               string
+		Enrolled               string `json:"enrolled"`
 		ProcessorTransactionID string `json:"processorTransactionID"`
 		DsTransactionID        string `json:"dsTransactionID"`
-		Status                 string
+		Status                 string `json:"status"`
 		ECI                    string `json:"ECI"`
 		UCAF                   string `json:"UCAF"`
 		XID                    string `json:"XID"`
 		ChallengeURL           string `json:"challengeURL"`
-		Payload                string
+		Payload                string `json:"payload"`
 	}
 
 	Authenticate3DSArgs struct {
@@ -327,10 +327,10 @@ type (
 		EC                     string `json:"EC"`
 		EM                     string `json:"EM"`
 		Version3DS             string `json:"3dsVersion"`
-		Enrolled               string
+		Enrolled               string `json:"enrolled"`
 		ProcessorTransactionID string `json:"processorTransactionID"`
 		DsTransactionID        string `json:"dsTransactionID"`
-		Status                 string
+		Status                 string `json:"status"`
 		ECI                    string `json:"ECI"`
 		UCAF                   string `json:"UCAF"`
 		XID                    string `json:"XID"`
