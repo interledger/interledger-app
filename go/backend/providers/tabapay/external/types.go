@@ -205,8 +205,8 @@ type (
 		RejectDuplicateCard  bool   `json:"-"`
 		OKToAddDuplicateCard bool   `json:"-"`
 		ReferenceID          string `json:"referenceID"`
-		Card                 Card
-		Owner                Owner
+		Card                 Card   `json:"card"`
+		Owner                Owner  `json:"owner"`
 	}
 
 	CreateAccountResponse struct {
