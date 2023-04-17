@@ -64,7 +64,6 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,
-			SecurityCode:   args.CVV,
 		},
 		Owner: external.Owner{
 			Name: external.Name{
