@@ -29,7 +29,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gmt_workflows.ACH2CardTransferWorkflow)
 
 	w.RegisterActivity(tabapay_workflows.NewActivity(b))
-	w.RegisterActivity(tabapay_workflows.CreateTabapayCardWorkflow)
+	w.RegisterWorkflow(tabapay_workflows.CreateTabapayCardWorkflow)
 
 	gmt_workflows.StartNotificationsPolling(b)
 
