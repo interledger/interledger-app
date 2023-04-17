@@ -223,7 +223,7 @@ type (
 	}
 
 	PullObject struct {
-		Enabled   string
+		Enabled   bool
 		Network   string
 		Type      CardType
 		Regulated bool
@@ -232,7 +232,7 @@ type (
 	}
 
 	PushObject struct {
-		Enabled      string
+		Enabled      bool
 		Network      string
 		Type         CardType
 		Regulated    bool
