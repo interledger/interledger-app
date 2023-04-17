@@ -18,29 +18,31 @@
     --text-primary: 59 130 246;
     --text-error: 185 28 28;
     --text-success: 34 197 94;
-    --text-white: 255 255 255;
+    --text-on-color: 255 255 255;
     --text-primary-hover: 96 165 250;
-    --text-snackbar: 255 255 255;
+    --text-inverted: 255 255 255;
     /* Background */
-    --bg-page-base: 248 250 252;
+    --bg-page: 248 250 252;
+    --bg-container-strong: 255 255 255;
     --bg-app: 248 250 252;
     --bg-container: 241 245 249;
+    --bg-nav-active: 226 232 240;
+    --bg-nav-hover: 226 232 240;
+    --bg-nav: 241 245 249;
     --bg-container-hover: 226 232 240;
+    --bg-nav-disabled: 241 245 249;
     --bg-strong: 148 163 184;
     --bg-disabled: 226 232 240;
     --bg-primary: 59 130 246;
     --bg-container-primary: 219 234 254;
     --bg-container-primary-hover: 96 165 250;
     --bg-container-primary-active: 191 219 254;
+    --bg-scrim: 71 85 105;
     --bg-snackbar: 30 41 59;
     --bg-container-secondary: 255 247 237;
     --bg-footer: 11 32 69;
-    --bg-nav-active: 226 232 240;
-    --bg-nav-hover: 226 232 240;
-    --bg-nav: 241 245 249;
-    --bg-nav-disabled: 241 245 249;
     /* Border */
-    --border-base: 203 213 225;
+    --border: 203 213 225;
     --border-focus: 59 130 246;
     --border-hover: 147 197 253;
     --border-active: 147 197 253;
@@ -56,33 +58,77 @@
     --text-primary: 59 130 246;
     --text-error: 239 68 68;
     --text-success: 34 197 94;
-    --text-white: 255 255 255;
+    --text-on-color: 0 0 0;
     --text-primary-hover: 96 165 250;
-    --text-snackbar: 0 0 0;
+    --text-inverted: 0 0 0;
     /* Background */
-    --bg-page-base: 2 6 23;
+    --bg-page: 2 6 23;
     --bg-container-strong: 30 41 59;
     --bg-snackbar: 241 245 249;
     --bg-app: 51 65 85;
     --bg-container-hover: 226 232 240;
+    --bg-nav-active: 30 41 59;
+    --bg-nav-hover: 30 41 59;
+    --bg-nav: 51 65 85;
+    --bg-nav-disabled: 51 65 85;
     --bg-strong: 148 163 184;
     --bg-disabled: 226 232 240;
     --bg-primary: 59 130 246;
     --bg-container-primary: 219 234 254;
     --bg-container-primary-hover: 96 165 250;
     --bg-container-primary-active: 191 219 254;
+    --bg-scrim: 71 85 105;
     --bg-footer: 11 32 69;
     --bg-container-secondary: 255 247 237;
-    --bg-nav-active: 30 41 59;
-    --bg-nav-active-hover: 30 41 59;
-    --bg-nav: 51 65 85;
-    --bg-nav-disabled: 51 65 85;
     /* Border */
-    --border-base: 100 116 139;
+    --border: 100 116 139;
     --border-focus: 59 130 246;
     --border-hover: 147 197 253;
     --border-active: 147 197 253;
     --border-error: 239 68 68;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    /* This is a duplicate of the dark theme */
+    .theme-system {
+
+      /* Text */
+      --text-strong: 255 255 255;
+      --text-medium: 241 245 249;
+      --text-weak: 100 116 139;
+      --text-disabled: 148 163 184;
+      --text-primary: 59 130 246;
+      --text-error: 239 68 68;
+      --text-success: 34 197 94;
+      --text-on-color: 0 0 0;
+      --text-primary-hover: 96 165 250;
+      --text-inverted: 0 0 0;
+      /* Background */
+      --bg-page: 2 6 23;
+      --bg-container-strong: 30 41 59;
+      --bg-snackbar: 241 245 249;
+      --bg-app: 51 65 85;
+      --bg-container-hover: 226 232 240;
+      --bg-nav-active: 71 85 105;
+      --bg-nav-hover: 71 85 105;
+      --bg-nav: 51 65 85;
+      --bg-nav-disabled: 51 65 85;
+      --bg-strong: 148 163 184;
+      --bg-disabled: 226 232 240;
+      --bg-primary: 59 130 246;
+      --bg-container-primary: 219 234 254;
+      --bg-container-primary-hover: 96 165 250;
+      --bg-container-primary-active: 191 219 254;
+      --bg-scrim: 2 6 23;
+      --bg-footer: 11 32 69;
+      --bg-container-secondary: 255 247 237;
+      /* Border */
+      --border: 100 116 139;
+      --border-focus: 59 130 246;
+      --border-hover: 147 197 253;
+      --border-active: 147 197 253;
+      --border-error: 239 68 68;
+    }
   }
 }
 

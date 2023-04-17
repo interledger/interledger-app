@@ -30,7 +30,7 @@ export default function Page() {
           style={{
             fontVariant: 'normal'
           }}
-          className='prose prose-slate col-span-full prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-blockquote:font-normal prose-strong:font-medium prose-code:font-medium prose-pre:rounded-xl prose-pre:bg-container prose-pre:p-4 prose-pre:pb-6 prose-pre:text-strong prose-img:rounded-xl'
+          className='prose prose-slate col-span-full prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-blockquote:font-normal prose-strong:font-medium prose-code:font-medium prose-pre:rounded-xl prose-pre:bg-nav prose-pre:p-4 prose-pre:pb-6 prose-pre:text-strong prose-img:rounded-xl'
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </section>

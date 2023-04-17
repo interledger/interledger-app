@@ -24,13 +24,16 @@ module.exports = {
         primary: 'rgb(var(--text-primary) / <alpha-value>)',
         'primary-hover': 'rgb(var(--text-primary-hover) / <alpha-value>)',
         error: 'rgb(var(--text-error) / <alpha-value>)',
-        success: 'rgb(var(--text-success) / <alpha-value>)'
+        success: 'rgb(var(--text-success) / <alpha-value>)',
+        'on-color': 'rgb(var(--text-on-color) / <alpha-value>)',
+        inverted: 'rgb(var(--text-inverted) / <alpha-value>)'
       },
       backgroundColor: {
-        app: 'rgb(var(--bg-app) / <alpha-value>)',
-        page: 'rgb(var(--bg-page) / <alpha-value>)',
-        container: 'rgb(var(--bg-container) / <alpha-value>)',
-        'container-hover': 'rgb(var(--bg-container-hover) / <alpha-value>)',
+        app: 'rgb(var(--bg-app) / <alpha-value>)', // bg-page
+        page: 'rgb(var(--bg-page) / <alpha-value>)', // bg-containner
+        container: 'rgb(var(--bg-container) / <alpha-value>)', // bg-nav
+        'container-strong': 'rgb(var(--bg-container-strong) / <alpha-value>)', // bg-nav
+        'container-hover': 'rgb(var(--bg-container-hover) / <alpha-value>)', // bg-nav-hover
         strong: 'rgb(var(--bg-strong) / <alpha-value>)',
         disabled: 'rgb(var(--bg-disabled) / <alpha-value>)',
         primary: 'rgb(var(--bg-primary) / <alpha-value>)',
@@ -43,31 +46,35 @@ module.exports = {
           'rgb(var(--bg-container-secondary) / <alpha-value>)',
         scrim: 'rgb(var(--bg-scrim) / <alpha-value>)',
         snackbar: 'rgb(var(--bg-snackbar) / <alpha-value>)',
+        nav: 'rgb(var(--bg-nav) / <alpha-value>)',
+        'nav-active': 'rgb(var(--bg-nav-active) / <alpha-value>)',
+        'nav-hover': 'rgb(var(--bg-nav-hover) / <alpha-value>)',
+        'nav-disabled': 'rgb(var(--bg-nav-disabled) / <alpha-value>)',
         footer: 'rgb(var(--bg-footer) / <alpha-value>)'
       },
       borderColor: {
-        base: 'rgb(var(--border-base) / <alpha-value>)',
+        base: 'rgb(var(--border) / <alpha-value>)',
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
         hover: 'rgb(var(--border-hover) / <alpha-value>)',
         active: 'rgb(var(--border-active) / <alpha-value>)',
         error: 'rgb(var(--border-error) / <alpha-value>)'
       },
       ringColor: {
-        base: 'rgb(var(--border-base) / <alpha-value>)',
+        base: 'rgb(var(--border) / <alpha-value>)',
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
         hover: 'rgb(var(--border-hover) / <alpha-value>)',
         active: 'rgb(var(--border-active) / <alpha-value>)',
         error: 'rgb(var(--border-error) / <alpha-value>)'
       },
       outlineColor: {
-        base: 'rgb(var(--border-base) / <alpha-value>)',
+        base: 'rgb(var(--border) / <alpha-value>)',
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
         hover: 'rgb(var(--border-hover) / <alpha-value>)',
         active: 'rgb(var(--border-active) / <alpha-value>)',
         error: 'rgb(var(--border-error) / <alpha-value>)'
       },
       divideColor: {
-        base: 'rgb(var(--border-base) / <alpha-value>)',
+        base: 'rgb(var(--border) / <alpha-value>)',
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
         hover: 'rgb(var(--border-hover) / <alpha-value>)',
         active: 'rgb(var(--border-active) / <alpha-value>)',
