@@ -55,7 +55,7 @@ export const RadioGroup: FC<RadioGroupProps> = ({
               disabled={option.disabled}
               value={option}
               className={({ checked, disabled }) =>
-                `${checked ? 'bg-container-primary' : 'bg-container'} ${
+                `${checked ? 'bg-container-primary' : 'bg-nav'} ${
                   disabled ? 'cursor-not-allowed bg-disabled text-disabled' : ''
                 }
                     relative flex cursor-pointer rounded-xl p-3 outline-focus transition-all duration-300 focus-visible:outline-2 focus-visible:outline-focus`
