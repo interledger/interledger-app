@@ -12,7 +12,7 @@ const CardRoot = forwardRef<any, CardProps>(({ children, className }, ref) => {
     <div
       ref={ref}
       className={clsx(
-        'flex w-full flex-col rounded-2xl bg-page p-4',
+        'flex w-full flex-col rounded-2xl bg-container-strong p-4',
         className
       )}
     >

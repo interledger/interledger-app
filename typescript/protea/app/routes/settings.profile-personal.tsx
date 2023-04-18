@@ -70,7 +70,7 @@ export default function Page() {
   return (
     <Card>
       <h2 className='mt-6 text-sm font-medium'>Legal name</h2>
-      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
         <div className='flex space-x-3'>
           <Icon>face</Icon>
           <span>
@@ -79,7 +79,7 @@ export default function Page() {
         </div>
       </div>
       <h2 className='mt-6 text-sm font-medium'>Address</h2>
-      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
         <div className='flex space-x-3'>
           <Icon>location_on</Icon>
           <span>
@@ -93,7 +93,7 @@ export default function Page() {
         </div>
       </div>
       <h2 className='mt-6 text-sm font-medium'>Country of residence</h2>
-      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
         <div className='flex space-x-3'>
           <Icon>flag</Icon>
           <span>{country}</span>
@@ -101,14 +101,14 @@ export default function Page() {
         </div>
       </div>
       <h2 className='mt-6 text-sm font-medium'>Gender</h2>
-      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
         <div className='flex space-x-3'>
           <Icon>{gender.icon}</Icon>
           <span>{gender.title}</span>
         </div>
       </div>
       <h2 className='mt-6 text-sm font-medium'>Birth date</h2>
-      <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+      <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
         <div className='flex space-x-3'>
           <Icon>calendar_today</Icon>
           <span>{dateOfBirth}</span>

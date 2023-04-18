@@ -54,7 +54,7 @@ export default function Page() {
               to={route('/settings/linked-accounts/:accountId', {
                 accountId: method.id
               })}
-              className='mt-4 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+              className='mt-4 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
             >
               <div className='flex space-x-3'>
                 {method.icon && <Icon>{method.icon}</Icon>}
@@ -82,7 +82,7 @@ export default function Page() {
         <Card className='space-y-4'>
           <h1 className='font-display text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>attach_money</Icon>
             </div>
             <div className='flex flex-col space-y-4'>
@@ -103,7 +103,7 @@ export default function Page() {
       {kycStatus == KycStatus.Verified && !canTopUp && (
         <Card className='space-y-6'>
           <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>credit_card</Icon>
             </div>
             <div className='flex flex-col space-y-2'>
@@ -125,7 +125,7 @@ export default function Page() {
       {kycStatus == KycStatus.Verified && !canWithdraw && (
         <Card className='space-y-6'>
           <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>account_balance</Icon>
             </div>
             <div className='flex flex-col space-y-2'>

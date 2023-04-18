@@ -52,7 +52,7 @@ export default function Page() {
         <h2 className='mt-6 text-sm font-medium'>Public name</h2>
         <Router
           to={route('/settings/profile-public/name')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>flag</Icon>
