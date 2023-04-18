@@ -166,6 +166,7 @@ func (c *client) CreateAccount(
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
+	fmt.Println(string(payload))
 
 	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
 	if err != nil {
