@@ -45,7 +45,7 @@ export default function Page() {
         {kycStatus != KycStatus.Unknown && (
           <Router
             to={route('/settings/profile-personal')}
-            className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
           >
             <div className='flex space-x-3'>
               <Icon>account_circle</Icon>
@@ -56,7 +56,7 @@ export default function Page() {
         )}
         <Router
           to={route('/settings/profile-public')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>contact_page</Icon>
@@ -66,7 +66,7 @@ export default function Page() {
         </Router>
         <Router
           to={route('/settings/profile-contact')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>call</Icon>
@@ -77,7 +77,7 @@ export default function Page() {
         <h2 className='mt-6 text-sm font-medium'>Account</h2>
         <Router
           to={route('/settings/linked-accounts')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>add_card</Icon>
@@ -87,7 +87,7 @@ export default function Page() {
         </Router>
         <Router
           to={route('/connections')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>sync</Icon>
@@ -98,7 +98,7 @@ export default function Page() {
         <h2 className='mt-6 text-sm font-medium'>Security</h2>
         <Router
           to={route('/login/challenge')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>password</Icon>
@@ -108,7 +108,7 @@ export default function Page() {
         </Router>
         <Router
           to={route('/legal')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-container p-3 text-medium hover:bg-container-hover'
+          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>policy</Icon>

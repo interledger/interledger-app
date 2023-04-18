@@ -57,7 +57,7 @@ export const Select: FC<SelectProps> = ({
                 <span className='px-4 text-left text-sm'>
                   {disabled ? '' : value?.name}
                 </span>
-                <div className='flex h-full items-center bg-container px-4 text-medium'>
+                <div className='flex h-full items-center bg-nav px-4 text-medium'>
                   <Icon>unfold_more</Icon>
                 </div>
               </div>
@@ -69,13 +69,13 @@ export const Select: FC<SelectProps> = ({
             leaveFrom='opacity-100'
             leaveTo='opacity-0'
           >
-            <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 text-sm shadow-lg focus:outline-none'>
+            <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav py-1 text-sm shadow-lg focus:outline-none'>
               {options.map((option, index) => (
                 <Listbox.Option
                   key={index}
                   className={({ active }) =>
                     `relative flex h-12 cursor-pointer select-none items-center justify-between pl-4 pr-3 ${
-                      active ? 'bg-container-hover' : 'text-medium'
+                      active ? 'bg-nav-hover' : 'text-medium'
                     }`
                   }
                   value={option}
