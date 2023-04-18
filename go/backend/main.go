@@ -35,8 +35,6 @@ import (
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
-	"gitlab.com/fynbos/backend/country"
-	country_client "gitlab.com/fynbos/backend/country/client"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
@@ -168,8 +166,6 @@ func start(args *cli.StartArgs) {
 	b.temporal = tp
 
 	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
-
-	b.countries = country_client.New(b)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -379,11 +375,6 @@ func migrate(args *cli.MigrationArgs) {
 		}
 	}()
 
-	err = db.SeedCountries(context.Background(), dbConn)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	err = db.CreateExpIndex(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
@@ -527,7 +518,6 @@ type backends struct {
 
 	adminAuth        auth.Service
 	agreements       agreements.Client
-	countries        country.Client
 	verygoodsecurity verygoodsecurity.Client
 	linkedaccounts   linkedaccounts.Client
 	healthcheck      healthcheck.Service
@@ -597,10 +587,6 @@ func (b backends) Users() user.Client {
 
 func (b backends) Temporal() client.Client {
 	return b.temporal
-}
-
-func (b backends) Countries() country.Client {
-	return b.countries
 }
 
 func (b backends) DB() *sqlx.DB {

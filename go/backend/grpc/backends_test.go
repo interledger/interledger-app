@@ -37,8 +37,6 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
-	"gitlab.com/fynbos/backend/country"
-	country_mock "gitlab.com/fynbos/backend/country/client/mock"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -68,7 +66,6 @@ import (
 type TestContainer struct {
 	HealthService      healthcheck.Service
 	AgreementsService  *agreements_mock.MockClient
-	CountriesService   *country_mock.MockClient
 	AdminAuthService   auth.Service
 	UserService        user.Client
 	linkedaccounts     *linked_accounts_mock.MockClient
@@ -137,10 +134,6 @@ func (t TestContainer) Agreements() agreements.Client {
 	return t.AgreementsService
 }
 
-func (t TestContainer) Countries() country.Client {
-	return t.CountriesService
-}
-
 func (t TestContainer) LinkedAccounts() linkedaccounts.Client {
 	return t.linkedaccounts
 }
@@ -206,7 +199,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 	c := &TestContainer{
 		HealthService:      hs,
 		AgreementsService:  agreements_mock.NewMockClient(ctrl),
-		CountriesService:   country_mock.NewMockClient(ctrl),
 		AdminAuthService:   auth.NewMockService(),
 		UserService:        user_mock.NewMock(),
 		linkedaccounts:     linked_accounts_mock.NewMockClient(ctrl),
