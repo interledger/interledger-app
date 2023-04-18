@@ -31,7 +31,7 @@ func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (t
 	}
 
 	wo := client.StartWorkflowOptions{
-		ID:                       "tabapay_create_card" + args.IdempotencyKey,
+		ID:                       "tabapay_create_card_" + args.IdempotencyKey,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: 2 * time.Minute,
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,

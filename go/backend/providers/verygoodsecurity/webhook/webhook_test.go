@@ -61,8 +61,7 @@ func TestNewHandleInboundCard(s *testing.T) {
 		s.Fatal(err)
 	}
 
-	walletID := uuid.NewString()
-
+	walletID, cardID := uuid.NewString(), uuid.NewString()
 	c.vgs.EXPECT().CreateCard(gomock.Any(), verygoodsecurity.Card{
 		WalletID: walletID,
 		Token:    "4111112436781111",
@@ -71,7 +70,7 @@ func TestNewHandleInboundCard(s *testing.T) {
 		Last4:    "1111",
 		Type:     "visa",
 	}).Return(&verygoodsecurity.Card{
-		ID:        uuid.NewString(),
+		ID:        cardID,
 		WalletID:  walletID,
 		Token:     "4111112436781111",
 		Expiry:    "some_token_2937648273",
@@ -83,7 +82,7 @@ func TestNewHandleInboundCard(s *testing.T) {
 	}, nil).AnyTimes()
 
 	c.tabapay.EXPECT().CreateCard(gomock.Any(), tabapay.CreateCardArgs{
-		IdempotencyKey: "4111112436781111",
+		IdempotencyKey: cardID,
 		WalletID:       walletID,
 		CardNumber:     "4111112436781111",
 		ExpirationDate: "some_token_2937648273",
