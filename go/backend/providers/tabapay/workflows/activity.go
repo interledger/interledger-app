@@ -3,6 +3,7 @@ package workflows
 import (
 	"context"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
 	"gitlab.com/fynbos/log"
+	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
 )
 
@@ -112,6 +114,18 @@ func (a *Activity) CreateLinkedCard(ctx context.Context, args CreateLinkedCardAr
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return la, nil
+}
+
+func (a *Activity) MarkCardNotDeleted(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	la, err := a.b.LinkedAccounts().MarkNotDeleted(ctx, id)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	return la, nil
