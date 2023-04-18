@@ -6,5 +6,5 @@ import (
 )
 
 type Client interface {
-	CreateAuthURL(ctx context.Context, b ops.Backends) (string, error)
+	CreateAuthURL(ctx context.Context, b ops.Backends, scopes []string) (string, error)
 }

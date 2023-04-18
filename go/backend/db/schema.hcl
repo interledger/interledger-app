@@ -2238,5 +2238,39 @@ table "external_api_logs" {
     default = sql("now():::TIMESTAMP")
   }
 }
+
+table "twitter_auth_states" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "code_verifier" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "state_ind" {
+    unique  = true
+    columns = [column.state]
+  }
+}
 schema "public" {
 }
