@@ -6,5 +6,6 @@ import (
 )
 
 type Client interface {
-	CreateAuthURL(ctx context.Context, b ops.Backends, scopes []string) (string, error)
+	CreateAuthURL(ctx context.Context, args *CreateAuthURLArgs) (*ops.Authorization, error)
+	CreateAccessToken(ctx context.Context, args *ops.CreateAccessTokenArgs) (*ops.TwitterAccessToken, error)
 }

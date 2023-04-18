@@ -3,13 +3,25 @@ package client
 import (
 	"context"
 
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/twitter"
+	"gitlab.com/fynbos/backend/twitter/external"
+	external_client "gitlab.com/fynbos/backend/twitter/external/client"
 	"gitlab.com/fynbos/backend/twitter/ops"
 )
 
 var _ twitter.Client = &Client{}
 
 type (
+	Backends interface {
+		DB() *sqlx.DB
+	}
+
+	opsBackends struct {
+		b        Backends
+		external external.Client
+	}
+
 	Client struct {
 		b            ops.Backends
 		clientID     string
@@ -18,26 +30,55 @@ type (
 	}
 
 	NewClientArgs struct {
-		ClientID     string
-		RedirectURL  string
-		AuthEndpoint string
+		ClientID      string
+		ClientSecret  string
+		RedirectURL   string
+		AuthEndpoint  string
+		TokenEndpoint string
 	}
 )
 
-func New(args NewClientArgs, b ops.Backends) (*Client, error) {
+func (ob *opsBackends) External() external.Client {
+	return ob.external
+}
+
+func (ob *opsBackends) DB() *sqlx.DB {
+	return ob.b.DB()
+}
+
+func New(args NewClientArgs, b Backends) (*Client, error) {
+	externalClient := external_client.New(&external_client.NewClientArgs{
+		ClientID:      args.ClientID,
+		RedirectURL:   args.RedirectURL,
+		AuthEndpoint:  args.AuthEndpoint,
+		TokenEndpoint: args.TokenEndpoint,
+		ClientSecret:  args.ClientSecret,
+	})
+
 	return &Client{
-		b:            b,
+		b: &opsBackends{
+			b:        b,
+			external: externalClient,
+		},
 		clientID:     args.ClientID,
 		redirectURL:  args.RedirectURL,
 		authEndpoint: args.AuthEndpoint,
 	}, nil
 }
 
-func (c *Client) CreateAuthURL(ctx context.Context, b ops.Backends, scopes []string) (string, error) {
-	return ops.CreateAuthURL(ctx, b, &ops.CreateAuthURLArgs{
+func (c *Client) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLArgs) (*ops.Authorization, error) {
+	return ops.CreateAuthURL(ctx, c.b, &ops.CreateAuthURLArgs{
 		ClientID:     c.clientID,
 		RedirectURL:  c.redirectURL,
 		AuthEndpoint: c.authEndpoint,
-		Scopes:       scopes,
+		Scopes:       args.Scopes,
+		WalletID:     args.WalletID,
+	})
+}
+
+func (c *Client) CreateAccessToken(ctx context.Context, args *ops.CreateAccessTokenArgs) (*ops.TwitterAccessToken, error) {
+	return ops.CreateAccessToken(ctx, c.b, &ops.CreateAccessTokenArgs{
+		AuthCode: args.AuthCode,
+		State:    args.State,
 	})
 }
