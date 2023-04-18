@@ -204,9 +204,9 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("PERSONA_TOKEN is required in prod")
 	}
 
-	personaWebhook := os.Getenv("PERSONA_WEBHOOK")
+	personaWebhook := os.Getenv("PERSONA_WEBHOOK_TOKEN")
 	if personaWebhook == "" && env.IsProd() {
-		return nil, errors.New("PERSONA_WEBHOOK is required in prod")
+		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required in prod")
 	}
 
 	return &StartArgs{
