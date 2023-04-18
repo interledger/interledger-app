@@ -2192,6 +2192,7 @@ table "wallet_features" {
     columns = [column.wallet_id]
   }
 }
+
 table "external_api_logs" {
   schema = schema.public
   column "id" {
@@ -2239,14 +2240,26 @@ table "external_api_logs" {
   }
 }
 
-table "twitter_auth_states" {
+table "twitter_authorizations" {
   schema = schema.public
   column "id" {
     null = false
     type = uuid
     default = sql("gen_random_uuid()")
   }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "client_id" {
+    null = false
+    type = text
+  }
   column "state" {
+    null = false
+    type = text
+  }
+  column "redirect_url" {
     null = false
     type = text
   }
@@ -2270,6 +2283,51 @@ table "twitter_auth_states" {
   index "state_ind" {
     unique  = true
     columns = [column.state]
+  }
+}
+table "twitter_access_tokens" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "client_id" {
+    null = false
+    type = text
+  }
+  column "access_token" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "refresh_token" {
+    null = false
+    type = text
+  }
+  column "expiry" {
+    null = false
+    type = timestamp
+  }
+  column "token_type" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
   }
 }
 schema "public" {
