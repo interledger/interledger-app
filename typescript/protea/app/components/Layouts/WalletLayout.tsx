@@ -57,7 +57,7 @@ export function WalletLayout() {
         </NavDrawer>
       </div>
       <div className='w-full'>
-        <header className='fixed top-0 z-50 flex h-16 w-full select-none items-center justify-start space-x-4 bg-app p-4 sm:min-w-full lg:hidden'>
+        <header className='fixed top-0 z-50 flex h-16 w-full select-none items-center justify-start space-x-4 bg-page p-4 sm:min-w-full lg:hidden'>
           <IconButton
             className='lg:hidden'
             onClick={() => setOpenNavModal(true)}
