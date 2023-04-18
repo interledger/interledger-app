@@ -518,7 +518,7 @@ function AppPage() {
                   }
                 )
             }}
-            className='mt-4 flex flex items-center justify-between rounded-xl bg-container p-4 hover:bg-container-hover'
+            className='mt-4 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
           >
             <span className='font-medium text-medium'>
               {paymentPointer.formatted}
@@ -586,7 +586,7 @@ function AppPage() {
         <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h1 className='font-display text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>{nextStep.icon}</Icon>
             </div>
             <div className='flex flex-col space-y-4'>

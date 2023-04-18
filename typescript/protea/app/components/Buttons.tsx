@@ -86,12 +86,9 @@ export const IconButton = forwardRef<any, IconButtonProps>(
       <button
         ref={ref}
         {...buttonProps}
-        className={clsx(
-          '-m-3 flex p-3 text-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 disabled:cursor-not-allowed disabled:text-disabled',
-          buttonProps.className
-        )}
+        className='-m-3 flex p-3 text-medium focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 disabled:cursor-not-allowed disabled:text-disabled'
       >
-        <Icon>{children}</Icon>
+        <Icon className={buttonProps.className}>{children}</Icon>
       </button>
     )
   }
