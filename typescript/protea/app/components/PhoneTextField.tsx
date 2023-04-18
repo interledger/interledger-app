@@ -105,7 +105,7 @@ export const PhoneTextField = forwardRef<
           <div className='relative'>
             <div className='mt-1 h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
               <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
-                <Listbox.Button className='flex h-full items-center bg-container px-4 text-medium focus-visible:bg-container-primary focus-visible:outline-none'>
+                <Listbox.Button className='flex h-full items-center bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'>
                   <div className={`flag:${country?.id}`} />
                 </Listbox.Button>
                 <input
@@ -133,7 +133,7 @@ export const PhoneTextField = forwardRef<
                 inputRef.current.selectionEnd = inputRef.current.value.length
               }}
             >
-              <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-container py-1 shadow-lg focus:outline-none sm:text-sm'>
+              <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav py-1 shadow-lg focus:outline-none sm:text-sm'>
                 {options.length > 0 &&
                   options.map((option, index) => (
                     <Listbox.Option
@@ -146,8 +146,8 @@ export const PhoneTextField = forwardRef<
                               ? 'bg-container-primary-hover'
                               : 'bg-container-primary text-medium'
                             : active
-                            ? 'bg-container-hover'
-                            : 'bg-container text-medium'
+                            ? 'bg-nav-hover'
+                            : 'bg-nav text-medium'
                         )
                       }
                       value={option}
