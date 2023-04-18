@@ -45,9 +45,6 @@ test_backend:
 
 build_backend:
   interruptible: true
-  needs:
-    - job: test_backend
-      optional: true
   tags:
     - hetzner
   image:
