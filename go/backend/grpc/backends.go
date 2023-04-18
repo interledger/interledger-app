@@ -8,7 +8,6 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identities"
@@ -33,7 +32,6 @@ type Backends interface {
 	DB() *sqlx.DB
 	AdminAuth() auth.Service
 	Agreements() agreements.Client
-	Countries() country.Client
 	LinkedAccounts() linkedaccounts.Client
 	HealthCheck() healthcheck.Service
 	Signup() signup.Client

@@ -21,7 +21,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/admin/auth"
-	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/healthcheck"
 	test_utils "gitlab.com/fynbos/backend/utils"
 	"gitlab.com/fynbos/backend/waitlist"
@@ -37,7 +36,6 @@ type TestContainer struct {
 	Ctrl           *gomock.Controller
 	Db             *sqlx.DB
 	Hs             healthcheck.Service
-	Cs             country.Client
 	Tp             *mocks.Client
 	AdminConn      *grpc.ClientConn
 	AdminClient    adminv1.BackendClient
