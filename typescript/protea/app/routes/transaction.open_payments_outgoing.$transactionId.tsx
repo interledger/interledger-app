@@ -241,6 +241,7 @@ export default function Page() {
             <Card.Item className='mt-2'>
               <span className='text-sm text-medium'>Status</span>
               {transaction.status == 'Completed' && (
+                // TODO token text colours
                 <span className='text-sm text-green-800'>Complete</span>
               )}
               {transaction.status == 'Pending' && (
