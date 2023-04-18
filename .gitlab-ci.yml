@@ -60,6 +60,7 @@ trigger_deploy_prod_use2:
     - main
   needs:
     - build_backend
+    - test_backend
     - build_protea
   when: manual
   variables:
