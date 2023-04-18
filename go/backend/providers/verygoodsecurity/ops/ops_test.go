@@ -2,9 +2,10 @@ package ops_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,7 +44,7 @@ func TestCreateCard(s *testing.T) {
 		assert.Equal(t, "visa", card.Type)
 	})
 
-	s.Run("can't create duplicates on walletId and card token", func(t *testing.T) {
+	s.Run("updates duplicates", func(t *testing.T) {
 		userId := uuid.NewString()
 		// Create Wallet
 		wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
@@ -62,36 +63,20 @@ func TestCreateCard(s *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, card)
 
-		_, err = c.verygoodsecurity.CreateCard(ctx, verygoodsecurity.Card{
+		updatedCard, err := c.verygoodsecurity.CreateCard(ctx, verygoodsecurity.Card{
 			WalletID: wallet.ID,
 			Token:    "4111112436781111",
-			Expiry:   "some_token_2937648273",
-			CVV:      "some_token_7281687254",
+			Expiry:   "some_new_token_2937648273",
+			CVV:      "some_new_token_7281687254",
 			Last4:    "1111",
 			Type:     "visa",
 		})
-		assert.ErrorContains(t, err, "verygoodsecurity: user has an existing card")
-		assert.NotNil(t, err)
-
-		_, err = c.verygoodsecurity.CreateCard(ctx, verygoodsecurity.Card{
-			WalletID: wallet.ID,
-			Token:    "4111112436781111",
-			Expiry:   "changing",
-			CVV:      "these",
-			Last4:    "still",
-			Type:     "errors",
-		})
-		assert.ErrorContains(t, err, "verygoodsecurity: user has an existing card")
-		assert.NotNil(t, err)
-
-		_, err = c.verygoodsecurity.CreateCard(ctx, verygoodsecurity.Card{
-			WalletID: wallet.ID,
-			Token:    "41111123455641111",
-			Expiry:   "will",
-			CVV:      "yield",
-			Last4:    "positive",
-			Type:     "results",
-		})
 		require.NoError(t, err)
+		assert.Equal(t, "4111112436781111", updatedCard.Token)
+		assert.Equal(t, card.ID, updatedCard.ID)
+		assert.Equal(t, "some_new_token_2937648273", updatedCard.Expiry)
+		assert.Equal(t, "some_new_token_7281687254", updatedCard.CVV)
+		assert.Equal(t, "1111", updatedCard.Last4)
+		assert.Equal(t, "visa", updatedCard.Type)
 	})
 }
