@@ -137,6 +137,16 @@ func TestDelete(t *testing.T) {
 
 	_, err = c.LinkedAccounts.Get(ctx, la.ID)
 	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)
+
+	la, err = c.LinkedAccounts.MarkNotDeleted(ctx, la.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Test", la.Name)
+
+	_, err = c.LinkedAccounts.Get(ctx, la.ID)
+	require.NoError(t, err)
+
+	_, err = c.LinkedAccounts.MarkNotDeleted(ctx, uuid.NewString())
+	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)
 }
 
 func TestListMXBankAccounts(t *testing.T) {

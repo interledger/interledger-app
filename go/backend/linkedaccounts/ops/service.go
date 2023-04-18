@@ -155,6 +155,24 @@ func Delete(ctx context.Context, b Backends, id string) error {
 	return nil
 }
 
+func MarkNotDeleted(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAccount, error) {
+	result, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=NULL WHERE id=$1", id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+	}
+
+	if rows < 1 {
+		return nil, linkedaccounts.ErrNotFound
+	}
+
+	return Get(ctx, b, id)
+}
+
 func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByProviderIDArgs) (*linkedaccounts.LinkedAccount, error) {
 	var linkedAccount linkedaccounts.LinkedAccount
 	err := b.DB().GetContext(

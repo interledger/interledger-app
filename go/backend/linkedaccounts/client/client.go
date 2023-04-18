@@ -118,6 +118,10 @@ func (c client) Delete(ctx context.Context, id string) error {
 	return ops.Delete(ctx, c.b, id)
 }
 
+func (c client) MarkNotDeleted(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	return ops.MarkNotDeleted(ctx, c.b, id)
+}
+
 func (c client) ListMXBankAccounts(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
 	return ops.ListMXBankAccounts(ctx, c.b)
 }
