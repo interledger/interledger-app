@@ -31,15 +31,14 @@ func NewHandleInboundCard(b Backends) http.HandlerFunc {
 			return
 		}
 
-		_, err = b.VGS().CreateCard(r.Context(), card)
+		storedCard, err := b.VGS().CreateCard(r.Context(), card)
 		if err != nil {
-			// TODO if ErrUserHasExistingCard check if matching linked account is marked deleted and undelete it.
 			http.Error(w, "failed to create card", http.StatusInternalServerError)
 			return
 		}
 
 		_, err = b.Tabapay().CreateCard(r.Context(), tabapay.CreateCardArgs{
-			IdempotencyKey: card.Token,
+			IdempotencyKey: storedCard.ID,
 			WalletID:       card.WalletID,
 			Name:           fmt.Sprintf("%s %s", card.Type, card.Last4),
 			CardNumber:     card.Token,
