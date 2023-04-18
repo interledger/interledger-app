@@ -665,11 +665,11 @@ export default function Page() {
           </svg>
         </div>
         <div className='relative col-span-full h-28'>
-          <div className='absolute right-16 bottom-0 h-20 w-20 rounded-tl-full bg-slate-50 lg:-right-20' />
+          <div className='absolute right-16 bottom-0 h-20 w-20 rounded-tl-full bg-mk-section lg:-right-20' />
           <div className='absolute -right-4 bottom-0 h-20 w-20 rounded-tr-full bg-slate-100 lg:-right-40' />
         </div>
       </section>
-      <div className='w-full bg-slate-50'>
+      <div className='w-full bg-mk-section'>
         <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 py-16 sm:max-w-lg sm:grid-cols-8 sm:px-0 sm:py-20 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='col-span-full flex flex-col'>
             <div className='flex'>
@@ -719,11 +719,11 @@ export default function Page() {
           </div>
         </section>
       </div>
-      <section className='relative mx-auto  grid w-full grid-cols-4 content-start gap-4 gap-y-12 overflow-x-visible px-4 pb-12 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:pb-14 xl:max-w-[59rem]'>
+      <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-12 overflow-x-visible px-4 pb-12 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:pb-14 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-40 lg:h-20'>
-          <div className='absolute top-0 -left-4 h-20 w-20 rounded-tr-full bg-slate-50 lg:-left-40' />
-          <div className='absolute top-0 left-16 h-20 w-20 rounded-bl-full bg-slate-50 lg:-left-20' />
-          <div className='absolute top-20 -left-4 h-20 w-20 rounded-br-full bg-slate-50 lg:-left-40' />
+          <div className='absolute top-0 -left-4 h-20 w-20 rounded-tr-full bg-mk-section lg:-left-40' />
+          <div className='absolute top-0 left-16 h-20 w-20 rounded-bl-full bg-mk-section lg:-left-20' />
+          <div className='absolute top-20 -left-4 h-20 w-20 rounded-br-full bg-mk-section lg:-left-40' />
         </div>
         <div className='col-span-full lg:col-span-10 lg:col-start-2'>
           <p className='mb-6 text-xl'>
@@ -909,12 +909,12 @@ export default function Page() {
           </p>
         </div>
       </section>
-      <div className='w-full bg-slate-50'>
+      <div className='w-full bg-mk-section'>
         <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='relative col-span-full h-20'>
-            <div className='absolute bottom-0 -right-20 hidden h-20 w-20 rounded-full bg-white lg:block' />
-            <div className='absolute bottom-0 -left-4 h-20 w-20 rounded-full bg-white lg:-left-40' />
-            <div className='absolute bottom-0 left-16 h-20 w-20 rounded-br-full bg-white lg:-left-20' />
+            <div className='absolute bottom-0 -right-20 hidden h-20 w-20 rounded-full bg-mk-page lg:block' />
+            <div className='absolute bottom-0 -left-4 h-20 w-20 rounded-full bg-mk-page lg:-left-40' />
+            <div className='absolute bottom-0 left-16 h-20 w-20 rounded-br-full bg-mk-page lg:-left-20' />
           </div>
           <div className='col-span-full mt-4 flex items-center justify-center text-center'>
             <span className='text-lg text-medium lg:text-xl'>
@@ -929,16 +929,16 @@ export default function Page() {
             </ButtonRouter>
           </div>
           <div className='relative col-span-full h-16 lg:h-20'>
-            <div className='absolute bottom-0 -right-20 hidden h-20 w-20 rounded-tl-full bg-white lg:block' />
-            <div className='absolute bottom-0 -right-40 hidden h-20 w-20 rounded-tr-full bg-white lg:block' />
+            <div className='absolute bottom-0 -right-20 hidden h-20 w-20 rounded-tl-full bg-mk-page lg:block' />
+            <div className='absolute bottom-0 -right-40 hidden h-20 w-20 rounded-tr-full bg-mk-page lg:block' />
           </div>
         </section>
       </div>
       <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-12 overflow-x-visible px-4 text-center sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20'>
-          <div className='absolute top-0 -left-4 h-20 w-20 rounded-tr-full bg-slate-50 lg:-left-40' />
-          <div className='absolute top-0 left-16 h-20 w-20 rounded-bl-full bg-slate-50 lg:-left-20' />
-          <div className='absolute top-0 left-36 h-20 w-20 rounded-br-full bg-slate-50 lg:left-0' />
+          <div className='absolute top-0 -left-4 h-20 w-20 rounded-tr-full bg-mk-section lg:-left-40' />
+          <div className='absolute top-0 left-16 h-20 w-20 rounded-bl-full bg-mk-section lg:-left-20' />
+          <div className='absolute top-0 left-36 h-20 w-20 rounded-br-full bg-mk-section lg:left-0' />
         </div>
         <div className='col-span-full lg:col-span-10 lg:col-start-2'>
           <h1 className='mb-6 font-display text-4xl'>More information</h1>
@@ -1202,8 +1202,8 @@ export default function Page() {
           </p>
         </AnchorRouter>
         <div className='relative col-span-full h-40 lg:h-20'>
-          <div className='absolute bottom-0 -right-4 h-20 w-20 rounded-bl-full bg-slate-50 lg:-right-40' />
-          <div className='absolute bottom-20 -right-4 h-20 w-20 rounded-bl-full bg-slate-50 lg:-right-40' />
+          <div className='absolute bottom-0 -right-4 h-20 w-20 rounded-bl-full bg-mk-section lg:-right-40' />
+          <div className='absolute bottom-20 -right-4 h-20 w-20 rounded-bl-full bg-mk-section lg:-right-40' />
           <div className='absolute bottom-0 -left-4 h-20 w-20 rounded-tr-full bg-rose-300 lg:-left-20' />
         </div>
       </section>
