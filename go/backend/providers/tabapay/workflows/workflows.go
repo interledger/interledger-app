@@ -44,12 +44,15 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return nil, err
 	}
 
-	var la linkedaccounts.LinkedAccount
+	last4 := args.CardNumber
+	if len(args.CardNumber) > 4 {
+		last4 = last4[len(args.CardNumber)-4:]
+	}
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
 		ID:         linkedAccountID,
 		WalletID:   args.WalletID,
 		ProviderID: externalAccount.AccountID,
-		Mask:       externalAccount.Card.Last4,
+		Mask:       last4,
 		Name:       args.Name,
 		Nickname:   args.Name,
 	}).Get(ctx, &la)

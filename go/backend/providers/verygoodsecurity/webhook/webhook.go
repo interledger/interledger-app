@@ -8,6 +8,8 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 func NewHandleInboundCard(b Backends) http.HandlerFunc {
@@ -45,6 +47,7 @@ func NewHandleInboundCard(b Backends) http.HandlerFunc {
 			ExpirationDate: card.Expiry,
 		})
 		if err != nil {
+			log.Error("failed to create tabapay linked card.", zap.Error(err))
 			http.Error(w, "failed to create card", http.StatusInternalServerError)
 			return
 		}
