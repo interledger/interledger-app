@@ -283,12 +283,13 @@ func start(args *cli.StartArgs) {
 	}
 	b.tabapay = tabapayClient
 
-	b.keys = keys_client.New(b)
-
-	_, err = vault.NewVaultClient()
+	vc, err := vault.NewClient()
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
 	}
+	b.vault = vc
+
+	b.keys = keys_client.New(b)
 
 	server, err := _grpc.NewServer(b)
 	if err != nil {
@@ -473,6 +474,14 @@ func startWorker(args *cli.StartArgs) {
 
 	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
 
+	vc, err := vault.NewClient()
+	if err != nil {
+		log.Fatal("Failed to init vault client.", zap.Error(err))
+	}
+	b.vault = vc
+
+	b.keys = keys_client.New(b)
+
 	tabapayClientArgs := tabapay_client.NewClientArgs{
 		VgsProxyURL:         args.VGSProxyURL,
 		ClientID:            args.TabapayClientID,
@@ -543,6 +552,7 @@ type backends struct {
 	mx               mx.Client
 	gmt              gmt.Client
 	tabapay          tabapay.Client
+	vault            vault.Client
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -659,4 +669,8 @@ func (b backends) Tabapay() tabapay.Client {
 
 func (b backends) Keys() keys.Client {
 	return b.keys
+}
+
+func (b backends) Vault() vault.Client {
+	return b.vault
 }
