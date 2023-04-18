@@ -25,23 +25,20 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 
 	var linkedAccountID string
 	providerID, walletID := uuid.NewString(), uuid.NewString()
-	last4, cardName := "1234", "test"
+	tokenizedLast4, cardName := "mber", "test"
 	env.OnActivity(a.CreateExternalCard, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, arg workflows.CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
 			linkedAccountID = arg.LinkedAccountID
 			return &external.CreateAccountResponse{
 				AccountID: providerID,
-				Card: &external.CardResponse{
-					Last4: last4,
-				},
 			}, nil
 		},
 	)
 
 	env.OnActivity(a.CreateLinkedCard, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, arg workflows.CreateLinkedCardArgs) (*linkedaccounts.LinkedAccount, error) {
-			require.Equal(t, linkedAccountID, arg.ID)
-			require.Equal(t, last4, arg.Mask)
+			require.Equal(t, idempotencyKey, arg.ID)
+			require.Equal(t, tokenizedLast4, arg.Mask)
 			require.Equal(t, cardName, arg.Name)
 			require.Equal(t, cardName, arg.Nickname)
 			require.Equal(t, providerID, arg.ProviderID)
@@ -49,7 +46,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 				ID:         linkedAccountID,
 				ProviderID: providerID,
 				WalletID:   walletID,
-				Mask:       last4,
+				Mask:       tokenizedLast4,
 				Name:       cardName,
 				Nickname:   cardName,
 			}, nil

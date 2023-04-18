@@ -5,7 +5,9 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
+	"strings"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
@@ -59,12 +61,21 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 		return nil, fmt.Errorf("%w require address for wallet.", tabapay.ErrInternal)
 	}
 
+	ctry, err := country.Country(owner.Address.CountryCode).Numeric()
+	if err != nil {
+		return nil, fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+	}
+	stateParts := strings.Split(owner.Address.State, "-")
+	state := stateParts[0]
+	if len(stateParts) == 2 {
+		state = stateParts[1]
+	}
+
 	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
-		ReferenceID: args.LinkedAccountID,
+		ReferenceID: args.LinkedAccountID[:15], // tabapay requires 1 < len(ReferenceID) < 15
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,
-			SecurityCode:   args.CVV,
 		},
 		Owner: external.Owner{
 			Name: external.Name{
@@ -75,9 +86,9 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 				Line1:   owner.Address.Line1,
 				Line2:   owner.Address.Line2,
 				City:    owner.Address.City,
-				State:   owner.Address.State,
+				State:   state,
 				ZipCode: owner.Address.ZipCode,
-				Country: owner.Address.CountryCode,
+				Country: ctry,
 			},
 		},
 	})
@@ -96,6 +107,8 @@ func (a *Activity) CreateLinkedCard(ctx context.Context, args CreateLinkedCardAr
 		Mask:       args.Mask,
 		Provider:   tabapay.ProviderName,
 		ProviderID: args.ProviderID,
+		Nickname:   args.Name,
+		Type:       tabapay.TypeCard,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
