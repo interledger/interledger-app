@@ -1,7 +1,6 @@
 package platforms
 
 import (
-	"errors"
 	"fmt"
 
 	"gitlab.com/fynbos/backend/identities"
@@ -22,8 +21,7 @@ func Get(platform identities.Platform) (Platform, error) {
 
 	switch platform {
 	case identities.PlatformTwitter:
-		// TODO: Add twitter platform interface
-		return nil, errors.New("TODO make twitter")
+		return newTwitter(platform), nil
 	}
 
 	return nil, fmt.Errorf("unknown platform: %s", platform)
