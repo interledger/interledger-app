@@ -1,12 +1,13 @@
 package workflows
 
 import (
+	"errors"
 	"time"
 
-	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -21,18 +22,19 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating tabapay card.")
 
-	var linkedAccountID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&linkedAccountID)
-	if err != nil {
-		logger.Error("Failed to generate linkedAccountID.")
+	var la linkedaccounts.LinkedAccount
+	err := workflow.ExecuteActivity(ctx, a.MarkCardNotDeleted, args.IdempotencyKey).Get(ctx, &la)
+	var applicationError *temporal.ApplicationError
+	if errors.As(err, &applicationError) && applicationError.Type() != "NotFound" {
 		return nil, err
+	}
+	if la.ID == args.IdempotencyKey {
+		return &la, nil
 	}
 
 	var externalAccount external.CreateAccountResponse
 	err = workflow.ExecuteActivity(ctx, a.CreateExternalCard, CreateExternalCardArgs{
-		LinkedAccountID: linkedAccountID,
+		LinkedAccountID: args.IdempotencyKey,
 		WalletID:        args.WalletID,
 		Name:            args.Name,
 		CardNumber:      args.CardNumber,
@@ -49,7 +51,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		last4 = last4[len(args.CardNumber)-4:]
 	}
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
-		ID:         linkedAccountID,
+		ID:         args.IdempotencyKey,
 		WalletID:   args.WalletID,
 		ProviderID: externalAccount.AccountID,
 		Mask:       last4,

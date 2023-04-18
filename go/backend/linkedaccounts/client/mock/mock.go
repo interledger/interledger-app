@@ -139,6 +139,21 @@ func (mr *MockClientMockRecorder) ListMXBankAccounts(ctx interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMXBankAccounts", reflect.TypeOf((*MockClient)(nil).ListMXBankAccounts), ctx)
 }
 
+// MarkNotDeleted mocks base method.
+func (m *MockClient) MarkNotDeleted(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkNotDeleted", ctx, id)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarkNotDeleted indicates an expected call of MarkNotDeleted.
+func (mr *MockClientMockRecorder) MarkNotDeleted(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkNotDeleted", reflect.TypeOf((*MockClient)(nil).MarkNotDeleted), ctx, id)
+}
+
 // Requires3DS mocks base method.
 func (m *MockClient) Requires3DS(ctx context.Context, id string) (bool, error) {
 	m.ctrl.T.Helper()
