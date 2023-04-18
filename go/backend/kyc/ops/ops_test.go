@@ -15,6 +15,7 @@ import (
 )
 
 func TestUpdateUserDetails(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
@@ -169,6 +170,7 @@ func TestUpdateUserDetails(t *testing.T) {
 }
 
 func TestKYCStatus(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	db := db.MigrateTestDB(t, ctx)

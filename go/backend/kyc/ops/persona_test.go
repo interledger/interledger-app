@@ -16,6 +16,7 @@ import (
 )
 
 func TestGetPersonaInquiry(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	uc := user_mock.NewMock()

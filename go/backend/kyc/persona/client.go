@@ -5,7 +5,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -35,7 +35,7 @@ func New() Client {
 	return &client{
 		api:           otelhttp.DefaultClient,
 		bearerToken:   os.Getenv("PERSONA_TOKEN"),
-		webhookSecret: os.Getenv("PERSONA_WEBHOOK"),
+		webhookSecret: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
 		baseURL:       "https://withpersona.com/api/v1/",
 	}
 }
@@ -59,6 +59,7 @@ func (c *client) CreateInquiry(ctx context.Context, args IndividualAttributes, i
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer: "+c.bearerToken)
 	if idempotencyKey != "" {
 		req.Header.Set("Idempotency-Key", idempotencyKey)
 	}
@@ -96,6 +97,7 @@ func (c *client) ResumeInquiry(ctx context.Context, inquiryID, idempotencyKey st
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer: "+c.bearerToken)
 	if idempotencyKey != "" {
 		req.Header.Set("Idempotency-Key", idempotencyKey)
 	}
@@ -133,6 +135,7 @@ func (c *client) GetAccount(ctx context.Context, id string) (*AccountData, error
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer: "+c.bearerToken)
 
 	resp, err := c.api.Do(req)
 	if err != nil {
@@ -174,7 +177,7 @@ func (c *client) ValidateWebhook(req *http.Request, body []byte) bool {
 
 	mac := hmac.New(sha256.New, []byte(c.webhookSecret))
 	mac.Write(append([]byte(t+"."), body...))
-	expectedMac := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+	expectedMac := hex.EncodeToString(mac.Sum(nil))
 
 	return strings.EqualFold(expectedMac, v1)
 }
