@@ -30,7 +30,7 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 
 		if !pc.ValidateWebhook(r, data) {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Error("failed to validate webhook sig")
+			log.Error("failed to validate webhook sig", zap.String("signature", r.Header.Get("Persona-Signature")))
 			return
 		}
 
@@ -48,7 +48,7 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 			err = accountCreatedWebhook(r.Context(), b, pc, wh.Data.Attributes.Payload)
 		case "inquiry.approved":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusApproved)
-		case "inquiry.maked-for-review":
+		case "inquiry.marked-for-review":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusInReview)
 		case "inquiry.expired":
 			err = inquiryExpiredWebhook(r.Context(), b, wh.Data.Attributes.Payload)
