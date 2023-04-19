@@ -178,7 +178,7 @@ export async function action({ request }: ActionArgs) {
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
 
   if (response.response.threeDS) {
-    return redirect(route('/pay/3ds') + `?id=${'asd'}&jwt=${'asd'}`)
+    return redirect(route('/pay/3ds') + `?id=${response.response.threeDS.id}&jwt=${response.response.threeDS.jwt}`)
   }
 
   await exitFlow(request, flowType.Pay)
