@@ -26,11 +26,9 @@ declare module "routes-gen" {
     "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
-    "/personal-details/address": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
     "/settings/profile-contact": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
-    "/personal-details/about": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
     "/blog/joining-the-owf": Record<string, never>;
     "/legal/privacy-policy": Record<string, never>;
@@ -58,6 +56,7 @@ declare module "routes-gen" {
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/contact": Record<string, never>;
+    "/pay/3ds": Record<string, never>;
     "/support": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
@@ -97,11 +96,9 @@ declare module "routes-gen" {
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
       | ["/what-is-a-payment-pointer"]
-      | ["/personal-details/address"]
       | ["/settings/linked-accounts"]
       | ["/settings/profile-contact"]
       | ["/settings/profile-public"]
-      | ["/personal-details/about"]
       | ["/temp-cloudflare-error"]
       | ["/blog/joining-the-owf"]
       | ["/legal/privacy-policy"]
@@ -129,6 +126,7 @@ declare module "routes-gen" {
       | ["/settings"]
       | ["/waitlist"]
       | ["/contact"]
+      | ["/pay/3ds"]
       | ["/support"]
       | ["/logout"]
       | ["/signup"]
