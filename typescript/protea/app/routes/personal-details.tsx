@@ -1,13 +1,42 @@
 import type { LoaderArgs, ActionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { flowType, requireFlow } from '~/lib/flows.server'
+import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { Button, Card, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
-import { Form } from '@remix-run/react'
+import { useLoaderData, useSubmit } from '@remix-run/react'
+import { useScript } from '~/lib/useScript'
+import { useEffect, useRef, useState } from 'react'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
-  await requireFlow(request, flowType.PersonalDetails)
-  return json({})
+  const flow = await requireFlow(request, flowType.PersonalDetails)
+  const response = await grpcClient
+    .getPersonaInquiry(
+      {
+        idempotencyKey: flow.data.idempotencyKey
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return json({
+    inquiryId: response.response.id,
+    sessionToken: response.response.sessionToken
+  })
 }
 
 export const handle = {
@@ -22,36 +51,57 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
+  const submit = useSubmit()
+  const { inquiryId, sessionToken } = useLoaderData<typeof loader>()
+  const [ready, setReady] = useState(false)
+  const [status] = useScript(
+    'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
+  )
+  let personaRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && status === 'r') {
+      personaRef.current = (window as any).Persona
+      personaRef.current = new (window as any).Persona.Client({
+        inquiryId,
+        sessionToken,
+        onReady: () => setReady(true),
+        onComplete: ({ inquiryId, status, fields }: any) => {
+          submit(null, {
+            action: '/personal-details',
+            method: 'post'
+          })
+        },
+        onCancel: ({ inquiryId, sessionToken }: any) => console.log('onCancel'),
+        onError: (error: any) => console.log(error)
+      })
+    }
+  }, [inquiryId, sessionToken, status, submit])
+
   return (
     <>
-      <Form
-        id='personal-details'
-        action='/personal-details'
-        method='post'
-        className='hidden'
-      />
       <Card>
         <span>
-          Here’s what we will need in order to activate your payment pointer:
+          Here’s what we will need in order to activate your payment pointer and
+          confirm your identity:
         </span>
         <div className='mt-6 flex items-start'>
           <Shape
             flex='flex-none'
             width={'w-8'}
-            radius={'rounded-br-full'}
-            color={'bg-rose-300'}
+            radius={'rounded-full'}
+            color={'bg-yellow-300'}
           />
           <Shape
             flex='flex-none'
             width={'w-8'}
-            radius={'rounded-full'}
-            color={'bg-lime-500'}
+            radius={'rounded-tl-full'}
+            color={'bg-rose-400'}
           />
           <div className='ml-5'>
-            <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
+            <h3 className='mb-1 font-medium text-strong'>Photo ID</h3>
             <p className='text-xs text-medium'>
-              Confirmation of first and last name, your date of birth and
-              gender.
+              We require a photo of a government ID to verify your identity.
             </p>
           </div>
         </div>
@@ -59,24 +109,51 @@ export default function Page() {
           <Shape
             flex='flex-none'
             width={'w-8'}
-            radius={'rounded-tl-full'}
+            radius={'rounded-t-full'}
+            color={'bg-purple-200'}
+          />
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-tr-full'}
+            color={'bg-purple-400'}
+          />
+          <div className='ml-5'>
+            <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
+            <p className='text-xs text-medium'>
+              Confirmation of your personal details and your address.
+            </p>
+          </div>
+        </div>
+        <div className='mt-10 flex items-start'>
+          <Shape
+            flex='flex-none'
+            width={'w-8'}
+            radius={'rounded-br-full'}
             color={'bg-slate-300'}
           />
           <Shape
             flex='flex-none'
             width={'w-8'}
-            radius={'rounded-full'}
-            color={'bg-yellow-300'}
+            radius={'rounded-l-full'}
+            color={'bg-lime-400'}
           />
           <div className='ml-5'>
-            <h3 className='mb-1 font-medium text-strong'>Address details</h3>
+            <h3 className='mb-1 font-medium text-strong'>
+              Selfie verification
+            </h3>
             <p className='text-xs text-medium'>
-              Your physical address details.
+              A picture of yourself taken using your smartphone, webcam or
+              tablet.
             </p>
           </div>
         </div>
       </Card>
-      <Button form='personal-details' type='submit'>
+      <Button
+        disabled={!ready}
+        type='button'
+        onClick={() => personaRef.current.open()}
+      >
         Continue
       </Button>
     </>
@@ -84,6 +161,14 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  await requireFlow(request, flowType.PersonalDetails)
-  return redirect(route('/personal-details/about'))
+  await exitFlow(request, flowType.PersonalDetails)
+
+  return redirect(route('/'), {
+    headers: {
+      'Set-Cookie': await flashSnackbar(request, {
+        message: 'Personal details captured.',
+        icon: 'close'
+      })
+    }
+  })
 }
