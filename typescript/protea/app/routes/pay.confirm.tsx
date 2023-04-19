@@ -176,7 +176,7 @@ export async function action({ request }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
-
+  console.log(JSON.stringify(response, null, 2))
   if (response.response.threeDS) {
     return redirect(route('/pay/3ds') + `?id=${response.response.threeDS.id}&jwt=${response.response.threeDS.jwt}`)
   }
