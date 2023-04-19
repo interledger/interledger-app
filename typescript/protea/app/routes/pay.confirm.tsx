@@ -1,17 +1,10 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Card, Checkbox, Layouts } from '~/components'
-import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { route } from 'routes-gen'
-import {
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
+import { Button, Card, Checkbox, Layouts } from '~/components'
+import { flowType, requireFlow } from '~/lib/flows.server'
 import { getUserSession } from '~/lib/kratos.server'
-import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -135,7 +128,6 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const flow = await requireFlow(request, flowType.Pay)
   const form = await request.formData()
   const serviceAgreement = form.get('service-agreement') as string
 
@@ -156,27 +148,5 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
-  const clientIpAddress = getClientIP(request)
-
-  const response = await openPaymentsClient
-    .createOutgoingPayment(
-      {
-        idempotencyKey: flow.data.idempotencyKey || '',
-        quoteID: flow.data.quoteID,
-        description: flow.data.note,
-        externalRef: '',
-        ipAddress: clientIpAddress
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) throw json({}, httpMapping(response.code))
-
-  await exitFlow(request, flowType.Pay)
-  return redirect(route('/'))
+  return redirect(route('/pay/3ds'))
 }
