@@ -47,6 +47,7 @@ type IndividualAttributes struct {
 	SocialSecurityNumber  string          `json:"social-security-number,omitempty"`
 	Tags                  []string        `json:"tags,omitempty"`
 	IdentificationNumbers json.RawMessage `json:"identification-numbers,omitempty"`
+	InquiryTemplateID     string          `json:"inquiry-template-id,omitempty"`
 }
 
 type Inquiry struct {
