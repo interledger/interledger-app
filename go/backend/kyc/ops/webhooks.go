@@ -3,12 +3,15 @@ package ops
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -50,6 +53,9 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusApproved)
 		case "inquiry.marked-for-review":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusInReview)
+			if err != nil {
+				notifyPersonaReview(r.Context(), wh.Data.Attributes.Payload)
+			}
 		case "inquiry.expired":
 			err = inquiryExpiredWebhook(r.Context(), b, wh.Data.Attributes.Payload)
 		case "inquiry.declined":
@@ -66,6 +72,18 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func notifyPersonaReview(ctx context.Context, js json.RawMessage) {
+	var inq persona.Inquiry
+	err := json.Unmarshal(js, &inq)
+	if err != nil {
+		log.Error("failed to send notify slack of Persona", zap.Error(err))
+		return
+	}
+
+	slack.SendToChannel(ctx, slack.PersonaChannel, "FynBOT", fmt.Sprintf("New Persona review in [%s] link [https://app.withpersona.com/dashboard/inquiries/%s]",
+		env.GetEnv(), inq.Data.ID))
 }
 
 func inquiryExpiredWebhook(ctx context.Context, b Backends, js json.RawMessage) error {
