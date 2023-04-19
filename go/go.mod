@@ -26,6 +26,7 @@ require (
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
 	github.com/signintech/gopdf v0.15.1
+	github.com/slack-go/slack v0.12.2
 	github.com/smartystreets/smartystreets-go-sdk v1.15.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.4.0
@@ -59,6 +60,7 @@ require (
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
