@@ -46,6 +46,8 @@ func (c *client) CreateInquiry(ctx context.Context, args IndividualAttributes, i
 		return nil, err
 	}
 
+	args.InquiryTemplateID = "itmpl_4zn5ZN3yGGg9SgWPDRays7Cx"
+
 	reqBody := CreateInquiryReq{
 		Data: CreateInquiryReqData{Attributes: args},
 	}
@@ -60,6 +62,9 @@ func (c *client) CreateInquiry(ctx context.Context, args IndividualAttributes, i
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Persona-Version", "2023-01-05")
 	if idempotencyKey != "" {
 		req.Header.Set("Idempotency-Key", idempotencyKey)
 	}
@@ -98,6 +103,8 @@ func (c *client) ResumeInquiry(ctx context.Context, inquiryID, idempotencyKey st
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Persona-Version", "2023-01-05")
 	if idempotencyKey != "" {
 		req.Header.Set("Idempotency-Key", idempotencyKey)
 	}
@@ -136,6 +143,8 @@ func (c *client) GetAccount(ctx context.Context, id string) (*AccountData, error
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Persona-Version", "2023-01-05")
 
 	resp, err := c.api.Do(req)
 	if err != nil {
