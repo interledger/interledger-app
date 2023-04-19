@@ -1,17 +1,17 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button, Card, Checkbox, Layouts } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
-import { route } from 'routes-gen'
+import { getClientIP } from '~/lib/ip.server'
+import { getUserSession } from '~/lib/kratos.server'
 import {
+  StatusError,
   httpMapping,
   isGrpcError,
-  openPaymentsClient,
-  StatusError
+  openPaymentsClient
 } from '~/lib/proto.server'
-import { getUserSession } from '~/lib/kratos.server'
-import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -176,6 +176,10 @@ export async function action({ request }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
+
+  if (response.response.threeDS) {
+    return redirect(route('/pay/3ds') + `?id=${'asd'}&jwt=${'asd'}`)
+  }
 
   await exitFlow(request, flowType.Pay)
   return redirect(route('/'))
