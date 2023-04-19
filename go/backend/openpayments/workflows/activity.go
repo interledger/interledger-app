@@ -18,6 +18,7 @@ import (
 	"gitlab.com/fynbos/backend/paymentpointers"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )
@@ -40,6 +41,8 @@ func accCanSend(la linkedaccounts.LinkedAccount) bool {
 		if la.Type == mx.TypeBankAccount {
 			return true
 		}
+	case tabapay.ProviderName:
+		return true
 	}
 
 	return false
