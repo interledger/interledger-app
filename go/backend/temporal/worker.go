@@ -2,6 +2,7 @@ package temporal
 
 import (
 	"gitlab.com/fynbos/backend/identities/platforms"
+	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	openpayments_workflows "gitlab.com/fynbos/backend/openpayments/workflows"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
@@ -32,6 +33,10 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(tabapay_workflows.CreateTabapayCardWorkflow)
 
 	gmt_workflows.StartNotificationsPolling(b)
+
+	// Jobs
+	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
+	w.RegisterActivity(jobs.NewActivity(b))
 
 	return w, nil
 }
