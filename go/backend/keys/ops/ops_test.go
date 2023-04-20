@@ -17,8 +17,6 @@ import (
 	"gitlab.com/fynbos/env"
 )
 
-
-
 func TestGeneratePrivateAndListKeys(t *testing.T) {
 	env.SetEnv(t, "local")
 	ctx := context.Background()
