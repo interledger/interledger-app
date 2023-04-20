@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
@@ -32,4 +33,5 @@ type Backends interface {
 	Contacts() contacts.Client
 	MX() mx.Client
 	Tabapay() tabapay.Client
+	Keys() keys.Client
 }
