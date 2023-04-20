@@ -216,10 +216,11 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 	return resp, nil
 }
 
-func ListAllWallets(ctx context.Context, b Backends, page db.Pagination) ([]user.Wallet, error) {
+func ListAllWallets(ctx context.Context, b Backends, _ db.Pagination) ([]user.Wallet, error) {
 	var wallets []user.Wallet
+
 	// TODO pagination
-	err := b.DB().SelectContext(ctx, &wallets, "SELECT id, name FROM wallets ORDER BY created_at DESC "+page.SQL())
+	err := b.DB().SelectContext(ctx, &wallets, "SELECT id, name FROM wallets ORDER BY created_at DESC ")
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
