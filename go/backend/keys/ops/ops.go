@@ -7,13 +7,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/env"
-	"log"
 )
 
 func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error {
@@ -49,7 +50,8 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 	keyID := uuid.NewString()
 	err = b.Vault().CreateKey(keyID)
 	if err != nil {
-		log.Fatalf("unable to create dev-key: %v", err)
+		log.Error("unable to create dev-key: %v", zap.Error(err))
+		return err
 	}
 
 	err = b.DB().GetContext(ctx, &id,
