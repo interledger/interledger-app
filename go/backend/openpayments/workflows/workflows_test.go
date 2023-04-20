@@ -55,6 +55,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 			ToWalletID:          uuid.NewString(),
 			Amount:              amt,
 			FromTransactionID:   trxID,
+			IPAddress:           "198.0.0.4",
 		},
 		Key: providers.GMTACH2ACH,
 	}
@@ -112,6 +113,7 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 			ToWalletID:          uuid.NewString(),
 			Amount:              currency.FromFloat64(10.5, currency.ParseCurrency("USD")),
 			FromTransactionID:   trxID,
+			IPAddress:           "198.0.0.3",
 		},
 		Key: providers.GMTACH2ACH,
 	}

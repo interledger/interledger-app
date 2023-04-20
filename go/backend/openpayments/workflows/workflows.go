@@ -129,6 +129,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	}
 	tArgs := wfArgs.Args
 	tArgs.FromTransactionID = trxID
+	tArgs.IPAddress = ipAddress
 
 	err = workflow.ExecuteActivity(ctx, a.AddContact, tArgs.FromPaymentPointer, tArgs.ToPaymentPointer).Get(ctx, nil)
 	if err != nil {

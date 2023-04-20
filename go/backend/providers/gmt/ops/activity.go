@@ -89,7 +89,7 @@ type ComplianceResp struct {
 }
 
 // IndividualCompliance does a compliance check by doing a $1 payment where the user is both the sender and receiver.
-func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*ComplianceResp, error) {
+func (a *Activity) IndividualCompliance(ctx context.Context, args providers.TransfersArgs, walletID string) (*ComplianceResp, error) {
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
@@ -98,7 +98,7 @@ func (a *Activity) IndividualCompliance(ctx context.Context, walletID string) (*
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, walletID)
+	sender, err := senderFromWallet(ctx, a.b, args, walletID)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +289,7 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 	}, nil
 }
 
-func senderFromWallet(ctx context.Context, b Backends, walletID string) (*external.WsSender, error) {
+func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersArgs, walletID string) (*external.WsSender, error) {
 	senderID, err := b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
@@ -308,6 +308,11 @@ func senderFromWallet(ctx context.Context, b Backends, walletID string) (*extern
 		return nil, err
 	}
 
+	ipAddress := senderID.IPAddress
+	if args.IPAddress != "" {
+		ipAddress = args.IPAddress
+	}
+
 	gender := "Male"
 	if senderID.Gender == kyc.GenderFemale {
 		gender = "Female"
@@ -322,7 +327,7 @@ func senderFromWallet(ctx context.Context, b Backends, walletID string) (*extern
 		SenderEmail:                 senderUsers[0].Email,
 		SenderForceNew:              false,
 		SenderGender:                gender,
-		SenderIP:                    senderID.IPAddress,
+		SenderIP:                    ipAddress,
 		SenderId:                    int32(sid),
 		SenderIsBusiness:            false,
 		SenderLastName:              senderID.LastName,
@@ -420,7 +425,7 @@ func (a *Activity) InsertACH(ctx context.Context, args InsertACHArgs) (*Transact
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args.TransfersArgs, fromLA.WalletID)
 	if err != nil {
 		return nil, err
 	}

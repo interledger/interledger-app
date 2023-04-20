@@ -16,6 +16,7 @@ type TransfersArgs struct {
 	ToWalletID          string `validate:"uuid"`
 	Amount              currency.Amount
 	FromTransactionID   string
+	IPAddress           string
 }
 
 type TransferResponse struct {
