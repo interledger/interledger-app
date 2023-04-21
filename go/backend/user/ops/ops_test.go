@@ -2,6 +2,8 @@ package ops_test
 
 import (
 	"context"
+	"github.com/golang/mock/gomock"
+	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"testing"
 
 	"github.com/google/uuid"
@@ -19,7 +21,10 @@ func TestCreateWallet(t *testing.T) {
 
 	dbc := db.MigrateTestDB(t, ctx)
 
-	b := user_client.NewTestBackends(t, dbc, nil)
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := user_client.NewTestBackends(t, dbc, nil, km)
 
 	userID := "c6874020-9d33-4678-a9ac-f623dc363cfb"
 
@@ -71,7 +76,10 @@ func TestListWallets(t *testing.T) {
 
 	dbc := db.MigrateTestDB(t, ctx)
 
-	b := user_client.NewTestBackends(t, dbc, nil)
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := user_client.NewTestBackends(t, dbc, nil, km)
 
 	userID := "80629e7b-276b-4e38-82d5-8f73ef8c3806"
 
@@ -92,7 +100,10 @@ func TestGetWallet(t *testing.T) {
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
 
-	b := user_client.NewTestBackends(t, dbc, nil)
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := user_client.NewTestBackends(t, dbc, nil, km)
 	userID := uuid.NewString()
 	w, err := ops.CreateWallet(ctx, b, userID, "default")
 	require.NoError(t, err)
@@ -107,7 +118,10 @@ func TestGetWallet(t *testing.T) {
 func TestSetWalletName(t *testing.T) {
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
-	b := user_client.NewTestBackends(t, dbc, nil)
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := user_client.NewTestBackends(t, dbc, nil, km)
 	userID := uuid.NewString()
 	w, err := ops.CreateWallet(ctx, b, userID, "default")
 	require.NoError(t, err)

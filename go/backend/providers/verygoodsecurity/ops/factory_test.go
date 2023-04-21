@@ -2,8 +2,11 @@ package ops_test
 
 import (
 	"context"
+	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/keys"
+	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
 	"testing"
 
@@ -25,6 +28,7 @@ type TestContainer struct {
 	verygoodsecurity verygoodsecurity.Client
 	ValidatorImpl    *validator.Validate
 	Ac               analytics.Client
+	kc               keys.Client
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -46,6 +50,10 @@ func (t TestContainer) Analytics() analytics.Client {
 	return t.Ac
 }
 
+func (t TestContainer) Keys() keys.Client {
+	return t.kc
+}
+
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
@@ -63,6 +71,11 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Us = user_client.New(c, "kratosURL", "kratosAdminURL")
 
 	c.verygoodsecurity = verygoodsecurity_client.New(c)
+
+	ctrl := gomock.NewController(t)
+	kc := keys_mock.NewMockClient(ctrl)
+	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
+	c.kc = kc
 
 	return c, nil
 }

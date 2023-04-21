@@ -1,6 +1,8 @@
 package server
 
 import (
+	"github.com/golang/mock/gomock"
+	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"testing"
 
 	"gitlab.com/fynbos/backend/contacts"
@@ -112,10 +114,14 @@ func (t *testBackends) Tabapay() tabapay.Client {
 
 type TestBackendOpts func(*testBackends)
 
-func NewTestBackends(_ *testing.T, opts ...TestBackendOpts) Backends {
+func NewTestBackends(t *testing.T, opts ...TestBackendOpts) Backends {
+	ctrl := gomock.NewController(t)
+	kc := keys_mock.NewMockClient(ctrl)
+	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
 	tb := &testBackends{
-		ac:  analytics_client.New(nil, ""),
-		val: validator.New(),
+		ac:   analytics_client.New(nil, ""),
+		val:  validator.New(),
+		keys: kc,
 	}
 
 	for _, opt := range opts {

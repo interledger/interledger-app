@@ -423,6 +423,7 @@ func TestListKeys(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	keyClient := mock_keys.NewMockClient(ctrl)
+	keyClient.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db.MigrateTestDB(t, ctx)
 		tb.keys = keyClient

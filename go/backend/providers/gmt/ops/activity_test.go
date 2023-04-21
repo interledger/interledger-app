@@ -15,7 +15,7 @@ import (
 func TestActivity_UpdateSendRecvUser(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	b := NewTestBackends(db.MigrateTestDB(t, ctx))
+	b := NewTestBackends(t, db.MigrateTestDB(t, ctx))
 	uc := users_client.New(b, "URL", "Admin")
 
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -66,7 +66,7 @@ func TestActivity_UpdateSendRecvUser(t *testing.T) {
 func TestActivity_SaveReceipt(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	b := NewTestBackends(db.MigrateTestDB(t, ctx))
+	b := NewTestBackends(t, db.MigrateTestDB(t, ctx))
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
@@ -107,7 +107,7 @@ func TestActivity_SaveReceipt(t *testing.T) {
 func TestActivity_CreateWorkflowRef(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
-	b := NewTestBackends(db.MigrateTestDB(t, ctx))
+	b := NewTestBackends(t, db.MigrateTestDB(t, ctx))
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()

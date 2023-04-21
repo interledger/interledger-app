@@ -1,6 +1,9 @@
 package main
 
 import (
+	"gitlab.com/fynbos/backend/keys"
+	keys_client "gitlab.com/fynbos/backend/keys/client"
+	"gitlab.com/fynbos/backend/vault"
 	"log"
 	"os"
 
@@ -108,6 +111,8 @@ type backends struct {
 	statements     statements.Client
 	email          email.Client
 	analytics      analytics.Client
+	keys           keys.Client
+	vault          vault.Client
 }
 
 func (b *backends) Transactions() transactions.Client {
@@ -174,6 +179,26 @@ func (b *backends) Notify() notify.Client {
 	}
 
 	return b.notify
+}
+
+func (b *backends) Keys() keys.Client {
+	if b.keys == nil {
+		b.keys = keys_client.New(b)
+	}
+
+	return b.keys
+}
+
+func (b *backends) Vault() vault.Client {
+	if b.vault == nil {
+		vc, err := vault.NewClient()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.vault = vc
+	}
+
+	return b.vault
 }
 
 func (b *backends) Twilio() twilio.Service {
