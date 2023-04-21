@@ -14,8 +14,8 @@ path "pki/dev-int/sign/crdb-client"
 }
 
 # Transit secret engine
-path "transit/k8s-dev-euw1/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_namespace{{"}}"}}/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_name{{"}}"}}" {
-  capabilities = ["create", "read"]
+path "transit/k8s-dev-euw1/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_namespace{{"}}"}}/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_name{{"}}"}}/keys/*" {
+  capabilities = ["create", "update", "read", "list"]
 }
 
 path "transit/k8s-dev-euw1/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_namespace{{"}}"}}/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_name{{"}}"}}/sign/*" {
