@@ -122,6 +122,11 @@ func CreateWallet(ctx context.Context, b Backends, userID, name string) (*user.W
 	if err != nil {
 		return nil, err
 	}
+	err = b.Keys().ProvisionPrivateKey(ctx, walletID)
+	if err != nil {
+		log.Error("could not provision private key", zap.Error(err))
+		return nil, err
+	}
 
 	return &user.Wallet{
 		ID:   walletID,
