@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	kratos "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/keys"
 )
 
 type Backends interface {
@@ -12,4 +13,5 @@ type Backends interface {
 	DB() *sqlx.DB
 	Kratos() *kratos.APIClient
 	Analytics() analytics.Client
+	Keys() keys.Client
 }
