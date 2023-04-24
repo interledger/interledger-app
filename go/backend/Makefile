@@ -1,6 +1,7 @@
 
 IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend
 IMAGE_HASH := latest
+CRDB_HOST?=0.0.0.0
 
 pull:
 	@echo "Pulling required images"
@@ -14,10 +15,16 @@ testci:
 	go test ./...
 	@echo "Tests complete."
 
+generatetestmigrations:
+	@echo "Generating test migrations"
+	mkdir -p db/testmigrations
+	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://root@$(CRDB_HOST):26257?sslmode=disable"
+	@echo "Done"
+
 test: testenvup
 	@echo "Preparing migrations"
 	mkdir -p db/testmigrations
-	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://root@0.0.0.0:26257?sslmode=disable"
+	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://root@$(CRDB_HOST):26257?sslmode=disable"
 	@echo "Running tests"
 	go test ./... -p 4
 	@echo "Tests complete."
