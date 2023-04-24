@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -106,17 +107,27 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
-	_, err = exec.LookPath("atlas")
+	var migrations string
+	err = filepath.Walk(filepath.Join(moduleDir, "../testmigrations"), func(path string, info fs.FileInfo, err error) error {
+		if strings.Contains(info.Name(), ".sql") {
+			sql, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			migrations = migrations + "\n" + string(sql)
+		}
+		return nil
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	if migrations == "" {
+		t.Fatal("No migrations found.")
+	}
 
-	out, err := exec.CommandContext(ctx,
-		"atlas", "schema", "apply", "--auto-approve", "-u", connString,
-		"--exclude", "public.payment_pointers.payment_pointers_url_lower",
-		"-f", filepath.Join(moduleDir, "../schema.hcl")).CombinedOutput()
+	_, err = db.ExecContext(ctx, migrations)
 	if err != nil {
-		log.Error("error migrating", zap.String("output", string(out)))
 		t.Fatal(err)
 	}
 

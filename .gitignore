@@ -17,3 +17,6 @@
 .fynbos/**
 
 typescript/**/node_modules
+
+# test migrations
+testmigrations
