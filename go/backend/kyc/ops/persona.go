@@ -31,6 +31,10 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 
 	var inquiry *persona.InquiryData
 	if ongoingID != "" {
+		// The same idempotency key may have been used to create the initial Inquiry, so append the ID.
+		if idempotencyKey != "" {
+			idempotencyKey += "-" + ongoingID
+		}
 		inquiry, err = cl.ResumeInquiry(ctx, ongoingID, idempotencyKey)
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
