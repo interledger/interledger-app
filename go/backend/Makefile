@@ -22,11 +22,12 @@ test: testenvup
 testenvup:
 	@echo "Starting test environment"
 	docker compose -f ./docker-compose-dev.yml up -d
+	sleep 2
 	@echo "Test environment started"
 
 testenvdown:
 	@echo "Destroy test environment"
-	docker compose -f ./docker-compose-dev.yml down
+	docker compose -f ./docker-compose-dev.yml down -v
 	@echo "Test environment destoyed"
 
 format:
