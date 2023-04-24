@@ -40,6 +40,7 @@ test_backend:
   script:
     - curl -o /bin/atlas https://release.ariga.io/atlas/atlas-linux-amd64-v0.8.1 && chmod +x /bin/atlas
     - cd $BACKEND_PATH
+    - make generatetestmigrations CRDB_HOST=crdb
     - make testci
 
 build_backend:
