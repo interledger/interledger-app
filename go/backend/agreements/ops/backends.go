@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+//go:generate backendsgen
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
