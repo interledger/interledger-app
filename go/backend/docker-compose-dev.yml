@@ -7,10 +7,10 @@ services:
       fynbos-dev:
     ports:
       - "26257:26257"
-    command: start-single-node --insecure --store=type=mem,size=641MiB
+    command: start-single-node --insecure --store=type=mem,size=641MiB --advertise-addr=localhost
     volumes:
       - "crdb:/cockroach/cockroach-data"
-
+      - "./db/testdbinit.sql:/docker-entrypoint-initdb.d/init.sql"
 volumes:
   crdb:
 
