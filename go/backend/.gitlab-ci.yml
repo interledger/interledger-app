@@ -33,7 +33,7 @@ test_backend:
     - hetzner
   image: registry.gitlab.com/fynbos/fynbos/debian-runner-base:13295664
   services:
-    - name: cockroachdb/cockroach:latest-v21.2
+    - name: cockroachdb/cockroach:v22.2.8
       alias: crdb
       command: ["start-single-node", "--insecure", "--store=type=mem,size=641MiB"]
   interruptible: true
