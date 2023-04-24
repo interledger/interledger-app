@@ -2030,5 +2030,41 @@ table "kyc_persona_accounts" {
     columns = [column.wallet_id]
   }
 }
+table "admin_audit_log" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "admin_user" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = true
+    type = uuid
+  }
+  column "operation" {
+    null = false
+    type = text
+  }
+  column "parameters" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_id_ind" {
+    unique  = true
+    columns = [column.wallet_id]
+  }
+}
 schema "public" {
 }

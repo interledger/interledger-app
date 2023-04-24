@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+
+	"github.com/jmoiron/sqlx"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -12,7 +16,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"strings"
 )
 
 var (
@@ -24,7 +27,7 @@ var (
 
 type Service interface {
 	ForContext(ctx context.Context) (*AdminUser, error)
-	MakeUnaryInterceptors() grpc.ServerOption
+	MakeUnaryInterceptors() []grpc.ServerOption
 }
 
 type contextKey struct {
@@ -43,9 +46,10 @@ type IDTokenClaims struct {
 
 type service struct {
 	verifier *oidc.IDTokenVerifier
+	db       *sqlx.DB
 }
 
-func NewService(policyAud, teamDomain string) (Service, error) {
+func NewService(policyAud, teamDomain string, db *sqlx.DB) (Service, error) {
 
 	if !env.IsLocal() {
 		if policyAud == "" {
@@ -65,10 +69,11 @@ func NewService(policyAud, teamDomain string) (Service, error) {
 
 		return &service{
 			verifier: verifier,
+			db:       db,
 		}, nil
 	}
 
-	return &service{}, nil
+	return &service{db: db}, nil
 }
 
 func (s *service) verifyToken(ctx context.Context) (*oidc.IDToken, error) {
@@ -115,33 +120,36 @@ func (s *service) ForContext(ctx context.Context) (*AdminUser, error) {
 	return raw, nil
 }
 
-func (s *service) MakeUnaryInterceptors() grpc.ServerOption {
-	return grpc.ChainUnaryInterceptor(func(
-		ctx context.Context,
-		req interface{},
-		info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler,
-	) (interface{}, error) {
+func (s *service) MakeUnaryInterceptors() []grpc.ServerOption {
+	return []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(func(
+			ctx context.Context,
+			req interface{},
+			info *grpc.UnaryServerInfo,
+			handler grpc.UnaryHandler,
+		) (interface{}, error) {
 
-		newCtx := ctx
-		if !env.IsLocal() {
-			token, err := s.verifyToken(ctx)
-			if err != nil {
-				return nil, status.Error(codes.Unauthenticated, "token not verified")
+			newCtx := ctx
+			if !env.IsLocal() {
+				token, err := s.verifyToken(ctx)
+				if err != nil {
+					return nil, status.Error(codes.Unauthenticated, "token not verified")
+				}
+
+				var claims IDTokenClaims
+				if err := token.Claims(&claims); err != nil {
+					return nil, status.Error(codes.Internal, "error parsing claims")
+				}
+
+				user := &AdminUser{
+					Email: claims.Email,
+				}
+				newCtx = context.WithValue(ctx, userCtxKey, user)
+				log.Info("admin access", zap.String("email", user.Email), zap.String("route", info.FullMethod))
 			}
 
-			var claims IDTokenClaims
-			if err := token.Claims(&claims); err != nil {
-				return nil, status.Error(codes.Internal, "error parsing claims")
-			}
-
-			user := &AdminUser{
-				Email: claims.Email,
-			}
-			newCtx = context.WithValue(ctx, userCtxKey, user)
-			log.Info("admin access", zap.String("email", user.Email), zap.String("route", info.FullMethod))
-		}
-
-		return handler(newCtx, req)
-	})
+			return handler(newCtx, req)
+		}),
+		MakeAuditInterceptor(s.db),
+	}
 }

@@ -8,9 +8,11 @@ import (
 )
 
 func NewServer(b Backends) (*grpc.Server, error) {
+	interceptors := append([]grpc.ServerOption{
+		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor())},
+		b.AdminAuth().MakeUnaryInterceptors()...)
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
-		b.AdminAuth().MakeUnaryInterceptors(),
+		interceptors...,
 	)
 
 	adminv1.RegisterBackendServer(server, &AdminRpcService{

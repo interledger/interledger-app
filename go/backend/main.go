@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/vault"
 	"net"
 	"net/http"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"gitlab.com/fynbos/backend/vault"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -218,7 +219,7 @@ func start(args *cli.StartArgs) {
 	}
 	b.healthcheck = health
 
-	adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain)
+	adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain, b.DB())
 	if err != nil {
 		log.Fatalln(err)
 	}
