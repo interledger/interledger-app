@@ -42,8 +42,8 @@ func (m *MockService) GetAdminUser(ctx context.Context) (*AdminUser, error) {
 	return &AdminUser{Email: idTokens[0]}, nil
 }
 
-func (m *MockService) MakeUnaryInterceptors() grpc.ServerOption {
-	return grpc.ChainUnaryInterceptor(func(
+func (m *MockService) MakeUnaryInterceptors() []grpc.ServerOption {
+	return []grpc.ServerOption{grpc.ChainUnaryInterceptor(func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
@@ -66,7 +66,7 @@ func (m *MockService) MakeUnaryInterceptors() grpc.ServerOption {
 		}
 
 		return handler(newCtx, req)
-	})
+	})}
 }
 
 func ActingAs(ctx context.Context, email string) context.Context {
