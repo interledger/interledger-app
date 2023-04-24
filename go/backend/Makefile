@@ -9,12 +9,15 @@ pull:
 	make -C ../pacioli build
 	@echo "Pull complete"
 
-testci: 
+testci:
 	@echo "Running tests"
 	go test ./...
 	@echo "Tests complete."
 
 test: testenvup
+	@echo "Preparing migrations"
+	mkdir -p db/testmigrations
+	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://root@0.0.0.0:26257?sslmode=disable"
 	@echo "Running tests"
 	go test ./... -p 4
 	@echo "Tests complete."
