@@ -392,7 +392,16 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 
 	var threeDSID, threeDSJWT, threeDSDeviceCollectionURL string
 	if requires3DS {
-		threeDSInit, err := g.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{})
+		card, err := g.b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		threeDSInit, err := g.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{
+			Amount:            q.SendAmount,
+			OutgoingPaymentID: op.ID,
+			CardID:            card.ProviderID,
+		})
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
