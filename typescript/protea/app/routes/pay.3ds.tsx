@@ -42,7 +42,7 @@ export default function Page() {
   const { flow, jwt: initJWT, threeDsId } = useLoaderData<typeof loader>()
   const submit = useSubmit()
 
-  const [state] = useScript(
+  const state = useScript(
     'https://songbirdstag.cardinalcommerce.com/edge/v1/songbird.js'
   )
   let cardinalRef = useRef<any>(null)
