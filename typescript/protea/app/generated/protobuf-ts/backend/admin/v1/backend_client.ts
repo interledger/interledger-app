@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ListLinkedAccountsResponse } from "./backend";
+import type { ListLinkedAccountsRequest } from "./backend";
 import type { GetTransactionDetailsResponse } from "./backend";
 import type { GetTransactionDetailsRequest } from "./backend";
 import type { ListTransactionsResponse } from "./backend";
@@ -47,6 +49,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: GetTransactionDetails(backend.admin.v1.GetTransactionDetailsRequest) returns (backend.admin.v1.GetTransactionDetailsResponse);
      */
     getTransactionDetails(input: GetTransactionDetailsRequest, options?: RpcOptions): UnaryCall<GetTransactionDetailsRequest, GetTransactionDetailsResponse>;
+    /**
+     * @generated from protobuf rpc: ListLinkedAccounts(backend.admin.v1.ListLinkedAccountsRequest) returns (backend.admin.v1.ListLinkedAccountsResponse);
+     */
+    listLinkedAccounts(input: ListLinkedAccountsRequest, options?: RpcOptions): UnaryCall<ListLinkedAccountsRequest, ListLinkedAccountsResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -98,5 +104,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     getTransactionDetails(input: GetTransactionDetailsRequest, options?: RpcOptions): UnaryCall<GetTransactionDetailsRequest, GetTransactionDetailsResponse> {
         const method = this.methods[5], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetTransactionDetailsRequest, GetTransactionDetailsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListLinkedAccounts(backend.admin.v1.ListLinkedAccountsRequest) returns (backend.admin.v1.ListLinkedAccountsResponse);
+     */
+    listLinkedAccounts(input: ListLinkedAccountsRequest, options?: RpcOptions): UnaryCall<ListLinkedAccountsRequest, ListLinkedAccountsResponse> {
+        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListLinkedAccountsRequest, ListLinkedAccountsResponse>("unary", this._transport, method, opt, input);
     }
 }

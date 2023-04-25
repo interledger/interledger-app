@@ -20,6 +20,61 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.admin.v1.ListLinkedAccountsRequest
+ */
+export interface ListLinkedAccountsRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListLinkedAccountsResponse
+ */
+export interface ListLinkedAccountsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.LinkedAccount accounts = 1;
+     */
+    accounts: LinkedAccount[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.LinkedAccount
+ */
+export interface LinkedAccount {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string walletID = 2;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string name = 3;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string nickname = 4;
+     */
+    nickname: string;
+    /**
+     * @generated from protobuf field: string mask = 5;
+     */
+    mask: string;
+    /**
+     * @generated from protobuf field: string provider = 6;
+     */
+    provider: string;
+    /**
+     * @generated from protobuf field: string providerID = 7;
+     */
+    providerID: string;
+    /**
+     * @generated from protobuf field: string type = 8;
+     */
+    type: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
  */
 export interface GetTransactionDetailsRequest {
@@ -337,6 +392,196 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.admin.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListLinkedAccountsRequest$Type extends MessageType<ListLinkedAccountsRequest> {
+    constructor() {
+        super("backend.admin.v1.ListLinkedAccountsRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListLinkedAccountsRequest>): ListLinkedAccountsRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListLinkedAccountsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListLinkedAccountsRequest): ListLinkedAccountsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListLinkedAccountsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListLinkedAccountsRequest
+ */
+export const ListLinkedAccountsRequest = new ListLinkedAccountsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListLinkedAccountsResponse$Type extends MessageType<ListLinkedAccountsResponse> {
+    constructor() {
+        super("backend.admin.v1.ListLinkedAccountsResponse", [
+            { no: 1, name: "accounts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => LinkedAccount }
+        ]);
+    }
+    create(value?: PartialMessage<ListLinkedAccountsResponse>): ListLinkedAccountsResponse {
+        const message = { accounts: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListLinkedAccountsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListLinkedAccountsResponse): ListLinkedAccountsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.LinkedAccount accounts */ 1:
+                    message.accounts.push(LinkedAccount.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListLinkedAccountsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.LinkedAccount accounts = 1; */
+        for (let i = 0; i < message.accounts.length; i++)
+            LinkedAccount.internalBinaryWrite(message.accounts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListLinkedAccountsResponse
+ */
+export const ListLinkedAccountsResponse = new ListLinkedAccountsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LinkedAccount$Type extends MessageType<LinkedAccount> {
+    constructor() {
+        super("backend.admin.v1.LinkedAccount", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "providerID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
+        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LinkedAccount>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkedAccount): LinkedAccount {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string walletID */ 2:
+                    message.walletID = reader.string();
+                    break;
+                case /* string name */ 3:
+                    message.name = reader.string();
+                    break;
+                case /* string nickname */ 4:
+                    message.nickname = reader.string();
+                    break;
+                case /* string mask */ 5:
+                    message.mask = reader.string();
+                    break;
+                case /* string provider */ 6:
+                    message.provider = reader.string();
+                    break;
+                case /* string providerID */ 7:
+                    message.providerID = reader.string();
+                    break;
+                case /* string type */ 8:
+                    message.type = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LinkedAccount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string walletID = 2; */
+        if (message.walletID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletID);
+        /* string name = 3; */
+        if (message.name !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.name);
+        /* string nickname = 4; */
+        if (message.nickname !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.nickname);
+        /* string mask = 5; */
+        if (message.mask !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.mask);
+        /* string provider = 6; */
+        if (message.provider !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.provider);
+        /* string providerID = 7; */
+        if (message.providerID !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.providerID);
+        /* string type = 8; */
+        if (message.type !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.type);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.LinkedAccount
+ */
+export const LinkedAccount = new LinkedAccount$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetTransactionDetailsRequest$Type extends MessageType<GetTransactionDetailsRequest> {
     constructor() {
@@ -1357,5 +1602,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListWallets", options: {}, I: PaginationRequest, O: ListWalletsResponse },
     { name: "GetWalletDetails", options: {}, I: GetWalletDetailsRequest, O: WalletDetails },
     { name: "ListTransactions", options: {}, I: ListTransactionsRequest, O: ListTransactionsResponse },
-    { name: "GetTransactionDetails", options: {}, I: GetTransactionDetailsRequest, O: GetTransactionDetailsResponse }
+    { name: "GetTransactionDetails", options: {}, I: GetTransactionDetailsRequest, O: GetTransactionDetailsResponse },
+    { name: "ListLinkedAccounts", options: {}, I: ListLinkedAccountsRequest, O: ListLinkedAccountsResponse }
 ]);
