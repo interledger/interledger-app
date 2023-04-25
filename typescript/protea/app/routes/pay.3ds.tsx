@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import { route } from 'routes-gen'
 import { Layouts } from '~/components'
@@ -41,6 +41,7 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { flow, jwt: initJWT, threeDsId } = useLoaderData<typeof loader>()
   const submit = useSubmit()
+  const actionData = useActionData<typeof action>()
 
   const state = useScript(
     'https://songbirdstag.cardinalcommerce.com/edge/v1/songbird.js'
@@ -110,6 +111,21 @@ export default function Page() {
     }
   }, [initJWT, state, threeDsId, flow?.data?.idempotencyKey, submit])
 
+  useEffect(() => {
+    if (cardinalRef.current !== null) {
+      cardinalRef.current.continue('cca',
+        {
+          AcsUrl: actionData?.challengeURL,
+          Payload: actionData?.payload
+        },
+        {
+          OrderDetails: {
+            TransactionId: actionData?.processorTransactionID
+          }
+        })
+    }
+  }, [actionData])
+
   return <></>
 }
 
@@ -140,7 +156,11 @@ export async function action({ request }: ActionArgs) {
       throw json({}, httpMapping(rpc.code))
     }
 
-    return json({}, 200)
+    return json({
+      challengeURL: rpc.response.challengeURL,
+      payload: rpc.response.payload,
+      processorTransactionID: rpc.response.processorTransactionID
+    }, 200)
   }
 
   const jwt = await form.get('jwt')
