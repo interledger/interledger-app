@@ -171,6 +171,21 @@ func (mr *MockClientMockRecorder) ListTransactionsInRange(ctx, walletID, inRange
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransactionsInRange", reflect.TypeOf((*MockClient)(nil).ListTransactionsInRange), ctx, walletID, inRange)
 }
 
+// ListTransfers mocks base method.
+func (m *MockClient) ListTransfers(ctx context.Context, trxID string) ([]transactions.Transfer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTransfers", ctx, trxID)
+	ret0, _ := ret[0].([]transactions.Transfer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTransfers indicates an expected call of ListTransfers.
+func (mr *MockClientMockRecorder) ListTransfers(ctx, trxID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransfers", reflect.TypeOf((*MockClient)(nil).ListTransfers), ctx, trxID)
+}
+
 // ListWithPending mocks base method.
 func (m *MockClient) ListWithPending(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
 	m.ctrl.T.Helper()

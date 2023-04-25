@@ -584,3 +584,7 @@ func getWalletUserID(ctx context.Context, b Backends, walletID string) string {
 	firstUser := users[0]
 	return firstUser.ID
 }
+
+func ListTransfers(ctx context.Context, b Backends, txID string) ([]transactions.Transfer, error) {
+	return getTransfers(ctx, b, txID)
+}
