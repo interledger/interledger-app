@@ -17,9 +17,29 @@ service Backend {
   rpc GetWalletDetails(GetWalletDetailsRequest) returns (WalletDetails);
   rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse);
   rpc GetTransactionDetails(GetTransactionDetailsRequest) returns (GetTransactionDetailsResponse);
+  rpc ListLinkedAccounts(ListLinkedAccountsRequest) returns (ListLinkedAccountsResponse);
 }
 
 message Empty {}
+
+message ListLinkedAccountsRequest {
+  string walletID = 1;
+}
+
+message ListLinkedAccountsResponse {
+  repeated LinkedAccount accounts = 1;
+}
+
+message LinkedAccount {
+  string id = 1;
+  string walletID = 2;
+  string name = 3;
+  string nickname = 4;
+  string mask = 5;
+  string provider = 6;
+  string providerID = 7;
+  string type = 8;
+}
 
 message GetTransactionDetailsRequest {
   string walletID = 1;

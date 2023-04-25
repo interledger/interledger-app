@@ -29,6 +29,7 @@ type BackendClient interface {
 	GetWalletDetails(ctx context.Context, in *GetWalletDetailsRequest, opts ...grpc.CallOption) (*WalletDetails, error)
 	ListTransactions(ctx context.Context, in *ListTransactionsRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	GetTransactionDetails(ctx context.Context, in *GetTransactionDetailsRequest, opts ...grpc.CallOption) (*GetTransactionDetailsResponse, error)
+	ListLinkedAccounts(ctx context.Context, in *ListLinkedAccountsRequest, opts ...grpc.CallOption) (*ListLinkedAccountsResponse, error)
 }
 
 type backendClient struct {
@@ -93,6 +94,15 @@ func (c *backendClient) GetTransactionDetails(ctx context.Context, in *GetTransa
 	return out, nil
 }
 
+func (c *backendClient) ListLinkedAccounts(ctx context.Context, in *ListLinkedAccountsRequest, opts ...grpc.CallOption) (*ListLinkedAccountsResponse, error) {
+	out := new(ListLinkedAccountsResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListLinkedAccounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -103,6 +113,7 @@ type BackendServer interface {
 	GetWalletDetails(context.Context, *GetWalletDetailsRequest) (*WalletDetails, error)
 	ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error)
 	GetTransactionDetails(context.Context, *GetTransactionDetailsRequest) (*GetTransactionDetailsResponse, error)
+	ListLinkedAccounts(context.Context, *ListLinkedAccountsRequest) (*ListLinkedAccountsResponse, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -126,6 +137,9 @@ func (UnimplementedBackendServer) ListTransactions(context.Context, *ListTransac
 }
 func (UnimplementedBackendServer) GetTransactionDetails(context.Context, *GetTransactionDetailsRequest) (*GetTransactionDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTransactionDetails not implemented")
+}
+func (UnimplementedBackendServer) ListLinkedAccounts(context.Context, *ListLinkedAccountsRequest) (*ListLinkedAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListLinkedAccounts not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -247,6 +261,24 @@ func _Backend_GetTransactionDetails_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ListLinkedAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLinkedAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListLinkedAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ListLinkedAccounts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListLinkedAccounts(ctx, req.(*ListLinkedAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -277,6 +309,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTransactionDetails",
 			Handler:    _Backend_GetTransactionDetails_Handler,
+		},
+		{
+			MethodName: "ListLinkedAccounts",
+			Handler:    _Backend_ListLinkedAccounts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
