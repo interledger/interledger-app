@@ -330,8 +330,15 @@ func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*e
 		return nil, err
 	}
 
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(string(respBody))
+
 	var lookupResp external.Lookup3DSResponse
-	err = json.NewDecoder(resp.Body).Decode(&lookupResp)
+	err = json.NewDecoder(bytes.NewBuffer(respBody)).Decode(&lookupResp)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
