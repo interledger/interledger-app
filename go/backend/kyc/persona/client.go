@@ -21,6 +21,7 @@ type Client interface {
 	GetAccount(ctx context.Context, id string) (*AccountData, error)
 	CreateInquiry(ctx context.Context, args IndividualAttributes, idempotencyKey string) (*InquiryData, error)
 	ResumeInquiry(ctx context.Context, inquiryID, idempotencyKey string) (*InquiryData, error)
+	LookupInquiry(ctx context.Context, inquiryID string) (*Inquiry, error)
 	ValidateWebhook(req *http.Request, body []byte) bool
 }
 
@@ -38,6 +39,43 @@ func New() Client {
 		webhookSecret: os.Getenv("PERSONA_WEBHOOK_TOKEN"),
 		baseURL:       "https://withpersona.com/api/v1/",
 	}
+}
+
+func (c *client) LookupInquiry(ctx context.Context, inquiryID string) (*Inquiry, error) {
+	reqUrl, err := url.JoinPath(c.baseURL, "inquiries", inquiryID)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Persona-Version", "2023-01-05")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to resume inquiry status (%s) body (%s)", resp.Status, string(respBody))
+	}
+
+	var respData Inquiry
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
 }
 
 func (c *client) CreateInquiry(ctx context.Context, args IndividualAttributes, idempotencyKey string) (*InquiryData, error) {
