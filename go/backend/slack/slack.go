@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"os"
+	"sync"
 
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -11,6 +12,7 @@ import (
 )
 
 var api *ext_slack.Client
+var initOnce sync.Once
 
 type Channel string
 
@@ -18,11 +20,10 @@ const (
 	PersonaChannel Channel = "C053HA9ANCF"
 )
 
-func init() {
-	api = ext_slack.New(os.Getenv("SLACK_TOKEN"))
-}
-
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
+	initOnce.Do(func() {
+		api = ext_slack.New(os.Getenv("SLACK_TOKEN"))
+	})
 	if api == nil {
 		return
 	}
