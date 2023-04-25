@@ -140,7 +140,7 @@ export async function action({ request }: ActionArgs) {
       throw json({}, httpMapping(rpc.code))
     }
 
-    return
+    return json({}, 200)
   }
 
   const jwt = await form.get('jwt')

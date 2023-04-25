@@ -299,6 +299,7 @@ type (
 		ProductCode             string  `json:"productCode"`
 		Account                 Account `json:"account"`
 		Order                   Order   `json:"order"`
+		Browser                 Browser `json:"browser"`
 	}
 
 	Lookup3DSResponse struct {

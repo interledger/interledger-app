@@ -310,6 +310,9 @@ func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*e
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
+	fmt.Println(string(payload))
+	fmt.Println(endpoint)
+
 	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -346,6 +349,9 @@ func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
+
+	fmt.Println(string(payload))
+	fmt.Println(endpoint)
 
 	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
 	if err != nil {

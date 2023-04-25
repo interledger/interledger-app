@@ -158,6 +158,10 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 			Currency: args.Amount.Currency.ISO4217(),
 			Amount:   args.Amount.FormatAmount(),
 		},
+		Browser: external.Browser{
+			BrowserInfo:   args.BrowserInfo,
+			DeviceChannel: args.DeviceChannel,
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
