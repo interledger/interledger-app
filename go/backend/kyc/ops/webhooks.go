@@ -53,7 +53,7 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusApproved)
 		case "inquiry.marked-for-review":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusInReview)
-			if err != nil {
+			if err == nil {
 				notifyPersonaReview(r.Context(), wh.Data.Attributes.Payload)
 			}
 		case "inquiry.expired":
@@ -142,6 +142,31 @@ func accountCreatedWebhook(ctx context.Context, b Backends, pc persona.Client, j
 		return err
 	}
 
+	// Lookup the latest enquiry for the users IP Address
+	var inqID string
+	err = b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2 ORDER BY updated_at DESC",
+		details.ReferenceID, "approved")
+	if err != nil {
+		return err
+	}
+
+	inq, err := pc.LookupInquiry(ctx, inqID)
+	if err != nil {
+		return err
+	}
+
+	var ipAddr string
+	for _, ii := range inq.Included {
+		if ii.Type != "inquiry-session" {
+			continue
+		}
+
+		// These are in order so the last one in the list will always be the most up to date.
+		if ii.Attributes.IPAddress != "" {
+			ipAddr = ii.Attributes.IPAddress
+		}
+	}
+
 	_, err = UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
 		WalletID:    details.ReferenceID,
 		FirstName:   fn,
@@ -149,7 +174,7 @@ func accountCreatedWebhook(ctx context.Context, b Backends, pc persona.Client, j
 		CountryCode: details.CountryCode,
 		Gender:      kyc.GenderUnknown,
 		DateOfBirth: dob,
-
+		IPAddress:   ipAddr,
 		Address: &kyc.Address{
 			Line1:       details.AddressStreet1,
 			Line2:       details.AddressStreet2,
