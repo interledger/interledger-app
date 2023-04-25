@@ -87,3 +87,7 @@ func (c *client) GetTransaction(ctx context.Context, walletID string, txID strin
 func (c *client) GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*transactions.Transaction, error) {
 	return ops.GetTransactionByForeignID(ctx, c.b, walletID, foreignID)
 }
+
+func (c *client) ListTransfers(ctx context.Context, trxID string) ([]transactions.Transfer, error) {
+	return ops.ListTransfers(ctx, c.b, trxID)
+}

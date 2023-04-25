@@ -15,17 +15,39 @@ service Backend {
   rpc AllowWaitlistSignup(AllowWaitlistSignupRequest) returns (Empty);
   rpc ListWallets(PaginationRequest) returns (ListWalletsResponse);
   rpc GetWalletDetails(GetWalletDetailsRequest) returns (WalletDetails);
-//  rpc ListWalletTransactions(ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
+  rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse);
+  rpc GetTransactionDetails(GetTransactionDetailsRequest) returns (GetTransactionDetailsResponse);
 }
 
 message Empty {}
 
-message ListWalletTransactionsRequest {
+message GetTransactionDetailsRequest {
+  string walletID = 1;
+  string transactionID = 2;
+}
+
+message GetTransactionDetailsResponse {
+  Transaction transaction = 1;
+  repeated Transfer transfers = 2;
+}
+
+message Transfer {
+  string ID = 1;
+  string linkedAccountID = 2;
+  string linkedAccountProvider = 3;
+  string linkedAccountType = 4;
+  double amount = 5;
+  string currency = 6;
+  string state = 7;
+  google.protobuf.Timestamp timestamp = 8;
+}
+
+message ListTransactionsRequest {
   string walletID = 1;
   PaginationRequest page = 2;
 }
 
-message ListWalletTransactionsResponse {
+message ListTransactionsResponse {
   repeated Transaction transactions = 1;
   string nextPageToken = 2;
 }
