@@ -292,13 +292,13 @@ type (
 	}
 
 	Lookup3DSArgs struct {
-		ID3DS                   string `json:"3dsID"`
-		AuthenticationIndicator string `json:"authenticationIndicator"`
-		TransactionMode         string `json:"transactionMode"`
-		TransactionType         string `json:"transactionType"`
-		ProductCode             string `json:"productCode"`
-		Account                 Account
-		Order                   Order
+		ID3DS                   string  `json:"3dsID"`
+		AuthenticationIndicator string  `json:"authenticationIndicator"`
+		TransactionMode         string  `json:"transactionMode"`
+		TransactionType         string  `json:"transactionType"`
+		ProductCode             string  `json:"productCode"`
+		Account                 Account `json:"account"`
+		Order                   Order   `json:"order"`
 	}
 
 	Lookup3DSResponse struct {
