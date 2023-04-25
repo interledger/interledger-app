@@ -72,7 +72,7 @@ export default function Page() {
       <Card>
         <span>You are about to pay:</span>
         <span className='mt-4'>{flow.data.paymentPointer.legalName}</span>
-        <div className='mt-2 flex items-center justify-between rounded-xl bg-container p-4 text-medium'>
+        <div className='mt-2 flex items-center justify-between rounded-xl bg-nav p-4 text-medium'>
           <span>{flow.data.paymentPointer.formatted}</span>
         </div>
         {/*TODO Add a submit form*/}

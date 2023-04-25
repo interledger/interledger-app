@@ -60,13 +60,13 @@ export const Snackbar: FC<SnackbarProps> = ({
           leaveTo='opacity-0 scale-95'
         >
           <div className='mx-4 flex w-full transform items-center justify-between space-x-3 overflow-hidden rounded-xl bg-snackbar py-3 px-4 text-left align-middle shadow-lg transition-all sm:max-w-[22rem]'>
-            <p className='text-sm text-white'>{message}</p>
+            <p className='text-sm text-inverted'>{message}</p>
             {action && (
               <TextButton onClick={() => onClose()}>{action}</TextButton>
             )}
             {icon && (
               <div className='-mr-2'>
-                <IconButton className='text-white' onClick={() => onClose()}>
+                <IconButton className='text-inverted' onClick={() => onClose()}>
                   {icon}
                 </IconButton>
               </div>
