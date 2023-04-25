@@ -397,10 +397,9 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 			return nil, toGRPCError(err)
 		}
 
-		opParts := strings.Split(op.ID, "/")
 		threeDSInit, err := g.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{
 			Amount:            q.SendAmount,
-			OutgoingPaymentID: opParts[len(opParts)-1],
+			OutgoingPaymentID: op.ID,
 			CardID:            card.ProviderID,
 		})
 		if err != nil {
