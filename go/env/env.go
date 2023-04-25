@@ -12,6 +12,9 @@ const (
 	localUrl = "https://fynbos.test"
 )
 
+var fynbosEnv = "prod"
+var once = sync.Once{}
+
 var allowedEnvs = []string{
 	"prod",    // Live production environment
 	"sandbox", // Semi public testing env
@@ -21,18 +24,19 @@ var allowedEnvs = []string{
 
 func SetEnv(t *testing.T, env string) {
 	orig := GetEnv()
-	_ = os.Setenv("FYNBOS_ENV", env)
+	fynbosEnv = env
 	t.Cleanup(func() {
-		_ = os.Setenv("FYNBOS_ENV", orig)
+		fynbosEnv = orig
 	})
 }
 
 func GetEnv() string {
-	fynbosEnv := os.Getenv("FYNBOS_ENV")
-	if fynbosEnv == "" {
-		fynbosEnv = "prod"
-	}
-
+	once.Do(func() {
+		fynbosEnv = os.Getenv("FYNBOS_ENV")
+		if fynbosEnv == "" {
+			fynbosEnv = "prod"
+		}
+	})
 	var contains bool
 	for _, env := range allowedEnvs {
 		if env == fynbosEnv {
