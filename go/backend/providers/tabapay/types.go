@@ -104,6 +104,9 @@ type (
 		ProcessorTransactionID string
 		DsTransactionID        string
 		Status                 string
+		ECI                    string
+		UCAF                   string
+		XID                    string
 		ChallengeURL           string
 		Payload                string
 	}
@@ -134,4 +137,8 @@ func GetSongbirdURL() string {
 	}
 
 	return "https://songbirdstag.cardinalcommerce.com/edge/v1/songbird.js"
+}
+
+func IsFrictionlessAuthentication(lookup Lookup3DSResponse) bool {
+	return lookup.ChallengeURL == ""
 }

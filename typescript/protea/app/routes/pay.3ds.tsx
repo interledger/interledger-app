@@ -156,6 +156,11 @@ export async function action({ request }: ActionArgs) {
       throw json({}, httpMapping(rpc.code))
     }
 
+    if (rpc.response.challengeURL === "") {
+      await exitFlow(request, flowType.Pay)
+      return redirect(route('/'))
+    }
+
     return json({
       challengeURL: rpc.response.challengeURL,
       payload: rpc.response.payload,
