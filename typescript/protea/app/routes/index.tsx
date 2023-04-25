@@ -172,12 +172,12 @@ function MarketingPage() {
     <main className='w-full overflow-hidden'>
       <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20 lg:h-48'>
-          <div className='absolute -right-20 top-0 hidden h-20 w-20 rounded-br-full bg-rose-300 lg:block' />
-          <div className='absolute right-0 top-20 hidden h-20 w-20 rounded-br-full bg-slate-300 lg:block' />
-          <div className='absolute top-0 left-0 hidden h-20 w-20 rounded-bl-full bg-lime-300 lg:block' />
-          <div className='absolute top-20 -left-20 hidden h-20 w-20 rounded-br-full bg-slate-100 lg:block' />
+          <div className='absolute -right-20 top-0 hidden h-20 w-20 rounded-br-full bg-rose-300 dark:bg-rose-400 lg:block' />
+          <div className='absolute right-0 top-20 hidden h-20 w-20 rounded-br-full bg-slate-300 dark:bg-slate-600 lg:block' />
+          <div className='absolute top-0 left-0 hidden h-20 w-20 rounded-bl-full bg-lime-300 dark:bg-lime-500 lg:block' />
+          <div className='absolute top-20 -left-20 hidden h-20 w-20 rounded-br-full bg-slate-100 dark:bg-slate-800 lg:block' />
           {/* Mobile */}
-          <div className='absolute top-0 -left-4 block h-20 w-20 rounded-br-full bg-slate-100 lg:hidden' />
+          <div className='absolute top-0 -left-4 block h-20 w-20 rounded-br-full bg-slate-100 dark:bg-slate-800 lg:hidden' />
         </div>
         <div className='col-span-full'>
           <span className='flex justify-center text-center font-display text-3xl font-medium lg:text-6xl'>
@@ -196,9 +196,9 @@ function MarketingPage() {
           </ButtonRouter>
         </div>
         <div className='relative col-span-full h-48 lg:h-56'>
-          <div className='absolute -left-[calc(100vw)] bottom-20 hidden h-20 w-screen bg-slate-700 lg:block' />
-          <div className='absolute -left-20 bottom-0 hidden h-20 w-20 rounded-tl-full bg-slate-700 lg:block' />
-          <div className='absolute left-0 bottom-0 hidden h-20 w-20 rounded-br-full bg-lime-500 lg:block' />
+          <div className='absolute -left-[calc(100vw)] bottom-20 hidden h-20 w-screen bg-slate-700 dark:bg-slate-800 lg:block' />
+          <div className='absolute -left-20 bottom-0 hidden h-20 w-20 rounded-tl-full bg-slate-700 dark:bg-slate-800 lg:block' />
+          <div className='absolute left-0 bottom-0 hidden h-20 w-20 rounded-br-full bg-lime-500 dark:bg-lime-600 lg:block' />
           <div className='absolute right-20 bottom-20 hidden h-20 w-20 rounded-tl-full bg-lime-300 lg:block' />
           <div className='absolute right-0 bottom-20 hidden h-20 w-20 rounded-tr-full bg-lime-500 lg:block' />
           <div className='absolute right-20 bottom-0 hidden h-20 w-20 rounded-full bg-rose-500 lg:block' />
@@ -210,7 +210,7 @@ function MarketingPage() {
           <div className='absolute right-16 bottom-20 block h-20 w-20 rounded-tr-full bg-yellow-200 lg:hidden' />
         </div>
       </section>
-      <div className='w-full bg-slate-50'>
+      <div className='w-full bg-mk-section'>
         <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='order-1 col-span-full pt-20 lg:col-span-10 lg:col-start-2'>
             <span className='font-display text-2xl lg:text-4xl lg:leading-[2.75rem]'>
@@ -285,8 +285,8 @@ function MarketingPage() {
       </div>
       <section className='relative mx-auto  grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20'>
-          <div className='absolute top-0 -left-4 h-20 w-20 rounded-full bg-slate-50 lg:-left-40' />
-          <div className='absolute top-0 left-16 h-20 w-20 rounded-br-full bg-slate-50 lg:-left-20' />
+          <div className='absolute top-0 -left-4 h-20 w-20 rounded-full bg-mk-section lg:-left-40' />
+          <div className='absolute top-0 left-16 h-20 w-20 rounded-br-full bg-mk-section lg:-left-20' />
         </div>
         <div className='col-span-full mt-14'>
           <span className='font-display text-2xl lg:text-4xl'>
@@ -295,7 +295,7 @@ function MarketingPage() {
         </div>
         <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3'>
           <div className='flex'>
-            <Shape radius='rounded-bl-full' color='bg-slate-300' width='w-10' />
+            <Shape radius='rounded-bl-full' color='bg-slate-600' width='w-10' />
             <Shape radius='rounded-full' color='bg-rose-600' width='w-10' />
           </div>
           <span className='font-display font-medium'>Payment pointers</span>
@@ -307,7 +307,7 @@ function MarketingPage() {
         </div>
         <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3 lg:col-start-4'>
           <div className='flex'>
-            <Shape radius='rounded-full' color='bg-slate-300' width='w-10' />
+            <Shape radius='rounded-full' color='bg-slate-600' width='w-10' />
             <Shape radius='rounded-full' color='bg-rose-600' width='w-10' />
           </div>
           <span className='font-display font-medium'>Connect Securely</span>
@@ -321,7 +321,7 @@ function MarketingPage() {
         </div>
         <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3 lg:col-start-7'>
           <div className='flex'>
-            <Shape radius='rounded-none' color='bg-slate-300' width='w-10' />
+            <Shape radius='rounded-none' color='bg-slate-600' width='w-10' />
             <Shape radius='rounded-tl-full' color='bg-rose-600' width='w-10' />
           </div>
           <span className='font-display font-medium'>Link accounts</span>
@@ -334,7 +334,7 @@ function MarketingPage() {
         <div className='relative col-span-full mt-16 flex flex-col space-y-6 lg:col-span-3 lg:col-start-10'>
           <div className='flex'>
             <Shape radius='rounded-full' color='bg-rose-600' width='w-10' />
-            <Shape radius='rounded-br-full' color='bg-slate-300' width='w-10' />
+            <Shape radius='rounded-br-full' color='bg-slate-600' width='w-10' />
           </div>
           <span className='font-display font-medium'>
             Open wallet ecosystem
@@ -344,13 +344,13 @@ function MarketingPage() {
           </span>
         </div>
         <div className='relative order-9 col-span-full mt-20 h-20'>
-          <div className='absolute top-0 right-12 h-20 w-20 rounded-bl-full bg-slate-50 lg:right-20' />
-          <div className='absolute top-0 -right-8 h-20 w-20 rounded-tr-full bg-slate-50 lg:right-0' />
-          <div className='absolute top-0 -right-20 hidden h-20 w-20 rounded-br-full bg-slate-50 lg:block' />
-          <div className='absolute top-0 -right-40 hidden h-20 w-20 rounded-tr-full bg-slate-50 lg:block' />
+          <div className='absolute top-0 right-12 h-20 w-20 rounded-bl-full bg-mk-section lg:right-20' />
+          <div className='absolute top-0 -right-8 h-20 w-20 rounded-tr-full bg-mk-section lg:right-0' />
+          <div className='absolute top-0 -right-20 hidden h-20 w-20 rounded-br-full bg-mk-section lg:block' />
+          <div className='absolute top-0 -right-40 hidden h-20 w-20 rounded-tr-full bg-mk-section lg:block' />
         </div>
       </section>
-      <div className='w-full bg-slate-50'>
+      <div className='w-full bg-mk-section'>
         {/*  <section className='mx-auto grid w-full grid-cols-4 content-start  gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>*/}
         {/*    <div className='col-span-full mt-20'>*/}
         {/*      <span className='font-display text-2xl lg:text-4xl'>*/}
@@ -518,7 +518,7 @@ function AppPage() {
                   }
                 )
             }}
-            className='mt-4 flex flex items-center justify-between rounded-xl bg-container p-4 hover:bg-container-hover'
+            className='mt-4 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
           >
             <span className='font-medium text-medium'>
               {paymentPointer.formatted}
@@ -586,7 +586,7 @@ function AppPage() {
         <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h1 className='font-display text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>{nextStep.icon}</Icon>
             </div>
             <div className='flex flex-col space-y-4'>
