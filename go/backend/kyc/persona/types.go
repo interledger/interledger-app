@@ -51,7 +51,8 @@ type IndividualAttributes struct {
 }
 
 type Inquiry struct {
-	Data InquiryData `json:"data"`
+	Data     InquiryData       `json:"data"`
+	Included []InquiryIncluded `json:"included"`
 }
 
 type InquiryData struct {
@@ -68,6 +69,15 @@ type InquiryAttributes struct {
 	CreatedAt   string `json:"created-at"`
 	CompletedAt string `json:"completed-at"`
 	ExpiredAt   string `json:"expired-at"`
+}
+
+type InquiryIncluded struct {
+	Type       string                   `json:"type"`
+	Attributes InquirySessionAttributes `json:"attributes"`
+}
+
+type InquirySessionAttributes struct {
+	IPAddress string `json:"ip-address"`
 }
 
 type InquiryMeta struct {
