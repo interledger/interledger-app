@@ -57,7 +57,7 @@ export default function Page() {
       <ul className='mt-12 flex flex-col space-y-6 sm:mt-20'>
         {posts.map((post) => (
           <Router to={`/blog/${post.slug}`} key={post.slug}>
-            <li className='flex cursor-pointer flex-col justify-start space-y-4 rounded-xl bg-app p-4 pb-6 hover:bg-container sm:flex-row-reverse sm:justify-between sm:space-y-0 sm:space-x-8 sm:space-x-reverse sm:p-8'>
+            <li className='flex cursor-pointer flex-col justify-start space-y-4 rounded-xl bg-mk-section p-4 pb-6 hover:bg-mk-section-hover sm:flex-row-reverse sm:justify-between sm:space-y-0 sm:space-x-8 sm:space-x-reverse sm:p-8'>
               <BlogShapes slug={post.slug} />
               <div className='flex flex-col space-y-4 rounded-xl'>
                 <span className='font-display text-2xl font-medium'>

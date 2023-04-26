@@ -35,14 +35,14 @@ export default function Page() {
     <>
       <Card>
         <h2 className='text-sm font-medium'>Email address</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+        <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
           <div className='flex space-x-3'>
             <Icon>mail</Icon>
             <span>{traits.email}</span>
           </div>
         </div>
         <h2 className='mt-6 text-sm font-medium'>Mobile phone number</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-container p-3 text-medium'>
+        <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
           <div className='flex space-x-3'>
             <Icon>call</Icon>
             <span>{traits.phone}</span>

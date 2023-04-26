@@ -62,20 +62,14 @@ export const links: LinksFunction = () => {
   ]
 }
 
-function Document({
-  children,
-  title = 'Fynbos'
-}: {
-  children: ReactNode
-  title?: string
-}) {
+function Document({ children }: { children: ReactNode }) {
   return (
     <html lang='en'>
       <head>
         <Meta />
         <Links />
       </head>
-      <body className='theme-blue bg-app font-sans text-base font-normal text-strong antialiased selection:bg-brand/50'>
+      <body className='theme-system bg-page font-sans text-base font-normal text-strong antialiased selection:bg-brand/50'>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -110,7 +104,7 @@ export default function Page() {
 
   if (location.pathname == '/temp-cloudflare-error')
     return (
-      <Document title='An error occurred.'>
+      <Document>
         <main className='w-full overflow-hidden'>
           <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
             <div className='relative col-span-full -mx-8 h-44 sm:col-span-6 sm:col-start-2 lg:col-start-4 lg:mx-0'>
@@ -190,7 +184,7 @@ export default function Page() {
 
 export function ErrorBoundary({ error }: { error: Error }) {
   return (
-    <Document title='An error occurred.'>
+    <Document>
       <Error data={{ title: error.message }} />
     </Document>
   )
@@ -199,7 +193,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
 export function CatchBoundary() {
   const caught = useCatch()
   return (
-    <Document title='Unexpected error'>
+    <Document>
       <Error
         status={caught.status}
         statusText={caught.statusText}
