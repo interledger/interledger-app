@@ -29,6 +29,7 @@ import type {
 } from '@basis-theory/basis-theory-react/types'
 import { route } from 'routes-gen'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import clsx from 'clsx'
 
 export async function loader({ request, params }: LoaderArgs) {
   // const linkedAccounts = await getLinkedAccounts(request)
@@ -68,6 +69,11 @@ export default function Page() {
     date: '',
     cvc: ''
   })
+  const [cardNumberFocus, setCardNumberFocus] = useState<boolean>(false)
+  const [cardExpirationDateFocus, setExpirationDateFocus] =
+    useState<boolean>(false)
+  const [cardVerificationCodeFocus, setVerificationCodeFocus] =
+    useState<boolean>(false)
   const { bt, error } = useBasisTheory(token, { elements: true })
   const cardNumberRef = useRef<CardNumberElementType>(null)
   const cardExpirationDateRef = useRef<CardExpirationDateElementType>(null)
@@ -122,7 +128,7 @@ export default function Page() {
     }
   }
   // detect if the user is using dark mode
-  const isDarkMode =
+  const isDark =
     typeof window !== 'undefined' &&
     window.matchMedia &&
     window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -169,11 +175,38 @@ export default function Page() {
       fontWeight: '400',
       fontSize: '1rem',
       lineHeight: '1.5rem',
-      color: isDarkMode ? '#FFFFFF' : '#334155',
+      color: isDark ? '#FFFFFF' : '#334155',
+      backgroundColor: 'transparent'
+    },
+    complete: {
+      padding: '0.75rem 1rem',
+      fontFamily: 'Inter',
+      fontStyle: 'normal',
+      fontWeight: '400',
+      fontSize: '1rem',
+      lineHeight: '1.5rem',
+      color: isDark ? '#FFFFFF' : '#334155',
+      backgroundColor: 'transparent'
+    },
+    empty: {
+      padding: '0.75rem 1rem',
+      fontFamily: 'Inter',
+      fontStyle: 'normal',
+      fontWeight: '400',
+      fontSize: '1rem',
+      lineHeight: '1.5rem',
+      color: isDark ? '#FFFFFF' : '#334155',
       backgroundColor: 'transparent'
     },
     invalid: {
-      color: '#B91C1C'
+      padding: '0.75rem 1rem',
+      fontFamily: 'Inter',
+      fontStyle: 'normal',
+      fontWeight: '400',
+      fontSize: '1rem',
+      lineHeight: '1.5rem',
+      color: isDark ? '#FFFFFF' : '#334155',
+      backgroundColor: 'transparent'
     }
   }
 
@@ -192,10 +225,17 @@ export default function Page() {
             <span className='ml-2 block text-sm font-medium text-medium'>
               Card number
             </span>
-            <div className='mt-1 flex h-12 w-full items-center justify-between overflow-hidden pr-4 rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
-              <div className='block w-full focus-within:bg-pink-300'>
+            <div
+              className={clsx(
+                'mt-1 flex h-12 w-full items-center justify-between overflow-hidden pr-4 rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0',
+                cardNumberFocus && 'border-focus ring-0'
+              )}
+            >
+              <div className='block w-full'>
                 <CardNumberElement
                   ref={cardNumberRef}
+                  onFocus={() => setCardNumberFocus(true)}
+                  onBlur={() => setCardNumberFocus(false)}
                   style={btStyle}
                   iconPosition={'right'}
                   placeholder=''
@@ -214,10 +254,17 @@ export default function Page() {
               <span className='ml-2 block text-sm font-medium text-medium'>
                 Expiry date
               </span>
-              <div className='mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+              <div
+                className={clsx(
+                  'mt-1 flex h-12 w-full items-center justify-between overflow-hidden pr-4 rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0',
+                  cardExpirationDateFocus && 'border-focus ring-0'
+                )}
+              >
                 <div className='block w-full'>
                   <CardExpirationDateElement
                     ref={cardExpirationDateRef}
+                    onFocus={() => setExpirationDateFocus(true)}
+                    onBlur={() => setExpirationDateFocus(false)}
                     style={btStyle}
                     id='expirationn-date'
                   />
@@ -233,10 +280,17 @@ export default function Page() {
               <span className='ml-2 block text-sm font-medium text-medium'>
                 Security code
               </span>
-              <div className='mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+              <div
+                className={clsx(
+                  'mt-1 flex h-12 w-full items-center justify-between overflow-hidden pr-4 rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0',
+                  cardVerificationCodeFocus && 'border-focus ring-0'
+                )}
+              >
                 <div className='block w-full'>
                   <CardVerificationCodeElement
                     ref={cardVerificationCodeRef}
+                    onFocus={() => setVerificationCodeFocus(true)}
+                    onBlur={() => setVerificationCodeFocus(false)}
                     style={btStyle}
                     placeholder=''
                     id='card-verification-code'
