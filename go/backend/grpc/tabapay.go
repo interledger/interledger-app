@@ -46,6 +46,7 @@ func (s *rpcService) Lookup3DS(
 		ProductCode:             tabapay.ProductCodeQuasiCashTransaction,
 		DeviceChannel:           tabapay.DeviceChannelBrowser,
 		Amount:                  op.SendAmount,
+		BrowserInfo:             tabapay.BrowserInfo("true|Mozilla/5.0 iPhone|text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8|true|en-US|32|414|896|300|127.0.0.1"),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
