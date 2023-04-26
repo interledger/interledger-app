@@ -200,3 +200,36 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 		Signature: string(sig),
 	})
 }
+
+func FixWalletPublicKeys(ctx context.Context, b Backends, walletID string) error {
+	ks, err := ListKeys(ctx, b, walletID)
+	if err != nil {
+		return err
+	}
+
+	for _, k := range ks {
+		if k.PublicKey != "" {
+			continue
+		}
+		if k.Type == keys.NonCustodial {
+			_, err = b.DB().ExecContext(ctx, "UPDATE wallet_keys SET public_key=reference, reference=NULL WHERE id=$1 AND key_type=$2;", k.ID, keys.NonCustodial)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+		}
+		if k.Type == keys.Custodial && k.Location == "vault" {
+			vaultPublicKey, err := b.Vault().GetPublicKey(k.Reference.String)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+
+			pubKeyBase64 := base64.StdEncoding.EncodeToString([]byte(vaultPublicKey))
+			_, err = b.DB().ExecContext(ctx, "UPDATE wallet_keys SET public_key=$3 WHERE id=$1 AND key_type=$2;", k.ID, keys.Custodial, pubKeyBase64)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+		}
+	}
+
+	return nil
+}
