@@ -2,6 +2,7 @@ package tabapay
 
 import (
 	"context"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
@@ -44,9 +45,9 @@ type Await func(ctx context.Context, result interface{}) error
 
 type (
 	Init3DSArgs struct {
-		Amount            currency.Amount
-		OutgoingPaymentID string
-		CardID            string
+		Amount         currency.Amount
+		IdempotencyKey string
+		CardID         string
 	}
 
 	Init3DSResponse struct {
@@ -87,7 +88,7 @@ var (
 
 type (
 	Lookup3DSArgs struct {
-		OutgoingPaymentID       string
+		IdempotencyKey          string
 		CardID                  string
 		ThreeDSID               string
 		AuthenticationIndicator AuthenticationIndicator
@@ -104,6 +105,9 @@ type (
 		ProcessorTransactionID string
 		DsTransactionID        string
 		Status                 string
+		ECI                    string
+		UCAF                   string
+		XID                    string
 		ChallengeURL           string
 		Payload                string
 	}
@@ -111,9 +115,9 @@ type (
 
 type (
 	Authenticate3DSArgs struct {
-		OutgoingPaymentID string
-		ThreeDSID         string
-		JWT               string
+		IdempotencyKey string
+		ThreeDSID      string
+		JWT            string
 	}
 
 	Authenticate3DSResponse struct {
@@ -128,10 +132,36 @@ type (
 	}
 )
 
+type ThreeDSSession struct {
+	ID                     string
+	CardID                 string
+	OrderID                string
+	Revision               int
+	Amount                 string
+	Currency               string
+	Version                string
+	Enrolled               string
+	ProcessorTransactionID string
+	DsTransactionID        string
+	Status                 string
+	ECI                    string
+	UCAF                   string
+	XID                    string
+	ChallengeURL           string
+	Payload                string
+	InitAt                 time.Time
+	LookupAt               time.Time
+	AuthenticatedAt        time.Time
+}
+
 func GetSongbirdURL() string {
 	if env.IsProd() {
 		return "https://songbird.cardinalcommerce.com/edge/v1/songbird.js"
 	}
 
 	return "https://songbirdstag.cardinalcommerce.com/edge/v1/songbird.js"
+}
+
+func IsFrictionlessAuthentication(lookup Lookup3DSResponse) bool {
+	return lookup.ChallengeURL == ""
 }

@@ -52,6 +52,23 @@ func (s *rpcService) Lookup3DS(
 		return nil, toGRPCError(err)
 	}
 
+	if tabapay.IsFrictionlessAuthentication(*lookupResp) {
+		err = s.b.GMT().Authenticate3DS(ctx, gmt.Authenticate3DSArgs{
+			OutgoingPaymentID:      req.GetOutgoingPaymentID(),
+			JWT:                    "",
+			ThreeDSID:              req.GetThreeDSID(),
+			ThreeDSVersion:         lookupResp.Version,
+			ProcessorTransactionID: lookupResp.ProcessorTransactionID,
+			DsTransactionID:        lookupResp.DsTransactionID,
+			Status:                 lookupResp.Status,
+			UCAF:                   lookupResp.UCAF,
+			XID:                    lookupResp.XID,
+		})
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+	}
+
 	return &backendv1.Lookup3DSResponse{
 		ProcessorTransactionID: lookupResp.ProcessorTransactionID,
 		ChallengeURL:           lookupResp.ChallengeURL,

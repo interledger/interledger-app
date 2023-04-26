@@ -2,10 +2,10 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -106,19 +106,12 @@ func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transa
 }
 
 func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapay.Init3DSResponse, error) {
-	// check if full url of outfgoing payment is used
-	orderID := args.OutgoingPaymentID
-	idxSlash := strings.LastIndex(orderID, "/")
-	if idxSlash > 0 {
-		orderID = args.OutgoingPaymentID[idxSlash+1:]
-	}
-
 	resp, err := b.External().Init3DS(ctx, external.Init3DSArgs{
 		Account: external.Account{
 			AccountID: args.CardID,
 		},
 		Order: external.Order{
-			OrderID:  orderID,
+			OrderID:  args.IdempotencyKey,
 			Currency: args.Amount.Currency.ISO4217(),
 			Amount:   args.Amount.FormatAmount(),
 		},
@@ -128,6 +121,16 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 	}
 
 	// TODO: handle resp.SC
+	_, err = update3DSSession(ctx, b, tabapay.ThreeDSSession{
+		ID:       resp.ID3DS,
+		CardID:   args.CardID,
+		OrderID:  args.IdempotencyKey,
+		Amount:   args.Amount.FormatAmount(),
+		Currency: args.Amount.Currency.ISO4217(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
 
 	return &tabapay.Init3DSResponse{
 		ID:                  resp.ID3DS,
@@ -137,13 +140,6 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 }
 
 func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*tabapay.Lookup3DSResponse, error) {
-	// check if full url of outfgoing payment is used
-	orderID := args.OutgoingPaymentID
-	idxSlash := strings.LastIndex(orderID, "/")
-	if idxSlash > 0 {
-		orderID = args.OutgoingPaymentID[idxSlash+1:]
-	}
-
 	resp, err := b.External().Lookup3DS(ctx, external.Lookup3DSArgs{
 		ID3DS:                   args.ThreeDSID,
 		TransactionMode:         string(args.TransactionMode),
@@ -154,7 +150,7 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 			AccountID: args.CardID,
 		},
 		Order: external.Order{
-			OrderID:  orderID,
+			OrderID:  args.IdempotencyKey,
 			Currency: args.Amount.Currency.ISO4217(),
 			Amount:   args.Amount.FormatAmount(),
 		},
@@ -168,6 +164,23 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 	}
 
 	// TODO: handle resp.SC
+	_, err = update3DSSession(ctx, b, tabapay.ThreeDSSession{
+		ID:                     args.ThreeDSID,
+		Version:                resp.Version3DS,
+		Enrolled:               resp.Enrolled,
+		ProcessorTransactionID: resp.ProcessorTransactionID,
+		DsTransactionID:        resp.DsTransactionID,
+		Status:                 resp.Status,
+		ChallengeURL:           resp.ChallengeURL,
+		Payload:                resp.Payload,
+		ECI:                    resp.ECI,
+		UCAF:                   resp.UCAF,
+		XID:                    resp.XID,
+		LookupAt:               time.Now(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
 
 	return &tabapay.Lookup3DSResponse{
 		Version:                resp.Version3DS,
@@ -177,10 +190,13 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 		Status:                 resp.Status,
 		ChallengeURL:           resp.ChallengeURL,
 		Payload:                resp.Payload,
+		ECI:                    resp.ECI,
+		UCAF:                   resp.UCAF,
+		XID:                    resp.XID,
 	}, nil
 }
 
-func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3DSArgs) (*tabapay.Authenticate3DSResponse, error) {
+func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3DSArgs) (*tabapay.ThreeDSSession, error) {
 	resp, err := b.External().Authenticate3DS(ctx, external.Authenticate3DSArgs{
 		ID3DS: args.ThreeDSID,
 		JWT:   args.JWT,
@@ -189,14 +205,235 @@ func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
 
-	return &tabapay.Authenticate3DSResponse{
+	session, err := update3DSSession(ctx, b, tabapay.ThreeDSSession{
+		ID:                     args.ThreeDSID,
 		Status:                 resp.Status,
-		Version3DS:             resp.Version3DS,
+		Version:                resp.Version3DS,
 		Enrolled:               resp.Enrolled,
 		ProcessorTransactionID: resp.ProcessorTransactionID,
 		DsTransactionID:        resp.DsTransactionID,
 		ECI:                    resp.ECI,
 		UCAF:                   resp.UCAF,
 		XID:                    resp.XID,
-	}, nil
+		AuthenticatedAt:        time.Now(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return session, nil
+}
+
+func Get3DSSession(
+	ctx context.Context, b Backends, id string,
+) (*tabapay.ThreeDSSession, error) {
+	var session dbThreeDSSession
+	err := b.DB().GetContext(ctx, &session, fmt.Sprintf("SELECT %s FROM tabapay_3ds_sessions WHERE id=$1 ORDER BY revision DESC LIMIT 1;", dbThreeDSSessionFields), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, tabapay.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return dbToThreeDSSession(session), nil
+}
+
+func update3DSSession(
+	ctx context.Context, b Backends, session tabapay.ThreeDSSession,
+) (*tabapay.ThreeDSSession, error) {
+	var old dbThreeDSSession
+	err := b.DB().GetContext(
+		ctx,
+		&old,
+		fmt.Sprintf("SELECT %s FROM tabapay_3ds_sessions WHERE id=$1 ORDER BY revision DESC LIMIT 1;", dbThreeDSSessionFields),
+		session.ID,
+	)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	merged, noop, err := merge3DSSession(old, session)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+	if noop {
+		return dbToThreeDSSession(merged), nil
+	}
+
+	_, err = b.DB().ExecContext(
+		ctx,
+		fmt.Sprintf("INSERT INTO tabapay_3ds_sessions (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)", dbThreeDSSessionFields),
+		merged.ID,
+		merged.CardID,
+		merged.OrderID,
+		merged.Revision,
+		merged.Amount,
+		merged.Currency,
+		merged.Version,
+		merged.Enrolled,
+		merged.ProcessorTransactionID,
+		merged.DsTransactionID,
+		merged.Status,
+		merged.ECI,
+		merged.UCAF,
+		merged.XID,
+		merged.ChallengeURL,
+		merged.Payload,
+		merged.InitAt,
+		merged.LookupAt,
+		merged.AuthenticatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	return dbToThreeDSSession(merged), nil
+}
+
+func dbToThreeDSSession(dbSession dbThreeDSSession) *tabapay.ThreeDSSession {
+	return &tabapay.ThreeDSSession{
+		ID:                     dbSession.ID,
+		CardID:                 dbSession.CardID,
+		OrderID:                dbSession.OrderID,
+		Revision:               dbSession.Revision,
+		Amount:                 dbSession.Amount,
+		Currency:               dbSession.Currency,
+		Version:                dbSession.Version,
+		Enrolled:               dbSession.Enrolled,
+		ProcessorTransactionID: dbSession.ProcessorTransactionID,
+		DsTransactionID:        dbSession.DsTransactionID,
+		Status:                 dbSession.Status,
+		ECI:                    dbSession.ECI,
+		UCAF:                   dbSession.UCAF,
+		XID:                    dbSession.XID,
+		ChallengeURL:           dbSession.ChallengeURL,
+		Payload:                dbSession.Payload,
+		InitAt:                 dbSession.InitAt,
+		LookupAt:               dbSession.LookupAt.Time,
+		AuthenticatedAt:        dbSession.AuthenticatedAt.Time,
+	}
+}
+
+func merge3DSSession(
+	old dbThreeDSSession, new tabapay.ThreeDSSession,
+) (merged dbThreeDSSession, noop bool, err error) {
+	noop = true
+
+	merged.ID = new.ID
+	merged.CardID = old.CardID
+	merged.OrderID = old.OrderID
+	merged.Revision = old.Revision
+	merged.Amount = old.Amount
+	merged.Currency = old.Currency
+	merged.Version = old.Version
+	merged.Enrolled = old.Enrolled
+	merged.ProcessorTransactionID = old.ProcessorTransactionID
+	merged.DsTransactionID = old.DsTransactionID
+	merged.Status = old.Status
+	merged.ECI = old.ECI
+	merged.UCAF = old.UCAF
+	merged.XID = old.XID
+	merged.ChallengeURL = old.ChallengeURL
+	merged.Payload = old.Payload
+	merged.InitAt = old.InitAt
+	merged.LookupAt = old.LookupAt
+	merged.AuthenticatedAt = old.AuthenticatedAt
+
+	if old.OrderID != new.OrderID && new.OrderID != "" {
+		merged.OrderID = new.OrderID
+		noop = false
+	}
+
+	if old.Amount != new.Amount && new.Amount != "" {
+		merged.Amount = new.Amount
+		noop = false
+	}
+
+	if old.Currency != new.Currency && new.Currency != "" {
+		merged.Currency = new.Currency
+		noop = false
+	}
+
+	if old.Version != new.Version && new.Version != "" {
+		merged.Version = new.Version
+		noop = false
+	}
+
+	if old.Enrolled != new.Enrolled && new.Enrolled != "" {
+		merged.Enrolled = new.Enrolled
+		noop = false
+	}
+
+	if old.ProcessorTransactionID != new.ProcessorTransactionID && new.ProcessorTransactionID != "" {
+		merged.ProcessorTransactionID = new.ProcessorTransactionID
+		noop = false
+	}
+
+	if old.DsTransactionID != new.DsTransactionID && new.DsTransactionID != "" {
+		merged.DsTransactionID = new.DsTransactionID
+		noop = false
+	}
+
+	if old.Status != new.Status && new.Status != "" {
+		merged.Status = new.Status
+		noop = false
+	}
+
+	if old.ECI != new.ECI && new.ECI != "" {
+		merged.ECI = new.ECI
+		noop = false
+	}
+
+	if old.UCAF != new.UCAF && new.UCAF != "" {
+		merged.UCAF = new.UCAF
+		noop = false
+	}
+
+	if old.XID != new.XID && new.XID != "" {
+		merged.XID = new.XID
+		noop = false
+	}
+
+	if old.ChallengeURL != new.ChallengeURL && new.ChallengeURL != "" {
+		merged.ChallengeURL = new.ChallengeURL
+		noop = false
+	}
+
+	if old.Payload != new.Payload && new.Payload != "" {
+		merged.Payload = new.Payload
+		noop = false
+	}
+
+	if !old.InitAt.Equal(new.InitAt) && !new.InitAt.IsZero() {
+		merged.InitAt = new.InitAt
+		noop = false
+	}
+
+	if old.LookupAt.Valid {
+		if !old.LookupAt.Time.Equal(new.LookupAt) && !new.LookupAt.IsZero() {
+			merged.LookupAt = sql.NullTime{Time: new.LookupAt, Valid: true}
+			noop = false
+		}
+	} else if !new.LookupAt.IsZero() {
+		merged.LookupAt = sql.NullTime{Time: new.LookupAt, Valid: true}
+		noop = false
+	}
+
+	if old.AuthenticatedAt.Valid {
+		if !old.AuthenticatedAt.Time.Equal(new.AuthenticatedAt) && !new.AuthenticatedAt.IsZero() {
+			merged.AuthenticatedAt = sql.NullTime{Time: new.AuthenticatedAt, Valid: true}
+			noop = false
+		}
+	} else if !new.AuthenticatedAt.IsZero() {
+		merged.AuthenticatedAt = sql.NullTime{Time: new.AuthenticatedAt, Valid: true}
+		noop = false
+	}
+
+	merged.Revision = old.Revision
+	if !noop {
+		merged.Revision = old.Revision + 1
+	}
+
+	return merged, noop, err
 }

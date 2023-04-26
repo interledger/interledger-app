@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_mock "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
@@ -8,6 +9,7 @@ import (
 )
 
 type Backends interface {
+	DB() *sqlx.DB
 	External() external.Client
 	Temporal() temporal.Client
 }
@@ -25,8 +27,13 @@ func NewTestBackends(opts ...func(*TestBackends)) *TestBackends {
 }
 
 type TestBackends struct {
+	Db             *sqlx.DB
 	ExternalClient *external_mock.MockClient
 	TemporalClient *temporal_mock.MockClient
+}
+
+func (b *TestBackends) DB() *sqlx.DB {
+	return b.Db
 }
 
 func (b *TestBackends) External() external.Client {
