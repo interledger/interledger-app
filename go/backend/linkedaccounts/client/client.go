@@ -69,26 +69,6 @@ func (c client) Get(ctx context.Context, id string) (fs *linkedaccounts.LinkedAc
 }
 
 func (c client) GetByProviderID(ctx context.Context, args linkedaccounts.GetByProviderIDArgs) (fs *linkedaccounts.LinkedAccount, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			log.Error(
-				"Failed to get linked account by provider id.",
-				zap.String("provider_id", args.ProviderID),
-				zap.String("provider", args.Provider),
-				zap.String("type", args.Type),
-				zap.Int64("took", time.Since(begin).Milliseconds()),
-				zap.String("msg", err.Error()),
-			)
-			return
-		}
-
-		log.Debug(
-			"Got linked account by provider id.",
-			zap.String("id", fs.ID),
-			zap.Int64("took", time.Since(begin).Milliseconds()),
-		)
-	}(time.Now())
-
 	return ops.GetByProviderID(ctx, c.b, args)
 }
 

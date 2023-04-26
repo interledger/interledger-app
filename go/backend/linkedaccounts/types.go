@@ -1,5 +1,7 @@
 package linkedaccounts
 
+import "gitlab.com/fynbos/backend/providers/tabapay"
+
 type LinkedAccount struct {
 	ID         string
 	WalletID   string `db:"wallet_id"`
@@ -27,6 +29,12 @@ type CreateArgs struct {
 type GetByProviderIDArgs struct {
 	Provider   string
 	ProviderID string
-	Type       string
-	WalletID   string
+}
+
+func Requires3DS(la *LinkedAccount) bool {
+	if la == nil {
+		return false
+	}
+
+	return la.Provider == tabapay.ProviderName
 }
