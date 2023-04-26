@@ -61,6 +61,7 @@ func (s *AdminRpcService) GetTransactionDetails(ctx context.Context, req *pb.Get
 			Amount:                t.Amount.Float64(),
 			Currency:              t.Amount.Currency.String(),
 			State:                 string(t.State),
+			ForeignID:             t.ForeignID,
 			Timestamp:             timestamppb.New(t.Timestamp),
 		}
 	}

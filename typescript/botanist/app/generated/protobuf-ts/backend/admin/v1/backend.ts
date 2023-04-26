@@ -164,6 +164,10 @@ export interface Transfer {
      */
     linkedAccountType: string;
     /**
+     * @generated from protobuf field: string foreignID = 9;
+     */
+    foreignID: string;
+    /**
      * @generated from protobuf field: double amount = 5;
      */
     amount: number;
@@ -914,6 +918,7 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 2, name: "linkedAccountID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "linkedAccountProvider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "linkedAccountType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "foreignID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "amount", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
             { no: 6, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
@@ -921,7 +926,7 @@ class Transfer$Type extends MessageType<Transfer> {
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { iD: "", linkedAccountID: "", linkedAccountProvider: "", linkedAccountType: "", amount: 0, currency: "", state: "" };
+        const message = { iD: "", linkedAccountID: "", linkedAccountProvider: "", linkedAccountType: "", foreignID: "", amount: 0, currency: "", state: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -943,6 +948,9 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* string linkedAccountType */ 4:
                     message.linkedAccountType = reader.string();
+                    break;
+                case /* string foreignID */ 9:
+                    message.foreignID = reader.string();
                     break;
                 case /* double amount */ 5:
                     message.amount = reader.double();
@@ -980,6 +988,9 @@ class Transfer$Type extends MessageType<Transfer> {
         /* string linkedAccountType = 4; */
         if (message.linkedAccountType !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.linkedAccountType);
+        /* string foreignID = 9; */
+        if (message.foreignID !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.foreignID);
         /* double amount = 5; */
         if (message.amount !== 0)
             writer.tag(5, WireType.Bit64).double(message.amount);

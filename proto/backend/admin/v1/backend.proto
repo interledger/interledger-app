@@ -73,6 +73,7 @@ message Transfer {
   string linkedAccountID = 2;
   string linkedAccountProvider = 3;
   string linkedAccountType = 4;
+  string foreignID = 9;
   double amount = 5;
   string currency = 6;
   string state = 7;
