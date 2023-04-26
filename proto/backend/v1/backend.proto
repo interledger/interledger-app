@@ -68,6 +68,7 @@ message ThreeDS {
   string id = 1;
   string jwt = 2;
   string deviceCollectionURL = 3;
+  string songbirdURL = 4;
 }
 
 message CreateOutgoingPaymentResponse {
