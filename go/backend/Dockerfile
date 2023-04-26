@@ -26,6 +26,7 @@ ENTRYPOINT ["/build/backend/entrypoint.sh"]
 FROM base as builder
 
 RUN go build -o main ./backend/main.go
+ENTRYPOINT ["/build/main"]
 
 FROM gcr.io/distroless/cc:nonroot
 WORKDIR /dist
