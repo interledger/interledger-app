@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -105,12 +106,19 @@ func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transa
 }
 
 func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapay.Init3DSResponse, error) {
+	// check if full url of outfgoing payment is used
+	orderID := args.OutgoingPaymentID
+	idxSlash := strings.LastIndex(orderID, "/")
+	if idxSlash > 0 {
+		orderID = args.OutgoingPaymentID[idxSlash+1:]
+	}
+
 	resp, err := b.External().Init3DS(ctx, external.Init3DSArgs{
 		Account: external.Account{
 			AccountID: args.CardID,
 		},
 		Order: external.Order{
-			OrderID:  args.OutgoingPaymentID,
+			OrderID:  orderID,
 			Currency: args.Amount.Currency.ISO4217(),
 			Amount:   args.Amount.FormatAmount(),
 		},
@@ -129,6 +137,13 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 }
 
 func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*tabapay.Lookup3DSResponse, error) {
+	// check if full url of outfgoing payment is used
+	orderID := args.OutgoingPaymentID
+	idxSlash := strings.LastIndex(orderID, "/")
+	if idxSlash > 0 {
+		orderID = args.OutgoingPaymentID[idxSlash+1:]
+	}
+
 	resp, err := b.External().Lookup3DS(ctx, external.Lookup3DSArgs{
 		ID3DS:                   args.ThreeDSID,
 		TransactionMode:         string(args.TransactionMode),
@@ -139,9 +154,13 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 			AccountID: args.CardID,
 		},
 		Order: external.Order{
-			OrderID:  args.OutgoingPaymentID,
+			OrderID:  orderID,
 			Currency: args.Amount.Currency.ISO4217(),
 			Amount:   args.Amount.FormatAmount(),
+		},
+		Browser: external.Browser{
+			BrowserInfo:   args.BrowserInfo,
+			DeviceChannel: args.DeviceChannel,
 		},
 	})
 	if err != nil {

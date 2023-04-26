@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
-	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -49,10 +48,7 @@ func New(args NewClientArgs) (*client, error) {
 		}
 	}
 
-	baseUrl := fmt.Sprintf("https://%s/v1/clients/%s", "api.sandbox.tabapay.net:10443", args.ClientID)
-	if env.IsProd() {
-		baseUrl = fmt.Sprintf("https://FQDN/v1/clients/%s", args.ClientID)
-	}
+	baseUrl := fmt.Sprintf("https://%s/%s/clients/%s", "api.sandbox.tabapay.net:10443", "%s", args.ClientID)
 
 	return &client{
 		baseUrl:     baseUrl,
@@ -73,7 +69,7 @@ func (c *client) setAuth(r *http.Request) {
 func (c *client) CreateTransaction(
 	ctx context.Context, args external.CreateTransactionArgs,
 ) (*external.CreateTransactionResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "transactions")
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v1"), "transactions")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -112,7 +108,7 @@ func (c *client) CreateTransaction(
 func (c *client) RetrieveTransaction(
 	ctx context.Context, id string,
 ) (*external.RetrieveTransactionResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "transactions", id)
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v1"), "transactions", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -146,7 +142,7 @@ func (c *client) RetrieveTransaction(
 func (c *client) CreateAccount(
 	ctx context.Context, args external.CreateAccountArgs,
 ) (*external.CreateAccountResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "accounts")
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v1"), "accounts")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -196,7 +192,7 @@ func (c *client) CreateAccount(
 func (c *client) RetrieveAccount(
 	ctx context.Context, id string,
 ) (*external.RetrieveAccountResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "accounts", id)
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v1"), "accounts", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -230,7 +226,7 @@ func (c *client) RetrieveAccount(
 func (c *client) QueryCard(
 	ctx context.Context, args external.QueryCardArgs,
 ) (*external.QueryCardResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "cards")
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v1"), "cards")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -267,7 +263,7 @@ func (c *client) QueryCard(
 }
 
 func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*external.Init3DSResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "init")
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v2"), "3ds", "init")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -304,7 +300,7 @@ func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*exter
 }
 
 func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*external.Lookup3DSResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "lookup")
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v2"), "3ds", "lookup")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -341,7 +337,7 @@ func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*e
 }
 
 func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate3DSArgs) (*external.Authenticate3DSResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "authenticate")
+	endpoint, err := url.JoinPath(fmt.Sprintf(c.baseUrl, "v2"), "3ds", "authenticate")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
