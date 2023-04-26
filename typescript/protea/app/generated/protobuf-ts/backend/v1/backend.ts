@@ -549,6 +549,40 @@ export interface CreateCardRequest {
     tokenID: string;
 }
 /**
+ * @generated from protobuf message backend.v1.Init3DSRequest
+ */
+export interface Init3DSRequest {
+    /**
+     * @generated from protobuf field: string idempotencyKey = 1;
+     */
+    idempotencyKey: string;
+    /**
+     * @generated from protobuf field: string quoteID = 2;
+     */
+    quoteID: string;
+}
+/**
+ * @generated from protobuf message backend.v1.Init3DSResponse
+ */
+export interface Init3DSResponse {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string jwt = 2;
+     */
+    jwt: string;
+    /**
+     * @generated from protobuf field: string deviceCollectionURL = 3;
+     */
+    deviceCollectionURL: string;
+    /**
+     * @generated from protobuf field: string songbirdURL = 4;
+     */
+    songbirdURL: string;
+}
+/**
  * @generated from protobuf message backend.v1.Lookup3DSResponse
  */
 export interface Lookup3DSResponse {
@@ -570,9 +604,9 @@ export interface Lookup3DSResponse {
  */
 export interface Lookup3DSRequest {
     /**
-     * @generated from protobuf field: string outgoingPaymentID = 1;
+     * @generated from protobuf field: string idempotencyKey = 1;
      */
-    outgoingPaymentID: string;
+    idempotencyKey: string;
     /**
      * @generated from protobuf field: string threeDSID = 2;
      */
@@ -583,9 +617,9 @@ export interface Lookup3DSRequest {
  */
 export interface Authenticate3DSRequest {
     /**
-     * @generated from protobuf field: string outgoingPaymentID = 1;
+     * @generated from protobuf field: string idempotencyKey = 1;
      */
-    outgoingPaymentID: string;
+    idempotencyKey: string;
     /**
      * @generated from protobuf field: string threeDSID = 2;
      */
@@ -3465,6 +3499,128 @@ class CreateCardRequest$Type extends MessageType<CreateCardRequest> {
  */
 export const CreateCardRequest = new CreateCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class Init3DSRequest$Type extends MessageType<Init3DSRequest> {
+    constructor() {
+        super("backend.v1.Init3DSRequest", [
+            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Init3DSRequest>): Init3DSRequest {
+        const message = { idempotencyKey: "", quoteID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Init3DSRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Init3DSRequest): Init3DSRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string idempotencyKey */ 1:
+                    message.idempotencyKey = reader.string();
+                    break;
+                case /* string quoteID */ 2:
+                    message.quoteID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Init3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string idempotencyKey = 1; */
+        if (message.idempotencyKey !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
+        /* string quoteID = 2; */
+        if (message.quoteID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.quoteID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Init3DSRequest
+ */
+export const Init3DSRequest = new Init3DSRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Init3DSResponse$Type extends MessageType<Init3DSResponse> {
+    constructor() {
+        super("backend.v1.Init3DSResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "deviceCollectionURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "songbirdURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Init3DSResponse>): Init3DSResponse {
+        const message = { id: "", jwt: "", deviceCollectionURL: "", songbirdURL: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Init3DSResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Init3DSResponse): Init3DSResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string jwt */ 2:
+                    message.jwt = reader.string();
+                    break;
+                case /* string deviceCollectionURL */ 3:
+                    message.deviceCollectionURL = reader.string();
+                    break;
+                case /* string songbirdURL */ 4:
+                    message.songbirdURL = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Init3DSResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string jwt = 2; */
+        if (message.jwt !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.jwt);
+        /* string deviceCollectionURL = 3; */
+        if (message.deviceCollectionURL !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.deviceCollectionURL);
+        /* string songbirdURL = 4; */
+        if (message.songbirdURL !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.songbirdURL);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Init3DSResponse
+ */
+export const Init3DSResponse = new Init3DSResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class Lookup3DSResponse$Type extends MessageType<Lookup3DSResponse> {
     constructor() {
         super("backend.v1.Lookup3DSResponse", [
@@ -3529,12 +3685,12 @@ export const Lookup3DSResponse = new Lookup3DSResponse$Type();
 class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
     constructor() {
         super("backend.v1.Lookup3DSRequest", [
-            { no: 1, name: "outgoingPaymentID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Lookup3DSRequest>): Lookup3DSRequest {
-        const message = { outgoingPaymentID: "", threeDSID: "" };
+        const message = { idempotencyKey: "", threeDSID: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Lookup3DSRequest>(this, message, value);
@@ -3545,8 +3701,8 @@ class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string outgoingPaymentID */ 1:
-                    message.outgoingPaymentID = reader.string();
+                case /* string idempotencyKey */ 1:
+                    message.idempotencyKey = reader.string();
                     break;
                 case /* string threeDSID */ 2:
                     message.threeDSID = reader.string();
@@ -3563,9 +3719,9 @@ class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
         return message;
     }
     internalBinaryWrite(message: Lookup3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string outgoingPaymentID = 1; */
-        if (message.outgoingPaymentID !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.outgoingPaymentID);
+        /* string idempotencyKey = 1; */
+        if (message.idempotencyKey !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
         /* string threeDSID = 2; */
         if (message.threeDSID !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.threeDSID);
@@ -3583,13 +3739,13 @@ export const Lookup3DSRequest = new Lookup3DSRequest$Type();
 class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
     constructor() {
         super("backend.v1.Authenticate3DSRequest", [
-            { no: 1, name: "outgoingPaymentID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Authenticate3DSRequest>): Authenticate3DSRequest {
-        const message = { outgoingPaymentID: "", threeDSID: "", jwt: "" };
+        const message = { idempotencyKey: "", threeDSID: "", jwt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Authenticate3DSRequest>(this, message, value);
@@ -3600,8 +3756,8 @@ class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string outgoingPaymentID */ 1:
-                    message.outgoingPaymentID = reader.string();
+                case /* string idempotencyKey */ 1:
+                    message.idempotencyKey = reader.string();
                     break;
                 case /* string threeDSID */ 2:
                     message.threeDSID = reader.string();
@@ -3621,9 +3777,9 @@ class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
         return message;
     }
     internalBinaryWrite(message: Authenticate3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string outgoingPaymentID = 1; */
-        if (message.outgoingPaymentID !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.outgoingPaymentID);
+        /* string idempotencyKey = 1; */
+        if (message.idempotencyKey !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
         /* string threeDSID = 2; */
         if (message.threeDSID !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.threeDSID);
@@ -7958,6 +8114,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse },
     { name: "CreateMXBankAccounts", options: {}, I: CreateMXBankAccountsRequest, O: CreateMXBankAccountsResponse },
     { name: "OnboardGMTUser", options: {}, I: Empty, O: Empty },
+    { name: "Init3DS", options: {}, I: Init3DSRequest, O: Init3DSResponse },
     { name: "Lookup3DS", options: {}, I: Lookup3DSRequest, O: Lookup3DSResponse },
     { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: Empty }

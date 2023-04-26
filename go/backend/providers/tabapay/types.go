@@ -133,7 +133,7 @@ type ThreeDSSession struct {
 	CardID                 string
 	OrderID                string
 	Revision               int
-	Amount                 string
+	Amount                 uint64
 	Currency               string
 	Version                string
 	Enrolled               string

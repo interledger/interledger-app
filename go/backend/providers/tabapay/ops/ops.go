@@ -111,8 +111,8 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 		ID:       resp.ID3DS,
 		CardID:   args.CardID,
 		OrderID:  args.IdempotencyKey,
-		Amount:   args.Amount.FormatAmount(),
-		Currency: args.Amount.Currency.ISO4217(),
+		Amount:   args.Amount.Value,
+		Currency: args.Amount.Currency.String(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
@@ -182,7 +182,7 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 	}, nil
 }
 
-func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3DSArgs) (*tabapay.ThreeDSSession, error) {
+func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3DSArgs) (*tabapay.Authenticate3DSResponse, error) {
 	resp, err := b.External().Authenticate3DS(ctx, external.Authenticate3DSArgs{
 		ID3DS: args.ThreeDSID,
 		JWT:   args.JWT,
@@ -191,7 +191,7 @@ func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
 
-	session, err := update3DSSession(ctx, b, tabapay.ThreeDSSession{
+	_, err = update3DSSession(ctx, b, tabapay.ThreeDSSession{
 		ID:                     args.ThreeDSID,
 		Status:                 resp.Status,
 		Version:                resp.Version3DS,
@@ -207,7 +207,16 @@ func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
 
-	return session, nil
+	return &tabapay.Authenticate3DSResponse{
+		Status:                 resp.Status,
+		Version3DS:             resp.Version3DS,
+		Enrolled:               resp.Enrolled,
+		ProcessorTransactionID: resp.ProcessorTransactionID,
+		DsTransactionID:        resp.DsTransactionID,
+		ECI:                    resp.ECI,
+		UCAF:                   resp.UCAF,
+		XID:                    resp.XID,
+	}, nil
 }
 
 func Get3DSSession(
@@ -336,7 +345,7 @@ func merge3DSSession(
 		noop = false
 	}
 
-	if old.Amount != new.Amount && new.Amount != "" {
+	if old.Amount != new.Amount && new.Amount != 0 {
 		merged.Amount = new.Amount
 		noop = false
 	}

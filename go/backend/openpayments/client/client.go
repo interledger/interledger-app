@@ -30,3 +30,7 @@ func (c client) GetPaymentPointer(ctx context.Context, ppURL string) (*openpayme
 func (c client) GetOutgoingPayment(ctx context.Context, id string) (*openpayments.OutgoingPayment, error) {
 	return ops.GetOutgoingPayment(ctx, c.b, id)
 }
+
+func (c client) GetQuote(ctx context.Context, id string) (*openpayments.Quote, error) {
+	return ops.GetQuote(ctx, c.b, id)
+}
