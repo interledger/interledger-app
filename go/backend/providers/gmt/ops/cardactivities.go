@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -15,7 +16,6 @@ type PullFromCardArgs struct {
 	CardLinkedAccountID string
 	Amount              currency.Amount
 	ThreeDSID           string
-	ThreeDSJWT          string
 }
 
 // Pulls from the card to the GMT account.
@@ -33,11 +33,22 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (str
 		return "", temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
 	}
 
+	session3DS, err := a.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
+	if errors.Is(err, tabapay.ErrNotFound) {
+		return "", temporal.NewNonRetryableApplicationError("3DS session not found.", "ErrNotFound", err)
+	}
+
+	// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
+	if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
+		return "", temporal.NewNonRetryableApplicationError("3DS not fully authenticated.", "ErrInternal", err)
+	}
+
 	externalTransactionID, err := a.b.Tabapay().PullFromCard(ctx, tabapay.PullFromCardArgs{
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
 		ReferenceID: args.TransactionID,
 		Amount:      args.Amount,
+		ThreeDSID:   args.ThreeDSID,
 	})
 	if err != nil {
 		return "", err

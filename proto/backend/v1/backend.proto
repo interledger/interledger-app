@@ -24,7 +24,7 @@ service OpenPaymentService {
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
   rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
-  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (CreateOutgoingPaymentResponse);
+  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
   rpc CanSendToPaymentPointer(CanSendToPaymentPointerRequest) returns (CanSendToPaymentPointerResponse);
 }
@@ -71,21 +71,6 @@ message ThreeDS {
   string songbirdURL = 4;
 }
 
-message CreateOutgoingPaymentResponse {
-  string id = 1;
-  string paymentPointer = 2;
-  string toPaymentPointer = 11;
-  bool failed = 3;
-  string receiver = 4;
-  Amount sendAmount = 5;
-  Amount receiveAmount = 6;
-  Amount sentAmount = 7;
-  string description = 8;
-  google.protobuf.Timestamp createdAt = 9;
-  google.protobuf.Timestamp updatedAt = 10;
-  optional ThreeDS threeDS = 12;
-}
-
 message OutgoingPayment {
   string id = 1;
   string paymentPointer = 2;
@@ -116,6 +101,7 @@ message CreateOutgoingPaymentRequest {
   string externalRef = 3;
   string ipAddress = 4;
   string idempotencyKey = 5;
+  string threeDSID = 6;
 }
 
 message LookupIncomingPaymentRequest {

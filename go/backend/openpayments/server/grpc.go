@@ -9,7 +9,6 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/openpayments/workflows"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -347,7 +346,7 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 	}, nil
 }
 
-func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.CreateOutgoingPaymentResponse, error) {
+func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -385,34 +384,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, toGRPCError(err)
 	}
 
-	requires3DS, err := g.b.LinkedAccounts().Requires3DS(ctx, q.FromLinkedAccount)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	var threeDSID, threeDSJWT, threeDSDeviceCollectionURL, songbirdURL string
-	if requires3DS {
-		card, err := g.b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-
-		threeDSInit, err := g.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{
-			Amount:            q.SendAmount,
-			OutgoingPaymentID: op.ID,
-			CardID:            card.ProviderID,
-		})
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-
-		threeDSID = threeDSInit.ID
-		threeDSJWT = threeDSInit.JWT
-		threeDSDeviceCollectionURL = threeDSInit.DeviceCollectionURL
-		songbirdURL = tabapay.GetSongbirdURL()
-	}
-
-	return &pb.CreateOutgoingPaymentResponse{
+	return &pb.OutgoingPayment{
 		Id:               op.ID,
 		PaymentPointer:   op.PaymentPointer,
 		ToPaymentPointer: op.ToPaymentPointer,
@@ -424,12 +396,6 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		Description:      op.Description,
 		CreatedAt:        timestamppb.New(op.CreatedAt),
 		UpdatedAt:        timestamppb.New(op.UpdatedAt),
-		ThreeDS: &pb.ThreeDS{
-			Jwt:                 threeDSJWT,
-			DeviceCollectionURL: threeDSDeviceCollectionURL,
-			Id:                  threeDSID,
-			SongbirdURL:         songbirdURL,
-		},
 	}, nil
 }
 
