@@ -2066,5 +2066,88 @@ table "admin_audit_log" {
     columns = [column.wallet_id]
   }
 }
+table "tabapay_3ds_sessions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = text
+  }
+  column "order_id" {
+    null = false
+    type = uuid
+  }
+  column "card_id" {
+    null = false
+    type = text
+  }
+  column "amount" {
+    null = false
+    type = text
+  }
+  column "currency" {
+    null = false
+    type = text
+  }
+  column "version" {
+    null = false
+    type = text
+  }
+  column "revision" {
+    null = false
+    type = int
+  }
+  column "enrolled" {
+    null = false
+    type = text
+  }
+  column "processor_transaction_id" {
+    null = false
+    type = text
+  }
+  column "ds_transaction_id" {
+    null = false
+    type = text
+  }
+  column "status" {
+    null = false
+    type = text
+  }
+  column "eci" {
+    null = false
+    type = text
+  }
+  column "ucaf" {
+    null = false
+    type = text
+  }
+  column "xid" {
+    null = false
+    type = text
+  }
+  column "challenge_url" {
+    null = false
+    type = text
+  }
+  column "payload" {
+    null = false
+    type = text
+  }
+  column "init_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "lookup_at" {
+    null    = true
+    type    = timestamp
+  }
+  column "authenticated_at" {
+    null    = true
+    type    = timestamp
+  }
+  primary_key {
+    columns = [column.id, column.revision]
+  }
+}
 schema "public" {
 }
