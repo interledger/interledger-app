@@ -46,7 +46,7 @@ func (ob *opsBackends) DB() *sqlx.DB {
 	return ob.b.DB()
 }
 
-func New(args NewClientArgs, b Backends) (*Client, error) {
+func New(b Backends, args *NewClientArgs) *Client {
 	externalClient := external_client.New(&external_client.NewClientArgs{
 		ClientID:      args.ClientID,
 		RedirectURL:   args.RedirectURL,
@@ -63,7 +63,7 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 		clientID:     args.ClientID,
 		redirectURL:  args.RedirectURL,
 		authEndpoint: args.AuthEndpoint,
-	}, nil
+	}
 }
 
 func (c *Client) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLArgs) (*ops.Authorization, error) {

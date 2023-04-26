@@ -74,6 +74,8 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 	_twilio "gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/backend/twitter"
+	twitter_client "gitlab.com/fynbos/backend/twitter/client"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
 	"gitlab.com/fynbos/backend/vault"
@@ -182,6 +184,16 @@ func start(args *cli.StartArgs) {
 	b.signup = signup_client.New(b)
 
 	b.waitlist = waitlist_client.New(b, logger)
+
+	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
+		ClientID:      args.TwitterClientID,
+		ClientSecret:  args.TwitterClientSecret,
+		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
+		TokenEndpoint: "https://api.twitter.com/oauth/access_token",
+		RedirectURL:   "https://fynbos.app/auth/twitter/callback",
+	})
+
+	b.verygoodsecurity = vgs_client.New(b)
 
 	b.auth = authorisation_client.New(b)
 
@@ -484,9 +496,9 @@ func startWorker(args *cli.StartArgs) {
 }
 
 type backends struct {
-	val *validator.Validate
-	db  *sqlx.DB
-
+	val            *validator.Validate
+	db             *sqlx.DB
+	twitter        twitter.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	linkedaccounts linkedaccounts.Client
@@ -579,6 +591,10 @@ func (b backends) Validator() *validator.Validate {
 
 func (b backends) Twilio() _twilio.Service {
 	return b.twilio
+}
+
+func (b backends) Twitter() twitter.Client {
+	return b.twitter
 }
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
