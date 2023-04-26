@@ -279,6 +279,7 @@ service BackendService {
   rpc OnboardGMTUser(Empty) returns (Empty);
 
   // Tabapay 3DS
+  rpc Init3DS(Init3DSRequest) returns (Init3DSResponse);
   rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
   rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
 
@@ -290,6 +291,18 @@ message CreateCardRequest {
   string tokenID = 1;
 }
 
+message Init3DSRequest {
+  string idempotencyKey = 1;
+  string quoteID = 2;
+}
+
+message Init3DSResponse {
+  string id = 1;
+  string jwt = 2;
+  string deviceCollectionURL = 3;
+  string songbirdURL = 4;
+}
+
 message Lookup3DSResponse {
   string processorTransactionID = 1;
   string challengeURL = 2;
@@ -297,12 +310,12 @@ message Lookup3DSResponse {
 }
 
 message Lookup3DSRequest {
-  string outgoingPaymentID = 1;
+  string idempotencyKey = 1;
   string threeDSID = 2;
 }
 
 message Authenticate3DSRequest {
-  string outgoingPaymentID = 1;
+  string idempotencyKey = 1;
   string threeDSID = 2;
   string jwt = 3;
 }

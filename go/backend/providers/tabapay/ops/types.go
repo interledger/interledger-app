@@ -20,7 +20,7 @@ type dbThreeDSSession struct {
 	CardID                 string       `db:"card_id"`
 	OrderID                string       `db:"order_id"`
 	Revision               int          `db:"revision"`
-	Amount                 string       `db:"amount"`
+	Amount                 uint64       `db:"amount"`
 	Currency               string       `db:"currency"`
 	Version                string       `db:"version"`
 	Enrolled               string       `db:"enrolled"`
