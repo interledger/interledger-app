@@ -25,6 +25,11 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 			return nil, ErrNoUserFound
 		}
 
+		// Ignore the following methods from audit logging.
+		if strings.Contains(info.FullMethod, "ListAudit") {
+			return handler(ctx, req)
+		}
+
 		var walletID sql.NullString
 		msg := req.(proto.Message)
 		msg.ProtoReflect().Range(func(descriptor protoreflect.FieldDescriptor, value protoreflect.Value) bool {

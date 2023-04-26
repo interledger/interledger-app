@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"errors"
+	"time"
 
 	"gitlab.com/fynbos/backend/user"
 
@@ -99,4 +100,35 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 		Address:     address,
 		Users:       usersPB,
 	}, nil
+}
+
+func (s *AdminRpcService) ListAudit(ctx context.Context, req *adminv1.ListAuditRequest) (*adminv1.ListAuditResponse, error) {
+	type Operation struct {
+		AdminUser  string    `db:"admin_user"`
+		WalletID   string    `db:"wallet_id"`
+		Operation  string    `db:"operation"`
+		Parameters string    `db:"parameters"`
+		Date       time.Time `db:"created_at"`
+	}
+
+	var ops []Operation
+	err := s.b.DB().SelectContext(ctx, &ops,
+		"SELECT admin_user, wallet_id, operation, parameters, created_at FROM admin_audit_log WHERE wallet_id=$1 ORDER BY created_at DESC ",
+		req.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := make([]*adminv1.AuditOperation, len(ops))
+	for i, o := range ops {
+		resp[i] = &adminv1.AuditOperation{
+			AdminUser:  o.AdminUser,
+			WalletID:   o.WalletID,
+			Operation:  o.Operation,
+			Parameters: o.Parameters,
+			Timestamp:  timestamppb.New(o.Date),
+		}
+	}
+
+	return &adminv1.ListAuditResponse{Operations: resp}, nil
 }

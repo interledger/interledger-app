@@ -20,6 +20,49 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.admin.v1.ListAuditRequest
+ */
+export interface ListAuditRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListAuditResponse
+ */
+export interface ListAuditResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.AuditOperation operations = 1;
+     */
+    operations: AuditOperation[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.AuditOperation
+ */
+export interface AuditOperation {
+    /**
+     * @generated from protobuf field: string adminUser = 1;
+     */
+    adminUser: string;
+    /**
+     * @generated from protobuf field: string walletID = 2;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string operation = 3;
+     */
+    operation: string;
+    /**
+     * @generated from protobuf field: string parameters = 4;
+     */
+    parameters: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp timestamp = 5;
+     */
+    timestamp?: Timestamp;
+}
+/**
  * @generated from protobuf message backend.admin.v1.ListLinkedAccountsRequest
  */
 export interface ListLinkedAccountsRequest {
@@ -392,6 +435,175 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.admin.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListAuditRequest$Type extends MessageType<ListAuditRequest> {
+    constructor() {
+        super("backend.admin.v1.ListAuditRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListAuditRequest>): ListAuditRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListAuditRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListAuditRequest): ListAuditRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListAuditRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListAuditRequest
+ */
+export const ListAuditRequest = new ListAuditRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListAuditResponse$Type extends MessageType<ListAuditResponse> {
+    constructor() {
+        super("backend.admin.v1.ListAuditResponse", [
+            { no: 1, name: "operations", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => AuditOperation }
+        ]);
+    }
+    create(value?: PartialMessage<ListAuditResponse>): ListAuditResponse {
+        const message = { operations: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListAuditResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListAuditResponse): ListAuditResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.AuditOperation operations */ 1:
+                    message.operations.push(AuditOperation.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListAuditResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.AuditOperation operations = 1; */
+        for (let i = 0; i < message.operations.length; i++)
+            AuditOperation.internalBinaryWrite(message.operations[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListAuditResponse
+ */
+export const ListAuditResponse = new ListAuditResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AuditOperation$Type extends MessageType<AuditOperation> {
+    constructor() {
+        super("backend.admin.v1.AuditOperation", [
+            { no: 1, name: "adminUser", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "operation", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "parameters", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "timestamp", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<AuditOperation>): AuditOperation {
+        const message = { adminUser: "", walletID: "", operation: "", parameters: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AuditOperation>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AuditOperation): AuditOperation {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string adminUser */ 1:
+                    message.adminUser = reader.string();
+                    break;
+                case /* string walletID */ 2:
+                    message.walletID = reader.string();
+                    break;
+                case /* string operation */ 3:
+                    message.operation = reader.string();
+                    break;
+                case /* string parameters */ 4:
+                    message.parameters = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp timestamp */ 5:
+                    message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AuditOperation, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string adminUser = 1; */
+        if (message.adminUser !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.adminUser);
+        /* string walletID = 2; */
+        if (message.walletID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletID);
+        /* string operation = 3; */
+        if (message.operation !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.operation);
+        /* string parameters = 4; */
+        if (message.parameters !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.parameters);
+        /* google.protobuf.Timestamp timestamp = 5; */
+        if (message.timestamp)
+            Timestamp.internalBinaryWrite(message.timestamp, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.AuditOperation
+ */
+export const AuditOperation = new AuditOperation$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListLinkedAccountsRequest$Type extends MessageType<ListLinkedAccountsRequest> {
     constructor() {
@@ -1603,5 +1815,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "GetWalletDetails", options: {}, I: GetWalletDetailsRequest, O: WalletDetails },
     { name: "ListTransactions", options: {}, I: ListTransactionsRequest, O: ListTransactionsResponse },
     { name: "GetTransactionDetails", options: {}, I: GetTransactionDetailsRequest, O: GetTransactionDetailsResponse },
-    { name: "ListLinkedAccounts", options: {}, I: ListLinkedAccountsRequest, O: ListLinkedAccountsResponse }
+    { name: "ListLinkedAccounts", options: {}, I: ListLinkedAccountsRequest, O: ListLinkedAccountsResponse },
+    { name: "ListAudit", options: {}, I: ListAuditRequest, O: ListAuditResponse }
 ]);

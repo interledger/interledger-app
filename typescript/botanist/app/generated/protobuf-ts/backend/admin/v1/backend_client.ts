@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ListAuditResponse } from "./backend";
+import type { ListAuditRequest } from "./backend";
 import type { ListLinkedAccountsResponse } from "./backend";
 import type { ListLinkedAccountsRequest } from "./backend";
 import type { GetTransactionDetailsResponse } from "./backend";
@@ -53,6 +55,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ListLinkedAccounts(backend.admin.v1.ListLinkedAccountsRequest) returns (backend.admin.v1.ListLinkedAccountsResponse);
      */
     listLinkedAccounts(input: ListLinkedAccountsRequest, options?: RpcOptions): UnaryCall<ListLinkedAccountsRequest, ListLinkedAccountsResponse>;
+    /**
+     * @generated from protobuf rpc: ListAudit(backend.admin.v1.ListAuditRequest) returns (backend.admin.v1.ListAuditResponse);
+     */
+    listAudit(input: ListAuditRequest, options?: RpcOptions): UnaryCall<ListAuditRequest, ListAuditResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -111,5 +117,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     listLinkedAccounts(input: ListLinkedAccountsRequest, options?: RpcOptions): UnaryCall<ListLinkedAccountsRequest, ListLinkedAccountsResponse> {
         const method = this.methods[6], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListLinkedAccountsRequest, ListLinkedAccountsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListAudit(backend.admin.v1.ListAuditRequest) returns (backend.admin.v1.ListAuditResponse);
+     */
+    listAudit(input: ListAuditRequest, options?: RpcOptions): UnaryCall<ListAuditRequest, ListAuditResponse> {
+        const method = this.methods[7], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListAuditRequest, ListAuditResponse>("unary", this._transport, method, opt, input);
     }
 }

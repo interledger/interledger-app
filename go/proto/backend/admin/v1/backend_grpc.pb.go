@@ -30,6 +30,7 @@ type BackendClient interface {
 	ListTransactions(ctx context.Context, in *ListTransactionsRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
 	GetTransactionDetails(ctx context.Context, in *GetTransactionDetailsRequest, opts ...grpc.CallOption) (*GetTransactionDetailsResponse, error)
 	ListLinkedAccounts(ctx context.Context, in *ListLinkedAccountsRequest, opts ...grpc.CallOption) (*ListLinkedAccountsResponse, error)
+	ListAudit(ctx context.Context, in *ListAuditRequest, opts ...grpc.CallOption) (*ListAuditResponse, error)
 }
 
 type backendClient struct {
@@ -103,6 +104,15 @@ func (c *backendClient) ListLinkedAccounts(ctx context.Context, in *ListLinkedAc
 	return out, nil
 }
 
+func (c *backendClient) ListAudit(ctx context.Context, in *ListAuditRequest, opts ...grpc.CallOption) (*ListAuditResponse, error) {
+	out := new(ListAuditResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListAudit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -114,6 +124,7 @@ type BackendServer interface {
 	ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error)
 	GetTransactionDetails(context.Context, *GetTransactionDetailsRequest) (*GetTransactionDetailsResponse, error)
 	ListLinkedAccounts(context.Context, *ListLinkedAccountsRequest) (*ListLinkedAccountsResponse, error)
+	ListAudit(context.Context, *ListAuditRequest) (*ListAuditResponse, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -140,6 +151,9 @@ func (UnimplementedBackendServer) GetTransactionDetails(context.Context, *GetTra
 }
 func (UnimplementedBackendServer) ListLinkedAccounts(context.Context, *ListLinkedAccountsRequest) (*ListLinkedAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListLinkedAccounts not implemented")
+}
+func (UnimplementedBackendServer) ListAudit(context.Context, *ListAuditRequest) (*ListAuditResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAudit not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -279,6 +293,24 @@ func _Backend_ListLinkedAccounts_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ListAudit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuditRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListAudit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ListAudit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListAudit(ctx, req.(*ListAuditRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -313,6 +345,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListLinkedAccounts",
 			Handler:    _Backend_ListLinkedAccounts_Handler,
+		},
+		{
+			MethodName: "ListAudit",
+			Handler:    _Backend_ListAudit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
