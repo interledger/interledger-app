@@ -107,7 +107,7 @@ export default function Page() {
         {!hasVerified && <p>We require you to verify a mobile phone number.</p>}
 
         {hasVerified && (
-          <div className='mt-6 flex space-x-2 rounded-xl bg-container p-3 text-medium'>
+          <div className='mt-6 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
             <Icon>call</Icon>
             <span>{flow?.data?.phone}</span>
           </div>
@@ -160,7 +160,7 @@ export default function Page() {
         <span className='text-medium'>
           Enter the six digit verification code sent to your mobile number.
         </span>
-        <div className='flex space-x-2 rounded-xl bg-container p-3 text-medium'>
+        <div className='flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
           <Icon>call</Icon>
           <span>{otpFetcher?.data?.phone}</span>
         </div>
