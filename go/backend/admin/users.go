@@ -85,6 +85,11 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	kycStatus, err := s.b.KYC().GetKYCStatus(ctx, req.WalletID)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
 	var address string
 	if id.Address != nil {
 		address = id.Address.FormattedAddress
@@ -99,6 +104,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 		DateOfBirth: timestamppb.New(id.DateOfBirth),
 		Address:     address,
 		Users:       usersPB,
+		KycStatus:   kycStatus.String(),
 	}, nil
 }
 
