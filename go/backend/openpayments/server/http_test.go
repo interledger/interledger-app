@@ -390,7 +390,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		}, nil).Times(2)
 
 		ipAddress := "198.0.0.8"
-		tmp_mock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, ipAddress).Return(nil, nil)
+		tmp_mock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, ipAddress, mock.Anything).Return(nil, nil)
 
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
