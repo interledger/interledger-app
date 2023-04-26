@@ -109,7 +109,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = hasUserSession(request)
-  const theme = await getTheme(request)
+  const theme = (await getTheme(request)) ?? 'system'
   return json({ isUser, theme, isSignupGated: IS_SIGNUP_GATED })
 }
 
