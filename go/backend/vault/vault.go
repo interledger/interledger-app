@@ -2,13 +2,17 @@ package vault
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	vault "github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/kubernetes"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"os"
+	"strings"
 )
 
 type client struct {
@@ -103,4 +107,49 @@ func (c client) Verify(keyName string, input VerifyInput) (bool, error) {
 	}
 
 	return resp.Data["valid"].(bool), nil
+}
+
+func (c client) GetPublicKey(keyName string) (string, error) {
+	keyPath := fmt.Sprintf("%s/keys/%s", c.transitEnginePath, keyName)
+	secret, err := c.vc.Logical().Read(keyPath)
+	if err != nil {
+		return "", err
+	}
+
+	if secret == nil {
+		return "", fmt.Errorf("transit key %q not found", keyName)
+	}
+
+	keys, ok := secret.Data["keys"].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("failed to extract public key from transit key %q", keyName)
+	}
+
+	pubKey := ""
+	for _, keyData := range keys {
+		keyDataMap := keyData.(map[string]interface{})
+		key, ok := keyDataMap["public_key"].(string)
+		if ok {
+			pubKey = key
+			break
+		}
+	}
+
+	// Convert PEM pubKey to base64
+	block, _ := pem.Decode([]byte(strings.TrimSpace(pubKey)))
+	if block == nil {
+		return "", fmt.Errorf("failed to decode PEM public key")
+	}
+
+	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return "", err
+	}
+
+	switch pub := publicKey.(type) {
+	case ed25519.PublicKey:
+		return string(pub), nil
+	default:
+		return "", fmt.Errorf("unsupported key type")
+	}
 }

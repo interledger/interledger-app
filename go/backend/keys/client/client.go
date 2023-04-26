@@ -35,10 +35,6 @@ func (c client) List(ctx context.Context, walletID string) ([]keys.Key, error) {
 	return ops.ListKeys(ctx, c.b, walletID)
 }
 
-func (c client) ListPublicKeys(ctx context.Context, walletID string) ([]keys.Key, error) {
-	return ops.ListPublicKeys(ctx, c.b, walletID)
-}
-
 func (c client) Verify(ctx context.Context, keyID, walletID string, message, signature []byte) (bool, error) {
 	return ops.Verify(ctx, c.b, keyID, walletID, message, signature)
 }
