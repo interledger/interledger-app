@@ -32,6 +32,11 @@ func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (t
 }
 
 func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (string, error) {
+	session3DS, err := Get3DSSession(ctx, b, args.ThreeDSID)
+	if err != nil {
+		return "", err
+	}
+
 	transactionResponse, err := b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
 		ReferenceID: args.ReferenceID,
 		Type:        external.TransactionTypePull,
@@ -40,6 +45,15 @@ func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (strin
 		Accounts: external.CreateTransactionAccounts{
 			SourceAccountID:      args.ProviderID,
 			DestinationAccountID: args.SettlementAccountID,
+		},
+		PullOptions: external.CreateTransactionPullOptions{
+			ThreeDS: external.ThreeDS{
+				Version:         session3DS.Version,
+				ECI:             session3DS.ECI,
+				UCAF:            session3DS.UCAF,
+				XID:             session3DS.XID,
+				DSTransactionID: session3DS.DsTransactionID,
+			},
 		},
 	})
 	if err != nil {
