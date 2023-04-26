@@ -17,6 +17,7 @@ type TransfersArgs struct {
 	Amount              currency.Amount
 	FromTransactionID   string
 	IPAddress           string
+	ThreeDSID           string
 }
 
 type TransferResponse struct {

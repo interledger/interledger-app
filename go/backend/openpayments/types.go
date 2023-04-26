@@ -79,6 +79,7 @@ type CreateOutgoingPaymentArgs struct {
 	IPAddress      string `json:"-" validate:"ip_addr"`
 	CreatedBy      string // Either the payment pointer from gRPC or the client_id from Openapyments API, which is also a payment pointer
 	GrantID        string `json:"-"`
+	ThreeDSID      string `json:"-"`
 }
 
 type OutgoingPayment struct {
