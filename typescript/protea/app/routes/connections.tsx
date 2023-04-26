@@ -69,7 +69,7 @@ export default function Page() {
               to={route('/connections/:connectionId', {
                 connectionId: conn.id
               })}
-              className='mt-6 p-3 rounded-xl bg-container flex justify-between'
+              className='mt-6 p-3 rounded-xl bg-nav flex justify-between'
               key={conn.id}
             >
               <div className='flex-col'>
@@ -92,7 +92,7 @@ export default function Page() {
 
       <Card>
         <div className='flex items-start space-x-4'>
-          <div className='flex items-center justify-between rounded-full bg-container p-5 text-medium'>
+          <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
             <Icon>key</Icon>
           </div>
           <div className='flex flex-col space-y-2'>
