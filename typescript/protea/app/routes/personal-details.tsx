@@ -54,13 +54,13 @@ export default function Page() {
   const submit = useSubmit()
   const { inquiryId, sessionToken } = useLoaderData<typeof loader>()
   const [ready, setReady] = useState(false)
-  const [status] = useScript(
+  const status = useScript(
     'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
   )
   let personaRef = useRef<any>(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && status === 'r') {
+    if (typeof window !== 'undefined' && status == 'ready') {
       personaRef.current = (window as any).Persona
       personaRef.current = new (window as any).Persona.Client({
         inquiryId,
