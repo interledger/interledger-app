@@ -83,12 +83,26 @@ var (
 )
 
 type (
+	CreateTransactionPullOptions struct {
+		ThreeDS      ThreeDS `json:"3dSecure"`
+		SecurityCode string  `json:"securityCode,omitempty"`
+	}
+
+	ThreeDS struct {
+		Version         string `json:"version"`
+		ECI             string `json:"ECI"`
+		UCAF            string `json:"UCAF"`
+		XID             string `json:"XID"`
+		DSTransactionID string `json:"dsTransactionID"`
+	}
+
 	CreateTransactionArgs struct {
 		ReferenceID string `json:"referenceID"`
 		Type        TransactionType
 		Accounts    CreateTransactionAccounts
-		Currency    string `json:"currency,omitempty"`
-		Amount      string `json:"amount"`
+		Currency    string                       `json:"currency,omitempty"`
+		Amount      string                       `json:"amount"`
+		PullOptions CreateTransactionPullOptions `json:"pullOptions"`
 	}
 
 	CreateTransactionAccounts struct {

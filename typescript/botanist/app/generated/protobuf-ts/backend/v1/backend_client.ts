@@ -79,9 +79,8 @@ import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { OpenPaymentService } from "./backend";
 import type { CanSendToPaymentPointerResponse } from "./backend";
 import type { CanSendToPaymentPointerRequest } from "./backend";
-import type { OutgoingPayment } from "./backend";
 import type { LookupOutgoingPaymentRequest } from "./backend";
-import type { CreateOutgoingPaymentResponse } from "./backend";
+import type { OutgoingPayment } from "./backend";
 import type { CreateOutgoingPaymentRequest } from "./backend";
 import type { PreCheckOutgoingPaymentResponse } from "./backend";
 import type { PreCheckOutgoingPaymentRequest } from "./backend";
@@ -142,9 +141,9 @@ export interface IOpenPaymentServiceClient {
      */
     preCheckOutgoingPayment(input: PreCheckOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<PreCheckOutgoingPaymentRequest, PreCheckOutgoingPaymentResponse>;
     /**
-     * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.CreateOutgoingPaymentResponse);
+     * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
-    createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, CreateOutgoingPaymentResponse>;
+    createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment>;
     /**
      * @generated from protobuf rpc: LookupOutgoingPayment(backend.v1.LookupOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
@@ -227,11 +226,11 @@ export class OpenPaymentServiceClient implements IOpenPaymentServiceClient, Serv
         return stackIntercept<PreCheckOutgoingPaymentRequest, PreCheckOutgoingPaymentResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.CreateOutgoingPaymentResponse);
+     * @generated from protobuf rpc: CreateOutgoingPayment(backend.v1.CreateOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
      */
-    createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, CreateOutgoingPaymentResponse> {
+    createOutgoingPayment(input: CreateOutgoingPaymentRequest, options?: RpcOptions): UnaryCall<CreateOutgoingPaymentRequest, OutgoingPayment> {
         const method = this.methods[9], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CreateOutgoingPaymentRequest, CreateOutgoingPaymentResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<CreateOutgoingPaymentRequest, OutgoingPayment>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: LookupOutgoingPayment(backend.v1.LookupOutgoingPaymentRequest) returns (backend.v1.OutgoingPayment);
