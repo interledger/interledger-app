@@ -160,6 +160,17 @@ func (a *Activity) GetProviderWorkflowArgs(ctx context.Context, outgoingID strin
 		return nil, err
 	}
 
+	var key providers.WorkflowKey
+	if sendAcc.Provider == tabapay.ProviderName && recvAcc.Provider == mx.ProviderName {
+		key = providers.GMTCARD2ACH
+	} else if sendAcc.Provider == mx.ProviderName && recvAcc.Provider == tabapay.ProviderName {
+		key = providers.GMTACH2CARD
+	} else if sendAcc.Provider == mx.ProviderName && recvAcc.Provider == mx.ProviderName {
+		key = providers.GMTACH2ACH
+	} else {
+		key = providers.GMTUNSUPPORTED
+	}
+
 	return &ProviderWorkflowArgs{
 		Args: providers.TransfersArgs{
 			FromForeignID:       outgoingID,
@@ -172,7 +183,7 @@ func (a *Activity) GetProviderWorkflowArgs(ctx context.Context, outgoingID strin
 			ToWalletID:          recvAcc.WalletID,
 			Amount:              op.SendAmount,
 		},
-		Key: providers.GMTACH2ACH,
+		Key: key,
 	}, nil
 }
 
