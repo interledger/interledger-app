@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/providers"
 
 	"gitlab.com/fynbos/backend/providers/gmt"
+	"gitlab.com/fynbos/backend/providers/mx"
 
 	"gitlab.com/fynbos/backend/currency"
 
@@ -110,12 +111,12 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 			la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
 				{
 					ID:       uuid.NewString(),
-					Provider: gmt.ProviderName,
-					Type:     gmt.TypeBankAccount,
+					Provider: mx.ProviderName,
+					Type:     mx.TypeBankAccount,
 				}, {
 					ID:       uuid.NewString(),
 					Provider: gmt.ProviderName,
-					Type:     gmt.TypeBankAccount,
+					Type:     mx.TypeBankAccount,
 				},
 			}, nil).Times(2)
 
