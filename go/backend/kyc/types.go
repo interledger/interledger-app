@@ -35,6 +35,8 @@ type Address struct {
 	PlaceID          string `json:"place_id,omitempty"`
 }
 
+//go:generate stringer -type=Status -trimprefix=Status
+
 type Status int
 
 const (

@@ -297,6 +297,10 @@ export interface WalletDetails {
      * @generated from protobuf field: string address = 7;
      */
     address: string;
+    /**
+     * @generated from protobuf field: string kycStatus = 9;
+     */
+    kycStatus: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.PaginationRequest
@@ -1307,11 +1311,12 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
             { no: 4, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "gender", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 6, name: "dateOfBirth", kind: "message", T: () => Timestamp },
-            { no: 7, name: "address", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 7, name: "address", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "kycStatus", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<WalletDetails>): WalletDetails {
-        const message = { users: [], walletID: "", firstName: "", lastName: "", countryCode: "", gender: 0, address: "" };
+        const message = { users: [], walletID: "", firstName: "", lastName: "", countryCode: "", gender: 0, address: "", kycStatus: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WalletDetails>(this, message, value);
@@ -1345,6 +1350,9 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
                     break;
                 case /* string address */ 7:
                     message.address = reader.string();
+                    break;
+                case /* string kycStatus */ 9:
+                    message.kycStatus = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1382,6 +1390,9 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
         /* string address = 7; */
         if (message.address !== "")
             writer.tag(7, WireType.LengthDelimited).string(message.address);
+        /* string kycStatus = 9; */
+        if (message.kycStatus !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.kycStatus);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

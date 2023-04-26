@@ -116,6 +116,7 @@ message WalletDetails {
   int32 gender = 5; // 0 Unknown, 1 Male, 2 Female, 3 Other
   google.protobuf.Timestamp dateOfBirth = 6;
   string address = 7;
+  string kycStatus = 9;
 }
 
 message PaginationRequest {

@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
@@ -45,6 +47,10 @@ type TestContainer struct {
 	WaitlistImpl   *waitlist_mock.MockClient
 	email          *email_mock.MockClient
 	linkedaccounts *linkedaccounts_mock.MockClient
+}
+
+func (c *TestContainer) Transactions() transactions.Client {
+	return nil
 }
 
 func (c *TestContainer) Users() user.Client {
