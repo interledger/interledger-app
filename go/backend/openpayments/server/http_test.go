@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -445,11 +446,12 @@ func TestListKeys(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	keyClient.EXPECT().ListPublicKeys(gomock.Any(), wallet.ID).Return([]keys.Key{
+	keyClient.EXPECT().List(gomock.Any(), wallet.ID).Return([]keys.Key{
 		{
 			ID:        uuid.NewString(),
 			Type:      keys.NonCustodial,
-			Reference: "encoded key",
+			Reference: sql.NullString{},
+			PublicKey: "encoded key",
 		},
 	}, nil)
 

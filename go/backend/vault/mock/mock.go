@@ -48,6 +48,21 @@ func (mr *MockClientMockRecorder) CreateKey(keyName interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateKey", reflect.TypeOf((*MockClient)(nil).CreateKey), keyName)
 }
 
+// GetPublicKey mocks base method.
+func (m *MockClient) GetPublicKey(keyName string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPublicKey", keyName)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPublicKey indicates an expected call of GetPublicKey.
+func (mr *MockClientMockRecorder) GetPublicKey(keyName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockClient)(nil).GetPublicKey), keyName)
+}
+
 // Sign mocks base method.
 func (m *MockClient) Sign(keyName, input string) (string, error) {
 	m.ctrl.T.Helper()

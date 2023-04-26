@@ -1929,13 +1929,16 @@ table "wallet_keys" {
     type = text
   }
   column "reference" {
-    null = false
+    null = true
     type = text
   }
   column "name" {
     null = true
     type = text
-    columns = [column.id]
+  }
+  column "public_key" {
+    null = true
+    type = text
   }
   index "wallet_id_ind" {
     unique  = false
