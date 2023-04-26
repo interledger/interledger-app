@@ -88,7 +88,7 @@ func (s *rpcService) ListConnections(ctx context.Context, req *backendv1.Empty) 
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	keys, err := s.b.Keys().ListPublicKeys(ctx, wallet.ID)
+	keys, err := s.b.Keys().List(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -125,7 +125,7 @@ func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnec
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	keyset, err := s.b.Keys().ListPublicKeys(ctx, wallet.ID)
+	keyset, err := s.b.Keys().List(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -229,7 +229,7 @@ func (s *rpcService) DeleteConnection(ctx context.Context, req *backendv1.Delete
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	keyset, err := s.b.Keys().ListPublicKeys(ctx, wallet.ID)
+	keyset, err := s.b.Keys().List(ctx, wallet.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

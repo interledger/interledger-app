@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"crypto/sha256"
 	"crypto/x509"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
 	"encoding/hex"
@@ -18,17 +19,18 @@ type Key struct {
 	WalletID  string `db:"wallet_id"`
 	Type      Type   `db:"key_type"`
 	Location  string
-	Reference string
+	Reference sql.NullString
+	PublicKey string    `db:"public_key"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	DeletedAt time.Time `db:"deleted_at"`
 }
 
 func (key Key) Fingerprint() (string, error) {
-	if key.Reference == "" {
+	if key.PublicKey == "" {
 		return "", fmt.Errorf("%w Key is empty.", ErrInternal)
 	}
-	keyBytes, err := base64.StdEncoding.DecodeString(key.Reference)
+	keyBytes, err := base64.StdEncoding.DecodeString(key.PublicKey)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}

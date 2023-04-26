@@ -31,15 +31,16 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 
 	// Local env generate and store in DB
 	if env.IsLocal() {
-		_, privateKey, err := ed25519.GenerateKey(nil)
+		publicKey, privateKey, err := ed25519.GenerateKey(nil)
 		if err != nil {
 			return fmt.Errorf("%w %s", keys.ErrInternal, err)
 		}
 
+		publicKeyBase64 := base64.StdEncoding.EncodeToString(publicKey)
 		var id string
 		err = b.DB().GetContext(ctx, &id,
-			"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name) values ($1, $2, $3, $4, $5) returning id",
-			walletID, keys.Custodial.String(), "database", base64.StdEncoding.EncodeToString(privateKey.Seed()), "Fynbos Managed")
+			"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key) values ($1, $2, $3, $4, $5, $6) returning id",
+			walletID, keys.Custodial.String(), "database", base64.StdEncoding.EncodeToString(privateKey.Seed()), "Fynbos Managed", publicKeyBase64)
 		if err != nil {
 			return fmt.Errorf("%w %s", keys.ErrInternal, err)
 		}
@@ -50,13 +51,20 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 	keyID := uuid.NewString()
 	err = b.Vault().CreateKey(keyID)
 	if err != nil {
-		log.Error("unable to create dev-key: %v", zap.Error(err))
+		log.Error("unable to create key: %v", zap.Error(err))
 		return err
 	}
 
+	publicKey, err := b.Vault().GetPublicKey(keyID)
+	if err != nil {
+		log.Error("unable to read key: %v", zap.Error(err))
+		return err
+	}
+
+	publicKeyBase64 := base64.StdEncoding.EncodeToString([]byte(publicKey))
 	err = b.DB().GetContext(ctx, &id,
-		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name) values ($1, $2, $3, $4, $5) returning id",
-		walletID, keys.Custodial.String(), "vault", keyID, "Fynbos Managed")
+		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key) values ($1, $2, $3, $4, $5, $6) returning id",
+		walletID, keys.Custodial.String(), "vault", keyID, "Fynbos Managed", publicKeyBase64)
 	if err != nil {
 		return fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
@@ -65,7 +73,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 }
 
 func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
-	sql := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
+	sql := "SELECT id, wallet_id, key_type, location, reference, name, public_key FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
 
 	var ks []keys.Key
 	err := b.DB().SelectContext(ctx, &ks, sql, walletID)
@@ -76,22 +84,10 @@ func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, err
 	return ks, nil
 }
 
-func ListPublicKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
-	sql := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL AND key_type=$2;"
-
-	var ks []keys.Key
-	err := b.DB().SelectContext(ctx, &ks, sql, walletID, keys.NonCustodial)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
-	}
-
-	return ks, nil
-}
-
 func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBase64 string, name string) (*keys.Key, error) {
 	var id string
 	err := b.DB().GetContext(ctx, &id,
-		"select id from wallet_keys where wallet_id = $1 and key_type = $2 and reference = $3", walletID, keys.NonCustodial.String(), publicKeyBase64)
+		"select id from wallet_keys where wallet_id = $1 and key_type = $2 and public_key = $3", walletID, keys.NonCustodial.String(), publicKeyBase64)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
@@ -101,7 +97,7 @@ func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBas
 
 	createdAt := time.Now()
 	err = b.DB().GetContext(ctx, &id,
-		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, created_at) values ($1, $2, $3, $4, $5, $6) returning id",
+		"INSERT INTO wallet_keys (wallet_id,key_type,location, public_key, name, created_at) values ($1, $2, $3, $4, $5, $6) returning id",
 		walletID, keys.NonCustodial.String(), "database", publicKeyBase64, name, createdAt)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
@@ -113,7 +109,8 @@ func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBas
 		WalletID:  walletID,
 		Type:      keys.NonCustodial,
 		Location:  "database",
-		Reference: publicKeyBase64,
+		Reference: sql.NullString{},
+		PublicKey: publicKeyBase64,
 		CreatedAt: createdAt,
 	}, nil
 }
@@ -128,7 +125,7 @@ func DeletePublicKey(ctx context.Context, b Backends, id string) error {
 }
 
 func getKey(ctx context.Context, b Backends, keyID string, walletID string) (*keys.Key, error) {
-	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name FROM wallet_keys where id = $1 and wallet_id = $2"
+	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name, public_key FROM wallet_keys where id = $1 and wallet_id = $2"
 
 	var k keys.Key
 	err := b.DB().GetContext(ctx, &k, sqlQuery, keyID, walletID)
@@ -153,7 +150,7 @@ func Sign(ctx context.Context, b Backends, keyID string, walletID string, messag
 	}
 
 	if env.IsLocal() {
-		refBytes, err := base64.StdEncoding.DecodeString(k.Reference)
+		refBytes, err := base64.StdEncoding.DecodeString(k.Reference.String)
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +159,7 @@ func Sign(ctx context.Context, b Backends, keyID string, walletID string, messag
 		return ed25519.Sign(pk, message), nil
 	}
 
-	signedMessage, err := b.Vault().Sign(k.Reference, string(message))
+	signedMessage, err := b.Vault().Sign(k.Reference.String, string(message))
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +174,7 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 	}
 
 	if k.Type == keys.NonCustodial {
-		refBytes, err := base64.StdEncoding.DecodeString(k.Reference)
+		refBytes, err := base64.StdEncoding.DecodeString(k.PublicKey)
 		if err != nil {
 			return false, err
 		}
@@ -187,7 +184,7 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 
 	// If local we need to pull the private key out of reference
 	if env.IsLocal() {
-		refBytes, err := base64.StdEncoding.DecodeString(k.Reference)
+		refBytes, err := base64.StdEncoding.DecodeString(k.Reference.String)
 		if err != nil {
 			return false, err
 		}
@@ -198,7 +195,7 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 	}
 
 	// Otherwise we can verify with vault.
-	return b.Vault().Verify(k.Reference, vault.VerifyInput{
+	return b.Vault().Verify(k.Reference.String, vault.VerifyInput{
 		Input:     string(message),
 		Signature: string(sig),
 	})
