@@ -11,7 +11,7 @@ type BlogLayoutProps = {
 export const BlogLayout: FC<BlogLayoutProps> = ({ children, meta }) => {
   return (
     <main className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
-      <div className='col-span-full -mt-4 hidden w-full flex-col content-start bg-page pb-20 lg:flex'>
+      <div className='col-span-full -mt-4 hidden w-full flex-col content-start bg-mk-page pb-20 lg:flex'>
         <Router
           className='hidden items-center p-4 text-primary lg:flex'
           to={route('/blog')}
@@ -56,7 +56,7 @@ type ProseProps = {
 
 const Prose: FC<ProseProps> = ({ children }) => {
   return (
-    <div className='prose prose-slate prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'>
+    <div className='prose dark:prose-invert prose-slate prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'>
       {children}
     </div>
   )

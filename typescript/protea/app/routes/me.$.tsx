@@ -124,7 +124,7 @@ export default function Page() {
               }
             )
         }}
-        className='mt-4 flex flex items-center justify-between rounded-xl bg-container p-4 hover:bg-container-hover'
+        className='mt-4 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
       >
         <span className='font-medium text-medium'>
           {paymentPointer.formatted}

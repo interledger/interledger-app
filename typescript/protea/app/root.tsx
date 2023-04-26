@@ -25,6 +25,9 @@ import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 import { hasUserSession } from './lib/kratos.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
+import clsx from 'clsx'
+import type { ThemeType } from '~/lib/theme.server'
+import { getTheme } from '~/lib/theme.server'
 
 const metaContent = {
   title: 'Fynbos',
@@ -64,10 +67,10 @@ export const links: LinksFunction = () => {
 
 function Document({
   children,
-  title = 'Fynbos'
+  theme
 }: {
   children: ReactNode
-  title?: string
+  theme: ThemeType
 }) {
   return (
     <html lang='en'>
@@ -75,7 +78,13 @@ function Document({
         <Meta />
         <Links />
       </head>
-      <body className='theme-blue bg-app font-sans text-base font-normal text-strong antialiased selection:bg-brand/50'>
+      <body
+        className={clsx(
+          theme == 'dark' && 'theme-dark',
+          theme == 'system' && 'theme-system',
+          'bg-page font-sans text-base font-normal text-strong antialiased selection:bg-brand/50'
+        )}
+      >
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -100,17 +109,18 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = hasUserSession(request)
-  return json({ isUser, isSignupGated: IS_SIGNUP_GATED })
+  const theme = (await getTheme(request)) ?? 'system'
+  return json({ isUser, theme, isSignupGated: IS_SIGNUP_GATED })
 }
 
 export default function Page() {
-  const { isUser } = useLoaderData<typeof loader>()
+  const { isUser, theme } = useLoaderData<typeof loader>()
   const matches = useMatches()
   const location = useLocation()
 
   if (location.pathname == '/temp-cloudflare-error')
     return (
-      <Document title='An error occurred.'>
+      <Document theme={theme}>
         <main className='w-full overflow-hidden'>
           <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-8 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
             <div className='relative col-span-full -mx-8 h-44 sm:col-span-6 sm:col-start-2 lg:col-start-4 lg:mx-0'>
@@ -185,21 +195,23 @@ export default function Page() {
   else if (layout == Layouts.WalletLayout) layoutComponent = <WalletLayout />
   else layoutComponent = <LandingLayout />
 
-  return <Document>{layoutComponent}</Document>
+  return <Document theme={theme}>{layoutComponent}</Document>
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
+  const { theme } = useLoaderData<typeof loader>()
   return (
-    <Document title='An error occurred.'>
+    <Document theme={theme}>
       <Error data={{ title: error.message }} />
     </Document>
   )
 }
 
 export function CatchBoundary() {
+  const { theme } = useLoaderData<typeof loader>()
   const caught = useCatch()
   return (
-    <Document title='Unexpected error'>
+    <Document theme={theme}>
       <Error
         status={caught.status}
         statusText={caught.statusText}
