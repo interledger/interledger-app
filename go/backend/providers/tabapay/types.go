@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
+	"gitlab.com/fynbos/env"
 )
 
 var (
@@ -126,3 +127,11 @@ type (
 		XID                    string
 	}
 )
+
+func GetSongbirdURL() string {
+	if env.IsProd() {
+		return "https://songbird.cardinalcommerce.com/edge/v1/songbird.js"
+	}
+
+	return "https://songbirdstag.cardinalcommerce.com/edge/v1/songbird.js"
+}

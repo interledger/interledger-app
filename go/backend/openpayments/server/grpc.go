@@ -390,9 +390,18 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, toGRPCError(err)
 	}
 
-	var threeDSID, threeDSJWT, threeDSDeviceCollectionURL string
+	var threeDSID, threeDSJWT, threeDSDeviceCollectionURL, songbirdURL string
 	if requires3DS {
-		threeDSInit, err := g.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{})
+		card, err := g.b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		threeDSInit, err := g.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{
+			Amount:            q.SendAmount,
+			OutgoingPaymentID: op.ID,
+			CardID:            card.ProviderID,
+		})
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
@@ -400,6 +409,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		threeDSID = threeDSInit.ID
 		threeDSJWT = threeDSInit.JWT
 		threeDSDeviceCollectionURL = threeDSInit.DeviceCollectionURL
+		songbirdURL = tabapay.GetSongbirdURL()
 	}
 
 	return &pb.CreateOutgoingPaymentResponse{
@@ -418,6 +428,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 			Jwt:                 threeDSJWT,
 			DeviceCollectionURL: threeDSDeviceCollectionURL,
 			Id:                  threeDSID,
+			SongbirdURL:         songbirdURL,
 		},
 	}, nil
 }
