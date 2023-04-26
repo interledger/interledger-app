@@ -18,9 +18,26 @@ service Backend {
   rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse);
   rpc GetTransactionDetails(GetTransactionDetailsRequest) returns (GetTransactionDetailsResponse);
   rpc ListLinkedAccounts(ListLinkedAccountsRequest) returns (ListLinkedAccountsResponse);
+  rpc ListAudit(ListAuditRequest) returns (ListAuditResponse);
 }
 
 message Empty {}
+
+message ListAuditRequest {
+  string walletID = 1;
+}
+
+message ListAuditResponse {
+  repeated AuditOperation operations = 1;
+}
+
+message AuditOperation {
+  string adminUser = 1;
+  string walletID = 2;
+  string operation = 3;
+  string parameters = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
 
 message ListLinkedAccountsRequest {
   string walletID = 1;
