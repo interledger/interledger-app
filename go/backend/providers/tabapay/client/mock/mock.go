@@ -65,6 +65,21 @@ func (mr *MockClientMockRecorder) CreateCard(ctx, args interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCard", reflect.TypeOf((*MockClient)(nil).CreateCard), ctx, args)
 }
 
+// Get3DSSession mocks base method.
+func (m *MockClient) Get3DSSession(ctx context.Context, id string) (*tabapay.ThreeDSSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get3DSSession", ctx, id)
+	ret0, _ := ret[0].(*tabapay.ThreeDSSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get3DSSession indicates an expected call of Get3DSSession.
+func (mr *MockClientMockRecorder) Get3DSSession(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get3DSSession", reflect.TypeOf((*MockClient)(nil).Get3DSSession), ctx, id)
+}
+
 // GetTransaction mocks base method.
 func (m *MockClient) GetTransaction(ctx context.Context, id string) (*tabapay.Transaction, error) {
 	m.ctrl.T.Helper()
