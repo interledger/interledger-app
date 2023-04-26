@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -24,6 +25,7 @@ type NewClientArgs struct {
 }
 
 type Backends interface {
+	DB() *sqlx.DB
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	Temporal() temporal.Client
@@ -32,6 +34,10 @@ type Backends interface {
 type opsBackends struct {
 	external external.Client
 	b        Backends
+}
+
+func (ob *opsBackends) DB() *sqlx.DB {
+	return ob.b.DB()
 }
 
 func (ob *opsBackends) External() external.Client {
@@ -113,4 +119,8 @@ func (c *Client) Lookup3DS(ctx context.Context, args tabapay.Lookup3DSArgs) (*ta
 
 func (c *Client) Authenticate3DS(ctx context.Context, args tabapay.Authenticate3DSArgs) (*tabapay.Authenticate3DSResponse, error) {
 	return ops.Authenticate3DS(ctx, c.b, args)
+}
+
+func (c *Client) Get3DSSession(ctx context.Context, id string) (*tabapay.ThreeDSSession, error) {
+	return ops.Get3DSSession(ctx, c.b, id)
 }

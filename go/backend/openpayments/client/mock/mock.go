@@ -65,6 +65,21 @@ func (mr *MockClientMockRecorder) GetPaymentPointer(ctx, ppURL interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPaymentPointer", reflect.TypeOf((*MockClient)(nil).GetPaymentPointer), ctx, ppURL)
 }
 
+// GetQuote mocks base method.
+func (m *MockClient) GetQuote(ctx context.Context, id string) (*openpayments.Quote, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetQuote", ctx, id)
+	ret0, _ := ret[0].(*openpayments.Quote)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetQuote indicates an expected call of GetQuote.
+func (mr *MockClientMockRecorder) GetQuote(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuote", reflect.TypeOf((*MockClient)(nil).GetQuote), ctx, id)
+}
+
 // GetWalletPaymentPointer mocks base method.
 func (m *MockClient) GetWalletPaymentPointer(ctx context.Context, walletID string) (*openpayments.PaymentPointer, error) {
 	m.ctrl.T.Helper()

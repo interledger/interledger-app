@@ -180,12 +180,10 @@ func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByP
 		&linkedAccount,
 		`
 			SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts 
-			WHERE provider=$1 AND provider_id=$2 AND type=$3 AND wallet_id=$4;
+			WHERE provider=$1 AND provider_id=$2;
 		`,
 		args.Provider,
 		args.ProviderID,
-		args.Type,
-		args.WalletID,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
