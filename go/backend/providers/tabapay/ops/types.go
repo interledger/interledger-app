@@ -13,6 +13,7 @@ type PullFromCardArgs struct {
 	ReferenceID         string
 	SettlementAccountID string
 	Amount              currency.Amount
+	ThreeDSID           string
 }
 
 type dbThreeDSSession struct {

@@ -104,7 +104,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	return ops.GetOutgoingPayment(ctx, b, id)
 }
 
-func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddress string) (string, error) {
+func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddress, threeDSID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -130,6 +130,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	tArgs := wfArgs.Args
 	tArgs.FromTransactionID = trxID
 	tArgs.IPAddress = ipAddress
+	tArgs.ThreeDSID = threeDSID
 
 	err = workflow.ExecuteActivity(ctx, a.AddContact, tArgs.FromPaymentPointer, tArgs.ToPaymentPointer).Get(ctx, nil)
 	if err != nil {
