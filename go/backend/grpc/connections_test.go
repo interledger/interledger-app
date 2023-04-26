@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -39,7 +40,8 @@ MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
 			ID:        keyID,
 			Name:      "FynTest",
 			WalletID:  w.ID,
-			Reference: "base64PublicKey",
+			Reference: sql.NullString{},
+			PublicKey: "base64PublicKey",
 		},
 		nil,
 	).AnyTimes()
@@ -98,11 +100,12 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 	keyFingerprint := "SHA256:22ce02aa18eb1ee5f39482d0f57a6ba56f4d549f81db547f3bea2863207c8a01"
 	keyUuid := uuid.NewString()
-	c.keys.EXPECT().ListPublicKeys(gomock.Any(), w.ID).Return(
+	c.keys.EXPECT().List(gomock.Any(), w.ID).Return(
 		[]keys.Key{
 			{
 				ID:        keyUuid,
-				Reference: base64PublicKey,
+				Reference: sql.NullString{},
+				PublicKey: base64PublicKey,
 				Name:      "FynTest",
 				Type:      keys.NonCustodial,
 			},
@@ -198,11 +201,12 @@ func TestDeletePublicKey(t *testing.T) {
 
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 	keyID := uuid.NewString()
-	c.keys.EXPECT().ListPublicKeys(gomock.Any(), w.ID).Return(
+	c.keys.EXPECT().List(gomock.Any(), w.ID).Return(
 		[]keys.Key{
 			{
 				ID:        keyID,
-				Reference: base64PublicKey,
+				Reference: sql.NullString{},
+				PublicKey: base64PublicKey,
 				Name:      "FynTest",
 				Type:      keys.NonCustodial,
 			},

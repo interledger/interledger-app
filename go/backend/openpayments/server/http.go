@@ -425,7 +425,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 }
 
 func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Request) {
-	keys, err := b.Keys().ListPublicKeys(req.Context(), walletID)
+	keys, err := b.Keys().List(req.Context(), walletID)
 	if err != nil {
 		log.Error("error listing client public keys", zap.Error(err), zap.String("walletID", walletID))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -439,7 +439,7 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 			Crv: "Ed25519",
 			Alg: "edDSA",
 			Use: "sign",
-			X:   k.Reference,
+			X:   k.PublicKey,
 		}
 	}
 
