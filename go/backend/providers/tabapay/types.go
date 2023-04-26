@@ -14,6 +14,12 @@ var (
 	TypeCard     = "card"
 )
 
+const (
+	ThreeDSFullyAuthenticated      = "05|02"
+	ThreeDSAttemptedAuthentication = "01|06"
+	ThreeDSNotSecure               = "00|07"
+)
+
 type CreateCardArgs struct {
 	IdempotencyKey string
 	WalletID       string
@@ -28,6 +34,7 @@ type PullFromCardArgs struct {
 	ProviderID  string
 	ReferenceID string
 	Amount      currency.Amount
+	ThreeDSID   string
 }
 
 type PushToCardArgs = PullFromCardArgs
