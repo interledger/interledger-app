@@ -94,6 +94,10 @@ type StartArgs struct {
 	TabapayBearerToken         string
 	TabapaySettlementAccountID string
 	BasisTheoryApiKey          string
+	VGSCaCertPath              string
+	VGSProxyURL                string
+	TwitterClientID            string
+	TwitterClientSecret        string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -208,6 +212,16 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("PERSONA_WEBHOOK_TOKEN is required in prod")
 	}
 
+	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
+	if twitterClientId == "" {
+		return nil, errors.New("TWITTER_CLIENT_ID is required")
+	}
+
+	twitterClientSecret := os.Getenv("TWITTER_CLIENT_SECRET")
+	if twitterClientSecret == "" {
+		return nil, errors.New("TWITTER_CLIENT_SECRET is required")
+	}
+
 	return &StartArgs{
 		Port:                       port,
 		OpenPaymentsPort:           openPaymentsPort,
@@ -230,6 +244,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwilioServiceSid:           twilioServiceSid,
 		ZendeskUser:                zendeskUser,
 		ZendeskToken:               zendeskToken,
+		TwitterClientID:            twitterClientId,
+		TwitterClientSecret:        twitterClientSecret,
 		AdminPolicyAud:             os.Getenv("ADMIN_POLICY_AUD"),
 		AdminTeamDomain:            os.Getenv("ADMIN_TEAM_DOMAIN"),
 		SendgridAPIKey:             os.Getenv("SENDGRID_API_KEY"),
