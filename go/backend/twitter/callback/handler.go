@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"gitlab.com/fynbos/backend/twitter"
-	"gitlab.com/fynbos/backend/twitter/ops"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -28,7 +27,7 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		_, err := b.Twitter().CreateAccessToken(r.Context(), &ops.CreateAccessTokenArgs{
+		_, err := b.Twitter().CreateAccessToken(r.Context(), &twitter.CreateAccessTokenArgs{
 			State:    state,
 			AuthCode: authCode,
 		})
