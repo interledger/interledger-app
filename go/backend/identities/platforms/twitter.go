@@ -3,9 +3,11 @@ package platforms
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
+	twitterscraper "github.com/n0madic/twitter-scraper"
 	"gitlab.com/fynbos/backend/identities"
 	"go.temporal.io/sdk/workflow"
 )
@@ -27,7 +29,7 @@ func (t *twitter) NewVerifyCode() string {
 }
 
 func (t *twitter) VerifyInstructions() string {
-	return `In this environment all you need to do to verify is to request it. Enjoy in a NON Production environment.`
+	return `dude tweet this thing`
 }
 
 type TwitterActivity struct {
@@ -48,12 +50,71 @@ func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, erro
 	logger := workflow.GetLogger(ctx)
 	logger.Info("VerifyWorkflow for twitter platform started", "id", id, "proof", proof)
 
-	err := workflow.ExecuteActivity(ctx, a.VerifyTwitter, id, proof).Get(ctx, nil)
+	var tweetProof *twitterscraper.Tweet
+	err := workflow.ExecuteActivity(ctx, a.FetchTweetProof, proof).Get(ctx, tweetProof)
 	if err != nil {
-		return "failed", err
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	var identity *identities.Identity
+	err = workflow.ExecuteActivity(ctx, a.GetIdentity, id).Get(ctx, identity)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.VerifyProof, identity, tweetProof).Get(ctx, nil)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.VerifyTwitter, id, proof).Get(ctx, nil)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	return "OK", nil
+}
+
+func (a *TwitterActivity) FetchTweetProof(ctx context.Context, proofUrl string) (*twitterscraper.Tweet, error) {
+	tweetId := extractTweetID(proofUrl)
+	if tweetId == "" {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "couldn't parse proof tweet id")
+	}
+
+	scraper := twitterscraper.New()
+	tweet, err := scraper.GetTweet(proofUrl)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return tweet, nil
+}
+
+func (a *TwitterActivity) GetIdentity(ctx context.Context, id string) (*identities.Identity, error) {
+	var identity *identities.Identity
+	err := a.b.DB().GetContext(ctx, identity, "SELECT * FROM identities WHERE id=$1", id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return identity, nil
+}
+
+// TODO: harden verification
+func (a *TwitterActivity) VerifyProof(ctx context.Context, identity *identities.Identity, tweet *twitterscraper.Tweet) error {
+	if identity.State != identities.StatePending {
+		return fmt.Errorf("%w %s", identities.ErrInternal, "identity is not pending")
+	}
+
+	if identity.VerificationProof != tweet.PermanentURL {
+		return fmt.Errorf("%w %s", identities.ErrInternal, "proof tweet url does not match with verification proof")
+	}
+
+	if identity.VerificationCode != tweet.Text {
+		return fmt.Errorf("%w %s", identities.ErrInternal, "proof code does not match with tweet text")
+	}
+
+	return nil
 }
 
 func (a *TwitterActivity) VerifyTwitter(ctx context.Context, id, proof string) error {
@@ -64,4 +125,14 @@ func (a *TwitterActivity) VerifyTwitter(ctx context.Context, id, proof string) e
 	}
 
 	return nil
+}
+
+// TODO: better parsing
+func extractTweetID(url string) string {
+	re := regexp.MustCompile(`\/([0-9]+)$`)
+	matches := re.FindStringSubmatch(url)
+	if len(matches) == 2 {
+		return matches[1]
+	}
+	return ""
 }
