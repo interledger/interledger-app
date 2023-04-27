@@ -22,8 +22,8 @@ func (d *dev) VerifyWorkflow() interface{} {
 	return DevVerifyWorkflow
 }
 
-func (d *dev) NewVerifyCode(args *NewVerifyCodeArgs) string {
-	return uuid.NewString()
+func (d *dev) NewVerifyCode(ctx context.Context, args *NewVerifyCodeArgs) (string, error) {
+	return uuid.NewString(), nil
 }
 
 func (d *dev) VerifyInstructions() string {

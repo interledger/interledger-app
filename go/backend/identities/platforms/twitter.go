@@ -2,11 +2,12 @@ package platforms
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"time"
 
-	"github.com/google/uuid"
 	twitterscraper "github.com/n0madic/twitter-scraper"
 	"gitlab.com/fynbos/backend/identities"
 	"go.temporal.io/sdk/workflow"
@@ -14,18 +15,40 @@ import (
 
 type twitter struct {
 	platform identities.Platform
+	b        Backends
 }
 
-func newTwitter(platform identities.Platform) *twitter {
-	return &twitter{platform: platform}
+func newTwitter(b Backends, platform identities.Platform) *twitter {
+	return &twitter{
+		platform: platform,
+		b:        b,
+	}
 }
 
 func (t *twitter) VerifyWorkflow() interface{} {
 	return TwitterVerifyWorkflow
 }
 
-func (t *twitter) NewVerifyCode(args *NewVerifyCodeArgs) string {
-	return uuid.NewString()
+func (t *twitter) NewVerifyCode(ctx context.Context, args *NewVerifyCodeArgs) (string, error) {
+	claim, err := json.Marshal(&identities.IdentityClaim{
+		Wallet:       args.WalletID,
+		Identifier:   args.Identifier,
+		Type:         "twitter",
+		KeyID:        "default",
+		CreationTime: fmt.Sprint(time.Now().Unix()),
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	signature, err := t.b.Keys().Sign(ctx, "default", args.WalletID, claim)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	encodedSig := base64.RawURLEncoding.EncodeToString(signature)
+
+	return encodedSig, nil
 }
 
 func (t *twitter) VerifyInstructions() string {
