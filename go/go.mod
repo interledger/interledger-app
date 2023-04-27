@@ -80,6 +80,7 @@ require (
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/phpdave11/gofpdi v1.0.12 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
