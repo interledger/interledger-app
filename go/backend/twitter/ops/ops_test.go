@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/twitter"
 	external_mock "gitlab.com/fynbos/backend/twitter/external/client/mock"
 	"gitlab.com/fynbos/backend/twitter/ops"
 	"golang.org/x/oauth2"
@@ -61,7 +62,7 @@ func TestCreateAccessToken(t *testing.T) {
 		Expiry:       time.Now(),
 	}, nil)
 
-	accessToken, err := ops.CreateAccessToken(ctx, b, &ops.CreateAccessTokenArgs{
+	accessToken, err := ops.CreateAccessToken(ctx, b, &twitter.CreateAccessTokenArgs{
 		AuthCode: "testAuthCode",
 		State:    authorization.State,
 	})

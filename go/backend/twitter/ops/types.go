@@ -11,11 +11,6 @@ type (
 		AuthEndpoint string
 	}
 
-	CreateAccessTokenArgs struct {
-		AuthCode string
-		State    string
-	}
-
 	TwitterAuth struct {
 		ID           string    `db:"id"`
 		WalletID     string    `db:"wallet_id"`
@@ -25,22 +20,5 @@ type (
 		RedirectURL  string    `db:"redirect_url"`
 		CreatedAt    time.Time `db:"created_at"`
 		UpdatedAt    time.Time `db:"updated_at"`
-	}
-
-	TwitterAccessToken struct {
-		ID           string    `db:"id"`
-		WalletID     string    `db:"wallet_id"`
-		AccessToken  string    `db:"access_token"`
-		RefreshToken string    `db:"refresh_token"`
-		TokenType    string    `db:"token_type"`
-		Expiry       time.Time `db:"expiry"`
-		ClientID     string    `db:"client_id"`
-		CreatedAt    time.Time `db:"created_at"`
-		UpdatedAt    time.Time `db:"updated_at"`
-	}
-
-	Authorization struct {
-		URL   string
-		State string
 	}
 )

@@ -2,10 +2,9 @@ package twitter
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/twitter/ops"
 )
 
 type Client interface {
-	CreateAuthURL(ctx context.Context, args *CreateAuthURLArgs) (*ops.Authorization, error)
-	CreateAccessToken(ctx context.Context, args *ops.CreateAccessTokenArgs) (*ops.TwitterAccessToken, error)
+	CreateAuthURL(ctx context.Context, args *CreateAuthURLArgs) (*Authorization, error)
+	CreateAccessToken(ctx context.Context, args *CreateAccessTokenArgs) (*TwitterAccessToken, error)
 }
