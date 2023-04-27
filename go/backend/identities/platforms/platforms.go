@@ -8,9 +8,14 @@ import (
 	"gitlab.com/fynbos/env"
 )
 
+type NewVerifyCodeArgs struct {
+	Identifier string
+	WalletID   string
+}
+
 type Platform interface {
 	VerifyWorkflow() interface{} // Return the child workflow func to call with the identity ID, only args the workflow must expect is the identityID and the proof URL
-	NewVerifyCode() string
+	NewVerifyCode(args *NewVerifyCodeArgs) string
 	VerifyInstructions() string
 }
 

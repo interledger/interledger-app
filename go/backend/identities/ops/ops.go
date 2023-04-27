@@ -60,7 +60,10 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	}
 
 	id := uuid.NewString()
-	code := p.NewVerifyCode()
+	code := p.NewVerifyCode(&platforms.NewVerifyCodeArgs{
+		WalletID:   args.WalletID,
+		Identifier: args.Handle,
+	})
 
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO identities(id, wallet_id, platform, handle, state, public, code, proof) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
 		id, args.WalletID, args.Platform, args.Handle, identities.StateUnverified, args.Public, code, "")

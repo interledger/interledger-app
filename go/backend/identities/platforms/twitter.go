@@ -24,7 +24,7 @@ func (t *twitter) VerifyWorkflow() interface{} {
 	return TwitterVerifyWorkflow
 }
 
-func (t *twitter) NewVerifyCode() string {
+func (t *twitter) NewVerifyCode(args *NewVerifyCodeArgs) string {
 	return uuid.NewString()
 }
 

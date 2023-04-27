@@ -22,7 +22,7 @@ func (d *dev) VerifyWorkflow() interface{} {
 	return DevVerifyWorkflow
 }
 
-func (d *dev) NewVerifyCode() string {
+func (d *dev) NewVerifyCode(args *NewVerifyCodeArgs) string {
 	return uuid.NewString()
 }
 
