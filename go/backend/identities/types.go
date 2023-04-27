@@ -24,6 +24,14 @@ type Identity struct {
 	Public            bool   // Whether the Identity is visible to the public
 }
 
+type IdentityClaim struct {
+	Wallet       string `json:"wallet"`
+	Identifier   string `json:"identifier"`
+	KeyID        string `json:"keyid"`
+	Type         string `json:"type"`
+	CreationTime string `json:"ctime"`
+}
+
 type State string
 
 const (
