@@ -22,3 +22,7 @@ func New(b ops.Backends) basistheory.Client {
 func (c client) CreateCard(ctx context.Context, tokenID, walletID string) (*basistheory.Card, error) {
 	return ops.CreateCard(ctx, c.b, tokenID, walletID)
 }
+
+func (c client) GetCard(ctx context.Context, id string) (*basistheory.Card, error) {
+	return ops.GetCard(ctx, c.b, id)
+}

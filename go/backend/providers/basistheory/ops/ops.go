@@ -57,3 +57,21 @@ func CreateCard(ctx context.Context, b Backends, tokenID, walletID string) (*bas
 
 	return &card, nil
 }
+
+func GetCard(ctx context.Context, b Backends, id string) (*basistheory.Card, error) {
+	var card basistheory.Card
+	err := b.DB().GetContext(
+		ctx,
+		&card,
+		fmt.Sprintf("SELECT %s FROM basistheory_cards WHERE id=$1;", cardFields),
+		id,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, basistheory.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)
+	}
+
+	return &card, nil
+}

@@ -93,8 +93,7 @@ type StartArgs struct {
 	TabapayClientID            string
 	TabapayBearerToken         string
 	TabapaySettlementAccountID string
-	VGSCaCertPath              string
-	VGSProxyURL                string
+	BasisTheoryApiKey          string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -241,7 +240,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		TabapayClientID:            os.Getenv("TABAPAY_CLIENT_ID"),
 		TabapayBearerToken:         os.Getenv("TABAPAY_BEARER_TOKEN"),
 		TabapaySettlementAccountID: os.Getenv("TABAPAY_SETTLEMENT_ACCOUNT_ID"),
-		VGSCaCertPath:              os.Getenv("VGS_CA_CERT_PATH"),
-		VGSProxyURL:                os.Getenv("VGS_PROXY_URL"),
+		BasisTheoryApiKey:          os.Getenv("BASISTHEORY_API_KEY"),
 	}, nil
 }
