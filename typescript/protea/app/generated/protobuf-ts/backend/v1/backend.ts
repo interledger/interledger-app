@@ -536,6 +536,15 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.CreateCardRequest
+ */
+export interface CreateCardRequest {
+    /**
+     * @generated from protobuf field: string tokenID = 1;
+     */
+    tokenID: string;
+}
+/**
  * @generated from protobuf message backend.v1.Lookup3DSResponse
  */
 export interface Lookup3DSResponse {
@@ -3397,6 +3406,53 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateCardRequest$Type extends MessageType<CreateCardRequest> {
+    constructor() {
+        super("backend.v1.CreateCardRequest", [
+            { no: 1, name: "tokenID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateCardRequest>): CreateCardRequest {
+        const message = { tokenID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateCardRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateCardRequest): CreateCardRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string tokenID */ 1:
+                    message.tokenID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string tokenID = 1; */
+        if (message.tokenID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.tokenID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateCardRequest
+ */
+export const CreateCardRequest = new CreateCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Lookup3DSResponse$Type extends MessageType<Lookup3DSResponse> {
     constructor() {
@@ -7892,5 +7948,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateMXBankAccounts", options: {}, I: CreateMXBankAccountsRequest, O: CreateMXBankAccountsResponse },
     { name: "OnboardGMTUser", options: {}, I: Empty, O: Empty },
     { name: "Lookup3DS", options: {}, I: Lookup3DSRequest, O: Lookup3DSResponse },
-    { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse }
+    { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse },
+    { name: "CreateCard", options: {}, I: CreateCardRequest, O: Empty }
 ]);
