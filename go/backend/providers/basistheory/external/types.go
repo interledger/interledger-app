@@ -24,10 +24,14 @@ func ExtractCardDataFrom(token *basistheory.Token) (*CardData, error) {
 		return nil, fmt.Errorf("%w Token has no data.", ErrInternal)
 	}
 
-	cardData, ok := token.GetData().(*CardData)
+	tokenData, ok := token.GetData().(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("%w Failed to extract card data from token.", ErrInternal)
 	}
 
-	return cardData, nil
+	return &CardData{
+		TokenizedNumber: tokenData["number"].(string),
+		ExpirationMonth: fmt.Sprintf("%02d", uint64(tokenData["expiration_month"].(float64))),
+		ExpirationYear:  fmt.Sprintf("%d", uint64(tokenData["expiration_year"].(float64))),
+	}, nil
 }
