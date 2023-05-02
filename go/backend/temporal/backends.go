@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/statements"
@@ -34,4 +35,5 @@ type Backends interface {
 	MX() mx.Client
 	Tabapay() tabapay.Client
 	Keys() keys.Client
+	BasisTheory() basistheory.Client
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -57,15 +56,13 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
-	"gitlab.com/fynbos/backend/providers/verygoodsecurity"
-	vgs_client "gitlab.com/fynbos/backend/providers/verygoodsecurity/client"
-	vgs_webhook "gitlab.com/fynbos/backend/providers/verygoodsecurity/webhook"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
 	"gitlab.com/fynbos/backend/statements"
@@ -184,8 +181,6 @@ func start(args *cli.StartArgs) {
 
 	b.waitlist = waitlist_client.New(b, logger)
 
-	b.verygoodsecurity = vgs_client.New(b)
-
 	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
@@ -201,9 +196,6 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
-
-	router.Handle("/webhooks/verygoodsecurity/card", vgs_webhook.NewHandleInboundCard(b))
-
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
@@ -254,27 +246,12 @@ func start(args *cli.StartArgs) {
 
 	b.gmt = gmt_client.New(b)
 
-	tabapayClientArgs := tabapay_client.NewClientArgs{
-		VgsProxyURL:         args.VGSProxyURL,
-		ClientID:            args.TabapayClientID,
-		BearerToken:         args.TabapayBearerToken,
-		SettlementAccountID: args.TabapaySettlementAccountID,
-	}
-	if args.VGSCaCertPath != "" {
-		vgsCaCert, err := os.ReadFile(os.Getenv("VGS_CERT_PATH"))
-		if err != nil {
-			log.Fatal("Failed to read VGS certificate.", zap.Error(err))
-		}
-
-		caCertPool := x509.NewCertPool()
-		ok := caCertPool.AppendCertsFromPEM(vgsCaCert)
-		if !ok {
-			log.Fatal("Failed to add VGS CA to cert pool.")
-		}
-
-		tabapayClientArgs.CaCertPool = caCertPool
-	}
-	tabapayClient, err := tabapay_client.New(tabapayClientArgs, b)
+	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
+		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
+		ClientID:               args.TabapayClientID,
+		BearerToken:            args.TabapayBearerToken,
+		SettlementAccountID:    args.TabapaySettlementAccountID,
+	}, b)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -474,27 +451,12 @@ func startWorker(args *cli.StartArgs) {
 
 	b.keys = keys_client.New(b)
 
-	tabapayClientArgs := tabapay_client.NewClientArgs{
-		VgsProxyURL:         args.VGSProxyURL,
-		ClientID:            args.TabapayClientID,
-		BearerToken:         args.TabapayBearerToken,
-		SettlementAccountID: args.TabapaySettlementAccountID,
-	}
-	if args.VGSCaCertPath != "" {
-		vgsCaCert, err := os.ReadFile(os.Getenv("VGS_CERT_PATH"))
-		if err != nil {
-			log.Fatal("Failed to read VGS certificate.", zap.Error(err))
-		}
-
-		caCertPool := x509.NewCertPool()
-		ok := caCertPool.AppendCertsFromPEM(vgsCaCert)
-		if !ok {
-			log.Fatal("Failed to add VGS CA to cert pool.")
-		}
-
-		tabapayClientArgs.CaCertPool = caCertPool
-	}
-	tabapayClient, err := tabapay_client.New(tabapayClientArgs, b)
+	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
+		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
+		ClientID:               args.TabapayClientID,
+		BearerToken:            args.TabapayBearerToken,
+		SettlementAccountID:    args.TabapaySettlementAccountID,
+	}, b)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -517,33 +479,37 @@ type backends struct {
 	val *validator.Validate
 	db  *sqlx.DB
 
-	adminAuth        auth.Service
-	agreements       agreements.Client
-	verygoodsecurity verygoodsecurity.Client
-	linkedaccounts   linkedaccounts.Client
-	healthcheck      healthcheck.Service
-	signup           signup.Client
-	supportTickets   supporttickets.Client
-	temporal         client.Client
-	twilio           _twilio.Service
-	users            user.Client
-	waitlist         waitlist.Client
-	kyc              kyc.Client
-	keys             keys.Client
-	email            email.Client
-	openpayments     openpayments.Client
-	transactions     transactions.Client
-	notify           notify.Client
-	statements       statements.Client
-	auth             authorisation.InternalClient
-	analytics        analytics.Client
-	contacts         contacts.Client
-	limits           limits.Client
-	ident            identities.Client
-	mx               mx.Client
-	gmt              gmt.Client
-	tabapay          tabapay.Client
-	vault            vault.Client
+	adminAuth      auth.Service
+	agreements     agreements.Client
+	linkedaccounts linkedaccounts.Client
+	healthcheck    healthcheck.Service
+	signup         signup.Client
+	supportTickets supporttickets.Client
+	temporal       client.Client
+	twilio         _twilio.Service
+	users          user.Client
+	waitlist       waitlist.Client
+	kyc            kyc.Client
+	keys           keys.Client
+	email          email.Client
+	openpayments   openpayments.Client
+	transactions   transactions.Client
+	notify         notify.Client
+	statements     statements.Client
+	auth           authorisation.InternalClient
+	analytics      analytics.Client
+	contacts       contacts.Client
+	limits         limits.Client
+	ident          identities.Client
+	mx             mx.Client
+	gmt            gmt.Client
+	tabapay        tabapay.Client
+	vault          vault.Client
+	basistheory    basistheory.Client
+}
+
+func (b backends) BasisTheory() basistheory.Client {
+	return b.basistheory
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {
@@ -604,10 +570,6 @@ func (b backends) Twilio() _twilio.Service {
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {
 	return b.linkedaccounts
-}
-
-func (b backends) VGS() verygoodsecurity.Client {
-	return b.verygoodsecurity
 }
 
 func (b backends) Email() email.Client {

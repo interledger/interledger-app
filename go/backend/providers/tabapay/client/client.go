@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"crypto/x509"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -16,11 +15,10 @@ import (
 var _ tabapay.Client = &Client{}
 
 type NewClientArgs struct {
-	VgsProxyURL         string
-	ClientID            string
-	BearerToken         string
-	CaCertPool          *x509.CertPool
-	SettlementAccountID string
+	BasisTheoryProxyApiKey string
+	ClientID               string
+	BearerToken            string
+	SettlementAccountID    string
 }
 
 type Backends interface {
@@ -52,10 +50,9 @@ func (ob *opsBackends) Temporal() temporal.Client {
 
 func New(args NewClientArgs, b Backends) (*Client, error) {
 	externalClient, err := external_client.New(external_client.NewClientArgs{
-		VgsProxyURL: args.VgsProxyURL,
-		ClientID:    args.ClientID,
-		BearerToken: args.BearerToken,
-		CaCertPool:  args.CaCertPool,
+		BasisTheoryProxyApiKey: args.BasisTheoryProxyApiKey,
+		ClientID:               args.ClientID,
+		BearerToken:            args.BearerToken,
 	})
 	if err != nil {
 		return nil, err

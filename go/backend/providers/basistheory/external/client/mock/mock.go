@@ -8,8 +8,8 @@ import (
 	context "context"
 	reflect "reflect"
 
+	basistheory "github.com/Basis-Theory/basistheory-go/v3"
 	gomock "github.com/golang/mock/gomock"
-	verygoodsecurity "gitlab.com/fynbos/backend/providers/verygoodsecurity"
 )
 
 // MockClient is a mock of Client interface.
@@ -35,17 +35,17 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// CreateCard mocks base method.
-func (m *MockClient) CreateCard(ctx context.Context, args verygoodsecurity.Card) (*verygoodsecurity.Card, error) {
+// GetToken mocks base method.
+func (m *MockClient) GetToken(ctx context.Context, id string) (*basistheory.Token, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCard", ctx, args)
-	ret0, _ := ret[0].(*verygoodsecurity.Card)
+	ret := m.ctrl.Call(m, "GetToken", ctx, id)
+	ret0, _ := ret[0].(*basistheory.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateCard indicates an expected call of CreateCard.
-func (mr *MockClientMockRecorder) CreateCard(ctx, args interface{}) *gomock.Call {
+// GetToken indicates an expected call of GetToken.
+func (mr *MockClientMockRecorder) GetToken(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCard", reflect.TypeOf((*MockClient)(nil).CreateCard), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockClient)(nil).GetToken), ctx, id)
 }
