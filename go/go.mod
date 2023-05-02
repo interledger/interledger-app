@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/vault/api v1.9.0
 	github.com/hashicorp/vault/api/auth/kubernetes v0.4.0
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/joho/godotenv v1.3.0
+	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.3
 	github.com/machinebox/graphql v0.2.2
 	github.com/ory/kratos-client-go v0.10.1
@@ -98,6 +98,7 @@ require (
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
+	github.com/Basis-Theory/basistheory-go/v3 v3.10.0
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Microsoft/hcsshim v0.8.21 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect

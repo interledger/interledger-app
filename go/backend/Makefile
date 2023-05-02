@@ -18,13 +18,11 @@ testci:
 generatetestmigrations:
 	@echo "Generating test migrations"
 	mkdir -p db/testmigrations
+	rm -rf db/testmigrations/*
 	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://root@$(CRDB_HOST):26257?sslmode=disable"
 	@echo "Done"
 
-test: testenvup
-	@echo "Preparing migrations"
-	mkdir -p db/testmigrations
-	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://root@$(CRDB_HOST):26257?sslmode=disable"
+test: testenvup generatetestmigrations
 	@echo "Running tests"
 	go test ./... -p 4
 	@echo "Tests complete."

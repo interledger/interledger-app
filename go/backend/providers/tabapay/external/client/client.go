@@ -3,8 +3,6 @@ package client
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,46 +17,35 @@ import (
 
 var _ external.Client = &client{}
 
+const basisTheoryProxyUrl = "https://api.basistheory.com/proxy"
+
 type client struct {
-	baseUrl     string
-	bearerToken string
-	api         *http.Client
+	basisTheoryApiKey string
+	baseUrl           string
+	bearerToken       string
+	clientID          string
+	api               *http.Client
 }
 
 type NewClientArgs struct {
-	VgsProxyURL string
-	ClientID    string
-	BearerToken string
-	CaCertPool  *x509.CertPool
+	BasisTheoryProxyApiKey string
+	ClientID               string
+	BearerToken            string
 }
 
 func New(args NewClientArgs) (*client, error) {
-	proxyUrl, err := url.Parse(args.VgsProxyURL)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
-	}
-
-	transport := &http.Transport{}
-	if args.VgsProxyURL != "" {
-		transport.Proxy = http.ProxyURL(proxyUrl)
-	}
-	if args.CaCertPool != nil {
-		transport.TLSClientConfig = &tls.Config{
-			RootCAs:            args.CaCertPool,
-			InsecureSkipVerify: true,
-		}
-	}
-
-	baseUrl := fmt.Sprintf("https://%s/v1/clients/%s", "api.sandbox.tabapay.net:10443", args.ClientID)
+	baseUrl := "https://api.sandbox.tabapay.net:10443"
 	if env.IsProd() {
-		baseUrl = fmt.Sprintf("https://FQDN/v1/clients/%s", args.ClientID)
+		baseUrl = "https://api.tabapay.net:10443"
 	}
 
 	return &client{
-		baseUrl:     baseUrl,
-		bearerToken: args.BearerToken,
+		baseUrl:           baseUrl,
+		bearerToken:       args.BearerToken,
+		basisTheoryApiKey: args.BasisTheoryProxyApiKey,
+		clientID:          args.ClientID,
 		api: &http.Client{
-			Transport: otelhttp.NewTransport(transport),
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
 			Timeout:   5 * time.Second,
 		},
 	}, nil
@@ -70,10 +57,15 @@ func (c *client) setAuth(r *http.Request) {
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.bearerToken))
 }
 
+func (c *client) setProxy(r *http.Request) {
+	r.Header.Set("BT-PROXY-URL", c.baseUrl)
+	r.Header.Set("BT-API-KEY", c.basisTheoryApiKey)
+}
+
 func (c *client) CreateTransaction(
 	ctx context.Context, args external.CreateTransactionArgs,
 ) (*external.CreateTransactionResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "transactions")
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -112,7 +104,7 @@ func (c *client) CreateTransaction(
 func (c *client) RetrieveTransaction(
 	ctx context.Context, id string,
 ) (*external.RetrieveTransactionResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "transactions", id)
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -146,7 +138,7 @@ func (c *client) RetrieveTransaction(
 func (c *client) CreateAccount(
 	ctx context.Context, args external.CreateAccountArgs,
 ) (*external.CreateAccountResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "accounts")
+	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "accounts")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -172,6 +164,7 @@ func (c *client) CreateAccount(
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 	c.setAuth(req)
+	c.setProxy(req)
 
 	resp, err := c.api.Do(req)
 	if err != nil {
@@ -230,7 +223,7 @@ func (c *client) RetrieveAccount(
 func (c *client) QueryCard(
 	ctx context.Context, args external.QueryCardArgs,
 ) (*external.QueryCardResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "cards")
+	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "cards")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -245,6 +238,7 @@ func (c *client) QueryCard(
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 	c.setAuth(req)
+	c.setProxy(req)
 
 	resp, err := c.api.Do(req)
 	if err != nil {
@@ -267,7 +261,7 @@ func (c *client) QueryCard(
 }
 
 func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*external.Init3DSResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "init")
+	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "init")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -304,7 +298,7 @@ func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*exter
 }
 
 func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*external.Lookup3DSResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "lookup")
+	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "lookup")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -341,7 +335,7 @@ func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*e
 }
 
 func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate3DSArgs) (*external.Authenticate3DSResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "3ds", "authenticate")
+	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "authenticate")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
