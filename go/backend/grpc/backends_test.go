@@ -7,6 +7,8 @@ import (
 
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
+	"gitlab.com/fynbos/backend/providers/basistheory"
+	bt_mock "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
@@ -84,6 +86,11 @@ type TestContainer struct {
 	limits             *limit_mock.MockClient
 	mx                 *mx_mock.MockClient
 	keys               *keys_mock.MockClient
+	basistheory        *bt_mock.MockClient
+}
+
+func (t TestContainer) BasisTheory() basistheory.Client {
+	return t.basistheory
 }
 
 func (t TestContainer) Keys() keys.Client {
