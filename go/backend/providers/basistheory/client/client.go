@@ -3,19 +3,42 @@ package client
 import (
 	"context"
 
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	"gitlab.com/fynbos/backend/providers/basistheory/external"
+	external_client "gitlab.com/fynbos/backend/providers/basistheory/external/client"
 	"gitlab.com/fynbos/backend/providers/basistheory/ops"
 )
 
 var _ basistheory.Client = client{}
 
+type Backends interface {
+	DB() *sqlx.DB
+}
+
+type opsBackends struct {
+	b        Backends
+	external external.Client
+}
+
+func (ob *opsBackends) DB() *sqlx.DB {
+	return ob.b.DB()
+}
+
+func (ob *opsBackends) External() external.Client {
+	return ob.external
+}
+
 type client struct {
 	b ops.Backends
 }
 
-func New(b ops.Backends) basistheory.Client {
+func New(apiKey string, b Backends) basistheory.Client {
 	return &client{
-		b: b,
+		b: &opsBackends{
+			b:        b,
+			external: external_client.New(apiKey),
+		},
 	}
 }
 
