@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/providers/basistheory/external"
 	"gitlab.com/fynbos/backend/providers/basistheory/external/client/mock"
 	"gitlab.com/fynbos/backend/providers/basistheory/ops"
 	"gotest.tools/assert"
@@ -30,10 +29,10 @@ func TestCreateCard(t *testing.T) {
 	b.ExternalClient.EXPECT().GetToken(ctx, tokenID).Return(
 		&basistheory.Token{
 			Id: &tokenID,
-			Data: &external.CardData{
-				TokenizedNumber: "1234",
-				ExpirationMonth: "02",
-				ExpirationYear:  "2024",
+			Data: map[string]interface{}{
+				"number":           "1234",
+				"expiration_month": float64(2),
+				"expiration_year":  float64(2024),
 			},
 			Type: basistheory.PtrString("card"),
 		},
