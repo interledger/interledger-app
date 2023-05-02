@@ -236,36 +236,32 @@ table "linked_accounts" {
     columns = [column.wallet_id, column.provider, column.provider_id]
   }
 }
-table "very_good_security_card" {
+table "basistheory_cards" {
   schema = schema.public
   column "id" {
     null    = false
     type    = uuid
     default = sql("gen_random_uuid()")
   }
-  column "card_token" {
+  column "token_id" {
     null = false
     type = text
   }
-  column "expiry" {
+  column "expiration_month" {
     null = false
     type = text
   }
-  column "card_security_code" {
+  column "expiration_year" {
+    null = false
+    type = text
+  }
+  column "tokenized_number" {
     null = false
     type = text
   }
   column "wallet_id" {
     null = false
     type = uuid
-  }
-  column "last4" {
-    null = false
-    type = text
-  }
-  column "card_type" {
-    null = false
-    type = text
   }
   column "created_at" {
     null    = false
@@ -284,9 +280,9 @@ table "very_good_security_card" {
   primary_key {
     columns = [column.id]
   }
-  index "card_token_wallet_id_uniq" {
+  index "token_id_wallet_id_uniq" {
     unique  = true
-    columns = [column.card_token, column.wallet_id]
+    columns = [column.token_id, column.wallet_id]
   }
 }
 table "machnet_receive_bank_accounts" {

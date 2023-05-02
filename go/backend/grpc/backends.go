@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -54,4 +55,5 @@ type Backends interface {
 	GMT() gmt.Client
 	Tabapay() tabapay.Client
 	Keys() keys.Client
+	BasisTheory() basistheory.Client
 }
