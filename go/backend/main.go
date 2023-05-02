@@ -57,6 +57,7 @@ import (
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -184,6 +185,8 @@ func start(args *cli.StartArgs) {
 	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
+
+	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
 
 	var wg sync.WaitGroup
 
@@ -442,6 +445,8 @@ func startWorker(args *cli.StartArgs) {
 	b.gmt = gmt_client.New(b)
 
 	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
+
+	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
 
 	vc, err := vault.NewClient()
 	if err != nil {
