@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -57,6 +56,7 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -246,27 +246,12 @@ func start(args *cli.StartArgs) {
 
 	b.gmt = gmt_client.New(b)
 
-	tabapayClientArgs := tabapay_client.NewClientArgs{
-		VgsProxyURL:         args.VGSProxyURL,
-		ClientID:            args.TabapayClientID,
-		BearerToken:         args.TabapayBearerToken,
-		SettlementAccountID: args.TabapaySettlementAccountID,
-	}
-	if args.VGSCaCertPath != "" {
-		vgsCaCert, err := os.ReadFile(os.Getenv("VGS_CERT_PATH"))
-		if err != nil {
-			log.Fatal("Failed to read VGS certificate.", zap.Error(err))
-		}
-
-		caCertPool := x509.NewCertPool()
-		ok := caCertPool.AppendCertsFromPEM(vgsCaCert)
-		if !ok {
-			log.Fatal("Failed to add VGS CA to cert pool.")
-		}
-
-		tabapayClientArgs.CaCertPool = caCertPool
-	}
-	tabapayClient, err := tabapay_client.New(tabapayClientArgs, b)
+	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
+		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
+		ClientID:               args.TabapayClientID,
+		BearerToken:            args.TabapayBearerToken,
+		SettlementAccountID:    args.TabapaySettlementAccountID,
+	}, b)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -466,27 +451,12 @@ func startWorker(args *cli.StartArgs) {
 
 	b.keys = keys_client.New(b)
 
-	tabapayClientArgs := tabapay_client.NewClientArgs{
-		VgsProxyURL:         args.VGSProxyURL,
-		ClientID:            args.TabapayClientID,
-		BearerToken:         args.TabapayBearerToken,
-		SettlementAccountID: args.TabapaySettlementAccountID,
-	}
-	if args.VGSCaCertPath != "" {
-		vgsCaCert, err := os.ReadFile(os.Getenv("VGS_CERT_PATH"))
-		if err != nil {
-			log.Fatal("Failed to read VGS certificate.", zap.Error(err))
-		}
-
-		caCertPool := x509.NewCertPool()
-		ok := caCertPool.AppendCertsFromPEM(vgsCaCert)
-		if !ok {
-			log.Fatal("Failed to add VGS CA to cert pool.")
-		}
-
-		tabapayClientArgs.CaCertPool = caCertPool
-	}
-	tabapayClient, err := tabapay_client.New(tabapayClientArgs, b)
+	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
+		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
+		ClientID:               args.TabapayClientID,
+		BearerToken:            args.TabapayBearerToken,
+		SettlementAccountID:    args.TabapaySettlementAccountID,
+	}, b)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -535,6 +505,11 @@ type backends struct {
 	gmt            gmt.Client
 	tabapay        tabapay.Client
 	vault          vault.Client
+	basistheory    basistheory.Client
+}
+
+func (b backends) BasisTheory() basistheory.Client {
+	return b.basistheory
 }
 
 func (b backends) Authorisation() authorisation.InternalClient {

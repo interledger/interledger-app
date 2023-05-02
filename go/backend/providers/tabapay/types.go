@@ -13,12 +13,8 @@ var (
 )
 
 type CreateCardArgs struct {
-	IdempotencyKey string
-	WalletID       string
-	Name           string
-	CardNumber     string
-	CVV            string
-	ExpirationDate string
+	WalletID          string
+	BasisTheoryCardID string
 }
 
 type PullFromCardArgs struct {
