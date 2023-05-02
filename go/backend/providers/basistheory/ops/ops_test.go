@@ -31,7 +31,7 @@ func TestCreateCard(t *testing.T) {
 		&basistheory.Token{
 			Id: &tokenID,
 			Data: &external.CardData{
-				Number:          "1234",
+				TokenizedNumber: "1234",
 				ExpirationMonth: "02",
 				ExpirationYear:  "2024",
 			},
