@@ -2,6 +2,7 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { CreateCardRequest } from "./backend";
 import type { Authenticate3DSResponse } from "./backend";
 import type { Authenticate3DSRequest } from "./backend";
 import type { Lookup3DSResponse } from "./backend";
@@ -494,6 +495,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: Authenticate3DS(backend.v1.Authenticate3DSRequest) returns (backend.v1.Authenticate3DSResponse);
      */
     authenticate3DS(input: Authenticate3DSRequest, options?: RpcOptions): UnaryCall<Authenticate3DSRequest, Authenticate3DSResponse>;
+    /**
+     * Basistheory
+     *
+     * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.Empty);
+     */
+    createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -906,5 +913,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     authenticate3DS(input: Authenticate3DSRequest, options?: RpcOptions): UnaryCall<Authenticate3DSRequest, Authenticate3DSResponse> {
         const method = this.methods[52], opt = this._transport.mergeOptions(options);
         return stackIntercept<Authenticate3DSRequest, Authenticate3DSResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Basistheory
+     *
+     * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.Empty);
+     */
+    createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, Empty> {
+        const method = this.methods[53], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

@@ -5,6 +5,8 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccount_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/providers/basistheory"
+	mock_bt "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	mock_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
 )
@@ -13,11 +15,13 @@ type Backends interface {
 	External() external.Client
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
+	BasisTheory() basistheory.Client
 }
 
 type InputBackends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
+	BasisTheory() basistheory.Client
 }
 
 type backends struct {
@@ -37,10 +41,19 @@ func (ob *backends) LinkedAccounts() linkedaccounts.Client {
 	return ob.b.LinkedAccounts()
 }
 
+func (ob *backends) BasisTheory() basistheory.Client {
+	return ob.b.BasisTheory()
+}
+
 type TestBackends struct {
 	ExternalClient *mock_client.MockClient
 	Kyc            *kyc_mock.MockClient
 	Linkedaccounts *linkedaccount_mock.MockClient
+	Basistheory    *mock_bt.MockClient
+}
+
+func (tb *TestBackends) BasisTheory() basistheory.Client {
+	return tb.Basistheory
 }
 
 func (tb *TestBackends) External() external.Client {

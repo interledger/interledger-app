@@ -15,7 +15,6 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
@@ -47,8 +46,6 @@ func TestAdd(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
@@ -107,8 +104,6 @@ func TestList(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
@@ -140,8 +135,6 @@ func TestDelete(t *testing.T) {
 }
 
 func TestSetPublic(t *testing.T) {
-	t.Parallel()
-
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
