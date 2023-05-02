@@ -49,7 +49,7 @@ func CreateCard(ctx context.Context, b Backends, tokenID, walletID string) (*bas
 		token.Id,
 		cardData.ExpirationMonth,
 		cardData.ExpirationYear,
-		cardData.Number,
+		cardData.TokenizedNumber,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)
