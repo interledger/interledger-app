@@ -263,10 +263,6 @@ table "basistheory_cards" {
     null = false
     type = uuid
   }
-  column "last4" {
-    null = false
-    type = text
-  }
   column "created_at" {
     null    = false
     type    = timestamp
@@ -286,7 +282,7 @@ table "basistheory_cards" {
   }
   index "token_id_wallet_id_uniq" {
     unique  = true
-    columns = [column.card_token_id, column.wallet_id]
+    columns = [column.token_id, column.wallet_id]
   }
 }
 table "machnet_receive_bank_accounts" {
