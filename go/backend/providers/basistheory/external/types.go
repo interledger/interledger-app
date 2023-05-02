@@ -7,7 +7,7 @@ import (
 )
 
 type CardData struct {
-	Number          string `json:"number"`
+	TokenizedNumber string `json:"number"`
 	ExpirationMonth string `json:"expiration_month"`
 	ExpirationYear  string `json:"expiration_year"`
 }
