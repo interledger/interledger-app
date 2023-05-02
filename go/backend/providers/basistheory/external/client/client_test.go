@@ -13,7 +13,7 @@ import (
 
 func TestClient(t *testing.T) {
 	if os.Getenv("BASISTHEORY_API_KEY") == "" {
-		t.Skip()
+		t.Skip("no credentials")
 	}
 
 	client := client.New(os.Getenv("BASISTHEORY_API_KEY"))
