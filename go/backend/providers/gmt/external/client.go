@@ -20,10 +20,16 @@ type client struct {
 	alias    string
 	user     string
 	password string
+
+	txURL      string
+	txUser     string
+	txPassword string
+	txPartner  string
 }
 
 type Client interface {
 	InsertTransaction(ctx context.Context, tx InsertTransaction) (*WsResponse, error)
+	UpdateTransactionStatus(ctx context.Context, tx UpdateTransactionStatus) (*WsResponse, error)
 	OfacVerification(ctx context.Context, req OfacVerification) (*WsOfac, error)
 	ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsResponse, error)
 	SetVerified(ctx context.Context, req SetVerified) (*WsResult, error)
@@ -34,12 +40,17 @@ type Client interface {
 
 func NewClient() Client {
 
-	var alias, user, pass, url string
+	var alias, user, pass, url, txURL, txUser, txPassword, txPartner string
 	if !env.IsProd() {
 		alias = "FYN001"
 		user = "Fynbos_api"
 		pass = "VUJ6bnkxN2dQVXkwMjZaOA=="
 		url = "http://35.166.119.115/gmtpay/Service1.svc"
+
+		txURL = "http://35.166.119.115/gmtupd/Service1.svc"
+		txUser = "Fynbos_payer"
+		txPassword = "ejV1eGZTY0YzMTBG"
+		txPartner = "87"
 	}
 
 	return &client{
@@ -48,6 +59,11 @@ func NewClient() Client {
 		alias:    getEnvDefault("GMT_ALIAS", alias),
 		user:     getEnvDefault("GMT_USER", user),
 		password: getEnvDefault("GMT_PASSWORD", pass),
+
+		txURL:      getEnvDefault("GMT_TX_PASSWORD", txURL),
+		txUser:     getEnvDefault("GMT_TX_USER", txUser),
+		txPassword: getEnvDefault("GMT_TX_PASSWORD", txPassword),
+		txPartner:  getEnvDefault("GMT_TX_PARTNER", txPartner),
 	}
 }
 
@@ -214,6 +230,71 @@ func (c *client) GetNotifications(ctx context.Context) ([]*WsNotifications, erro
 	}
 
 	return response.Resp.GetNotificationsResult.WsNotifications, err
+}
+
+func (c *client) UpdateTransactionStatus(ctx context.Context, tx UpdateTransactionStatus) (*WsResponse, error) {
+	type txBody struct {
+		Text string                    `xml:",chardata"`
+		Resp InsertTransactionResponse `xml:"UpdateTransactionStatusResponse"`
+	}
+	response := txBody{}
+
+	tx.User = c.txUser
+	tx.Pass = c.txPartner
+	tx.Partner = c.txPartner
+
+	err := c.txCall(ctx, "http://tempuri.org/IService1/UpdateTransactionStatus", tx, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Resp.InsertTransactionResult, err
+}
+
+func (c *client) txCall(ctx context.Context, action string, request, resp interface{}) error {
+	envelope := SOAPEnvelope{
+		XmlNS: "http://schemas.xmlsoap.org/soap/envelope/",
+	}
+
+	envelope.Body.Content = request
+
+	payload, err := xml.Marshal(envelope)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.txURL, bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Content-Type", "text/xml; charset=\"utf-8\"")
+	req.Header.Add("SOAPAction", action)
+
+	res, err := c.cl.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode >= 400 {
+		return fmt.Errorf("http error code (%d) msg (%s)", res.StatusCode, body)
+	}
+
+	respEnv := &SOAPEnvelopeResponse{
+		Body: resp,
+	}
+
+	err = xml.Unmarshal(body, respEnv)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *client) call(ctx context.Context, action string, request, resp interface{}) error {

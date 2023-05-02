@@ -76,6 +76,22 @@ type InsertTransactionResponse struct {
 	InsertTransactionResult *WsResponse `xml:"InsertTransactionResult,omitempty"`
 }
 
+type UpdateTransactionStatus struct {
+	XMLName    xml.Name `xml:"http://tempuri.org/ UpdateTransactionStatus"`
+	Partner    string   `xml:"partner,omitempty"`
+	Reference  string   `xml:"reference,omitempty"`
+	Statuscode string   `xml:"statuscode,omitempty"`
+	Date       GMTDate  `xml:"date,omitempty"`
+	User       string   `xml:"user,omitempty"`
+	Pass       string   `xml:"pass,omitempty"`
+	Comment    string   `xml:"comment,omitempty"`
+}
+
+type UpdateTransactionStatusResponse struct {
+	XMLName                       xml.Name `xml:"http://tempuri.org/ UpdateTransactionStatusResponse"`
+	UpdateTransactionStatusResult *WsResponse
+}
+
 type GetPaidTransactions struct {
 	XMLName xml.Name `xml:"http://tempuri.org/ GetPaidTransactions"`
 	Alias   string   `xml:"alias,omitempty"`

@@ -724,6 +724,11 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	if err != nil {
 		logger.Error("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			// Try to fail tx on GMT
+			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StateFailed).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
+			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2CARD,
 				OutgoingTransferState:      state,
@@ -731,6 +736,13 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 				IncomingTransferState:      transactions.StateFailed,
 			}, nil
 		}
+		return nil, err
+	}
+
+	// Notify GMT of completed card transaction.
+	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to update card transaction on gmt", "err", err)
 		return nil, err
 	}
 
