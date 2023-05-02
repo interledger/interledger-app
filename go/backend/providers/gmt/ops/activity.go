@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
+
+	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
@@ -569,6 +572,30 @@ func (a *Activity) CompleteWorkflowRef(ctx context.Context, refID string) error 
 func (a *Activity) ConfirmPaidNotification(ctx context.Context, externalID string) error {
 	resp, err := a.ext.ConfirmPayment(ctx, external.ConfirmPayment{
 		Receipt: externalID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if resp.Error != 0 {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", resp.Error, resp.Message), "external", nil)
+	}
+
+	return nil
+}
+
+func (a *Activity) UpdateCardTransactionStatus(ctx context.Context, externalID string, txStatus transactions.State) error {
+	// GMT status codes : 0=paid, 1=cancelled, 2=transmitted, 3=undo payment
+	status := "0"
+	if txStatus != transactions.StateCompleted {
+		status = "3"
+	}
+
+	resp, err := a.ext.UpdateTransactionStatus(ctx, external.UpdateTransactionStatus{
+		Reference:  externalID,
+		Statuscode: status,
+		Date:       external.GMTDate(time.Now()),
 	})
 
 	if err != nil {
