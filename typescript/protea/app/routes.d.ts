@@ -56,6 +56,7 @@ declare module "routes-gen" {
     "/settings": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/contact": Record<string, never>;
+    "/pay/3ds": Record<string, never>;
     "/support": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
@@ -125,6 +126,7 @@ declare module "routes-gen" {
       | ["/settings"]
       | ["/waitlist"]
       | ["/contact"]
+      | ["/pay/3ds"]
       | ["/support"]
       | ["/logout"]
       | ["/signup"]
