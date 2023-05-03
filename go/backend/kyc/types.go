@@ -60,3 +60,9 @@ type PersonaInquiry struct {
 	ID           string
 	SessionToken string
 }
+
+type PersonaIDNumber struct {
+	IssuingCountry       string
+	IdentificationClass  string
+	IdentificationNumber string
+}

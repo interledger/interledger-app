@@ -1,6 +1,8 @@
 package ops
 
 import (
+	"testing"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -9,13 +11,13 @@ import (
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
-	"testing"
 )
 
 type Backends interface {
@@ -30,12 +32,17 @@ type Backends interface {
 	MX() mx.Client
 	Tabapay() tabapay.Client
 	Keys() keys.Client
+	Limits() limits.Client
 }
 
 type testBackends struct {
 	db *sqlx.DB
 	ac analytics.Client
 	kc keys.Client
+}
+
+func (t testBackends) Limits() limits.Client {
+	return nil
 }
 
 func (t testBackends) MX() mx.Client {

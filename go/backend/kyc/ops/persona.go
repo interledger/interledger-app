@@ -90,3 +90,30 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		ID: inquiry.ID,
 	}, nil
 }
+
+func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) ([]kyc.PersonaIDNumber, error) {
+	var accID string
+	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", kyc.ErrNoKYCInfo, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	acc, err := cl.GetAccount(ctx, accID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	var resp []kyc.PersonaIDNumber
+	for _, idNum := range acc.Attributes.IdentificationNumbers {
+		resp = append(resp, kyc.PersonaIDNumber{
+			IssuingCountry:       idNum.IssuingCountry,
+			IdentificationClass:  idNum.IdentificationClass,
+			IdentificationNumber: idNum.IdentificationNumber,
+		})
+	}
+
+	return resp, nil
+}
