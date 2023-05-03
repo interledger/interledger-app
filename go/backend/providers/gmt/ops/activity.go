@@ -320,7 +320,13 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 	if senderID.Gender == kyc.GenderFemale {
 		gender = "Female"
 	}
-	return &external.WsSender{
+
+	exceeds, err := b.Limits().ExceedsGMTLimits(ctx, walletID, args.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	sender := &external.WsSender{
 		SenderAddress:               senderID.Address.FormattedAddress,
 		SenderAddressStreet:         senderID.Address.Apartment,
 		SenderBirthDate:             external.GMTDate(senderID.DateOfBirth),
@@ -344,7 +350,32 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderResidenceZip:          senderID.Address.ZipCode,
 		SenderState:                 senderID.Address.State,
 		SenderZip:                   senderID.Address.ZipCode,
-	}, nil
+	}
+
+	if !exceeds {
+		return sender, nil
+	}
+
+	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO add senderID expiration and issuer state
+	for _, idNum := range idNums {
+		switch idNum.IdentificationClass {
+		case "ssn":
+			sender.SenderIdNumber2 = idNum.IdentificationNumber
+		case "dl":
+			sender.SenderIdNumber = idNum.IdentificationNumber
+			sender.SenderIdType = "DRIVERS LICENSE"
+		case "pp":
+			sender.SenderIdNumber = idNum.IdentificationNumber
+			sender.SenderIdType = "PASSPORT"
+		}
+	}
+
+	return sender, nil
 }
 
 func getSenderID(ctx context.Context, b Backends, walletID string) (int64, error) {

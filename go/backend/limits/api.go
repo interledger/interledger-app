@@ -18,4 +18,6 @@ type Client interface {
 	UpdatePublicKeyLimits(ctx context.Context, walletID, publicKeyUuid string, limit Limit) error
 	List(ctx context.Context, walletID string) ([]LimitConfigured, error)
 	GetPublicKeyLimit(ctx context.Context, walletID, publicKeyUuid string) (*Limit, error)
+
+	ExceedsGMTLimits(ctx context.Context, walletID string, amount currency.Amount) (bool, error)
 }
