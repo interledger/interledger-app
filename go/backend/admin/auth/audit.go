@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"gitlab.com/fynbos/env"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -19,6 +20,11 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (interface{}, error) {
+
+		// Skip audit logging for local development
+		if env.IsLocal() {
+			return handler(ctx, req)
+		}
 
 		adminUser, ok := ctx.Value(userCtxKey).(*AdminUser)
 		if !ok || adminUser == nil {
