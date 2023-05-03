@@ -1,5 +1,4 @@
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { LinksFunction, MetaFunction } from '@remix-run/node'
 import {
   Links,
   LiveReload,
@@ -8,7 +7,7 @@ import {
   ScrollRestoration,
   useCatch
 } from '@remix-run/react'
-import { WalletLayout, Error } from '~/components'
+import { AdminLayout, Error } from '~/components'
 import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 
@@ -68,34 +67,12 @@ function Document({
   )
 }
 
-export async function loader({ request }: LoaderArgs) {
-  // const isUser = await hasUserSession(request)
-  // return json({ isUser })
-  return json(null)
-}
-
 export default function Page() {
   return (
     <Document>
-      <WalletLayout />
+      <AdminLayout />
     </Document>
   )
-  // const { isUser } = useLoaderData<typeof loader>()
-  // const location = useLocation()
-  // let isFocussed =
-  //   location.pathname.startsWith('/signup') ||
-  //   location.pathname.startsWith('/waitlist') ||
-  //   location.pathname.startsWith('/contact') ||
-  //   location.pathname.startsWith('/login') ||
-  //   location.pathname.startsWith('/payment-pointer')
-  //
-  // return (
-  //   <Document>
-  //     {isFocussed && <FocusLayout />}
-  //     {!isFocussed && isUser && <WalletLayout />}
-  //     {!isFocussed && !isUser && <LandingLayout />}
-  //   </Document>
-  // )
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
