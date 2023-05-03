@@ -16,22 +16,8 @@ import (
 )
 
 func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (tabapay.Await, error) {
-	cardQuery, err := b.External().QueryCard(ctx, external.QueryCardArgs{
-		Card: &external.Card{
-			AccountNumber:  args.CardNumber,
-			ExpirationDate: args.ExpirationDate,
-			SecurityCode:   args.CVV,
-		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
-	}
-	if cardQuery.Card.Pull.Type != external.CardTypeDebit || cardQuery.Card.Push.Type != external.CardTypeDebit {
-		return nil, fmt.Errorf("%w Not a debit card.", tabapay.ErrInvalidCard)
-	}
-
 	wo := client.StartWorkflowOptions{
-		ID:                       "tabapay_create_card_" + args.IdempotencyKey,
+		ID:                       "tabapay_create_card_" + args.BasisTheoryCardID,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: 2 * time.Minute,
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
