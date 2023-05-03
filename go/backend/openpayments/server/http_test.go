@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -450,7 +449,7 @@ func TestListKeys(t *testing.T) {
 		{
 			ID:        uuid.NewString(),
 			Type:      keys.NonCustodial,
-			Reference: sql.NullString{},
+			Reference: "",
 			PublicKey: "encoded key",
 		},
 	}, nil)
