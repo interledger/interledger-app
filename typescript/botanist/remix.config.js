@@ -2,11 +2,17 @@
  * @type {import('@remix-run/dev/config').AppConfig}
  */
 module.exports = {
+  tailwind: true,
+  future: {
+    v2_meta: true,
+    v2_routeConvention: true,
+    v2_errorBoundary: true,
+    v2_normalizeFormMethod: true
+  },
   appDirectory: 'app',
-  serverBuildTarget: 'node-cjs',
   assetsBuildDirectory: 'public/build',
+  serverModuleFormat: 'cjs',
   publicPath: '/build/',
-  devServerPort: 8003,
   ignoredRouteFiles: ['.*', '**/*.draft.mdx'],
   sourcemap: true
 }

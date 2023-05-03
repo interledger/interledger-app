@@ -1,7 +1,7 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/api/allowSignup": Record<string, never>;
-    "/wallets/:id": { "id": string };
+    "/wallet/:id": { "id": string };
     "/waitlist": Record<string, never>;
     "/wallets": Record<string, never>;
     "/": Record<string, never>;
@@ -10,7 +10,7 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/api/allowSignup"]
-      | ["/wallets/:id", RouteParams["/wallets/:id"]]
+      | ["/wallet/:id", RouteParams["/wallet/:id"]]
       | ["/waitlist"]
       | ["/wallets"]
       | ["/"]

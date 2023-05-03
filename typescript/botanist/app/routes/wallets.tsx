@@ -1,6 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
 
-import { Router, WalletGrid } from '~/components'
+import { Router, Grid } from '~/components'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { ListWallets } from '~/lib/wallet.server'
@@ -23,7 +23,7 @@ export default function Page() {
   const { wallets } = useLoaderData<typeof loader>()
 
   return (
-    <WalletGrid>
+    <Grid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6'>
         <div className='sm:flex sm:items-center'>
           <div className='sm:flex-auto'>
@@ -36,38 +36,29 @@ export default function Page() {
         <div className='mt-8 flex flex-col'>
           <div className='-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8'>
             <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
-              <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg'>
-                <table className='min-w-full divide-y divide-gray-300'>
-                  <thead className='bg-gray-50'>
+              <div className='overflow-hidden ring-2 ring-base md:rounded-lg'>
+                <table className='min-w-full divide-y divide-base'>
+                  <thead className='bg-app'>
                     <tr>
                       <th
                         scope='col'
-                        className='py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Wallet
                       </th>
                       <th
                         scope='col'
-                        className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
-                      >
-                        User ID
-                      </th>
-                      <th
-                        scope='col'
-                        className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
                       >
                         Email
                       </th>
                       <th
                         scope='col'
-                        className='px-3 py-3.5 text-left text-sm font-semibold text-gray-900'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Phone number
                       </th>
-                      <th
-                        scope='col'
-                        className='relative py-3.5 pl-3 pr-4 sm:pr-6'
-                      >
+                      <th scope='col' className='relative py-3.5 px-4'>
                         <span className='sr-only'>Edit</span>
                       </th>
                     </tr>
@@ -75,21 +66,18 @@ export default function Page() {
                   <tbody className='divide-y divide-gray-200 bg-white'>
                     {wallets.wallets.map((wallet) => (
                       <tr key={wallet.walletID}>
-                        <td className='py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6'>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
                           {wallet.walletID}
                         </td>
-                        <td className='px-3 py-4 text-sm text-gray-500'>
-                          {wallet.users[0].id}
-                        </td>
-                        <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                        <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
                           {wallet.users[0].email}
                         </td>
-                        <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                        <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
                           {wallet.users[0].phoneNumber}
                         </td>
-                        <td className='relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6'>
+                        <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
-                            to={route('/wallets/:id', { id: wallet.walletID })}
+                            to={route('/wallet/:id', { id: wallet.walletID })}
                             className='text-primary'
                           >
                             View
@@ -99,11 +87,11 @@ export default function Page() {
                       </tr>
                     ))}
                     <tr
-                      className='items-center justify-between px-4 py-3 sm:px-6'
+                      className='items-center justify-between p-4'
                       aria-label='Pagination'
                     >
-                      <td colSpan={2} className='py-4 pl-4 pr-3 sm:pl-6'>
-                        <p className='text-sm text-gray-700'>
+                      <td colSpan={2} className='p-4'>
+                        <p className='text-sm text-weak'>
                           Showing <span className='font-medium'>1</span> to{' '}
                           <span className='font-medium'>
                             {wallets.wallets.length}
@@ -145,6 +133,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-    </WalletGrid>
+    </Grid>
   )
 }

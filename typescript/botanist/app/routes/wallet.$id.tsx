@@ -1,6 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
 
-import { WalletGrid } from '~/components'
+import { Grid } from '~/components'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { GetWalletDetails } from '~/lib/wallet.server'
@@ -60,7 +60,7 @@ export default function Page() {
   const { wallet } = useLoaderData<typeof loader>()
 
   return (
-    <WalletGrid>
+    <Grid>
       <div className='col-span-full lg:col-span-6 flex flex-col rounded-2xl bg-page p-4 pb-6'>
         <div>
           <h3 className='text-lg font-medium leading-6 text-gray-900'>
@@ -83,6 +83,10 @@ export default function Page() {
           </dl>
         </div>
       </div>
-    </WalletGrid>
+      <div className='col-span-full  lg:col-span-6 flex flex-col rounded-2xl bg-page p-4 pb-6 h-32'></div>
+      <div className='col-span-full lg:col-span-6 flex flex-col rounded-2xl bg-page p-4 pb-6 h-32'></div>
+      <div className='col-span-full lg:col-span-6 flex flex-col rounded-2xl bg-page p-4 pb-6 h-32'></div>
+      <div className='col-span-full lg:col-span-6 flex flex-col rounded-2xl bg-page p-4 pb-6 h-32'></div>
+    </Grid>
   )
 }

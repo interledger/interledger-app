@@ -1,11 +1,12 @@
-import type { LinksFunction, MetaFunction } from '@remix-run/node'
+import type { LinksFunction, V2_MetaFunction } from '@remix-run/node'
 import {
+  isRouteErrorResponse,
   Links,
   LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
-  useCatch
+  useRouteError
 } from '@remix-run/react'
 import { AdminLayout, Error } from '~/components'
 import type { ReactNode } from 'react'
@@ -16,13 +17,13 @@ const metaContent = {
   description: ''
 }
 
-export const meta: MetaFunction = () => {
-  return {
-    title: metaContent.title,
-    'theme-color': '#FFE4E6',
-    description: metaContent.description,
-    viewport: 'width=device-width,initial-scale=1'
-  }
+export const meta: V2_MetaFunction = () => {
+  return [
+    { title: metaContent.title },
+    { name: 'theme-color', content: '#FFE4E6' },
+    { name: 'description', content: metaContent.description },
+    { name: 'viewport', content: 'width=device-width,initial-scale=1' }
+  ]
 }
 
 export const links: LinksFunction = () => {
@@ -61,7 +62,7 @@ function Document({
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
+        <LiveReload port={443} />
       </body>
     </html>
   )
@@ -75,23 +76,18 @@ export default function Page() {
   )
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
+export function ErrorBoundary() {
+  const error = useRouteError()
+  if (isRouteErrorResponse(error)) {
+    return (
+      <Document title='An error occurred.'>
+        <Error status={error.status} data={{ title: error.data.message }} />
+      </Document>
+    )
+  }
   return (
     <Document title='An error occurred.'>
-      <Error data={{ title: error.message }} />
-    </Document>
-  )
-}
-
-export function CatchBoundary() {
-  const caught = useCatch()
-  return (
-    <Document title='An error occurred.'>
-      <Error
-        status={caught.status}
-        statusText={caught.statusText}
-        data={caught.data}
-      />
+      <Error data={{ title: 'error.data.message' }} />
     </Document>
   )
 }

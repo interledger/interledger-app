@@ -1,6 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
 
-import { Icon, WalletGrid } from '~/components'
+import { Icon, Grid } from '~/components'
 import { json } from '@remix-run/node'
 import { useLoaderData, useFetcher } from '@remix-run/react'
 import { grpcClient } from '~/lib/proto.server'
@@ -42,7 +42,7 @@ export default function Page() {
   }
 
   return (
-    <WalletGrid>
+    <Grid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6'>
         <div className='sm:flex sm:items-center'>
           <div className='sm:flex-auto'>
@@ -146,6 +146,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-    </WalletGrid>
+    </Grid>
   )
 }
