@@ -1,25 +1,25 @@
-import {
-  grpcClient,
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
 import { json, redirect } from '@remix-run/node'
+import { DateTime } from 'luxon'
+import { route } from 'routes-gen'
 import type {
   Amount,
   GetPublicWalletDetailsResponse,
+  Transaction as GrpcTransaction,
   IndividualKYCResponse,
   KYCStatusResponse,
   LinkedAccount,
   ListContactsRequest,
+  ListContactsResponse,
   PaginationRequest,
-  PaymentPointer,
-  Transaction as GrpcTransaction
+  PaymentPointer
 } from '~/generated/protobuf-ts/backend/v1/backend'
-import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
-import { DateTime } from 'luxon'
-import { route } from 'routes-gen'
+import {
+  StatusError,
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  openPaymentsClient
+} from '~/lib/proto.server'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -217,6 +217,7 @@ const formatLinkedAccount = (
     name = '',
     icon = ''
   switch (linkedAccount.type) {
+    case 'card':
     case 'sendCard':
       type = 'card'
       name = `**** ${linkedAccount.mask}`

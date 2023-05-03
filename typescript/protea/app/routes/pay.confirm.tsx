@@ -1,17 +1,17 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import { Button, Card, Checkbox, Layouts } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
-import { route } from 'routes-gen'
+import { getClientIP } from '~/lib/ip.server'
+import { getUserSession } from '~/lib/kratos.server'
 import {
+  StatusError,
   httpMapping,
   isGrpcError,
-  openPaymentsClient,
-  StatusError
+  openPaymentsClient
 } from '~/lib/proto.server'
-import { getUserSession } from '~/lib/kratos.server'
-import { getClientIP } from '~/lib/ip.server'
 import { getLinkedAccounts } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -119,6 +119,12 @@ export default function Page() {
           debiting my account, so long as the transaction corresponds to the
           terms in this online form and my agreement with Fynbos.
         </Checkbox>
+        <input
+          form='pay-confirm'
+          defaultValue={linkedAccount?.type}
+          name='linked-account-type'
+          type='hidden'
+        />
       </Card>
       <Button form='pay-confirm' type='submit'>
         Confirm payment
@@ -138,6 +144,7 @@ export async function action({ request }: ActionArgs) {
   const flow = await requireFlow(request, flowType.Pay)
   const form = await request.formData()
   const serviceAgreement = form.get('service-agreement') as string
+  const linkedAccountType = form.get('linked-account-type') as string
 
   const fieldErrors = {
     form: '',
@@ -156,6 +163,10 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
+  if (linkedAccountType === 'card') {
+    return redirect(route('/pay/3ds'))
+  }
+
   const clientIpAddress = getClientIP(request)
 
   const response = await openPaymentsClient
@@ -165,7 +176,8 @@ export async function action({ request }: ActionArgs) {
         quoteID: flow.data.quoteID,
         description: flow.data.note,
         externalRef: '',
-        ipAddress: clientIpAddress
+        ipAddress: clientIpAddress,
+        threeDSID: ''
       },
       {
         meta: {
