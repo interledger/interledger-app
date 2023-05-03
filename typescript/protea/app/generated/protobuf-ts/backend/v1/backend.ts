@@ -1657,7 +1657,7 @@ export interface ListPublicIdentitiesRequest {
 /**
  * @generated from protobuf message backend.v1.KYCStatusResponse
  */
-export interface KYCStatusResponse {
+export interface          KYCStatusResponse {
     /**
      * @generated from protobuf field: int32 kyc_status = 1;
      */

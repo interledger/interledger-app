@@ -12,4 +12,6 @@ type Client interface {
 
 	Verify(ctx context.Context, keyID, walletID string, message, signature []byte) (bool, error)
 	Sign(ctx context.Context, keyID, walletID string, message []byte) ([]byte, error)
+
+	FixWalletPublicKey(ctx context.Context, walletID string) error
 }
