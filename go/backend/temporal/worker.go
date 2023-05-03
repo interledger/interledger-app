@@ -35,8 +35,9 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	gmt_workflows.StartNotificationsPolling(b)
 
 	// Jobs
-	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
 	w.RegisterActivity(jobs.NewActivity(b))
+	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
+	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 
 	return w, nil
 }

@@ -2,17 +2,13 @@ package vault
 
 import (
 	"context"
-	"crypto/ed25519"
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"fmt"
 	vault "github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/kubernetes"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"os"
-	"strings"
 )
 
 type client struct {
@@ -37,6 +33,7 @@ func NewClient() (Client, error) {
 
 		k8sAuth, err := auth.NewKubernetesAuth(
 			"k8s-app",
+			auth.WithServiceAccountToken("eyJhbGciOiJSUzI1NiIsImtpZCI6ImQyMGZmZTJkZTM3YzliMWMxZjk2ODU5ZDRjZmFlODUyMmYxNWQ0YWEifQ.eyJh\ndWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTcxNDYzNTcxNiwiaWF0IjoxNjgzMDk5NzE2LCJpc3MiOiJodHRwczovL29pZGMuZWtzLmV1LXdlc3QtMS5hbWF6b25hd3MuY29tL2lkL0FGODNGRkNDOEEzMUQxNkQyRTFDOUMxNzg4MjA1ODYzIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJiYWNrZW5kIiwicG9kIjp7Im5hbWUiOiJiYWNrZW5kLXdvcmtlci02YzRmYjQ0ODktejdxOW0iLCJ1aWQiOiJiMWIyNzVmNi1mMzJkLTQzMDQtYmMyOC1jMmQ2ZDgzMjQzYTgifSwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImJhY2tlbmQiLCJ1aWQiOiIxMTgxZmY5Ni0wOTI3LTQzN2MtYTJhNS1lMTZiMWM3MTJjYjkifSwid2FybmFmdGVyIjoxNjgzMTAzMzIzfSwibmJmIjoxNjgzMDk5NzE2LCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6YmFja2VuZDpiYWNrZW5kIn0.KfuFc_GmPnlzZ3y4k_PNfKBkSKLojdluIJmKCbnNyUXSKaU4joGl8fRMLP_u9xecych_5IZQnwnYsHa3FCg9C-biY7SeJMV4xfN9kYZo29GeBEuH5EiqdgFANUwpJ03s9lO3AkcYLi1ttg5XSnuZIAFX0yTh_whtyu4kknc_eYsGzjxUBE0f1eMSnsn1it1GFeIZEJLIiSD3cXYN5oU7zNEyx09_hmgw8oFwH4fDSUVxfPCxlDiWYAd6aNk8V-78PveKodoFW87NRb9ckNPUf9uPwYxzcH2vfNK2cLmMLkeuFf876DlgwyJiwlvVGfZeFMzG5gX4_VqRPVaW6NEluQ"),
 			auth.WithMountPath(mountPath),
 		)
 		if err != nil {
@@ -135,21 +132,5 @@ func (c client) GetPublicKey(keyName string) (string, error) {
 		}
 	}
 
-	// Convert PEM pubKey to base64
-	block, _ := pem.Decode([]byte(strings.TrimSpace(pubKey)))
-	if block == nil {
-		return "", fmt.Errorf("failed to decode PEM public key")
-	}
-
-	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return "", err
-	}
-
-	switch pub := publicKey.(type) {
-	case ed25519.PublicKey:
-		return string(pub), nil
-	default:
-		return "", fmt.Errorf("unsupported key type")
-	}
+	return pubKey, nil
 }

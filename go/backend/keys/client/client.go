@@ -42,3 +42,7 @@ func (c client) Verify(ctx context.Context, keyID, walletID string, message, sig
 func (c client) Sign(ctx context.Context, keyID, walletID string, message []byte) ([]byte, error) {
 	return ops.Sign(ctx, c.b, keyID, walletID, message)
 }
+
+func (c client) FixWalletPublicKey(ctx context.Context, walletID string) error {
+	return ops.FixWalletPublicKeys(ctx, c.b, walletID)
+}
