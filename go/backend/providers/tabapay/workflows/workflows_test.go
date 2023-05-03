@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	"gitlab.com/fynbos/backend/providers/tabapay/workflows"
@@ -17,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOutgoingTransactionWorkflow(t *testing.T) {
+func TestCreateCardWorkflow(t *testing.T) {
 	t.Setenv("TABAPAY_CLIENT_ID", "test")
 	t.Setenv("TABAPAY_BEARER_TOKEN", "test")
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -25,18 +26,25 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	b := workflows.NewTestBackends()
 	a := workflows.NewActivity(b)
 
-	idempotencyKey := uuid.NewString()
-	env.OnActivity(a.MarkCardNotDeleted, mock.Anything, idempotencyKey).Return(
-		func(ctx context.Context, arg workflows.CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
+	basisTheoryCardID, walletID := uuid.NewString(), uuid.NewString()
+	env.OnActivity(a.GetBasisTheoryCard, mock.Anything, basisTheoryCardID).Return(
+		&basistheory.Card{
+			ID:              basisTheoryCardID,
+			TokenizedNumber: "1234",
+			WalletID:        walletID,
+		}, nil,
+	)
+
+	env.OnActivity(a.MarkCardNotDeleted, mock.Anything, basisTheoryCardID).Return(
+		func(ctx context.Context, idempotencyKey string) (*linkedaccounts.LinkedAccount, error) {
 			return nil, temporal.NewNonRetryableApplicationError(linkedaccounts.ErrNotFound.Error(), "NotFound", linkedaccounts.ErrNotFound)
 		},
 	)
 
-	providerID, walletID := uuid.NewString(), uuid.NewString()
-	tokenizedLast4, cardName := "mber", "test"
+	providerID := uuid.NewString()
 	env.OnActivity(a.CreateExternalCard, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, arg workflows.CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
-			require.Equal(t, idempotencyKey, arg.LinkedAccountID)
+			require.Equal(t, basisTheoryCardID, arg.BasisTheoryCardID)
 			return &external.CreateAccountResponse{
 				AccountID: providerID,
 			}, nil
@@ -45,29 +53,25 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 
 	env.OnActivity(a.CreateLinkedCard, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, arg workflows.CreateLinkedCardArgs) (*linkedaccounts.LinkedAccount, error) {
-			require.Equal(t, idempotencyKey, arg.ID)
-			require.Equal(t, tokenizedLast4, arg.Mask)
-			require.Equal(t, cardName, arg.Name)
-			require.Equal(t, cardName, arg.Nickname)
+			require.Equal(t, basisTheoryCardID, arg.ID)
+			require.Equal(t, "1234", arg.Mask)
+			require.Equal(t, "1234", arg.Name)
+			require.Equal(t, "1234", arg.Nickname)
 			require.Equal(t, providerID, arg.ProviderID)
 			return &linkedaccounts.LinkedAccount{
-				ID:         idempotencyKey,
+				ID:         basisTheoryCardID,
 				ProviderID: providerID,
 				WalletID:   walletID,
-				Mask:       tokenizedLast4,
-				Name:       cardName,
-				Nickname:   cardName,
+				Mask:       "1234",
+				Name:       "1234",
+				Nickname:   "1234",
 			}, nil
 		},
 	)
 
 	env.ExecuteWorkflow(workflows.CreateTabapayCardWorkflow, tabapay.CreateCardArgs{
-		WalletID:       walletID,
-		Name:           cardName,
-		CardNumber:     "tokenized card number",
-		CVV:            "tokenized cvv",
-		ExpirationDate: "200601",
-		IdempotencyKey: idempotencyKey,
+		WalletID:          walletID,
+		BasisTheoryCardID: basisTheoryCardID,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -76,7 +80,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	require.NoError(t, env.GetWorkflowResult(&result))
 }
 
-func TestOutgoingTransactionWorkflowExistingLinkedAccount(t *testing.T) {
+func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 	t.Setenv("TABAPAY_CLIENT_ID", "test")
 	t.Setenv("TABAPAY_BEARER_TOKEN", "test")
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -84,12 +88,12 @@ func TestOutgoingTransactionWorkflowExistingLinkedAccount(t *testing.T) {
 	b := workflows.NewTestBackends()
 	a := workflows.NewActivity(b)
 
-	idempotencyKey, providerID, walletID := uuid.NewString(), uuid.NewString(), uuid.NewString()
+	providerID, walletID, basisTheoryCardID := uuid.NewString(), uuid.NewString(), uuid.NewString()
 	last4, cardName := "1234", "test"
-	env.OnActivity(a.MarkCardNotDeleted, mock.Anything, idempotencyKey).Return(
+	env.OnActivity(a.MarkCardNotDeleted, mock.Anything, basisTheoryCardID).Return(
 		func(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
 			return &linkedaccounts.LinkedAccount{
-				ID:         id,
+				ID:         basisTheoryCardID,
 				WalletID:   walletID,
 				Name:       cardName,
 				Nickname:   cardName,
@@ -101,19 +105,15 @@ func TestOutgoingTransactionWorkflowExistingLinkedAccount(t *testing.T) {
 	)
 
 	env.ExecuteWorkflow(workflows.CreateTabapayCardWorkflow, tabapay.CreateCardArgs{
-		WalletID:       walletID,
-		Name:           cardName,
-		CardNumber:     "tokenized card number",
-		CVV:            "tokenized cvv",
-		ExpirationDate: "200601",
-		IdempotencyKey: idempotencyKey,
+		WalletID:          walletID,
+		BasisTheoryCardID: basisTheoryCardID,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
 	require.NoError(t, env.GetWorkflowError())
 	var result linkedaccounts.LinkedAccount
 	require.NoError(t, env.GetWorkflowResult(&result))
-	assert.Equal(t, idempotencyKey, result.ID)
+	assert.Equal(t, basisTheoryCardID, result.ID)
 	assert.Equal(t, providerID, result.ProviderID)
 	assert.Equal(t, tabapay.ProviderName, result.Provider)
 }
