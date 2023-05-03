@@ -189,7 +189,7 @@ func (c *client) CreateAccount(
 func (c *client) RetrieveAccount(
 	ctx context.Context, id string,
 ) (*external.RetrieveAccountResponse, error) {
-	endpoint, err := url.JoinPath(c.baseUrl, "accounts", id)
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "accounts", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}

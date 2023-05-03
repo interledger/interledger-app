@@ -364,10 +364,16 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 }
 
 func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string, foreignID string) (*transactions.Transaction, error) {
+	id := foreignID
+	idxSlash := strings.LastIndex(id, "/")
+	if idxSlash > 0 {
+		id = foreignID[idxSlash+1:]
+	}
+
 	var tx dbTransaction
 	err := b.DB().GetContext(ctx, &tx,
 		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and foreign_id=$2", transactionCols),
-		walletID, foreignID)
+		walletID, id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
