@@ -2,17 +2,13 @@ package vault
 
 import (
 	"context"
-	"crypto/ed25519"
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"fmt"
 	vault "github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/kubernetes"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"os"
-	"strings"
 )
 
 type client struct {
@@ -135,21 +131,5 @@ func (c client) GetPublicKey(keyName string) (string, error) {
 		}
 	}
 
-	// Convert PEM pubKey to base64
-	block, _ := pem.Decode([]byte(strings.TrimSpace(pubKey)))
-	if block == nil {
-		return "", fmt.Errorf("failed to decode PEM public key")
-	}
-
-	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return "", err
-	}
-
-	switch pub := publicKey.(type) {
-	case ed25519.PublicKey:
-		return string(pub), nil
-	default:
-		return "", fmt.Errorf("unsupported key type")
-	}
+	return pubKey, nil
 }

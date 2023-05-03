@@ -61,10 +61,9 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 		return err
 	}
 
-	publicKeyBase64 := base64.StdEncoding.EncodeToString([]byte(publicKey))
 	err = b.DB().GetContext(ctx, &id,
 		"INSERT INTO wallet_keys (wallet_id,key_type,location, reference, name, public_key) values ($1, $2, $3, $4, $5, $6) returning id",
-		walletID, keys.Custodial.String(), "vault", keyID, "Fynbos Managed", publicKeyBase64)
+		walletID, keys.Custodial.String(), "vault", keyID, "Fynbos Managed", publicKey)
 	if err != nil {
 		return fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
@@ -199,4 +198,36 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 		Input:     string(message),
 		Signature: string(sig),
 	})
+}
+
+func FixWalletPublicKeys(ctx context.Context, b Backends, walletID string) error {
+	ks, err := ListKeys(ctx, b, walletID)
+	if err != nil {
+		return err
+	}
+
+	for _, k := range ks {
+		if k.PublicKey != "" {
+			continue
+		}
+		if k.Type == keys.NonCustodial {
+			_, err = b.DB().ExecContext(ctx, "UPDATE wallet_keys SET public_key=reference, reference=NULL WHERE id=$1 AND key_type=$2;", k.ID, keys.NonCustodial)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+		}
+		if k.Type == keys.Custodial && k.Location == "vault" {
+			vaultPublicKey, err := b.Vault().GetPublicKey(k.Reference.String)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+
+			_, err = b.DB().ExecContext(ctx, "UPDATE wallet_keys SET public_key=$3 WHERE id=$1 AND key_type=$2;", k.ID, keys.Custodial, vaultPublicKey)
+			if err != nil {
+				return fmt.Errorf("%w %s", keys.ErrInternal, err)
+			}
+		}
+	}
+
+	return nil
 }
