@@ -17,6 +17,12 @@ import (
 	"gitlab.com/fynbos/env"
 )
 
+type keyDB struct {
+	keys.Key
+	Reference sql.NullString
+	PublicKey sql.NullString `db:"public_key"`
+}
+
 func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error {
 	// Check if it exists yet?
 	var id string
@@ -74,13 +80,18 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, error) {
 	sql := "SELECT id, wallet_id, key_type, location, reference, name, public_key FROM wallet_keys where wallet_id = $1 AND deleted_at IS NULL;"
 
-	var ks []keys.Key
+	var ks []keyDB
 	err := b.DB().SelectContext(ctx, &ks, sql, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
 	}
 
-	return ks, nil
+	var publicKeys []keys.Key
+	for _, k := range ks {
+		publicKeys = append(publicKeys, convertToKeyPublic(k))
+	}
+
+	return publicKeys, nil
 }
 
 func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBase64 string, name string) (*keys.Key, error) {
@@ -108,7 +119,7 @@ func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBas
 		WalletID:  walletID,
 		Type:      keys.NonCustodial,
 		Location:  "database",
-		Reference: sql.NullString{},
+		Reference: "",
 		PublicKey: publicKeyBase64,
 		CreatedAt: createdAt,
 	}, nil
@@ -123,10 +134,10 @@ func DeletePublicKey(ctx context.Context, b Backends, id string) error {
 	return nil
 }
 
-func getKey(ctx context.Context, b Backends, keyID string, walletID string) (*keys.Key, error) {
+func getKey(ctx context.Context, b Backends, keyID string, walletID string) (*keyDB, error) {
 	sqlQuery := "SELECT id, wallet_id, key_type, location, reference, name, public_key FROM wallet_keys where id = $1 and wallet_id = $2"
 
-	var k keys.Key
+	var k keyDB
 	err := b.DB().GetContext(ctx, &k, sqlQuery, keyID, walletID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -173,7 +184,7 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 	}
 
 	if k.Type == keys.NonCustodial {
-		refBytes, err := base64.StdEncoding.DecodeString(k.PublicKey)
+		refBytes, err := base64.StdEncoding.DecodeString(k.PublicKey.String)
 		if err != nil {
 			return false, err
 		}
@@ -217,7 +228,7 @@ func FixWalletPublicKeys(ctx context.Context, b Backends, walletID string) error
 			}
 		}
 		if k.Type == keys.Custodial && k.Location == "vault" {
-			vaultPublicKey, err := b.Vault().GetPublicKey(k.Reference.String)
+			vaultPublicKey, err := b.Vault().GetPublicKey(k.Reference)
 			if err != nil {
 				return fmt.Errorf("%w %s", keys.ErrInternal, err)
 			}
@@ -230,4 +241,28 @@ func FixWalletPublicKeys(ctx context.Context, b Backends, walletID string) error
 	}
 
 	return nil
+}
+
+func convertToKeyPublic(keyDB keyDB) keys.Key {
+	reference := ""
+	if keyDB.Reference.Valid {
+		reference = keyDB.Reference.String
+	}
+
+	publicKey := ""
+	if keyDB.PublicKey.Valid {
+		publicKey = keyDB.PublicKey.String
+	}
+
+	return keys.Key{
+		ID:        keyDB.ID,
+		Name:      keyDB.Name,
+		WalletID:  keyDB.WalletID,
+		Type:      keyDB.Type,
+		Location:  keyDB.Location,
+		Reference: reference,
+		PublicKey: publicKey,
+		CreatedAt: keyDB.CreatedAt,
+		UpdatedAt: keyDB.UpdatedAt,
+	}
 }

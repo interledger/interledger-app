@@ -4,7 +4,6 @@ import (
 	"crypto/ed25519"
 	"crypto/sha256"
 	"crypto/x509"
-	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
 	"encoding/hex"
@@ -19,7 +18,7 @@ type Key struct {
 	WalletID  string `db:"wallet_id"`
 	Type      Type   `db:"key_type"`
 	Location  string
-	Reference sql.NullString
+	Reference string
 	PublicKey string    `db:"public_key"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
