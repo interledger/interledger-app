@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -40,7 +39,7 @@ MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
 			ID:        keyID,
 			Name:      "FynTest",
 			WalletID:  w.ID,
-			Reference: sql.NullString{},
+			Reference: "",
 			PublicKey: "base64PublicKey",
 		},
 		nil,
@@ -104,7 +103,7 @@ func TestGetAndListPublicKeys(t *testing.T) {
 		[]keys.Key{
 			{
 				ID:        keyUuid,
-				Reference: sql.NullString{},
+				Reference: "",
 				PublicKey: base64PublicKey,
 				Name:      "FynTest",
 				Type:      keys.NonCustodial,
@@ -205,7 +204,7 @@ func TestDeletePublicKey(t *testing.T) {
 		[]keys.Key{
 			{
 				ID:        keyID,
-				Reference: sql.NullString{},
+				Reference: "",
 				PublicKey: base64PublicKey,
 				Name:      "FynTest",
 				Type:      keys.NonCustodial,
