@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"os"
@@ -10,6 +9,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
@@ -24,23 +24,9 @@ type Activity struct {
 
 func NewActivity(cb InputBackends) *Activity {
 	clientArgs := external_client.NewClientArgs{
-		VgsProxyURL: os.Getenv("VGS_PROXY_URL"),
-		ClientID:    os.Getenv("TABAPAY_CLIENT_ID"),
-		BearerToken: os.Getenv("TABAPAY_BEARER_TOKEN"),
-	}
-	if os.Getenv("VGS_CERT_PATH") != "" {
-		vgsCaCert, err := os.ReadFile(os.Getenv("VGS_CERT_PATH"))
-		if err != nil {
-			log.Fatal("Failed to read VGS certificate.", zap.Error(err))
-		}
-
-		caCertPool := x509.NewCertPool()
-		ok := caCertPool.AppendCertsFromPEM(vgsCaCert)
-		if !ok {
-			log.Fatal("Failed to add VGS CA to cert pool.")
-		}
-
-		clientArgs.CaCertPool = caCertPool
+		BasisTheoryProxyApiKey: os.Getenv("BASISTHEORY_API_KEY"),
+		ClientID:               os.Getenv("TABAPAY_CLIENT_ID"),
+		BearerToken:            os.Getenv("TABAPAY_BEARER_TOKEN"),
 	}
 
 	externalClient, err := external_client.New(clientArgs)
@@ -74,7 +60,7 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 	}
 
 	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
-		ReferenceID: args.LinkedAccountID[:15], // tabapay requires 1 < len(ReferenceID) < 15
+		ReferenceID: args.BasisTheoryCardID[:15], // tabapay requires 1 < len(ReferenceID) < 15
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,
@@ -129,4 +115,16 @@ func (a *Activity) MarkCardNotDeleted(ctx context.Context, id string) (*linkedac
 	}
 
 	return la, nil
+}
+
+func (a *Activity) GetBasisTheoryCard(ctx context.Context, id string) (*basistheory.Card, error) {
+	card, err := a.b.BasisTheory().GetCard(ctx, id)
+	if errors.Is(err, basistheory.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return card, nil
 }
