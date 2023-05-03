@@ -61,3 +61,7 @@ func (c client) StartKYC(ctx context.Context, walletID string) error {
 func (c client) GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
 	return ops.GetPersonaInquiry(ctx, c.b, c.pc, walletID, idempotencyKey)
 }
+
+func (c client) GetPersonaIDNumbers(ctx context.Context, walletID string) ([]kyc.PersonaIDNumber, error) {
+	return ops.GetPersonaIDNumbers(ctx, c.b, c.pc, walletID)
+}
