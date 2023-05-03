@@ -64,6 +64,20 @@ func (mr *MockClientMockRecorder) DeletePublicKey(ctx, id interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePublicKey", reflect.TypeOf((*MockClient)(nil).DeletePublicKey), ctx, id)
 }
 
+// FixWalletPublicKey mocks base method.
+func (m *MockClient) FixWalletPublicKey(ctx context.Context, walletID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FixWalletPublicKey", ctx, walletID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FixWalletPublicKey indicates an expected call of FixWalletPublicKey.
+func (mr *MockClientMockRecorder) FixWalletPublicKey(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FixWalletPublicKey", reflect.TypeOf((*MockClient)(nil).FixWalletPublicKey), ctx, walletID)
+}
+
 // List mocks base method.
 func (m *MockClient) List(ctx context.Context, walletID string) ([]keys.Key, error) {
 	m.ctrl.T.Helper()
@@ -77,21 +91,6 @@ func (m *MockClient) List(ctx context.Context, walletID string) ([]keys.Key, err
 func (mr *MockClientMockRecorder) List(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClient)(nil).List), ctx, walletID)
-}
-
-// ListPublicKeys mocks base method.
-func (m *MockClient) ListPublicKeys(ctx context.Context, walletID string) ([]keys.Key, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListPublicKeys", ctx, walletID)
-	ret0, _ := ret[0].([]keys.Key)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListPublicKeys indicates an expected call of ListPublicKeys.
-func (mr *MockClientMockRecorder) ListPublicKeys(ctx, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPublicKeys", reflect.TypeOf((*MockClient)(nil).ListPublicKeys), ctx, walletID)
 }
 
 // ProvisionPrivateKey mocks base method.
