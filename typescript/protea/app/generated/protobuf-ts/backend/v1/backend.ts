@@ -140,6 +140,10 @@ export interface ThreeDS {
      * @generated from protobuf field: string deviceCollectionURL = 3;
      */
     deviceCollectionURL: string;
+    /**
+     * @generated from protobuf field: string songbirdURL = 4;
+     */
+    songbirdURL: string;
 }
 /**
  * @generated from protobuf message backend.v1.CreateOutgoingPaymentResponse
@@ -2113,11 +2117,12 @@ class ThreeDS$Type extends MessageType<ThreeDS> {
         super("backend.v1.ThreeDS", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "deviceCollectionURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "deviceCollectionURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "songbirdURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ThreeDS>): ThreeDS {
-        const message = { id: "", jwt: "", deviceCollectionURL: "" };
+        const message = { id: "", jwt: "", deviceCollectionURL: "", songbirdURL: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ThreeDS>(this, message, value);
@@ -2136,6 +2141,9 @@ class ThreeDS$Type extends MessageType<ThreeDS> {
                     break;
                 case /* string deviceCollectionURL */ 3:
                     message.deviceCollectionURL = reader.string();
+                    break;
+                case /* string songbirdURL */ 4:
+                    message.songbirdURL = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2158,6 +2166,9 @@ class ThreeDS$Type extends MessageType<ThreeDS> {
         /* string deviceCollectionURL = 3; */
         if (message.deviceCollectionURL !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.deviceCollectionURL);
+        /* string songbirdURL = 4; */
+        if (message.songbirdURL !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.songbirdURL);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
