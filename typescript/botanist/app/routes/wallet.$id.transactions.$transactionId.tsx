@@ -1,16 +1,13 @@
 import type { LoaderArgs } from '@remix-run/node'
 
-import { Error, Grid } from '~/components'
+import { Error } from '~/components'
 import { json } from '@remix-run/node'
 import {
   isRouteErrorResponse,
   useLoaderData,
   useRouteError
 } from '@remix-run/react'
-import {
-  GetWalletDetails,
-  GetWalletTransactionDetails
-} from '~/lib/wallet.server'
+import { GetWalletDetails } from '~/lib/wallet.server'
 import { DateTime } from 'luxon'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -57,7 +54,7 @@ function ListItem({ title, body }: { title: string; body: string }) {
 }
 
 export default function Page() {
-  const { wallet, transaction } = useLoaderData<typeof loader>()
+  const { transaction } = useLoaderData<typeof loader>()
 
   return (
     <>

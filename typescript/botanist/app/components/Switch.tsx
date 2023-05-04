@@ -11,7 +11,6 @@ type SwitchProps = {
 }
 
 export const Switch: FC<SwitchProps> = ({
-  children,
   className,
   checked,
   disabled,
