@@ -83,8 +83,8 @@ func (c *Client) CreateToken(ctx context.Context, args *twitter.CreateTokenArgs)
 	})
 }
 
-func (c *Client) GetTokensByWalletID(ctx context.Context, args *twitter.GetTokensByWalletIDArgs) ([]twitter.Token, error) {
-	return ops.GetTokensByWalletID(ctx, c.b, &twitter.GetTokensByWalletIDArgs{
+func (c *Client) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Token, error) {
+	return ops.GetTokensByUserID(ctx, c.b, &twitter.GetTokensByUserIdArgs{
 		Scopes:   args.Scopes,
 		WalletID: args.WalletID,
 	})

@@ -41,8 +41,9 @@ type (
 		State    string
 	}
 
-	GetTokensByWalletIDArgs struct {
+	GetTokensByUserIdArgs struct {
 		Scopes   []string
+		UserID   string
 		WalletID string
 	}
 )
