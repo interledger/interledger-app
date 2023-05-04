@@ -44,7 +44,7 @@ export default function Page() {
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        Wallet
+                        Wallet ID
                       </th>
                       <th
                         scope='col'
