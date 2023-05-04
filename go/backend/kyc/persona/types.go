@@ -69,21 +69,27 @@ type InquiryData struct {
 }
 
 type InquiryAttributes struct {
-	Status      string `json:"status"`
-	Subject     string `json:"subject"`
-	ReferenceID string `json:"reference-id"`
-	CreatedAt   string `json:"created-at"`
-	CompletedAt string `json:"completed-at"`
-	ExpiredAt   string `json:"expired-at"`
+	Status               string `json:"status"`
+	Subject              string `json:"subject"`
+	ReferenceID          string `json:"reference-id"`
+	CreatedAt            string `json:"created-at"`
+	CompletedAt          string `json:"completed-at"`
+	ExpiredAt            string `json:"expired-at"`
+	SocialSecurityNumber string `json:"social-security-number"`
 }
 
 type InquiryIncluded struct {
-	Type       string                   `json:"type"`
-	Attributes InquirySessionAttributes `json:"attributes"`
+	Type       string                    `json:"type"`
+	Attributes InquiryIncludedAttributes `json:"attributes"`
 }
 
-type InquirySessionAttributes struct {
-	IPAddress string `json:"ip-address"`
+type InquiryIncludedAttributes struct {
+	IPAddress          string `json:"ip-address"`
+	IDClass            string `json:"id-class"`
+	IDNumber           string `json:"identification-number"`
+	CountryCode        string `json:"country-code"`
+	AddressSubdivision string `json:"address-subdivision"`
+	ExpirationDate     string `json:"expiration-date"`
 }
 
 type InquiryMeta struct {

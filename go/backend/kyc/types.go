@@ -1,6 +1,9 @@
 package kyc
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Gender int
 
@@ -53,7 +56,7 @@ func (s Status) ToInt32() int32 {
 }
 
 func (a *Address) String() string {
-	return a.Line2 + a.Line1
+	return fmt.Sprintf("%s %s %s %s %s %s %s", a.Line2, a.Line1, a.Building, a.Apartment, a.City, a.State, a.CountryCode)
 }
 
 type PersonaInquiry struct {
@@ -61,8 +64,11 @@ type PersonaInquiry struct {
 	SessionToken string
 }
 
-type PersonaIDNumber struct {
+type PersonaIDNumbers struct {
+	SocialSecurity       string
 	IssuingCountry       string
+	IssuingState         string
 	IdentificationClass  string
 	IdentificationNumber string
+	ExpirationDate       time.Time
 }

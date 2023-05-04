@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
@@ -91,9 +92,11 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 	}, nil
 }
 
-func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) ([]kyc.PersonaIDNumber, error) {
-	var accID string
-	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
+func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaIDNumbers, error) {
+	// Lookup the latest "approved" inquiry.
+	var inqID string
+	err := b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND status=$2 ORDER BY updated_at DESC ",
+		walletID, "approved")
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", kyc.ErrNoKYCInfo, err)
 	}
@@ -101,18 +104,29 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	acc, err := cl.GetAccount(ctx, accID)
+	inq, err := cl.LookupInquiry(ctx, inqID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	var resp []kyc.PersonaIDNumber
-	for _, idNum := range acc.Attributes.IdentificationNumbers {
-		resp = append(resp, kyc.PersonaIDNumber{
-			IssuingCountry:       idNum.IssuingCountry,
-			IdentificationClass:  idNum.IdentificationClass,
-			IdentificationNumber: idNum.IdentificationNumber,
-		})
+	resp := &kyc.PersonaIDNumbers{
+		SocialSecurity: inq.Data.Attributes.SocialSecurityNumber,
+	}
+
+	for _, ii := range inq.Included {
+		if ii.Type != "verification/government-id" {
+			continue
+		}
+
+		resp.IdentificationNumber = ii.Attributes.IDNumber
+		resp.IssuingCountry = ii.Attributes.CountryCode
+		resp.IdentificationClass = ii.Attributes.IDClass
+		resp.IssuingState = ii.Attributes.AddressSubdivision
+
+		exDate, err := time.Parse("2006-01-02", ii.Attributes.ExpirationDate)
+		if err == nil {
+			resp.ExpirationDate = exDate
+		}
 	}
 
 	return resp, nil
