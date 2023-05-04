@@ -9,6 +9,11 @@ import (
 	"strconv"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
+
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+
 	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/google/uuid"
@@ -361,18 +366,33 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		return nil, err
 	}
 
-	// TODO add senderID expiration and issuer state
-	for _, idNum := range idNums {
-		switch idNum.IdentificationClass {
-		case "ssn":
-			sender.SenderIdNumber2 = idNum.IdentificationNumber
-		case "dl":
-			sender.SenderIdNumber = idNum.IdentificationNumber
-			sender.SenderIdType = "DRIVERS LICENSE"
-		case "pp":
-			sender.SenderIdNumber = idNum.IdentificationNumber
-			sender.SenderIdType = "PASSPORT"
+	sender.SenderIdNumber2 = idNums.SocialSecurity
+	sender.SenderIdNumber = idNums.IdentificationNumber
+	if !idNums.ExpirationDate.IsZero() {
+		sender.SenderDocExpiration = external.GMTDate(idNums.ExpirationDate)
+	}
+
+	sender.SenderIdIssuer = idNums.IssuingCountry
+	state, ok := country.States[country.US][idNums.IssuingState]
+	if ok {
+		sender.SenderIdIssuer = state
+	}
+
+	switch idNums.IdentificationClass {
+	case "dl":
+		sender.SenderIdType = "DRIVERS LICENSE"
+	case "pp", "ppc":
+		sender.SenderIdType = "PASSPORT"
+	case "rp":
+		sender.SenderIdType = "RESIDENT ALIEN CARD"
+	case "id":
+		if idNums.IssuingState != "" && idNums.IssuingState != "US" {
+			sender.SenderIdType = "STATE-ISSUED ID"
+		} else {
+			sender.SenderIdType = "NATIONAL ID CARD"
 		}
+	default:
+		log.Error("Unknown Persona ID number type", zap.String("persona_id_type", idNums.IdentificationClass))
 	}
 
 	return sender, nil
