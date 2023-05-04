@@ -36,7 +36,7 @@ func TestCreateAuthURL(t *testing.T) {
 	fmt.Println(url)
 }
 
-func TestCreateAccessToken(t *testing.T) {
+func TestCreateToken(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
@@ -55,14 +55,14 @@ func TestCreateAccessToken(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	b.ExternalClient.EXPECT().CreateAccessToken(gomock.Any(), gomock.Any()).Return(&oauth2.Token{
+	b.ExternalClient.EXPECT().CreateToken(gomock.Any(), gomock.Any()).Return(&oauth2.Token{
 		AccessToken:  "testAccessToken",
 		TokenType:    "testTokenType",
 		RefreshToken: "testRefreshToken",
 		Expiry:       time.Now(),
 	}, nil)
 
-	accessToken, err := ops.CreateAccessToken(ctx, b, &twitter.CreateAccessTokenArgs{
+	accessToken, err := ops.CreateToken(ctx, b, &twitter.CreateTokenArgs{
 		AuthCode: "testAuthCode",
 		State:    authorization.State,
 	})

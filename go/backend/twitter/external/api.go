@@ -7,5 +7,5 @@ import (
 )
 
 type Client interface {
-	CreateAccessToken(ctx context.Context, args CreateAccessTokenArgs) (*oauth2.Token, error)
+	CreateToken(ctx context.Context, args *CreateTokenArgs) (*oauth2.Token, error)
 }

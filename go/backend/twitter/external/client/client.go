@@ -41,7 +41,7 @@ func New(args *NewClientArgs) *client {
 	}
 }
 
-func (c *client) CreateAccessToken(ctx context.Context, args external.CreateAccessTokenArgs) (*oauth2.Token, error) {
+func (c *client) CreateToken(ctx context.Context, args *external.CreateTokenArgs) (*oauth2.Token, error) {
 	token, err := c.oauthConfig.Exchange(ctx, args.AuthCode, oauth2.SetAuthURLParam("code_verifier", args.CodeVerifier))
 	if err != nil {
 		return nil, fmt.Errorf("could not exchange auth code for token: %v", err)

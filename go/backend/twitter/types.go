@@ -17,7 +17,7 @@ type (
 		State string
 	}
 
-	TwitterAccessToken struct {
+	Token struct {
 		ID           string         `db:"id"`
 		WalletID     string         `db:"wallet_id"`
 		AccessToken  string         `db:"access_token"`
@@ -30,8 +30,13 @@ type (
 		UpdatedAt    time.Time      `db:"updated_at"`
 	}
 
-	CreateAccessTokenArgs struct {
+	CreateTokenArgs struct {
 		AuthCode string
 		State    string
+	}
+
+	GetTokensByWalletIDArgs struct {
+		Scopes   []string
+		WalletID string
 	}
 )
