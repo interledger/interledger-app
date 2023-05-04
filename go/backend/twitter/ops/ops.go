@@ -77,11 +77,16 @@ func CreateToken(ctx context.Context, b Backends, args *twitter.CreateTokenArgs)
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
+	user, err := b.External().GetAuthorizedUser(ctx, token)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
+	}
+
 	var dbToken twitter.Token
 
 	err = b.DB().GetContext(ctx, &dbToken,
-		"INSERT INTO twitter_access_tokens (client_id, wallet_id, access_token, refresh_token, token_type, expiry, scopes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-		authorization.ClientID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, token.Expiry, pq.Array(authorization.Scopes))
+		"INSERT INTO twitter_access_tokens (client_id, wallet_id, access_token, refresh_token, token_type, expiry, scopes, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+		authorization.ClientID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, token.Expiry, pq.Array(authorization.Scopes), user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}

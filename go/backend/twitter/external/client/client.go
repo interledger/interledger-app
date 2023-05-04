@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/twitter/external"
 	"golang.org/x/oauth2"
 )
@@ -48,4 +50,20 @@ func (c *client) CreateToken(ctx context.Context, args *external.CreateTokenArgs
 	}
 
 	return token, nil
+}
+
+func (c *client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*twitter.TwitterUser, error) {
+	res, err := c.oauthConfig.Client(ctx, token).Get("https://api.twitter.com/2/users/me")
+	if err != nil {
+		return nil, fmt.Errorf("could not get authorized user: %v", err)
+	}
+	defer res.Body.Close()
+
+	var user *twitter.TwitterUser
+	err = json.NewDecoder(res.Body).Decode(user)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode twitter user: %v", err)
+	}
+
+	return user, nil
 }

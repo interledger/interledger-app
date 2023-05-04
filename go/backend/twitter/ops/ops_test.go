@@ -62,7 +62,12 @@ func TestCreateToken(t *testing.T) {
 		Expiry:       time.Now(),
 	}, nil)
 
-	accessToken, err := ops.CreateToken(ctx, b, &twitter.CreateTokenArgs{
+	b.ExternalClient.EXPECT().GetAuthorizedUser(gomock.Any(), gomock.Any()).Return(&twitter.TwitterUser{
+		ID:       "testTwitterID",
+		Username: "testUsername",
+	}, nil)
+
+	token, err := ops.CreateToken(ctx, b, &twitter.CreateTokenArgs{
 		AuthCode: "testAuthCode",
 		State:    authorization.State,
 	})
@@ -70,7 +75,8 @@ func TestCreateToken(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	assert.Equal(t, "testAccessToken", accessToken.AccessToken)
-	assert.Equal(t, "testRefreshToken", accessToken.RefreshToken)
-	assert.Equal(t, "testTokenType", accessToken.TokenType)
+	assert.Equal(t, "testAccessToken", token.AccessToken)
+	assert.Equal(t, "testTwitterID", token.UserID)
+	assert.Equal(t, "testRefreshToken", token.RefreshToken)
+	assert.Equal(t, "testTokenType", token.TokenType)
 }
