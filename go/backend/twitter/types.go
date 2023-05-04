@@ -17,8 +17,14 @@ type (
 		State string
 	}
 
+	TwitterUser struct {
+		ID       string `json:"id"`
+		Username string `json:"username"`
+	}
+
 	Token struct {
 		ID           string         `db:"id"`
+		UserID       string         `db:"user_id"`
 		WalletID     string         `db:"wallet_id"`
 		AccessToken  string         `db:"access_token"`
 		RefreshToken string         `db:"refresh_token"`

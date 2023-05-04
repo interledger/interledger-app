@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	twitter "gitlab.com/fynbos/backend/twitter"
 	external "gitlab.com/fynbos/backend/twitter/external"
 	oauth2 "golang.org/x/oauth2"
 )
@@ -49,4 +50,19 @@ func (m *MockClient) CreateToken(ctx context.Context, args *external.CreateToken
 func (mr *MockClientMockRecorder) CreateToken(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockClient)(nil).CreateToken), ctx, args)
+}
+
+// GetAuthorizedUser mocks base method.
+func (m *MockClient) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*twitter.TwitterUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthorizedUser", ctx, token)
+	ret0, _ := ret[0].(*twitter.TwitterUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAuthorizedUser indicates an expected call of GetAuthorizedUser.
+func (mr *MockClientMockRecorder) GetAuthorizedUser(ctx, token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizedUser", reflect.TypeOf((*MockClient)(nil).GetAuthorizedUser), ctx, token)
 }
