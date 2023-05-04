@@ -97,6 +97,12 @@ func main() {
 			return err
 		}
 
+		// Create the transit engine for backend keys
+		err = enableTransitEngine(ctx, "transit/k8s-prod-use2/backend/backend", "K8s Prod USE2 backend transit engine")
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -211,5 +217,18 @@ func createCrdbClientRole(ctx *pulumi.Context, authAccessor pulumi.StringOutput,
 		},
 		MaxTtl: pulumi.String("2765000"), // 32days in seconds
 	})
+	return err
+}
+
+func enableTransitEngine(ctx *pulumi.Context, path string, description string) error {
+	_, err := vault.NewMount(ctx, "transit", &vault.MountArgs{
+		Path:        pulumi.String(path),
+		Type:        pulumi.String("transit"),
+		Description: pulumi.String(description),
+	})
+	if err != nil {
+		return err
+	}
+
 	return err
 }
