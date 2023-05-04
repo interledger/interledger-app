@@ -12,8 +12,6 @@ import type {
   PaginationRequest,
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
-import { ListTransactionsResponse } from '~/generated/protobuf-ts/backend/admin/v1/backend'
-import { Timestamp } from '~/generated/protobuf-ts/google/protobuf/timestamp'
 import { DateTime } from 'luxon'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE

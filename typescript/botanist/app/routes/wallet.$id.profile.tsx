@@ -1,6 +1,5 @@
 import type { LoaderArgs } from '@remix-run/node'
 
-import { Grid } from '~/components'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { GetWalletDetails } from '~/lib/wallet.server'

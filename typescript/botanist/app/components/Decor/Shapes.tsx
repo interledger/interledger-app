@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import clsx from 'clsx'
 import { Icon } from '~/components'
+import type { ReactNode } from 'react'
 
 type Radius =
   | 'rounded-none'
@@ -18,6 +19,7 @@ export type ShapeProps = {
   width?: string
   radius: Radius
   color: string
+  children?: ReactNode
 }
 
 export const Shape: FC<ShapeProps> = ({ children, width, radius, color }) => {

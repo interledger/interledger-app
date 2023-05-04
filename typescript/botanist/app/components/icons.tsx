@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 type IconProps = {
   className?: string
