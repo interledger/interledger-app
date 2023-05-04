@@ -261,7 +261,7 @@ func ExceedsGMTLimits(ctx context.Context, b Backends, walletID string, amount c
 	// 180-Day 		$30,000.00
 
 	// Short circuit.
-	if amount.Float64() > 10_000.0 {
+	if amount.Float64() >= 10_000.0 {
 		return true, nil
 	}
 
@@ -271,39 +271,34 @@ func ExceedsGMTLimits(ctx context.Context, b Backends, walletID string, amount c
 	}
 	defer stmt.Close()
 
-	var daily uint64
-	err = stmt.GetContext(ctx, &daily,
-		"SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4)",
+	var used uint64
+	err = stmt.GetContext(ctx, &used,
 		walletID, time.Now().Add(time.Hour*-24), transactions.StatePending, transactions.StateCompleted)
 	if err != nil {
 		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if daily+amount.Value > uint64(10_000_00) {
+	if used+amount.Value >= uint64(10_000_00) {
 		return true, nil
 	}
 
-	var month uint64
-	err = stmt.GetContext(ctx, &month,
-		"SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4)",
+	err = stmt.GetContext(ctx, &used,
 		walletID, time.Now().Add(time.Hour*-24*30), transactions.StatePending, transactions.StateCompleted)
 	if err != nil {
 		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if daily+amount.Value > uint64(20_000_00) {
+	if used+amount.Value >= uint64(20_000_00) {
 		return true, nil
 	}
 
-	var sixMonth uint64
-	err = stmt.GetContext(ctx, &sixMonth,
-		"SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4)",
+	err = stmt.GetContext(ctx, &used,
 		walletID, time.Now().Add(time.Hour*-24*180), transactions.StatePending, transactions.StateCompleted)
 	if err != nil {
 		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if sixMonth+amount.Value > uint64(30_000_00) {
+	if used+amount.Value >= uint64(30_000_00) {
 		return true, nil
 	}
 

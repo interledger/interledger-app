@@ -174,3 +174,83 @@ func TestListLimits(t *testing.T) {
 		})
 	}
 }
+
+func TestExceedsGMTLimits(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc, nil)
+	b = ops.NewTestBackends(t, dbc, users_client.New(b, "fakeURL", "fakeAdminURL"))
+	txClient := tx_client.New(b)
+
+	cases := []struct {
+		name   string
+		tx     *transactions.CreateTransactionArgs
+		amnt   currency.Amount
+		expect bool
+	}{
+		{
+			name:   "exceeds single tx limit",
+			amnt:   currency.FromFloat64(11_000, currency.USD),
+			expect: true,
+		},
+		{
+			name: "does not exceed daily defaults",
+			tx: &transactions.CreateTransactionArgs{
+				State:       transactions.StateCompleted,
+				Source:      "https://fynbos.me/alice2",
+				Destination: "https://fynbos.me/bob2",
+				Amount:      currency.FromFloat64(9_000, currency.USD),
+				Provider:    "test",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			},
+			amnt:   currency.FromFloat64(200, currency.USD),
+			expect: false,
+		},
+		{
+			name: "does not exceed daily limits",
+			tx: &transactions.CreateTransactionArgs{
+				State:       transactions.StateCompleted,
+				Source:      "https://fynbos.me/alice2",
+				Destination: "https://fynbos.me/bob2",
+				Amount:      currency.FromFloat64(9_000, currency.USD),
+				Provider:    "test",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			},
+			amnt:   currency.FromFloat64(200, currency.USD),
+			expect: false,
+		},
+		{
+			name: "does exceed daily limits",
+			tx: &transactions.CreateTransactionArgs{
+				State:       transactions.StateCompleted,
+				Source:      "https://fynbos.me/alice2",
+				Destination: "https://fynbos.me/bob2",
+				Amount:      currency.FromFloat64(9_000, currency.USD),
+				Provider:    "test",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			},
+			amnt:   currency.FromFloat64(1_100, currency.USD),
+			expect: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
+			require.NoError(t, err)
+
+			if tc.tx != nil {
+				tc.tx.WalletID = wallet.ID
+
+				_, err = txClient.CreateTransaction(ctx, *tc.tx)
+				require.NoError(t, err)
+			}
+
+			exceeds, err := ops.ExceedsGMTLimits(ctx, b, wallet.ID, tc.amnt)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expect, exceeds)
+		})
+	}
+}
