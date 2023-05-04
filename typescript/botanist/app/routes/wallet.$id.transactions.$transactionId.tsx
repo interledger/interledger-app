@@ -16,14 +16,19 @@ import { DateTime } from 'luxon'
 export async function loader({ request, params }: LoaderArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
 
-  const transaction = await GetWalletTransactionDetails(
-    request,
-    params.id as string,
-    params.transactionId as string
-  )
+  // const transaction = await GetWalletTransactionDetails(
+  //   request,
+  //   params.id as string,
+  //   params.transactionId as string
+  // )
 
   return json({
-    transaction,
+    transaction: {
+      id: '123',
+      amount: 100,
+      currency: 'USD',
+      status: 'pending'
+    },
     // TODO: Refactor formatting into wallet.server
     wallet: {
       ...wallet,
@@ -45,28 +50,21 @@ export async function loader({ request, params }: LoaderArgs) {
 function ListItem({ title, body }: { title: string; body: string }) {
   return (
     <div className='flex flex-col space-y-1'>
-      <dt className='text-sm font-medium text-weak'>{title}</dt>
+      <dt className='text-sm font-medium text-weak capitalize'>{title}</dt>
       <dd className='text-strong'>{body || '-'}</dd>
     </div>
   )
 }
 
 export default function Page() {
-  const { wallet } = useLoaderData<typeof loader>()
+  const { wallet, transaction } = useLoaderData<typeof loader>()
 
   return (
     <>
       <dl className='sticky top-4 col-span-full flex max-h-max h-max lg:col-span-6 flex-col space-y-4 rounded-2xl bg-page p-4'>
-        <div>
-          <h3 className='text-lg font-medium leading-6 text-gray-900'>TX</h3>
-        </div>
-
-        <ListItem title='First name' body={wallet.firstName} />
-        <ListItem title='Last name' body={wallet.lastName} />
-        <ListItem title='Email' body={wallet.users[0].email} />
-        <ListItem title='Phone number' body={wallet.users[0].phoneNumber} />
-        <ListItem title='Country' body={wallet.countryCode} />
-        <ListItem title='KYC status' body={wallet.countryCode} />
+        {Object.entries(transaction).map(([key, value]) => (
+          <ListItem key={key} title={key} body={value.toString()} />
+        ))}
       </dl>
     </>
   )
@@ -74,10 +72,15 @@ export default function Page() {
 
 export function ErrorBoundary() {
   const error = useRouteError()
+
   if (isRouteErrorResponse(error)) {
     return (
       <div className='sticky top-4 col-span-full flex max-h-max h-max lg:col-span-6 flex-col space-y-4 rounded-2xl bg-page p-4'>
-        <Error status={error.status} data={{ title: error.data.message }} />
+        <h3 className='text-5xl font-medium text-error'>{error.status}</h3>
+        <h3 className='text-lg font-medium text-medium'>{error.statusText}</h3>
+        <h3 className='text-lg leading-6 text-strong'>
+          {JSON.stringify(error.data)}
+        </h3>
       </div>
     )
   }
