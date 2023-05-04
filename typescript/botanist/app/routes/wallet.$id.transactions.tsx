@@ -1,12 +1,20 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { NavLink, Outlet, useLoaderData, useLocation } from '@remix-run/react'
+import {
+  isRouteErrorResponse,
+  NavLink,
+  Outlet,
+  useLoaderData,
+  useLocation,
+  useRouteError
+} from '@remix-run/react'
 import { GetWalletDetails, GetWalletTransactions } from '~/lib/wallet.server'
 import { DateTime } from 'luxon'
 import type { FC } from 'react'
 import { route } from 'routes-gen'
 import clsx from 'clsx'
 import { Chip, ChipColor } from '~/components/Chip'
+import { Error } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
@@ -93,4 +101,21 @@ export default function Page() {
       <Outlet />
     </>
   )
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError()
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className='sticky top-4 col-span-full flex max-h-max h-max lg:col-span-6 flex-col space-y-4 rounded-2xl bg-page p-4'>
+        <h3 className='text-5xl font-medium text-error'>{error.status}</h3>
+        <h3 className='text-lg font-medium text-medium'>{error.statusText}</h3>
+        <h3 className='text-lg leading-6 text-strong'>
+          {JSON.stringify(error.data)}
+        </h3>
+      </div>
+    )
+  }
+  return <Error data={{ title: 'error.data.message' }} />
 }
