@@ -1,14 +1,14 @@
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import type { LinksFunction, V2_MetaFunction } from '@remix-run/node'
 import {
+  isRouteErrorResponse,
   Links,
   LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
-  useCatch
+  useRouteError
 } from '@remix-run/react'
-import { WalletLayout, Error } from '~/components'
+import { AdminLayout, Error } from '~/components'
 import type { ReactNode } from 'react'
 import styles from '~/styles/app.css'
 
@@ -17,13 +17,13 @@ const metaContent = {
   description: ''
 }
 
-export const meta: MetaFunction = () => {
-  return {
-    title: metaContent.title,
-    'theme-color': '#FFE4E6',
-    description: metaContent.description,
-    viewport: 'width=device-width,initial-scale=1'
-  }
+export const meta: V2_MetaFunction = () => {
+  return [
+    { title: metaContent.title },
+    { name: 'theme-color', content: '#FFE4E6' },
+    { name: 'description', content: metaContent.description },
+    { name: 'viewport', content: 'width=device-width,initial-scale=1' }
+  ]
 }
 
 export const links: LinksFunction = () => {
@@ -62,59 +62,32 @@ function Document({
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
+        <LiveReload port={443} />
       </body>
     </html>
   )
 }
 
-export async function loader({ request }: LoaderArgs) {
-  // const isUser = await hasUserSession(request)
-  // return json({ isUser })
-  return json(null)
-}
-
 export default function Page() {
   return (
     <Document>
-      <WalletLayout />
-    </Document>
-  )
-  // const { isUser } = useLoaderData<typeof loader>()
-  // const location = useLocation()
-  // let isFocussed =
-  //   location.pathname.startsWith('/signup') ||
-  //   location.pathname.startsWith('/waitlist') ||
-  //   location.pathname.startsWith('/contact') ||
-  //   location.pathname.startsWith('/login') ||
-  //   location.pathname.startsWith('/payment-pointer')
-  //
-  // return (
-  //   <Document>
-  //     {isFocussed && <FocusLayout />}
-  //     {!isFocussed && isUser && <WalletLayout />}
-  //     {!isFocussed && !isUser && <LandingLayout />}
-  //   </Document>
-  // )
-}
-
-export function ErrorBoundary({ error }: { error: Error }) {
-  return (
-    <Document title='An error occurred.'>
-      <Error data={{ title: error.message }} />
+      <AdminLayout />
     </Document>
   )
 }
 
-export function CatchBoundary() {
-  const caught = useCatch()
+export function ErrorBoundary() {
+  const error = useRouteError()
+  if (isRouteErrorResponse(error)) {
+    return (
+      <Document title='An error occurred.'>
+        <Error status={error.status} data={{ title: error.data.message }} />
+      </Document>
+    )
+  }
   return (
     <Document title='An error occurred.'>
-      <Error
-        status={caught.status}
-        statusText={caught.statusText}
-        data={caught.data}
-      />
+      <Error data={{ title: 'error.data.message' }} />
     </Document>
   )
 }
