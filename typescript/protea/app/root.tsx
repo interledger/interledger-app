@@ -73,7 +73,7 @@ function Document({ children }: { children: ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
+        <LiveReload port={443} />
       </body>
     </html>
   )

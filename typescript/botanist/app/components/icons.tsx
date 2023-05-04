@@ -1,7 +1,9 @@
 import type { FC } from 'react'
+import { ReactNode } from 'react'
 
 type IconProps = {
   className?: string
+  children?: ReactNode
 }
 
 export const Icon: FC<IconProps> = ({ className, children }) => {
