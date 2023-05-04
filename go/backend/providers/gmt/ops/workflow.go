@@ -104,10 +104,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 	}
 
 	var tr TransactionResp
-	err = workflow.ExecuteActivity(ctx, a.InsertACH, InsertACHArgs{
-		TransfersArgs:         args,
-		OriginalPaymentMethod: "ACH",
-	}).Get(ctx, &tr)
+	err = workflow.ExecuteActivity(ctx, a.InsertACH, args).Get(ctx, &tr)
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
@@ -312,7 +309,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}
 
 	var cr ComplianceResp
-	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, &cr)
+	err = workflow.ExecuteActivity(ctx, a.Card2ACHCompliance, args).Get(ctx, &cr)
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
@@ -370,10 +367,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	// Insert ACH
 	var achTransaction TransactionResp
-	err = workflow.ExecuteActivity(ctx, a.InsertACH, InsertACHArgs{
-		TransfersArgs:         args,
-		OriginalPaymentMethod: "DEBIT",
-	}).Get(ctx, &achTransaction)
+	err = workflow.ExecuteActivity(ctx, a.InsertCard2ACH, args).Get(ctx, &achTransaction)
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
@@ -570,10 +564,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}
 
 	var achTransaction TransactionResp
-	err = workflow.ExecuteActivity(ctx, a.InsertACH, InsertACHArgs{
-		TransfersArgs:         args,
-		OriginalPaymentMethod: "ACH",
-	}).Get(ctx, &achTransaction)
+	err = workflow.ExecuteActivity(ctx, a.InsertACH2Card, args).Get(ctx, &achTransaction)
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
