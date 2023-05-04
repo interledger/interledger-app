@@ -7,6 +7,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 
+// TODO move out of routes.
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const id = form.get('id') as string

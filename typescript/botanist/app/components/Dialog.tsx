@@ -1,10 +1,11 @@
 import { Transition, Dialog as HeadlessDialog } from '@headlessui/react'
-import type { Dispatch, FC, SetStateAction } from 'react'
+import type { Dispatch, FC, ReactNode, SetStateAction } from 'react'
 import { Fragment } from 'react'
 
 type DialogProps = {
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
+  children: ReactNode
 }
 
 export const Dialog: FC<DialogProps> = ({ children, open, setOpen }) => {

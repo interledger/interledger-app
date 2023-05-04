@@ -1,10 +1,11 @@
 import { Transition, Dialog } from '@headlessui/react'
 import { NavLink, useTransition } from '@remix-run/react'
-import type { Dispatch, FC, SetStateAction } from 'react'
+import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
 import { Fragment, useEffect } from 'react'
 
 type ListItemProps = {
   to: string
+  children: ReactNode
 }
 
 const ListItem: FC<ListItemProps> = ({ children, to }) => {
@@ -30,13 +31,17 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
 
 ListItem.displayName = 'ListItem'
 
-const List: FC = ({ children }) => {
+const List: FC<{
+  children: ReactNode
+}> = ({ children }) => {
   return <ul className='flex w-full flex-col'>{children}</ul>
 }
 
 List.displayName = 'List'
 
-const NavDrawerRoot: FC = ({ children }) => {
+const NavDrawerRoot: FC<{
+  children: ReactNode
+}> = ({ children }) => {
   return (
     <ul className='flex h-full min-w-max select-none flex-col justify-between bg-app py-4 px-3 lg:h-screen lg:bg-app'>
       {children}
@@ -49,6 +54,7 @@ NavDrawerRoot.displayName = 'NavDrawerRoot'
 type ModalProps = {
   open: boolean
   setOpen: Dispatch<SetStateAction<boolean>>
+  children: ReactNode
 }
 
 const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
