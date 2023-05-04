@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/lib/pq"
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/twitter/external"
 	"golang.org/x/oauth2"
@@ -38,7 +39,7 @@ func CreateAuthURL(ctx context.Context, b Backends, args *CreateAuthURLArgs) (*t
 
 	var authId string
 
-	err = b.DB().GetContext(ctx, &authId, "INSERT INTO twitter_authorizations (client_id, state, code_verifier, wallet_id, redirect_url) VALUES ($1, $2, $3, $4, $5) RETURNING id", args.ClientID, state, codeVerifier, args.WalletID, args.RedirectURL)
+	err = b.DB().GetContext(ctx, &authId, "INSERT INTO twitter_authorizations (client_id, state, code_verifier, scopes, wallet_id, redirect_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", args.ClientID, state, codeVerifier, pq.Array(args.Scopes), args.WalletID, args.RedirectURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
@@ -79,8 +80,8 @@ func CreateAccessToken(ctx context.Context, b Backends, args *twitter.CreateAcce
 	var token twitter.TwitterAccessToken
 
 	err = b.DB().GetContext(ctx, &token,
-		"INSERT INTO twitter_access_tokens (client_id, wallet_id, access_token, refresh_token, token_type, expiry) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-		authorization.ClientID, authorization.WalletID, accessToken.AccessToken, accessToken.RefreshToken, accessToken.TokenType, accessToken.Expiry)
+		"INSERT INTO twitter_access_tokens (client_id, wallet_id, access_token, refresh_token, token_type, expiry, scopes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+		authorization.ClientID, authorization.WalletID, accessToken.AccessToken, accessToken.RefreshToken, accessToken.TokenType, accessToken.Expiry, pq.Array(authorization.Scopes))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}

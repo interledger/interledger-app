@@ -1,6 +1,9 @@
 package ops
 
-import "time"
+import (
+	"github.com/lib/pq"
+	"time"
+)
 
 type (
 	CreateAuthURLArgs struct {
@@ -12,13 +15,14 @@ type (
 	}
 
 	TwitterAuth struct {
-		ID           string    `db:"id"`
-		WalletID     string    `db:"wallet_id"`
-		State        string    `db:"state"`
-		CodeVerifier string    `db:"code_verifier"`
-		ClientID     string    `db:"client_id"`
-		RedirectURL  string    `db:"redirect_url"`
-		CreatedAt    time.Time `db:"created_at"`
-		UpdatedAt    time.Time `db:"updated_at"`
+		ID           string         `db:"id"`
+		WalletID     string         `db:"wallet_id"`
+		State        string         `db:"state"`
+		CodeVerifier string         `db:"code_verifier"`
+		ClientID     string         `db:"client_id"`
+		RedirectURL  string         `db:"redirect_url"`
+		Scopes       pq.StringArray `db:"scopes"`
+		CreatedAt    time.Time      `db:"created_at"`
+		UpdatedAt    time.Time      `db:"updated_at"`
 	}
 )
