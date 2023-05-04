@@ -27,13 +27,13 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		_, err := b.Twitter().CreateAccessToken(r.Context(), &twitter.CreateAccessTokenArgs{
+		_, err := b.Twitter().CreateToken(r.Context(), &twitter.CreateTokenArgs{
 			State:    state,
 			AuthCode: authCode,
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			log.Error("Error creating access token", zap.Error(err))
+			log.Error("Error creating token", zap.Error(err))
 			return
 		}
 

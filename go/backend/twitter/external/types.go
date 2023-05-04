@@ -1,7 +1,7 @@
 package external
 
 type (
-	CreateAccessTokenArgs struct {
+	CreateTokenArgs struct {
 		AuthCode     string
 		CodeVerifier string
 	}

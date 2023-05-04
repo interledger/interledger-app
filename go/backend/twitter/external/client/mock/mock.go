@@ -36,17 +36,17 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// CreateAccessToken mocks base method.
-func (m *MockClient) CreateAccessToken(ctx context.Context, args external.CreateAccessTokenArgs) (*oauth2.Token, error) {
+// CreateToken mocks base method.
+func (m *MockClient) CreateToken(ctx context.Context, args *external.CreateTokenArgs) (*oauth2.Token, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAccessToken", ctx, args)
+	ret := m.ctrl.Call(m, "CreateToken", ctx, args)
 	ret0, _ := ret[0].(*oauth2.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateAccessToken indicates an expected call of CreateAccessToken.
-func (mr *MockClientMockRecorder) CreateAccessToken(ctx, args interface{}) *gomock.Call {
+// CreateToken indicates an expected call of CreateToken.
+func (mr *MockClientMockRecorder) CreateToken(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccessToken", reflect.TypeOf((*MockClient)(nil).CreateAccessToken), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockClient)(nil).CreateToken), ctx, args)
 }

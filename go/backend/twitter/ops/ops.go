@@ -55,7 +55,7 @@ func CreateAuthURL(ctx context.Context, b Backends, args *CreateAuthURLArgs) (*t
 	}, nil
 }
 
-func CreateAccessToken(ctx context.Context, b Backends, args *twitter.CreateAccessTokenArgs) (*twitter.TwitterAccessToken, error) {
+func CreateToken(ctx context.Context, b Backends, args *twitter.CreateTokenArgs) (*twitter.Token, error) {
 	var authorization TwitterAuth
 
 	err := b.DB().GetContext(ctx, &authorization, "SELECT * FROM twitter_authorizations WHERE state = $1", args.State)
@@ -69,7 +69,7 @@ func CreateAccessToken(ctx context.Context, b Backends, args *twitter.CreateAcce
 		return nil, fmt.Errorf("%w couldn't find an auth code for this grant", twitter.ErrInternal)
 	}
 
-	accessToken, err := b.External().CreateAccessToken(ctx, external.CreateAccessTokenArgs{
+	token, err := b.External().CreateToken(ctx, &external.CreateTokenArgs{
 		AuthCode:     args.AuthCode,
 		CodeVerifier: authorization.CodeVerifier,
 	})
@@ -77,16 +77,27 @@ func CreateAccessToken(ctx context.Context, b Backends, args *twitter.CreateAcce
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	var token twitter.TwitterAccessToken
+	var dbToken twitter.Token
 
-	err = b.DB().GetContext(ctx, &token,
+	err = b.DB().GetContext(ctx, &dbToken,
 		"INSERT INTO twitter_access_tokens (client_id, wallet_id, access_token, refresh_token, token_type, expiry, scopes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-		authorization.ClientID, authorization.WalletID, accessToken.AccessToken, accessToken.RefreshToken, accessToken.TokenType, accessToken.Expiry, pq.Array(authorization.Scopes))
+		authorization.ClientID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, token.Expiry, pq.Array(authorization.Scopes))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	return &token, nil
+	return &dbToken, nil
+}
+
+func GetTokensByWalletID(ctx context.Context, b Backends, args *twitter.GetTokensByWalletIDArgs) ([]twitter.Token, error) {
+	var tokens []twitter.Token
+
+	err := b.DB().SelectContext(ctx, &tokens, "SELECT * FROM twitter_access_tokens WHERE wallet_id = $1 AND scopes @> $2", args.WalletID, pq.Array(args.Scopes))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
+	}
+
+	return tokens, nil
 }
 
 func randomBytesInBase64URL(count int) (string, error) {
