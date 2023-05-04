@@ -2259,6 +2259,10 @@ table "twitter_authorizations" {
     null = false
     type = text
   }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
   column "redirect_url" {
     null = false
     type = text
@@ -2291,6 +2295,10 @@ table "twitter_access_tokens" {
     null = false
     type = uuid
     default = sql("gen_random_uuid()")
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
   }
   column "client_id" {
     null = false
