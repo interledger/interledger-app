@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
@@ -119,5 +120,6 @@ func (c *Client) Authenticate3DS(ctx context.Context, args tabapay.Authenticate3
 }
 
 func (c *Client) Get3DSSession(ctx context.Context, id string) (*tabapay.ThreeDSSession, error) {
+	fmt.Printf("client looking up id=%s \n", id)
 	return ops.Get3DSSession(ctx, c.b, id)
 }

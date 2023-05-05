@@ -237,6 +237,7 @@ func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3
 func Get3DSSession(
 	ctx context.Context, b Backends, id string,
 ) (*tabapay.ThreeDSSession, error) {
+	fmt.Printf("ops looking up id=%s \n", id)
 	var session dbThreeDSSession
 	err := b.DB().GetContext(ctx, &session, fmt.Sprintf("SELECT %s FROM tabapay_3ds_sessions WHERE id=$1 ORDER BY revision DESC LIMIT 1;", dbThreeDSSessionFields), id)
 	if errors.Is(err, sql.ErrNoRows) {
