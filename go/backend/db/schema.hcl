@@ -2061,7 +2061,7 @@ table "admin_audit_log" {
     columns = [column.id]
   }
   index "wallet_id_ind" {
-    unique  = true
+    unique  = false
     columns = [column.wallet_id]
   }
 }
