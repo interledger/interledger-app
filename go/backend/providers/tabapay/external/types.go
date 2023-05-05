@@ -97,9 +97,9 @@ type (
 	}
 
 	CreateTransactionArgs struct {
-		ReferenceID string `json:"referenceID"`
-		Type        TransactionType
-		Accounts    CreateTransactionAccounts
+		ReferenceID string                       `json:"referenceID"`
+		Type        TransactionType              `json:"type,omitempty"`
+		Accounts    CreateTransactionAccounts    `json:"accounts"`
 		Currency    string                       `json:"currency,omitempty"`
 		Amount      string                       `json:"amount"`
 		PullOptions CreateTransactionPullOptions `json:"pullOptions"`
