@@ -88,7 +88,7 @@ func (c *Client) CreateCard(ctx context.Context, args tabapay.CreateCardArgs) (t
 	return ops.CreateCard(ctx, c.b, args)
 }
 
-func (c *Client) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs) (string, error) {
+func (c *Client) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs) (*tabapay.Transaction, error) {
 	return ops.PullFromCard(ctx, c.b, ops.PullFromCardArgs{
 		WalletID:            args.WalletID,
 		ProviderID:          args.ProviderID,
@@ -99,7 +99,7 @@ func (c *Client) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs
 	})
 }
 
-func (c *Client) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (string, error) {
+func (c *Client) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (*tabapay.Transaction, error) {
 	return ops.PushToCard(ctx, c.b, ops.PullFromCardArgs{
 		WalletID:            args.WalletID,
 		ProviderID:          args.ProviderID,
