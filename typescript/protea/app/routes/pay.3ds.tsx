@@ -68,7 +68,11 @@ export default function Page() {
   let cardinalRef = useRef<any>(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && state == 'ready' && cardinalRef.current === null) {
+    if (
+      typeof window !== 'undefined' &&
+      state == 'ready' &&
+      cardinalRef.current === null
+    ) {
       cardinalRef.current = (window as any).Cardinal
       cardinalRef.current.configure({
         logging: {
