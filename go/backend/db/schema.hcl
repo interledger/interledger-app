@@ -2153,5 +2153,69 @@ table "tabapay_3ds_sessions" {
     columns = [column.id, column.revision]
   }
 }
+table "wallet_features" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "send_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "receive_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "linked_accounts_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "cards_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "banks_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "identities_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "twitter_enabled" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_id_ind" {
+    unique  = true
+    columns = [column.wallet_id]
+  }
+}
 schema "public" {
 }

@@ -1,17 +1,10 @@
 package features
 
-import "context"
+import (
+	"context"
+)
 
 type Client interface {
-	Features(ctx context.Context, walletID string)
-}
-
-type WalletFeatures struct {
-	SendEnabled       bool
-	RecvEnabled       bool
-	LinkedAccEnabled  bool
-	CardsEnabled      bool
-	BanksEnabled      bool
-	IdentitiesEnabled bool
-	TwitterEnabled    bool
+	SetFeatures(ctx context.Context, walletID string, features WalletFeatures) (*WalletFeatures, error)
+	Features(ctx context.Context, walletID string) (*WalletFeatures, error)
 }
