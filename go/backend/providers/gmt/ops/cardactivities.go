@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -33,9 +34,14 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (str
 		return "", temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
 	}
 
+	fmt.Printf("PullFromCardArgs %+v \n", args)
 	session3DS, err := a.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
+	fmt.Printf("Find 3DS session error %+v \n", err)
 	if errors.Is(err, tabapay.ErrNotFound) {
 		return "", temporal.NewNonRetryableApplicationError("3DS session not found.", "ErrNotFound", err)
+	}
+	if err != nil {
+		return "", err
 	}
 
 	// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
