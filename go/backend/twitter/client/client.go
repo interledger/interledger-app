@@ -89,3 +89,7 @@ func (c *Client) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensB
 		WalletID: args.WalletID,
 	})
 }
+
+func (c *Client) PostTweet(ctx context.Context, token *twitter.Token, text string) (*twitter.Tweet, error) {
+	return ops.PostTweet(ctx, c.b, token, text)
+}
