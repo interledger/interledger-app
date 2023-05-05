@@ -127,6 +127,7 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 		OrderID:  args.IdempotencyKey,
 		Amount:   args.Amount.Value,
 		Currency: args.Amount.Currency.String(),
+		InitAt:   time.Now(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
@@ -239,7 +240,7 @@ func Get3DSSession(
 	var session dbThreeDSSession
 	err := b.DB().GetContext(ctx, &session, fmt.Sprintf("SELECT %s FROM tabapay_3ds_sessions WHERE id=$1 ORDER BY revision DESC LIMIT 1;", dbThreeDSSessionFields), id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, tabapay.ErrNotFound
+		return nil, fmt.Errorf("%w 3DS session not found (id=%s).", tabapay.ErrNotFound, id)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
