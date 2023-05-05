@@ -1,9 +1,14 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 
-import { Icon, WalletGrid } from '~/components'
+import { Icon, Grid } from '~/components'
 import { json } from '@remix-run/node'
 import { useLoaderData, useFetcher } from '@remix-run/react'
-import { grpcClient } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const signups = await grpcClient.listWaitlistSignups(
@@ -30,7 +35,7 @@ export default function Page() {
           { id: id },
           {
             method: 'post',
-            action: '/api/allowSignup'
+            action: '/waitlist'
           }
         )
       }
@@ -42,7 +47,7 @@ export default function Page() {
   }
 
   return (
-    <WalletGrid>
+    <Grid>
       <div className='col-span-full flex flex-col rounded-2xl bg-page p-4 pb-6'>
         <div className='sm:flex sm:items-center'>
           <div className='sm:flex-auto'>
@@ -146,6 +151,30 @@ export default function Page() {
           </div>
         </div>
       </div>
-    </WalletGrid>
+    </Grid>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  const id = form.get('id') as string
+
+  let response = await grpcClient
+    .allowWaitlistSignup(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return json({ success: true })
 }

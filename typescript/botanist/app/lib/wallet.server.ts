@@ -5,21 +5,22 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { json } from '@remix-run/node'
-import type { Amount } from '~/generated/protobuf-ts/backend/v1/backend'
 import type {
+  GetTransactionDetailsResponse,
+  ListAuditResponse,
   ListWalletsResponse,
   PaginationRequest,
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
+import { DateTime } from 'luxon'
+import type { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { User } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
-export const formatAmount = (amount?: Amount): string => {
+export const formatAmount = (amount: number, asset: string): string => {
   if (typeof amount == 'undefined') return '$ 0.00'
-  const symbol = amount.asset == 'USD' ? '$' : amount.asset
-  return `${symbol} ${(parseInt(amount.amount) / 100).toFixed(
-    amount.assetScale
-  )}`
+  return `${asset} ${(amount / 100).toFixed(2)}`
 }
 
 export async function ListWallets(
@@ -43,13 +44,243 @@ export async function ListWallets(
   return response.response
 }
 
+export interface Wallet {
+  users: User[]
+  walletID: string
+  firstName: string
+  lastName: string
+  countryCode: string
+  gender: string
+  dateOfBirth?: string
+  address: string
+  kycStatus: string
+}
+
 export async function GetWalletDetails(
+  request: Request,
+  walletID: string
+): Promise<Wallet> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getWalletDetails(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return {
+    ...response.response,
+    gender:
+      response.response.gender == 0
+        ? 'Unknown'
+        : response.response.gender == 1
+        ? 'Male'
+        : response.response.gender == 2
+        ? 'Female'
+        : 'Other',
+    dateOfBirth: DateTime.fromSeconds(
+      parseInt(response.response.dateOfBirth?.seconds ?? '')
+    ).toLocaleString(DateTime.DATETIME_FULL)
+  }
+}
+
+interface Transaction {
+  walletID: string
+  id: string
+  type: string
+  status: string
+  date: string
+  amount: string
+  source: string
+  destination: string
+  transfers?: Transfer[]
+}
+
+export async function GetWalletTransactions(
+  request: Request,
+  walletID: string
+): Promise<Transaction[]> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .listTransactions(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  console.log('RESPONSE', response)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response.transactions.map((transaction) => {
+    return {
+      walletID,
+      id: transaction.id,
+      status: '???',
+      type: transaction.type,
+      date: DateTime.fromSeconds(
+        parseInt(transaction.timestamp?.seconds ?? '')
+      ).toLocaleString(DateTime.DATETIME_FULL),
+      amount: formatAmount(transaction.amount, transaction.asset),
+      source: transaction.source,
+      destination: transaction.destination
+    }
+  })
+}
+
+export async function GetWalletTransactionDetails(
+  request: Request,
+  walletID: string,
+  transactionID: string
+): Promise<GetTransactionDetailsResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getTransactionDetails(
+      { walletID, transactionID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+/**
+ * RPC endpoints required for the admin panel
+ *
+ * - Transactions
+ *     - List
+ *     - Get detailed
+ * - Identities
+ *     - List
+ *     - Get Detailed
+ * - KYC Status
+ * - Linked Accounts
+ *     - List
+ *     - Detailed
+ * - Audit
+ *     - List
+ */
+
+export async function GetWalletIdentities(
   request: Request,
   walletID: string
 ): Promise<WalletDetails> {
   const cookie = String(request.headers.get('cookie'))
   let response = await grpcClient
     .getWalletDetails(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function GetWalletIdentityDetails(
+  request: Request,
+  walletID: string
+): Promise<WalletDetails> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getWalletDetails(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function GetWalletLinkedAccounts(
+  request: Request,
+  walletID: string
+): Promise<WalletDetails> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getWalletDetails(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function GetWalletLinkedAccountDetails(
+  request: Request,
+  walletID: string
+): Promise<WalletDetails> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getWalletDetails(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function GetWalletAudits(
+  request: Request,
+  walletID: string
+): Promise<ListAuditResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .listAudit(
       { walletID },
       {
         meta: {
