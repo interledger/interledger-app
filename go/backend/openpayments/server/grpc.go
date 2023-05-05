@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -375,6 +376,19 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	if args.ThreeDSID != "" {
+		session3DS, err := g.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		// the 3ds session is initialized with orderID=idempotency key
+		if session3DS.OrderID != args.IdempotencyKey {
+			err = fmt.Errorf("%w 3DS session invalid.", openpayments.ErrInternal)
+			return nil, toGRPCError(err)
+		}
 	}
 
 	// Assume that the quote and the outgoing payment have the same created by.
