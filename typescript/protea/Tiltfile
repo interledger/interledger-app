@@ -3,7 +3,6 @@ sync_public = sync('./public', '/app/public')
 sync_generated = sync('./generated', '/app/generated')
 
 local_resource('tailwind watch', cmd = 'pnpm build:css', deps=['./app'], ignore=['./app/styles'])
-local_resource('protea port forward', serve_cmd = 'kubectl port-forward --namespace protea deployment/protea 8002:8002', resource_deps = ['protea'])
 local_resource('protea port forward debugging', serve_cmd = 'kubectl port-forward --namespace protea deployment/protea 9229:9229', resource_deps = ['protea'])
 
 docker_build('protea', '.', target = "dev", live_update = [
