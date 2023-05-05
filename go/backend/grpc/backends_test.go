@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/features"
+
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/providers/basistheory"
@@ -87,6 +89,10 @@ type TestContainer struct {
 	mx                 *mx_mock.MockClient
 	keys               *keys_mock.MockClient
 	basistheory        *bt_mock.MockClient
+}
+
+func (t TestContainer) Features() features.Client {
+	return nil
 }
 
 func (t TestContainer) BasisTheory() basistheory.Client {

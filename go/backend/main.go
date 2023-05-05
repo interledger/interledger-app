@@ -12,8 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/vault"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -38,6 +36,8 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
+	"gitlab.com/fynbos/backend/features"
+	features_client "gitlab.com/fynbos/backend/features/client"
 	_grpc "gitlab.com/fynbos/backend/grpc"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identities"
@@ -76,6 +76,7 @@ import (
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
+	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/log"
@@ -187,6 +188,8 @@ func start(args *cli.StartArgs) {
 	b.analytics = analytics_client.New(b, args.SegmentKey)
 
 	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
+
+	b.feat = features_client.New(b)
 
 	var wg sync.WaitGroup
 
@@ -511,6 +514,11 @@ type backends struct {
 	tabapay        tabapay.Client
 	vault          vault.Client
 	basistheory    basistheory.Client
+	feat           features.Client
+}
+
+func (b backends) Features() features.Client {
+	return b.feat
 }
 
 func (b backends) BasisTheory() basistheory.Client {

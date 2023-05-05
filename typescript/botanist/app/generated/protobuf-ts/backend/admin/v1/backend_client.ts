@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { Features } from "./backend";
+import type { GetWalletFeaturesRequest } from "./backend";
 import type { ListAuditResponse } from "./backend";
 import type { ListAuditRequest } from "./backend";
 import type { ListLinkedAccountsResponse } from "./backend";
@@ -59,6 +61,14 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ListAudit(backend.admin.v1.ListAuditRequest) returns (backend.admin.v1.ListAuditResponse);
      */
     listAudit(input: ListAuditRequest, options?: RpcOptions): UnaryCall<ListAuditRequest, ListAuditResponse>;
+    /**
+     * @generated from protobuf rpc: GetWalletFeatures(backend.admin.v1.GetWalletFeaturesRequest) returns (backend.admin.v1.Features);
+     */
+    getWalletFeatures(input: GetWalletFeaturesRequest, options?: RpcOptions): UnaryCall<GetWalletFeaturesRequest, Features>;
+    /**
+     * @generated from protobuf rpc: SetWalletFeatures(backend.admin.v1.Features) returns (backend.admin.v1.Features);
+     */
+    setWalletFeatures(input: Features, options?: RpcOptions): UnaryCall<Features, Features>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -124,5 +134,19 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     listAudit(input: ListAuditRequest, options?: RpcOptions): UnaryCall<ListAuditRequest, ListAuditResponse> {
         const method = this.methods[7], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListAuditRequest, ListAuditResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetWalletFeatures(backend.admin.v1.GetWalletFeaturesRequest) returns (backend.admin.v1.Features);
+     */
+    getWalletFeatures(input: GetWalletFeaturesRequest, options?: RpcOptions): UnaryCall<GetWalletFeaturesRequest, Features> {
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetWalletFeaturesRequest, Features>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SetWalletFeatures(backend.admin.v1.Features) returns (backend.admin.v1.Features);
+     */
+    setWalletFeatures(input: Features, options?: RpcOptions): UnaryCall<Features, Features> {
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Features, Features>("unary", this._transport, method, opt, input);
     }
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -24,4 +25,5 @@ type Backends interface {
 	Email() email.Client
 	LinkedAccounts() linkedaccounts.Client
 	Transactions() transactions.Client
+	Features() features.Client
 }

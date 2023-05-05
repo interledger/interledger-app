@@ -20,6 +20,52 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.admin.v1.GetWalletFeaturesRequest
+ */
+export interface GetWalletFeaturesRequest {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.Features
+ */
+export interface Features {
+    /**
+     * @generated from protobuf field: bool sendEnabled = 1;
+     */
+    sendEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool receiveEnabled = 2;
+     */
+    receiveEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool linkedAccountsEnabled = 3;
+     */
+    linkedAccountsEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool cardsEnabled = 4;
+     */
+    cardsEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool banksEnabled = 5;
+     */
+    banksEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool identitiesEnabled = 6;
+     */
+    identitiesEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool twitterEnabled = 7;
+     */
+    twitterEnabled: boolean;
+    /**
+     * @generated from protobuf field: string walletID = 8;
+     */
+    walletID: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.ListAuditRequest
  */
 export interface ListAuditRequest {
@@ -443,6 +489,149 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.admin.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetWalletFeaturesRequest$Type extends MessageType<GetWalletFeaturesRequest> {
+    constructor() {
+        super("backend.admin.v1.GetWalletFeaturesRequest", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetWalletFeaturesRequest>): GetWalletFeaturesRequest {
+        const message = { walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetWalletFeaturesRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetWalletFeaturesRequest): GetWalletFeaturesRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetWalletFeaturesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetWalletFeaturesRequest
+ */
+export const GetWalletFeaturesRequest = new GetWalletFeaturesRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Features$Type extends MessageType<Features> {
+    constructor() {
+        super("backend.admin.v1.Features", [
+            { no: 1, name: "sendEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "receiveEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 3, name: "linkedAccountsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "cardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "banksEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "identitiesEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 7, name: "twitterEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Features>): Features {
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Features>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Features): Features {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bool sendEnabled */ 1:
+                    message.sendEnabled = reader.bool();
+                    break;
+                case /* bool receiveEnabled */ 2:
+                    message.receiveEnabled = reader.bool();
+                    break;
+                case /* bool linkedAccountsEnabled */ 3:
+                    message.linkedAccountsEnabled = reader.bool();
+                    break;
+                case /* bool cardsEnabled */ 4:
+                    message.cardsEnabled = reader.bool();
+                    break;
+                case /* bool banksEnabled */ 5:
+                    message.banksEnabled = reader.bool();
+                    break;
+                case /* bool identitiesEnabled */ 6:
+                    message.identitiesEnabled = reader.bool();
+                    break;
+                case /* bool twitterEnabled */ 7:
+                    message.twitterEnabled = reader.bool();
+                    break;
+                case /* string walletID */ 8:
+                    message.walletID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Features, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bool sendEnabled = 1; */
+        if (message.sendEnabled !== false)
+            writer.tag(1, WireType.Varint).bool(message.sendEnabled);
+        /* bool receiveEnabled = 2; */
+        if (message.receiveEnabled !== false)
+            writer.tag(2, WireType.Varint).bool(message.receiveEnabled);
+        /* bool linkedAccountsEnabled = 3; */
+        if (message.linkedAccountsEnabled !== false)
+            writer.tag(3, WireType.Varint).bool(message.linkedAccountsEnabled);
+        /* bool cardsEnabled = 4; */
+        if (message.cardsEnabled !== false)
+            writer.tag(4, WireType.Varint).bool(message.cardsEnabled);
+        /* bool banksEnabled = 5; */
+        if (message.banksEnabled !== false)
+            writer.tag(5, WireType.Varint).bool(message.banksEnabled);
+        /* bool identitiesEnabled = 6; */
+        if (message.identitiesEnabled !== false)
+            writer.tag(6, WireType.Varint).bool(message.identitiesEnabled);
+        /* bool twitterEnabled = 7; */
+        if (message.twitterEnabled !== false)
+            writer.tag(7, WireType.Varint).bool(message.twitterEnabled);
+        /* string walletID = 8; */
+        if (message.walletID !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.walletID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Features
+ */
+export const Features = new Features$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListAuditRequest$Type extends MessageType<ListAuditRequest> {
     constructor() {
@@ -1838,5 +2027,7 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListTransactions", options: {}, I: ListTransactionsRequest, O: ListTransactionsResponse },
     { name: "GetTransactionDetails", options: {}, I: GetTransactionDetailsRequest, O: GetTransactionDetailsResponse },
     { name: "ListLinkedAccounts", options: {}, I: ListLinkedAccountsRequest, O: ListLinkedAccountsResponse },
-    { name: "ListAudit", options: {}, I: ListAuditRequest, O: ListAuditResponse }
+    { name: "ListAudit", options: {}, I: ListAuditRequest, O: ListAuditResponse },
+    { name: "GetWalletFeatures", options: {}, I: GetWalletFeaturesRequest, O: Features },
+    { name: "SetWalletFeatures", options: {}, I: Features, O: Features }
 ]);

@@ -31,6 +31,8 @@ type BackendClient interface {
 	GetTransactionDetails(ctx context.Context, in *GetTransactionDetailsRequest, opts ...grpc.CallOption) (*GetTransactionDetailsResponse, error)
 	ListLinkedAccounts(ctx context.Context, in *ListLinkedAccountsRequest, opts ...grpc.CallOption) (*ListLinkedAccountsResponse, error)
 	ListAudit(ctx context.Context, in *ListAuditRequest, opts ...grpc.CallOption) (*ListAuditResponse, error)
+	GetWalletFeatures(ctx context.Context, in *GetWalletFeaturesRequest, opts ...grpc.CallOption) (*Features, error)
+	SetWalletFeatures(ctx context.Context, in *Features, opts ...grpc.CallOption) (*Features, error)
 }
 
 type backendClient struct {
@@ -113,6 +115,24 @@ func (c *backendClient) ListAudit(ctx context.Context, in *ListAuditRequest, opt
 	return out, nil
 }
 
+func (c *backendClient) GetWalletFeatures(ctx context.Context, in *GetWalletFeaturesRequest, opts ...grpc.CallOption) (*Features, error) {
+	out := new(Features)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/GetWalletFeatures", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) SetWalletFeatures(ctx context.Context, in *Features, opts ...grpc.CallOption) (*Features, error) {
+	out := new(Features)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/SetWalletFeatures", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -125,6 +145,8 @@ type BackendServer interface {
 	GetTransactionDetails(context.Context, *GetTransactionDetailsRequest) (*GetTransactionDetailsResponse, error)
 	ListLinkedAccounts(context.Context, *ListLinkedAccountsRequest) (*ListLinkedAccountsResponse, error)
 	ListAudit(context.Context, *ListAuditRequest) (*ListAuditResponse, error)
+	GetWalletFeatures(context.Context, *GetWalletFeaturesRequest) (*Features, error)
+	SetWalletFeatures(context.Context, *Features) (*Features, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -154,6 +176,12 @@ func (UnimplementedBackendServer) ListLinkedAccounts(context.Context, *ListLinke
 }
 func (UnimplementedBackendServer) ListAudit(context.Context, *ListAuditRequest) (*ListAuditResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAudit not implemented")
+}
+func (UnimplementedBackendServer) GetWalletFeatures(context.Context, *GetWalletFeaturesRequest) (*Features, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWalletFeatures not implemented")
+}
+func (UnimplementedBackendServer) SetWalletFeatures(context.Context, *Features) (*Features, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetWalletFeatures not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -311,6 +339,42 @@ func _Backend_ListAudit_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_GetWalletFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWalletFeaturesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetWalletFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/GetWalletFeatures",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetWalletFeatures(ctx, req.(*GetWalletFeaturesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_SetWalletFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Features)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).SetWalletFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/SetWalletFeatures",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).SetWalletFeatures(ctx, req.(*Features))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -349,6 +413,14 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAudit",
 			Handler:    _Backend_ListAudit_Handler,
+		},
+		{
+			MethodName: "GetWalletFeatures",
+			Handler:    _Backend_GetWalletFeatures_Handler,
+		},
+		{
+			MethodName: "SetWalletFeatures",
+			Handler:    _Backend_SetWalletFeatures_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

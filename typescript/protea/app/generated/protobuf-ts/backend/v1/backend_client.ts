@@ -2,6 +2,7 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { Features } from "./backend";
 import type { CreateCardRequest } from "./backend";
 import type { Authenticate3DSResponse } from "./backend";
 import type { Authenticate3DSRequest } from "./backend";
@@ -506,6 +507,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.Empty);
      */
     createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, Empty>;
+    /**
+     * Features
+     *
+     * @generated from protobuf rpc: ListFeatures(backend.v1.Empty) returns (backend.v1.Features);
+     */
+    listFeatures(input: Empty, options?: RpcOptions): UnaryCall<Empty, Features>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -934,5 +941,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, Empty> {
         const method = this.methods[54], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateCardRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Features
+     *
+     * @generated from protobuf rpc: ListFeatures(backend.v1.Empty) returns (backend.v1.Features);
+     */
+    listFeatures(input: Empty, options?: RpcOptions): UnaryCall<Empty, Features> {
+        const method = this.methods[55], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, Features>("unary", this._transport, method, opt, input);
     }
 }
