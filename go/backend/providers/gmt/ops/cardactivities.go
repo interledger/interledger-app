@@ -37,6 +37,9 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (str
 	if errors.Is(err, tabapay.ErrNotFound) {
 		return "", temporal.NewNonRetryableApplicationError("3DS session not found.", "ErrNotFound", err)
 	}
+	if err != nil {
+		return "", err
+	}
 
 	// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
 	if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
