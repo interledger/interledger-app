@@ -1,5 +1,5 @@
 # frontend
-include('./../../typescript/protea/Tiltfile')
+# include('./../../typescript/protea/Tiltfile')
 
 # Go services
 include('./../../go/backend/Tiltfile')

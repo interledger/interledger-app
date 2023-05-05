@@ -4,7 +4,7 @@ import { route } from 'routes-gen'
 import { IconButton, Logo, Router } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
-export function WalletLayout() {
+export function AdminLayout() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   return (
     <div className='inset-0 flex min-h-screen flex-col lg:flex-row'>
@@ -44,10 +44,8 @@ export function WalletLayout() {
             <Logo className='h-8' />
           </Router>
         </header>
-        <div className='my-16 lg:my-[5.5rem] lg:ml-64'>
-          <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
-            <Outlet />
-          </div>
+        <div className='my-16 lg:my-6 lg:ml-64 lg:mr-6'>
+          <Outlet />
         </div>
       </div>
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
