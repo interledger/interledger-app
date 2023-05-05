@@ -105,6 +105,22 @@ func GetTokensByUserID(ctx context.Context, b Backends, args *twitter.GetTokensB
 	return tokens, nil
 }
 
+func PostTweet(ctx context.Context, b Backends, token *twitter.Token, text string) (*twitter.Tweet, error) {
+	oauthToken := oauth2.Token{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		TokenType:    token.TokenType,
+		Expiry:       token.Expiry,
+	}
+
+	tweet, err := b.External().PostTweet(ctx, &oauthToken, text)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
+	}
+
+	return tweet, nil
+}
+
 func randomBytesInBase64URL(count int) (string, error) {
 	buf := make([]byte, count)
 	_, err := io.ReadFull(rand.Reader, buf)

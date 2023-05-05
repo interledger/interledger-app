@@ -46,4 +46,9 @@ type (
 		UserID   string
 		WalletID string
 	}
+
+	Tweet struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+	}
 )

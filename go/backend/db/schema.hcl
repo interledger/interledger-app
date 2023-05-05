@@ -2296,6 +2296,10 @@ table "twitter_access_tokens" {
     type = uuid
     default = sql("gen_random_uuid()")
   }
+  column "user_id" {
+    null = false
+    type = text
+  }
   column "scopes" {
     null = false
     type = sql("text[]")

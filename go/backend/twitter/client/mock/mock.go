@@ -10,8 +10,6 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	twitter "gitlab.com/fynbos/backend/twitter"
-	external "gitlab.com/fynbos/backend/twitter/external"
-	oauth2 "golang.org/x/oauth2"
 )
 
 // MockClient is a mock of Client interface.
@@ -37,11 +35,26 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CreateAuthURL mocks base method.
+func (m *MockClient) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLArgs) (*twitter.Authorization, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAuthURL", ctx, args)
+	ret0, _ := ret[0].(*twitter.Authorization)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAuthURL indicates an expected call of CreateAuthURL.
+func (mr *MockClientMockRecorder) CreateAuthURL(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAuthURL", reflect.TypeOf((*MockClient)(nil).CreateAuthURL), ctx, args)
+}
+
 // CreateToken mocks base method.
-func (m *MockClient) CreateToken(ctx context.Context, args *external.CreateTokenArgs) (*oauth2.Token, error) {
+func (m *MockClient) CreateToken(ctx context.Context, args *twitter.CreateTokenArgs) (*twitter.Token, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateToken", ctx, args)
-	ret0, _ := ret[0].(*oauth2.Token)
+	ret0, _ := ret[0].(*twitter.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -52,23 +65,23 @@ func (mr *MockClientMockRecorder) CreateToken(ctx, args interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockClient)(nil).CreateToken), ctx, args)
 }
 
-// GetAuthorizedUser mocks base method.
-func (m *MockClient) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*twitter.TwitterUser, error) {
+// GetTokensByUserID mocks base method.
+func (m *MockClient) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Token, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAuthorizedUser", ctx, token)
-	ret0, _ := ret[0].(*twitter.TwitterUser)
+	ret := m.ctrl.Call(m, "GetTokensByUserID", ctx, args)
+	ret0, _ := ret[0].([]twitter.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAuthorizedUser indicates an expected call of GetAuthorizedUser.
-func (mr *MockClientMockRecorder) GetAuthorizedUser(ctx, token interface{}) *gomock.Call {
+// GetTokensByUserID indicates an expected call of GetTokensByUserID.
+func (mr *MockClientMockRecorder) GetTokensByUserID(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizedUser", reflect.TypeOf((*MockClient)(nil).GetAuthorizedUser), ctx, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokensByUserID", reflect.TypeOf((*MockClient)(nil).GetTokensByUserID), ctx, args)
 }
 
 // PostTweet mocks base method.
-func (m *MockClient) PostTweet(ctx context.Context, token *oauth2.Token, text string) (*twitter.Tweet, error) {
+func (m *MockClient) PostTweet(ctx context.Context, token *twitter.Token, text string) (*twitter.Tweet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PostTweet", ctx, token, text)
 	ret0, _ := ret[0].(*twitter.Tweet)

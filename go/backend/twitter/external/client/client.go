@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -66,4 +67,28 @@ func (c *client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*t
 	}
 
 	return user, nil
+}
+
+func (c *client) PostTweet(ctx context.Context, token *oauth2.Token, text string) (*twitter.Tweet, error) {
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(map[string]interface{}{
+		"text": text,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not encode tweet: %v", err)
+	}
+
+	res, err := c.oauthConfig.Client(ctx, token).Post("https://api.twitter.com/2/tweets", "application/json", &buf)
+	if err != nil {
+		return nil, fmt.Errorf("could not post tweet: %v", err)
+	}
+	defer res.Body.Close()
+
+	var tweet *twitter.Tweet
+	err = json.NewDecoder(res.Body).Decode(tweet)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode tweet: %v", err)
+	}
+
+	return tweet, nil
 }
