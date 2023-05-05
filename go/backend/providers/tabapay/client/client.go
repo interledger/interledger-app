@@ -89,6 +89,7 @@ func (c *Client) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs
 		ReferenceID:         args.ReferenceID,
 		Amount:              args.Amount,
 		SettlementAccountID: c.settlementAccountID,
+		ThreeDSID:           args.ThreeDSID,
 	})
 }
 
@@ -99,6 +100,7 @@ func (c *Client) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (s
 		ReferenceID:         args.ReferenceID,
 		Amount:              args.Amount,
 		SettlementAccountID: c.settlementAccountID,
+		ThreeDSID:           args.ThreeDSID,
 	})
 }
 
