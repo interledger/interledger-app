@@ -35,13 +35,25 @@ type PullFromCardArgs struct {
 
 type PushToCardArgs = PullFromCardArgs
 
+type Fees struct {
+	Tabapay     string
+	Interchange string
+	Network     string
+}
+
 type Transaction struct {
-	ID             string
-	ReferenceID    string
-	Status         string
-	OriginalStatus string
-	Amount         currency.Amount
-	ReversalStatus string
+	ID                 string
+	ReferenceID        string
+	Network            string
+	NetworkRC          string
+	Status             string
+	OriginalStatus     string
+	Amount             currency.Amount
+	Fees               Fees
+	ReversalStatus     string
+	ReversalNetworkRC  string
+	ReversalNetworkRC2 string
+	ReversalError      string
 }
 
 type Await func(ctx context.Context, result interface{}) error
@@ -167,4 +179,8 @@ func GetSongbirdURL() string {
 
 func IsFrictionlessAuthentication(lookup Lookup3DSResponse) bool {
 	return lookup.ChallengeURL == ""
+}
+
+func IsSuccessfulTransaction(trx Transaction) bool {
+	return (trx.NetworkRC == "00" || trx.NetworkRC == "000") && (trx.Status == string(external.TransactionStatusOk) || trx.Status == string(external.TransactionStatusCompleted))
 }
