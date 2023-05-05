@@ -19,9 +19,26 @@ service Backend {
   rpc GetTransactionDetails(GetTransactionDetailsRequest) returns (GetTransactionDetailsResponse);
   rpc ListLinkedAccounts(ListLinkedAccountsRequest) returns (ListLinkedAccountsResponse);
   rpc ListAudit(ListAuditRequest) returns (ListAuditResponse);
+  rpc GetWalletFeatures(GetWalletFeaturesRequest) returns (Features);
+  rpc SetWalletFeatures(Features) returns (Features);
 }
 
 message Empty {}
+
+message GetWalletFeaturesRequest {
+  string walletID = 1;
+}
+
+message Features {
+  bool sendEnabled = 1;
+  bool receiveEnabled = 2;
+  bool linkedAccountsEnabled = 3;
+  bool cardsEnabled = 4;
+  bool banksEnabled = 5;
+  bool identitiesEnabled = 6;
+  bool twitterEnabled = 7;
+  string walletID = 8;
+}
 
 message ListAuditRequest {
   string walletID = 1;

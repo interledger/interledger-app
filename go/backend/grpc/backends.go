@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/keys"
@@ -56,4 +57,5 @@ type Backends interface {
 	Tabapay() tabapay.Client
 	Keys() keys.Client
 	BasisTheory() basistheory.Client
+	Features() features.Client
 }

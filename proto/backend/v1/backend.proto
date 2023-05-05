@@ -271,7 +271,21 @@ service BackendService {
 
   // Basistheory
   rpc CreateCard(CreateCardRequest) returns (Empty);
+
+  // Features
+  rpc ListFeatures(Empty) returns (Features);
 }
+
+message Features {
+  bool sendEnabled = 1;
+  bool receiveEnabled = 2;
+  bool linkedAccountsEnabled = 3;
+  bool cardsEnabled = 4;
+  bool banksEnabled = 5;
+  bool identitiesEnabled = 6;
+  bool twitterEnabled = 7;
+}
+
 
 message CreateCardRequest {
   string tokenID = 1;
