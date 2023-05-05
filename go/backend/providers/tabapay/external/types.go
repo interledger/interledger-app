@@ -351,3 +351,35 @@ type (
 		XID                    string `json:"XID"`
 	}
 )
+
+func (t *RetrieveTransactionResponse) GetFees() *Fees {
+	if t.Fees != nil {
+		return t.Fees
+	}
+
+	return &Fees{}
+}
+
+func (t *RetrieveTransactionResponse) GetReversal() *Reversal {
+	if t.Reversal != nil {
+		return t.Reversal
+	}
+
+	return &Reversal{}
+}
+
+func (t *CreateTransactionResponse) GetFees() *Fees {
+	if t.Fees != nil {
+		return t.Fees
+	}
+
+	return &Fees{}
+}
+
+func (t *CreateTransactionResponse) GetCard() *CardResponse {
+	if t.Card != nil {
+		return t.Card
+	}
+
+	return &CardResponse{}
+}
