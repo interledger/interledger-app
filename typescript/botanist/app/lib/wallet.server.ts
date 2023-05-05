@@ -5,23 +5,23 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { json } from '@remix-run/node'
-import type { Amount } from '~/generated/protobuf-ts/backend/v1/backend'
 import type {
   GetTransactionDetailsResponse,
+  ListAuditResponse,
   ListWalletsResponse,
   PaginationRequest,
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 import { DateTime } from 'luxon'
+import { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
+import { Timestamp } from '~/generated/protobuf-ts/google/protobuf/timestamp'
+import { User } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
-export const formatAmount = (amount?: Amount): string => {
+export const formatAmount = (amount: number, asset: string): string => {
   if (typeof amount == 'undefined') return '$ 0.00'
-  const symbol = amount.asset == 'USD' ? '$' : amount.asset
-  return `${symbol} ${(parseInt(amount.amount) / 100).toFixed(
-    amount.assetScale
-  )}`
+  return `${asset} ${(amount / 100).toFixed(2)}`
 }
 
 export async function ListWallets(
@@ -45,10 +45,22 @@ export async function ListWallets(
   return response.response
 }
 
+export interface Wallet {
+  users: User[]
+  walletID: string
+  firstName: string
+  lastName: string
+  countryCode: string
+  gender: string
+  dateOfBirth?: string
+  address: string
+  kycStatus: string
+}
+
 export async function GetWalletDetails(
   request: Request,
   walletID: string
-): Promise<WalletDetails> {
+): Promise<Wallet> {
   const cookie = String(request.headers.get('cookie'))
   let response = await grpcClient
     .getWalletDetails(
@@ -65,19 +77,32 @@ export async function GetWalletDetails(
     throw json({}, httpMapping(response.code))
   }
 
-  return response.response
+  return {
+    ...response.response,
+    gender:
+      response.response.gender == 0
+        ? 'Unknown'
+        : response.response.gender == 1
+        ? 'Male'
+        : response.response.gender == 2
+        ? 'Female'
+        : 'Other',
+    dateOfBirth: DateTime.fromSeconds(
+      parseInt(response.response.dateOfBirth?.seconds ?? '')
+    ).toFormat('dd MMM yyyy')
+  }
 }
 
 interface Transaction {
   walletID: string
   id: string
-  title: string
   type: string
   status: string
   date: string
   amount: string
   source: string
   destination: string
+  transfers?: Transfer[]
 }
 
 export async function GetWalletTransactions(
@@ -96,6 +121,7 @@ export async function GetWalletTransactions(
     )
     .then((v) => v)
     .catch(StatusError)
+  console.log('RESPONSE', response)
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
@@ -104,13 +130,12 @@ export async function GetWalletTransactions(
     return {
       walletID,
       id: transaction.id,
-      title: 'TODO',
-      status: 'Complete',
+      status: '???',
       type: transaction.type,
       date: DateTime.fromSeconds(
         parseInt(transaction.timestamp?.seconds ?? '')
-      ).toFormat('dd MMM yyyy'),
-      amount: transaction.amount.toString(),
+      ).toFormat('dd MMM yyyy - HH:mm'),
+      amount: formatAmount(transaction.amount, transaction.asset),
       source: transaction.source,
       destination: transaction.destination
     }
@@ -253,10 +278,10 @@ export async function GetWalletLinkedAccountDetails(
 export async function GetWalletAudits(
   request: Request,
   walletID: string
-): Promise<WalletDetails> {
+): Promise<ListAuditResponse> {
   const cookie = String(request.headers.get('cookie'))
   let response = await grpcClient
-    .getWalletDetails(
+    .listAudit(
       { walletID },
       {
         meta: {

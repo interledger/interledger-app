@@ -13,47 +13,67 @@ import { DateTime } from 'luxon'
 import type { FC } from 'react'
 import { route } from 'routes-gen'
 import clsx from 'clsx'
-import { Chip, ChipColor } from '~/components/Chip'
-import { Error } from '~/components'
+import { Error, Chip, ChipColor } from '~/components'
 
 export async function loader({ request, params }: LoaderArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
   const transactions = await GetWalletTransactions(request, params.id as string)
   return json({
     transactions,
-    wallet: {
-      ...wallet,
-      dateOfBirth: DateTime.fromSeconds(
-        parseInt(wallet.dateOfBirth?.seconds ?? '')
-      ).toFormat('dd MMM yyyy')
-    }
+    wallet
   })
 }
 
-type TabItemProps = {
-  to: string
-  title: string
+interface Transaction {
+  walletID: string
+  id: string
+  type: string
+  status: string
   date: string
   amount: string
-  status: string
+  source: string
+  destination: string
 }
 
-const ListItem: FC<TabItemProps> = ({ title, date, amount, status, to }) => {
+const ListItem: FC<Transaction> = ({
+  walletID,
+  id,
+  type,
+  status,
+  date,
+  amount,
+  source,
+  destination
+}) => {
   return (
-    <NavLink preventScrollReset={true} prefetch='none' className='flex' to={to}>
+    <NavLink
+      preventScrollReset={true}
+      prefetch='none'
+      className='flex'
+      to={route('/wallet/:id/transactions/:transactionId', {
+        id: walletID,
+        transactionId: id
+      })}
+    >
       {({ isActive }) => (
         <li
-          className={`flex w-full justify-between hover:bg-slate-50 items-center rounded-lg p-3 ${
-            isActive && 'bg-slate-100'
+          className={`flex flex-col space-y-2 w-full hover:bg-slate-50 items-center rounded-lg p-3 ${
+            isActive ? 'bg-container-hover' : 'hover:bg-container'
           }`}
         >
-          <div className='flex flex-col space-y-1'>
-            <dt className='text-medium'>{title}</dt>
-            <dd className='text-xs text-medium'>{date || '-'}</dd>
+          <div className='flex items-center justify-between w-full'>
+            <span className='text-medium'>{source}</span>
+            <Chip color={ChipColor.purple}>{type}</Chip>
+            <span className='text-medium'>{destination}</span>
           </div>
-          <div className='flex flex-col items-end space-y-1'>
-            <dt className='text-medium font-medium'>{amount}</dt>
-            <Chip color={ChipColor.green}>{status}</Chip>
+          <div className='flex items-center justify-between w-full'>
+            <span className='text-medium font-medium'>{amount}</span>
+            <span className='text-xs text-medium'>{date}</span>
+            <Chip
+              color={status == 'Complete' ? ChipColor.green : ChipColor.orange}
+            >
+              {status}
+            </Chip>
           </div>
         </li>
       )}
@@ -62,11 +82,11 @@ const ListItem: FC<TabItemProps> = ({ title, date, amount, status, to }) => {
 }
 
 export default function Page() {
-  const { wallet, transactions } = useLoaderData<typeof loader>()
+  const { transactions } = useLoaderData<typeof loader>()
   let location = useLocation()
   return (
     <>
-      <dl
+      <div
         className={clsx(
           location.pathname.endsWith('transactions')
             ? 'flex'
@@ -74,30 +94,35 @@ export default function Page() {
           'col-span-full max-h-max h-max lg:col-span-6 flex-col space-y-4 rounded-2xl bg-page p-4'
         )}
       >
-        <ListItem
-          to={route('/wallet/:id/transactions/:transactionId', {
-            id: wallet.walletID,
-            transactionId: 'asd'
-          })}
-          title='First name'
-          date='2020 Friday somethisn'
-          amount='- 5.00 USD'
-          status='Complete'
-        />
+        <li className='flex flex-col border-base border-2 space-y-2 w-full items-center rounded-lg p-3'>
+          <div className='flex items-center justify-between w-full'>
+            <span className='text-medium'>Source</span>
+            <Chip color={ChipColor.purple}>Type</Chip>
+            <span className='text-medium'>Destination</span>
+          </div>
+          <div className='flex items-center justify-between w-full'>
+            <span className='text-medium font-medium'>Amount</span>
+            <span className='text-xs text-medium'>Date - Time</span>
+            <Chip color={ChipColor.green}>Status</Chip>
+          </div>
+        </li>
+        {/*<ListItem*/}
+        {/*  key='{transaction.id}'*/}
+        {/*  {...{*/}
+        {/*    walletID: '6be0c94a-f461-48c8-822c-8ead5930342b',*/}
+        {/*    id: 'transaction.id',*/}
+        {/*    status: 'Complete',*/}
+        {/*    type: 'Send',*/}
+        {/*    date: DateTime.now().toFormat('dd MMM yyyy - HH:mm'),*/}
+        {/*    amount: 'USD 100.00',*/}
+        {/*    source: 'transaction.source',*/}
+        {/*    destination: 'transaction.destination'*/}
+        {/*  }}*/}
+        {/*/>*/}
         {transactions.map((transaction) => (
-          <ListItem
-            to={route('/wallet/:id/transactions/:transactionId', {
-              id: wallet.walletID,
-              transactionId: transaction.id
-            })}
-            key={transaction.id}
-            title={transaction.source}
-            date={transaction.date}
-            amount={transaction.amount}
-            status={transaction.status}
-          />
+          <ListItem key={transaction.id} {...transaction} />
         ))}
-      </dl>
+      </div>
       <Outlet />
     </>
   )

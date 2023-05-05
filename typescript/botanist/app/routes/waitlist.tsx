@@ -1,9 +1,14 @@
 import type { LoaderArgs } from '@remix-run/node'
 
 import { Icon, Grid } from '~/components'
-import { json } from '@remix-run/node'
+import { ActionArgs, json } from '@remix-run/node'
 import { useLoaderData, useFetcher } from '@remix-run/react'
-import { grpcClient } from '~/lib/proto.server'
+import {
+  grpcClient,
+  httpMapping,
+  isGrpcError,
+  StatusError
+} from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const signups = await grpcClient.listWaitlistSignups(
@@ -30,7 +35,7 @@ export default function Page() {
           { id: id },
           {
             method: 'post',
-            action: '/api/allowSignup'
+            action: '/waitlist'
           }
         )
       }
@@ -148,4 +153,28 @@ export default function Page() {
       </div>
     </Grid>
   )
+}
+
+export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  const id = form.get('id') as string
+
+  let response = await grpcClient
+    .allowWaitlistSignup(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return json({ success: true })
 }
