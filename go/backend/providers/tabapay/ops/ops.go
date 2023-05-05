@@ -31,17 +31,22 @@ func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (t
 	return await.Get, nil
 }
 
-func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (string, error) {
+func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (*tabapay.Transaction, error) {
 	session3DS, err := Get3DSSession(ctx, b, args.ThreeDSID)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+
+	referenceID := args.ReferenceID
+	if len(referenceID) > 15 {
+		referenceID = referenceID[:15]
 	}
 
 	transactionResponse, err := b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
-		ReferenceID: args.ReferenceID,
+		ReferenceID: referenceID,
 		Type:        external.TransactionTypePull,
-		Currency:    args.Amount.Currency.String(),
-		Amount:      fmt.Sprintf("%f", args.Amount.Float64()),
+		Currency:    args.Amount.Currency.ISO4217(),
+		Amount:      fmt.Sprintf("%.2f", args.Amount.Float64()),
 		Accounts: external.CreateTransactionAccounts{
 			SourceAccountID:      args.ProviderID,
 			DestinationAccountID: args.SettlementAccountID,
@@ -57,28 +62,55 @@ func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (strin
 		},
 	})
 	if err != nil {
-		return "", fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
 
-	return transactionResponse.TransactionID, nil
+	return &tabapay.Transaction{
+		ID:          transactionResponse.TransactionID,
+		ReferenceID: referenceID,
+		Network:     transactionResponse.Network,
+		NetworkRC:   transactionResponse.NetworkRC,
+		Status:      transactionResponse.Status,
+		Fees: tabapay.Fees{
+			Tabapay:     transactionResponse.GetFees().Tabapay,
+			Interchange: transactionResponse.GetFees().Interchange,
+			Network:     transactionResponse.GetFees().Network,
+		},
+	}, nil
 }
 
-func PushToCard(ctx context.Context, b Backends, args PullFromCardArgs) (string, error) {
+func PushToCard(ctx context.Context, b Backends, args PullFromCardArgs) (*tabapay.Transaction, error) {
+	referenceID := args.ReferenceID
+	if len(referenceID) > 15 {
+		referenceID = referenceID[:15]
+	}
+
 	transactionResponse, err := b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
-		ReferenceID: args.ReferenceID,
+		ReferenceID: referenceID,
 		Type:        external.TransactionTypePush,
-		Currency:    args.Amount.Currency.String(),
-		Amount:      fmt.Sprintf("%f", args.Amount.Float64()),
+		Currency:    args.Amount.Currency.ISO4217(),
+		Amount:      fmt.Sprintf("%.2f", args.Amount.Float64()),
 		Accounts: external.CreateTransactionAccounts{
 			SourceAccountID:      args.SettlementAccountID,
 			DestinationAccountID: args.ProviderID,
 		},
 	})
 	if err != nil {
-		return "", fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
 
-	return transactionResponse.TransactionID, nil
+	return &tabapay.Transaction{
+		ID:          transactionResponse.TransactionID,
+		ReferenceID: referenceID,
+		Network:     transactionResponse.Network,
+		NetworkRC:   transactionResponse.NetworkRC,
+		Status:      transactionResponse.Status,
+		Fees: tabapay.Fees{
+			Tabapay:     transactionResponse.GetFees().Tabapay,
+			Interchange: transactionResponse.GetFees().Interchange,
+			Network:     transactionResponse.GetFees().Network,
+		},
+	}, nil
 }
 
 func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transaction, error) {
@@ -96,12 +128,22 @@ func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transa
 	}
 
 	return &tabapay.Transaction{
-		ID:             id,
-		ReferenceID:    trxResp.ReferenceID,
-		Status:         trxResp.Status,
-		OriginalStatus: trxResp.Originally,
-		Amount:         currency.FromFloat64(floatAmount, "USD"),
-		ReversalStatus: trxResp.ReversalStatus,
+		ID:                 id,
+		ReferenceID:        trxResp.ReferenceID,
+		Network:            trxResp.Network,
+		NetworkRC:          trxResp.NetworkRC,
+		Status:             trxResp.Status,
+		OriginalStatus:     trxResp.Originally,
+		Amount:             currency.FromFloat64(floatAmount, "USD"),
+		ReversalStatus:     trxResp.ReversalStatus,
+		ReversalNetworkRC:  trxResp.GetReversal().NetworkRC,
+		ReversalNetworkRC2: trxResp.GetReversal().NetworkRC2,
+		ReversalError:      trxResp.GetReversal().Error,
+		Fees: tabapay.Fees{
+			Tabapay:     trxResp.GetFees().Tabapay,
+			Interchange: trxResp.GetFees().Interchange,
+			Network:     trxResp.GetFees().Network,
+		},
 	}, nil
 }
 
@@ -127,6 +169,7 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 		OrderID:  args.IdempotencyKey,
 		Amount:   args.Amount.Value,
 		Currency: args.Amount.Currency.String(),
+		InitAt:   time.Now(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
@@ -239,7 +282,7 @@ func Get3DSSession(
 	var session dbThreeDSSession
 	err := b.DB().GetContext(ctx, &session, fmt.Sprintf("SELECT %s FROM tabapay_3ds_sessions WHERE id=$1 ORDER BY revision DESC LIMIT 1;", dbThreeDSSessionFields), id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, tabapay.ErrNotFound
+		return nil, fmt.Errorf("%w 3DS session not found (id=%s).", tabapay.ErrNotFound, id)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
