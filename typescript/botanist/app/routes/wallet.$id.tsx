@@ -39,12 +39,9 @@ export default function Page() {
           <TabItem to={route('/wallet/:id/transactions', { id: id as string })}>
             Transactions
           </TabItem>
-          {/*<TabItem to='/wallet/6be0c941-48c8-822c-8ead5930342b/profile'>*/}
-          {/*  Identities*/}
-          {/*</TabItem>*/}
-          {/*<TabItem to='/wallet/6be0c941-48c8-822c-8ead5930342b/profile'>*/}
-          {/*  Linked accounts*/}
-          {/*</TabItem>*/}
+          <TabItem to={route('/wallet/:id/audit', { id: id as string })}>
+            Audit log
+          </TabItem>
         </div>
       </div>
       <Outlet />

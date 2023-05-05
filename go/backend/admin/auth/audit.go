@@ -21,14 +21,14 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (interface{}, error) {
 
-		// Skip audit logging for local development
-		if env.IsLocal() {
-			return handler(ctx, req)
-		}
-
 		adminUser, ok := ctx.Value(userCtxKey).(*AdminUser)
 		if !ok || adminUser == nil {
-			return nil, ErrNoUserFound
+			if !env.IsLocal() {
+				return nil, ErrNoUserFound
+			}
+			adminUser = &AdminUser{
+				Email: "local@admin.com",
+			}
 		}
 
 		// Ignore the following methods from audit logging.
