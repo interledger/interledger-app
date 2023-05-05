@@ -364,6 +364,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		Description:    req.Description,
 		ExternalRef:    req.ExternalRef,
 		IPAddress:      req.IpAddress,
+		ThreeDSID:      req.GetThreeDSID(),
 	}
 
 	err = g.b.Validator().Struct(args)
