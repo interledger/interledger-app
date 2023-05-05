@@ -239,7 +239,7 @@ func Get3DSSession(
 	var session dbThreeDSSession
 	err := b.DB().GetContext(ctx, &session, fmt.Sprintf("SELECT %s FROM tabapay_3ds_sessions WHERE id=$1 ORDER BY revision DESC LIMIT 1;", dbThreeDSSessionFields), id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, tabapay.ErrNotFound
+		return nil, fmt.Errorf("%w 3DS session not found.", tabapay.ErrNotFound)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
