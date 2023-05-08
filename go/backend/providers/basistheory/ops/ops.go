@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	cardFields       = "id, wallet_id, token_id, expiration_month, expiration_year, tokenized_number, created_at, updated_at"
-	insertCardFields = "wallet_id, token_id, expiration_month, expiration_year, tokenized_number"
+	cardFields       = "id, wallet_id, token_id, expiration_month, expiration_year, tokenized_number, fingerprint, created_at, updated_at"
+	insertCardFields = "wallet_id, token_id, expiration_month, expiration_year, tokenized_number, fingerprint"
 )
 
 func CreateCard(ctx context.Context, b Backends, tokenID, walletID string) (*basistheory.Card, error) {
@@ -44,12 +44,13 @@ func CreateCard(ctx context.Context, b Backends, tokenID, walletID string) (*bas
 	err = b.DB().GetContext(
 		ctx,
 		&card,
-		fmt.Sprintf("INSERT INTO basistheory_cards (%s) VALUES ($1, $2, $3, $4, $5) RETURNING %s", insertCardFields, cardFields),
+		fmt.Sprintf("INSERT INTO basistheory_cards (%s) VALUES ($1, $2, $3, $4, $5, $6) RETURNING %s;", insertCardFields, cardFields),
 		walletID,
 		token.Id,
 		cardData.ExpirationMonth,
 		cardData.ExpirationYear,
 		cardData.TokenizedNumber,
+		token.GetFingerprint(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)

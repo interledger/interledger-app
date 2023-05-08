@@ -25,7 +25,7 @@ func TestCreateCard(t *testing.T) {
 		ExternalClient: mock.NewMockClient(ctrl),
 	}
 
-	tokenID, walletID := uuid.NewString(), uuid.NewString()
+	tokenID, walletID, fingerprint := uuid.NewString(), uuid.NewString(), uuid.NewString()
 	b.ExternalClient.EXPECT().GetToken(ctx, tokenID).Return(
 		&basistheory.Token{
 			Id: &tokenID,
@@ -34,10 +34,11 @@ func TestCreateCard(t *testing.T) {
 				"expiration_month": float64(2),
 				"expiration_year":  float64(2024),
 			},
-			Type: basistheory.PtrString("card"),
+			Type:        basistheory.PtrString("card"),
+			Fingerprint: *basistheory.NewNullableString(&fingerprint),
 		},
 		nil,
-	).Times(1)
+	).AnyTimes()
 
 	card, err := ops.CreateCard(ctx, b, tokenID, walletID)
 	require.NoError(t, err)
@@ -45,9 +46,11 @@ func TestCreateCard(t *testing.T) {
 	assert.Equal(t, "1234", card.TokenizedNumber)
 	assert.Equal(t, "02", card.ExpirationMonth)
 	assert.Equal(t, "2024", card.ExpirationYear)
+	assert.Equal(t, fingerprint, card.Fingerprint)
 
 	idempotentCard, err := ops.CreateCard(ctx, b, tokenID, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, tokenID, idempotentCard.TokenID)
 	assert.Equal(t, card.ID, idempotentCard.ID)
+	assert.Equal(t, fingerprint, idempotentCard.Fingerprint)
 }

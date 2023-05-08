@@ -18,6 +18,7 @@ type (
 		ExpirationMonth string `db:"expiration_month"`
 		ExpirationYear  string `db:"expiration_year"`
 		TokenizedNumber string `db:"tokenized_number"`
+		Fingerprint     string `db:"fingerprint"`
 		CreatedAt       string `db:"created_at"`
 		UpdatedAt       string `db:"updated_at"`
 	}
