@@ -96,6 +96,18 @@ export default function Page() {
         formData.append('name', 'lookup')
         formData.append('threeDsId', threeDsId)
         formData.append('idempotencyKey', flow?.data?.idempotencyKey)
+        formData.append(
+          'colorDepth',
+          window.screen && String(window.screen.colorDepth)
+        )
+        formData.append('screenHeight', String(window.innerHeight))
+        formData.append('screenWidth', String(window.innerWidth))
+        formData.append(
+          'timezone',
+          String(new Date(Date.now()).getTimezoneOffset())
+        )
+        formData.append('language', navigator.language)
+        formData.append('userAgent', navigator.userAgent)
 
         submit(formData, {
           action: '/pay/3ds',
@@ -190,7 +202,17 @@ export async function action({ request }: ActionArgs) {
       .lookup3DS(
         {
           idempotencyKey: String(idempotencyKey),
-          threeDSID: String(threeDsId)
+          threeDSID: String(threeDsId),
+          colorDepth: String(form.get('colorDepth')) || '',
+          header: String(request.headers.get('Accept')),
+          ipAddress: getClientIP(request),
+          javaEnabled: false,
+          javascriptEnabled: true,
+          language: String(form.get('language')),
+          screenHeight: String(form.get('screenHeight')),
+          screenWidth: String(form.get('screenWidth')),
+          timezone: String(form.get('timezone')),
+          userAgent: String(form.get('userAgent'))
         },
         {
           meta: {
