@@ -9,6 +9,30 @@ import (
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
+func (s *rpcService) CreateCard(
+	ctx context.Context, req *backendv1.CreateCardRequest,
+) (*backendv1.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, err = s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
+		WalletID:           w.ID,
+		BasisTheoryTokenID: req.GetTokenID(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.Empty{}, nil
+}
+
 func (s *rpcService) Init3DS(
 	ctx context.Context, req *backendv1.Init3DSRequest,
 ) (*backendv1.Init3DSResponse, error) {

@@ -26,12 +26,13 @@ func TestCreateCardWorkflow(t *testing.T) {
 	b := workflows.NewTestBackends()
 	a := workflows.NewActivity(b)
 
-	basisTheoryCardID, walletID := uuid.NewString(), uuid.NewString()
-	env.OnActivity(a.GetBasisTheoryCard, mock.Anything, basisTheoryCardID).Return(
+	basisTheoryCardID, walletID, fingerprint := uuid.NewString(), uuid.NewString(), uuid.NewString()
+	env.OnActivity(a.CreateBasisTheoryCard, mock.Anything, walletID, basisTheoryCardID).Return(
 		&basistheory.Card{
 			ID:              basisTheoryCardID,
 			TokenizedNumber: "1234",
 			WalletID:        walletID,
+			Fingerprint:     fingerprint,
 		}, nil,
 	)
 
@@ -70,8 +71,8 @@ func TestCreateCardWorkflow(t *testing.T) {
 	)
 
 	env.ExecuteWorkflow(workflows.CreateTabapayCardWorkflow, tabapay.CreateCardArgs{
-		WalletID:          walletID,
-		BasisTheoryCardID: basisTheoryCardID,
+		WalletID:           walletID,
+		BasisTheoryTokenID: basisTheoryCardID,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -88,7 +89,16 @@ func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 	b := workflows.NewTestBackends()
 	a := workflows.NewActivity(b)
 
-	providerID, walletID, basisTheoryCardID := uuid.NewString(), uuid.NewString(), uuid.NewString()
+	providerID, walletID, basisTheoryCardID, fingerprint := uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString()
+	env.OnActivity(a.CreateBasisTheoryCard, mock.Anything, walletID, basisTheoryCardID).Return(
+		&basistheory.Card{
+			ID:              basisTheoryCardID,
+			TokenizedNumber: "1234",
+			WalletID:        walletID,
+			Fingerprint:     fingerprint,
+		}, nil,
+	)
+
 	last4, cardName := "1234", "test"
 	env.OnActivity(a.MarkCardNotDeleted, mock.Anything, basisTheoryCardID).Return(
 		func(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
@@ -105,8 +115,8 @@ func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 	)
 
 	env.ExecuteWorkflow(workflows.CreateTabapayCardWorkflow, tabapay.CreateCardArgs{
-		WalletID:          walletID,
-		BasisTheoryCardID: basisTheoryCardID,
+		WalletID:           walletID,
+		BasisTheoryTokenID: basisTheoryCardID,
 	})
 
 	require.True(t, env.IsWorkflowCompleted())
