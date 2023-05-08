@@ -312,6 +312,16 @@ message Lookup3DSResponse {
 message Lookup3DSRequest {
   string idempotencyKey = 1;
   string threeDSID = 2;
+  bool  javascriptEnabled = 3;
+  string userAgent = 4;
+  string header = 5;
+  bool javaEnabled = 6;
+  string language = 7;
+  string colorDepth = 8;
+  string screenHeight =9;
+  string screenWidth = 10;
+  string timezone = 11;
+  string ipAddress = 12;
 }
 
 message Authenticate3DSRequest {

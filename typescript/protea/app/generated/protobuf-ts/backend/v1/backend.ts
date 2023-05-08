@@ -595,6 +595,46 @@ export interface Lookup3DSRequest {
      * @generated from protobuf field: string threeDSID = 2;
      */
     threeDSID: string;
+    /**
+     * @generated from protobuf field: bool javascriptEnabled = 3;
+     */
+    javascriptEnabled: boolean;
+    /**
+     * @generated from protobuf field: string userAgent = 4;
+     */
+    userAgent: string;
+    /**
+     * @generated from protobuf field: string header = 5;
+     */
+    header: string;
+    /**
+     * @generated from protobuf field: bool javaEnabled = 6;
+     */
+    javaEnabled: boolean;
+    /**
+     * @generated from protobuf field: string language = 7;
+     */
+    language: string;
+    /**
+     * @generated from protobuf field: string colorDepth = 8;
+     */
+    colorDepth: string;
+    /**
+     * @generated from protobuf field: string screenHeight = 9;
+     */
+    screenHeight: string;
+    /**
+     * @generated from protobuf field: string screenWidth = 10;
+     */
+    screenWidth: string;
+    /**
+     * @generated from protobuf field: string timezone = 11;
+     */
+    timezone: string;
+    /**
+     * @generated from protobuf field: string ipAddress = 12;
+     */
+    ipAddress: string;
 }
 /**
  * @generated from protobuf message backend.v1.Authenticate3DSRequest
@@ -3642,11 +3682,21 @@ class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
     constructor() {
         super("backend.v1.Lookup3DSRequest", [
             { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "javascriptEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "userAgent", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "header", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "javaEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 7, name: "language", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "colorDepth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "screenHeight", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "screenWidth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "timezone", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Lookup3DSRequest>): Lookup3DSRequest {
-        const message = { idempotencyKey: "", threeDSID: "" };
+        const message = { idempotencyKey: "", threeDSID: "", javascriptEnabled: false, userAgent: "", header: "", javaEnabled: false, language: "", colorDepth: "", screenHeight: "", screenWidth: "", timezone: "", ipAddress: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Lookup3DSRequest>(this, message, value);
@@ -3662,6 +3712,36 @@ class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
                     break;
                 case /* string threeDSID */ 2:
                     message.threeDSID = reader.string();
+                    break;
+                case /* bool javascriptEnabled */ 3:
+                    message.javascriptEnabled = reader.bool();
+                    break;
+                case /* string userAgent */ 4:
+                    message.userAgent = reader.string();
+                    break;
+                case /* string header */ 5:
+                    message.header = reader.string();
+                    break;
+                case /* bool javaEnabled */ 6:
+                    message.javaEnabled = reader.bool();
+                    break;
+                case /* string language */ 7:
+                    message.language = reader.string();
+                    break;
+                case /* string colorDepth */ 8:
+                    message.colorDepth = reader.string();
+                    break;
+                case /* string screenHeight */ 9:
+                    message.screenHeight = reader.string();
+                    break;
+                case /* string screenWidth */ 10:
+                    message.screenWidth = reader.string();
+                    break;
+                case /* string timezone */ 11:
+                    message.timezone = reader.string();
+                    break;
+                case /* string ipAddress */ 12:
+                    message.ipAddress = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3681,6 +3761,36 @@ class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
         /* string threeDSID = 2; */
         if (message.threeDSID !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.threeDSID);
+        /* bool javascriptEnabled = 3; */
+        if (message.javascriptEnabled !== false)
+            writer.tag(3, WireType.Varint).bool(message.javascriptEnabled);
+        /* string userAgent = 4; */
+        if (message.userAgent !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.userAgent);
+        /* string header = 5; */
+        if (message.header !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.header);
+        /* bool javaEnabled = 6; */
+        if (message.javaEnabled !== false)
+            writer.tag(6, WireType.Varint).bool(message.javaEnabled);
+        /* string language = 7; */
+        if (message.language !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.language);
+        /* string colorDepth = 8; */
+        if (message.colorDepth !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.colorDepth);
+        /* string screenHeight = 9; */
+        if (message.screenHeight !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.screenHeight);
+        /* string screenWidth = 10; */
+        if (message.screenWidth !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.screenWidth);
+        /* string timezone = 11; */
+        if (message.timezone !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.timezone);
+        /* string ipAddress = 12; */
+        if (message.ipAddress !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

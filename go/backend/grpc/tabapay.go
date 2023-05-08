@@ -120,7 +120,18 @@ func (s *rpcService) Lookup3DS(
 			Value:    session.Amount,
 			Currency: currency.ParseCurrency(session.Currency),
 		},
-		BrowserInfo: tabapay.BrowserInfo("true|Mozilla/5.0 iPhone|text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8|true|en-US|32|414|896|300|127.0.0.1"),
+		BrowserInfo: tabapay.NewBrowserInfo(tabapay.BrowserInfoFields{
+			JavascriptEnabled: req.GetJavascriptEnabled(),
+			UserAgent:         req.GetUserAgent(),
+			Header:            req.GetHeader(),
+			JavaEnabled:       req.GetJavaEnabled(),
+			Language:          req.GetLanguage(),
+			ColorDepth:        tabapay.GetColorDepth(req.GetColorDepth()),
+			ScreenHeight:      req.GetScreenHeight(),
+			ScreenWidth:       req.GetScreenWidth(),
+			TimeZone:          req.GetTimezone(),
+			IpAddress:         req.GetIpAddress(),
+		}),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)

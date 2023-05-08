@@ -95,7 +95,36 @@ var (
 )
 
 type BrowserInfo = external.BrowserInfo
+type BrowserInfoFields = external.BrowserInfoFields
 type DeviceChannelType = external.DeviceChannelType
+
+var NewBrowserInfo = external.NewBrowserInfo
+
+type ColorDepth = external.ColorDepth
+
+func GetColorDepth(depth string) ColorDepth {
+	colorDepth := ColorDepth(depth)
+	switch colorDepth {
+	case external.ColorDepth1:
+		return external.ColorDepth1
+	case external.ColorDepth4:
+		return external.ColorDepth4
+	case external.ColorDepth8:
+		return external.ColorDepth8
+	case external.ColorDepth15:
+		return external.ColorDepth15
+	case external.ColorDepth16:
+		return external.ColorDepth16
+	case external.ColorDepth24:
+		return external.ColorDepth24
+	case external.ColorDepth32:
+		return external.ColorDepth32
+	case external.ColorDepth48:
+		return external.ColorDepth48
+	default:
+		return external.ColorDepth32
+	}
+}
 
 var (
 	DeviceChannelBrowser = external.DeviceChannelBrowser
