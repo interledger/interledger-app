@@ -24,30 +24,26 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating tabapay card.")
 
+	var tokenizedCard basistheory.Card
+	err := workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, args.WalletID, args.BasisTheoryTokenID).Get(ctx, &tokenizedCard)
+	if err != nil {
+		logger.Error("Failed to create basis theory card.")
+		return nil, err
+	}
+
 	var la linkedaccounts.LinkedAccount
-	err := workflow.ExecuteActivity(ctx, a.MarkCardNotDeleted, args.BasisTheoryCardID).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.MarkCardNotDeleted, tokenizedCard.ID).Get(ctx, &la)
 	var applicationError *temporal.ApplicationError
 	if errors.As(err, &applicationError) && applicationError.Type() != "NotFound" {
 		return nil, err
 	}
-	if la.ID == args.BasisTheoryCardID {
+	if la.ID == args.BasisTheoryTokenID {
 		return &la, nil
-	}
-
-	var tokenizedCard basistheory.Card
-	err = workflow.ExecuteActivity(ctx, a.GetBasisTheoryCard, args.BasisTheoryCardID).Get(ctx, &tokenizedCard)
-	if err != nil {
-		logger.Error("Failed to get basis theory card.")
-		return nil, err
-	}
-	if tokenizedCard.WalletID != args.WalletID {
-		logger.Error("Card does not belong to wallet.")
-		return nil, err
 	}
 
 	var externalAccount external.CreateAccountResponse
 	err = workflow.ExecuteActivity(ctx, a.CreateExternalCard, CreateExternalCardArgs{
-		BasisTheoryCardID: args.BasisTheoryCardID,
+		BasisTheoryCardID: tokenizedCard.ID,
 		WalletID:          args.WalletID,
 		CardNumber:        fmt.Sprintf("{{ %s | json: '$.number' }}", tokenizedCard.TokenID),
 		ExpirationDate:    fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", tokenizedCard.TokenID, tokenizedCard.TokenID),
@@ -58,7 +54,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
-		ID:         args.BasisTheoryCardID,
+		ID:         tokenizedCard.ID,
 		WalletID:   args.WalletID,
 		ProviderID: externalAccount.AccountID,
 		Mask:       tokenizedCard.TokenizedNumber,

@@ -21,8 +21,8 @@ const (
 )
 
 type CreateCardArgs struct {
-	WalletID          string
-	BasisTheoryCardID string
+	WalletID           string
+	BasisTheoryTokenID string
 }
 
 type PullFromCardArgs struct {

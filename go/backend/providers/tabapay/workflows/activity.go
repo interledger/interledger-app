@@ -117,11 +117,8 @@ func (a *Activity) MarkCardNotDeleted(ctx context.Context, id string) (*linkedac
 	return la, nil
 }
 
-func (a *Activity) GetBasisTheoryCard(ctx context.Context, id string) (*basistheory.Card, error) {
-	card, err := a.b.BasisTheory().GetCard(ctx, id)
-	if errors.Is(err, basistheory.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
-	}
+func (a *Activity) CreateBasisTheoryCard(ctx context.Context, walletID, tokenID string) (*basistheory.Card, error) {
+	card, err := a.b.BasisTheory().CreateCard(ctx, tokenID, walletID)
 	if err != nil {
 		return nil, err
 	}

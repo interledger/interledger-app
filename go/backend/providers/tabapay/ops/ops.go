@@ -18,7 +18,7 @@ import (
 
 func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (tabapay.Await, error) {
 	wo := client.StartWorkflowOptions{
-		ID:                       "tabapay_create_card_" + args.BasisTheoryCardID,
+		ID:                       "tabapay_create_card_" + args.BasisTheoryTokenID,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: 2 * time.Minute,
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
