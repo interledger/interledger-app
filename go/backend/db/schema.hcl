@@ -263,6 +263,10 @@ table "basistheory_cards" {
     null = false
     type = uuid
   }
+  column "fingerprint" {
+    null = false
+    type = text
+  }
   column "created_at" {
     null    = false
     type    = timestamp
