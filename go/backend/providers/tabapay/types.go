@@ -2,6 +2,7 @@ package tabapay
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -183,4 +184,16 @@ func IsFrictionlessAuthentication(lookup Lookup3DSResponse) bool {
 
 func IsSuccessfulTransaction(trx Transaction) bool {
 	return (trx.NetworkRC == "00" || trx.NetworkRC == "000") && (trx.Status == string(external.TransactionStatusOk) || trx.Status == string(external.TransactionStatusCompleted))
+}
+
+const dictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@!#$%^&*()<>?{}|;~"
+
+func NewReferenceID() string {
+	refBytes := make([]byte, 15)
+
+	for i := range refBytes {
+		refBytes[i] = dictionary[rand.Int63()%int64(len(dictionary))]
+	}
+
+	return string(refBytes)
 }
