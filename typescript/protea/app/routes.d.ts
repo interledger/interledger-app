@@ -28,12 +28,16 @@ declare module "routes-gen" {
     "/what-is-a-payment-pointer": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
     "/settings/profile-contact": Record<string, never>;
+    "/legal/us/privacy-policy": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
+    "/legal/us/terms-of-use": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
     "/blog/joining-the-owf": Record<string, never>;
     "/legal/privacy-policy": Record<string, never>;
     "/linked-account/:type": { "type": string };
+    "/legal/us/compliance": Record<string, never>;
     "/legal/terms-of-use": Record<string, never>;
+    "/legal/us/licences": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -98,12 +102,16 @@ declare module "routes-gen" {
       | ["/what-is-a-payment-pointer"]
       | ["/settings/linked-accounts"]
       | ["/settings/profile-contact"]
+      | ["/legal/us/privacy-policy"]
       | ["/settings/profile-public"]
+      | ["/legal/us/terms-of-use"]
       | ["/temp-cloudflare-error"]
       | ["/blog/joining-the-owf"]
       | ["/legal/privacy-policy"]
       | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
+      | ["/legal/us/compliance"]
       | ["/legal/terms-of-use"]
+      | ["/legal/us/licences"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
