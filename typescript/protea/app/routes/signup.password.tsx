@@ -141,15 +141,18 @@ export default function Page() {
             Privacy Policy
           </Router>
           ,&nbsp;
-          <Router className='text-primary' to={route('/legal/terms-of-use')}>
+          <Router
+            className='text-primary'
+            to={route('/legal/terms-of-service')}
+          >
             Terms of Use
           </Router>
           , and&nbsp;
           <Router
             className='text-primary'
-            to={route('/legal/electronic-disclosures')}
+            to={route('/legal/us/e-sign-agreement')}
           >
-            Electronic Disclosures
+            E-sign Agreement
           </Router>
           .
         </Checkbox>

@@ -201,9 +201,17 @@ export function LandingLayout() {
               </svg>
             </AnchorRouter>
           </div>
-          <div className='col-span-full mt-8 mb-20 flex flex-col lg:col-span-6 lg:col-start-4'>
+          <div className='col-span-full mt-8 flex flex-col lg:col-span-6 lg:col-start-4'>
             <span className='text-sm text-slate-300'>
               &copy;&nbsp;{DateTime.now().year} Fynbos Technologies Ltd.
+            </span>
+          </div>
+          <div className='col-span-full mt-8 mb-20 flex flex-col lg:col-start-4'>
+            <span className='text-sm text-slate-300'>
+              Fynbos Technologies LLC is registered as an agent of Golden Money
+              Transfer Inc. a licensed money services business with FINCEN MSB
+              Registration Number: 31000231163732. All payments originated
+              within the USA are processed under the appropriate state licenses.
             </span>
           </div>
         </section>
