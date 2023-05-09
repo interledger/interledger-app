@@ -2,14 +2,17 @@ package client
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
 	"gitlab.com/fynbos/backend/providers/tabapay/ops"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -59,6 +62,9 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 		BasisTheoryProxyApiKey: args.BasisTheoryProxyApiKey,
 		ClientID:               args.ClientID,
 		BearerToken:            args.BearerToken,
+		Transport: otelhttp.NewTransport(
+			httplogger.NewTransport(http.DefaultTransport, b),
+		),
 	})
 	if err != nil {
 		return nil, err
