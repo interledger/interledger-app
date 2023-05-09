@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -22,6 +24,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
+	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"go.temporal.io/sdk/temporal"
 )
@@ -48,8 +51,12 @@ func NewActivity(b Backends) *Activity {
 		return nil
 	}
 	a := &Activity{
-		b:   b,
-		ext: external.NewClient(),
+		b: b,
+		ext: external.NewClient(
+			otelhttp.NewTransport(
+				httplogger.NewTransport(http.DefaultTransport, b),
+			),
+		),
 		mts: int32(mts),
 	}
 

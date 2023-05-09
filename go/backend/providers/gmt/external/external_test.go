@@ -12,7 +12,7 @@ import (
 func TestClient(t *testing.T) {
 	t.Skip("skipping gmt external client integration test.")
 	env.SetEnv(t, "local")
-	client := NewClient()
+	client := NewClient(nil)
 
 	dob, err := time.Parse("2006-01-2", "2004-07-01")
 	if err != nil {

@@ -2217,5 +2217,46 @@ table "wallet_features" {
     columns = [column.wallet_id]
   }
 }
+table "external_api_logs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "provider" {
+    null = false
+    type = text
+  }
+  column "context" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "request_body" {
+    null = false
+    type = text
+    default= ""
+  }
+  column "request_path" {
+    null = false
+    type = text
+  }
+  column "response_body" {
+    null = false
+    type = text
+    default= ""
+  }
+  column "response_status" {
+    null = false
+    type = text
+    default= ""
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+}
 schema "public" {
 }
