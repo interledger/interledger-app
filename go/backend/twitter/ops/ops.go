@@ -97,7 +97,7 @@ func CreateToken(ctx context.Context, b Backends, args *twitter.CreateTokenArgs)
 func GetTokensByUserID(ctx context.Context, b Backends, args *twitter.GetTokensByUserIdArgs) ([]twitter.Token, error) {
 	var tokens []twitter.Token
 
-	err := b.DB().SelectContext(ctx, &tokens, "SELECT * FROM twitter_access_tokens WHERE wallet_id = $1 AND scopes @> $2 AND user_id = $3", args.WalletID, pq.Array(args.Scopes), args.UserID)
+	err := b.DB().SelectContext(ctx, &tokens, "SELECT * FROM twitter_access_tokens WHERE scopes @> $1 AND user_id = $2 AND wallet_id = $3", pq.Array(args.Scopes), args.UserID, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}

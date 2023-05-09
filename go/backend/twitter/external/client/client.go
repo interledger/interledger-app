@@ -33,9 +33,8 @@ func New(args *NewClientArgs) *client {
 		ClientSecret: args.ClientSecret,
 		RedirectURL:  args.RedirectURL,
 		Endpoint: oauth2.Endpoint{
-			AuthURL:   args.AuthEndpoint,
-			TokenURL:  args.TokenEndpoint,
-			AuthStyle: oauth2.AuthStyleInHeader,
+			AuthURL:  args.AuthEndpoint,
+			TokenURL: args.TokenEndpoint,
 		},
 	}
 
@@ -60,13 +59,16 @@ func (c *client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*t
 	}
 	defer res.Body.Close()
 
-	var user *twitter.TwitterUser
-	err = json.NewDecoder(res.Body).Decode(user)
+	var jsonBody map[string]interface{}
+	err = json.NewDecoder(res.Body).Decode(&jsonBody)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode twitter user: %v", err)
 	}
 
-	return user, nil
+	return &twitter.TwitterUser{
+		ID:       jsonBody["data"].(map[string]interface{})["id"].(string),
+		Username: jsonBody["data"].(map[string]interface{})["username"].(string),
+	}, nil
 }
 
 func (c *client) PostTweet(ctx context.Context, token *oauth2.Token, text string) (*twitter.Tweet, error) {
@@ -84,11 +86,24 @@ func (c *client) PostTweet(ctx context.Context, token *oauth2.Token, text string
 	}
 	defer res.Body.Close()
 
-	var tweet *twitter.Tweet
-	err = json.NewDecoder(res.Body).Decode(tweet)
+	if res.StatusCode != 201 {
+		var jsonBody map[string]interface{}
+		err = json.NewDecoder(res.Body).Decode(&jsonBody)
+		if err != nil {
+			return nil, fmt.Errorf("could not decode error body: %v", err)
+		}
+
+		return nil, fmt.Errorf("could not post tweet: %v", jsonBody)
+	}
+
+	var jsonBody map[string]interface{}
+	err = json.NewDecoder(res.Body).Decode(&jsonBody)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode tweet: %v", err)
 	}
 
-	return tweet, nil
+	return &twitter.Tweet{
+		ID:   jsonBody["data"].(map[string]interface{})["id"].(string),
+		Text: jsonBody["data"].(map[string]interface{})["text"].(string),
+	}, nil
 }

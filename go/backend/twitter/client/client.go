@@ -87,6 +87,7 @@ func (c *Client) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensB
 	return ops.GetTokensByUserID(ctx, c.b, &twitter.GetTokensByUserIdArgs{
 		Scopes:   args.Scopes,
 		WalletID: args.WalletID,
+		UserID:   args.UserID,
 	})
 }
 

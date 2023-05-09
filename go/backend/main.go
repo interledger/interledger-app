@@ -190,11 +190,9 @@ func start(args *cli.StartArgs) {
 		ClientID:      args.TwitterClientID,
 		ClientSecret:  args.TwitterClientSecret,
 		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
-		TokenEndpoint: "https://api.twitter.com/oauth/access_token",
-		RedirectURL:   "https://fynbos.app/auth/twitter/callback",
+		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
+		RedirectURL:   "https://fynbos.test/auth/twitter/callback",
 	})
-
-	b.verygoodsecurity = vgs_client.New(b)
 
 	b.auth = authorisation_client.New(b)
 
@@ -217,7 +215,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 
-	router.Handle("/auth/twitter/callback", twitter_handler.NewTwitterCallbackHandler(b))
+	router.Handle("/callbacks/twitter", twitter_handler.NewTwitterCallbackHandler(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
