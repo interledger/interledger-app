@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"gitlab.com/fynbos/env"
-
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -38,7 +37,11 @@ type Client interface {
 	GetNotifications(ctx context.Context) ([]*WsNotifications, error)
 }
 
-func NewClient() Client {
+func NewClient(transport http.RoundTripper) Client {
+	t := transport
+	if t == nil {
+		t = otelhttp.NewTransport(http.DefaultTransport)
+	}
 
 	var alias, user, pass, url, txURL, txUser, txPassword, txPartner string
 	if !env.IsProd() {
@@ -54,7 +57,7 @@ func NewClient() Client {
 	}
 
 	return &client{
-		cl:       http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
+		cl:       http.Client{Transport: t},
 		url:      getEnvDefault("GMT_URL", url),
 		alias:    getEnvDefault("GMT_ALIAS", alias),
 		user:     getEnvDefault("GMT_USER", user),

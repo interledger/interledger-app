@@ -31,12 +31,17 @@ type NewClientArgs struct {
 	BasisTheoryProxyApiKey string
 	ClientID               string
 	BearerToken            string
+	Transport              http.RoundTripper
 }
 
 func New(args NewClientArgs) (*client, error) {
 	baseUrl := "https://api.sandbox.tabapay.net:10443"
 	if env.IsProd() {
 		baseUrl = "https://api.tabapay.net:10443"
+	}
+	t := args.Transport
+	if t == nil {
+		t = otelhttp.NewTransport(http.DefaultTransport)
 	}
 
 	return &client{
@@ -45,7 +50,7 @@ func New(args NewClientArgs) (*client, error) {
 		basisTheoryApiKey: args.BasisTheoryProxyApiKey,
 		clientID:          args.ClientID,
 		api: &http.Client{
-			Transport: otelhttp.NewTransport(http.DefaultTransport),
+			Transport: t,
 			Timeout:   5 * time.Second,
 		},
 	}, nil
