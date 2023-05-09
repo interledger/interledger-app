@@ -98,6 +98,7 @@ type StartArgs struct {
 	VGSProxyURL                string
 	TwitterClientID            string
 	TwitterClientSecret        string
+	TwitterRedirectURL         string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -222,6 +223,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("TWITTER_CLIENT_SECRET is required")
 	}
 
+	twitterRedirectURL := os.Getenv("TWITTER_REDIRECT_URL")
+	if twitterClientSecret == "" {
+		return nil, errors.New("TWITTER_REDIRECT_URL is required")
+	}
+
 	return &StartArgs{
 		Port:                       port,
 		OpenPaymentsPort:           openPaymentsPort,
@@ -246,6 +252,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		ZendeskToken:               zendeskToken,
 		TwitterClientID:            twitterClientId,
 		TwitterClientSecret:        twitterClientSecret,
+		TwitterRedirectURL:         twitterRedirectURL,
 		AdminPolicyAud:             os.Getenv("ADMIN_POLICY_AUD"),
 		AdminTeamDomain:            os.Getenv("ADMIN_TEAM_DOMAIN"),
 		SendgridAPIKey:             os.Getenv("SENDGRID_API_KEY"),

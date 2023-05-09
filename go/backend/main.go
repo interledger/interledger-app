@@ -191,7 +191,7 @@ func start(args *cli.StartArgs) {
 		ClientSecret:  args.TwitterClientSecret,
 		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
 		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
-		RedirectURL:   "https://fynbos.test/auth/twitter/callback",
+		RedirectURL:   args.TwitterRedirectURL,
 	})
 
 	b.auth = authorisation_client.New(b)
