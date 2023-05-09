@@ -7,6 +7,7 @@ import (
 
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/keys"
+	"gitlab.com/fynbos/backend/twitter"
 
 	"github.com/go-playground/validator/v10"
 
@@ -14,6 +15,7 @@ import (
 )
 
 type Backends interface {
+	Twitter() twitter.Client
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Keys() keys.Client
@@ -22,15 +24,20 @@ type Backends interface {
 }
 
 type testBackends struct {
-	db   *sqlx.DB
-	val  *validator.Validate
-	an   analytics.Client
-	keys keys.Client
+	db      *sqlx.DB
+	val     *validator.Validate
+	an      analytics.Client
+	keys    keys.Client
+	twitter twitter.Client
 }
 
 func (t testBackends) Temporal() temporal.Client {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (t testBackends) Twitter() twitter.Client {
+	return t.twitter
 }
 
 func (t testBackends) Validator() *validator.Validate {

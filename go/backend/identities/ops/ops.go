@@ -74,10 +74,19 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
+	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
+		Identifier: args.Handle,
+		Code:       code,
+		WalletID:   args.WalletID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
 	return &identities.VerifyInstructions{
 		IdentityID:   id,
 		Code:         code,
-		Instructions: p.VerifyInstructions(),
+		Instructions: verifyInstructions,
 	}, nil
 }
 
@@ -106,10 +115,19 @@ func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
 	}
 
+	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
+		Identifier: ident.Handle,
+		Code:       ident.VerificationCode,
+		WalletID:   ident.WalletID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
 	return &identities.VerifyInstructions{
 		IdentityID:   id,
 		Code:         ident.VerificationCode,
-		Instructions: p.VerifyInstructions(),
+		Instructions: verifyInstructions,
 	}, nil
 }
 
