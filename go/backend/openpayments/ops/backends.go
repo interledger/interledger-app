@@ -1,12 +1,10 @@
 package ops
 
 import (
-	"github.com/golang/mock/gomock"
-	"gitlab.com/fynbos/backend/keys"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"testing"
 
 	"gitlab.com/fynbos/backend/analytics"
+
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
@@ -23,9 +21,8 @@ type Backends interface {
 	Validator() *validator.Validate
 	LinkedAccounts() linkedaccounts.Client
 	Transactions() transactions.Client
-	Analytics() analytics.Client
 	Tabapay() tabapay.Client
-	Keys() keys.Client
+	Analytics() analytics.Client
 }
 
 type testBackends struct {
@@ -33,9 +30,8 @@ type testBackends struct {
 	val *validator.Validate
 	la  linkedaccounts.Client
 	tc  transactions.Client
-	ac  analytics.Client
 	tbc tabapay.Client
-	kc  keys.Client
+	ac  analytics.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -54,24 +50,16 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func (t testBackends) Analytics() analytics.Client {
-	return t.ac
-}
-
 func (t testBackends) Tabapay() tabapay.Client {
 	return t.tbc
 }
 
-func (t testBackends) Keys() keys.Client {
-	return t.kc
+func (t testBackends) Analytics() analytics.Client {
+	return t.ac
 }
 
-func NewTestBackends(t *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc transactions.Client) Backends {
+func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc transactions.Client) Backends {
 	ac := analytics_client.New(nil, "")
 
-	ctrl := gomock.NewController(t)
-	kc := keys_mock.NewMockClient(ctrl)
-	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
-
-	return &testBackends{db: db, val: validator.New(), la: la, tc: tc, ac: ac, kc: kc}
+	return &testBackends{db: db, val: validator.New(), la: la, tc: tc, ac: ac}
 }

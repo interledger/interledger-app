@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"gitlab.com/fynbos/backend/limits"
 
 	"github.com/google/uuid"
@@ -16,15 +18,13 @@ import (
 	"gitlab.com/fynbos/backend/limits/ops"
 	"gitlab.com/fynbos/backend/transactions"
 	tx_client "gitlab.com/fynbos/backend/transactions/client"
-	users_client "gitlab.com/fynbos/backend/user/client"
 )
 
 func TestExceeds(t *testing.T) {
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, dbc, nil)
-	b = ops.NewTestBackends(t, dbc, users_client.New(b, "fakeURL", "fakeAdminURL"))
+	b := ops.NewTestBackends(t, dbc, users_mock.NewMock())
 	txClient := tx_client.New(b)
 
 	cases := []struct {
@@ -91,8 +91,7 @@ func TestUpdateClientLimits(t *testing.T) {
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, dbc, nil)
-	b = ops.NewTestBackends(t, dbc, users_client.New(b, "fakeURL", "fakeAdminURL"))
+	b := ops.NewTestBackends(t, dbc, users_mock.NewMock())
 
 	wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
 	require.NoError(t, err)
@@ -134,8 +133,7 @@ func TestListLimits(t *testing.T) {
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, dbc, nil)
-	b = ops.NewTestBackends(t, dbc, users_client.New(b, "fakeURL", "fakeAdminURL"))
+	b := ops.NewTestBackends(t, dbc, users_mock.NewMock())
 
 	wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
 	require.NoError(t, err)
@@ -180,8 +178,7 @@ func TestExceedsGMTLimits(t *testing.T) {
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, dbc, nil)
-	b = ops.NewTestBackends(t, dbc, users_client.New(b, "fakeURL", "fakeAdminURL"))
+	b := ops.NewTestBackends(t, dbc, users_mock.NewMock())
 	txClient := tx_client.New(b)
 
 	cases := []struct {

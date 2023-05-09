@@ -2,23 +2,21 @@ package ops_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/golang/mock/gomock"
-	"gitlab.com/fynbos/backend/analytics"
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
-	"testing"
-
-	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/user"
-	user_client "gitlab.com/fynbos/backend/user/client"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
+	"gitlab.com/fynbos/backend/user"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +28,6 @@ type TestContainer struct {
 	LinkedAccounts linkedaccounts.Client
 	ValidatorImpl  *validator.Validate
 	Nf             notify.Client
-	Ac             analytics.Client
 	kc             keys.Client
 }
 
@@ -50,10 +47,6 @@ func (t TestContainer) Notify() notify.Client {
 	return t.Nf
 }
 
-func (t TestContainer) Analytics() analytics.Client {
-	return t.Ac
-}
-
 func (t TestContainer) Keys() keys.Client {
 	return t.kc
 }
@@ -70,9 +63,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Logger = logger
 
-	c.Ac = analytics_client.New(c, "")
-
-	c.Us = user_client.New(c, "kratosURL", "kratosAdminURL")
+	c.Us = user_mock.NewMock()
 
 	c.LinkedAccounts = linked_account_client.New(c)
 

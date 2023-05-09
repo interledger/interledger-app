@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"testing"
 
-	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
-
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/currency"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
-	users_client "gitlab.com/fynbos/backend/user/client"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 func TestCreateTransaction(t *testing.T) {
@@ -25,7 +23,7 @@ func TestCreateTransaction(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -172,7 +170,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -330,7 +328,7 @@ func TestListWithPendingPagination(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	pendingTxs := make([]transactions.CreateTransactionArgs, 20)
 	for i := range pendingTxs {
@@ -427,7 +425,7 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -502,7 +500,7 @@ func TestSetTransferForeignID(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -592,7 +590,7 @@ func TestSetTransactionState(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -668,7 +666,7 @@ func TestSetTransferState(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {

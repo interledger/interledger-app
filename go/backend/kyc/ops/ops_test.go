@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
-	user_client "gitlab.com/fynbos/backend/user/client"
-
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/ops"
 )
@@ -23,7 +23,7 @@ func TestUpdateUserDetails(t *testing.T) {
 
 	userID := uuid.NewString()
 
-	users := user_client.New(b, "kratosURL", "kratosAdminURL")
+	users := user_mock.NewMock()
 	wallet, err := users.CreateNewWallet(ctx, userID, "testing")
 	require.NoError(t, err)
 
@@ -179,7 +179,7 @@ func TestKYCStatus(t *testing.T) {
 
 	userID := uuid.NewString()
 
-	users := user_client.New(b, "kratosURL", "kratosAdminURL")
+	users := user_mock.NewMock()
 	wallet, err := users.CreateNewWallet(ctx, userID, "testing")
 	require.NoError(t, err)
 

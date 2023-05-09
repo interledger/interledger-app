@@ -10,7 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/ops"
-	users_client "gitlab.com/fynbos/backend/user/client"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 )
 
@@ -19,7 +19,7 @@ func TestAdd(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
 	require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestList(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
 	require.NoError(t, err)
@@ -108,7 +108,7 @@ func TestDelete(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
 	require.NoError(t, err)
@@ -139,7 +139,7 @@ func TestSetPublic(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
 	require.NoError(t, err)

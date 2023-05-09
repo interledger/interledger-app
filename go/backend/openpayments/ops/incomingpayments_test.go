@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
@@ -18,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	users_client "gitlab.com/fynbos/backend/user/client"
 )
 
 func TestCreateIncomingPayment(t *testing.T) {
@@ -32,7 +33,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, tc)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name    string

@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
-	users_client "gitlab.com/fynbos/backend/user/client"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -16,7 +17,7 @@ func TestActivity_UpdateSendRecvUser(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	b := NewTestBackends(t, db.MigrateTestDB(t, ctx))
-	uc := users_client.New(b, "URL", "Admin")
+	uc := users_mock.NewMock()
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()

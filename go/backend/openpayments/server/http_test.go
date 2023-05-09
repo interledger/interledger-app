@@ -10,9 +10,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/providers/gmt"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -23,14 +20,16 @@ import (
 	mock_auth "gitlab.com/fynbos/backend/authorisation/client/mock"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/keys"
 	mock_keys "gitlab.com/fynbos/backend/keys/client/mock"
 	limits_mock "gitlab.com/fynbos/backend/limits/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
+	"gitlab.com/fynbos/backend/providers/gmt"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	users_client "gitlab.com/fynbos/backend/user/client"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/mocks"
 )
@@ -42,7 +41,7 @@ func TestGetHandler(t *testing.T) {
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 	})
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name       string
@@ -128,7 +127,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		tb.auth = auth
 		tb.tr = tc
 	})
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name          string
@@ -300,7 +299,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	})
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name          string
@@ -428,7 +427,7 @@ func TestListKeys(t *testing.T) {
 		tb.db = db.MigrateTestDB(t, ctx)
 		tb.keys = keyClient
 	})
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	userID := uuid.NewString()
 	// Create Wallets
