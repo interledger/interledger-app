@@ -24,7 +24,7 @@ import (
 
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	users_client "gitlab.com/fynbos/backend/user/client"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 func TestCreatePaymentPointer(t *testing.T) {
@@ -34,7 +34,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name      string
@@ -171,7 +171,7 @@ func TestGetWalletPaymentPointer(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 	userID := uuid.NewString()
 	// Create Wallet
 	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
@@ -263,7 +263,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	userID := uuid.NewString()
 
@@ -418,7 +418,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	userID := uuid.NewString()
 	// Create Wallet
@@ -540,7 +540,7 @@ func TestCreateQuote(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, laClient, txClient)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name      string
@@ -694,7 +694,7 @@ func TestValidateCanSend(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, laClient, txClient)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name      string

@@ -9,6 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/currency"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,6 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	users_client "gitlab.com/fynbos/backend/user/client"
 )
 
 func TestCreateOutgoingPayment(t *testing.T) {
@@ -31,7 +31,7 @@ func TestCreateOutgoingPayment(t *testing.T) {
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	b := ops.NewTestBackends(t, db, nil, txClient)
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name      string

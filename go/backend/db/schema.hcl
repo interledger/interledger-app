@@ -164,12 +164,6 @@ table "individual_kyc_details" {
   primary_key {
     columns = [column.id]
   }
-  foreign_key "fk_individual_kyc_details_wallets" {
-    columns     = [column.wallet_id]
-    ref_columns = [table.wallets.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
   index "wallet_id_ind" {
     columns = [column.wallet_id]
   }
@@ -1046,12 +1040,6 @@ table "payment_pointers" {
   primary_key {
     columns = [column.id]
   }
-  foreign_key "fk_payment_pointer_wallets" {
-    columns     = [column.wallet_id]
-    ref_columns = [table.wallets.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
   index "wallet_id_ind" {
     columns = [column.wallet_id]
   }
@@ -1331,12 +1319,6 @@ table "transactions" {
   }
   primary_key {
     columns = [column.id]
-  }
-  foreign_key "fk_transactions_wallets" {
-    columns     = [column.wallet_id]
-    ref_columns = [table.wallets.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
   }
   index "grant_id_limits_ind" {
     columns = [column.grant_id, column.wallet_id, column.created_at, column.state]
@@ -1685,11 +1667,9 @@ table "identities" {
     unique  = false
     columns = [column.platform, column.handle, column.state]
   }
-  foreign_key "fk_wallet_id_ref_wallets" {
-    columns     = [column.wallet_id]
-    ref_columns = [table.wallets.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
+  index "wallet_id_ind" {
+    unique  = false
+    columns = [column.wallet_id]
   }
 }
 table "authorisation_limits" {
@@ -1740,11 +1720,9 @@ table "authorisation_limits" {
   primary_key {
     columns = [column.id]
   }
-  foreign_key "fk_wallet_id" {
-    columns     = [column.wallet_id]
-    ref_columns = [table.wallets.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
+  index "wallet_id_ind" {
+    unique  = false
+    columns = [column.wallet_id]
   }
   index "wallet_id_foreign_id_uniq" {
     unique  = true
@@ -1813,11 +1791,9 @@ table "gmt_users" {
   primary_key {
     columns = [column.wallet_id]
   }
-  foreign_key "fk_wallet_id" {
-    columns     = [column.wallet_id]
-    ref_columns = [table.wallets.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
+  index "wallet_id_ind" {
+    columns = [column.wallet_id]
+    unique  = true
   }
 }
 table "gmt_receipts" {

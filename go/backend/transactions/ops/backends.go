@@ -1,14 +1,13 @@
 package ops
 
 import (
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/keys"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
-	"testing"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -21,7 +20,6 @@ type Backends interface {
 	Users() user.Client
 	Notify() notify.Client
 	Analytics() analytics.Client
-	Keys() keys.Client
 }
 
 type testBackends struct {
@@ -29,7 +27,6 @@ type testBackends struct {
 	val    *validator.Validate
 	notify notify.Client
 	ac     analytics.Client
-	kc     keys.Client
 }
 
 func (t testBackends) Users() user.Client {
@@ -52,16 +49,10 @@ func (t testBackends) Analytics() analytics.Client {
 	return t.ac
 }
 
-func (t testBackends) Keys() keys.Client {
-	return t.kc
-}
-
 func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
 	ctrl := gomock.NewController(t)
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	kc := keys_mock.NewMockClient(ctrl)
-	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
 
-	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), kc: kc}
+	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, "")}
 }

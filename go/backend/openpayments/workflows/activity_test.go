@@ -5,25 +5,21 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers"
-
-	"gitlab.com/fynbos/backend/providers/gmt"
-	"gitlab.com/fynbos/backend/providers/mx"
-
-	"gitlab.com/fynbos/backend/currency"
-
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	users_client "gitlab.com/fynbos/backend/user/client"
+	"gitlab.com/fynbos/backend/providers"
+	"gitlab.com/fynbos/backend/providers/gmt"
+	"gitlab.com/fynbos/backend/providers/mx"
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -44,7 +40,7 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 	env := testSuite.NewTestActivityEnvironment()
 	a := Activity{b: b}
 
-	userClient := users_client.New(b, "fakeURL", "fakeAdminURL")
+	userClient := users_mock.NewMock()
 
 	env.RegisterActivity(a.GetProviderWorkflowArgs)
 
