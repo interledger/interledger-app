@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/Basis-Theory/basistheory-go/v3"
+	bt "gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/basistheory/external"
 )
 
@@ -31,7 +32,35 @@ func (c *Client) GetToken(ctx context.Context, id string) (*basistheory.Token, e
 		"ApiKey": {Key: c.apiKey},
 	})
 	token, resp, err := c.api.TokensApi.GetById(apiContext, id).Execute()
-	if err != nil {
+	if err != nil && resp == nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	if err = checkResponseStatusCode(resp); err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}
+
+func (c *Client) CreateCardToken(ctx context.Context, args bt.CreateCardArgs) (*basistheory.CreateTokenResponse, error) {
+	apiContext := context.WithValue(ctx, basistheory.ContextAPIKeys, map[string]basistheory.APIKey{
+		"ApiKey": {Key: c.apiKey},
+	})
+	data := map[string]interface{}{
+		"number":           args.Number,
+		"expiration_year":  args.ExpirationYear,
+		"expiration_month": args.ExpirationMonth,
+		"cvc":              args.CVC,
+	}
+	req := basistheory.NewCreateTokenRequest(data)
+	req.SetType("card")
+	req.SetMetadata(map[string]string{
+		"walletID": args.WalletID,
+	})
+	req.SetDeduplicateToken(true)
+	req.SetFingerprintExpression("{{ metadata.walletID }}{{ data.number }}")
+	token, resp, err := c.api.TokensApi.Create(apiContext).CreateTokenRequest(*req).Execute()
+	if err != nil && resp == nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 	if err = checkResponseStatusCode(resp); err != nil {
@@ -51,7 +80,6 @@ func checkResponseStatusCode(r *http.Response) error {
 	if err != nil {
 		return fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
-
 	switch r.StatusCode {
 	case http.StatusMultiStatus:
 		return fmt.Errorf("%w %s, path=%s", external.ErrBadRequest, string(body), r.Request.URL.Path)

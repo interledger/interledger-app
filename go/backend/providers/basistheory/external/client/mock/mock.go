@@ -10,6 +10,7 @@ import (
 
 	basistheory "github.com/Basis-Theory/basistheory-go/v3"
 	gomock "github.com/golang/mock/gomock"
+	basistheory0 "gitlab.com/fynbos/backend/providers/basistheory"
 )
 
 // MockClient is a mock of Client interface.
@@ -33,6 +34,21 @@ func NewMockClient(ctrl *gomock.Controller) *MockClient {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
+}
+
+// CreateCardToken mocks base method.
+func (m *MockClient) CreateCardToken(ctx context.Context, args basistheory0.CreateCardArgs) (*basistheory.CreateTokenResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCardToken", ctx, args)
+	ret0, _ := ret[0].(*basistheory.CreateTokenResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateCardToken indicates an expected call of CreateCardToken.
+func (mr *MockClientMockRecorder) CreateCardToken(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCardToken", reflect.TypeOf((*MockClient)(nil).CreateCardToken), ctx, args)
 }
 
 // GetToken mocks base method.
