@@ -3,6 +3,9 @@
  */
 module.exports = {
   tailwind: true,
+  future: {
+    v2_errorBoundary: true
+  },
   appDirectory: 'app',
   serverBuildTarget: 'node-cjs',
   assetsBuildDirectory: 'public/build',
