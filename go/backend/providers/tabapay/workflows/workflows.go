@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	"go.temporal.io/sdk/temporal"
@@ -41,12 +42,14 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return &la, nil
 	}
 
+	newCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("walletID=%s", args.WalletID),
+	})
 	var externalAccount external.CreateAccountResponse
-	err = workflow.ExecuteActivity(ctx, a.CreateExternalCard, CreateExternalCardArgs{
-		BasisTheoryCardID: tokenizedCard.ID,
-		WalletID:          args.WalletID,
-		CardNumber:        fmt.Sprintf("{{ %s | json: '$.number' }}", tokenizedCard.TokenID),
-		ExpirationDate:    fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", tokenizedCard.TokenID, tokenizedCard.TokenID),
+	err = workflow.ExecuteActivity(newCtx, a.CreateExternalCard, CreateExternalCardArgs{
+		WalletID:       args.WalletID,
+		CardNumber:     fmt.Sprintf("{{ %s | json: '$.number' }}", tokenizedCard.TokenID),
+		ExpirationDate: fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", tokenizedCard.TokenID, tokenizedCard.TokenID),
 	}).Get(ctx, &externalAccount)
 	if err != nil {
 		logger.Error("Failed to create card on tabapay.")

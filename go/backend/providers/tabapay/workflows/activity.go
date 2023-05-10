@@ -59,8 +59,9 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 		state = stateParts[1]
 	}
 
+	referenceID := tabapay.NewReferenceID()
 	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
-		ReferenceID: args.BasisTheoryCardID[:15], // tabapay requires 1 < len(ReferenceID) < 15
+		ReferenceID: referenceID,
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,
