@@ -65,6 +65,52 @@ export default function Page() {
           </ul>
         </div>
       </section>
+      <section className='relative mx-auto mt-6 mb-20 grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
+        <div className='col-span-full'>
+          <h2 className='flex font-sans text-xl font-medium text-medium'>
+            Payments Processing for US users
+          </h2>
+          <p className='text-sm'>
+            Fynbos Technologies LLC (USA) is registered as an agent of Golden
+            Money Transfer Inc. a licensed money services business with FINCEN
+            MSB Registration Number: 31000231163732. All payments originated
+            within the USA are processed under the appropriate state licenses.
+          </p>
+        </div>
+        <div className='col-span-full mt-2'>
+          <ul className='flex list-inside list-disc flex-col space-y-4'>
+            <li>
+              <Router
+                className='text-primary'
+                to={route('/legal/us/terms-of-use')}
+              >
+                Terms and Conditions
+              </Router>
+            </li>
+            <li>
+              <Router className='text-primary' to={route('/legal/us/licences')}>
+                Licences
+              </Router>
+            </li>
+            <li>
+              <Router
+                className='text-primary'
+                to={route('/legal/us/compliance')}
+              >
+                Compliance Statement
+              </Router>
+            </li>
+            <li>
+              <Router
+                className='text-primary'
+                to={route('/legal/us/privacy-policy')}
+              >
+                Privacy Policy
+              </Router>
+            </li>
+          </ul>
+        </div>
+      </section>
     </main>
   )
 }
