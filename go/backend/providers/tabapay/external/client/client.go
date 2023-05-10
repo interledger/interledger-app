@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"time"
 
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -70,6 +71,11 @@ func (c *client) setProxy(r *http.Request) {
 func (c *client) CreateTransaction(
 	ctx context.Context, args external.CreateTransactionArgs,
 ) (*external.CreateTransactionResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+	}
+
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -109,6 +115,10 @@ func (c *client) CreateTransaction(
 func (c *client) RetrieveTransaction(
 	ctx context.Context, id string,
 ) (*external.RetrieveTransactionResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+	}
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -143,6 +153,11 @@ func (c *client) RetrieveTransaction(
 func (c *client) CreateAccount(
 	ctx context.Context, args external.CreateAccountArgs,
 ) (*external.CreateAccountResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+	}
+
 	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "accounts")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -194,6 +209,11 @@ func (c *client) CreateAccount(
 func (c *client) RetrieveAccount(
 	ctx context.Context, id string,
 ) (*external.RetrieveAccountResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+	}
+
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "accounts", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -228,6 +248,11 @@ func (c *client) RetrieveAccount(
 func (c *client) QueryCard(
 	ctx context.Context, args external.QueryCardArgs,
 ) (*external.QueryCardResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+	}
+
 	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "cards")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -266,6 +291,11 @@ func (c *client) QueryCard(
 }
 
 func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*external.Init3DSResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+	}
+
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "init")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -303,6 +333,11 @@ func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*exter
 }
 
 func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*external.Lookup3DSResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+	}
+
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "lookup")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
@@ -340,6 +375,11 @@ func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*e
 }
 
 func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate3DSArgs) (*external.Authenticate3DSResponse, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+	}
+
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "authenticate")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)

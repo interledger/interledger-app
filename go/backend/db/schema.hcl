@@ -2209,6 +2209,11 @@ table "external_api_logs" {
     type = text
     default = ""
   }
+  column "method" {
+    null = false
+    type = text
+    default = ""
+  }
   column "request_body" {
     null = false
     type = text

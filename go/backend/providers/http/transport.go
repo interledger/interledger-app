@@ -51,10 +51,10 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func (t *Transport) Log(b Backends, req *http.Request, resp *http.Response) {
 	ctx := req.Context()
-	if b.DB() == nil || ctx.Value(ContextKey) == nil {
+	meta, ok := MetaForContext(ctx)
+	if b.DB() == nil || !ok {
 		return
 	}
-	meta := ctx.Value(ContextKey).(*Metadata)
 
 	reqBody, err := req.GetBody()
 	if err != nil {
@@ -89,13 +89,14 @@ func (t *Transport) Log(b Backends, req *http.Request, resp *http.Response) {
 
 	_, err = b.DB().ExecContext(
 		ctx,
-		fmt.Sprintf("INSERT INTO external_api_logs (%s) VALUES ($1, $2, $3, $4, $5, $6);", insertFields),
+		fmt.Sprintf("INSERT INTO external_api_logs (%s) VALUES ($1, $2, $3, $4, $5, $6, $7);", insertFields),
 		meta.Provider,
 		meta.Context,
 		string(redactedRequest),
 		req.URL.Path,
 		string(respBody),
 		resp.Status,
+		meta.Method,
 	)
 	if err != nil {
 		log.Error("httplogger: Failed to log external api request.", zap.Error(err))

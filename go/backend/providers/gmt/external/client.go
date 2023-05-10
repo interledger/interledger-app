@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -301,6 +302,11 @@ func (c *client) txCall(ctx context.Context, action string, request, resp interf
 }
 
 func (c *client) call(ctx context.Context, action string, request, resp interface{}) error {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = action
+	}
+
 	envelope := SOAPEnvelope{
 		XmlNS: "http://schemas.xmlsoap.org/soap/envelope/",
 	}

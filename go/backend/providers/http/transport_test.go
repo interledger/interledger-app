@@ -46,6 +46,7 @@ func TestLog(t *testing.T) {
 	ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 		Provider: "testapi",
 		Context:  "testkey",
+		Method:   "POST",
 	})
 
 	payload, err := json.Marshal(map[string]string{
@@ -70,7 +71,7 @@ func TestLog(t *testing.T) {
 	err = b.db.GetContext(
 		ctx,
 		&log,
-		"SELECT id, provider, context, request_body, request_path, response_body, response_status, created_at FROM external_api_logs WHERE context=$1 AND provider=$2;",
+		"SELECT id, provider, context, method, request_body, request_path, response_body, response_status, created_at FROM external_api_logs WHERE context=$1 AND provider=$2;",
 		"testkey",
 		"testapi",
 	)
@@ -79,4 +80,5 @@ func TestLog(t *testing.T) {
 	assert.Equal(t, "{\"reqKey\":\"123\"}", log.RequestBody)
 	assert.Equal(t, "{\"respKey\":\"456\"}\n", log.ResponseBody)
 	assert.Equal(t, "200 OK", log.ResponseStatus)
+	assert.Equal(t, "POST", log.Method)
 }
