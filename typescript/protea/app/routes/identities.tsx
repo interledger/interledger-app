@@ -8,9 +8,10 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request }: LoaderArgs) {
   // get username from request params
-  const { username } = params
+  const url = new URL(request.url);
+  const username = url.searchParams.get("username");
 
   let identity = await grpcClient
     .addIdentity(
