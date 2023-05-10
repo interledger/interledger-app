@@ -2,6 +2,7 @@
  * @type {import('@remix-run/dev/config').AppConfig}
  */
 module.exports = {
+  tailwind: true,
   appDirectory: 'app',
   serverBuildTarget: 'node-cjs',
   assetsBuildDirectory: 'public/build',
