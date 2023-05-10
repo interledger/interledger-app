@@ -8,9 +8,11 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request }: LoaderArgs) {
   // get proof id and proof url from request params
-  const { id, proof } = params
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+  const proof = url.searchParams.get("proof");
 
   let identity = await grpcClient
     .startIdentityVerification(
