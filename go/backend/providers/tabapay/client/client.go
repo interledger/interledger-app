@@ -63,7 +63,7 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 		ClientID:               args.ClientID,
 		BearerToken:            args.BearerToken,
 		Transport: otelhttp.NewTransport(
-			httplogger.NewTransport(http.DefaultTransport, b),
+			httplogger.NewTransport(http.DefaultTransport, b, nil),
 		),
 	})
 	if err != nil {

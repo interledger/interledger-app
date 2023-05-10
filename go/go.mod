@@ -57,6 +57,7 @@ require (
 require (
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
+	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
