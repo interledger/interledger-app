@@ -3,16 +3,16 @@ package ops
 import (
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/twitter"
 	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
-
 	temporal "go.temporal.io/sdk/client"
-
-	"github.com/go-playground/validator/v10"
-	"github.com/jmoiron/sqlx"
 )
 
 type Backends interface {
@@ -20,6 +20,8 @@ type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Temporal() temporal.Client
+	Analytics() analytics.Client
+	Keys() keys.Client
 }
 
 type testBackends struct {

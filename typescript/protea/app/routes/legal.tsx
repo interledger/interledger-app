@@ -78,7 +78,7 @@ export default function Page() {
           <h2 className='flex font-sans text-xl font-medium text-medium'>
             Additional terms for US users
           </h2>
-          <p className='text-sm mt-6'>
+          <p className='mt-6 text-sm'>
             Fynbos Technologies LLC (USA) is registered as an agent of Golden
             Money Transfer Inc. a licensed money services business with FINCEN
             MSB Registration Number: 31000231163732. All payments originated

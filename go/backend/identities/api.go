@@ -12,4 +12,5 @@ type Client interface {
 	StartVerification(ctx context.Context, id, proof string) (*Identity, error)
 	Delete(ctx context.Context, id, walletID string) error
 	SetPublic(ctx context.Context, id, walletID string, public bool) (*Identity, error)
+	Get(ctx context.Context, id string) (*Identity, error)
 }

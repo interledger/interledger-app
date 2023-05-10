@@ -17,7 +17,7 @@ export const Checkbox = forwardRef<any, CheckboxProps>(
             ref={ref}
             {...inputProps}
             type='checkbox'
-            className='h-[1.125rem] w-[1.125rem] cursor-pointer bg-container-strong rounded-sm border-2 border-base text-transparent focus:ring-offset-container-strong focus-visible:ring-focus'
+            className='h-[1.125rem] w-[1.125rem] cursor-pointer rounded-sm border-2 border-base bg-container-strong text-transparent focus:ring-offset-container-strong focus-visible:ring-focus'
           />
         </div>
         <div className='ml-2 text-sm'>

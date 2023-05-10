@@ -66,13 +66,14 @@ func New(b Backends, args *NewClientArgs) *Client {
 	}
 }
 
-func (c *Client) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLArgs) (*twitter.Authorization, error) {
+func (c *Client) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLArgs) (string, error) {
 	return ops.CreateAuthURL(ctx, c.b, &ops.CreateAuthURLArgs{
 		ClientID:     c.clientID,
 		RedirectURL:  c.redirectURL,
 		AuthEndpoint: c.authEndpoint,
 		Scopes:       args.Scopes,
 		WalletID:     args.WalletID,
+		State:        args.State,
 	})
 }
 

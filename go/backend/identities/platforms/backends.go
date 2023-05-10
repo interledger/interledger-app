@@ -5,7 +5,7 @@ import (
 
 	temporal "go.temporal.io/sdk/client"
 
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/twitter"
 
@@ -34,6 +34,10 @@ type testBackends struct {
 func (t testBackends) Temporal() temporal.Client {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (t testBackends) Analytics() analytics.Client {
+	return t.an
 }
 
 func (t testBackends) Twitter() twitter.Client {

@@ -22,7 +22,7 @@ export const Button = forwardRef<any, ButtonProps>(
         ref={ref}
         {...buttonProps}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-6 font-display font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:ring-blue-400 hover:enabled:bg-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
+          'hover:enabled:bg-blue-400 flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-6 font-display font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:ring-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
           shrink && 'sm:max-w-fit',
           buttonProps.className
         )}
@@ -64,7 +64,7 @@ export const TextButton = forwardRef<any, TextButtonProps>(
         ref={ref}
         {...buttonProps}
         className={clsx(
-          'text-sm font-medium text-primary rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 disabled:cursor-not-allowed disabled:text-disabled',
+          'rounded text-sm font-medium text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 disabled:cursor-not-allowed disabled:text-disabled',
           buttonProps.className
         )}
       >
@@ -86,7 +86,7 @@ export const IconButton = forwardRef<any, IconButtonProps>(
       <button
         ref={ref}
         {...buttonProps}
-        className='-m-3 flex p-3 text-medium rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-blue-500 active:ring-blue-400 disabled:cursor-not-allowed disabled:text-disabled'
+        className='focus-visible:-outline-offset-4 -m-3 flex rounded-lg p-3 text-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 active:ring-blue-400 disabled:cursor-not-allowed disabled:text-disabled'
       >
         <Icon className={buttonProps.className}>{children}</Icon>
       </button>

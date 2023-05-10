@@ -36,10 +36,10 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // CreateAuthURL mocks base method.
-func (m *MockClient) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLArgs) (*twitter.Authorization, error) {
+func (m *MockClient) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLArgs) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateAuthURL", ctx, args)
-	ret0, _ := ret[0].(*twitter.Authorization)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

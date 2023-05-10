@@ -68,7 +68,8 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO identities(id, wallet_id, platform, handle, state, public, code, proof) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+	var identity identities.Identity
+	err = b.DB().GetContext(ctx, &identity, "INSERT INTO identities(id, wallet_id, platform, handle, state, public, code, proof) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "+cols,
 		id, args.WalletID, args.Platform, args.Handle, identities.StateUnverified, args.Public, code, "")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
@@ -76,7 +77,7 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 
 	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
 		Identifier: args.Handle,
-		Code:       code,
+		Identity:   &identity,
 		WalletID:   args.WalletID,
 	})
 	if err != nil {
@@ -117,7 +118,7 @@ func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities
 
 	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
 		Identifier: ident.Handle,
-		Code:       ident.VerificationCode,
+		Identity:   ident,
 		WalletID:   ident.WalletID,
 	})
 	if err != nil {
