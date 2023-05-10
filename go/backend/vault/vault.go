@@ -8,6 +8,7 @@ import (
 	auth "github.com/hashicorp/vault/api/auth/kubernetes"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"os"
 )
 
@@ -87,7 +88,9 @@ func (c client) Sign(keyName string, input string) ([]byte, error) {
 
 	signatureBase64Url := resp.Data["signature"].(string)[9:] // remove "vault:v1:" prefix
 
-	signature, err := base64.RawURLEncoding.DecodeString(signatureBase64Url)
+	log.Info("Vault signing", zap.Any("resp", resp), zap.String("signature", resp.Data["signature"].(string)))
+
+	signature, err := base64.StdEncoding.DecodeString(signatureBase64Url)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode signature: %w", err)
 	}
