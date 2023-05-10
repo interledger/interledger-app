@@ -11,18 +11,14 @@ declare module "routes-gen" {
     "/blog/our-fynbos-family-meet-cairin": Record<string, never>;
     "/blog/our-fynbos-family-meet-justin": Record<string, never>;
     "/blog/why-payment-pointers-are-urls": Record<string, never>;
-    "/linked-account/:type/almost-there": { "type": string };
     "/blog/our-fynbos-family-meet-matt": Record<string, never>;
     "/blog/our-fynbos-family-meet-omer": Record<string, never>;
     "/blog/our-fynbos-family-meet-don": Record<string, never>;
     "/blog/card-payments-still-suck": Record<string, never>;
     "/legal/accessibility-statement": Record<string, never>;
     "/connections/add-a-public-key": Record<string, never>;
-    "/linked-account/:type/success": { "type": string };
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
-    "/linked-account/bank/widget": Record<string, never>;
-    "/linked-account/card/widget": Record<string, never>;
     "/connections/:connectionId": { "connectionId": string };
     "/legal/us/e-sign-agreement": Record<string, never>;
     "/settings/profile-personal": Record<string, never>;
@@ -37,9 +33,10 @@ declare module "routes-gen" {
     "/blog/joining-the-owf": Record<string, never>;
     "/legal/privacy-policy": Record<string, never>;
     "/legal/wallet-license": Record<string, never>;
-    "/linked-account/:type": { "type": string };
     "/legal/us/compliance": Record<string, never>;
     "/legal/us/licences": Record<string, never>;
+    "/link-account/bank": Record<string, never>;
+    "/link-account/card": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -50,6 +47,7 @@ declare module "routes-gen" {
     "/payment-pointer": Record<string, never>;
     "/signup/password": Record<string, never>;
     "/support/success": Record<string, never>;
+    "/link-account": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/transactions": Record<string, never>;
@@ -87,18 +85,14 @@ declare module "routes-gen" {
       | ["/blog/our-fynbos-family-meet-cairin"]
       | ["/blog/our-fynbos-family-meet-justin"]
       | ["/blog/why-payment-pointers-are-urls"]
-      | ["/linked-account/:type/almost-there", RouteParams["/linked-account/:type/almost-there"]]
       | ["/blog/our-fynbos-family-meet-matt"]
       | ["/blog/our-fynbos-family-meet-omer"]
       | ["/blog/our-fynbos-family-meet-don"]
       | ["/blog/card-payments-still-suck"]
       | ["/legal/accessibility-statement"]
       | ["/connections/add-a-public-key"]
-      | ["/linked-account/:type/success", RouteParams["/linked-account/:type/success"]]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
-      | ["/linked-account/bank/widget"]
-      | ["/linked-account/card/widget"]
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/legal/us/e-sign-agreement"]
       | ["/settings/profile-personal"]
@@ -113,9 +107,10 @@ declare module "routes-gen" {
       | ["/blog/joining-the-owf"]
       | ["/legal/privacy-policy"]
       | ["/legal/wallet-license"]
-      | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
       | ["/legal/us/compliance"]
       | ["/legal/us/licences"]
+      | ["/link-account/bank"]
+      | ["/link-account/card"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/api/maps/geocode"]
@@ -126,6 +121,7 @@ declare module "routes-gen" {
       | ["/payment-pointer"]
       | ["/signup/password"]
       | ["/support/success"]
+      | ["/link-account"]
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/transactions"]
