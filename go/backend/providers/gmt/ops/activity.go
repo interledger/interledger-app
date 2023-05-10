@@ -54,7 +54,7 @@ func NewActivity(b Backends) *Activity {
 		b: b,
 		ext: external.NewClient(
 			otelhttp.NewTransport(
-				httplogger.NewTransport(http.DefaultTransport, b),
+				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
 			),
 		),
 		mts: int32(mts),

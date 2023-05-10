@@ -5,6 +5,40 @@ import (
 	"time"
 )
 
+var RedactFields = []string{
+	"SenderAchAccount",
+	"SenderAchRouting",
+	"SenderCardExpiration",
+	"SenderCardNumber",
+	"SenderEmail",
+	"SenderIP",
+	"SenderIdCard",
+	"SenderIdNumber",
+	"SenderIdNumber2",
+	"SenderPhone",
+	"ReceiverAchAccount",
+	"ReceiverAchRouting",
+	"ReceiverCardExpiration",
+	"ReceiverCardNumber",
+	"ReceiverEmail",
+	"ReceiverIP",
+	"ReceiverIdCard",
+	"ReceiverIdNumber",
+	"ReceiverIdNumber2",
+	"ReceiverPhone",
+	"BancosNombre",
+	"BankAccount",
+	"BeneficiarioCelular",
+	"CardNumber",
+	"CardNumber_CVV",
+	"CardNumber_ExpDate",
+	"ComplianceIdNumber",
+	"ComplianceIdExpirationDate",
+	"ComplianceSSN",
+	"SucursalBanco",
+	"pass",
+}
+
 type GMTDate time.Time
 
 /*Created, Hold, Authorized, Transmitted, Paid, Cancelled or Void and Expired*/
