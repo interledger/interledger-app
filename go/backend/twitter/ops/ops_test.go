@@ -44,12 +44,15 @@ func TestCreateToken(t *testing.T) {
 		tb.ExternalClient = external_mock.NewMockClient(ctrl)
 	})
 
-	authorization, err := ops.CreateAuthURL(ctx, b, &ops.CreateAuthURLArgs{
+	state := uuid.NewString()
+
+	_, err := ops.CreateAuthURL(ctx, b, &ops.CreateAuthURLArgs{
 		ClientID:     uuid.NewString(),
 		WalletID:     uuid.NewString(),
 		Scopes:       []string{"tweet.read"},
 		RedirectURL:  "https://fynbos.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
+		State:        state,
 	})
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -69,7 +72,7 @@ func TestCreateToken(t *testing.T) {
 
 	token, err := ops.CreateToken(ctx, b, &twitter.CreateTokenArgs{
 		AuthCode: "testAuthCode",
-		State:    authorization.State,
+		State:    state,
 	})
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -90,13 +93,15 @@ func TestGetTokensByUserId(t *testing.T) {
 	})
 
 	walletId := uuid.NewString()
+	state := uuid.NewString()
 
-	authorization, err := ops.CreateAuthURL(ctx, b, &ops.CreateAuthURLArgs{
+	_, err := ops.CreateAuthURL(ctx, b, &ops.CreateAuthURLArgs{
 		ClientID:     uuid.NewString(),
 		WalletID:     walletId,
 		Scopes:       []string{"tweet.read", "tweet.write"},
 		RedirectURL:  "https://fynbos.app/twitter/callback",
 		AuthEndpoint: "https://twitter.com/i/oauth2/authorize",
+		State:        state,
 	})
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -116,7 +121,7 @@ func TestGetTokensByUserId(t *testing.T) {
 
 	_, err = ops.CreateToken(ctx, b, &twitter.CreateTokenArgs{
 		AuthCode: "testAuthCode",
-		State:    authorization.State,
+		State:    state,
 	})
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)

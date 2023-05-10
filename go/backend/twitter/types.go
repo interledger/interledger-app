@@ -8,13 +8,9 @@ import (
 
 type (
 	CreateAuthURLArgs struct {
+		State    string
 		Scopes   []string
 		WalletID string
-	}
-
-	Authorization struct {
-		URL   string
-		State string
 	}
 
 	TwitterUser struct {

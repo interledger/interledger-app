@@ -75,18 +75,19 @@ func (tp *twitterPlatform) VerifyInstructions(ctx context.Context, args *VerifyI
 		return "", fmt.Errorf("error getting oauth twitter tokens: %s", err)
 	}
 	if len(tokens) == 0 {
-		auth, err := tp.b.Twitter().CreateAuthURL(ctx, &twitter.CreateAuthURLArgs{
+		url, err := tp.b.Twitter().CreateAuthURL(ctx, &twitter.CreateAuthURLArgs{
 			WalletID: args.WalletID,
 			Scopes:   []string{"offline.access", "tweet.read", "tweet.write", "users.read", "follows.read"},
+			State:    args.Identity.ID,
 		})
 		if err != nil {
 			return "", fmt.Errorf("error creating auth url: %s", err)
 		}
 
-		return fmt.Sprintf("Please visit %s to authorize Fynbos for posting the public proof on behalf of you", auth.URL), nil
+		return fmt.Sprintf("Please visit %s to authorize Fynbos for posting the public proof on behalf of you", url), nil
 	}
 
-	_, err = tp.b.Twitter().PostTweet(ctx, &tokens[0], args.Code)
+	_, err = tp.b.Twitter().PostTweet(ctx, &tokens[0], args.Identity.VerificationCode)
 	if err != nil {
 		return "", fmt.Errorf("error posting tweet: %s", err)
 	}

@@ -16,7 +16,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func CreateAuthURL(ctx context.Context, b Backends, args *CreateAuthURLArgs) (*twitter.Authorization, error) {
+func CreateAuthURL(ctx context.Context, b Backends, args *CreateAuthURLArgs) (string, error) {
 	oauthConfig := &oauth2.Config{
 		ClientID:    args.ClientID,
 		RedirectURL: args.RedirectURL,
@@ -24,14 +24,9 @@ func CreateAuthURL(ctx context.Context, b Backends, args *CreateAuthURLArgs) (*t
 		Endpoint:    oauth2.Endpoint{AuthURL: args.AuthEndpoint},
 	}
 
-	state, err := randomBytesInBase64URL(24)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
-	}
-
 	codeVerifier, err := randomBytesInBase64URL(32)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 	sha := sha256.New()
 	sha.Write([]byte(codeVerifier))
@@ -39,20 +34,17 @@ func CreateAuthURL(ctx context.Context, b Backends, args *CreateAuthURLArgs) (*t
 
 	var authId string
 
-	err = b.DB().GetContext(ctx, &authId, "INSERT INTO twitter_authorizations (client_id, state, code_verifier, scopes, wallet_id, redirect_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", args.ClientID, state, codeVerifier, pq.Array(args.Scopes), args.WalletID, args.RedirectURL)
+	err = b.DB().GetContext(ctx, &authId, "INSERT INTO twitter_authorizations (client_id, state, code_verifier, scopes, wallet_id, redirect_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", args.ClientID, args.State, codeVerifier, pq.Array(args.Scopes), args.WalletID, args.RedirectURL)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	url := oauthConfig.AuthCodeURL(state,
+	url := oauthConfig.AuthCodeURL(args.State,
 		oauth2.SetAuthURLParam("code_challenge", codeChallenge),
 		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
 	)
 
-	return &twitter.Authorization{
-		URL:   url,
-		State: state,
-	}, nil
+	return url, nil
 }
 
 func CreateToken(ctx context.Context, b Backends, args *twitter.CreateTokenArgs) (*twitter.Token, error) {

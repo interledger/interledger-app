@@ -46,3 +46,7 @@ func (c client) Delete(ctx context.Context, id, walletID string) error {
 func (c client) SetPublic(ctx context.Context, id, walletID string, public bool) (*identities.Identity, error) {
 	return ops.SetPublic(ctx, c.b, id, walletID, public)
 }
+
+func (c client) Get(ctx context.Context, id string) (*identities.Identity, error) {
+	return ops.Get(ctx, c.b, id)
+}

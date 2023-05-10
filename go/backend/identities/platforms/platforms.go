@@ -6,6 +6,7 @@ import (
 
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/env"
+	// "gitlab.com/fynbos/env"
 )
 
 type (
@@ -17,7 +18,7 @@ type (
 	VerifyInstructionsArgs struct {
 		Identifier string
 		WalletID   string
-		Code       string
+		Identity   *identities.Identity
 	}
 )
 

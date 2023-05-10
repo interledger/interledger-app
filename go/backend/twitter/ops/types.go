@@ -12,6 +12,7 @@ type (
 		Scopes       []string
 		RedirectURL  string
 		AuthEndpoint string
+		State        string
 	}
 
 	TwitterAuth struct {
