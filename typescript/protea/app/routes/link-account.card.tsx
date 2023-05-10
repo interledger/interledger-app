@@ -8,7 +8,6 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useRef, useState } from 'react'
 
-import styles from '~/styles/VGS.css'
 import { Button, Card, Layouts } from '~/components'
 import {
   BasisTheoryProvider,
@@ -45,10 +44,6 @@ export const meta: MetaFunction = () => {
   return {
     title: 'Add debit card'
   }
-}
-
-export const links: LinksFunction = () => {
-  return [{ rel: 'stylesheet', href: styles }]
 }
 
 export default function Page() {
