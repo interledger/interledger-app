@@ -2,12 +2,13 @@ import type { MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { Layouts } from '~/components'
+import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML'
 
 export async function loader() {
-  const policy = await fetch(
-    'https://www.iubenda.com/api/privacy-policy/22630844/no-markup'
+  const content = await fetchAndSanitizeHTML(
+    'https://gmtsend.com/en/privacy-policy'
   )
-  const content = (await policy.json()).content
+
   return json({ content })
 }
 
@@ -17,7 +18,7 @@ export const handle = {
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Legal | Privacy policy'
+    title: 'Legal | GMT privacy policy'
   }
 }
 
