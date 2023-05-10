@@ -39,6 +39,7 @@ declare module "routes-gen" {
     "/legal/wallet-license": Record<string, never>;
     "/linked-account/:type": { "type": string };
     "/legal/us/compliance": Record<string, never>;
+    "/identities-verify": Record<string, never>;
     "/legal/us/licences": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
@@ -56,6 +57,7 @@ declare module "routes-gen" {
     "/api/sendOtp": Record<string, never>;
     "/connections": Record<string, never>;
     "/pay/confirm": Record<string, never>;
+    "/identities": Record<string, never>;
     "/pay/amount": Record<string, never>;
     "/contacts": Record<string, never>;
     "/recovery": Record<string, never>;
@@ -115,6 +117,7 @@ declare module "routes-gen" {
       | ["/legal/wallet-license"]
       | ["/linked-account/:type", RouteParams["/linked-account/:type"]]
       | ["/legal/us/compliance"]
+      | ["/identities-verify"]
       | ["/legal/us/licences"]
       | ["/recovery/password"]
       | ["/settings/password"]
@@ -132,6 +135,7 @@ declare module "routes-gen" {
       | ["/api/sendOtp"]
       | ["/connections"]
       | ["/pay/confirm"]
+      | ["/identities"]
       | ["/pay/amount"]
       | ["/contacts"]
       | ["/recovery"]

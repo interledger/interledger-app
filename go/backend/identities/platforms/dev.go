@@ -22,12 +22,12 @@ func (d *dev) VerifyWorkflow() interface{} {
 	return DevVerifyWorkflow
 }
 
-func (d *dev) NewVerifyCode() string {
-	return uuid.NewString()
+func (d *dev) NewVerifyCode(ctx context.Context, args *NewVerifyCodeArgs) (string, error) {
+	return uuid.NewString(), nil
 }
 
-func (d *dev) VerifyInstructions() string {
-	return `In this environment all you need to do to verify is to request it. Enjoy in a NON Production environment.`
+func (d *dev) VerifyInstructions(ctx context.Context, args *VerifyInstructionsArgs) (string, error) {
+	return `In this environment all you need to do to verify is to request it. Enjoy in a NON Production environment.`, nil
 }
 
 type DevActivity struct {

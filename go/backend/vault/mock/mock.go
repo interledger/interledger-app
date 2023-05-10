@@ -64,10 +64,10 @@ func (mr *MockClientMockRecorder) GetPublicKey(keyName interface{}) *gomock.Call
 }
 
 // Sign mocks base method.
-func (m *MockClient) Sign(keyName, input string) (string, error) {
+func (m *MockClient) Sign(keyName, input string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sign", keyName, input)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
