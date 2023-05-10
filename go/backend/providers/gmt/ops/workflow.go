@@ -1,12 +1,14 @@
 package ops
 
 import (
+	"fmt"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
@@ -329,8 +331,11 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
+	newCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("transactionID=%s", args.FromTransactionID),
+	})
 	var tabapayTransaction tabapay.Transaction
-	err = workflow.ExecuteActivity(ctx, a.PullFromCard, PullFromCardArgs{
+	err = workflow.ExecuteActivity(newCtx, a.PullFromCard, PullFromCardArgs{
 		TransactionID:       args.FromTransactionID,
 		CardLinkedAccountID: args.FromLinkedAccountID,
 		Amount:              args.Amount,
@@ -682,8 +687,11 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
+	newCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("transactionID=%s", args.FromTransactionID),
+	})
 	var tabapayTransaction tabapay.Transaction
-	err = workflow.ExecuteActivity(ctx, a.PushToCard, PushToCard{
+	err = workflow.ExecuteActivity(newCtx, a.PushToCard, PushToCard{
 		TransactionID:       recvTrxID,
 		CardLinkedAccountID: args.ToLinkedAccountID,
 		Amount:              args.Amount,

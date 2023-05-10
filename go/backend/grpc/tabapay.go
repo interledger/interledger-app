@@ -2,9 +2,11 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	http_log "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -62,7 +64,8 @@ func (s *rpcService) Init3DS(
 		return nil, InternalError("3DS not supported.")
 	}
 
-	init3DS, err := s.b.Tabapay().Init3DS(ctx, tabapay.Init3DSArgs{
+	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID))
+	init3DS, err := s.b.Tabapay().Init3DS(newCtx, tabapay.Init3DSArgs{
 		Amount:         quote.SendAmount,
 		IdempotencyKey: req.GetIdempotencyKey(),
 		CardID:         fromLinkedAcc.ProviderID,
@@ -108,7 +111,8 @@ func (s *rpcService) Lookup3DS(
 		return nil, NotFoundError("")
 	}
 
-	lookupResp, err := s.b.Tabapay().Lookup3DS(ctx, tabapay.Lookup3DSArgs{
+	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", la.ID))
+	lookupResp, err := s.b.Tabapay().Lookup3DS(newCtx, tabapay.Lookup3DSArgs{
 		ThreeDSID:               req.GetThreeDSID(),
 		IdempotencyKey:          req.GetIdempotencyKey(),
 		CardID:                  session.CardID,
@@ -173,7 +177,8 @@ func (s *rpcService) Authenticate3DS(
 		return nil, NotFoundError("")
 	}
 
-	authResp, err := s.b.Tabapay().Authenticate3DS(ctx, tabapay.Authenticate3DSArgs{
+	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", la.ID))
+	authResp, err := s.b.Tabapay().Authenticate3DS(newCtx, tabapay.Authenticate3DSArgs{
 		IdempotencyKey: req.GetIdempotencyKey(),
 		ThreeDSID:      req.GetThreeDSID(),
 		JWT:            req.GetJwt(),
