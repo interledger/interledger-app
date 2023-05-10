@@ -47,7 +47,7 @@ export default function Page() {
         formData.append('memberGuid', event.member_guid)
         formData.append('sessionGuid', event.session_guid)
         submit(formData, {
-          action: '/linked-account/bank/widget',
+          action: '/link-account/bank',
           method: 'post'
         })
       }

@@ -402,3 +402,24 @@ export async function getTransaction(
       }
     })
 }
+
+export async function createCard(
+  request: Request,
+  tokenID: string
+): Promise<void> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .createCard(
+      { tokenID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+}

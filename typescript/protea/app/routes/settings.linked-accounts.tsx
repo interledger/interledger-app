@@ -67,7 +67,7 @@ export default function Page() {
           ))}
           <Router
             className='mt-6 text-sm font-medium text-primary'
-            to={route('/linked-account/:type', { type: 'new' })}
+            to={route('/link-account')}
           >
             Link another account
           </Router>
@@ -112,12 +112,12 @@ export default function Page() {
                 Add a debit card to easily send payments or top up your cash
                 balance.
               </p>
-              {/*<Router*/}
-              {/*  className='text-sm font-medium text-primary'*/}
-              {/*  to={route('/linked-account/:type/widget', { type: 'card' })}*/}
-              {/*>*/}
-              {/*  Add a debit card*/}
-              {/*</Router>*/}
+              <Router
+                className='text-sm font-medium text-primary'
+                to={route('/link-account/card')}
+              >
+                Add a debit card
+              </Router>
             </div>
           </div>
         </Card>
@@ -134,12 +134,12 @@ export default function Page() {
                 Add a bank account to securely withdraw from your cash balance
                 at any time.
               </p>
-              {/*<Router*/}
-              {/*  className='text-sm font-medium text-primary'*/}
-              {/*  to={route('/linked-account/:type/widget', { type: 'bank' })}*/}
-              {/*>*/}
-              {/*  Add a bank account*/}
-              {/*</Router>*/}
+              <Router
+                className='text-sm font-medium text-primary'
+                to={route('/link-account/bank')}
+              >
+                Add a bank account
+              </Router>
             </div>
           </div>
         </Card>

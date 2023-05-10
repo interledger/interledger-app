@@ -128,8 +128,7 @@ export async function loader({ request }: LoaderArgs) {
           'Add a debit card to easily send payments or top up your cash balance.',
         icon: 'add_card',
         action: {
-          to: route('/'),
-          // to: route('/linked-account/:type/widget', { type: 'card' }),
+          to: route('/link-account/card'),
           text: 'Add a debit card'
         },
         show: true
@@ -144,8 +143,7 @@ export async function loader({ request }: LoaderArgs) {
           'Add a bank account to securely withdraw from your cash balance at any time.',
         icon: 'account_balance',
         action: {
-          to: route('/'),
-          // to: route('/linked-account/:type/widget', { type: 'bank' }),
+          to: route('/link-account/bank'),
           text: 'Add bank account'
         },
         show: true

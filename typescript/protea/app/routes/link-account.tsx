@@ -54,7 +54,7 @@ function GenericPage() {
     <>
       <Form
         id='link-card'
-        action={'/linked-account/new'}
+        action={'/link-account'}
         method='post'
         className='hidden'
       />
@@ -108,7 +108,7 @@ function CardPage() {
 
       <Form
         id='link-card'
-        action={'/linked-account/card'}
+        action={'/link-account'}
         method='post'
         className='hidden'
       />
@@ -150,7 +150,7 @@ function BankPage() {
 
       <Form
         id='link-bank'
-        action={'/linked-account/bank'}
+        action={'/link-account'}
         method='post'
         className='hidden'
       />
