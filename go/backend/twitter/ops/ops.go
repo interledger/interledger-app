@@ -94,6 +94,10 @@ func GetTokensByUserID(ctx context.Context, b Backends, args *twitter.GetTokensB
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("%w no tokens found for user %q", twitter.ErrNotFound, args.UserID)
+	}
+
 	return tokens, nil
 }
 

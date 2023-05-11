@@ -29,27 +29,13 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		token, err := b.Twitter().CreateToken(r.Context(), &twitter.CreateTokenArgs{
+		_, err := b.Twitter().CreateToken(r.Context(), &twitter.CreateTokenArgs{
 			State:    state,
 			AuthCode: authCode,
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Error("Error creating token", zap.Error(err))
-			return
-		}
-
-		identity, err := b.Identities().Get(r.Context(), state)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Error("Error fetching identity", zap.Error(err))
-			return
-		}
-
-		_, err = b.Twitter().PostTweet(r.Context(), token, identity.VerificationCode)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Error("Error posting tweet", zap.Error(err))
 			return
 		}
 
