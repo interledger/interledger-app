@@ -4,13 +4,15 @@
 module.exports = {
   tailwind: true,
   future: {
-    v2_errorBoundary: true
+    v2_errorBoundary: true,
+    // v2_meta: true,
+    v2_routeConvention: true,
+    v2_normalizeFormMethod: true
   },
   appDirectory: 'app',
-  serverBuildTarget: 'node-cjs',
   assetsBuildDirectory: 'public/build',
+  serverModuleFormat: 'cjs',
   publicPath: '/build/',
-  devServerPort: 8002,
   ignoredRouteFiles: [
     '.*',
     '**/*.draft.mdx',

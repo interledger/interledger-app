@@ -6,7 +6,7 @@ import { route } from 'routes-gen'
 import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus } from '~/lib/wallet.server'
-import { KycStatus } from '~/routes/index'
+import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
