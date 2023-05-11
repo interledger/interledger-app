@@ -256,11 +256,23 @@ type (
 		Availability string   `json:"availability"`
 	}
 
+	AVSResponse struct {
+		ID               string `json:"avsID"`
+		NetworkRC        string `json:"networkRC"`
+		NetworkID        string `json:"networkID"`
+		AuthorizeID      string `json:"authorizeID"`
+		ResultText       string `json:"resultText"`
+		CodeAVS          string `json:"codeAVS"`
+		CodeSecurityCode string `json:"codeSecurityCode"`
+		EC               string `json:"EC"`
+	}
+
 	QueryCardResponse struct {
 		SC   int          `json:"SC"`
 		EC   string       `json:"EC"`
 		EM   string       `jsonL:"EM"`
 		Card CardResponse `json:"card,omitempty"`
+		AVS  AVSResponse  `json:"AVS"`
 	}
 
 	Account struct {

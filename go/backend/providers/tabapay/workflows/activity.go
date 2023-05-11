@@ -40,6 +40,34 @@ func NewActivity(cb InputBackends) *Activity {
 	}}
 }
 
+func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.QueryCardResponse, error) {
+	kyc, err := a.b.KYC().GetIndividualDetails(ctx, args.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	queryArgs := external.QueryCardArgs{
+		Card: &external.Card{
+			AccountNumber: args.CardNumber,
+			SecurityCode:  args.CVV,
+		},
+		Owner: &external.Owner{
+			Name: external.Name{
+				First: kyc.FirstName,
+				Last:  kyc.LastName,
+			},
+		},
+	}
+	if args.AVS {
+		queryArgs.Owner.Address = &external.Address{
+			Line1:   kyc.Address.Line1,
+			ZipCode: kyc.Address.ZipCode,
+		}
+	}
+
+	return a.b.External().QueryCard(ctx, queryArgs)
+}
+
 func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
 	owner, err := a.b.KYC().GetIndividualDetails(ctx, args.WalletID)
 	if err != nil {
