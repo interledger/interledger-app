@@ -21,6 +21,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	w.RegisterActivity(platforms.NewDevActivity(b))
 	w.RegisterWorkflow(platforms.DevVerifyWorkflow)
+	w.RegisterWorkflow(platforms.TwitterVerifyWorkflow)
 
 	w.RegisterActivity(gmt_workflows.NewActivity(b))
 	w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow)
