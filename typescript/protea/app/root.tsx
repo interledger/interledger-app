@@ -2,16 +2,17 @@ import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
+  isRouteErrorResponse,
   Link,
   Links,
   LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
-  useCatch,
   useLoaderData,
   useLocation,
-  useMatches
+  useMatches,
+  useRouteError
 } from '@remix-run/react'
 import {
   WalletLayout,
@@ -73,7 +74,7 @@ function Document({ children }: { children: ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
+        <LiveReload port={443} />
       </body>
     </html>
   )
@@ -182,23 +183,24 @@ export default function Page() {
   return <Document>{layoutComponent}</Document>
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
-  return (
-    <Document>
-      <Error data={{ title: error.message }} />
-    </Document>
-  )
-}
+export function ErrorBoundary() {
+  const error = useRouteError()
 
-export function CatchBoundary() {
-  const caught = useCatch()
+  if (isRouteErrorResponse(error)) {
+    return (
+      <Document>
+        <Error
+          status={error.status}
+          statusText={error.statusText}
+          data={error.data}
+        />
+      </Document>
+    )
+  }
+
   return (
     <Document>
-      <Error
-        status={caught.status}
-        statusText={caught.statusText}
-        data={caught.data}
-      />
+      <Error data={{ title: (error as Error).message }} />
     </Document>
   )
 }

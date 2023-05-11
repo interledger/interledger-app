@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"gitlab.com/fynbos/env"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -22,7 +23,12 @@ func MakeAuditInterceptor(db *sqlx.DB) grpc.ServerOption {
 
 		adminUser, ok := ctx.Value(userCtxKey).(*AdminUser)
 		if !ok || adminUser == nil {
-			return nil, ErrNoUserFound
+			if !env.IsLocal() {
+				return nil, ErrNoUserFound
+			}
+			adminUser = &AdminUser{
+				Email: "local@admin.com",
+			}
 		}
 
 		// Ignore the following methods from audit logging.

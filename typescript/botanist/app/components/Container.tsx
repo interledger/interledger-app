@@ -1,7 +1,8 @@
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 
 type ContainerProps = {
   className?: string
+  children?: ReactNode
 }
 
 export const Container: FC<ContainerProps> = ({ children, className }) => {

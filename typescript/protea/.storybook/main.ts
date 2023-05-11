@@ -1,4 +1,5 @@
-import type { StorybookConfig } from '@storybook/builder-vite'
+import type { StorybookConfig } from '@storybook/react-vite' // (or whatever framework you are using)
+
 import { mergeConfig } from 'vite'
 
 const config: StorybookConfig = {
@@ -9,7 +10,7 @@ const config: StorybookConfig = {
     '@storybook/addon-interactions'
   ],
   features: {
-    interactionsDebugger: true // 👈 Enable playback controls
+    // interactionsDebugger: true // 👈 Enable playback controls
   },
   core: {
     builder: '@storybook/builder-vite'

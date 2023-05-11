@@ -18,6 +18,7 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { getUserSession } from '~/lib/kratos.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -46,7 +47,7 @@ export default function Page() {
         </span>
         <Form
           id='support-form'
-          action='/contact'
+          action='/support'
           method='post'
           className='hidden'
         />
@@ -151,12 +152,19 @@ export async function action({ request }: ActionArgs) {
   }
 
   let response = await grpcClient
-    .createSupportTicket({
-      description,
-      firstName,
-      lastName,
-      email
-    })
+    .createSupportTicket(
+      {
+        description,
+        firstName,
+        lastName,
+        email
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
     .then((v) => v)
     .catch(StatusError)
 
@@ -171,5 +179,12 @@ export async function action({ request }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  return redirect('/contact/success')
+  return redirect('/', {
+    headers: {
+      'Set-Cookie': await flashSnackbar(request, {
+        message: 'Support ticket created.',
+        icon: 'close'
+      })
+    }
+  })
 }

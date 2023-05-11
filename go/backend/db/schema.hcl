@@ -2041,8 +2041,7 @@ table "admin_audit_log" {
   primary_key {
     columns = [column.id]
   }
-  index "wallet_id_ind" {
-    unique  = false
+  index "audit_wallet_id_ind" {
     columns = [column.wallet_id]
   }
 }

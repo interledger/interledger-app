@@ -1,2 +1,2 @@
-export * from './WalletLayout'
+export * from './AdminLayout'
 export * from './FocusLayout'
