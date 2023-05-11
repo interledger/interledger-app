@@ -6,6 +6,7 @@ import {
 } from '~/lib/proto.server'
 import { json } from '@remix-run/node'
 import type {
+  Features,
   GetTransactionDetailsResponse,
   ListAuditResponse,
   ListWalletsResponse,
@@ -90,6 +91,49 @@ export async function GetWalletDetails(
       parseInt(response.response.dateOfBirth?.seconds ?? '')
     ).toLocaleString(DateTime.DATETIME_FULL)
   }
+}
+
+export async function GetWalletFeatures(
+  request: Request,
+  walletID: string
+): Promise<Features> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getWalletFeatures(
+      { walletID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function SetWalletFeatures(
+  request: Request,
+  features: Features
+): Promise<Features> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .setWalletFeatures(features, {
+      meta: {
+        cookies: cookie || ''
+      }
+    })
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
 }
 
 interface Transaction {
