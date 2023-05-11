@@ -6,10 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"go.uber.org/zap"
+
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/workflows"
+	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	temporal "go.temporal.io/sdk/client"
+
 	"time"
 )
 
@@ -115,6 +120,7 @@ func UpdateIndividualDetails(ctx context.Context, b Backends, ident kyc.Individu
 	// If this is the first insert we can compare with blank identity
 	if old == nil {
 		old = &dbIndividualDetails{}
+		log.Info("Accounts not found", zap.String("wallet_id", ident.WalletID))
 	}
 	merged, noop, err := mergeIdentities(*old, ident)
 	if err != nil {
@@ -123,6 +129,7 @@ func UpdateIndividualDetails(ctx context.Context, b Backends, ident kyc.Individu
 
 	if noop {
 		//  Do nothing, just lookup the existing and off we go
+		log.Info("Accounts Noop", zap.String("wallet_id", merged.WalletID))
 		return convertDBDetails(merged)
 	}
 
@@ -132,6 +139,8 @@ func UpdateIndividualDetails(ctx context.Context, b Backends, ident kyc.Individu
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
+
+	log.Info("Accounts created", zap.String("wallet_id", merged.WalletID))
 
 	return convertDBDetails(merged)
 }
