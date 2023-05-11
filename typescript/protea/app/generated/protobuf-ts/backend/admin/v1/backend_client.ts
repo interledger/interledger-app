@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { CreateTwitterAuthURLResponse } from "./backend";
+import type { CreateTwitterAuthURLRequest } from "./backend";
 import type { Features } from "./backend";
 import type { GetWalletFeaturesRequest } from "./backend";
 import type { ListAuditResponse } from "./backend";
@@ -69,6 +71,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: SetWalletFeatures(backend.admin.v1.Features) returns (backend.admin.v1.Features);
      */
     setWalletFeatures(input: Features, options?: RpcOptions): UnaryCall<Features, Features>;
+    /**
+     * @generated from protobuf rpc: CreateTwitterAuthURL(backend.admin.v1.CreateTwitterAuthURLRequest) returns (backend.admin.v1.CreateTwitterAuthURLResponse);
+     */
+    createTwitterAuthURL(input: CreateTwitterAuthURLRequest, options?: RpcOptions): UnaryCall<CreateTwitterAuthURLRequest, CreateTwitterAuthURLResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -148,5 +154,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     setWalletFeatures(input: Features, options?: RpcOptions): UnaryCall<Features, Features> {
         const method = this.methods[9], opt = this._transport.mergeOptions(options);
         return stackIntercept<Features, Features>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CreateTwitterAuthURL(backend.admin.v1.CreateTwitterAuthURLRequest) returns (backend.admin.v1.CreateTwitterAuthURLResponse);
+     */
+    createTwitterAuthURL(input: CreateTwitterAuthURLRequest, options?: RpcOptions): UnaryCall<CreateTwitterAuthURLRequest, CreateTwitterAuthURLResponse> {
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateTwitterAuthURLRequest, CreateTwitterAuthURLResponse>("unary", this._transport, method, opt, input);
     }
 }
