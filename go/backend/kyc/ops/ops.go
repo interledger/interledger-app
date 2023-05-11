@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/workflows"
 	"go.temporal.io/api/enums/v1"
 	temporal "go.temporal.io/sdk/client"
-	"time"
 )
 
 func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndividualDetails, bool, error) {
