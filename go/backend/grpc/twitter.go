@@ -5,17 +5,34 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/twitter"
-	pb "gitlab.com/fynbos/proto/backend/v1"
+	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
-func (s *rpcService) CreateAuthURL(
+func (s *rpcService) CreateTwitterAuthURL(
 	ctx context.Context,
-	_ *pb.Empty,
-) {
+	_ *backendv1.Empty,
+) (*backendv1.CreateTwitterAuthURLResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
 	state := uuid.NewString()
-	url := s.b.Twitter().CreateAuthURL(ctx, &twitter.CreateAuthURLArgs{
-
+	url, err := s.b.Twitter().CreateAuthURL(ctx, &twitter.CreateAuthURLArgs{
+		State:    state,
+		Scopes:   []string{"offline.access", "tweet.read", "tweet.write", "users.read"},
+		WalletID: wallet.ID,
 	})
+	if err != nil {
+		return nil, InternalError("Create Twitter Auth URL")
+	}
 
-	return s.b.Twitter().CreateAuthURL(ctx)
+	return &backendv1.CreateTwitterAuthURLResponse{
+		Url: url,
+	}, nil
 }

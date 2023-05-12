@@ -463,36 +463,6 @@ export interface WaitlistSignup {
      */
     countryCode: string;
 }
-/**
- * @generated from protobuf message backend.admin.v1.CreateTwitterAuthURLResponse
- */
-export interface CreateTwitterAuthURLResponse {
-    /**
-     * @generated from protobuf field: string url = 1;
-     */
-    url: string;
-    /**
-     * @generated from protobuf field: string state = 2;
-     */
-    state: string;
-}
-/**
- * @generated from protobuf message backend.admin.v1.CreateTwitterAuthURLRequest
- */
-export interface CreateTwitterAuthURLRequest {
-    /**
-     * @generated from protobuf field: string walletID = 1;
-     */
-    walletID: string;
-    /**
-     * @generated from protobuf field: string state = 2;
-     */
-    state: string;
-    /**
-     * @generated from protobuf field: repeated string scopes = 3;
-     */
-    scopes: string[];
-}
 // @generated message type with reflection information, may provide speed optimized methods
 class Empty$Type extends MessageType<Empty> {
     constructor() {
@@ -2046,121 +2016,6 @@ class WaitlistSignup$Type extends MessageType<WaitlistSignup> {
  * @generated MessageType for protobuf message backend.admin.v1.WaitlistSignup
  */
 export const WaitlistSignup = new WaitlistSignup$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class CreateTwitterAuthURLResponse$Type extends MessageType<CreateTwitterAuthURLResponse> {
-    constructor() {
-        super("backend.admin.v1.CreateTwitterAuthURLResponse", [
-            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<CreateTwitterAuthURLResponse>): CreateTwitterAuthURLResponse {
-        const message = { url: "", state: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CreateTwitterAuthURLResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateTwitterAuthURLResponse): CreateTwitterAuthURLResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string url */ 1:
-                    message.url = reader.string();
-                    break;
-                case /* string state */ 2:
-                    message.state = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CreateTwitterAuthURLResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string url = 1; */
-        if (message.url !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.url);
-        /* string state = 2; */
-        if (message.state !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.state);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.admin.v1.CreateTwitterAuthURLResponse
- */
-export const CreateTwitterAuthURLResponse = new CreateTwitterAuthURLResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class CreateTwitterAuthURLRequest$Type extends MessageType<CreateTwitterAuthURLRequest> {
-    constructor() {
-        super("backend.admin.v1.CreateTwitterAuthURLRequest", [
-            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "scopes", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<CreateTwitterAuthURLRequest>): CreateTwitterAuthURLRequest {
-        const message = { walletID: "", state: "", scopes: [] };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<CreateTwitterAuthURLRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateTwitterAuthURLRequest): CreateTwitterAuthURLRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string walletID */ 1:
-                    message.walletID = reader.string();
-                    break;
-                case /* string state */ 2:
-                    message.state = reader.string();
-                    break;
-                case /* repeated string scopes */ 3:
-                    message.scopes.push(reader.string());
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: CreateTwitterAuthURLRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string walletID = 1; */
-        if (message.walletID !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
-        /* string state = 2; */
-        if (message.state !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.state);
-        /* repeated string scopes = 3; */
-        for (let i = 0; i < message.scopes.length; i++)
-            writer.tag(3, WireType.LengthDelimited).string(message.scopes[i]);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.admin.v1.CreateTwitterAuthURLRequest
- */
-export const CreateTwitterAuthURLRequest = new CreateTwitterAuthURLRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.admin.v1.Backend
  */
@@ -2174,6 +2029,5 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListLinkedAccounts", options: {}, I: ListLinkedAccountsRequest, O: ListLinkedAccountsResponse },
     { name: "ListAudit", options: {}, I: ListAuditRequest, O: ListAuditResponse },
     { name: "GetWalletFeatures", options: {}, I: GetWalletFeaturesRequest, O: Features },
-    { name: "SetWalletFeatures", options: {}, I: Features, O: Features },
-    { name: "CreateTwitterAuthURL", options: {}, I: CreateTwitterAuthURLRequest, O: CreateTwitterAuthURLResponse }
+    { name: "SetWalletFeatures", options: {}, I: Features, O: Features }
 ]);

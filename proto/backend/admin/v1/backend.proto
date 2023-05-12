@@ -21,7 +21,6 @@ service Backend {
   rpc ListAudit(ListAuditRequest) returns (ListAuditResponse);
   rpc GetWalletFeatures(GetWalletFeaturesRequest) returns (Features);
   rpc SetWalletFeatures(Features) returns (Features);
-  rpc CreateTwitterAuthURL(CreateTwitterAuthURLRequest) returns (CreateTwitterAuthURLResponse);
 }
 
 message Empty {}
@@ -176,15 +175,4 @@ message WaitlistSignup {
   bool can_signup = 5;
   string mug_id = 6;
   string country_code = 7;
-}
-
-message CreateTwitterAuthURLResponse {
-  string url = 1;
-  string state = 2;
-}
-
-message CreateTwitterAuthURLRequest {
-  string walletID = 1;
-  string state = 2;
-  repeated string scopes = 3;
 }

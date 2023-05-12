@@ -274,6 +274,9 @@ service BackendService {
 
   // Features
   rpc ListFeatures(Empty) returns (Features);
+
+  // Twitter
+  rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
 }
 
 message Features {
@@ -724,4 +727,8 @@ message KYCPersonaInquiryRequest {
 message KYCPersonaInquiryResponse {
   string id = 1;
   optional string session_token = 2;
+}
+
+message CreateTwitterAuthURLResponse {
+  string url = 1;
 }

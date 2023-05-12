@@ -2289,6 +2289,7 @@ table "twitter_authorizations" {
     columns = [column.state]
   }
 }
+
 table "twitter_access_tokens" {
   schema = schema.public
   column "id" {

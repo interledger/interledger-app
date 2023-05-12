@@ -91,7 +91,7 @@ type TestContainer struct {
 	mx                 *mx_mock.MockClient
 	keys               *keys_mock.MockClient
 	basistheory        *bt_mock.MockClient
-	TwitterClient 		*twitter_mock.MockClient
+	TwitterClient      *twitter_mock.MockClient
 }
 
 func (t TestContainer) Features() features.Client {
@@ -236,7 +236,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		limits:             limit_mock.NewMockClient(ctrl),
 		mx:                 mx_mock.NewMockClient(ctrl),
 		keys:               keys_mock.NewMockClient(ctrl),
-		TwitterClient: twitter_mock.NewMockClient(ctrl),
+		TwitterClient:      twitter_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

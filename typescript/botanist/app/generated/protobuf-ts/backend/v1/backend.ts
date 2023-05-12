@@ -1716,6 +1716,15 @@ export interface KYCPersonaInquiryResponse {
      */
     sessionToken?: string;
 }
+/**
+ * @generated from protobuf message backend.v1.CreateTwitterAuthURLResponse
+ */
+export interface CreateTwitterAuthURLResponse {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -7998,6 +8007,53 @@ class KYCPersonaInquiryResponse$Type extends MessageType<KYCPersonaInquiryRespon
  * @generated MessageType for protobuf message backend.v1.KYCPersonaInquiryResponse
  */
 export const KYCPersonaInquiryResponse = new KYCPersonaInquiryResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateTwitterAuthURLResponse$Type extends MessageType<CreateTwitterAuthURLResponse> {
+    constructor() {
+        super("backend.v1.CreateTwitterAuthURLResponse", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateTwitterAuthURLResponse>): CreateTwitterAuthURLResponse {
+        const message = { url: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateTwitterAuthURLResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateTwitterAuthURLResponse): CreateTwitterAuthURLResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateTwitterAuthURLResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateTwitterAuthURLResponse
+ */
+export const CreateTwitterAuthURLResponse = new CreateTwitterAuthURLResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -8074,5 +8130,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "Lookup3DS", options: {}, I: Lookup3DSRequest, O: Lookup3DSResponse },
     { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: Empty },
-    { name: "ListFeatures", options: {}, I: Empty, O: Features }
+    { name: "ListFeatures", options: {}, I: Empty, O: Features },
+    { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse }
 ]);

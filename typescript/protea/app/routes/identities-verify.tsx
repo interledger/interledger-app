@@ -10,9 +10,9 @@ import {
 
 export async function loader({ request }: LoaderArgs) {
   // get proof id and proof url from request params
-  const url = new URL(request.url);
-  const id = url.searchParams.get("id");
-  const proof = url.searchParams.get("proof");
+  const url = new URL(request.url)
+  const id = url.searchParams.get('id')
+  const proof = url.searchParams.get('proof')
 
   let identity = await grpcClient
     .startIdentityVerification(

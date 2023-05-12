@@ -10,8 +10,8 @@ import {
 
 export async function loader({ request }: LoaderArgs) {
   // get username from request params
-  const url = new URL(request.url);
-  const username = url.searchParams.get("username");
+  const url = new URL(request.url)
+  const username = url.searchParams.get('username')
 
   let identity = await grpcClient
     .addIdentity(
