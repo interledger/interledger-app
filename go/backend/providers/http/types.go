@@ -12,9 +12,9 @@ type Backends interface {
 }
 
 type Metadata struct {
-	Provider string
-	Context  string
-	Method   string
+	Provider string `json:"provider"`
+	Context  string `json:"context"`
+	Method   string `json:"method"`
 }
 
 func MetaForContext(ctx context.Context) (*Metadata, bool) {
