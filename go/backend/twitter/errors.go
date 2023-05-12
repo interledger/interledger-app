@@ -3,6 +3,7 @@ package twitter
 import "errors"
 
 var (
-	ErrInternal = errors.New("twitter: internal error")
-	ErrNotFound = errors.New("twitter: not found")
+	ErrInternal         = errors.New("twitter: internal error")
+	ErrNotFound         = errors.New("twitter: not found")
+	ErrConnectionExists = errors.New("twitter: connection already exists")
 )

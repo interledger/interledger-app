@@ -6,7 +6,7 @@ import (
 
 type Client interface {
 	CreateAuthURL(ctx context.Context, args *CreateAuthURLArgs) (string, error)
-	CreateToken(ctx context.Context, args *CreateTokenArgs) (*Token, error)
-	GetTokensByUserID(ctx context.Context, args *GetTokensByUserIdArgs) ([]Token, error)
-	PostTweet(ctx context.Context, token *Token, text string) (*Tweet, error)
+	CreateConnection(ctx context.Context, args *CreateConnectionArgs) (*Connection, error)
+	GetTokensByUserID(ctx context.Context, args *GetTokensByUserIdArgs) ([]Connection, error)
+	PostTweet(ctx context.Context, token *Connection, text string) (*Tweet, error)
 }

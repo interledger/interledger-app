@@ -50,26 +50,26 @@ func (mr *MockClientMockRecorder) CreateAuthURL(ctx, args interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAuthURL", reflect.TypeOf((*MockClient)(nil).CreateAuthURL), ctx, args)
 }
 
-// CreateToken mocks base method.
-func (m *MockClient) CreateToken(ctx context.Context, args *twitter.CreateTokenArgs) (*twitter.Token, error) {
+// CreateConnection mocks base method.
+func (m *MockClient) CreateConnection(ctx context.Context, args *twitter.CreateConnectionArgs) (*twitter.Connection, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateToken", ctx, args)
-	ret0, _ := ret[0].(*twitter.Token)
+	ret := m.ctrl.Call(m, "CreateConnection", ctx, args)
+	ret0, _ := ret[0].(*twitter.Connection)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateToken indicates an expected call of CreateToken.
-func (mr *MockClientMockRecorder) CreateToken(ctx, args interface{}) *gomock.Call {
+// CreateConnection indicates an expected call of CreateConnection.
+func (mr *MockClientMockRecorder) CreateConnection(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockClient)(nil).CreateToken), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateConnection", reflect.TypeOf((*MockClient)(nil).CreateConnection), ctx, args)
 }
 
 // GetTokensByUserID mocks base method.
-func (m *MockClient) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Token, error) {
+func (m *MockClient) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Connection, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokensByUserID", ctx, args)
-	ret0, _ := ret[0].([]twitter.Token)
+	ret0, _ := ret[0].([]twitter.Connection)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -81,7 +81,7 @@ func (mr *MockClientMockRecorder) GetTokensByUserID(ctx, args interface{}) *gomo
 }
 
 // PostTweet mocks base method.
-func (m *MockClient) PostTweet(ctx context.Context, token *twitter.Token, text string) (*twitter.Tweet, error) {
+func (m *MockClient) PostTweet(ctx context.Context, token *twitter.Connection, text string) (*twitter.Tweet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PostTweet", ctx, token, text)
 	ret0, _ := ret[0].(*twitter.Tweet)

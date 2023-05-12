@@ -29,7 +29,7 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		_, err := b.Twitter().CreateToken(r.Context(), &twitter.CreateTokenArgs{
+		_, err := b.Twitter().CreateConnection(r.Context(), &twitter.CreateConnectionArgs{
 			State:    state,
 			AuthCode: authCode,
 		})
@@ -39,6 +39,6 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }

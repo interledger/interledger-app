@@ -70,7 +70,7 @@ func TestCreateToken(t *testing.T) {
 		Username: "testUsername",
 	}, nil)
 
-	token, err := ops.CreateToken(ctx, b, &twitter.CreateTokenArgs{
+	connection, err := ops.CreateConnection(ctx, b, &twitter.CreateConnectionArgs{
 		AuthCode: "testAuthCode",
 		State:    state,
 	})
@@ -78,10 +78,10 @@ func TestCreateToken(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	assert.Equal(t, "testAccessToken", token.AccessToken)
-	assert.Equal(t, "testTwitterID", token.UserID)
-	assert.Equal(t, "testRefreshToken", token.RefreshToken)
-	assert.Equal(t, "testTokenType", token.TokenType)
+	assert.Equal(t, "testAccessToken", connection.AccessToken)
+	assert.Equal(t, "testTwitterID", connection.UserID)
+	assert.Equal(t, "testRefreshToken", connection.RefreshToken)
+	assert.Equal(t, "testTokenType", connection.TokenType)
 }
 
 func TestGetTokensByUserId(t *testing.T) {
@@ -119,7 +119,7 @@ func TestGetTokensByUserId(t *testing.T) {
 		Username: "testUsername",
 	}, nil)
 
-	_, err = ops.CreateToken(ctx, b, &twitter.CreateTokenArgs{
+	_, err = ops.CreateConnection(ctx, b, &twitter.CreateConnectionArgs{
 		AuthCode: "testAuthCode",
 		State:    state,
 	})

@@ -77,14 +77,14 @@ func (c *Client) CreateAuthURL(ctx context.Context, args *twitter.CreateAuthURLA
 	})
 }
 
-func (c *Client) CreateToken(ctx context.Context, args *twitter.CreateTokenArgs) (*twitter.Token, error) {
-	return ops.CreateToken(ctx, c.b, &twitter.CreateTokenArgs{
+func (c *Client) CreateConnection(ctx context.Context, args *twitter.CreateConnectionArgs) (*twitter.Connection, error) {
+	return ops.CreateConnection(ctx, c.b, &twitter.CreateConnectionArgs{
 		AuthCode: args.AuthCode,
 		State:    args.State,
 	})
 }
 
-func (c *Client) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Token, error) {
+func (c *Client) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Connection, error) {
 	return ops.GetTokensByUserID(ctx, c.b, &twitter.GetTokensByUserIdArgs{
 		Scopes:   args.Scopes,
 		WalletID: args.WalletID,
@@ -92,6 +92,6 @@ func (c *Client) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensB
 	})
 }
 
-func (c *Client) PostTweet(ctx context.Context, token *twitter.Token, text string) (*twitter.Tweet, error) {
+func (c *Client) PostTweet(ctx context.Context, token *twitter.Connection, text string) (*twitter.Tweet, error) {
 	return ops.PostTweet(ctx, c.b, token, text)
 }

@@ -18,7 +18,7 @@ type (
 		Username string `json:"username"`
 	}
 
-	Token struct {
+	Connection struct {
 		ID           string         `db:"id"`
 		UserID       string         `db:"user_id"`
 		WalletID     string         `db:"wallet_id"`
@@ -32,7 +32,7 @@ type (
 		UpdatedAt    time.Time      `db:"updated_at"`
 	}
 
-	CreateTokenArgs struct {
+	CreateConnectionArgs struct {
 		AuthCode string
 		State    string
 	}

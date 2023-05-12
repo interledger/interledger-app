@@ -2290,7 +2290,7 @@ table "twitter_authorizations" {
   }
 }
 
-table "twitter_access_tokens" {
+table "twitter_connections" {
   schema = schema.public
   column "id" {
     null = false
@@ -2341,6 +2341,10 @@ table "twitter_access_tokens" {
   }
   primary_key {
     columns = [column.id]
+  }
+  index "twitter_wallet_user_ind" {
+    unique  = true
+    columns = [column.wallet_id, column.user_id]
   }
 }
 schema "public" {

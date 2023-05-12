@@ -47,7 +47,7 @@ func CreateAuthURL(ctx context.Context, b Backends, args *CreateAuthURLArgs) (st
 	return url, nil
 }
 
-func CreateToken(ctx context.Context, b Backends, args *twitter.CreateTokenArgs) (*twitter.Token, error) {
+func CreateConnection(ctx context.Context, b Backends, args *twitter.CreateConnectionArgs) (*twitter.Connection, error) {
 	var authorization TwitterAuth
 
 	err := b.DB().GetContext(ctx, &authorization, "SELECT * FROM twitter_authorizations WHERE state = $1", args.State)
@@ -74,22 +74,33 @@ func CreateToken(ctx context.Context, b Backends, args *twitter.CreateTokenArgs)
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	var dbToken twitter.Token
-
-	err = b.DB().GetContext(ctx, &dbToken,
-		"INSERT INTO twitter_access_tokens (client_id, wallet_id, access_token, refresh_token, token_type, expiry, scopes, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
-		authorization.ClientID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, token.Expiry, pq.Array(authorization.Scopes), user.ID)
+	var connection twitter.Connection
+	query := `
+		INSERT INTO twitter_connections (user_id, wallet_id, access_token, refresh_token, token_type, scopes, expiry, client_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		ON CONFLICT (user_id, wallet_id) 
+		DO UPDATE SET 
+			access_token = EXCLUDED.access_token,
+			refresh_token = EXCLUDED.refresh_token,
+			token_type = EXCLUDED.token_type,
+			scopes = EXCLUDED.scopes,
+			expiry = EXCLUDED.expiry,
+			updated_at = NOW()
+		RETURNING *;
+	`
+	err = b.DB().GetContext(ctx, &connection, query,
+		user.ID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, pq.Array(authorization.Scopes), token.Expiry, authorization.ClientID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	return &dbToken, nil
+	return &connection, nil
 }
 
-func GetTokensByUserID(ctx context.Context, b Backends, args *twitter.GetTokensByUserIdArgs) ([]twitter.Token, error) {
-	var tokens []twitter.Token
+func GetTokensByUserID(ctx context.Context, b Backends, args *twitter.GetTokensByUserIdArgs) ([]twitter.Connection, error) {
+	var tokens []twitter.Connection
 
-	err := b.DB().SelectContext(ctx, &tokens, "SELECT * FROM twitter_access_tokens WHERE scopes @> $1 AND user_id = $2 AND wallet_id = $3", pq.Array(args.Scopes), args.UserID, args.WalletID)
+	err := b.DB().SelectContext(ctx, &tokens, "SELECT * FROM twitter_connections WHERE scopes @> $1 AND user_id = $2 AND wallet_id = $3", pq.Array(args.Scopes), args.UserID, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
@@ -101,7 +112,7 @@ func GetTokensByUserID(ctx context.Context, b Backends, args *twitter.GetTokensB
 	return tokens, nil
 }
 
-func PostTweet(ctx context.Context, b Backends, token *twitter.Token, text string) (*twitter.Tweet, error) {
+func PostTweet(ctx context.Context, b Backends, token *twitter.Connection, text string) (*twitter.Tweet, error) {
 	oauthToken := oauth2.Token{
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
