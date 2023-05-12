@@ -62,3 +62,6 @@ generate:
 	@echo "Generating graphl"
 	go generate ./...
 	@echo "Graphql generated"
+
+job:
+	echo "package jobs" >> "./jobs/$$(date +%Y_%m)_$(name).go"

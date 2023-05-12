@@ -39,6 +39,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
 	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 	w.RegisterWorkflow(jobs.RunGMTCertification)
+	w.RegisterWorkflow(jobs.TabapayCertificationWorkflow)
 
 	return w, nil
 }

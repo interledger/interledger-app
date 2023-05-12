@@ -33,17 +33,19 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (*ta
 		return nil, temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
 	}
 
-	session3DS, err := a.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
-	if errors.Is(err, tabapay.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("3DS session not found.", "ErrNotFound", err)
-	}
-	if err != nil {
-		return nil, err
-	}
+	if args.ThreeDSID != "" {
+		session3DS, err := a.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
+		if errors.Is(err, tabapay.ErrNotFound) {
+			return nil, temporal.NewNonRetryableApplicationError("3DS session not found.", "ErrNotFound", err)
+		}
+		if err != nil {
+			return nil, err
+		}
 
-	// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
-	if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
-		return nil, temporal.NewNonRetryableApplicationError("3DS not fully authenticated.", "ErrInternal", err)
+		// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
+		if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
+			return nil, temporal.NewNonRetryableApplicationError("3DS not fully authenticated.", "ErrInternal", err)
+		}
 	}
 
 	referenceID := tabapay.NewReferenceID()
