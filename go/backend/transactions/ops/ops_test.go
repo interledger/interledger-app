@@ -14,6 +14,7 @@ import (
 	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
+	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
@@ -137,7 +138,10 @@ func TestCreateTransaction(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Wallets
 			userID := uuid.NewString()
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
@@ -270,7 +274,10 @@ func TestListWithPendingTransaction(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Wallets
 			userID := uuid.NewString()
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			tc.args.WalletID = wallet.ID
@@ -394,7 +401,10 @@ func TestListWithPendingPagination(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
 			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			for i, tx := range pendingTxs {
@@ -457,7 +467,10 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
 			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			tc.args.WalletID = wallet.ID
@@ -543,7 +556,10 @@ func TestSetTransferForeignID(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
 			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			tc.args.WalletID = wallet.ID
@@ -623,7 +639,10 @@ func TestSetTransactionState(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
 			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			tc.args.WalletID = wallet.ID
@@ -709,7 +728,10 @@ func TestSetTransferState(t *testing.T) {
 			// Create Signups
 			userID := uuid.NewString()
 			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			tc.args.WalletID = wallet.ID

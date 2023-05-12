@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/user"
 
 	"github.com/stretchr/testify/require"
 
@@ -24,7 +25,10 @@ func TestLinkedAccounts(s *testing.T) {
 	s.Run("can create a linked account", func(t *testing.T) {
 		userId := uuid.NewString()
 		// Create Wallet
-		wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: userId,
+			Name:   "",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -48,7 +52,10 @@ func TestLinkedAccounts(s *testing.T) {
 	s.Run("can get a linked account", func(t *testing.T) {
 		userId := uuid.NewString()
 		// Create Wallet
-		wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: userId,
+			Name:   "",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -82,7 +89,10 @@ func TestLinkedAccounts(s *testing.T) {
 	s.Run("can get a list of wallet linked accounts", func(t *testing.T) {
 		userId := uuid.NewString()
 		// Create Wallet
-		wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: userId,
+			Name:   "",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -114,7 +124,10 @@ func TestDelete(t *testing.T) {
 
 	userId := uuid.NewString()
 	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userId,
+		Name:   "",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +167,10 @@ func TestListMXBankAccounts(t *testing.T) {
 
 	userId := uuid.NewString()
 	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userId,
+		Name:   "",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +221,10 @@ func TestSetNickname(s *testing.T) {
 
 	userId := uuid.NewString()
 	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, userId, "")
+	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userId,
+		Name:   "",
+	})
 	if err != nil {
 		s.Fatal(err)
 	}
