@@ -16,9 +16,11 @@
     "test:integration": "playwright test",
     "test:unit": "vitest",
     "report": "playwright show-report",
-    "chromatic": "chromatic --exit-zero-on-changes"
+    "chromatic": "chromatic --exit-zero-on-changes",
+    "generate-cms": "graphql-codegen --config graphql.config.yml"
   },
   "dependencies": {
+    "@apollo/client": "^3.7.14",
     "@basis-theory/basis-theory-react": "^1.11.0",
     "@googlemaps/google-maps-services-js": "^3.3.30",
     "@grpc/grpc-js": "^1.8.14",
@@ -36,18 +38,25 @@
     "clsx": "^1.2.1",
     "dompurify": "^3.0.3",
     "framer-motion": "^10.12.9",
+    "graphql": "^16.6.0",
     "isbot": "^3.6.10",
     "libphonenumber-js": "^1.10.30",
     "luxon": "^3.3.0",
     "pusher-js": "^8.0.2",
     "qrcode": "^1.5.3",
     "react": "^18.2.0",
+    "react-datocms": "^4.0.15",
     "react-dom": "18.2.0",
     "rehype-slug": "^5.1.0",
     "routes-gen": "^0.6.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^3.3.1",
+    "@graphql-codegen/typed-document-node": "^4.0.1",
+    "@graphql-codegen/typescript": "^3.0.4",
+    "@graphql-codegen/typescript-operations": "^3.0.4",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@playwright/test": "^1.33.0",
     "@remix-run/dev": "^1.16.0",
     "@remix-run/eslint-config": "^1.16.0",
