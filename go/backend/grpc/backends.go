@@ -25,12 +25,14 @@ import (
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
 	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
+	Twitter() twitter.Client
 	DB() *sqlx.DB
 	AdminAuth() auth.Service
 	Agreements() agreements.Client

@@ -65,14 +65,14 @@ export function WalletLayout() {
           >
             menu
           </IconButton>
-          {title && <h1 className='font-medium text-xl'>{title}</h1>}
+          {title && <h1 className='text-xl font-medium'>{title}</h1>}
           {!title && <Logo className='h-8' />}
         </header>
         <div className='mt-16 mb-32 lg:my-[5.5rem] lg:ml-64'>
           <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
             {title && (
               <WalletGrid>
-                <div className='hidden lg:flex pb-6 px-4 justify-between col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+                <div className='col-span-full hidden justify-between px-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4 lg:flex'>
                   <h1 className='text-2xl font-medium'>{title}</h1>
                   <WalletShapes />
                 </div>

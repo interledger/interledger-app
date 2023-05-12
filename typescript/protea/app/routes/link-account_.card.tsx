@@ -150,13 +150,13 @@ export default function Page() {
       <BasisTheoryProvider bt={bt}>
         <Card>
           <p className='text-medium'>Please provide your debit card details.</p>
-          <label className='block mt-6'>
+          <label className='mt-6 block'>
             <span className='ml-2 block text-sm font-medium text-medium'>
               Card number
             </span>
             <div
               className={clsx(
-                'mt-1 flex h-12 w-full items-center justify-between overflow-hidden pr-4 rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0',
+                'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
                 cardNumberFocus && 'border-focus ring-0'
               )}
             >
@@ -178,14 +178,14 @@ export default function Page() {
               )}
             </div>
           </label>
-          <div className='flex w-full space-x-4 mt-1'>
+          <div className='mt-1 flex w-full space-x-4'>
             <label className='block w-full'>
               <span className='ml-2 block text-sm font-medium text-medium'>
                 Expiry date
               </span>
               <div
                 className={clsx(
-                  'mt-1 flex h-12 w-full items-center justify-between overflow-hidden pr-4 rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0',
+                  'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
                   cardExpirationDateFocus && 'border-focus ring-0'
                 )}
               >
@@ -211,7 +211,7 @@ export default function Page() {
               </span>
               <div
                 className={clsx(
-                  'mt-1 flex h-12 w-full items-center justify-between overflow-hidden pr-4 rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0',
+                  'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
                   cardVerificationCodeFocus && 'border-focus ring-0'
                 )}
               >

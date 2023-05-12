@@ -600,7 +600,7 @@ const WalletSVG = () => {
   return (
     <>
       {/* LIGHT */}
-      <div className='col-span-full mt-6 flex justify-center lg:hidden dark:hidden'>
+      <div className='col-span-full mt-6 flex justify-center dark:hidden lg:hidden'>
         <svg
           width='292'
           height='785'
@@ -1183,7 +1183,7 @@ const WalletSVG = () => {
       </div>
 
       {/* DARK */}
-      <div className='col-span-full mt-6 dark:flex hidden justify-center lg:hidden'>
+      <div className='col-span-full mt-6 hidden justify-center dark:flex lg:hidden'>
         <svg
           width='292'
           height='785'
