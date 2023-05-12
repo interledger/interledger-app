@@ -2,9 +2,10 @@ package ops_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -28,12 +29,18 @@ func TestCreateWallet(t *testing.T) {
 
 	userID := "c6874020-9d33-4678-a9ac-f623dc363cfb"
 
-	w, err := ops.CreateWallet(ctx, b, userID, "test1")
+	w, err := ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "test1",
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "test1", w.Name)
 
 	// Duplicate name should fail
-	_, err = ops.CreateWallet(ctx, b, userID, "test1")
+	_, err = ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "test1",
+	})
 	require.ErrorIs(t, err, user.ErrDuplicateWallet)
 }
 
@@ -83,11 +90,17 @@ func TestListWallets(t *testing.T) {
 
 	userID := "80629e7b-276b-4e38-82d5-8f73ef8c3806"
 
-	w, err := ops.CreateWallet(ctx, b, userID, "test1")
+	w, err := ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "test1",
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "test1", w.Name)
 
-	w, err = ops.CreateWallet(ctx, b, userID, "")
+	w, err = ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "",
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "default", w.Name)
 
@@ -105,7 +118,10 @@ func TestGetWallet(t *testing.T) {
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	b := user_client.NewTestBackends(t, dbc, nil, km)
 	userID := uuid.NewString()
-	w, err := ops.CreateWallet(ctx, b, userID, "default")
+	w, err := ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "default",
+	})
 	require.NoError(t, err)
 
 	wallet, err := ops.GetWallet(ctx, b, w.ID)
@@ -123,7 +139,10 @@ func TestSetWalletName(t *testing.T) {
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	b := user_client.NewTestBackends(t, dbc, nil, km)
 	userID := uuid.NewString()
-	w, err := ops.CreateWallet(ctx, b, userID, "default")
+	w, err := ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "default",
+	})
 	require.NoError(t, err)
 	require.Equal(t, "default", w.Name)
 

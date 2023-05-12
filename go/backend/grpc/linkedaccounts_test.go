@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -24,7 +25,7 @@ func TestGetLinkedAccounts(t *testing.T) {
 	})
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
-	user := &_user.User{
+	u := &_user.User{
 		ID: uuid.NewString(),
 	}
 
@@ -40,7 +41,10 @@ func TestGetLinkedAccounts(t *testing.T) {
 	})
 
 	t.Run("returns linked accounts", func(st *testing.T) {
-		wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
+		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: u.ID,
+			Name:   "default",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -62,7 +66,7 @@ func TestGetLinkedAccounts(t *testing.T) {
 		c.linkedaccounts.EXPECT().ListByWalletId(gomock.Any(), walletID).Return(expectedLinkedAccounts, nil).Times(1)
 
 		response, err := client.GetLinkedAccounts(
-			user_mock.ActingAsContext(t, context.Background(), user),
+			user_mock.ActingAsContext(t, context.Background(), u),
 			&backendv1.Empty{},
 		)
 		if err != nil {
@@ -88,13 +92,16 @@ func TestGetLinkedAccount(t *testing.T) {
 	})
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
-	user := &_user.User{
+	u := &_user.User{
 		ID: uuid.NewString(),
 	}
 
 	t.Run("returns linked account", func(st *testing.T) {
 		accID := uuid.NewString()
-		wallet, err := c.Users().CreateNewWallet(ctx, user.ID, "default")
+		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: u.ID,
+			Name:   "default",
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -108,7 +115,7 @@ func TestGetLinkedAccount(t *testing.T) {
 		c.linkedaccounts.EXPECT().Get(gomock.Any(), accID).Return(expectedLinkedAccount, nil).Times(1)
 
 		response, err := client.GetLinkedAccount(
-			user_mock.ActingAsContext(t, context.Background(), user),
+			user_mock.ActingAsContext(t, context.Background(), u),
 			&backendv1.GetLinkedAccountRequest{Id: accID},
 		)
 		require.NoError(st, err)
