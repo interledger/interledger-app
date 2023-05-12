@@ -2,10 +2,11 @@ package jobs
 
 import (
 	"context"
+	"time"
+
 	"gitlab.com/fynbos/backend/db"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/workflow"
-	"time"
 )
 
 func AddWalletPrivateKeysWorkflow(ctx workflow.Context) error {

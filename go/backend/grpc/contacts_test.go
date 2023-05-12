@@ -2,13 +2,14 @@ package grpc
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/paymentpointers"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -24,14 +25,20 @@ func TestCreateContact(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	_, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
+	_, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "Marko Polo",
+	})
 	require.NoError(t, err)
 
 	// Create contact
 	uc := &user.User{
 		ID: uuid.NewString(),
 	}
-	contactWallet, err := c.Users().CreateNewWallet(context.Background(), uc.ID, "Alice bob")
+	contactWallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: uc.ID,
+		Name:   "Alice bob",
+	})
 	require.NoError(t, err)
 	pp, err := paymentpointers.Parse("$fynbos.me/alice")
 	require.NoError(t, err)
@@ -71,14 +78,20 @@ func TestListContacts(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	wallet, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "Marko Polo",
+	})
 	require.NoError(t, err)
 
 	// Create contact
 	uc := &user.User{
 		ID: uuid.NewString(),
 	}
-	contactWallet, err := c.Users().CreateNewWallet(context.Background(), uc.ID, "Alice bob")
+	contactWallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: uc.ID,
+		Name:   "Alice bob",
+	})
 	require.NoError(t, err)
 	pp, err := paymentpointers.Parse("$fynbos.me/alice")
 	require.NoError(t, err)

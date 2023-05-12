@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"github.com/google/uuid"
@@ -24,10 +25,16 @@ func TestActivity_UpdateSendRecvUser(t *testing.T) {
 	a := NewActivity(b)
 	env.RegisterActivity(a.UpdateSendRecvUser)
 
-	sWallet, err := uc.CreateNewWallet(ctx, uuid.NewString(), "test_sender")
+	sWallet, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test_sender",
+	})
 	require.NoError(t, err)
 
-	rWallet, err := uc.CreateNewWallet(ctx, uuid.NewString(), "test_receiver")
+	rWallet, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test_receiver",
+	})
 	require.NoError(t, err)
 
 	sid, err := getSenderID(ctx, b, sWallet.ID)

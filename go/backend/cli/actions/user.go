@@ -14,6 +14,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/signup"
+	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -108,7 +109,9 @@ func MakeUser(b Backends) cli.ActionFunc {
 			return err
 		}
 
-		wallet, err := b.Users().CreateNewWallet(cCtx.Context, userID, "default")
+		wallet, err := b.Users().CreateNewWallet(cCtx.Context, user.CreateWalletArgs{
+			UserID: userID,
+		})
 		if err != nil {
 			return err
 		}

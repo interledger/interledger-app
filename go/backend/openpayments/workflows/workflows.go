@@ -159,7 +159,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 		return "", fmt.Errorf("unknown transfer worklfow (%s)", wfArgs.Key)
 	}
 	if err != nil {
-		logger.Error("ACH2ACHTransferWorkflow child workflow failed.", "Error", err)
+		logger.Error("OutgoingTransactionWorkflow child workflow failed.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			innerErr := workflow.ExecuteActivity(ctx, a.FailOutgoingPayment, outgoingID).Get(ctx, nil)
 			if innerErr != nil {

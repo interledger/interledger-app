@@ -19,6 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"go.temporal.io/sdk/testsuite"
 )
@@ -74,9 +75,15 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 			sendUserID := uuid.NewString()
 			recvUserID := uuid.NewString()
 			// Create Wallets
-			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: sendUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
-			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: recvUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{

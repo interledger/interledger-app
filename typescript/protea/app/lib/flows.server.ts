@@ -1,7 +1,7 @@
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
-import { commitSession, getSession } from '~/session.server'
 import { v4 } from 'uuid'
+import { commitSession, getSession } from '~/session.server'
 
 export enum flowType {
   Pay = 'pay',
@@ -127,7 +127,9 @@ const flowTemplate = (type: flowType): Flow => {
     case flowType.Pay:
       return {
         startRoute: route('/pay'),
-        data: {},
+        data: {
+          idempotencyKey: v4()
+        },
         returnTo: '/'
       }
     // TODO Temp
