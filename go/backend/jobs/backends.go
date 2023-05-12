@@ -10,8 +10,8 @@ import (
 type Backends interface {
 	Users() user.Client
 	Keys() keys.Client
-	BasisTheory() basistheory.Client
 	KYC() kyc.Client
+	BasisTheory() basistheory.Client
 }
 
 type Activity struct {
