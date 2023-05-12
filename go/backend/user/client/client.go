@@ -88,8 +88,8 @@ func (c *client) WalletForContext(ctx context.Context) (uw *user.Wallet, err err
 	return ops.WalletForContext(ctx)
 }
 
-func (c *client) CreateNewWallet(ctx context.Context, userID, walletName string) (*user.Wallet, error) {
-	return ops.CreateWallet(ctx, c.b, userID, walletName)
+func (c *client) CreateNewWallet(ctx context.Context, args user.CreateWalletArgs) (*user.Wallet, error) {
+	return ops.CreateWallet(ctx, c.b, args)
 }
 
 func (c *client) ListWallets(ctx context.Context, userID string) ([]user.Wallet, error) {
