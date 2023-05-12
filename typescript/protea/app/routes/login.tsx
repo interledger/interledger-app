@@ -138,7 +138,7 @@ export default function Page() {
         />
         <div className='mt-4'>
           <Router to={route('/recovery')} aria-label='Forgot password?'>
-            <span className='text-primary font-medium text-sm'>
+            <span className='text-sm font-medium text-primary'>
               Forgot password
             </span>
           </Router>
@@ -157,7 +157,7 @@ export default function Page() {
           setShowSnackbar(false)
         }}
       />
-      <p className='text-center font-medium text-sm text-medium'>
+      <p className='text-center text-sm font-medium text-medium'>
         New to Fynbos?{' '}
         {isSignupGated && (
           <Router className='text-primary' to={route('/waitlist')}>

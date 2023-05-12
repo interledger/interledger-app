@@ -74,6 +74,9 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 	_twilio "gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/backend/twitter"
+	twitter_handler "gitlab.com/fynbos/backend/twitter/callback"
+	twitter_client "gitlab.com/fynbos/backend/twitter/client"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
 	"gitlab.com/fynbos/backend/vault"
@@ -183,6 +186,14 @@ func start(args *cli.StartArgs) {
 
 	b.waitlist = waitlist_client.New(b, logger)
 
+	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
+		ClientID:      args.TwitterClientID,
+		ClientSecret:  args.TwitterClientSecret,
+		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
+		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
+		RedirectURL:   args.TwitterRedirectURL,
+	})
+
 	b.auth = authorisation_client.New(b)
 
 	b.analytics = analytics_client.New(b, args.SegmentKey)
@@ -203,6 +214,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
+
+	router.Handle("/callbacks/twitter", twitter_handler.NewTwitterCallbackHandler(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
@@ -484,9 +497,9 @@ func startWorker(args *cli.StartArgs) {
 }
 
 type backends struct {
-	val *validator.Validate
-	db  *sqlx.DB
-
+	val            *validator.Validate
+	db             *sqlx.DB
+	twitter        twitter.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	linkedaccounts linkedaccounts.Client
@@ -579,6 +592,10 @@ func (b backends) Validator() *validator.Validate {
 
 func (b backends) Twilio() _twilio.Service {
 	return b.twilio
+}
+
+func (b backends) Twitter() twitter.Client {
+	return b.twitter
 }
 
 func (b backends) LinkedAccounts() linkedaccounts.Client {

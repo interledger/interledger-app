@@ -44,7 +44,7 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
 	}
 
-	p, err := platforms.Get(args.Platform)
+	p, err := platforms.Get(b, args.Platform)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
 	}
@@ -60,10 +60,26 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	}
 
 	id := uuid.NewString()
-	code := p.NewVerifyCode()
+	code, err := p.NewVerifyCode(ctx, &platforms.NewVerifyCodeArgs{
+		WalletID:   args.WalletID,
+		Identifier: args.Handle,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO identities(id, wallet_id, platform, handle, state, public, code, proof) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+	var identity identities.Identity
+	err = b.DB().GetContext(ctx, &identity, "INSERT INTO identities(id, wallet_id, platform, handle, state, public, code, proof) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "+cols,
 		id, args.WalletID, args.Platform, args.Handle, identities.StateUnverified, args.Public, code, "")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
+		Identifier: args.Handle,
+		Identity:   &identity,
+		WalletID:   args.WalletID,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -71,7 +87,7 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	return &identities.VerifyInstructions{
 		IdentityID:   id,
 		Code:         code,
-		Instructions: p.VerifyInstructions(),
+		Instructions: verifyInstructions,
 	}, nil
 }
 
@@ -95,15 +111,24 @@ func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities
 		return nil, err
 	}
 
-	p, err := platforms.Get(ident.Platform)
+	p, err := platforms.Get(b, ident.Platform)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
+	}
+
+	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
+		Identifier: ident.Handle,
+		Identity:   ident,
+		WalletID:   ident.WalletID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	return &identities.VerifyInstructions{
 		IdentityID:   id,
 		Code:         ident.VerificationCode,
-		Instructions: p.VerifyInstructions(),
+		Instructions: verifyInstructions,
 	}, nil
 }
 
@@ -140,7 +165,7 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 		return nil, err
 	}
 
-	p, err := platforms.Get(ident.Platform)
+	p, err := platforms.Get(b, ident.Platform)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

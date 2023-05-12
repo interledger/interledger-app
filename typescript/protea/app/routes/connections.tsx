@@ -69,7 +69,7 @@ export default function Page() {
               to={route('/connections/:connectionId', {
                 connectionId: conn.id
               })}
-              className='mt-6 p-3 rounded-xl bg-nav flex justify-between'
+              className='mt-6 flex justify-between rounded-xl bg-nav p-3'
               key={conn.id}
             >
               <div className='flex-col'>

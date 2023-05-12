@@ -166,7 +166,7 @@ export default function Page() {
               name='paymentPointer'
               form='pay-payment-pointer'
               value={contact.paymentPointer}
-              className='mt-6 first:mt-0 flex w-full flex items-center space-x-3 rounded-xl'
+              className='mt-6 flex flex w-full items-center space-x-3 rounded-xl first:mt-0'
             >
               <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
               <span className='text-medium'>{contact.name}</span>

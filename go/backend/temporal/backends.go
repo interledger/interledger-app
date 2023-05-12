@@ -16,11 +16,13 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
 )
 
 type Backends interface {
+	Twitter() twitter.Client
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Temporal() client.Client
