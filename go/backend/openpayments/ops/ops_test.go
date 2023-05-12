@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/gmt"
+	"gitlab.com/fynbos/backend/user"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -122,7 +123,10 @@ func TestCreatePaymentPointer(t *testing.T) {
 
 			userID := uuid.NewString()
 			// Create Wallet
-			wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: userID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
@@ -174,7 +178,10 @@ func TestGetWalletPaymentPointer(t *testing.T) {
 	userClient := users_mock.NewMock()
 	userID := uuid.NewString()
 	// Create Wallet
-	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
@@ -267,7 +274,10 @@ func TestListWalletPaymentPointers(t *testing.T) {
 
 	userID := uuid.NewString()
 
-	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
@@ -422,7 +432,10 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 
 	userID := uuid.NewString()
 	// Create Wallet
-	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	exists, err := ops.PaymentPointerExists(ctx, b, "https://fynbos.me/ValidPaymentPointer")
@@ -615,9 +628,15 @@ func TestCreateQuote(t *testing.T) {
 			sendUserID := uuid.NewString()
 			recvUserID := uuid.NewString()
 			// Create Wallets
-			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: sendUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
-			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: recvUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
@@ -763,9 +782,15 @@ func TestValidateCanSend(t *testing.T) {
 			sendUserID := uuid.NewString()
 			recvUserID := uuid.NewString()
 			// Create Wallets
-			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: sendUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
-			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: recvUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
