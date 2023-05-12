@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"gitlab.com/fynbos/backend/limits"
@@ -63,7 +64,10 @@ func TestExceeds(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
+			wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: uuid.NewString(),
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			client, err := auth_ops.CreateClient(ctx, b, tc.tx.Source)
@@ -93,7 +97,10 @@ func TestUpdateClientLimits(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc, users_mock.NewMock())
 
-	wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
+	wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	_, err = auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
@@ -135,7 +142,10 @@ func TestListLimits(t *testing.T) {
 
 	b := ops.NewTestBackends(t, dbc, users_mock.NewMock())
 
-	wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
+	wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	_, err = auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
@@ -235,7 +245,10 @@ func TestExceedsGMTLimits(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			wallet, err := b.Users().CreateNewWallet(ctx, uuid.NewString(), "test")
+			wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: uuid.NewString(),
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			if tc.tx != nil {

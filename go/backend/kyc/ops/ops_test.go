@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"github.com/google/uuid"
@@ -24,7 +25,10 @@ func TestUpdateUserDetails(t *testing.T) {
 	userID := uuid.NewString()
 
 	users := user_mock.NewMock()
-	wallet, err := users.CreateNewWallet(ctx, userID, "testing")
+	wallet, err := users.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "testing",
+	})
 	require.NoError(t, err)
 
 	walletID := wallet.ID
@@ -180,7 +184,10 @@ func TestKYCStatus(t *testing.T) {
 	userID := uuid.NewString()
 
 	users := user_mock.NewMock()
-	wallet, err := users.CreateNewWallet(ctx, userID, "testing")
+	wallet, err := users.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "testing",
+	})
 	require.NoError(t, err)
 
 	walletID := wallet.ID
