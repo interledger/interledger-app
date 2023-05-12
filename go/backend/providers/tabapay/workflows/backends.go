@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -19,6 +20,7 @@ type Backends interface {
 }
 
 type InputBackends interface {
+	DB() *sqlx.DB
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
@@ -46,10 +48,15 @@ func (ob *backends) BasisTheory() basistheory.Client {
 }
 
 type TestBackends struct {
+	Db             *sqlx.DB
 	ExternalClient *mock_client.MockClient
 	Kyc            *kyc_mock.MockClient
 	Linkedaccounts *linkedaccount_mock.MockClient
 	Basistheory    *mock_bt.MockClient
+}
+
+func (tb *TestBackends) DB() *sqlx.DB {
+	return tb.Db
 }
 
 func (tb *TestBackends) BasisTheory() basistheory.Client {
