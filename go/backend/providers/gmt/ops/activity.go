@@ -364,7 +364,7 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderZip:                   senderID.Address.ZipCode,
 	}
 
-	if !exceeds {
+	if !exceeds && !args.ForceEDD {
 		return sender, nil
 	}
 
