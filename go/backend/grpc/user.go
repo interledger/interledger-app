@@ -18,7 +18,9 @@ func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.Create
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	_, err = s.b.Users().CreateNewWallet(ctx, req.UserID, "")
+	_, err = s.b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: req.UserID,
+	})
 
 	return &pb.Empty{}, toGRPCError(err)
 }

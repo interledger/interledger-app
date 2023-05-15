@@ -27,10 +27,13 @@ func TestUpdateUserKYC(t *testing.T) {
 
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
-	user := &user.User{
+	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	wallet, err := c.Users().CreateNewWallet(context.Background(), user.ID, "default")
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "default",
+	})
 	require.NoError(t, err)
 
 	ud := kyc.IndividualDetails{
@@ -46,7 +49,7 @@ func TestUpdateUserKYC(t *testing.T) {
 	c.KYCClient.EXPECT().UpdateIndividualDetails(gomock.Any(), ud)
 
 	// Create KYC data
-	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateIndividualKYCRequest{
+	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), u), &pb.UpdateIndividualKYCRequest{
 		FirstName:   &ud.FirstName,
 		LastName:    &ud.LastName,
 		CountryCode: &ud.CountryCode,
@@ -79,7 +82,7 @@ func TestUpdateUserKYC(t *testing.T) {
 
 	c.KYCClient.EXPECT().UpdateIndividualDetails(gomock.Any(), ud)
 
-	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateIndividualKYCRequest{
+	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), u), &pb.UpdateIndividualKYCRequest{
 		FirstName:   &ud.FirstName,
 		LastName:    &ud.LastName,
 		CountryCode: &ud.CountryCode,
@@ -102,7 +105,7 @@ func TestUpdateUserKYC(t *testing.T) {
 	// validation errors
 	badState := "CA"
 	badCountryCode := "FF"
-	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), user), &pb.UpdateIndividualKYCRequest{
+	_, err = client.UpdateIndividualKYC(user_mock.ActingAsContext(t, context.Background(), u), &pb.UpdateIndividualKYCRequest{
 		FirstName: &ud.FirstName,
 		LastName:  &ud.LastName,
 		// CountryCode: &badCountryCode,
@@ -143,7 +146,10 @@ func TestGetIndividualKYC(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	wallet, err := c.Users().CreateNewWallet(context.Background(), u.ID, "default")
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "default",
+	})
 	require.NoError(t, err)
 
 	ud := kyc.IndividualDetails{
@@ -190,7 +196,10 @@ func TestKYCStatus(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	wallet, err := c.Users().CreateNewWallet(context.Background(), u.ID, "default")
+	wallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "default",
+	})
 	require.NoError(t, err)
 
 	c.KYCClient.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(kyc.StatusApproved, nil)

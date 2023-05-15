@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
 	"net/http"
 	"sync"
 	"time"
+
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/db"
 
@@ -87,12 +88,17 @@ func WalletForContext(ctx context.Context) (*user.Wallet, error) {
 	return w, nil
 }
 
-func CreateWallet(ctx context.Context, b Backends, userID, name string) (*user.Wallet, error) {
+func CreateWallet(ctx context.Context, b Backends, args user.CreateWalletArgs) (*user.Wallet, error) {
+	userID := args.UserID
+	name := args.Name
 	if name == "" {
 		name = "default"
 	}
 
-	walletID := uuid.NewString()
+	walletID := args.ID
+	if walletID == "" {
+		walletID = uuid.NewString()
+	}
 	err := crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, name)
 		if err != nil {
