@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/env"
 
@@ -41,6 +42,12 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 func RunGMTCertification(ctx workflow.Context) error {
 	var a *Activity
 	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
 	logger := workflow.GetLogger(ctx)
 
 	if !env.IsDev() {
@@ -86,7 +93,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.3",
 			zip:   "93001",
-			state: "US-CA",
+			state: "CA",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
@@ -142,7 +149,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 	}
 
 	for _, tc := range cases {
-		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.zip, tc.state).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
 		if err != nil {
 			logger.Error("failed to update wallet address", "err", err)
 			continue
