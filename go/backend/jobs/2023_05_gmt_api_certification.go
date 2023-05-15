@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/env"
 
@@ -41,6 +42,12 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 func RunGMTCertification(ctx workflow.Context) error {
 	var a *Activity
 	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
 	logger := workflow.GetLogger(ctx)
 
 	if !env.IsDev() {
@@ -58,7 +65,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.1",
 			zip:   "86033",
-			state: "US-AZ",
+			state: "AZ",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "d3df3382-3bd1-412c-96ad-7c243b4b6f72",
@@ -72,7 +79,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.2",
 			zip:   "93001",
-			state: "US-CA",
+			state: "CA",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "d3df3382-3bd1-412c-96ad-7c243b4b6f72",
@@ -86,7 +93,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.3",
 			zip:   "93001",
-			state: "US-CA",
+			state: "CA",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
@@ -100,7 +107,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.4",
 			zip:   "93001",
-			state: "US-CA",
+			state: "CA",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "4199deeb-b4d0-4007-ba11-bd4c9b8906bf",
@@ -128,7 +135,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.6",
 			zip:   "92101",
-			state: "US-CA",
+			state: "CA",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
 				ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
