@@ -10,10 +10,9 @@ type CreateLinkedCardArgs struct {
 }
 
 type CreateExternalCardArgs struct {
-	BasisTheoryCardID string
-	WalletID          string
-	Name              string
-	CardNumber        string
-	CVV               string
-	ExpirationDate    string
+	WalletID       string
+	Name           string
+	CardNumber     string
+	CVV            string
+	ExpirationDate string
 }
