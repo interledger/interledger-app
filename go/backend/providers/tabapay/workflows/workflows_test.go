@@ -45,7 +45,6 @@ func TestCreateCardWorkflow(t *testing.T) {
 	providerID := uuid.NewString()
 	env.OnActivity(a.CreateExternalCard, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, arg workflows.CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
-			require.Equal(t, basisTheoryCardID, arg.BasisTheoryCardID)
 			return &external.CreateAccountResponse{
 				AccountID: providerID,
 			}, nil

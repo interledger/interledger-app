@@ -19,69 +19,76 @@ type PullFromCardArgs struct {
 }
 
 // Pulls from the card to the GMT account.
-func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (string, error) {
+func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (*tabapay.Transaction, error) {
 	// fetch the linked account
 	linkedCard, err := a.b.LinkedAccounts().Get(ctx, args.CardLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("Linked card not found.", "ErrNotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("Linked card not found.", "ErrNotFound", err)
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if linkedCard.Provider != tabapay.ProviderName {
-		return "", temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
+		return nil, temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
 	}
 
-	session3DS, err := a.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
-	if errors.Is(err, tabapay.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("3DS session not found.", "ErrNotFound", err)
+	if args.ThreeDSID != "" {
+		session3DS, err := a.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
+		if errors.Is(err, tabapay.ErrNotFound) {
+			return nil, temporal.NewNonRetryableApplicationError("3DS session not found.", "ErrNotFound", err)
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
+		if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
+			return nil, temporal.NewNonRetryableApplicationError("3DS not fully authenticated.", "ErrInternal", err)
+		}
 	}
 
-	// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
-	if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
-		return "", temporal.NewNonRetryableApplicationError("3DS not fully authenticated.", "ErrInternal", err)
-	}
-
-	externalTransactionID, err := a.b.Tabapay().PullFromCard(ctx, tabapay.PullFromCardArgs{
+	referenceID := tabapay.NewReferenceID()
+	externalTransaction, err := a.b.Tabapay().PullFromCard(ctx, tabapay.PullFromCardArgs{
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: args.TransactionID,
+		ReferenceID: referenceID,
 		Amount:      args.Amount,
 		ThreeDSID:   args.ThreeDSID,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return externalTransactionID, nil
+	return externalTransaction, nil
 }
 
 type PushToCard = PullFromCardArgs
 
-func (a *Activity) PushToCard(ctx context.Context, args PushToCard) (string, error) {
+func (a *Activity) PushToCard(ctx context.Context, args PushToCard) (*tabapay.Transaction, error) {
 	// fetch the linked account
 	linkedCard, err := a.b.LinkedAccounts().Get(ctx, args.CardLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return "", temporal.NewNonRetryableApplicationError("Linked card not found.", "ErrNotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("Linked card not found.", "ErrNotFound", err)
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if linkedCard.Provider != tabapay.ProviderName {
-		return "", temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
+		return nil, temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
 	}
 
-	externalTransactionID, err := a.b.Tabapay().PushToCard(ctx, tabapay.PushToCardArgs{
+	referenceID := tabapay.NewReferenceID()
+	externalTransaction, err := a.b.Tabapay().PushToCard(ctx, tabapay.PushToCardArgs{
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: args.TransactionID,
+		ReferenceID: referenceID,
 		Amount:      args.Amount,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return externalTransactionID, nil
+	return externalTransaction, nil
 }

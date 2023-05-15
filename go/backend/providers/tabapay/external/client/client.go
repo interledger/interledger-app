@@ -52,7 +52,7 @@ func New(args NewClientArgs) (*client, error) {
 		clientID:          args.ClientID,
 		api: &http.Client{
 			Transport: t,
-			Timeout:   5 * time.Second,
+			Timeout:   30 * time.Second, // set high as Tabapay may be waiting for transactions process
 		},
 	}, nil
 }
@@ -74,6 +74,7 @@ func (c *client) CreateTransaction(
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
+		meta.Provider = "tabapay"
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions")
@@ -118,6 +119,7 @@ func (c *client) RetrieveTransaction(
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "GET"
+		meta.Provider = "tabapay"
 	}
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions", id)
 	if err != nil {
@@ -156,6 +158,7 @@ func (c *client) CreateAccount(
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
+		meta.Provider = "tabapay"
 	}
 
 	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "accounts")
@@ -212,6 +215,7 @@ func (c *client) RetrieveAccount(
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "GET"
+		meta.Provider = "tabapay"
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "accounts", id)
@@ -251,6 +255,7 @@ func (c *client) QueryCard(
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
+		meta.Provider = "tabapay"
 	}
 
 	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "cards")
@@ -294,6 +299,7 @@ func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*exter
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
+		meta.Provider = "tabapay"
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "init")
@@ -336,6 +342,7 @@ func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*e
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
+		meta.Provider = "tabapay"
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "lookup")
@@ -378,6 +385,7 @@ func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
+		meta.Provider = "tabapay"
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "authenticate")

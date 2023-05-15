@@ -2,6 +2,7 @@ package tabapay
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -35,13 +36,25 @@ type PullFromCardArgs struct {
 
 type PushToCardArgs = PullFromCardArgs
 
+type Fees struct {
+	Tabapay     string
+	Interchange string
+	Network     string
+}
+
 type Transaction struct {
-	ID             string
-	ReferenceID    string
-	Status         string
-	OriginalStatus string
-	Amount         currency.Amount
-	ReversalStatus string
+	ID                 string
+	ReferenceID        string
+	Network            string
+	NetworkRC          string
+	Status             string
+	OriginalStatus     string
+	Amount             currency.Amount
+	Fees               Fees
+	ReversalStatus     string
+	ReversalNetworkRC  string
+	ReversalNetworkRC2 string
+	ReversalError      string
 }
 
 type Await func(ctx context.Context, result interface{}) error
@@ -82,7 +95,36 @@ var (
 )
 
 type BrowserInfo = external.BrowserInfo
+type BrowserInfoFields = external.BrowserInfoFields
 type DeviceChannelType = external.DeviceChannelType
+
+var NewBrowserInfo = external.NewBrowserInfo
+
+type ColorDepth = external.ColorDepth
+
+func GetColorDepth(depth string) ColorDepth {
+	colorDepth := ColorDepth(depth)
+	switch colorDepth {
+	case external.ColorDepth1:
+		return external.ColorDepth1
+	case external.ColorDepth4:
+		return external.ColorDepth4
+	case external.ColorDepth8:
+		return external.ColorDepth8
+	case external.ColorDepth15:
+		return external.ColorDepth15
+	case external.ColorDepth16:
+		return external.ColorDepth16
+	case external.ColorDepth24:
+		return external.ColorDepth24
+	case external.ColorDepth32:
+		return external.ColorDepth32
+	case external.ColorDepth48:
+		return external.ColorDepth48
+	default:
+		return external.ColorDepth32
+	}
+}
 
 var (
 	DeviceChannelBrowser = external.DeviceChannelBrowser
@@ -167,4 +209,20 @@ func GetSongbirdURL() string {
 
 func IsFrictionlessAuthentication(lookup Lookup3DSResponse) bool {
 	return lookup.ChallengeURL == ""
+}
+
+func IsSuccessfulTransaction(trx Transaction) bool {
+	return (trx.NetworkRC == "00" || trx.NetworkRC == "000") && (trx.Status == string(external.TransactionStatusOk) || trx.Status == string(external.TransactionStatusCompleted))
+}
+
+const dictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
+
+func NewReferenceID() string {
+	refBytes := make([]byte, 15)
+
+	for i := range refBytes {
+		refBytes[i] = dictionary[rand.Int63()%int64(len(dictionary))]
+	}
+
+	return string(refBytes)
 }

@@ -13,3 +13,9 @@ type Wallet struct {
 
 type UserCtxKey string
 type WalletCtxKey string
+
+type CreateWalletArgs struct {
+	ID     string
+	UserID string
+	Name   string
+}

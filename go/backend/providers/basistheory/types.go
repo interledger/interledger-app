@@ -22,4 +22,12 @@ type (
 		CreatedAt       string `db:"created_at"`
 		UpdatedAt       string `db:"updated_at"`
 	}
+
+	CreateCardArgs struct {
+		WalletID        string
+		Number          string `json:"number"`
+		ExpirationMonth int    `json:"expiration_month"`
+		ExpirationYear  int    `json:"expiration_year"`
+		CVC             string `json:"cvc"`
+	}
 )
