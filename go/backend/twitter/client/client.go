@@ -84,14 +84,10 @@ func (c *Client) CreateConnection(ctx context.Context, args *twitter.CreateConne
 	})
 }
 
-func (c *Client) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Connection, error) {
-	return ops.GetTokensByUserID(ctx, c.b, &twitter.GetTokensByUserIdArgs{
-		Scopes:   args.Scopes,
-		WalletID: args.WalletID,
-		UserID:   args.UserID,
-	})
+func (c *Client) GetWalletConnections(ctx context.Context, id string) ([]twitter.Connection, error) {
+	return ops.GetWalletConnections(ctx, c.b, id)
 }
 
-func (c *Client) PostTweet(ctx context.Context, token *twitter.Connection, text string) (*twitter.Tweet, error) {
-	return ops.PostTweet(ctx, c.b, token, text)
+func (c *Client) PostTweet(ctx context.Context, id string, text string) (*twitter.Tweet, error) {
+	return ops.PostTweet(ctx, c.b, id, text)
 }

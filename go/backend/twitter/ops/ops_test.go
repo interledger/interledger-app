@@ -84,7 +84,7 @@ func TestCreateToken(t *testing.T) {
 	assert.Equal(t, "testTokenType", connection.TokenType)
 }
 
-func TestGetTokensByUserId(t *testing.T) {
+func TestGetWalletConnections(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	b := ops.NewTestBackends(func(tb *ops.TestBackends) {
@@ -127,16 +127,12 @@ func TestGetTokensByUserId(t *testing.T) {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	tokens, err := ops.GetTokensByUserID(ctx, b, &twitter.GetTokensByUserIdArgs{
-		UserID:   "testTwitterID",
-		Scopes:   []string{"tweet.write"},
-		WalletID: walletId,
-	})
+	connections, err := ops.GetWalletConnections(ctx, b, walletId)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	assert.Equal(t, "testAccessToken", tokens[0].AccessToken)
-	assert.Equal(t, "testTwitterID", tokens[0].UserID)
-	assert.Equal(t, walletId, tokens[0].WalletID)
+	assert.Equal(t, "testAccessToken", connections[0].AccessToken)
+	assert.Equal(t, "testTwitterID", connections[0].UserID)
+	assert.Equal(t, walletId, connections[0].WalletID)
 }

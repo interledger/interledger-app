@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"gitlab.com/fynbos/backend/keys"
+	"gitlab.com/fynbos/backend/twitter"
 	"regexp"
 	"time"
 
 	twitterscraper "github.com/n0madic/twitter-scraper"
 	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/twitter"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -36,7 +37,18 @@ func (tp *twitterPlatform) NewVerifyCode(ctx context.Context, args *NewVerifyCod
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	signingKey := walletKeys[0]
+	// Get first custodial key
+	var signingKey *keys.Key
+	for _, k := range walletKeys {
+		if k.Type == keys.Custodial {
+			signingKey = &k
+			break
+		}
+	}
+
+	if signingKey == nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
+	}
 
 	claim, err := json.Marshal(&identities.IdentityClaim{
 		Wallet:       args.WalletID,
@@ -66,16 +78,24 @@ func (tp *twitterPlatform) VerifyInstructions(ctx context.Context, args *VerifyI
 		return "", fmt.Errorf("error getting twitter profile: %s", err)
 	}
 
-	tokens, err := tp.b.Twitter().GetTokensByUserID(ctx, &twitter.GetTokensByUserIdArgs{
-		UserID:   user.UserID,
-		WalletID: args.WalletID,
-		Scopes:   []string{"offline.access", "tweet.read", "tweet.write", "users.read", "follows.read"},
-	})
+	connections, err := tp.b.Twitter().GetWalletConnections(ctx, args.WalletID)
 	if err != nil {
 		return "", fmt.Errorf("error getting oauth twitter tokens: %s", err)
 	}
 
-	_, err = tp.b.Twitter().PostTweet(ctx, &tokens[0], args.Identity.VerificationCode)
+	var connection *twitter.Connection
+	for _, c := range connections {
+		if c.UserID == user.UserID {
+			connection = &c
+			break
+		}
+	}
+
+	if connection == nil {
+		return "", fmt.Errorf("no connection found for user %s", user.UserID)
+	}
+
+	_, err = tp.b.Twitter().PostTweet(ctx, connection.ID, args.Identity.VerificationCode)
 	if err != nil {
 		return "", fmt.Errorf("error posting tweet: %s", err)
 	}

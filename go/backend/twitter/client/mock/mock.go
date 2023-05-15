@@ -65,32 +65,32 @@ func (mr *MockClientMockRecorder) CreateConnection(ctx, args interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateConnection", reflect.TypeOf((*MockClient)(nil).CreateConnection), ctx, args)
 }
 
-// GetTokensByUserID mocks base method.
-func (m *MockClient) GetTokensByUserID(ctx context.Context, args *twitter.GetTokensByUserIdArgs) ([]twitter.Connection, error) {
+// GetWalletConnections mocks base method.
+func (m *MockClient) GetWalletConnections(ctx context.Context, id string) ([]twitter.Connection, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokensByUserID", ctx, args)
+	ret := m.ctrl.Call(m, "GetWalletConnections", ctx, id)
 	ret0, _ := ret[0].([]twitter.Connection)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTokensByUserID indicates an expected call of GetTokensByUserID.
-func (mr *MockClientMockRecorder) GetTokensByUserID(ctx, args interface{}) *gomock.Call {
+// GetWalletConnections indicates an expected call of GetWalletConnections.
+func (mr *MockClientMockRecorder) GetWalletConnections(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokensByUserID", reflect.TypeOf((*MockClient)(nil).GetTokensByUserID), ctx, args)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWalletConnections", reflect.TypeOf((*MockClient)(nil).GetWalletConnections), ctx, id)
 }
 
 // PostTweet mocks base method.
-func (m *MockClient) PostTweet(ctx context.Context, token *twitter.Connection, text string) (*twitter.Tweet, error) {
+func (m *MockClient) PostTweet(ctx context.Context, id, text string) (*twitter.Tweet, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostTweet", ctx, token, text)
+	ret := m.ctrl.Call(m, "PostTweet", ctx, id, text)
 	ret0, _ := ret[0].(*twitter.Tweet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PostTweet indicates an expected call of PostTweet.
-func (mr *MockClientMockRecorder) PostTweet(ctx, token, text interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) PostTweet(ctx, id, text interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostTweet", reflect.TypeOf((*MockClient)(nil).PostTweet), ctx, token, text)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostTweet", reflect.TypeOf((*MockClient)(nil).PostTweet), ctx, id, text)
 }

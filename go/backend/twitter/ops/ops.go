@@ -97,35 +97,65 @@ func CreateConnection(ctx context.Context, b Backends, args *twitter.CreateConne
 	return &connection, nil
 }
 
-func GetTokensByUserID(ctx context.Context, b Backends, args *twitter.GetTokensByUserIdArgs) ([]twitter.Connection, error) {
-	var tokens []twitter.Connection
+func GetWalletConnections(ctx context.Context, b Backends, id string) ([]twitter.Connection, error) {
+	var connections []twitter.Connection
 
-	err := b.DB().SelectContext(ctx, &tokens, "SELECT * FROM twitter_connections WHERE scopes @> $1 AND user_id = $2 AND wallet_id = $3", pq.Array(args.Scopes), args.UserID, args.WalletID)
+	err := b.DB().SelectContext(ctx, &connections, "SELECT * FROM twitter_connections WHERE wallet_id = $1", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	if len(tokens) == 0 {
-		return nil, fmt.Errorf("%w no tokens found for user %q", twitter.ErrNotFound, args.UserID)
-	}
-
-	return tokens, nil
+	return connections, nil
 }
 
-func PostTweet(ctx context.Context, b Backends, token *twitter.Connection, text string) (*twitter.Tweet, error) {
+func PostTweet(ctx context.Context, b Backends, id string, text string) (*twitter.Tweet, error) {
+	connection, err := getConnection(ctx, b, id)
+	if err != nil {
+		return nil, fmt.Errorf("twitter: could not get connection %w %s", twitter.ErrInternal, err)
+	}
+
 	oauthToken := oauth2.Token{
-		AccessToken:  token.AccessToken,
-		RefreshToken: token.RefreshToken,
-		TokenType:    token.TokenType,
-		Expiry:       token.Expiry,
+		AccessToken:  connection.AccessToken,
+		RefreshToken: connection.RefreshToken,
+		TokenType:    connection.TokenType,
+		Expiry:       connection.Expiry,
+	}
+
+	// TODO handle refresh the token if not valid
+	if !oauthToken.Valid() {
+		connection, err = refreshToken(ctx, b, id)
+		if err != nil {
+			return nil, fmt.Errorf("twitter: could not refresh token %w %s", twitter.ErrInternal, err)
+		}
+	}
+
+	oauthToken = oauth2.Token{
+		AccessToken:  connection.AccessToken,
+		RefreshToken: connection.RefreshToken,
+		TokenType:    connection.TokenType,
+		Expiry:       connection.Expiry,
 	}
 
 	tweet, err := b.External().PostTweet(ctx, &oauthToken, text)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
+		return nil, fmt.Errorf("twitter: could not post tweet %w %s", twitter.ErrInternal, err)
 	}
 
 	return tweet, nil
+}
+
+func getConnection(ctx context.Context, b Backends, id string) (*twitter.Connection, error) {
+	var connection twitter.Connection
+	err := b.DB().GetContext(ctx, &connection, "SELECT * FROM twitter_connections WHERE id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &connection, nil
+}
+
+func refreshToken(ctx context.Context, b Backends, id string) (*twitter.Connection, error) {
+	return nil, nil
 }
 
 func randomBytesInBase64URL(count int) (string, error) {
