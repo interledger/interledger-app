@@ -18,6 +18,7 @@ type TransfersArgs struct {
 	FromTransactionID   string
 	IPAddress           string
 	ThreeDSID           string
+	ForceEDD            bool // Used for testing to force the sending of enhanced due diligence info to providers
 }
 
 type TransferResponse struct {
