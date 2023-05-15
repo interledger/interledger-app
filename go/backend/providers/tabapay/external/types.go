@@ -224,11 +224,12 @@ type (
 	}
 
 	CreateAccountResponse struct {
-		SC        int           `json:"SC"`
-		EC        string        `json:"EC"`
-		AccountID string        `json:"accountID"`
-		Card      *CardResponse `json:"card,omitempty"`
-		Notices   string
+		SC          int           `json:"SC"`
+		EC          string        `json:"EC"`
+		AccountID   string        `json:"accountID"`
+		ReferenceID string        `json:"-"`
+		Card        *CardResponse `json:"card,omitempty"`
+		Notices     string
 	}
 
 	QueryCardArgs struct {
