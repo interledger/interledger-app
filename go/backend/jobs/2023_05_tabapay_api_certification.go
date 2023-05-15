@@ -84,7 +84,7 @@ func TabapayCertificationWorkflow(ctx workflow.Context) error {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 2 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 2,
+			MaximumAttempts: 1,
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)

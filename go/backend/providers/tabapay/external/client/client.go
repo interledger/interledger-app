@@ -52,7 +52,7 @@ func New(args NewClientArgs) (*client, error) {
 		clientID:          args.ClientID,
 		api: &http.Client{
 			Transport: t,
-			Timeout:   5 * time.Second,
+			Timeout:   30 * time.Second, // set high as Tabapay may be waiting for transactions process
 		},
 	}, nil
 }
