@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/env"
 
@@ -41,6 +42,12 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 func RunGMTCertification(ctx workflow.Context) error {
 	var a *Activity
 	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
 	logger := workflow.GetLogger(ctx)
 
 	if !env.IsDev() {
