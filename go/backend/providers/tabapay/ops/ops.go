@@ -32,17 +32,12 @@ func CreateCard(ctx context.Context, b Backends, args tabapay.CreateCardArgs) (t
 }
 
 func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (*tabapay.Transaction, error) {
-	session3DS, err := Get3DSSession(ctx, b, args.ThreeDSID)
-	if err != nil {
-		return nil, err
-	}
-
 	referenceID := args.ReferenceID
 	if len(referenceID) > 15 {
 		referenceID = referenceID[:15]
 	}
 
-	transactionResponse, err := b.External().CreateTransaction(ctx, external.CreateTransactionArgs{
+	externalArgs := external.CreateTransactionArgs{
 		ReferenceID: referenceID,
 		Type:        external.TransactionTypePull,
 		Currency:    args.Amount.Currency.ISO4217(),
@@ -51,7 +46,14 @@ func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (*taba
 			SourceAccountID:      args.ProviderID,
 			DestinationAccountID: args.SettlementAccountID,
 		},
-		PullOptions: external.CreateTransactionPullOptions{
+	}
+
+	if args.ThreeDSID != "" {
+		session3DS, err := Get3DSSession(ctx, b, args.ThreeDSID)
+		if err != nil {
+			return nil, err
+		}
+		externalArgs.PullOptions = &external.CreateTransactionPullOptions{
 			ThreeDS: external.ThreeDS{
 				Version:         session3DS.Version,
 				ECI:             session3DS.ECI,
@@ -59,8 +61,10 @@ func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (*taba
 				XID:             session3DS.XID,
 				DSTransactionID: session3DS.DsTransactionID,
 			},
-		},
-	})
+		}
+	}
+
+	transactionResponse, err := b.External().CreateTransaction(ctx, externalArgs)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
