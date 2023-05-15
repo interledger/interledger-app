@@ -109,14 +109,14 @@ func (mc mockClient) WalletForContext(ctx context.Context) (*user.Wallet, error)
 	return w, nil
 }
 
-func (mc mockClient) CreateNewWallet(_ context.Context, userID, walletName string) (*user.Wallet, error) {
+func (mc mockClient) CreateNewWallet(_ context.Context, args user.CreateWalletArgs) (*user.Wallet, error) {
 	wallet := &user.Wallet{
 		ID:   uuid.NewString(),
-		Name: walletName,
+		Name: args.Name,
 	}
 
 	mc.wallets[wallet.ID] = wallet
-	mc.walletUser[wallet.ID] = userID
+	mc.walletUser[wallet.ID] = args.UserID
 
 	return wallet, nil
 }

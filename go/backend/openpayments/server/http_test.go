@@ -29,6 +29,7 @@ import (
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/mocks"
@@ -80,7 +81,10 @@ func TestGetHandler(t *testing.T) {
 			if tc.pointer != nil {
 				userID := uuid.NewString()
 				// Create Wallets
-				wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+				wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+					UserID: userID,
+					Name:   "test",
+				})
 				require.NoError(t, err)
 
 				tc.pointer.WalletID = wallet.ID
@@ -185,9 +189,15 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
 		// Create Wallets
-		recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+		recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: recvUserID,
+			Name:   "test",
+		})
 		require.NoError(t, err)
-		sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+		sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: sendUserID,
+			Name:   "test",
+		})
 		require.NoError(t, err)
 
 		body, err := json.Marshal(tc.args)
@@ -348,9 +358,15 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		sendUserID := uuid.NewString()
 		recvUserID := uuid.NewString()
 		// Create Wallets
-		sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+		sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: sendUserID,
+			Name:   "test",
+		})
 		require.NoError(t, err)
-		recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+		recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+			UserID: recvUserID,
+			Name:   "test",
+		})
 		require.NoError(t, err)
 
 		// Setup the payment pointers
@@ -431,7 +447,10 @@ func TestListKeys(t *testing.T) {
 
 	userID := uuid.NewString()
 	// Create Wallets
-	wallet, err := userClient.CreateNewWallet(ctx, userID, "test")
+	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userID,
+		Name:   "test",
+	})
 	require.NoError(t, err)
 	asset := currency.USD
 	assetScale := 2

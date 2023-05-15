@@ -4,16 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
 	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
 )
@@ -27,6 +30,9 @@ func NewActivity(cb InputBackends) *Activity {
 		BasisTheoryProxyApiKey: os.Getenv("BASISTHEORY_API_KEY"),
 		ClientID:               os.Getenv("TABAPAY_CLIENT_ID"),
 		BearerToken:            os.Getenv("TABAPAY_BEARER_TOKEN"),
+		Transport: otelhttp.NewTransport(
+			httplogger.NewTransport(http.DefaultTransport, cb, nil),
+		),
 	}
 
 	externalClient, err := external_client.New(clientArgs)
@@ -38,6 +44,34 @@ func NewActivity(cb InputBackends) *Activity {
 		b:        cb,
 		external: externalClient,
 	}}
+}
+
+func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.QueryCardResponse, error) {
+	kyc, err := a.b.KYC().GetIndividualDetails(ctx, args.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	queryArgs := external.QueryCardArgs{
+		Card: &external.Card{
+			AccountNumber: args.CardNumber,
+			SecurityCode:  args.CVV,
+		},
+		Owner: &external.Owner{
+			Name: external.Name{
+				First: kyc.FirstName,
+				Last:  kyc.LastName,
+			},
+		},
+	}
+	if args.AVS {
+		queryArgs.Owner.Address = &external.Address{
+			Line1:   kyc.Address.Line1,
+			ZipCode: kyc.Address.ZipCode,
+		}
+	}
+
+	return a.b.External().QueryCard(ctx, queryArgs)
 }
 
 func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
@@ -59,8 +93,9 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 		state = stateParts[1]
 	}
 
+	referenceID := tabapay.NewReferenceID()
 	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
-		ReferenceID: args.BasisTheoryCardID[:15], // tabapay requires 1 < len(ReferenceID) < 15
+		ReferenceID: referenceID,
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -119,9 +120,15 @@ func TestCreateIncomingPayment(t *testing.T) {
 			recvUserID := uuid.NewString()
 			sendUserID := uuid.NewString()
 			// Create Wallets
-			recvWallet, err := userClient.CreateNewWallet(ctx, recvUserID, "test")
+			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: recvUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
-			sendWallet, err := userClient.CreateNewWallet(ctx, sendUserID, "test")
+			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+				UserID: sendUserID,
+				Name:   "test",
+			})
 			require.NoError(t, err)
 
 			asset := currency.USD

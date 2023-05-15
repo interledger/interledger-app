@@ -49,3 +49,12 @@ func (c client) CreateCard(ctx context.Context, tokenID, walletID string) (*basi
 func (c client) GetCard(ctx context.Context, id string) (*basistheory.Card, error) {
 	return ops.GetCard(ctx, c.b, id)
 }
+
+func (c client) CreateCardToken(ctx context.Context, args basistheory.CreateCardArgs) (string, error) {
+	token, err := c.b.External().CreateCardToken(ctx, args)
+	if err != nil {
+		return "", err
+	}
+
+	return token.GetId(), nil
+}

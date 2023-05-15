@@ -25,7 +25,10 @@ func TestCreatePublicKey(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
+	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "Marko Polo",
+	})
 	require.NoError(t, err)
 
 	pemEncodedPublicKey := `-----BEGIN PUBLIC KEY-----
@@ -93,7 +96,10 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
+	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "Marko Polo",
+	})
 	require.NoError(t, err)
 
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
@@ -137,7 +143,10 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
+	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "Marko Polo",
+	})
 	require.NoError(t, err)
 
 	ppURL := "https://local.fynbos.me/test"
@@ -195,7 +204,10 @@ func TestDeletePublicKey(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), u.ID, "Marko Polo")
+	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
+		UserID: u.ID,
+		Name:   "Marko Polo",
+	})
 	require.NoError(t, err)
 
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
