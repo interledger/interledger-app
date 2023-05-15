@@ -149,10 +149,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		}
 
 		var tr gmt_ops.TransactionResp
-		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, gmt_ops.InsertACHArgs{
-			TransfersArgs:         tc.args,
-			OriginalPaymentMethod: "ACH",
-		}).Get(ctx, &tr)
+		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, tc.args).Get(ctx, &tr)
 
 		if err != nil {
 			logger.Error("failed to add transaction", "err", err)
