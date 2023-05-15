@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/ops"
+	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 )
@@ -21,7 +22,10 @@ func TestAdd(t *testing.T) {
 
 	userClient := users_mock.NewMock()
 
-	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	env.SetEnv(t, "local")
@@ -52,7 +56,10 @@ func TestList(t *testing.T) {
 
 	userClient := users_mock.NewMock()
 
-	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	env.SetEnv(t, "local")
@@ -110,7 +117,10 @@ func TestDelete(t *testing.T) {
 
 	userClient := users_mock.NewMock()
 
-	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	env.SetEnv(t, "local")
@@ -141,7 +151,10 @@ func TestSetPublic(t *testing.T) {
 
 	userClient := users_mock.NewMock()
 
-	w, err := userClient.CreateNewWallet(ctx, uuid.NewString(), "test")
+	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	env.SetEnv(t, "local")

@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	persona_mock "gitlab.com/fynbos/backend/kyc/persona/mock"
+	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
@@ -20,7 +21,10 @@ func TestGetPersonaInquiry(t *testing.T) {
 	ctx := context.Background()
 
 	uc := user_mock.NewMock()
-	w, err := uc.CreateNewWallet(ctx, uuid.NewString(), "test")
+	w, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
 	require.NoError(t, err)
 
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc)

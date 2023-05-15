@@ -1,9 +1,15 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
-import { Layouts, LoadingShapes } from '~/components'
+import {
+  Button,
+  ButtonRouter,
+  Card,
+  Layouts,
+  LoadingShapes
+} from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
@@ -66,6 +72,9 @@ export default function Page() {
   const submit = useSubmit()
   const state = useScript(songbirdURL)
   let cardinalRef = useRef<any>(null)
+  const [showingIssuerChallenge, setShowingIssuerChallenge] =
+    useState<boolean>(false)
+  const [threeDSError, setThreeDSError] = useState<boolean>(false)
 
   useEffect(() => {
     if (
@@ -83,11 +92,22 @@ export default function Page() {
         jwt: initJWT
       })
       cardinalRef.current.on('payments.setupComplete', (data: any) => {
-        console.log('payments.setupComplete', data)
         let formData = new FormData()
         formData.append('name', 'lookup')
         formData.append('threeDsId', threeDsId)
         formData.append('idempotencyKey', flow?.data?.idempotencyKey)
+        formData.append(
+          'colorDepth',
+          window.screen && String(window.screen.colorDepth)
+        )
+        formData.append('screenHeight', String(window.innerHeight))
+        formData.append('screenWidth', String(window.innerWidth))
+        formData.append(
+          'timezone',
+          String(new Date(Date.now()).getTimezoneOffset())
+        )
+        formData.append('language', navigator.language)
+        formData.append('userAgent', navigator.userAgent)
 
         submit(formData, {
           action: '/pay/3ds',
@@ -95,13 +115,13 @@ export default function Page() {
         })
       })
 
+      // List of action codes https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/557065/Songbird.js#Songbird.js-payments.validated
       cardinalRef.current.on(
         'payments.validated',
         (data: { ActionCode: any }, jwt: string) => {
           switch (data.ActionCode) {
             case 'SUCCESS':
-              // Handle successful transaction, send JWT to backend to verify
-              console.log('payments.validated SUCCESS', data)
+            case 'NOACTION':
               let formData = new FormData()
               formData.append('name', 'authenticate')
               formData.append('threeDsId', threeDsId)
@@ -114,27 +134,16 @@ export default function Page() {
               })
               break
 
-            case 'NOACTION':
-              // Handle no actionable outcome
-              console.log('payments.validated NOACTION', data)
-              break
-
-            case 'FAILURE':
-              // Handle failed transaction attempt
-              console.log('payments.validated FAILURE', data)
-              break
-
-            case 'ERROR':
-              // Handle service level error`
-              console.log('payments.validated ERROR', data)
-              break
+            default:
+              setThreeDSError(true)
           }
         }
       )
     }
   }, [initJWT, state, threeDsId, flow?.data?.idempotencyKey, submit])
 
-  useEffect(() => {
+  const showIssuerChallenge = () => {
+    setShowingIssuerChallenge(true)
     if (typeof window !== 'undefined' && cardinalRef.current !== null) {
       cardinalRef.current.continue(
         'cca',
@@ -149,11 +158,35 @@ export default function Page() {
         }
       )
     }
-  }, [actionData])
+  }
 
   return (
     <>
       <LoadingShapes />
+      {actionData?.challengeURL && !threeDSError && (
+        <>
+          <Card>Your card issuer has requested an extra security check.</Card>
+
+          <Button
+            disabled={showingIssuerChallenge}
+            onClick={() => {
+              showIssuerChallenge()
+            }}
+          >
+            Continue
+          </Button>
+        </>
+      )}
+      {threeDSError && (
+        <>
+          <Card>
+            There has been an error processing your transaction, please try
+            again.
+          </Card>
+
+          <ButtonRouter to={route('/pay')}>Retry</ButtonRouter>
+        </>
+      )}
     </>
   )
 }
@@ -169,7 +202,17 @@ export async function action({ request }: ActionArgs) {
       .lookup3DS(
         {
           idempotencyKey: String(idempotencyKey),
-          threeDSID: String(threeDsId)
+          threeDSID: String(threeDsId),
+          colorDepth: String(form.get('colorDepth')) || '',
+          header: String(request.headers.get('Accept')),
+          ipAddress: getClientIP(request),
+          javaEnabled: false,
+          javascriptEnabled: true,
+          language: String(form.get('language')),
+          screenHeight: String(form.get('screenHeight')),
+          screenWidth: String(form.get('screenWidth')),
+          timezone: String(form.get('timezone')),
+          userAgent: String(form.get('userAgent'))
         },
         {
           meta: {

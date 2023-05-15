@@ -97,9 +97,9 @@ type (
 	}
 
 	CreateTransactionArgs struct {
-		ReferenceID string `json:"referenceID"`
-		Type        TransactionType
-		Accounts    CreateTransactionAccounts
+		ReferenceID string                       `json:"referenceID"`
+		Type        TransactionType              `json:"type,omitempty"`
+		Accounts    CreateTransactionAccounts    `json:"accounts"`
 		Currency    string                       `json:"currency,omitempty"`
 		Amount      string                       `json:"amount"`
 		PullOptions CreateTransactionPullOptions `json:"pullOptions"`
@@ -224,11 +224,12 @@ type (
 	}
 
 	CreateAccountResponse struct {
-		SC        int           `json:"SC"`
-		EC        string        `json:"EC"`
-		AccountID string        `json:"accountID"`
-		Card      *CardResponse `json:"card,omitempty"`
-		Notices   string
+		SC          int           `json:"SC"`
+		EC          string        `json:"EC"`
+		AccountID   string        `json:"accountID"`
+		ReferenceID string        `json:"-"`
+		Card        *CardResponse `json:"card,omitempty"`
+		Notices     string
 	}
 
 	QueryCardArgs struct {
@@ -255,11 +256,23 @@ type (
 		Availability string   `json:"availability"`
 	}
 
+	AVSResponse struct {
+		ID               string `json:"avsID"`
+		NetworkRC        string `json:"networkRC"`
+		NetworkID        string `json:"networkID"`
+		AuthorizeID      string `json:"authorizeID"`
+		ResultText       string `json:"resultText"`
+		CodeAVS          string `json:"codeAVS"`
+		CodeSecurityCode string `json:"codeSecurityCode"`
+		EC               string `json:"EC"`
+	}
+
 	QueryCardResponse struct {
 		SC   int          `json:"SC"`
 		EC   string       `json:"EC"`
 		EM   string       `jsonL:"EM"`
 		Card CardResponse `json:"card,omitempty"`
+		AVS  AVSResponse  `json:"AVS"`
 	}
 
 	Account struct {
@@ -351,3 +364,35 @@ type (
 		XID                    string `json:"XID"`
 	}
 )
+
+func (t *RetrieveTransactionResponse) GetFees() *Fees {
+	if t.Fees != nil {
+		return t.Fees
+	}
+
+	return &Fees{}
+}
+
+func (t *RetrieveTransactionResponse) GetReversal() *Reversal {
+	if t.Reversal != nil {
+		return t.Reversal
+	}
+
+	return &Reversal{}
+}
+
+func (t *CreateTransactionResponse) GetFees() *Fees {
+	if t.Fees != nil {
+		return t.Fees
+	}
+
+	return &Fees{}
+}
+
+func (t *CreateTransactionResponse) GetCard() *CardResponse {
+	if t.Card != nil {
+		return t.Card
+	}
+
+	return &CardResponse{}
+}
