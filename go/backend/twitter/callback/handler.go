@@ -53,7 +53,7 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		pp, err := b.OpenPayments().GetPaymentPointer(r.Context(), connection.WalletID)
+		pp, err := b.OpenPayments().GetWalletPaymentPointer(r.Context(), connection.WalletID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Error("Error getting payment pointer by walletID", zap.Error(err))
