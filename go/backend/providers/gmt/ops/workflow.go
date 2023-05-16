@@ -341,7 +341,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return tabapay.NewReferenceID()
 	}).Get(&tabapayReferenceID)
 	if err != nil {
-		logger.Error("failed to upsert gmt send recv user", "err", err)
+		logger.Error("error generating tabapay ReferenceID as side effect", "err", err)
 		return &providers.TransferResponse{
 			Type:                  providers.GMTCARD2ACH,
 			OutgoingTransferState: transactions.StateFailed,
@@ -365,6 +365,23 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		ThreeDSID:           args.ThreeDSID,
 		ReferenceID:         tabapayReferenceID,
 	}).Get(ctx, &tabapayTransaction)
+	if err != nil {
+		logger.Error("failed to pull from card", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                       providers.GMTCARD2ACH,
+				OutgoingTransferState:      transactions.StateFailed,
+				OutgoingTransferExternalID: tabapayTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+	if tabapay.IsTransactionStatusUnknown(tabapayTransaction) {
+		// check again in 90 sec
+		logger.Info("Tabapay transaction status unknown. Checking again. id=", tabapayTransaction.ID)
+		err = workflow.ExecuteActivity(newCtx, a.GetTabapayTransaction, tabapayTransaction.ID).Get(newCtx, &tabapayTransaction)
+	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(tabapayTransaction) {
 		logger.Error("failed to pull from card", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
@@ -745,6 +762,28 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		Amount:              args.Amount,
 		ReferenceID:         tabapayReferenceID,
 	}).Get(ctx, &tabapayTransaction)
+	if err != nil {
+		logger.Error("Failed to push to card.", "Error", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			// Try to fail tx on GMT
+			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StateFailed).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
+			}
+			return &providers.TransferResponse{
+				Type:                       providers.GMTACH2CARD,
+				OutgoingTransferState:      state,
+				OutgoingTransferExternalID: achTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+	if tabapay.IsTransactionStatusUnknown(tabapayTransaction) {
+		// check again in 90 sec
+		logger.Info("Tabapay transaction status unknown. Checking again id=", tabapayTransaction.ID)
+		err = workflow.ExecuteActivity(newCtx, a.GetTabapayTransaction, tabapayTransaction.ID).Get(newCtx, &tabapayTransaction)
+	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(tabapayTransaction) {
 		logger.Error("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {

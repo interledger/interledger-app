@@ -425,8 +425,7 @@ func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate
 }
 
 func checkResponseStatusCode(r *http.Response) error {
-	if r.StatusCode != http.StatusMultiStatus &&
-		(http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices) {
+	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil
 	}
 
@@ -436,8 +435,6 @@ func checkResponseStatusCode(r *http.Response) error {
 	}
 
 	switch r.StatusCode {
-	case http.StatusMultiStatus:
-		return fmt.Errorf("%w %s, path=%s", external.ErrBadRequest, string(body), r.Request.URL.Path)
 	case http.StatusBadRequest:
 		return fmt.Errorf("%w %s, path=%s", external.ErrBadRequest, string(body), r.Request.URL.Path)
 	case http.StatusUnauthorized:

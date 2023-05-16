@@ -211,6 +211,10 @@ func IsFrictionlessAuthentication(lookup Lookup3DSResponse) bool {
 	return lookup.ChallengeURL == ""
 }
 
+func IsTransactionStatusUnknown(trx Transaction) bool {
+	return trx.Status == string(external.TransactionStatusUnknown)
+}
+
 func IsSuccessfulTransaction(trx Transaction) bool {
 	return (trx.NetworkRC == "00" || trx.NetworkRC == "000") && (trx.Status == string(external.TransactionStatusOk) || trx.Status == string(external.TransactionStatusCompleted))
 }
