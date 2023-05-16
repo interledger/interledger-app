@@ -62,7 +62,7 @@ func main() {
 		cluster, err := eks.NewCluster(ctx, "prod-cluster", &eks.ClusterArgs{
 			RoleArn: clusterRole.Arn,
 			Name:    pulumi.String(clusterName),
-			Version: pulumi.String("1.23"),
+			Version: pulumi.String("1.24"),
 			VpcConfig: eks.ClusterVpcConfigArgs{
 				EndpointPrivateAccess: pulumi.BoolPtr(true),
 				EndpointPublicAccess:  pulumi.BoolPtr(true),
