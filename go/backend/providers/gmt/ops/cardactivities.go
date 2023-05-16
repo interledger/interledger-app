@@ -12,6 +12,7 @@ import (
 )
 
 type PullFromCardArgs struct {
+	ReferenceID         string
 	TransactionID       string
 	CardLinkedAccountID string
 	Amount              currency.Amount
@@ -48,11 +49,10 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (*ta
 		}
 	}
 
-	referenceID := tabapay.NewReferenceID()
 	externalTransaction, err := a.b.Tabapay().PullFromCard(ctx, tabapay.PullFromCardArgs{
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: referenceID,
+		ReferenceID: args.ReferenceID,
 		Amount:      args.Amount,
 		ThreeDSID:   args.ThreeDSID,
 	})
@@ -79,11 +79,10 @@ func (a *Activity) PushToCard(ctx context.Context, args PushToCard) (*tabapay.Tr
 		return nil, temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
 	}
 
-	referenceID := tabapay.NewReferenceID()
 	externalTransaction, err := a.b.Tabapay().PushToCard(ctx, tabapay.PushToCardArgs{
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: referenceID,
+		ReferenceID: args.ReferenceID,
 		Amount:      args.Amount,
 	})
 	if err != nil {
