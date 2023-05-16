@@ -2,7 +2,7 @@ package platforms
 
 import (
 	"context"
-	"encoding/base64"
+	"crypto"
 	"encoding/json"
 	"fmt"
 	"gitlab.com/fynbos/backend/keys"
@@ -31,10 +31,10 @@ func (tp *twitterPlatform) VerifyWorkflow() interface{} {
 	return TwitterVerifyWorkflow
 }
 
-func (tp *twitterPlatform) NewVerifyCode(ctx context.Context, args *NewVerifyCodeArgs) (string, error) {
+func (tp *twitterPlatform) GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error) {
 	walletKeys, err := tp.b.Keys().List(ctx, args.WalletID)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	// Get first custodial key
@@ -47,29 +47,37 @@ func (tp *twitterPlatform) NewVerifyCode(ctx context.Context, args *NewVerifyCod
 	}
 
 	if signingKey == nil {
-		return "", fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
 	}
 
-	claim, err := json.Marshal(&identities.IdentityClaim{
-		Wallet:       args.WalletID,
-		Identifier:   args.Identifier,
-		Type:         "twitter",
-		KeyID:        signingKey.ID,
-		CreationTime: fmt.Sprint(time.Now().Unix()),
-	})
+	claim := identities.Claim{
+		Wallet:     args.WalletID, // FIXME: this should be the wallet url/ payment pointer
+		Type:       "twitter",
+		Identifier: args.Identifier,
+		Kid:        signingKey.ID,
+		Ctime:      time.Now().Unix(),
+	}
+
+	jsonClaim, err := json.Marshal(claim)
 
 	if err != nil {
-		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	signature, err := tp.b.Keys().Sign(ctx, signingKey.ID, args.WalletID, claim)
+	signature, err := tp.b.Keys().Sign(ctx, signingKey.ID, args.WalletID, jsonClaim)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	encodedSig := base64.RawURLEncoding.EncodeToString(signature)
+	signatureHash := crypto.SHA256.New()
+	signatureHash.Write(signature)
+	hash := signatureHash.Sum(nil)
 
-	return encodedSig, nil
+	return &GeneratedSignedClaim{
+		Claim:         claim,
+		Signature:     signature,
+		SignatureHash: hash,
+	}, nil
 }
 
 func (tp *twitterPlatform) VerifyInstructions(ctx context.Context, args *VerifyInstructionsArgs) (string, error) {
@@ -93,11 +101,6 @@ func (tp *twitterPlatform) VerifyInstructions(ctx context.Context, args *VerifyI
 
 	if connection == nil {
 		return "", fmt.Errorf("no connection found for user %s", user.UserID)
-	}
-
-	_, err = tp.b.Twitter().PostTweet(ctx, connection.ID, args.Identity.VerificationCode)
-	if err != nil {
-		return "", fmt.Errorf("error posting tweet: %s", err)
 	}
 
 	return "Successful", nil
@@ -179,10 +182,6 @@ func (a *TwitterActivity) VerifyProof(ctx context.Context, identity *identities.
 
 	if identity.VerificationProof != tweet.PermanentURL {
 		return fmt.Errorf("%w %s", identities.ErrInternal, "proof tweet url does not match with verification proof")
-	}
-
-	if identity.VerificationCode != tweet.Text {
-		return fmt.Errorf("%w %s", identities.ErrInternal, "proof code does not match with tweet text")
 	}
 
 	return nil

@@ -8,6 +8,7 @@ import (
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
+// FIXME: fix the structure of the protobuf
 func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListIdentitiesResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -29,9 +30,9 @@ func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListI
 		resp[i] = &pb.Identity{
 			Id:                id.ID,
 			Platform:          string(id.Platform),
-			Handle:            id.Handle,
+			Handle:            id.Identifier,
 			State:             string(id.State),
-			VerificationCode:  id.VerificationCode,
+			VerificationCode:  "",
 			VerificationProof: id.VerificationProof,
 			Public:            id.Public,
 		}
@@ -40,6 +41,7 @@ func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListI
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
 }
 
+// FIXME: fix the structure of the protobuf
 func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPublicIdentitiesRequest) (*pb.ListIdentitiesResponse, error) {
 	ids, err := s.b.Identities().ListPublic(ctx, req.WalletId)
 	if err != nil {
@@ -51,9 +53,9 @@ func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPubli
 		resp[i] = &pb.Identity{
 			Id:                id.ID,
 			Platform:          string(id.Platform),
-			Handle:            id.Handle,
+			Handle:            id.Identifier,
 			State:             string(id.State),
-			VerificationCode:  id.VerificationCode,
+			VerificationCode:  "",
 			VerificationProof: id.VerificationProof,
 			Public:            id.Public,
 		}
@@ -62,6 +64,7 @@ func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPubli
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
 }
 
+// Deprecate
 func (s *rpcService) AddIdentity(ctx context.Context, req *pb.AddIdentityRequest) (*pb.IdentityVerificationInstructions, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -73,20 +76,19 @@ func (s *rpcService) AddIdentity(ctx context.Context, req *pb.AddIdentityRequest
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	vi, err := s.b.Identities().Add(ctx, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.Platform(req.Platform),
-		Handle:   req.Handle,
-		Public:   req.Public,
+	_, err = s.b.Identities().Add(ctx, identities.AddArgs{
+		WalletID:   w.ID,
+		Platform:   identities.Platform(req.Platform),
+		Identifier: req.Handle,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	return &pb.IdentityVerificationInstructions{
-		IdentityId:   vi.IdentityID,
-		Code:         vi.Code,
-		Instructions: vi.Instructions,
+		IdentityId:   "",
+		Code:         "",
+		Instructions: "",
 	}, nil
 
 }
@@ -126,14 +128,15 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 	return &pb.Identity{
 		Id:                id.ID,
 		Platform:          string(id.Platform),
-		Handle:            id.Handle,
+		Handle:            id.Identifier,
 		State:             string(id.State),
-		VerificationCode:  id.VerificationCode,
+		VerificationCode:  "",
 		VerificationProof: id.VerificationProof,
 		Public:            id.Public,
 	}, nil
 }
 
+// FIXME: Deprecate
 func (s *rpcService) StartIdentityVerification(ctx context.Context, req *pb.StartIdentityVerificationRequest) (*pb.Identity, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -153,9 +156,9 @@ func (s *rpcService) StartIdentityVerification(ctx context.Context, req *pb.Star
 	return &pb.Identity{
 		Id:                id.ID,
 		Platform:          string(id.Platform),
-		Handle:            id.Handle,
+		Handle:            id.Identifier,
 		State:             string(id.State),
-		VerificationCode:  id.VerificationCode,
+		VerificationCode:  "",
 		VerificationProof: id.VerificationProof,
 		Public:            id.Public,
 	}, nil

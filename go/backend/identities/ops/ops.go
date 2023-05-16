@@ -15,7 +15,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = ` id, wallet_id, platform, handle, state, public, proof, code `
+const cols = ` id, wallet_id, platform, identifier, state, public, key_id, proof, signature, signature_hash, created_at `
 
 func List(ctx context.Context, b Backends, walletID string) ([]identities.Identity, error) {
 	var res []identities.Identity
@@ -38,7 +38,7 @@ func ListPublic(ctx context.Context, b Backends, walletID string) ([]identities.
 	return res, nil
 }
 
-func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.VerifyInstructions, error) {
+func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.Identity, error) {
 	err := b.Validator().StructCtx(ctx, args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
@@ -50,45 +50,33 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	}
 
 	var existing identities.Identity
-	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(handle)=$2 AND state=$3", cols),
-		args.Platform, strings.ToLower(args.Handle), identities.StateVerified)
+	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(identifier)=$2 AND state=$3", cols),
+		args.Platform, strings.ToLower(args.Identifier), identities.StateVerified)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 	if existing.ID != "" {
-		return nil, fmt.Errorf("%w %s handle %s has already been verified", identities.ErrInvalidArgument, args.Platform, args.Handle)
+		return nil, fmt.Errorf("%w %s identifier %s has already been verified", identities.ErrInvalidArgument, args.Platform, args.Identifier)
 	}
 
 	id := uuid.NewString()
-	code, err := p.NewVerifyCode(ctx, &platforms.NewVerifyCodeArgs{
+	c, err := p.GenerateSignedClaim(ctx, &platforms.SignedClaimArgs{
+		Identifier: args.Identifier,
 		WalletID:   args.WalletID,
-		Identifier: args.Handle,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
+	ts := time.Unix(c.Claim.Ctime, 0)
 	var identity identities.Identity
-	err = b.DB().GetContext(ctx, &identity, "INSERT INTO identities(id, wallet_id, platform, handle, state, public, code, proof) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING "+cols,
-		id, args.WalletID, args.Platform, args.Handle, identities.StateUnverified, args.Public, code, "")
+	err = b.DB().GetContext(ctx, &identity, "INSERT INTO identities(id, wallet_id, state, public, platform, key_id, identifier,proof, signature, signature_hash, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "+cols,
+		id, args.WalletID, identities.StateUnverified, true, args.Platform, c.Claim.Kid, args.Identifier, "", c.Signature, c.SignatureHash, ts)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
-		Identifier: args.Handle,
-		Identity:   &identity,
-		WalletID:   args.WalletID,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	return &identities.VerifyInstructions{
-		IdentityID:   id,
-		Code:         code,
-		Instructions: verifyInstructions,
-	}, nil
+	return &identity, nil
 }
 
 func Get(ctx context.Context, b Backends, id string) (*identities.Identity, error) {
@@ -105,6 +93,7 @@ func Get(ctx context.Context, b Backends, id string) (*identities.Identity, erro
 
 }
 
+// FIXME: Potentially remove
 func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities.VerifyInstructions, error) {
 	ident, err := Get(ctx, b, id)
 	if err != nil {
@@ -117,7 +106,7 @@ func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities
 	}
 
 	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
-		Identifier: ident.Handle,
+		Identifier: ident.Identifier,
 		Identity:   ident,
 		WalletID:   ident.WalletID,
 	})
@@ -127,7 +116,7 @@ func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities
 
 	return &identities.VerifyInstructions{
 		IdentityID:   id,
-		Code:         ident.VerificationCode,
+		Code:         "",
 		Instructions: verifyInstructions,
 	}, nil
 }

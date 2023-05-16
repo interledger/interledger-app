@@ -39,6 +39,8 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
+		// Kickoff workflow to generate identity and then verify it
+
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }

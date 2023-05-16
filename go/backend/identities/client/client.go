@@ -27,7 +27,7 @@ func (c client) ListPublic(ctx context.Context, walletID string) ([]identities.I
 	return ops.ListPublic(ctx, c.b, walletID)
 }
 
-func (c client) Add(ctx context.Context, args identities.AddArgs) (*identities.VerifyInstructions, error) {
+func (c client) Add(ctx context.Context, args identities.AddArgs) (*identities.Identity, error) {
 	return ops.Add(ctx, c.b, args)
 }
 

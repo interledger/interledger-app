@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	NewVerifyCodeArgs struct {
+	SignedClaimArgs struct {
 		Identifier string
 		WalletID   string
 	}
@@ -20,11 +20,17 @@ type (
 		WalletID   string
 		Identity   *identities.Identity
 	}
+
+	GeneratedSignedClaim struct {
+		Claim         identities.Claim
+		Signature     []byte
+		SignatureHash []byte
+	}
 )
 
 type Platform interface {
 	VerifyWorkflow() interface{} // Return the child workflow func to call with the identity ID, only args the workflow must expect is the identityID and the proof URL
-	NewVerifyCode(ctx context.Context, args *NewVerifyCodeArgs) (string, error)
+	GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error)
 	VerifyInstructions(ctx context.Context, args *VerifyInstructionsArgs) (string, error)
 }
 
