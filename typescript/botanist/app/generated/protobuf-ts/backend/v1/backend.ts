@@ -1583,44 +1583,43 @@ export interface Identity {
      */
     id: string;
     /**
-     * @generated from protobuf field: string platform = 2;
+     * @generated from protobuf field: string wallet = 2;
+     */
+    wallet: string;
+    /**
+     * @generated from protobuf field: string platform = 3;
      */
     platform: string;
     /**
-     * @generated from protobuf field: string handle = 3;
+     * @generated from protobuf field: string identifier = 4;
      */
-    handle: string;
+    identifier: string;
     /**
-     * @generated from protobuf field: string state = 4;
+     * @generated from protobuf field: string state = 5;
      */
     state: string;
     /**
-     * @generated from protobuf field: string verification_code = 5;
+     * @generated from protobuf field: string key_id = 6;
      */
-    verificationCode: string;
+    keyId: string;
     /**
-     * @generated from protobuf field: string verification_proof = 6;
+     * @generated from protobuf field: string signature = 7;
      */
-    verificationProof: string;
+    signature: string;
     /**
-     * @generated from protobuf field: bool public = 7;
+     * @generated from protobuf field: string signature_hash = 8;
      */
-    public: boolean;
-}
-/**
- * @generated from protobuf message backend.v1.AddIdentityRequest
- */
-export interface AddIdentityRequest {
+    signatureHash: string;
     /**
-     * @generated from protobuf field: string platform = 1;
+     * @generated from protobuf field: string proof = 9;
      */
-    platform: string;
+    proof: string;
     /**
-     * @generated from protobuf field: string handle = 2;
+     * @generated from protobuf field: string ctime = 10;
      */
-    handle: string;
+    ctime: string;
     /**
-     * @generated from protobuf field: bool public = 3;
+     * @generated from protobuf field: bool public = 11;
      */
     public: boolean;
 }
@@ -1662,19 +1661,6 @@ export interface SetIdentityPublicRequest {
      * @generated from protobuf field: bool public = 2;
      */
     public: boolean;
-}
-/**
- * @generated from protobuf message backend.v1.StartIdentityVerificationRequest
- */
-export interface StartIdentityVerificationRequest {
-    /**
-     * @generated from protobuf field: string id = 1;
-     */
-    id: string;
-    /**
-     * @generated from protobuf field: string proof = 2;
-     */
-    proof: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListPublicIdentitiesRequest
@@ -7451,16 +7437,20 @@ class Identity$Type extends MessageType<Identity> {
     constructor() {
         super("backend.v1.Identity", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "platform", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "handle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "verification_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "verification_proof", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 2, name: "wallet", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "platform", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "identifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "key_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "signature", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "signature_hash", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "proof", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "ctime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Identity>): Identity {
-        const message = { id: "", platform: "", handle: "", state: "", verificationCode: "", verificationProof: "", public: false };
+        const message = { id: "", wallet: "", platform: "", identifier: "", state: "", keyId: "", signature: "", signatureHash: "", proof: "", ctime: "", public: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Identity>(this, message, value);
@@ -7474,22 +7464,34 @@ class Identity$Type extends MessageType<Identity> {
                 case /* string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* string platform */ 2:
+                case /* string wallet */ 2:
+                    message.wallet = reader.string();
+                    break;
+                case /* string platform */ 3:
                     message.platform = reader.string();
                     break;
-                case /* string handle */ 3:
-                    message.handle = reader.string();
+                case /* string identifier */ 4:
+                    message.identifier = reader.string();
                     break;
-                case /* string state */ 4:
+                case /* string state */ 5:
                     message.state = reader.string();
                     break;
-                case /* string verification_code */ 5:
-                    message.verificationCode = reader.string();
+                case /* string key_id */ 6:
+                    message.keyId = reader.string();
                     break;
-                case /* string verification_proof */ 6:
-                    message.verificationProof = reader.string();
+                case /* string signature */ 7:
+                    message.signature = reader.string();
                     break;
-                case /* bool public */ 7:
+                case /* string signature_hash */ 8:
+                    message.signatureHash = reader.string();
+                    break;
+                case /* string proof */ 9:
+                    message.proof = reader.string();
+                    break;
+                case /* string ctime */ 10:
+                    message.ctime = reader.string();
+                    break;
+                case /* bool public */ 11:
                     message.public = reader.bool();
                     break;
                 default:
@@ -7507,24 +7509,36 @@ class Identity$Type extends MessageType<Identity> {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string platform = 2; */
+        /* string wallet = 2; */
+        if (message.wallet !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.wallet);
+        /* string platform = 3; */
         if (message.platform !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.platform);
-        /* string handle = 3; */
-        if (message.handle !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.handle);
-        /* string state = 4; */
+            writer.tag(3, WireType.LengthDelimited).string(message.platform);
+        /* string identifier = 4; */
+        if (message.identifier !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.identifier);
+        /* string state = 5; */
         if (message.state !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.state);
-        /* string verification_code = 5; */
-        if (message.verificationCode !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.verificationCode);
-        /* string verification_proof = 6; */
-        if (message.verificationProof !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.verificationProof);
-        /* bool public = 7; */
+            writer.tag(5, WireType.LengthDelimited).string(message.state);
+        /* string key_id = 6; */
+        if (message.keyId !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.keyId);
+        /* string signature = 7; */
+        if (message.signature !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.signature);
+        /* string signature_hash = 8; */
+        if (message.signatureHash !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.signatureHash);
+        /* string proof = 9; */
+        if (message.proof !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.proof);
+        /* string ctime = 10; */
+        if (message.ctime !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.ctime);
+        /* bool public = 11; */
         if (message.public !== false)
-            writer.tag(7, WireType.Varint).bool(message.public);
+            writer.tag(11, WireType.Varint).bool(message.public);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -7535,67 +7549,6 @@ class Identity$Type extends MessageType<Identity> {
  * @generated MessageType for protobuf message backend.v1.Identity
  */
 export const Identity = new Identity$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class AddIdentityRequest$Type extends MessageType<AddIdentityRequest> {
-    constructor() {
-        super("backend.v1.AddIdentityRequest", [
-            { no: 1, name: "platform", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "handle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<AddIdentityRequest>): AddIdentityRequest {
-        const message = { platform: "", handle: "", public: false };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<AddIdentityRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AddIdentityRequest): AddIdentityRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string platform */ 1:
-                    message.platform = reader.string();
-                    break;
-                case /* string handle */ 2:
-                    message.handle = reader.string();
-                    break;
-                case /* bool public */ 3:
-                    message.public = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: AddIdentityRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string platform = 1; */
-        if (message.platform !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.platform);
-        /* string handle = 2; */
-        if (message.handle !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.handle);
-        /* bool public = 3; */
-        if (message.public !== false)
-            writer.tag(3, WireType.Varint).bool(message.public);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.AddIdentityRequest
- */
-export const AddIdentityRequest = new AddIdentityRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class IdentityVerificationInstructions$Type extends MessageType<IdentityVerificationInstructions> {
     constructor() {
@@ -7758,60 +7711,6 @@ class SetIdentityPublicRequest$Type extends MessageType<SetIdentityPublicRequest
  * @generated MessageType for protobuf message backend.v1.SetIdentityPublicRequest
  */
 export const SetIdentityPublicRequest = new SetIdentityPublicRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class StartIdentityVerificationRequest$Type extends MessageType<StartIdentityVerificationRequest> {
-    constructor() {
-        super("backend.v1.StartIdentityVerificationRequest", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "proof", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<StartIdentityVerificationRequest>): StartIdentityVerificationRequest {
-        const message = { id: "", proof: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<StartIdentityVerificationRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StartIdentityVerificationRequest): StartIdentityVerificationRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
-                    break;
-                case /* string proof */ 2:
-                    message.proof = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: StartIdentityVerificationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string proof = 2; */
-        if (message.proof !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.proof);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.StartIdentityVerificationRequest
- */
-export const StartIdentityVerificationRequest = new StartIdentityVerificationRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListPublicIdentitiesRequest$Type extends MessageType<ListPublicIdentitiesRequest> {
     constructor() {
@@ -8116,10 +8015,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListContacts", options: {}, I: ListContactsRequest, O: ListContactsResponse },
     { name: "ListIdentities", options: {}, I: Empty, O: ListIdentitiesResponse },
     { name: "ListPublicIdentities", options: {}, I: ListPublicIdentitiesRequest, O: ListIdentitiesResponse },
-    { name: "AddIdentity", options: {}, I: AddIdentityRequest, O: IdentityVerificationInstructions },
     { name: "DeleteIdentity", options: {}, I: DeleteIdentityRequest, O: Empty },
     { name: "SetIdentityPublic", options: {}, I: SetIdentityPublicRequest, O: Identity },
-    { name: "StartIdentityVerification", options: {}, I: StartIdentityVerificationRequest, O: Identity },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "StartKYC", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },

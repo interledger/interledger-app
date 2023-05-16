@@ -82,6 +82,7 @@ func TestCreateToken(t *testing.T) {
 	assert.Equal(t, "testTwitterID", connection.UserID)
 	assert.Equal(t, "testRefreshToken", connection.RefreshToken)
 	assert.Equal(t, "testTokenType", connection.TokenType)
+	assert.Equal(t, "testUsername", connection.Username)
 }
 
 func TestGetWalletConnections(t *testing.T) {
@@ -134,5 +135,6 @@ func TestGetWalletConnections(t *testing.T) {
 
 	assert.Equal(t, "testAccessToken", connections[0].AccessToken)
 	assert.Equal(t, "testTwitterID", connections[0].UserID)
+	assert.Equal(t, "testUsername", connections[0].Username)
 	assert.Equal(t, walletId, connections[0].WalletID)
 }

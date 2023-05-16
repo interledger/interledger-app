@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/base64"
+	"gitlab.com/fynbos/backend/openpayments"
 	"net/http"
 
 	"gitlab.com/fynbos/backend/identities"
@@ -12,6 +14,7 @@ import (
 type Backends interface {
 	Twitter() twitter.Client
 	Identities() identities.Client
+	OpenPayments() openpayments.Client
 }
 
 func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
@@ -29,7 +32,7 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		_, err := b.Twitter().CreateConnection(r.Context(), &twitter.CreateConnectionArgs{
+		connection, err := b.Twitter().CreateConnection(r.Context(), &twitter.CreateConnectionArgs{
 			State:    state,
 			AuthCode: authCode,
 		})
@@ -39,7 +42,22 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		// Kickoff workflow to generate identity and then verify it
+		identity, err := b.Identities().Add(r.Context(), identities.AddArgs{
+			WalletID:   connection.WalletID,
+			Platform:   identities.PlatformTwitter,
+			Identifier: connection.Username,
+		})
+
+		pp, err := b.OpenPayments().GetPaymentPointer(r.Context(), connection.WalletID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Error("Error getting payment pointer by walletID", zap.Error(err))
+			return
+		}
+
+		base64SigHas := []byte("")
+		base64.URLEncoding.Encode(base64SigHas, identity.SignatureHash)
+		_, err = b.Twitter().PostTweet(r.Context(), connection.ID, "I’ve connected my fynbos wallet, to my Twitter identity so I can send and receive payments using this identity. \n\nSee the proof at "+pp.URL+"/claims/"+string(base64SigHas))
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}

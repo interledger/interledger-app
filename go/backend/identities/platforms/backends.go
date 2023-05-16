@@ -1,6 +1,7 @@
 package platforms
 
 import (
+	"gitlab.com/fynbos/backend/openpayments"
 	"testing"
 
 	temporal "go.temporal.io/sdk/client"
@@ -21,6 +22,7 @@ type Backends interface {
 	Keys() keys.Client
 	Analytics() analytics.Client
 	Temporal() temporal.Client
+	OpenPayments() openpayments.Client
 }
 
 type testBackends struct {
@@ -29,6 +31,7 @@ type testBackends struct {
 	an      analytics.Client
 	keys    keys.Client
 	twitter twitter.Client
+	op      openpayments.Client
 }
 
 func (t testBackends) Temporal() temporal.Client {
@@ -54,6 +57,10 @@ func (t testBackends) Keys() keys.Client {
 
 func (t testBackends) DB() *sqlx.DB {
 	return t.db
+}
+
+func (t testBackends) OpenPayments() openpayments.Client {
+	return t.op
 }
 
 func NewTestBackends(_ *testing.T, db *sqlx.DB) Backends {

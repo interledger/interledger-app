@@ -22,6 +22,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	Analytics() analytics.Client
 	Keys() keys.Client
+	OpenPayments() openpayments.Client
 }
 
 type testBackends struct {
@@ -30,6 +31,7 @@ type testBackends struct {
 	an  analytics.Client
 	kc  *keys_mock.MockClient
 	tc  *twitter_mock.MockClient
+	op  openpayments.Client
 }
 
 func (t testBackends) Temporal() temporal.Client {
@@ -55,6 +57,10 @@ func (t testBackends) Analytics() analytics.Client {
 
 func (t testBackends) Keys() keys.Client {
 	return t.kc
+}
+
+func (t testBackends) OpenPayments() openpayments.Client {
+	return t.op
 }
 
 func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {

@@ -26,6 +26,7 @@ type (
 		RefreshToken string         `db:"refresh_token"`
 		TokenType    string         `db:"token_type"`
 		Scopes       pq.StringArray `db:"scopes"`
+		Username     string         `db:"username"`
 		Expiry       time.Time      `db:"expiry"`
 		ClientID     string         `db:"client_id"`
 		CreatedAt    time.Time      `db:"created_at"`

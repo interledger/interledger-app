@@ -50,8 +50,13 @@ func (tp *twitterPlatform) GenerateSignedClaim(ctx context.Context, args *Signed
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
 	}
 
+	pp, err := tp.b.OpenPayments().GetWalletPaymentPointer(ctx, args.WalletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
 	claim := identities.Claim{
-		Wallet:     args.WalletID, // FIXME: this should be the wallet url/ payment pointer
+		Wallet:     pp.URL,
 		Type:       "twitter",
 		Identifier: args.Identifier,
 		Kid:        signingKey.ID,

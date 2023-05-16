@@ -2314,6 +2314,10 @@ table "twitter_connections" {
     null = false
     type = sql("text[]")
   }
+  column "username" {
+    null = false
+    type = text
+  }
   column "client_id" {
     null = false
     type = text

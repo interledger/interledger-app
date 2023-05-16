@@ -14,3 +14,8 @@ type Client interface {
 	SetPublic(ctx context.Context, id, walletID string, public bool) (*Identity, error)
 	Get(ctx context.Context, id string) (*Identity, error)
 }
+
+// 1. Create connection [x]
+// 2. On callback Add identity [x]
+// 3. Post tweet [x]
+// 4. Start Verification

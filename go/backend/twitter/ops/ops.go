@@ -76,20 +76,21 @@ func CreateConnection(ctx context.Context, b Backends, args *twitter.CreateConne
 
 	var connection twitter.Connection
 	query := `
-		INSERT INTO twitter_connections (user_id, wallet_id, access_token, refresh_token, token_type, scopes, expiry, client_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO twitter_connections (user_id, wallet_id, access_token, refresh_token, token_type, scopes, username, expiry, client_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		ON CONFLICT (user_id, wallet_id) 
 		DO UPDATE SET 
 			access_token = EXCLUDED.access_token,
 			refresh_token = EXCLUDED.refresh_token,
 			token_type = EXCLUDED.token_type,
 			scopes = EXCLUDED.scopes,
+			username = EXCLUDED.username,
 			expiry = EXCLUDED.expiry,
 			updated_at = NOW()
 		RETURNING *;
 	`
 	err = b.DB().GetContext(ctx, &connection, query,
-		user.ID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, pq.Array(authorization.Scopes), token.Expiry, authorization.ClientID)
+		user.ID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, pq.Array(authorization.Scopes), user.Username, token.Expiry, authorization.ClientID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
