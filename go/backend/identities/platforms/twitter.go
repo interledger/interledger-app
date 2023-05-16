@@ -171,7 +171,7 @@ func (a *TwitterActivity) FetchTweetProof(ctx context.Context, proofUrl string) 
 	}
 
 	scraper := twitterscraper.New()
-	tweet, err := scraper.GetTweet(proofUrl)
+	tweet, err := scraper.GetTweet(tweetId)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
