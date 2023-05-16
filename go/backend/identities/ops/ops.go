@@ -177,3 +177,17 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 
 	return Get(ctx, b, id)
 }
+
+func UpdateState(ctx context.Context, b Backends, id string, state identities.State, proof string) error {
+	ident, err := Get(ctx, b, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, updated_at=now() WHERE id=$3", proof, state, ident.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return nil
+}

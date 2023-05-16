@@ -13,6 +13,7 @@ type Client interface {
 	Delete(ctx context.Context, id, walletID string) error
 	SetPublic(ctx context.Context, id, walletID string, public bool) (*Identity, error)
 	Get(ctx context.Context, id string) (*Identity, error)
+	UpdateState(ctx context.Context, id string, state State, proof string) error
 }
 
 // 1. Create connection [x]

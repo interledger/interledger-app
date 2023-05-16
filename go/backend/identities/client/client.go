@@ -50,3 +50,7 @@ func (c client) SetPublic(ctx context.Context, id, walletID string, public bool)
 func (c client) Get(ctx context.Context, id string) (*identities.Identity, error) {
 	return ops.Get(ctx, c.b, id)
 }
+
+func (c client) UpdateState(ctx context.Context, id string, state identities.State, proof string) error {
+	return ops.UpdateState(ctx, c.b, id, state, proof)
+}

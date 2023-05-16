@@ -82,10 +82,8 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 }
 
 func identityToPB(identity *identities.Identity) *pb.Identity {
-	var base64Signature []byte
-	base64.URLEncoding.Encode(base64Signature, identity.Signature)
-	var base64SignatureHash []byte
-	base64.URLEncoding.Encode(base64SignatureHash, identity.SignatureHash)
+	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
+	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
 
 	return &pb.Identity{
 		Id:            identity.ID,
