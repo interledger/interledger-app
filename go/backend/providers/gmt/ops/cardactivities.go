@@ -91,3 +91,12 @@ func (a *Activity) PushToCard(ctx context.Context, args PushToCard) (*tabapay.Tr
 
 	return externalTransaction, nil
 }
+
+func (a *Activity) GetTabapayTransaction(ctx context.Context, id string) (*tabapay.Transaction, error) {
+	externalTransaction, err := a.b.Tabapay().GetTransaction(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return externalTransaction, nil
+}
