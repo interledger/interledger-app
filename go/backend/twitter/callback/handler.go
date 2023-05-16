@@ -53,21 +53,27 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			return
 		}
 
-		pp, err := b.OpenPayments().GetWalletPaymentPointer(r.Context(), connection.WalletID)
+		log.Info("Getting payment pointer", zap.String("walletID", identity.WalletID))
+		// This doesn't exist
+		pp, err := b.OpenPayments().GetWalletPaymentPointer(r.Context(), identity.WalletID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Error("Error getting payment pointer by walletID", zap.Error(err))
 			return
 		}
+		log.Info("Got payment pointer", zap.String("url", pp.URL))
 
-		base64SigHas := []byte("")
+		base64SigHas := make([]byte, base64.URLEncoding.EncodedLen(len(identity.SignatureHash)))
 		base64.URLEncoding.Encode(base64SigHas, identity.SignatureHash)
+
+		log.Info("base64 Encode", zap.String("url", string(base64SigHas)))
 		_, err = b.Twitter().PostTweet(r.Context(), connection.ID, "I’ve connected my fynbos wallet, to my Twitter identity so I can send and receive payments using this identity. \n\nSee the proof at "+pp.URL+"/claims/"+string(base64SigHas))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Error("Error posting tweet", zap.Error(err))
 			return
 		}
+		log.Info("Twitter sent")
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
