@@ -10,6 +10,7 @@ import (
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
+	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/twitter"
 	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
 	temporal "go.temporal.io/sdk/client"
