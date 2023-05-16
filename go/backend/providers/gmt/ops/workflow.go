@@ -13,6 +13,7 @@ import (
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -328,11 +329,33 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to upsert gmt send recv user", "err", err)
-		return nil, err
+		return &providers.TransferResponse{
+			Type:                  providers.GMTCARD2ACH,
+			OutgoingTransferState: transactions.StateFailed,
+			IncomingTransferState: transactions.StateFailed,
+		}, nil
+	}
+
+	var tabapayReferenceID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return tabapay.NewReferenceID()
+	}).Get(&tabapayReferenceID)
+	if err != nil {
+		logger.Error("failed to upsert gmt send recv user", "err", err)
+		return &providers.TransferResponse{
+			Type:                  providers.GMTCARD2ACH,
+			OutgoingTransferState: transactions.StateFailed,
+			IncomingTransferState: transactions.StateFailed,
+		}, nil
 	}
 
 	newCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 		Context: fmt.Sprintf("transactionID=%s", args.FromTransactionID),
+	})
+	newCtx = workflow.WithActivityOptions(newCtx, workflow.ActivityOptions{
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2, // tabapay will block us if we keep retrying
+		},
 	})
 	var tabapayTransaction tabapay.Transaction
 	err = workflow.ExecuteActivity(newCtx, a.PullFromCard, PullFromCardArgs{
@@ -340,8 +363,9 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		CardLinkedAccountID: args.FromLinkedAccountID,
 		Amount:              args.Amount,
 		ThreeDSID:           args.ThreeDSID,
+		ReferenceID:         tabapayReferenceID,
 	}).Get(ctx, &tabapayTransaction)
-	if err != nil || tabapay.IsSuccessfulTransaction(tabapayTransaction) {
+	if err != nil || !tabapay.IsSuccessfulTransaction(tabapayTransaction) {
 		logger.Error("failed to pull from card", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
@@ -684,19 +708,44 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}).Get(&recvTrxID)
 	if err != nil {
 		logger.Error("error generating transactionID as side effect", "Error", err)
-		return nil, err
+		return &providers.TransferResponse{
+			Type:                       providers.GMTACH2CARD,
+			OutgoingTransferState:      transactions.StateFailed,
+			OutgoingTransferExternalID: achTransaction.ID,
+			IncomingTransferState:      transactions.StateFailed,
+		}, nil
+	}
+
+	var tabapayReferenceID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return tabapay.NewReferenceID()
+	}).Get(&tabapayReferenceID)
+	if err != nil {
+		logger.Error("error generating tabapay ReferenceID as side effect", "Error", err)
+		return &providers.TransferResponse{
+			Type:                       providers.GMTACH2CARD,
+			OutgoingTransferState:      transactions.StateFailed,
+			OutgoingTransferExternalID: achTransaction.ID,
+			IncomingTransferState:      transactions.StateFailed,
+		}, nil
 	}
 
 	newCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 		Context: fmt.Sprintf("transactionID=%s", args.FromTransactionID),
+	})
+	newCtx = workflow.WithActivityOptions(newCtx, workflow.ActivityOptions{
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2, // tabapay will block us if we keep retrying
+		},
 	})
 	var tabapayTransaction tabapay.Transaction
 	err = workflow.ExecuteActivity(newCtx, a.PushToCard, PushToCard{
 		TransactionID:       recvTrxID,
 		CardLinkedAccountID: args.ToLinkedAccountID,
 		Amount:              args.Amount,
+		ReferenceID:         tabapayReferenceID,
 	}).Get(ctx, &tabapayTransaction)
-	if err != nil || tabapay.IsSuccessfulTransaction(tabapayTransaction) {
+	if err != nil || !tabapay.IsSuccessfulTransaction(tabapayTransaction) {
 		logger.Error("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			// Try to fail tx on GMT
