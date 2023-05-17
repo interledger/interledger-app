@@ -371,26 +371,26 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("failed to load from linked account: "+err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to load from linked account")
+		return nil, err
 	}
 
 	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("failed to load to linked account: "+err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to load to linked account")
+		return nil, err
 	}
 
 	toID, err := a.b.KYC().GetIndividualDetails(ctx, toLA.WalletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return nil, temporal.NewNonRetryableApplicationError("failed to load to kyc info: "+err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to load to kyc info")
+		return nil, err
 	}
 
 	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
@@ -400,10 +400,10 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 
 	fromAcc, err := a.b.MX().GetAccount(ctx, args.FromWalletID, fromLA.ProviderID)
 	if errors.Is(err, mx.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("failed to load from mx account: "+err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to load from mx account")
+		return nil, err
 	}
 
 	sender.SenderTrackingNumber = args.FromTransactionID
@@ -422,10 +422,10 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 
 	toAcc, err := a.b.MX().GetAccount(ctx, args.ToWalletID, toLA.ProviderID)
 	if errors.Is(err, mx.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError("failed to load to mx account: "+err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to load to mx account")
+		return nil, err
 	}
 
 	res, err := a.ext.ComplianceCheck(ctx, external.ComplianceCheck{
@@ -480,25 +480,25 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*external.WsReceiver, error) {
 	recvID, err := b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return nil, temporal.NewNonRetryableApplicationError("failed to load recv wallet KYC: "+err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to load recv wallet KYC")
+		return nil, err
 	}
 
 	recvUsers, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to get receiver user from wallet ID")
+		return nil, err
 	}
 
 	sid, err := getSenderID(ctx, b, walletID)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to get receiver sender ID")
+		return nil, err
 	}
 
 	rid, err := getReceiverID(ctx, b, walletID)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to get receiver ID")
+		return nil, err
 	}
 
 	gender := "Male"
@@ -534,20 +534,20 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersArgs, walletID string) (*external.WsSender, error) {
 	senderID, err := b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return nil, temporal.NewNonRetryableApplicationError("failed to load to wallet KYC: "+err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to load to wallet KYC")
+		return nil, err
 	}
 
 	senderUsers, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s, walletID (%s)", err, "failed to listusers for wallet", walletID)
+		return nil, err
 	}
 
 	sid, err := getSenderID(ctx, b, walletID)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to get sender ID for wallet")
+		return nil, err
 	}
 
 	ipAddress := senderID.IPAddress
