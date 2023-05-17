@@ -28,6 +28,9 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 		return err
 	}
 
+	if state == "CA" {
+		state = "US-CA"
+	}
 	if strings.HasPrefix(zip, "US-") {
 		zip, state = state, zip
 	}
@@ -103,7 +106,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.3",
 			zip:   "93001",
-			state: "CA",
+			state: "US-CA",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
