@@ -72,7 +72,7 @@ func (c client) CreateKey(keyName string) error {
 	return err
 }
 
-func (c client) Sign(keyName string, input string) (string, error) {
+func (c client) Sign(keyName string, input string) ([]byte, error) {
 	encodedInput := base64.StdEncoding.EncodeToString([]byte(input))
 	keyPath := fmt.Sprintf("%s/sign/%s", c.transitEnginePath, keyName)
 
@@ -82,10 +82,17 @@ func (c client) Sign(keyName string, input string) (string, error) {
 
 	resp, err := c.vc.Logical().Write(keyPath, data)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return resp.Data["signature"].(string), nil
+	signatureBase64Url := resp.Data["signature"].(string)[9:] // remove "vault:v1:" prefix
+
+	signature, err := base64.StdEncoding.DecodeString(signatureBase64Url)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode signature: %w", err)
+	}
+
+	return signature, nil
 }
 
 func (c client) Verify(keyName string, input VerifyInput) (bool, error) {
