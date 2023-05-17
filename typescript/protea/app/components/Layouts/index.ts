@@ -1,5 +1,4 @@
 export * from './WalletLayout'
 export * from './FocusLayout'
 export * from './LandingLayout'
-export * from './BlogLayout'
 export * from './layouts'
