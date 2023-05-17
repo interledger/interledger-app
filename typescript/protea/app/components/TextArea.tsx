@@ -23,7 +23,7 @@ export const TextArea = forwardRef<any, TextAreaProps>(
         <textarea
           ref={ref}
           {...textAreaProps}
-          className='mt-1 block h-36 w-full resize-y bg-transparent rounded-xl border-2 border-base focus:border-focus focus:ring-0'
+          className='mt-1 block h-36 w-full resize-y rounded-xl border-2 border-base bg-transparent focus:border-focus focus:ring-0'
         />
         <div className='h-7 pt-2 pl-2'>
           {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}

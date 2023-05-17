@@ -13,7 +13,7 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
   return (
     <NavLink
       prefetch='intent'
-      className='mt-4 w-full rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus hover:bg-nav-hover'
+      className='mt-4 w-full rounded-xl hover:bg-nav-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
       to={to}
     >
       {({ isActive }) => (
@@ -21,7 +21,7 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
           <span className='z-10 font-display'>{children}</span>
           {isActive && (
             <motion.div
-              className='absolute w-full -ml-4 rounded-xl h-full bg-nav-active'
+              className='absolute -ml-4 h-full w-full rounded-xl bg-nav-active'
               layoutId='nav-active'
             />
           )}
@@ -49,7 +49,7 @@ type NavDrawerRootProps = {
 
 const NavDrawerRoot: FC<NavDrawerRootProps> = ({ children }) => {
   return (
-    <ul className='flex h-full min-w-max select-none bg-container-strong lg:bg-page flex-col justify-between py-4 px-3 lg:h-screen'>
+    <ul className='flex h-full min-w-max select-none flex-col justify-between bg-container-strong py-4 px-3 lg:h-screen lg:bg-page'>
       {children}
     </ul>
   )
@@ -82,7 +82,7 @@ const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <div className='fixed inset-0 bg-scrim/75 backdrop-blur-sm transition-opacity' />
+          <div className='bg-scrim/75 fixed inset-0 backdrop-blur-sm transition-opacity' />
         </Transition.Child>
 
         <div className='fixed inset-0 overflow-hidden'>

@@ -244,7 +244,7 @@ export function WalletShapes() {
     })
 
   return (
-    <div className='flex justify-center items-center'>
+    <div className='flex items-center justify-center'>
       <AnimatePresence mode='popLayout'>
         {shapes.map((shape, index) => (
           <MotionShape key={`shape${index}${shape?.color}`} {...shape} />
@@ -256,7 +256,7 @@ export function WalletShapes() {
 
 export function HomeShapes() {
   return (
-    <div className='mt-4 flex flex-col w-full justify-center items-center'>
+    <div className='mt-4 flex w-full flex-col items-center justify-center'>
       <div className='flex'>
         <Shape color='bg-yellow-200' radius='rounded-tr-full' width='w-8' />
         <Shape color='bg-rose-500' radius='rounded-full' width='w-8' />

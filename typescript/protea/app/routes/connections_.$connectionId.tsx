@@ -83,7 +83,7 @@ export default function Page() {
       />
 
       <Card>
-        <code className='flex items-center justify-between rounded-xl bg-nav p-2 font-mono text-medium break-all'>
+        <code className='flex items-center justify-between break-all rounded-xl bg-nav p-2 font-mono text-medium'>
           {connection.publicKeyFingerprint}
         </code>
 
@@ -160,7 +160,7 @@ export default function Page() {
         <OutlineButton
           shrink
           // TODO error token colors
-          className='outline-red-700 focus-visible:outline-red-800 text-red-700'
+          className='text-red-700 outline-red-700 focus-visible:outline-red-800'
           form='delete-key'
           type='submit'
         >

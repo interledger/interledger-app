@@ -21,7 +21,7 @@ export const Dialog: FC<DialogProps> = ({ children, open, setOpen }) => {
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <div className='fixed inset-0 bg-scrim/75 backdrop-blur-sm transition-opacity' />
+          <div className='bg-scrim/75 fixed inset-0 backdrop-blur-sm transition-opacity' />
         </Transition.Child>
 
         <div className='pointer-events-none fixed inset-0 flex items-center justify-center overflow-hidden'>

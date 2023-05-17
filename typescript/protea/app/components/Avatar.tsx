@@ -49,7 +49,7 @@ export const Avatar: FC<AvatarProps> = ({
   return (
     <div
       className={clsx(
-        'flex w-12 capitalize h-12 aspect-square items-center justify-center rounded-full font-medium text-medium',
+        'flex aspect-square h-12 w-12 items-center justify-center rounded-full font-medium capitalize text-medium',
         colors[indexColor]
       )}
     >
