@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
+
 	"go.temporal.io/sdk/activity"
 
 	"gitlab.com/fynbos/env"
@@ -26,10 +28,6 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
 		return err
-	}
-
-	if strings.HasPrefix(zip, "US-") {
-		zip, state = state, zip
 	}
 
 	id.Address.ZipCode = zip
@@ -103,7 +101,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name:  "case 1.3",
 			zip:   "93001",
-			state: "CA",
+			state: "US-CA",
 			args: providers.TransfersArgs{
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
@@ -161,15 +159,19 @@ func RunGMTCertification(ctx workflow.Context) error {
 	for _, tc := range cases {
 		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
 		if err != nil {
-			logger.Error("failed to update wallet address", "err", err)
+			logger.Error("failed to update wallet address", "err", err, "testcase", tc.name)
 			continue
 		}
 
 		var tr gmt_ops.TransactionResp
 		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, tc.args).Get(ctx, &tr)
 
+		if temporal_utils.IsNonRetryableError(err) {
+			logger.Error("Non Retryable error from Activity", "err", err, "testcase", tc.name)
+			return err
+		}
 		if err != nil {
-			logger.Error("failed to add transaction", "err", err)
+			logger.Error("failed to add transaction", "err", err, "testcase", tc.name)
 			continue
 		}
 

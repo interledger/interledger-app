@@ -95,7 +95,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaIDNumbers, error) {
 	// Lookup the latest "approved" inquiry.
 	var inqID string
-	err := b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND status=$2 ORDER BY updated_at DESC ",
+	err := b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2 ORDER BY updated_at DESC ",
 		walletID, "approved")
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", kyc.ErrNoKYCInfo, err)
