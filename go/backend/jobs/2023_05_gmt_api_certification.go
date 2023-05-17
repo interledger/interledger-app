@@ -5,8 +5,6 @@ import (
 	"strings"
 	"time"
 
-	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
-
 	"go.temporal.io/sdk/activity"
 
 	"gitlab.com/fynbos/env"
@@ -64,11 +62,12 @@ func RunGMTCertification(ctx workflow.Context) error {
 	}
 
 	cases := []struct {
-		name     string
-		zip      string
-		state    string
-		args     providers.TransfersArgs
-		expected string
+		name      string
+		zip       string
+		state     string
+		args      providers.TransfersArgs
+		expected  string
+		expectErr bool
 	}{
 		{
 			name:  "case 1.1",
@@ -82,7 +81,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 				Amount:              currency.FromFloat64(9000, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
-			expected: "rejected",
+			expected:  "rejected",
+			expectErr: true,
 		},
 		{
 			name:  "case 1.2",
@@ -166,12 +166,17 @@ func RunGMTCertification(ctx workflow.Context) error {
 		var tr gmt_ops.TransactionResp
 		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, tc.args).Get(ctx, &tr)
 
-		if temporal_utils.IsNonRetryableError(err) {
-			logger.Error("Non Retryable error from Activity", "err", err, "testcase", tc.name)
-			return err
+		if tc.expectErr && tr.Status != "" {
+			logger.Info("Test Case Result",
+				"test_name", tc.name,
+				"result", tr.Status,
+				"expected", tc.expected,
+				"matches", strings.EqualFold(tc.expected, tr.Status),
+				"references", tr.ID)
+			continue
 		}
 		if err != nil {
-			logger.Error("failed to add transaction", "err", err, "testcase", tc.name)
+			logger.Warn("failed to add transaction", "err", err, "testcase", tc.name)
 			continue
 		}
 
