@@ -27,7 +27,7 @@ func (c client) ListPublic(ctx context.Context, walletID string) ([]identities.I
 	return ops.ListPublic(ctx, c.b, walletID)
 }
 
-func (c client) Add(ctx context.Context, args identities.AddArgs) (*identities.VerifyInstructions, error) {
+func (c client) Add(ctx context.Context, args identities.AddArgs) (*identities.Identity, error) {
 	return ops.Add(ctx, c.b, args)
 }
 
@@ -45,4 +45,12 @@ func (c client) Delete(ctx context.Context, id, walletID string) error {
 
 func (c client) SetPublic(ctx context.Context, id, walletID string, public bool) (*identities.Identity, error) {
 	return ops.SetPublic(ctx, c.b, id, walletID, public)
+}
+
+func (c client) Get(ctx context.Context, id string) (*identities.Identity, error) {
+	return ops.Get(ctx, c.b, id)
+}
+
+func (c client) UpdateState(ctx context.Context, id string, state identities.State, proof string) error {
+	return ops.UpdateState(ctx, c.b, id, state, proof)
 }

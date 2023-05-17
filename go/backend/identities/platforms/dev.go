@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/identities"
 	"go.temporal.io/sdk/workflow"
 )
@@ -22,12 +21,25 @@ func (d *dev) VerifyWorkflow() interface{} {
 	return DevVerifyWorkflow
 }
 
-func (d *dev) NewVerifyCode() string {
-	return uuid.NewString()
+func (d *dev) GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error) {
+
+	claim := identities.Claim{
+		Wallet:     args.WalletID,
+		Type:       "",
+		Identifier: "",
+		Kid:        "",
+		Ctime:      0,
+	}
+
+	return &GeneratedSignedClaim{
+		Claim:         claim,
+		Signature:     []byte(""),
+		SignatureHash: []byte(""),
+	}, nil
 }
 
-func (d *dev) VerifyInstructions() string {
-	return `In this environment all you need to do to verify is to request it. Enjoy in a NON Production environment.`
+func (d *dev) VerifyInstructions(ctx context.Context, args *VerifyInstructionsArgs) (string, error) {
+	return `In this environment all you need to do to verify is to request it. Enjoy in a NON Production environment.`, nil
 }
 
 type DevActivity struct {

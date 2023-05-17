@@ -1095,10 +1095,6 @@ table "identities" {
     null = false
     type = text
   }
-  column "handle" {
-    null = false
-    type = text
-  }
   column "state" {
     null = false
     type = text
@@ -1107,13 +1103,25 @@ table "identities" {
     null = false
     type = boolean
   }
-  column "code" {
+  column "key_id" {
+    null = false
+    type = text
+  }
+  column "identifier" {
     null = false
     type = text
   }
   column "proof" {
     null = false
     type = text
+  }
+  column "signature" {
+    null = false
+    type = bytea
+  }
+  column "signature_hash" {
+    null = false
+    type = bytea
   }
   column "created_at" {
     null    = false
@@ -1128,15 +1136,16 @@ table "identities" {
   primary_key {
     columns = [column.id]
   }
-  index "platform_handle_state_ind" {
+  index "platform_identifier_state_ind" {
     unique  = false
-    columns = [column.platform, column.handle, column.state]
+    columns = [column.platform, column.identifier, column.state]
   }
   index "wallet_id_ind" {
     unique  = false
     columns = [column.wallet_id]
   }
 }
+
 table "authorisation_limits" {
   schema = schema.public
   column "id" {
