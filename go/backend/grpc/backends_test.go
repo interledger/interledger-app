@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/features"
+	"gitlab.com/fynbos/backend/twitter"
 
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
@@ -54,6 +55,7 @@ import (
 	support_mock "gitlab.com/fynbos/backend/supporttickets/client/mock"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/twilio"
+	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
 	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -89,6 +91,7 @@ type TestContainer struct {
 	mx                 *mx_mock.MockClient
 	keys               *keys_mock.MockClient
 	basistheory        *bt_mock.MockClient
+	TwitterClient      *twitter_mock.MockClient
 }
 
 func (t TestContainer) Features() features.Client {
@@ -199,6 +202,10 @@ func (t TestContainer) MX() mx.Client {
 	return t.mx
 }
 
+func (t TestContainer) Twitter() twitter.Client {
+	return t.TwitterClient
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -229,6 +236,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		limits:             limit_mock.NewMockClient(ctrl),
 		mx:                 mx_mock.NewMockClient(ctrl),
 		keys:               keys_mock.NewMockClient(ctrl),
+		TwitterClient:      twitter_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-
+	"encoding/base64"
 	"gitlab.com/fynbos/backend/identities"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -26,15 +26,7 @@ func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListI
 
 	resp := make([]*pb.Identity, len(ids))
 	for i, id := range ids {
-		resp[i] = &pb.Identity{
-			Id:                id.ID,
-			Platform:          string(id.Platform),
-			Handle:            id.Handle,
-			State:             string(id.State),
-			VerificationCode:  id.VerificationCode,
-			VerificationProof: id.VerificationProof,
-			Public:            id.Public,
-		}
+		resp[i] = identityToPB(&id)
 	}
 
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
@@ -48,47 +40,10 @@ func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPubli
 
 	resp := make([]*pb.Identity, len(ids))
 	for i, id := range ids {
-		resp[i] = &pb.Identity{
-			Id:                id.ID,
-			Platform:          string(id.Platform),
-			Handle:            id.Handle,
-			State:             string(id.State),
-			VerificationCode:  id.VerificationCode,
-			VerificationProof: id.VerificationProof,
-			Public:            id.Public,
-		}
+		resp[i] = identityToPB(&id)
 	}
 
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
-}
-
-func (s *rpcService) AddIdentity(ctx context.Context, req *pb.AddIdentityRequest) (*pb.IdentityVerificationInstructions, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	w, err := s.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	vi, err := s.b.Identities().Add(ctx, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.Platform(req.Platform),
-		Handle:   req.Handle,
-		Public:   req.Public,
-	})
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &pb.IdentityVerificationInstructions{
-		IdentityId:   vi.IdentityID,
-		Code:         vi.Code,
-		Instructions: vi.Instructions,
-	}, nil
-
 }
 
 func (s *rpcService) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityRequest) (*pb.Empty, error) {
@@ -123,40 +78,24 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.Identity{
-		Id:                id.ID,
-		Platform:          string(id.Platform),
-		Handle:            id.Handle,
-		State:             string(id.State),
-		VerificationCode:  id.VerificationCode,
-		VerificationProof: id.VerificationProof,
-		Public:            id.Public,
-	}, nil
+	return identityToPB(id), nil
 }
 
-func (s *rpcService) StartIdentityVerification(ctx context.Context, req *pb.StartIdentityVerificationRequest) (*pb.Identity, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	_, err = s.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	id, err := s.b.Identities().StartVerification(ctx, req.Id, req.Proof)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
+func identityToPB(identity *identities.Identity) *pb.Identity {
+	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
+	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
 
 	return &pb.Identity{
-		Id:                id.ID,
-		Platform:          string(id.Platform),
-		Handle:            id.Handle,
-		State:             string(id.State),
-		VerificationCode:  id.VerificationCode,
-		VerificationProof: id.VerificationProof,
-		Public:            id.Public,
-	}, nil
+		Id:            identity.ID,
+		Wallet:        "",
+		Platform:      string(identity.Platform),
+		Identifier:    identity.Identifier,
+		State:         string(identity.State),
+		KeyId:         identity.KeyID,
+		Signature:     string(base64Signature),
+		SignatureHash: string(base64SignatureHash),
+		Proof:         identity.VerificationProof,
+		Ctime:         identity.CreatedAt.String(),
+		Public:        identity.Public,
+	}
 }
