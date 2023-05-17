@@ -171,7 +171,7 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	return Get(ctx, b, id)
+	return ident, nil
 }
 
 func UpdateState(ctx context.Context, b Backends, id string, state identities.State, proof string) error {
