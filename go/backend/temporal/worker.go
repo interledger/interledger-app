@@ -19,8 +19,11 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
 	w.RegisterWorkflow(kyc_workflows.StartKYC)
 
+	//Identities
 	w.RegisterActivity(platforms.NewDevActivity(b))
 	w.RegisterWorkflow(platforms.DevVerifyWorkflow)
+	w.RegisterActivity(platforms.NewTwitterActivity(b))
+	w.RegisterWorkflow(platforms.TwitterVerifyWorkflow)
 
 	w.RegisterActivity(gmt_workflows.NewActivity(b))
 	w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow)

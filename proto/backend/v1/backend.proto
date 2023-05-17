@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package backend.v1;
 
+import "google/protobuf/timestamp.proto";
 import "google/rpc/code.proto";
 import "google/rpc/error_details.proto";
 import "google/rpc/status.proto";
-import "google/protobuf/timestamp.proto";
 
 option go_package = "./backend/v1;backend";
 
@@ -115,7 +115,7 @@ message CreateIncomingPaymentRequest {
   google.protobuf.Timestamp expiresAt = 4;
 }
 
-message IncomingPayment{
+message IncomingPayment {
   string id = 1;
   string paymentPointer = 2;
   string fromPaymentPointer = 10;
@@ -215,9 +215,9 @@ service BackendService {
 
   //Waitlist
   rpc JoinWaitlist(JoinWaitlistRequest) returns (JoinWaitlistResponse);
-  rpc CanSignup(CanSignupRequest) returns(CanSignupResponse);
-  rpc SetSignupComplete(SetSignupCompleteRequest) returns(Empty);
-  rpc IsMugAvailable(IsMugAvailableRequest) returns(IsMugAvailableResponse);
+  rpc CanSignup(CanSignupRequest) returns (CanSignupResponse);
+  rpc SetSignupComplete(SetSignupCompleteRequest) returns (Empty);
+  rpc IsMugAvailable(IsMugAvailableRequest) returns (IsMugAvailableResponse);
 
   //Transactions
   rpc ListTransactions(PaginationRequest) returns (ListTransactionsResponse);
@@ -247,10 +247,8 @@ service BackendService {
   // Identities
   rpc ListIdentities(Empty) returns (ListIdentitiesResponse);
   rpc ListPublicIdentities(ListPublicIdentitiesRequest) returns (ListIdentitiesResponse);
-  rpc AddIdentity(AddIdentityRequest) returns (IdentityVerificationInstructions);
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
-  rpc StartIdentityVerification(StartIdentityVerificationRequest) returns(Identity);
 
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
@@ -274,6 +272,9 @@ service BackendService {
 
   // Features
   rpc ListFeatures(Empty) returns (Features);
+
+  // Twitter
+  rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
 }
 
 message Features {
@@ -285,7 +286,6 @@ message Features {
   bool identitiesEnabled = 6;
   bool twitterEnabled = 7;
 }
-
 
 message CreateCardRequest {
   string tokenID = 1;
@@ -541,7 +541,7 @@ message JoinWaitlistRequest {
   string email = 1;
   string country_code = 2;
   string full_name = 3;
-  bool  beta_opt_in = 4;
+  bool beta_opt_in = 4;
   optional string mug_id = 5;
 }
 
@@ -581,15 +581,15 @@ message GetCountriesResponse {
   repeated Country countries = 1;
 }
 
-message CanSignupRequest{
+message CanSignupRequest {
   string id = 1;
 }
 
-message CanSignupResponse{
+message CanSignupResponse {
   bool canSignup = 1;
 }
 
-message SetSignupCompleteRequest{
+message SetSignupCompleteRequest {
   string id = 1;
   string userId = 2;
 }
@@ -656,7 +656,6 @@ message UpdateClientLimitsRequest {
   Amount overall = 4;
 }
 
-
 message Contact {
   string id = 1;
   string payment_pointer = 2;
@@ -684,19 +683,17 @@ message ListIdentitiesResponse {
 }
 
 message Identity {
-  string id =1;
-  string platform = 2;
-  string handle = 3;
-  string state = 4;
-  string verification_code = 5;
-  string verification_proof = 6;
-  bool public = 7;
-}
-
-message AddIdentityRequest {
-  string platform = 1;
-  string handle = 2;
-  bool public = 3;
+  string id = 1;
+  string wallet = 2;
+  string platform = 3;
+  string identifier = 4;
+  string state = 5;
+  string key_id = 6;
+  string signature = 7;
+  string signature_hash = 8;
+  string proof = 9;
+  string ctime = 10;
+  bool public = 11;
 }
 
 message IdentityVerificationInstructions {
@@ -714,11 +711,6 @@ message SetIdentityPublicRequest {
   bool public = 2;
 }
 
-message StartIdentityVerificationRequest {
-  string id = 1;
-  string proof = 2;
-}
-
 message ListPublicIdentitiesRequest {
   string wallet_id = 1;
 }
@@ -734,4 +726,8 @@ message KYCPersonaInquiryRequest {
 message KYCPersonaInquiryResponse {
   string id = 1;
   optional string session_token = 2;
+}
+
+message CreateTwitterAuthURLResponse {
+  string url = 1;
 }

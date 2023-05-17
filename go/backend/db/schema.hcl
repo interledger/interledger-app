@@ -1666,6 +1666,7 @@ table "wallet_features" {
     columns = [column.wallet_id]
   }
 }
+
 table "external_api_logs" {
   schema = schema.public
   column "id" {
@@ -1710,6 +1711,118 @@ table "external_api_logs" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")
+  }
+}
+
+table "twitter_authorizations" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "client_id" {
+    null = false
+    type = text
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
+  column "redirect_url" {
+    null = false
+    type = text
+  }
+  column "code_verifier" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "state_ind" {
+    unique  = true
+    columns = [column.state]
+  }
+}
+
+table "twitter_connections" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "user_id" {
+    null = false
+    type = text
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
+  column "username" {
+    null = false
+    type = text
+  }
+  column "client_id" {
+    null = false
+    type = text
+  }
+  column "access_token" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "refresh_token" {
+    null = false
+    type = text
+  }
+  column "expiry" {
+    null = false
+    type = timestamp
+  }
+  column "token_type" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "twitter_wallet_user_ind" {
+    unique  = true
+    columns = [column.wallet_id, column.user_id]
   }
 }
 schema "public" {
