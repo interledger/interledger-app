@@ -35,6 +35,7 @@ const errorLink = onError((err) => {
       if (extensions && extensions.code === 'FORBIDDEN') {
         console.error('FORBIDDEN')
       }
+      return null
     })
   }
 })

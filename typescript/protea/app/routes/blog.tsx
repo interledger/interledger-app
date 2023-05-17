@@ -1,9 +1,10 @@
-import { Router, BlogShapes, Layouts } from '~/components'
+import { Chip, ChipColor, Layouts, Router } from '~/components'
+import type { MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 
 import { useLoaderData } from '@remix-run/react'
-import { getAllPosts } from '~/lib/blog.server'
-import type { MetaFunction } from '@remix-run/node'
+import { getAllBlogPosts } from '~/lib/blog.server'
+import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
 
 export const meta: MetaFunction<typeof loader> = () => {
   const metaContent = {
@@ -25,8 +26,11 @@ export const meta: MetaFunction<typeof loader> = () => {
 }
 
 export async function loader() {
+  const posts = await getAllBlogPosts({
+    orderBy: [BlogPostModelOrderBy.DateDesc]
+  })
   return json({
-    posts: await getAllPosts()
+    posts: posts
   })
 }
 
@@ -36,7 +40,6 @@ export const handle = {
 
 export default function Page() {
   const { posts } = useLoaderData<typeof loader>()
-
   return (
     <main className='relative mx-auto w-full flex-grow overflow-x-visible px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-[59rem]'>
       <div className='relative col-span-full mb-2 h-20'>
@@ -55,26 +58,45 @@ export default function Page() {
       </div>
 
       <ul className='mt-12 flex flex-col space-y-6 sm:mt-20'>
-        {posts.map((post) => (
-          <Router to={`/blog/${post.slug}`} key={post.slug}>
-            <li className='flex cursor-pointer flex-col justify-start space-y-4 rounded-xl bg-mk-section p-4 pb-6 hover:bg-mk-section-hover sm:flex-row-reverse sm:justify-between sm:space-y-0 sm:space-x-8 sm:space-x-reverse sm:p-8'>
-              <BlogShapes slug={post.slug} />
-              <div className='flex flex-col space-y-4 rounded-xl'>
-                <span className='font-display text-2xl font-medium'>
-                  {post.title}
-                </span>
-                <span className='text-sm text-medium'>
-                  {post.authors.map((author, index, array) => {
-                    return author.name + (index == array.length - 1 ? '' : ', ')
-                  })}
-                  {' | '}
-                  {post.date}
-                </span>
-                <span className='text-medium'>{post.description}</span>
-              </div>
-            </li>
-          </Router>
-        ))}
+        {posts &&
+          posts.map((post) => (
+            <Router to={`/blog/${post.slug}`} key={post.slug}>
+              <li className='flex cursor-pointer flex-col justify-start items-start space-y-4 rounded-xl bg-mk-section p-4 pb-6 hover:bg-mk-section-hover sm:flex-row-reverse sm:justify-between sm:space-y-0 sm:space-x-8 sm:space-x-reverse sm:p-8'>
+                <div className='min-w-max'>
+                  <img
+                    src={post.shapes?.url}
+                    alt=''
+                    className='hidden lg:flex w-[7.5rem]'
+                  />
+                  <img
+                    src={post.shapesMobile?.url}
+                    alt=''
+                    className='flex lg:hidden h-10'
+                  />
+                </div>
+                {post._status === 'draft' && (
+                  <div className='sticky -right-10'>
+                    <Chip color={ChipColor.purple}>Draft</Chip>
+                  </div>
+                )}
+                <div className='flex flex-col space-y-4 rounded-xl'>
+                  <span className='font-display text-2xl font-medium'>
+                    {post.title}
+                  </span>
+                  <span className='text-sm text-medium'>
+                    {post.authors.map((author, index, array) => {
+                      return (
+                        author.name + (index == array.length - 1 ? '' : ', ')
+                      )
+                    })}
+                    {' | '}
+                    {post.date}
+                  </span>
+                  <span className='text-medium'>{post.description}</span>
+                </div>
+              </li>
+            </Router>
+          ))}
       </ul>
       <div className='relative col-span-full mt-20 h-20'>
         <div className='absolute top-0 -left-4 h-20 w-20 rounded-full bg-slate-300 lg:-left-20' />
