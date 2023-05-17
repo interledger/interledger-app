@@ -174,7 +174,7 @@ func Sign(ctx context.Context, b Backends, keyID string, walletID string, messag
 		return nil, err
 	}
 
-	return []byte(signedMessage), nil
+	return signedMessage, nil
 }
 
 func Verify(ctx context.Context, b Backends, keyID string, walletID string, message, sig []byte) (bool, error) {
