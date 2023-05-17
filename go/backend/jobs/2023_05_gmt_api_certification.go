@@ -3,6 +3,11 @@ package jobs
 import (
 	"context"
 	"strings"
+	"time"
+
+	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
+
+	"go.temporal.io/sdk/activity"
 
 	"gitlab.com/fynbos/env"
 
@@ -18,6 +23,8 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 		return nil
 	}
 
+	logger := activity.GetLogger(ctx)
+
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
 		return err
@@ -25,6 +32,8 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 
 	id.Address.ZipCode = zip
 	id.Address.State = state
+
+	logger.Info("Updating User state", "state", id.Address.State, "zip", id.Address.ZipCode)
 
 	_, err = a.b.KYC().UpdateIndividualDetails(ctx, *id)
 	if err != nil {
@@ -41,6 +50,12 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 func RunGMTCertification(ctx workflow.Context) error {
 	var a *Activity
 	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
 	logger := workflow.GetLogger(ctx)
 
 	if !env.IsDev() {
@@ -142,17 +157,21 @@ func RunGMTCertification(ctx workflow.Context) error {
 	}
 
 	for _, tc := range cases {
-		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.zip, tc.state).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
 		if err != nil {
-			logger.Error("failed to update wallet address", "err", err)
+			logger.Error("failed to update wallet address", "err", err, "testcase", tc.name)
 			continue
 		}
 
 		var tr gmt_ops.TransactionResp
 		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, tc.args).Get(ctx, &tr)
 
+		if temporal_utils.IsNonRetryableError(err) {
+			logger.Error("Non Retryable error from Activity", "err", err, "testcase", tc.name)
+			return err
+		}
 		if err != nil {
-			logger.Error("failed to add transaction", "err", err)
+			logger.Error("failed to add transaction", "err", err, "testcase", tc.name)
 			continue
 		}
 

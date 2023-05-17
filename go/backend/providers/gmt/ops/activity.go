@@ -571,6 +571,8 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		log.Error("Unknown Persona ID number type", zap.String("persona_id_type", idNums.IdentificationClass))
 	}
 
+	sender.SenderOccupation = "Contracting Engineer"
+
 	return sender, nil
 }
 
