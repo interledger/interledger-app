@@ -22,7 +22,7 @@ export type Scalars = {
   UploadId: any;
 };
 
-export type BlogPostModelContentBlocksField = InlineImageRecord | InlineTwitterEmbedRecord | InlineVideoRecord;
+export type BlogPostModelContentBlocksField = InlineImageRecord | InlinePersonRecord | InlineTwitterEmbedRecord | InlineVideoRecord;
 
 export type BlogPostModelContentField = {
   __typename?: 'BlogPostModelContentField';
@@ -1825,6 +1825,7 @@ export type InlineImageRecord = RecordInterface & {
   _status: ItemStatus;
   _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
   _updatedAt: Scalars['DateTime'];
+  altText?: Maybe<Scalars['String']>;
   id: Scalars['ItemId'];
   image?: Maybe<FileField>;
   imageDark?: Maybe<FileField>;
@@ -1835,6 +1836,32 @@ export type InlineImageRecord = RecordInterface & {
 
 /** Block of type Inline image (inline_image) */
 export type InlineImageRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Inline person (inline_person) */
+export type InlinePersonRecord = RecordInterface & {
+  __typename?: 'InlinePersonRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  avatar?: Maybe<FileField>;
+  id: Scalars['ItemId'];
+  name?: Maybe<Scalars['String']>;
+  role?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Inline person (inline_person) */
+export type InlinePersonRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
