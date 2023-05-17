@@ -154,6 +154,7 @@ func main() {
 		err = CreateUser(ctx, "barnard", pulumi.StringArray{
 			userSelfMgmtGroup.Name,
 			accSharedReadAccessGroup.Name,
+			accDevFullAccessGroup.Name,
 		}, "keybase:barnarddt", provider)
 		if err != nil {
 			return err
