@@ -1758,7 +1758,7 @@ table "twitter_authorizations" {
   primary_key {
     columns = [column.id]
   }
-  index "state_ind" {
+  index "twitter_auth_state_ind" {
     unique  = true
     columns = [column.state]
   }

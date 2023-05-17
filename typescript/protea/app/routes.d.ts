@@ -40,7 +40,6 @@ declare module "routes-gen" {
     "/link-account/card": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
-    "/identities-verify": Record<string, never>;
     "/waitlist/success": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
@@ -55,7 +54,6 @@ declare module "routes-gen" {
     "/transactions": Record<string, never>;
     "/connections": Record<string, never>;
     "/pay/amount": Record<string, never>;
-    "/identities": Record<string, never>;
     "/contacts": Record<string, never>;
     "/pay/3ds": Record<string, never>;
     "/recovery": Record<string, never>;
@@ -116,7 +114,6 @@ declare module "routes-gen" {
       | ["/link-account/card"]
       | ["/recovery/password"]
       | ["/settings/password"]
-      | ["/identities-verify"]
       | ["/waitlist/success"]
       | ["/contact/success"]
       | ["/login/challenge"]
@@ -131,7 +128,6 @@ declare module "routes-gen" {
       | ["/transactions"]
       | ["/connections"]
       | ["/pay/amount"]
-      | ["/identities"]
       | ["/contacts"]
       | ["/pay/3ds"]
       | ["/recovery"]

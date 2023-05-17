@@ -94,8 +94,6 @@ type StartArgs struct {
 	TabapayBearerToken         string
 	TabapaySettlementAccountID string
 	BasisTheoryApiKey          string
-	VGSCaCertPath              string
-	VGSProxyURL                string
 	TwitterClientID            string
 	TwitterClientSecret        string
 	TwitterRedirectURL         string
@@ -214,17 +212,17 @@ func ParseStartArgs() (*StartArgs, error) {
 	}
 
 	twitterClientId := os.Getenv("TWITTER_CLIENT_ID")
-	if twitterClientId == "" {
+	if twitterClientId == "" && env.IsProd() {
 		return nil, errors.New("TWITTER_CLIENT_ID is required")
 	}
 
 	twitterClientSecret := os.Getenv("TWITTER_CLIENT_SECRET")
-	if twitterClientSecret == "" {
+	if twitterClientSecret == "" && env.IsProd() {
 		return nil, errors.New("TWITTER_CLIENT_SECRET is required")
 	}
 
 	twitterRedirectURL := os.Getenv("TWITTER_REDIRECT_URL")
-	if twitterClientSecret == "" {
+	if twitterClientSecret == "" && env.IsProd() {
 		return nil, errors.New("TWITTER_REDIRECT_URL is required")
 	}
 
