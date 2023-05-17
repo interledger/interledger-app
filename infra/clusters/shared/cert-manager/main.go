@@ -7,6 +7,7 @@ import (
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apiextensions"
 	appsv1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/apps/v1"
 	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
+	v1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/core/v1"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/helm/v3"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -41,11 +42,30 @@ func main() {
 			return err
 		}
 
+		namespace, err := v1.NewNamespace(ctx, "namespace", &v1.NamespaceArgs{
+			Metadata: metav1.ObjectMetaArgs{
+				Name: pulumi.String("cert-manager"),
+				Labels: pulumi.StringMap{
+					"kubernetes.io/metadata.name":        pulumi.String("cert-manager"),
+					"name":                               pulumi.String("cert-manager"),
+					"pod-security.kubernetes.io/enforce": pulumi.String("privileged"),
+					"pod-security.kubernetes.io/audit":   pulumi.String("privileged"),
+					"pod-security.kubernetes.io/warn":    pulumi.String("privileged"),
+				},
+			},
+			Spec: v1.NamespaceSpecArgs{
+				Finalizers: pulumi.StringArray{pulumi.String("kubernetes")},
+			},
+		}, pulumi.Import(pulumi.ID("cert-manager")), pulumi.Provider(kubeProvider))
+		if err != nil {
+			return err
+		}
+
 		release, err := helm.NewRelease(ctx, "cert-manager", &helm.ReleaseArgs{
 			Version:         pulumi.String("1.8.0"),
 			Chart:           pulumi.String("cert-manager"),
-			Namespace:       pulumi.String("cert-manager"),
-			CreateNamespace: pulumi.BoolPtr(true),
+			Namespace:       namespace.Metadata.Name(),
+			CreateNamespace: pulumi.BoolPtr(false),
 			RepositoryOpts: &helm.RepositoryOptsArgs{
 				Repo: pulumi.String("https://charts.jetstack.io"),
 			},
