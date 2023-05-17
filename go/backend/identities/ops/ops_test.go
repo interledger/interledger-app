@@ -32,19 +32,9 @@ func TestAdd(t *testing.T) {
 
 	// Publicly visible
 	_, err = ops.Add(ctx, b, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.PlatformTwitter,
-		Handle:   "@king_cold",
-		Public:   true,
-	})
-	require.NoError(t, err)
-
-	// Not publicly visible
-	_, err = ops.Add(ctx, b, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.PlatformTwitter,
-		Handle:   "@cooler",
-		Public:   false,
+		WalletID:   w.ID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "@king_cold",
 	})
 	require.NoError(t, err)
 }
@@ -66,28 +56,17 @@ func TestList(t *testing.T) {
 
 	// Publicly visible
 	pv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.PlatformTwitter,
-		Handle:   "@king_cold",
-		Public:   true,
-	})
-	require.NoError(t, err)
-
-	// Not publicly visible
-	_, err = ops.Add(ctx, b, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.PlatformTwitter,
-		Handle:   "@cooler",
-		Public:   false,
+		WalletID:   w.ID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "@king_cold",
 	})
 	require.NoError(t, err)
 
 	il, err := ops.List(ctx, b, w.ID)
 	require.NoError(t, err)
 
-	assert.Len(t, il, 2)
+	assert.Len(t, il, 1)
 	assert.Equal(t, identities.PlatformTwitter, il[0].Platform)
-	assert.Equal(t, identities.PlatformTwitter, il[1].Platform)
 
 	il, err = ops.ListPublic(ctx, b, w.ID)
 	require.NoError(t, err)
@@ -95,7 +74,7 @@ func TestList(t *testing.T) {
 	require.Len(t, il, 0)
 
 	// Verify public identity
-	_, err = db.ExecContext(ctx, "UPDATE identities SET state=$1 WHERE id=$2", identities.StateVerified, pv.IdentityID)
+	_, err = db.ExecContext(ctx, "UPDATE identities SET state=$1 WHERE id=$2", identities.StateVerified, pv.ID)
 	require.NoError(t, err)
 
 	il, err = ops.ListPublic(ctx, b, w.ID)
@@ -103,7 +82,7 @@ func TestList(t *testing.T) {
 
 	require.Len(t, il, 1)
 	assert.Equal(t, identities.PlatformTwitter, il[0].Platform)
-	assert.Equal(t, "@king_cold", il[0].Handle)
+	assert.Equal(t, "@king_cold", il[0].Identifier)
 	assert.Equal(t, "", il[0].VerificationProof)
 	assert.Equal(t, w.ID, il[0].WalletID)
 	assert.Equal(t, identities.StateVerified, il[0].State)
@@ -127,20 +106,19 @@ func TestDelete(t *testing.T) {
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.PlatformTwitter,
-		Handle:   "@king_cold",
-		Public:   true,
+		WalletID:   w.ID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "@king_cold",
 	})
 	require.NoError(t, err)
 
-	_, err = ops.Get(ctx, b, iv.IdentityID)
+	_, err = ops.Get(ctx, b, iv.ID)
 	require.NoError(t, err)
 
-	err = ops.Delete(ctx, b, iv.IdentityID, w.ID)
+	err = ops.Delete(ctx, b, iv.ID, w.ID)
 	require.NoError(t, err)
 
-	_, err = ops.Get(ctx, b, iv.IdentityID)
+	_, err = ops.Get(ctx, b, iv.ID)
 	require.ErrorIs(t, err, identities.ErrNotFound)
 }
 
@@ -161,18 +139,17 @@ func TestSetPublic(t *testing.T) {
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID: w.ID,
-		Platform: identities.PlatformTwitter,
-		Handle:   "@king_cold",
-		Public:   true,
+		WalletID:   w.ID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "@king_cold",
 	})
 	require.NoError(t, err)
 
-	id, err := ops.Get(ctx, b, iv.IdentityID)
+	id, err := ops.Get(ctx, b, iv.ID)
 	require.NoError(t, err)
 	assert.True(t, id.Public)
 
-	id, err = ops.SetPublic(ctx, b, iv.IdentityID, w.ID, false)
+	id, err = ops.SetPublic(ctx, b, iv.ID, w.ID, false)
 	require.NoError(t, err)
 	assert.False(t, id.Public)
 }

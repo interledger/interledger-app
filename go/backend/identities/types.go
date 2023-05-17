@@ -1,10 +1,13 @@
 package identities
 
+import (
+	"time"
+)
+
 type AddArgs struct {
-	WalletID string
-	Platform Platform
-	Handle   string
-	Public   bool
+	WalletID   string
+	Platform   Platform
+	Identifier string
 }
 
 type VerifyInstructions struct {
@@ -17,11 +20,14 @@ type Identity struct {
 	ID                string
 	WalletID          string `db:"wallet_id"`
 	Platform          Platform
-	Handle            string // Can be either the website URL, Twiter handle, Instagram handle etc based on the Platform
 	State             State
-	VerificationCode  string `db:"code"`
-	VerificationProof string `db:"proof"` // URL to the posted tweet or wellknown file etc.
-	Public            bool   // Whether the Identity is visible to the public
+	Public            bool      // Whether the Identity is visible to the public
+	KeyID             string    `db:"key_id"`
+	Identifier        string    // Can be either the website URL, Twiter handle, Instagram handle etc based on the Platform
+	VerificationProof string    `db:"proof"` // URL to the posted tweet or wellknown file etc.
+	Signature         []byte    `db:"signature"`
+	SignatureHash     []byte    `db:"signature_hash"`
+	CreatedAt         time.Time `db:"created_at"`
 }
 
 type State string
@@ -38,3 +44,24 @@ type Platform string
 const (
 	PlatformTwitter Platform = "twitter"
 )
+
+/*
+	Claim
+
+Example structure
+
+	{
+		"wallet": "https://fynbos.me/adrian",
+		"type": "twitter",
+		"identifier": "@adrian",
+		"kid": "external_1",
+		"ctime": 837457834876
+	}
+*/
+type Claim struct {
+	Wallet     string `json:"wallet"`
+	Type       string `json:"type"`
+	Identifier string `json:"identifier"`
+	Kid        string `json:"kid"`
+	Ctime      int64  `json:"ctime"`
+}

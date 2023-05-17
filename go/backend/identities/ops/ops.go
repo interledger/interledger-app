@@ -15,7 +15,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = ` id, wallet_id, platform, handle, state, public, proof, code `
+const cols = ` id, wallet_id, platform, identifier, state, public, key_id, proof, signature, signature_hash, created_at `
 
 func List(ctx context.Context, b Backends, walletID string) ([]identities.Identity, error) {
 	var res []identities.Identity
@@ -38,41 +38,45 @@ func ListPublic(ctx context.Context, b Backends, walletID string) ([]identities.
 	return res, nil
 }
 
-func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.VerifyInstructions, error) {
+func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.Identity, error) {
 	err := b.Validator().StructCtx(ctx, args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
 	}
 
-	p, err := platforms.Get(args.Platform)
+	p, err := platforms.Get(b, args.Platform)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
 	}
 
 	var existing identities.Identity
-	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(handle)=$2 AND state=$3", cols),
-		args.Platform, strings.ToLower(args.Handle), identities.StateVerified)
+	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(identifier)=$2 AND state=$3", cols),
+		args.Platform, strings.ToLower(args.Identifier), identities.StateVerified)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 	if existing.ID != "" {
-		return nil, fmt.Errorf("%w %s handle %s has already been verified", identities.ErrInvalidArgument, args.Platform, args.Handle)
+		return nil, fmt.Errorf("%w %s identifier %s has already been verified", identities.ErrInvalidArgument, args.Platform, args.Identifier)
 	}
 
 	id := uuid.NewString()
-	code := p.NewVerifyCode()
-
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO identities(id, wallet_id, platform, handle, state, public, code, proof) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-		id, args.WalletID, args.Platform, args.Handle, identities.StateUnverified, args.Public, code, "")
+	c, err := p.GenerateSignedClaim(ctx, &platforms.SignedClaimArgs{
+		Identifier: args.Identifier,
+		WalletID:   args.WalletID,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	return &identities.VerifyInstructions{
-		IdentityID:   id,
-		Code:         code,
-		Instructions: p.VerifyInstructions(),
-	}, nil
+	ts := time.Unix(c.Claim.Ctime, 0)
+	var identity identities.Identity
+	err = b.DB().GetContext(ctx, &identity, "INSERT INTO identities(id, wallet_id, state, public, platform, key_id, identifier,proof, signature, signature_hash, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "+cols,
+		id, args.WalletID, identities.StateUnverified, true, args.Platform, c.Claim.Kid, args.Identifier, "", c.Signature, c.SignatureHash, ts)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return &identity, nil
 }
 
 func Get(ctx context.Context, b Backends, id string) (*identities.Identity, error) {
@@ -89,21 +93,31 @@ func Get(ctx context.Context, b Backends, id string) (*identities.Identity, erro
 
 }
 
+// FIXME: Potentially remove
 func VerifyInstructions(ctx context.Context, b Backends, id string) (*identities.VerifyInstructions, error) {
 	ident, err := Get(ctx, b, id)
 	if err != nil {
 		return nil, err
 	}
 
-	p, err := platforms.Get(ident.Platform)
+	p, err := platforms.Get(b, ident.Platform)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInvalidArgument, err)
 	}
 
+	verifyInstructions, err := p.VerifyInstructions(ctx, &platforms.VerifyInstructionsArgs{
+		Identifier: ident.Identifier,
+		Identity:   ident,
+		WalletID:   ident.WalletID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
 	return &identities.VerifyInstructions{
 		IdentityID:   id,
-		Code:         ident.VerificationCode,
-		Instructions: p.VerifyInstructions(),
+		Code:         "",
+		Instructions: verifyInstructions,
 	}, nil
 }
 
@@ -140,7 +154,7 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 		return nil, err
 	}
 
-	p, err := platforms.Get(ident.Platform)
+	p, err := platforms.Get(b, ident.Platform)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -152,14 +166,24 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
-	wf, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, p.VerifyWorkflow(), id, proof)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-	err = wf.Get(ctx, nil)
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, p.VerifyWorkflow(), id, proof)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	return Get(ctx, b, id)
+	return ident, nil
+}
+
+func UpdateState(ctx context.Context, b Backends, id string, state identities.State, proof string) error {
+	ident, err := Get(ctx, b, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, updated_at=now() WHERE id=$3", proof, state, ident.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return nil
 }
