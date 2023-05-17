@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/twitter"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/temporal"
 	"regexp"
 	"time"
 
@@ -134,14 +135,14 @@ func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, erro
 	logger := workflow.GetLogger(ctx)
 	logger.Info("VerifyWorkflow for twitter platform started", "id", id, "proof", proof)
 
-	var tweetProof *twitterscraper.Tweet
-	err := workflow.ExecuteActivity(ctx, a.FetchTweetProof, proof).Get(ctx, tweetProof)
+	var tweetProof TweetProof
+	err := workflow.ExecuteActivity(ctx, a.FetchTweetProof, proof).Get(ctx, &tweetProof)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	var identity *identities.Identity
-	err = workflow.ExecuteActivity(ctx, a.GetIdentity, id).Get(ctx, identity)
+	var identity identities.Identity
+	err = workflow.ExecuteActivity(ctx, a.GetIdentity, id).Get(ctx, &identity)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -164,36 +165,53 @@ func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, erro
 	return "OK", nil
 }
 
-func (a *TwitterActivity) FetchTweetProof(ctx context.Context, proofUrl string) (*twitterscraper.Tweet, error) {
+type TweetProof struct {
+	ClaimURL        string `json:"claim_url"`
+	TwitterUsername string `json:"twitter_username"`
+	TwitterUserID   string `json:"twitter_user_id"`
+}
+
+func (a *TwitterActivity) FetchTweetProof(ctx context.Context, proofUrl string) (TweetProof, error) {
 	tweetId := extractTweetID(proofUrl)
 	if tweetId == "" {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "couldn't parse proof tweet id")
+		return TweetProof{}, fmt.Errorf("%w %s", identities.ErrInternal, "couldn't parse proof tweet id")
 	}
 
 	scraper := twitterscraper.New()
 	tweet, err := scraper.GetTweet(tweetId)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+		return TweetProof{}, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	return tweet, nil
+	urls := tweet.URLs
+	if len(urls) == 0 {
+		// Non retryable temporal error
+		return TweetProof{}, temporal.NewNonRetryableApplicationError("no urls found in tweet", "NO_URLS_FOUND", nil)
+	}
+
+	return TweetProof{
+		ClaimURL:        urls[0],
+		TwitterUsername: tweet.Username,
+		TwitterUserID:   tweet.UserID,
+	}, nil
 }
 
-func (a *TwitterActivity) GetIdentity(ctx context.Context, id string) (*identities.Identity, error) {
+func (a *TwitterActivity) GetIdentity(ctx context.Context, id string) (identities.Identity, error) {
 	identity, err := a.b.Identities().Get(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+		return identities.Identity{}, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	return identity, nil
+	return *identity, nil
 }
 
 // TODO: harden verification
-func (a *TwitterActivity) VerifyProof(ctx context.Context, identity *identities.Identity, tweet *twitterscraper.Tweet) error {
-	if identity.State != identities.StatePending {
-		return fmt.Errorf("%w %s", identities.ErrInternal, "identity is not pending")
-	}
-	activity.GetLogger(ctx).Info("Verifying proof", "identity", identity.ID, "tweet", tweet.ID)
+func (a *TwitterActivity) VerifyProof(ctx context.Context, identity identities.Identity, tp TweetProof) error {
+	// When created this is in StateUnverified not pending... Need to fix the states.
+	//if identity.State != identities.StatePending {
+	//	return fmt.Errorf("%w %s", identities.ErrInternal, "identity is not pending")
+	//}
+	activity.GetLogger(ctx).Info("Verifying proof", "identity", identity.ID, "tweet", tp.ClaimURL)
 
 	return nil
 }
