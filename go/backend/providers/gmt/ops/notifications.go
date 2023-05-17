@@ -81,13 +81,13 @@ func (a *Activity) PollNotifications(ctx context.Context) error {
 	for _, n := range nr {
 		ref, ok := refMap[n.Password]
 		if !ok {
-			logger.Error("notification received with no waiting workflow", "id", n.Password, "status", n.Status)
+			logger.Warn("notification received with no waiting workflow", "id", n.Password, "status", n.Status)
 			continue
 		}
 
 		err = a.b.Temporal().SignalWorkflow(ctx, ref.WorkflowID, ref.WorkflowRunID, gmtEventsChannel, *n)
 		if err != nil {
-			logger.Error("failed to signal workflow", "err", err)
+			logger.Warn("failed to signal workflow", "err", err)
 		}
 	}
 
