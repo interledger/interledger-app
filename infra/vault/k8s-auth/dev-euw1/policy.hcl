@@ -19,9 +19,9 @@ path "transit/k8s-dev-euw1/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.met
 }
 
 path "transit/k8s-dev-euw1/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_namespace{{"}}"}}/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_name{{"}}"}}/sign/*" {
-  capabilities = ["create"]
+  capabilities = ["create", "update"]
 }
 
 path "transit/k8s-dev-euw1/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_namespace{{"}}"}}/{{"{{"}}identity.entity.aliases.{{.AuthAccessor}}.metadata.service_account_name{{"}}"}}/verify/*" {
-  capabilities = ["create"]
+  capabilities = ["create", "update"]
 }
