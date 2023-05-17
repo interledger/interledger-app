@@ -20,6 +20,7 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
+import type { Identity } from '~/generated/protobuf-ts/backend/v1/backend'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -422,4 +423,26 @@ export async function createCard(
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
+}
+
+export async function getLinkedIdentities(
+  request: Request
+): Promise<Array<Identity>> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .listIdentities(
+      {},
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response.identities
 }
