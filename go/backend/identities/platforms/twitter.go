@@ -3,12 +3,15 @@ package platforms
 import (
 	"context"
 	"crypto"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/twitter"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
+	"net/url"
+	"path"
 	"regexp"
 	"time"
 
@@ -210,11 +213,25 @@ func (a *TwitterActivity) GetIdentity(ctx context.Context, id string) (identitie
 // Verify the signature matches the one in the identity
 // Verify the tweet username matches the one in the identity
 func (a *TwitterActivity) VerifyProof(ctx context.Context, identity identities.Identity, tp TweetProof) error {
-	// When created this is in StateUnverified not pending... Need to fix the states.
-	//if identity.State != identities.StatePending {
-	//	return fmt.Errorf("%w %s", identities.ErrInternal, "identity is not pending")
-	//}
 	activity.GetLogger(ctx).Info("Verifying proof", "identity", identity.ID, "tweet", tp.ClaimURL)
+
+	parsedUrl, err := url.Parse(tp.ClaimURL)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	sigHash := path.Base(parsedUrl.Path)
+	base64SigHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
+
+	// TODO: check if the signature key is still exist before matching the signature
+	// instead of verifying signature cryptographically, we just check if the signature matches the one in the identity
+	if sigHash != base64SigHash {
+		return fmt.Errorf("%w %s", identities.ErrInternal, "proof sighash doesn't match identity sighash")
+	}
+
+	// verify the username
+	if identity.Identifier != tp.TwitterUsername {
+		return fmt.Errorf("%w %s", identities.ErrInternal, "twitter username doesn't match identity username")
+	}
 
 	return nil
 }
