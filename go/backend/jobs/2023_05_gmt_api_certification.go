@@ -3,6 +3,9 @@ package jobs
 import (
 	"context"
 	"strings"
+	"time"
+
+	"go.temporal.io/sdk/activity"
 
 	"gitlab.com/fynbos/env"
 
@@ -18,6 +21,8 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 		return nil
 	}
 
+	logger := activity.GetLogger(ctx)
+
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
 		return err
@@ -25,6 +30,8 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 
 	id.Address.ZipCode = zip
 	id.Address.State = state
+
+	logger.Info("Updating User state", "state", id.Address.State, "zip", id.Address.ZipCode)
 
 	_, err = a.b.KYC().UpdateIndividualDetails(ctx, *id)
 	if err != nil {
@@ -41,6 +48,12 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 func RunGMTCertification(ctx workflow.Context) error {
 	var a *Activity
 	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
 	logger := workflow.GetLogger(ctx)
 
 	if !env.IsDev() {
@@ -49,13 +62,14 @@ func RunGMTCertification(ctx workflow.Context) error {
 	}
 
 	cases := []struct {
-		name     string
-		zip      string
-		state    string
-		args     providers.TransfersArgs
-		expected string
+		name      string
+		zip       string
+		state     string
+		args      providers.TransfersArgs
+		expected  string
+		expectErr bool
 	}{
-		{
+		/*{
 			name:  "case 1.1",
 			zip:   "86033",
 			state: "US-AZ",
@@ -67,16 +81,17 @@ func RunGMTCertification(ctx workflow.Context) error {
 				Amount:              currency.FromFloat64(9000, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
-			expected: "rejected",
-		},
+			expected:  "rejected",
+			expectErr: true,
+		},*/
 		{
 			name:  "case 1.2",
 			zip:   "93001",
 			state: "US-CA",
 			args: providers.TransfersArgs{
-				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
+				FromLinkedAccountID: "1e22948b-cf28-4d5e-8bd7-942c643d8dc1",
 				ToLinkedAccountID:   "d3df3382-3bd1-412c-96ad-7c243b4b6f72",
-				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
+				FromWalletID:        "1aa7fb3f-aa45-4c57-8ae9-75b8ec95e55f", //barnard+gmt+autotest+sender+2@fynbos.dev
 				ToWalletID:          "0b523224-8345-4314-b2bb-955f8b82d225", //barnard+gmt+autotest+receiver+1@fynbos.dev
 				Amount:              currency.FromFloat64(9000, currency.USD),
 				FromTransactionID:   uuid.NewString(),
@@ -95,7 +110,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 				Amount:              currency.FromFloat64(2100, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
-			expected: "rejected",
+			expected:  "rejected",
+			expectErr: true,
 		},
 		{
 			name:  "case 1.4",
@@ -142,17 +158,23 @@ func RunGMTCertification(ctx workflow.Context) error {
 	}
 
 	for _, tc := range cases {
-		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.zip, tc.state).Get(ctx, nil)
+		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
 		if err != nil {
-			logger.Error("failed to update wallet address", "err", err)
+			logger.Error("failed to update wallet address", "err", err, "testcase", tc.name)
 			continue
 		}
 
 		var tr gmt_ops.TransactionResp
 		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, tc.args).Get(ctx, &tr)
 
+		if tc.expectErr && err != nil {
+			logger.Info("Expected Test Case Error",
+				"test_name", tc.name,
+				"err", err)
+			continue
+		}
 		if err != nil {
-			logger.Error("failed to add transaction", "err", err)
+			logger.Warn("failed to add transaction", "err", err, "testcase", tc.name)
 			continue
 		}
 

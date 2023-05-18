@@ -271,14 +271,19 @@ func ExceedsGMTLimits(ctx context.Context, b Backends, walletID string, amount c
 	}
 	defer stmt.Close()
 
-	var used uint64
+	var used sql.NullInt64
 	err = stmt.GetContext(ctx, &used,
 		walletID, time.Now().Add(time.Hour*-24), transactions.StatePending, transactions.StateCompleted)
 	if err != nil {
 		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if used+amount.Value >= uint64(10_000_00) {
+	// The user has no transactions
+	if !used.Valid {
+		return false, nil
+	}
+
+	if uint64(used.Int64)+amount.Value >= uint64(10_000_00) {
 		return true, nil
 	}
 
@@ -288,7 +293,7 @@ func ExceedsGMTLimits(ctx context.Context, b Backends, walletID string, amount c
 		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if used+amount.Value >= uint64(20_000_00) {
+	if uint64(used.Int64)+amount.Value >= uint64(20_000_00) {
 		return true, nil
 	}
 
@@ -298,7 +303,7 @@ func ExceedsGMTLimits(ctx context.Context, b Backends, walletID string, amount c
 		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
 
-	if used+amount.Value >= uint64(30_000_00) {
+	if uint64(used.Int64)+amount.Value >= uint64(30_000_00) {
 		return true, nil
 	}
 
