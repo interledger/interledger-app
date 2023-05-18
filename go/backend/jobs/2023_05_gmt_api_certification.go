@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers"
@@ -39,6 +41,7 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 // through the entire flow just the create transaction part
 func RunGMTCertification(ctx workflow.Context) error {
 	var a *Activity
+	var gmtActivity *gmt_ops.Activity
 
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
@@ -161,7 +164,20 @@ func RunGMTCertification(ctx workflow.Context) error {
 	}
 
 	for _, tc := range cases {
-		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
+		txID := uuid.NewString()
+		err := workflow.ExecuteActivity(ctx, gmtActivity.AddTransaction, transactions.CreateTransactionArgs{
+			ID:          txID,
+			WalletID:    tc.args.FromWalletID,
+			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			Provider:    "gmt",
+			State:       transactions.StatePending,
+			Note:        "Used for compliance testing",
+			Source:      tc.args.FromPaymentPointer,
+			Destination: tc.args.ToPaymentPointer,
+			Amount:      tc.args.Amount,
+		}).Get(ctx, nil)
+
+		err = workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
 		if err != nil {
 			logger.Error("failed to update wallet address", "err", err, "testcase", tc.name)
 			continue
