@@ -86,7 +86,7 @@ func (c client) Sign(keyName string, input string) ([]byte, error) {
 		return nil, err
 	}
 
-	signatureBase64Url := strings.TrimPrefix(resp.Data["signature"].(string), "vault:1:") // remove "vault:v1:" prefix
+	signatureBase64Url := strings.TrimPrefix(resp.Data["signature"].(string), "vault:v1:") // remove "vault:v1:" prefix
 
 	signature, err := base64.StdEncoding.DecodeString(signatureBase64Url)
 	if err != nil {
