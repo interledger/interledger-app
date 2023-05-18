@@ -2,6 +2,7 @@ package external_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/clbanning/mxj"
@@ -10,8 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 )
 
-const exampleRequest = `<?xml version="1.0" encoding="UTF-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+const exampleRequest = `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
    <s:Body>
       <InsertTransaction xmlns="http://tempuri.org/">
          <alias>{{Alias}}</alias>
@@ -77,10 +77,12 @@ func TestRedact(t *testing.T) {
 
 	redactedReq, err := external.Redact(context.Background(), []byte(exampleRequest))
 	require.NoError(t, err)
+	fmt.Println(string(redactedReq))
 
 	// Check req
 	redactedXML, err := mxj.NewMapXml(redactedReq)
 	require.NoError(t, err)
+
 	redactedFields, err := redactedXML.ValuesForPath("Envelope.Body.InsertTransaction.sender.SenderIdNumber")
 	require.NoError(t, err)
 	require.Len(t, redactedFields, 1)
