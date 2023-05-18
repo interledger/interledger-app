@@ -425,6 +425,13 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Check if the content type is from browser and redirect
+	if strings.Contains(req.Header.Get("Accept"), "text/html") {
+		url := env.GetUrl() + "/me/" + pp.URL
+		http.Redirect(w, req, url, http.StatusFound)
+		return
+	}
+
 	switch suffix {
 	case "jwks.json":
 		listKeys(b, pp.WalletID, w, req)
@@ -455,9 +462,15 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	wallet, err := b.Users().GetWallet(ctx, pp.WalletID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	jsonResponse := JsonResponse{
 		Id:         pp.URL,
-		PublicName: pp.Alias,
+		PublicName: wallet.Name,
 		Identities: jsonIds,
 	}
 
