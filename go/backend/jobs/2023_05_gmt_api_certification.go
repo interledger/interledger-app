@@ -165,6 +165,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 
 	for _, tc := range cases {
 		txID := uuid.NewString()
+
 		err := workflow.ExecuteActivity(ctx, gmtActivity.AddTransaction, transactions.CreateTransactionArgs{
 			ID:          txID,
 			WalletID:    tc.args.FromWalletID,
@@ -176,6 +177,10 @@ func RunGMTCertification(ctx workflow.Context) error {
 			Destination: tc.args.ToPaymentPointer,
 			Amount:      tc.args.Amount,
 		}).Get(ctx, nil)
+		if err != nil {
+			logger.Warn("failed to setup transaction preflight", "err", err, "testcase", tc.name)
+			continue
+		}
 
 		err = workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
 		if err != nil {
