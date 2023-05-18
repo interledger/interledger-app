@@ -1,9 +1,11 @@
 package server
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/identities"
 	"io"
 	"net"
 	"net/http"
@@ -382,6 +384,21 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 	}
 }
 
+type JsonResponse struct {
+	Id         string             `json:"id"`
+	PublicName string             `json:"publicName"`
+	Identities []IdentityResponse `json:"identities"`
+}
+
+type IdentityResponse struct {
+	Identifier    string `json:"identifier"`
+	Kid           string `json:"kid"`
+	Ctime         int64  `json:"ctime"`
+	Signature     string `json:"signature"`
+	SignatureHash string `json:"signature_hash"`
+	PublicProof   string `json:"public_proof"`
+}
+
 // getHandler handles all incoming GET requests and handles them as required
 func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
@@ -414,9 +431,39 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	ids, err := b.Identities().ListPublic(ctx, pp.WalletID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	jsonIds := make([]IdentityResponse, 0)
+
+	for _, id := range ids {
+		if id.State == identities.StateVerified {
+			sigBase64 := base64.URLEncoding.EncodeToString(id.Signature)
+			sigHashBase64 := base64.URLEncoding.EncodeToString(id.SignatureHash)
+
+			jsonIds = append(jsonIds, IdentityResponse{
+				Identifier:    id.Identifier,
+				Kid:           id.KeyID,
+				Ctime:         id.CreatedAt.Unix(),
+				Signature:     sigBase64,
+				SignatureHash: sigHashBase64,
+				PublicProof:   id.VerificationProof,
+			})
+		}
+	}
+
+	jsonResponse := JsonResponse{
+		Id:         pp.URL,
+		PublicName: pp.Alias,
+		Identities: jsonIds,
+	}
+
 	// Fallback to get payment pointer
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(pp)
+	err = json.NewEncoder(w).Encode(jsonResponse)
 	if err != nil {
 		log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
