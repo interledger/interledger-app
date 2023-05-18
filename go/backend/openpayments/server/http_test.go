@@ -42,11 +42,12 @@ func TestGetHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	db := db.MigrateTestDB(t, ctx)
 	idc := identities_mock.NewMockClient(ctrl)
+	userClient := users_mock.NewMock()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.ids = idc
+		tb.us = userClient
 	})
-	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name       string
@@ -90,7 +91,7 @@ func TestGetHandler(t *testing.T) {
 				// Create Wallets
 				wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
 					UserID: userID,
-					Name:   "test",
+					Name:   tc.pointer.Alias,
 				})
 				require.NoError(t, err)
 
