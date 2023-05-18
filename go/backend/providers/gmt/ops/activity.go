@@ -570,6 +570,11 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		address = senderID.Address.String()
 	}
 
+	address := senderID.Address.FormattedAddress
+	if address == "" {
+		address = senderID.Address.String()
+	}
+
 	sender := &external.WsSender{
 		SenderAddress:               address,
 		SenderAddressStreet:         senderID.Address.Apartment,
