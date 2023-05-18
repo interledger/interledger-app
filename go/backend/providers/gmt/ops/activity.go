@@ -718,15 +718,7 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 	}
 
 	if res.Error != 0 {
-		return &TransactionResp{
-			ID:         res.Password,
-			ReceiptRef: res.Receipt,
-			Status:     res.Status,
-			Licence:    res.Receipt_License,
-			RTR:        res.Receipt_RTR_EN,
-			ErrorMsg:   res.Receipt_Error_EN,
-			Contact:    res.Status,
-		}, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s) Status (%s) ID (%s)", res.Error, res.Message, res.Status, res.Password), "external", nil)
 	}
 
 	return &TransactionResp{
