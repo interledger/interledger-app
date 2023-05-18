@@ -110,7 +110,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 				Amount:              currency.FromFloat64(2100, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
-			expected: "rejected",
+			expected:  "rejected",
+			expectErr: true,
 		},
 		{
 			name:  "case 1.4",
@@ -166,13 +167,10 @@ func RunGMTCertification(ctx workflow.Context) error {
 		var tr gmt_ops.TransactionResp
 		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, tc.args).Get(ctx, &tr)
 
-		if tc.expectErr && tr.Status != "" {
-			logger.Info("Test Case Result",
+		if tc.expectErr && err != nil {
+			logger.Info("Expected Test Case Error",
 				"test_name", tc.name,
-				"result", tr.Status,
-				"expected", tc.expected,
-				"matches", strings.EqualFold(tc.expected, tr.Status),
-				"references", tr.ID)
+				"err", err)
 			continue
 		}
 		if err != nil {
