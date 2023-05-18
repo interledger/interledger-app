@@ -57,6 +57,7 @@ type testBackends struct {
 	tbc  tabapay.Client
 	keys keys.Client
 	ids  identities.Client
+	us   user.Client
 }
 
 func (t *testBackends) Keys() keys.Client {
@@ -84,7 +85,7 @@ func (t *testBackends) Email() email.Client {
 }
 
 func (t *testBackends) Users() user.Client {
-	return nil
+	return t.us
 }
 
 func (t *testBackends) Validator() *validator.Validate {
