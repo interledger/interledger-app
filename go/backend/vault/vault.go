@@ -9,7 +9,6 @@ import (
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"os"
-	"strings"
 )
 
 type client struct {
@@ -86,7 +85,7 @@ func (c client) Sign(keyName string, input string) ([]byte, error) {
 		return nil, err
 	}
 
-	signatureBase64Url := strings.TrimPrefix(resp.Data["signature"].(string), "vault:1:") // remove "vault:v1:" prefix
+	signatureBase64Url := resp.Data["signature"].(string)[9:] // remove "vault:v1:" prefix
 
 	signature, err := base64.StdEncoding.DecodeString(signatureBase64Url)
 	if err != nil {
