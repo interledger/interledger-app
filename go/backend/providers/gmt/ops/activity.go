@@ -537,6 +537,8 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		return sender, nil
 	}
 
+	log.Info("Setting user EDD on GMT sender", zap.String("wallet_id", args.FromWalletID), zap.Bool("force_edd", args.ForceEDD), zap.Bool("exceeds", exceeds))
+
 	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, walletID)
 	if err != nil {
 		return nil, err
@@ -570,6 +572,8 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 	default:
 		log.Error("Unknown Persona ID number type", zap.String("persona_id_type", idNums.IdentificationClass))
 	}
+
+	sender.SenderOccupation = "Contracting Engineer"
 
 	return sender, nil
 }
@@ -714,7 +718,7 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 	}
 
 	if res.Error != 0 {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s) Status (%s) ID (%s)", res.Error, res.Message, res.Status, res.Password), "external", nil)
 	}
 
 	return &TransactionResp{
