@@ -2,17 +2,13 @@ package jobs
 
 import (
 	"context"
-	"strings"
 	"time"
-
-	"go.temporal.io/sdk/activity"
-
-	"gitlab.com/fynbos/env"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers"
 	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -21,8 +17,6 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 		return nil
 	}
 
-	logger := activity.GetLogger(ctx)
-
 	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
 		return err
@@ -30,8 +24,6 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 
 	id.Address.ZipCode = zip
 	id.Address.State = state
-
-	logger.Info("Updating User state", "state", id.Address.State, "zip", id.Address.ZipCode)
 
 	_, err = a.b.KYC().UpdateIndividualDetails(ctx, *id)
 	if err != nil {
@@ -47,7 +39,6 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 // through the entire flow just the create transaction part
 func RunGMTCertification(ctx workflow.Context) error {
 	var a *Activity
-	var gmtActivity *gmt_ops.Activity
 
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
@@ -69,11 +60,13 @@ func RunGMTCertification(ctx workflow.Context) error {
 		expected  string
 		expectErr bool
 	}{
-		/*{
+		{
 			name:  "case 1.1",
 			zip:   "86033",
 			state: "US-AZ",
 			args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
+				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver1",
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "d3df3382-3bd1-412c-96ad-7c243b4b6f72",
 				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
@@ -83,12 +76,14 @@ func RunGMTCertification(ctx workflow.Context) error {
 			},
 			expected:  "rejected",
 			expectErr: true,
-		},*/
+		},
 		{
 			name:  "case 1.2",
 			zip:   "93001",
 			state: "US-CA",
 			args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender2",
+				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver1",
 				FromLinkedAccountID: "1e22948b-cf28-4d5e-8bd7-942c643d8dc1",
 				ToLinkedAccountID:   "d3df3382-3bd1-412c-96ad-7c243b4b6f72",
 				FromWalletID:        "1aa7fb3f-aa45-4c57-8ae9-75b8ec95e55f", //barnard+gmt+autotest+sender+2@fynbos.dev
@@ -103,6 +98,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 			zip:   "93001",
 			state: "US-CA",
 			args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
+				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver2",
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
 				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
@@ -118,6 +115,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 			zip:   "93001",
 			state: "US-CA",
 			args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
+				ToPaymentPointer:    "https://eu1.fynbos.me/goldenrethreever",
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "4199deeb-b4d0-4007-ba11-bd4c9b8906bf",
 				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
@@ -131,6 +130,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 		{
 			name: "case 1.5",
 			args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
+				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver2",
 				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
 				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
@@ -146,6 +147,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 			zip:   "92101",
 			state: "US-CA",
 			args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/newrem",
+				ToPaymentPointer:    "https://eu1.fynbos.me/julio",
 				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
 				ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
 				FromWalletID:        "2396e098-25cf-4eb1-8a8f-f79843520cbb", //barnard+gmt+autotest+newremnewman+sender@fynbos.dev
@@ -164,8 +167,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 			continue
 		}
 
-		var tr gmt_ops.TransactionResp
-		err = workflow.ExecuteActivity(ctx, gmtActivity.InsertACH, tc.args).Get(ctx, &tr)
+		var resp providers.TransferResponse
+		err = workflow.ExecuteChildWorkflow(ctx, gmt_ops.ACH2ACHTransferWorkflow, tc.args).Get(ctx, &resp)
 
 		if tc.expectErr && err != nil {
 			logger.Info("Expected Test Case Error",
@@ -180,10 +183,9 @@ func RunGMTCertification(ctx workflow.Context) error {
 
 		logger.Info("Test Case Result",
 			"test_name", tc.name,
-			"result", tr.Status,
+			"result", resp.OutgoingTransferState,
 			"expected", tc.expected,
-			"matches", strings.EqualFold(tc.expected, tr.Status),
-			"references", tr.ID)
+			"references", tc.args.FromTransactionID)
 	}
 
 	return nil
