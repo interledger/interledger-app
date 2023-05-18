@@ -5,11 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -20,6 +15,8 @@ import (
 	mock_auth "gitlab.com/fynbos/backend/authorisation/client/mock"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/identities"
+	identities_mock "gitlab.com/fynbos/backend/identities/client/mock"
 	"gitlab.com/fynbos/backend/keys"
 	mock_keys "gitlab.com/fynbos/backend/keys/client/mock"
 	limits_mock "gitlab.com/fynbos/backend/limits/client/mock"
@@ -33,14 +30,21 @@ import (
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/mocks"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 func TestGetHandler(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
 	db := db.MigrateTestDB(t, ctx)
+	idc := identities_mock.NewMockClient(ctrl)
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
+		tb.ids = idc
 	})
 	userClient := users_mock.NewMock()
 
@@ -49,12 +53,14 @@ func TestGetHandler(t *testing.T) {
 		getPath    string
 		pointer    *openpayments.PaymentPointer
 		statusCode int
+		identities []identities.Identity
 	}{
 		{
 			name:       "not_found",
 			getPath:    "https://fynbos.local.me/not_real",
 			pointer:    nil,
 			statusCode: http.StatusNotFound,
+			identities: []identities.Identity{},
 		},
 		{
 			name:    "found",
@@ -67,6 +73,7 @@ func TestGetHandler(t *testing.T) {
 				URL:        "https://fynbos.local.me/found_me",
 			},
 			statusCode: http.StatusOK,
+			identities: []identities.Identity{},
 		},
 	}
 
@@ -93,6 +100,8 @@ func TestGetHandler(t *testing.T) {
 				require.NoError(t, err)
 			}
 
+			idc.EXPECT().ListPublic(gomock.Any(), gomock.Any()).Return(tc.identities, nil).AnyTimes()
+
 			rr := httptest.NewRecorder()
 			handler := catchAllHandler(b)
 			handler.ServeHTTP(rr, req)
@@ -103,15 +112,12 @@ func TestGetHandler(t *testing.T) {
 				return
 			}
 
-			var pp openpayments.PaymentPointer
-
-			err = json.NewDecoder(rr.Body).Decode(&pp)
+			var resp JsonResponse
+			err = json.NewDecoder(rr.Body).Decode(&resp)
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.pointer.Alias, pp.Alias)
-			assert.Equal(t, tc.pointer.Asset, pp.Asset)
-			assert.Equal(t, tc.pointer.AssetScale, pp.AssetScale)
-			assert.Equal(t, req.URL.String(), pp.URL)
+			assert.Equal(t, tc.pointer.Alias, resp.PublicName)
+			assert.Equal(t, req.URL.String(), resp.Id)
 		})
 	}
 }
