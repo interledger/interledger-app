@@ -495,7 +495,7 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 	for i, k := range keys {
 		jwks[i] = openpayments.Jwk{
 			Kty: "OKP",
-			Kid: k.Name,
+			Kid: k.ID,
 			Crv: "Ed25519",
 			Alg: "edDSA",
 			Use: "sign",
