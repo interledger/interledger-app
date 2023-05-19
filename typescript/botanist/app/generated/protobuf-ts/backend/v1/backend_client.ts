@@ -2,6 +2,8 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { TwitterCallbackResponse } from "./backend";
+import type { TwitterCallbackRequest } from "./backend";
 import type { CreateTwitterAuthURLResponse } from "./backend";
 import type { Features } from "./backend";
 import type { CreateCardRequest } from "./backend";
@@ -509,6 +511,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: CreateTwitterAuthURL(backend.v1.Empty) returns (backend.v1.CreateTwitterAuthURLResponse);
      */
     createTwitterAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateTwitterAuthURLResponse>;
+    /**
+     * @generated from protobuf rpc: TwitterCallback(backend.v1.TwitterCallbackRequest) returns (backend.v1.TwitterCallbackResponse);
+     */
+    twitterCallback(input: TwitterCallbackRequest, options?: RpcOptions): UnaryCall<TwitterCallbackRequest, TwitterCallbackResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -941,5 +947,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     createTwitterAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateTwitterAuthURLResponse> {
         const method = this.methods[54], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, CreateTwitterAuthURLResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: TwitterCallback(backend.v1.TwitterCallbackRequest) returns (backend.v1.TwitterCallbackResponse);
+     */
+    twitterCallback(input: TwitterCallbackRequest, options?: RpcOptions): UnaryCall<TwitterCallbackRequest, TwitterCallbackResponse> {
+        const method = this.methods[55], opt = this._transport.mergeOptions(options);
+        return stackIntercept<TwitterCallbackRequest, TwitterCallbackResponse>("unary", this._transport, method, opt, input);
     }
 }
