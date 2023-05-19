@@ -2,14 +2,17 @@ package jobs
 
 import (
 	"context"
+	"fmt"
 	"time"
-
-	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers"
 	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/workflow"
 )
@@ -35,6 +38,142 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 	return nil
 }
 
+func (a *Activity) SetupReceiver(ctx context.Context, args GmtTestArgs) (*providers.TransfersArgs, error) {
+	w, err := a.b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		ID:     uuid.NewString(),
+		UserID: uuid.NewString(),
+		Name:   "GMT integration test case",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	args.Args.ToWalletID = w.ID
+
+	_, err = a.b.KYC().UpdateIndividualDetails(ctx, kyc.IndividualDetails{
+		WalletID:    w.ID,
+		FirstName:   "Golden",
+		LastName:    "Receiver" + args.Name,
+		CountryCode: "US",
+		Gender:      kyc.GenderMale,
+		DateOfBirth: time.Date(1988, time.April, 8, 0, 0, 0, 0, time.UTC),
+		Address: &kyc.Address{
+			Line1:       "31 Mulburry lane",
+			Building:    "Private",
+			City:        "San Fransico",
+			State:       args.State,
+			ZipCode:     args.Zip,
+			CountryCode: "US",
+		},
+		IPAddress: "198.0.0.36",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.b.KYC().SetKYCStatus(ctx, w.ID, kyc.StatusApproved)
+	if err != nil {
+		return nil, err
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   w.ID,
+		Name:       "TestLinkedAccount",
+		Nickname:   "GMT cert Test",
+		Mask:       "5796",
+		Provider:   "mx",
+		ProviderID: "ACT-7d3b6615-a159-4f97-8f3f-1bbc25c294c5",
+		Type:       "bankAccount",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	args.Args.ToLinkedAccountID = la.ID
+
+	// Now for the hacky part...
+	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_inquiries(external_id, wallet_id, state) VALUES ($1, $2, $3)",
+		"inq_kfjeRr7UcjUKH6fDBufwaTUr", w.ID, "approved")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	return &args.Args, nil
+}
+
+func (a *Activity) SetupSender(ctx context.Context, args GmtTestArgs) (*providers.TransfersArgs, error) {
+	w, err := a.b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		ID:     uuid.NewString(),
+		UserID: uuid.NewString(),
+		Name:   "GMT integration test case",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	args.Args.FromWalletID = w.ID
+
+	_, err = a.b.KYC().UpdateIndividualDetails(ctx, kyc.IndividualDetails{
+		WalletID:    w.ID,
+		FirstName:   "Golden",
+		LastName:    "Sender" + args.Name,
+		CountryCode: "US",
+		Gender:      kyc.GenderMale,
+		DateOfBirth: time.Date(1988, time.April, 8, 0, 0, 0, 0, time.UTC),
+		Address: &kyc.Address{
+			Line1:       "30 Mulburry lane",
+			Building:    "Private",
+			City:        "San Fransico",
+			State:       args.State,
+			ZipCode:     args.Zip,
+			CountryCode: "US",
+		},
+		IPAddress: "198.0.0.3",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.b.KYC().SetKYCStatus(ctx, w.ID, kyc.StatusApproved)
+	if err != nil {
+		return nil, err
+	}
+
+	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   w.ID,
+		Name:       "TestLinkedAccount",
+		Nickname:   "GMT cert Test",
+		Mask:       "5796",
+		Provider:   "mx",
+		ProviderID: "ACT-10b9317a-2f2f-4b70-8de9-d33c7a56fcc8",
+		Type:       "bankAccount",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	args.Args.FromLinkedAccountID = la.ID
+
+	// Now for the hacky part...
+	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_inquiries(external_id, wallet_id, state) VALUES ($1, $2, $3)",
+		"inq_H1a6eimbnyapjsA9be4e7VQT", w.ID, "approved")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	return &args.Args, nil
+}
+
+type GmtTestArgs struct {
+	Name      string
+	Zip       string
+	State     string
+	Args      providers.TransfersArgs
+	Expected  string
+	ExpectErr bool
+	SetupAcc  bool
+}
+
 // RunGMTCertification does a series of create transactions calls on GMT API in the dev-eu1 environment.
 // Each wallet and linked account was set up manually and will use the exact same flow as any normal user operation
 // The exception being the users will not have sender and receiver IDs defined in the database as we do not go
@@ -55,101 +194,81 @@ func RunGMTCertification(ctx workflow.Context) error {
 		return nil
 	}
 
-	cases := []struct {
-		name      string
-		zip       string
-		state     string
-		args      providers.TransfersArgs
-		expected  string
-		expectErr bool
-	}{
+	cases := []GmtTestArgs{
 		{
-			name:  "case 1.1",
-			zip:   "86033",
-			state: "US-AZ",
-			args: providers.TransfersArgs{
-				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
-				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver1",
-				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
-				ToLinkedAccountID:   "d3df3382-3bd1-412c-96ad-7c243b4b6f72",
-				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
-				ToWalletID:          "0b523224-8345-4314-b2bb-955f8b82d225", //barnard+gmt+autotest+receiver+1@fynbos.dev
-				Amount:              currency.FromFloat64(9000, currency.USD),
-				FromTransactionID:   uuid.NewString(),
+			Name:  "case 1.1",
+			Zip:   "86033",
+			State: "US-AZ",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer: "https://eu1.fynbos.me/goldensender1",
+				ToPaymentPointer:   "https://eu1.fynbos.me/goldenreceiver1",
+				Amount:             currency.FromFloat64(9000, currency.USD),
+				FromTransactionID:  uuid.NewString(),
 			},
-			expected:  "rejected",
-			expectErr: true,
+			Expected:  "rejected",
+			ExpectErr: true,
+			SetupAcc:  true,
 		},
 		{
-			name:  "case 1.2",
-			zip:   "93001",
-			state: "US-CA",
-			args: providers.TransfersArgs{
-				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender2",
-				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver1",
-				FromLinkedAccountID: "1e22948b-cf28-4d5e-8bd7-942c643d8dc1",
-				ToLinkedAccountID:   "d3df3382-3bd1-412c-96ad-7c243b4b6f72",
-				FromWalletID:        "1aa7fb3f-aa45-4c57-8ae9-75b8ec95e55f", //barnard+gmt+autotest+sender+2@fynbos.dev
-				ToWalletID:          "0b523224-8345-4314-b2bb-955f8b82d225", //barnard+gmt+autotest+receiver+1@fynbos.dev
-				Amount:              currency.FromFloat64(9000, currency.USD),
-				FromTransactionID:   uuid.NewString(),
+			Name:  "case 1.2",
+			Zip:   "93001",
+			State: "US-CA",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer: "https://eu1.fynbos.me/goldensender2",
+				ToPaymentPointer:   "https://eu1.fynbos.me/goldenreceiver2",
+				Amount:             currency.FromFloat64(9000, currency.USD),
+				FromTransactionID:  uuid.NewString(),
 			},
-			expected: "created",
+			Expected: "created",
+			SetupAcc: true,
 		},
 		{
-			name:  "case 1.3",
-			zip:   "93001",
-			state: "US-CA",
-			args: providers.TransfersArgs{
-				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
-				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver2",
-				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
-				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
-				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
-				ToWalletID:          "b532a5e4-e572-4d7f-a9e8-565065f4f2bc", //barnard+gmt+autotest+receiver+2@fynbos.dev
-				Amount:              currency.FromFloat64(2100, currency.USD),
-				FromTransactionID:   uuid.NewString(),
+			Name:  "case 1.3",
+			Zip:   "93001",
+			State: "US-CA",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer: "https://eu1.fynbos.me/goldensender2",
+				ToPaymentPointer:   "https://eu1.fynbos.me/goldenreceiver3",
+				Amount:             currency.FromFloat64(2100, currency.USD),
+				FromTransactionID:  uuid.NewString(),
 			},
-			expected:  "rejected",
-			expectErr: true,
+			Expected:  "rejected",
+			ExpectErr: true,
+			SetupAcc:  true,
 		},
 		{
-			name:  "case 1.4",
-			zip:   "93001",
-			state: "US-CA",
-			args: providers.TransfersArgs{
-				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
-				ToPaymentPointer:    "https://eu1.fynbos.me/goldenrethreever",
-				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
-				ToLinkedAccountID:   "4199deeb-b4d0-4007-ba11-bd4c9b8906bf",
-				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
-				ToWalletID:          "378b1743-89be-4422-b679-0345ebcd3e83", //barnard+gmt+autotest+receiver+3@fynbos.dev
-				Amount:              currency.FromFloat64(2100, currency.USD),
-				FromTransactionID:   uuid.NewString(),
-				ForceEDD:            true,
+			Name:  "case 1.4",
+			Zip:   "93001",
+			State: "US-CA",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer: "https://eu1.fynbos.me/goldensender2",
+				ToPaymentPointer:   "https://eu1.fynbos.me/goldenrethreever4",
+				Amount:             currency.FromFloat64(2100, currency.USD),
+				FromTransactionID:  uuid.NewString(),
+				ForceEDD:           true,
 			},
-			expected: "created",
+			Expected: "created",
+			SetupAcc: true,
 		},
 		{
-			name: "case 1.5",
-			args: providers.TransfersArgs{
-				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender1",
-				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver2",
-				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
-				ToLinkedAccountID:   "93856ba9-eaf5-4df2-a30f-1a4b7bbf74fa",
-				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef", //barnard+gmt+autotest+sender+1@fynbos.dev
-				ToWalletID:          "b532a5e4-e572-4d7f-a9e8-565065f4f2bc", //barnard+gmt+autotest+receiver+2@fynbos.dev
-				Amount:              currency.FromFloat64(8000, currency.USD),
-				FromTransactionID:   uuid.NewString(),
-				ForceEDD:            true,
+			Name:  "case 1.5",
+			Zip:   "93001",
+			State: "US-CA",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer: "https://eu1.fynbos.me/goldensender3",
+				ToPaymentPointer:   "https://eu1.fynbos.me/goldenreceiver5",
+				Amount:             currency.FromFloat64(8000, currency.USD),
+				FromTransactionID:  uuid.NewString(),
+				ForceEDD:           true,
 			},
-			expected: "created",
+			Expected: "created",
+			SetupAcc: true,
 		},
 		{
-			name:  "case 1.6",
-			zip:   "92101",
-			state: "US-CA",
-			args: providers.TransfersArgs{
+			Name:  "case 1.6",
+			Zip:   "92101",
+			State: "US-CA",
+			Args: providers.TransfersArgs{
 				FromPaymentPointer:  "https://eu1.fynbos.me/newrem",
 				ToPaymentPointer:    "https://eu1.fynbos.me/julio",
 				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
@@ -159,53 +278,85 @@ func RunGMTCertification(ctx workflow.Context) error {
 				Amount:              currency.FromFloat64(10, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
-			expected: "hold",
+			Expected: "hold",
 		},
 	}
 
+	accMap := make(map[string][]string)
+
 	for _, tc := range cases {
 
+		if tc.SetupAcc {
+			var args providers.TransfersArgs
+			accFrom, ok := accMap[tc.Args.FromPaymentPointer]
+			if ok {
+				tc.Args.FromWalletID = accFrom[0]
+				tc.Args.FromLinkedAccountID = accFrom[1]
+			} else {
+
+				err := workflow.ExecuteActivity(ctx, a.SetupSender, tc).Get(ctx, &args)
+				if err != nil {
+					logger.Error("failed to setup sender", "err", err, "testcase", tc.Name)
+					continue
+				}
+				tc.Args = args
+
+				accMap[tc.Args.FromPaymentPointer] = []string{args.FromWalletID, args.FromLinkedAccountID}
+			}
+
+			accTo, ok := accMap[tc.Args.ToPaymentPointer]
+			if ok {
+				tc.Args.ToWalletID = accTo[0]
+				tc.Args.ToLinkedAccountID = accTo[1]
+			} else {
+				err := workflow.ExecuteActivity(ctx, a.SetupReceiver, tc).Get(ctx, &args)
+				if err != nil {
+					logger.Error("failed to setup receiver", "err", err, "testcase", tc.Name)
+					continue
+				}
+				tc.Args = args
+
+				accMap[tc.Args.ToPaymentPointer] = []string{args.ToWalletID, args.ToLinkedAccountID}
+			}
+		}
+
 		err := workflow.ExecuteActivity(ctx, gmtActivity.AddTransaction, transactions.CreateTransactionArgs{
-			ID:          tc.args.FromTransactionID,
-			WalletID:    tc.args.FromWalletID,
+			ID:          tc.Args.FromTransactionID,
+			WalletID:    tc.Args.FromWalletID,
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			Provider:    "gmt",
 			State:       transactions.StatePending,
 			Note:        "Used for compliance testing",
-			Source:      tc.args.FromPaymentPointer,
-			Destination: tc.args.ToPaymentPointer,
-			Amount:      tc.args.Amount,
+			Source:      tc.Args.FromPaymentPointer,
+			Destination: tc.Args.ToPaymentPointer,
+			Amount:      tc.Args.Amount,
 		}).Get(ctx, nil)
 		if err != nil {
-			logger.Warn("failed to setup transaction preflight", "err", err, "testcase", tc.name)
+			logger.Warn("failed to setup transaction preflight", "err", err, "testcase", tc.Name, "reference", tc.Args.FromTransactionID)
 			continue
 		}
 
-		err = workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.args.FromWalletID, tc.state, tc.zip).Get(ctx, nil)
-		if err != nil {
-			logger.Error("failed to update wallet address", "err", err, "testcase", tc.name)
-			continue
-		}
+		logger.Info("Starting test case workflow", "testcase", tc.Name, "")
 
 		var resp providers.TransferResponse
-		err = workflow.ExecuteChildWorkflow(ctx, gmt_ops.ACH2ACHTransferWorkflow, tc.args).Get(ctx, &resp)
+		err = workflow.ExecuteChildWorkflow(ctx, gmt_ops.ACH2ACHTransferWorkflow, tc.Args).Get(ctx, &resp)
 
-		if tc.expectErr && err != nil {
+		if tc.ExpectErr && err != nil {
 			logger.Info("Expected Test Case Error",
-				"test_name", tc.name,
+				"test_name", tc.Name,
 				"err", err)
 			continue
 		}
 		if err != nil {
-			logger.Warn("failed to add transaction", "err", err, "testcase", tc.name)
+			logger.Warn("failed to add transaction", "err", err, "testcase", tc.Name)
 			continue
 		}
 
 		logger.Info("Test Case Result",
-			"test_name", tc.name,
+			"test_name", tc.Name,
 			"result", resp.OutgoingTransferState,
-			"expected", tc.expected,
-			"references", tc.args.FromTransactionID)
+			"expected", tc.Expected,
+			"references", tc.Args.FromTransactionID)
 	}
 
 	return nil
