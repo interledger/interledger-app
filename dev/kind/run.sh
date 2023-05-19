@@ -18,18 +18,18 @@ docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalite localhost:50
 docker push localhost:5005/temporalite
 
 # Pull and push temporal
-docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/auto-setup:1.18.5
-docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/auto-setup:1.18.5 localhost:5005/temporalio/auto-setup
-docker push localhost:5005/temporalio/auto-setup
-docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/ui:2.9.0
-docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/ui:2.9.0 localhost:5005/temporalio/ui
-docker push localhost:5005/temporalio/ui
-docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/admin-tools:1.18.5
-docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/admin-tools:1.18.5 localhost:5005/temporalio/admin-tools
-docker push localhost:5005/temporalio/admin-tools
-docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/server:1.18.5
-docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/server:1.18.5 localhost:5005/temporalio/server
-docker push localhost:5005/temporalio/server
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/auto-setup:1.20.3.0
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/auto-setup:1.20.3.0 localhost:5005/temporalio/auto-setup:1.20.3.0
+docker push localhost:5005/temporalio/auto-setup:1.20.3.0
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/ui:2.15.0
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/ui:2.15.0 localhost:5005/temporalio/ui:2.15.0
+docker push localhost:5005/temporalio/ui:2.15.0
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/admin-tools:1.20.3.0
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/admin-tools:1.20.3.0 localhost:5005/temporalio/admin-tools:1.20.3.0
+docker push localhost:5005/temporalio/admin-tools:1.20.3.0
+docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/server:1.20.3.0
+docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalio/server:1.20.3.0 localhost:5005/temporalio/server:1.20.3.0
+docker push localhost:5005/temporalio/server:1.20.3.0
 
 # Pull and push cert watcher
 docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/certwatcher:3.17.0
