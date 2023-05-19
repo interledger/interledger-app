@@ -11,7 +11,7 @@ import (
 func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListIdentitiesResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
@@ -49,7 +49,7 @@ func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPubli
 func (s *rpcService) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityRequest) (*pb.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
@@ -65,7 +65,7 @@ func (s *rpcService) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityR
 func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityPublicRequest) (*pb.Identity, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)

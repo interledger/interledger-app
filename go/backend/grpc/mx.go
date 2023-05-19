@@ -12,7 +12,7 @@ func (s *rpcService) GetMXWidget(
 ) (*backendv1.MXWidgetResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
@@ -35,7 +35,7 @@ func (s *rpcService) CreateMXBankAccounts(
 ) (*backendv1.CreateMXBankAccountsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
