@@ -25,7 +25,7 @@ type validateIndividualKYC struct {
 func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndividualKYCRequest) (*pb.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
@@ -101,7 +101,7 @@ func addressFromPB(address *pb.Address) *kyc.Address {
 func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.IsUSPSAddressResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	if env.IsLocal() {
@@ -126,7 +126,7 @@ func (s *rpcService) IsUSPSAddress(ctx context.Context, req *pb.Address) (*pb.Is
 func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.IndividualKYCResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)

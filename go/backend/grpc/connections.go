@@ -26,7 +26,7 @@ func (s *rpcService) CreateConnection(
 ) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
@@ -80,7 +80,7 @@ func (s *rpcService) CreateConnection(
 func (s *rpcService) ListConnections(ctx context.Context, req *backendv1.Empty) (*backendv1.ListConnectionsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
@@ -117,7 +117,7 @@ func (s *rpcService) ListConnections(ctx context.Context, req *backendv1.Empty) 
 func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnectionRequest) (*backendv1.Connection, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
@@ -158,7 +158,7 @@ func (s *rpcService) GetConnection(ctx context.Context, req *backendv1.GetConnec
 func (s *rpcService) GetConnectionLimits(ctx context.Context, req *backendv1.GetConnectionLimitsRequest) (*backendv1.ConnectionLimits, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
@@ -188,7 +188,7 @@ type validateUpdateConnectionLimitArgs struct {
 func (s *rpcService) UpdateConnectionLimits(ctx context.Context, req *backendv1.UpdateConnectionLimitsRequest) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
@@ -221,7 +221,7 @@ func (s *rpcService) UpdateConnectionLimits(ctx context.Context, req *backendv1.
 func (s *rpcService) DeleteConnection(ctx context.Context, req *backendv1.DeleteConnectionRequest) (*backendv1.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)
