@@ -27,7 +27,7 @@ func (s *rpcService) GetCurrentWallet(ctx context.Context, req *pb.Empty) (*pb.G
 func (s *rpcService) SetWalletName(ctx context.Context, req *pb.SetWalletNameRequest) (*pb.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
