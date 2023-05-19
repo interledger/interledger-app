@@ -275,6 +275,7 @@ service BackendService {
 
   // Twitter
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
+  rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
 }
 
 message Features {
@@ -730,4 +731,13 @@ message KYCPersonaInquiryResponse {
 
 message CreateTwitterAuthURLResponse {
   string url = 1;
+}
+
+message TwitterCallbackRequest {
+  string state = 1;
+  string code = 2;
+}
+
+message TwitterCallbackResponse {
+  string id = 1;
 }
