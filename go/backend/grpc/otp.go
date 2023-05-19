@@ -9,7 +9,7 @@ import (
 func (s *rpcService) SendOTP(ctx context.Context, _ *pb.Empty) (*pb.Empty, error) {
 	user, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	_, err = s.b.Twilio().SendVerificationCode(ctx, user.PhoneNumber)
