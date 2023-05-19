@@ -598,7 +598,7 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderPOB:                   senderID.PlaceOfBirth,
 	}
 
-	if !exceeds && !args.ForceEDD {
+	if (!exceeds && !args.ForceEDD) || args.ForceNoEDD {
 		return sender, nil
 	}
 
