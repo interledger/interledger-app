@@ -31,20 +31,20 @@ func OnboardUserWorkflow(ctx workflow.Context, walletID string) (string, error) 
 
 	err := workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, walletID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do OFAC checks", "err", err)
+		logger.Warn("failed to do OFAC checks", "err", err)
 		return "", err
 	}
 
 	var cr ComplianceResp
 	err = workflow.ExecuteActivity(ctx, a.IndividualCompliance, walletID).Get(ctx, &cr)
 	if err != nil {
-		logger.Error("failed to do compliance checks", "err", err)
+		logger.Warn("failed to do compliance checks", "err", err)
 		return "", err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to upsert gmt send recv user", "err", err)
+		logger.Warn("failed to upsert gmt send recv user", "err", err)
 		return "", err
 	}
 
@@ -64,7 +64,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 
 	err := workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.ToWalletID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do to linked account OFAC checks", "err", err)
+		logger.Warn("failed to do to linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2ACH,
@@ -77,7 +77,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 
 	err = workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.FromWalletID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do from linked account OFAC checks", "err", err)
+		logger.Warn("failed to do from linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2ACH,
@@ -91,7 +91,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 	var cr ComplianceResp
 	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, &cr)
 	if err != nil {
-		logger.Error("failed to do compliance checks", "err", err)
+		logger.Warn("failed to do compliance checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2ACH,
@@ -104,14 +104,14 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to upsert gmt send recv user", "err", err)
+		logger.Warn("failed to upsert gmt send recv user", "err", err)
 		return nil, err
 	}
 
 	var tr TransactionResp
 	err = workflow.ExecuteActivity(ctx, a.InsertACH, args).Get(ctx, &tr)
 	if err != nil {
-		logger.Error("failed to insert gmt transaction", "err", err)
+		logger.Warn("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2ACH,
@@ -124,7 +124,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 
 	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, tr).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to save gmt transaction receipt", "err", err)
+		logger.Warn("failed to save gmt transaction receipt", "err", err)
 		return nil, err
 	}
 
@@ -149,7 +149,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		},
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("error updating transaction transfer", "Error", err)
+		logger.Warn("error updating transaction transfer", "Error", err)
 		return nil, err
 	}
 
@@ -159,7 +159,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		return uuid.NewString()
 	}).Get(&recvTrxID)
 	if err != nil {
-		logger.Error("error generating transactionID as side effect", "Error", err)
+		logger.Warn("error generating transactionID as side effect", "Error", err)
 		return nil, err
 	}
 
@@ -184,7 +184,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		},
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to add transaction for recipient", "err", err)
+		logger.Warn("failed to add transaction for recipient", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2ACH,
@@ -201,7 +201,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 
 	err = workflow.ExecuteActivity(ctx, a.VerifyTransaction, tr.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to verify gmt transaction", "err", err)
+		logger.Warn("failed to verify gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2ACH,
@@ -222,7 +222,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		ActivityName:  "ACH_to_ACH",
 	}).Get(ctx, &refID)
 	if err != nil {
-		logger.Error("failed to create workflow reference", "err", err)
+		logger.Warn("failed to create workflow reference", "err", err)
 		return nil, err
 	}
 
@@ -273,25 +273,25 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 
 	err = workflow.ExecuteActivity(ctx, a.CompleteWorkflowRef, refID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to complete workflow ref", "err", err)
+		logger.Warn("failed to complete workflow ref", "err", err)
 		return nil, err
 	}
 
 	// update send and receive transfer state.
 	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, args.FromTransactionID, args.FromWalletID, transactions.TransferTypeDebitBankAccount, state).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to update transaction state", "error", err, "state", state)
+		logger.Warn("failed to update transaction state", "error", err, "state", state)
 		return nil, err
 	}
 	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, recvTrxID, args.ToWalletID, transactions.TransferTypeCreditBankAccount, state).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to update transaction state", "error", err, "state", state)
+		logger.Warn("failed to update transaction state", "error", err, "state", state)
 		return nil, err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.ConfirmPaidNotification, tr.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to clear paid notification", "error", err, "ext ID", tr.ID)
+		logger.Warn("failed to clear paid notification", "error", err, "ext ID", tr.ID)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2ACH,
@@ -326,7 +326,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err := workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.ToWalletID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do to linked account OFAC checks", "err", err)
+		logger.Warn("failed to do to linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTCARD2ACH,
@@ -339,7 +339,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.FromWalletID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do from linked account OFAC checks", "err", err)
+		logger.Warn("failed to do from linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTCARD2ACH,
@@ -353,7 +353,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	var cr ComplianceResp
 	err = workflow.ExecuteActivity(ctx, a.Card2ACHCompliance, args).Get(ctx, &cr)
 	if err != nil {
-		logger.Error("failed to do compliance checks", "err", err)
+		logger.Warn("failed to do compliance checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTCARD2ACH,
@@ -366,7 +366,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to upsert gmt send recv user", "err", err)
+		logger.Warn("failed to upsert gmt send recv user", "err", err)
 		return &providers.TransferResponse{
 			Type:                  providers.GMTCARD2ACH,
 			OutgoingTransferState: transactions.StateFailed,
@@ -379,7 +379,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return tabapay.NewReferenceID()
 	}).Get(&tabapayReferenceID)
 	if err != nil {
-		logger.Error("error generating tabapay ReferenceID as side effect", "err", err)
+		logger.Warn("error generating tabapay ReferenceID as side effect", "err", err)
 		return &providers.TransferResponse{
 			Type:                  providers.GMTCARD2ACH,
 			OutgoingTransferState: transactions.StateFailed,
@@ -405,7 +405,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		ReferenceID:         tabapayReferenceID,
 	}).Get(ctx, &tabapayTransaction)
 	if err != nil {
-		logger.Error("failed to pull from card", "err", err)
+		logger.Warn("failed to pull from card", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
@@ -422,7 +422,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		err = workflow.ExecuteActivity(newCtx, a.GetTabapayTransaction, tabapayTransaction.ID).Get(newCtx, &tabapayTransaction)
 	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(tabapayTransaction) {
-		logger.Error("failed to pull from card", "err", err)
+		logger.Warn("failed to pull from card", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
@@ -447,7 +447,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		},
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("error updating transaction transfer", "Error", err)
+		logger.Warn("error updating transaction transfer", "Error", err)
 		return nil, err
 	}
 
@@ -455,7 +455,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	var achTransaction TransactionResp
 	err = workflow.ExecuteActivity(ctx, a.InsertCard2ACH, args).Get(ctx, &achTransaction)
 	if err != nil {
-		logger.Error("failed to insert gmt transaction", "err", err)
+		logger.Warn("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
@@ -472,7 +472,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return uuid.NewString()
 	}).Get(&recvTrxID)
 	if err != nil {
-		logger.Error("error generating transactionID as side effect", "Error", err)
+		logger.Warn("error generating transactionID as side effect", "Error", err)
 		return nil, err
 	}
 
@@ -497,7 +497,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		},
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to add transaction for recipient", "err", err)
+		logger.Warn("failed to add transaction for recipient", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
@@ -512,7 +512,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.VerifyTransaction, achTransaction.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to verify gmt transaction", "err", err)
+		logger.Warn("failed to verify gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
@@ -533,7 +533,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		ActivityName:  "CARD_to_ACH",
 	}).Get(ctx, &refID)
 	if err != nil {
-		logger.Error("failed to create workflow reference", "err", err)
+		logger.Warn("failed to create workflow reference", "err", err)
 		return nil, err
 	}
 
@@ -557,20 +557,20 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.CompleteWorkflowRef, refID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to complete workflow ref", "err", err)
+		logger.Warn("failed to complete workflow ref", "err", err)
 		return nil, err
 	}
 
 	// update send transfer state.
 	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, recvTrxID, args.ToWalletID, transactions.TransferTypeCreditBankAccount, state).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to update transaction state", "error", err, "state", state)
+		logger.Warn("failed to update transaction state", "error", err, "state", state)
 		return nil, err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.ConfirmPaidNotification, achTransaction.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to clear paid notification", "error", err, "ext ID", achTransaction.ID)
+		logger.Warn("failed to clear paid notification", "error", err, "ext ID", achTransaction.ID)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
@@ -605,7 +605,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err := workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.ToWalletID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do to linked account OFAC checks", "err", err)
+		logger.Warn("failed to do to linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2CARD,
@@ -618,7 +618,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.FromWalletID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to do from linked account OFAC checks", "err", err)
+		logger.Warn("failed to do from linked account OFAC checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2CARD,
@@ -632,7 +632,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	var cr ComplianceResp
 	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, &cr)
 	if err != nil {
-		logger.Error("failed to do compliance checks", "err", err)
+		logger.Warn("failed to do compliance checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2CARD,
@@ -645,14 +645,14 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to upsert gmt send recv user", "err", err)
+		logger.Warn("failed to upsert gmt send recv user", "err", err)
 		return nil, err
 	}
 
 	var achTransaction TransactionResp
 	err = workflow.ExecuteActivity(ctx, a.InsertACH2Card, args).Get(ctx, &achTransaction)
 	if err != nil {
-		logger.Error("failed to insert gmt transaction", "err", err)
+		logger.Warn("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                  providers.GMTACH2CARD,
@@ -665,7 +665,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, achTransaction).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to save gmt transaction receipt", "err", err)
+		logger.Warn("failed to save gmt transaction receipt", "err", err)
 		return nil, err
 	}
 
@@ -680,7 +680,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		},
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("error updating transaction transfer", "Error", err)
+		logger.Warn("error updating transaction transfer", "Error", err)
 		return nil, err
 	}
 
@@ -688,7 +688,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.VerifyTransaction, achTransaction.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to verify gmt transaction", "err", err)
+		logger.Warn("failed to verify gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2CARD,
@@ -708,7 +708,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		ActivityName:  "ACH_to_CARD",
 	}).Get(ctx, &refID)
 	if err != nil {
-		logger.Error("failed to create workflow reference", "err", err)
+		logger.Warn("failed to create workflow reference", "err", err)
 		return nil, err
 	}
 
@@ -732,20 +732,20 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	err = workflow.ExecuteActivity(ctx, a.CompleteWorkflowRef, refID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to complete workflow ref", "err", err)
+		logger.Warn("failed to complete workflow ref", "err", err)
 		return nil, err
 	}
 
 	// update send transfer state
 	err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, args.FromTransactionID, args.FromWalletID, transactions.TransferTypeDebitBankAccount, state).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to update transaction state", "error", err, "state", state)
+		logger.Warn("failed to update transaction state", "error", err, "state", state)
 		return nil, err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.ConfirmPaidNotification, achTransaction.ID).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to clear paid notification", "error", err, "ext ID", achTransaction.ID)
+		logger.Warn("failed to clear paid notification", "error", err, "ext ID", achTransaction.ID)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2CARD,
@@ -763,7 +763,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return uuid.NewString()
 	}).Get(&recvTrxID)
 	if err != nil {
-		logger.Error("error generating transactionID as side effect", "Error", err)
+		logger.Warn("error generating transactionID as side effect", "Error", err)
 		return &providers.TransferResponse{
 			Type:                       providers.GMTACH2CARD,
 			OutgoingTransferState:      transactions.StateFailed,
@@ -777,7 +777,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return tabapay.NewReferenceID()
 	}).Get(&tabapayReferenceID)
 	if err != nil {
-		logger.Error("error generating tabapay ReferenceID as side effect", "Error", err)
+		logger.Warn("error generating tabapay ReferenceID as side effect", "Error", err)
 		return &providers.TransferResponse{
 			Type:                       providers.GMTACH2CARD,
 			OutgoingTransferState:      transactions.StateFailed,
@@ -803,12 +803,12 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		ReferenceID:         tabapayReferenceID,
 	}).Get(ctx, &tabapayTransaction)
 	if err != nil {
-		logger.Error("Failed to push to card.", "Error", err)
+		logger.Warn("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			// Try to fail tx on GMT
 			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StateFailed).Get(ctx, nil)
 			if innerErr != nil {
-				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
+				logger.Warn("failed to update card transaction on gmt to failed", "err", innerErr)
 			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2CARD,
@@ -825,12 +825,12 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		err = workflow.ExecuteActivity(newCtx, a.GetTabapayTransaction, tabapayTransaction.ID).Get(newCtx, &tabapayTransaction)
 	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(tabapayTransaction) {
-		logger.Error("Failed to push to card.", "Error", err)
+		logger.Warn("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			// Try to fail tx on GMT
 			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StateFailed).Get(ctx, nil)
 			if innerErr != nil {
-				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
+				logger.Warn("failed to update card transaction on gmt to failed", "err", innerErr)
 			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2CARD,
@@ -845,7 +845,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	// Notify GMT of completed card transaction.
 	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to update card transaction on gmt", "err", err)
+		logger.Warn("failed to update card transaction on gmt", "err", err)
 		return nil, err
 	}
 
@@ -872,7 +872,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		},
 	}).Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to add transaction for recipient", "err", err)
+		logger.Warn("failed to add transaction for recipient", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTACH2CARD,
