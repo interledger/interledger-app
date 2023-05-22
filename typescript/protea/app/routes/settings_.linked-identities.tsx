@@ -2,13 +2,8 @@ import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
-import {
-  getKycStatus,
-  getLinkedAccounts,
-  getLinkedIdentities
-} from '~/lib/wallet.server'
-import { KycStatus } from '~/routes/_index/route'
+import { Card, Layouts, Router, Snackbar } from '~/components'
+import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
 import { useState } from 'react'
 import { getSnackbar } from '~/lib/snackbar.server'
 
@@ -41,18 +36,13 @@ export default function Page() {
 
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
+  // TODO we need to add a fallback if we can't open a popup window
+  const openPopup = () => {
+    window.open('/connect/twitter', 'twitter_connect', 'width=700,height=560')
+  }
+
   return (
     <>
-      {linkedIdentities && linkedIdentities.length > 0 && (
-        <Card>
-          <Router
-            className='mt-6 text-sm font-medium text-primary'
-            to={route('/link-account')}
-          >
-            Link another account
-          </Router>
-        </Card>
-      )}
       <Card>
         <div>
           <p>Twitter</p>
@@ -61,17 +51,19 @@ export default function Page() {
           <Router
             key={identity.id}
             className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-            to={route('/')}
+            to={route('/settings/linked-identities/:identityId', {
+              identityId: identity.id
+            })}
           >
             {identity.identifier} - ({identity.state})
           </Router>
         ))}
-        <Router
-          className='text-sm font-medium text-primary'
-          to={route('/twitter')}
+        <a
+          className='text-sm font-medium text-primary rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
+          onClick={openPopup}
         >
           Link twitter identity
-        </Router>
+        </a>
       </Card>
       <Snackbar
         message={snackbar.message}
