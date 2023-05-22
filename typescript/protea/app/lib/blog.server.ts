@@ -23,6 +23,20 @@ export const getAllBlogPosts = async (variables?: QueryAllBlogPostsArgs) => {
             _status
             shapes {
               url
+              responsiveImage(
+                imgixParams: { fit: max, w: 120, h: 120, auto: format }
+              ) {
+                srcSet
+                webpSrcSet
+                sizes
+                src
+                width
+                height
+                aspectRatio
+                alt
+                title
+                base64
+              }
             }
             shapesMobile {
               url
