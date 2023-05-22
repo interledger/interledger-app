@@ -2,6 +2,8 @@ package client
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/identities"
+	temporal "go.temporal.io/sdk/client"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/twitter"
@@ -15,6 +17,7 @@ var _ twitter.Client = &Client{}
 type (
 	Backends interface {
 		DB() *sqlx.DB
+		Temporal() temporal.Client
 	}
 
 	opsBackends struct {
@@ -37,6 +40,10 @@ type (
 		TokenEndpoint string
 	}
 )
+
+func (ob *opsBackends) Temporal() temporal.Client {
+	return ob.b.Temporal()
+}
 
 func (ob *opsBackends) External() external.Client {
 	return ob.external
@@ -90,4 +97,8 @@ func (c *Client) GetWalletConnections(ctx context.Context, id string) ([]twitter
 
 func (c *Client) PostTweet(ctx context.Context, id string, text string) (*twitter.Tweet, error) {
 	return ops.PostTweet(ctx, c.b, id, text)
+}
+
+func (c *Client) PublishTweetProof(ctx context.Context, identity *identities.Identity, connection *twitter.Connection) (string, error) {
+	return ops.PublishTweetProof(ctx, c.b, identity, connection)
 }
