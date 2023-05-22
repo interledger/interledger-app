@@ -447,3 +447,32 @@ export async function getLinkedIdentities(
 
   return response.response.identities
 }
+
+export async function getIdentity(
+  request: Request,
+  id: string
+): Promise<Identity> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .getIdentity(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  if (!response.response.identity) {
+    throw json({}, 404)
+  }
+
+  return response.response.identity
+}

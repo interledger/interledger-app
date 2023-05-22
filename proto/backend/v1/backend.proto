@@ -249,6 +249,7 @@ service BackendService {
   rpc ListPublicIdentities(ListPublicIdentitiesRequest) returns (ListIdentitiesResponse);
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
 
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
@@ -744,4 +745,12 @@ message TwitterCallbackRequest {
 
 message TwitterCallbackResponse {
   string id = 1;
+}
+
+message GetIdentityRequest{
+  string id = 1;
+}
+
+message GetIdentityResponse{
+   Identity identity = 1;
 }

@@ -2,6 +2,7 @@ declare module "routes-gen" {
   export type RouteParams = {
     "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
+    "/settings/linked-identities/:identityId": { "identityId": string };
     "/settings/linked-accounts/:accountId": { "accountId": string };
     "/legal/accessibility-statement": Record<string, never>;
     "/settings/profile-public/name": Record<string, never>;
@@ -29,6 +30,7 @@ declare module "routes-gen" {
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
+    "/connect/twitter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
@@ -65,6 +67,7 @@ declare module "routes-gen" {
     T extends
       | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
+      | ["/settings/linked-identities/:identityId", RouteParams["/settings/linked-identities/:identityId"]]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
       | ["/legal/accessibility-statement"]
       | ["/settings/profile-public/name"]
@@ -92,6 +95,7 @@ declare module "routes-gen" {
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/waitlist/success"]
+      | ["/connect/twitter"]
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/personal-details"]
