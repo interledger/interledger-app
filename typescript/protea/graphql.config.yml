@@ -1,0 +1,22 @@
+schema:
+  - https://graphql.datocms.com:
+      headers:
+        Authorization: ${DATO_API_TOKEN}
+generates:
+  app/generated/dato-cms-graphql.ts:
+    plugins:
+      - typescript
+      - typescript-operations:
+          strictScalars: true
+          scalars:
+            BooleanType: boolean
+            CustomData: Record<string, any>
+            Date: string
+            DateTime: string
+            FloatType: number
+            IntType: number
+            ItemId: string
+            JsonField: any
+            MetaTagAttributes: Record<string, string>
+            UploadId: string
+      - typed-document-node

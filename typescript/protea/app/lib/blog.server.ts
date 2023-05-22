@@ -1,102 +1,179 @@
-import { DateTime } from 'luxon'
+import { gql } from '@apollo/client'
+import type { Query, QueryAllBlogPostsArgs } from '~/generated/dato-cms-graphql'
+import { apolloClient } from '~/lib/apollo.server'
+import type { QueryBlogPostArgs } from '~/generated/dato-cms-graphql'
 
-import * as postA from '~/routes/blog_.connecting-the-internet-economy.mdx'
-import * as postB from '~/routes/blog_.card-payments-still-suck.mdx'
-import * as postC from '~/routes/blog_.our-fynbos-family-meet-don.mdx'
-import * as postD from '~/routes/blog_.the-future-digital-wallets-and-payment-pointers.mdx'
-import * as postE from '~/routes/blog_.our-fynbos-family-meet-matt.mdx'
-import * as postF from '~/routes/blog_.our-fynbos-family-meet-adrian.mdx'
-import * as postG from '~/routes/blog_.our-fynbos-family-meet-cairin.mdx'
-import * as postH from '~/routes/blog_.our-fynbos-family-meet-justin.mdx'
-import * as postI from '~/routes/blog_.our-fynbos-family-meet-barnard.mdx'
-import * as postJ from '~/routes/blog_.why-payment-pointers-are-urls.mdx'
-import * as postK from '~/routes/blog_.our-fynbos-family-meet-omer.mdx'
-import * as postL from '~/routes/blog_.how-technical-standards-promote-innovation.mdx'
-import * as postM from '~/routes/blog_.joining-the-owf.mdx'
+// TODO possibly look into https://www.datocms.com/blog/how-to-generate-typescript-types-from-graphql#how-to-avoid-nullable-types-on-required-field-in-datocms
 
-const modules = [
-  postA,
-  postB,
-  postC,
-  postD,
-  postE,
-  postF,
-  postG,
-  postH,
-  postI,
-  postJ,
-  postK,
-  postL,
-  postM
-]
-
-export type Author = {
-  name: string
-  twitterHandle: string
-  avatar: string
-}
-
-export type BlogMeta = {
-  title: string
-  authors: Author[]
-  description: string
-  date: string
-  slug: string
-}
-
-const authors: any = {
-  fynbos: {
-    name: 'Fynbos',
-    twitterHandle: 'fynbosdev',
-    avatar: '/icon.png'
-  },
-  cairin: {
-    name: 'Cairin Michie',
-    twitterHandle: 'cairinbruce',
-    avatar: '/Frame 9.png'
-  },
-  adrian: {
-    name: 'Adrian Hope-Bailie',
-    twitterHandle: 'ahopebailie',
-    avatar: '/adrian.profile.webp'
-  }
-}
-
-export async function getCurrentPost(
-  request: Request,
-  meta: any
-): Promise<BlogMeta> {
-  const url = new URL(request.url)
-  const slug = url.pathname.replace('/blog/', '')
-  return {
-    title: meta.title,
-    authors: meta.authors.map(
-      // TODO: handle random authors
-      (author: string) => authors[author]
-    ),
-    description: meta.description,
-    slug: slug,
-    date: DateTime.fromJSDate(meta.date).toFormat('dd LLLL yyyy')
-  }
-}
-
-export async function getAllPosts(): Promise<BlogMeta[]> {
-  const posts = modules.sort(
-    (mod1, mod2) =>
-      DateTime.fromJSDate(mod2.attributes.meta.date).toSeconds() -
-      DateTime.fromJSDate(mod1.attributes.meta.date).toSeconds()
-  )
-  return posts.map((mod) => {
-    return {
-      ...mod.attributes.meta,
-      slug: mod.filename.slice(5, -4),
-      authors: mod.attributes.meta.authors.map(
-        // TODO: handle random authors
-        (author: string) => authors[author]
-      ),
-      date: DateTime.fromJSDate(mod.attributes.meta.date).toFormat(
-        'dd LLLL yyyy'
-      )
+export const RESPONSIVE_IMAGE = gql`
+  fragment ResponsiveImage on FileField {
+    responsiveImage(imgixParams: { fit: max, auto: format }) {
+      srcSet
+      webpSrcSet
+      sizes
+      src
+      width
+      height
+      aspectRatio
+      alt
+      title
+      base64
     }
-  })
+  }
+`
+
+export const getAllBlogPosts = async (variables?: QueryAllBlogPostsArgs) => {
+  return await apolloClient
+    .query<{ allBlogPosts: Query['allBlogPosts'] }, QueryAllBlogPostsArgs>({
+      query: gql`
+        query GetAllBlogsQuery(
+          $first: IntType
+          $orderBy: [BlogPostModelOrderBy]
+          $skip: IntType
+        ) {
+          allBlogPosts(first: $first, orderBy: $orderBy, skip: $skip) {
+            id
+            title
+            slug
+            description
+            date
+            _status
+            shapes {
+              url
+            }
+            shapesMobile {
+              url
+            }
+            authors {
+              name
+            }
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      // console.log('DATA', res.data)
+      return res.data.allBlogPosts
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+}
+
+export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
+  return await apolloClient
+    .query<{ blogPost: Query['blogPost'] }, QueryBlogPostArgs>({
+      query: gql`
+        ${RESPONSIVE_IMAGE}
+        query GetCurrentBlogPostQuery($filter: BlogPostModelFilter) {
+          blogPost(filter: $filter) {
+            slug
+            _status
+            content {
+              value
+              blocks {
+                __typename
+                ... on InlineImageRecord {
+                  id
+                  altText
+                  image {
+                    ...ResponsiveImage
+                  }
+                  imageMobile {
+                    ...ResponsiveImage
+                  }
+                  imageDark {
+                    ...ResponsiveImage
+                  }
+                  imageDarkMobile {
+                    ...ResponsiveImage
+                  }
+                }
+                ... on InlineVideoRecord {
+                  id
+                  video {
+                    provider
+                    providerUid
+                    thumbnailUrl
+                    title
+                    url
+                  }
+                }
+                ... on InlinePersonRecord {
+                  id
+                  name
+                  role
+                  avatar {
+                    responsiveImage(
+                      imgixParams: { fit: max, w: 140, h: 140, auto: format }
+                    ) {
+                      srcSet
+                      webpSrcSet
+                      sizes
+                      src
+                      width
+                      height
+                      aspectRatio
+                      alt
+                      title
+                      base64
+                    }
+                  }
+                }
+                ... on InlineTwitterEmbedRecord {
+                  id
+                  url
+                  imageOfTweet {
+                    ...ResponsiveImage
+                  }
+                }
+              }
+            }
+            id
+            authors {
+              id
+              name
+              twitterUrl
+              avatar {
+                responsiveImage(
+                  imgixParams: { fit: max, w: 80, h: 80, auto: format }
+                ) {
+                  srcSet
+                  sizes
+                  src
+                  width
+                  height
+                  aspectRatio
+                  alt
+                  title
+                  base64
+                }
+              }
+            }
+            shapes {
+              url
+            }
+            shapesMobile {
+              url
+            }
+            description
+            date
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+            title
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data.blogPost
+    })
+    .catch((error) => {
+      console.log(error)
+    })
 }
