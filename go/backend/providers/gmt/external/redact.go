@@ -11,17 +11,17 @@ import (
 
 func Redact(ctx context.Context, req []byte) ([]byte, error) {
 	var redactedReq []byte
-	reqMap, err := mxj.NewMapXml(req)
+	reqMap, err := mxj.NewMapXmlSeq(req)
 	if errors.Is(err, io.EOF) {
 		redactedReq = req
 	} else if err != nil {
 		return nil, err
 	}
 
-	redact(reqMap)
+	redact(reqMap, "")
 
 	if reqMap != nil {
-		redactedReq, err = reqMap.Xml()
+		redactedReq, err = reqMap.XmlSeq()
 		if err != nil {
 			return nil, err
 		}
@@ -30,14 +30,14 @@ func Redact(ctx context.Context, req []byte) ([]byte, error) {
 	return redactedReq, nil
 }
 
-func redact(fields map[string]interface{}) {
+func redact(fields map[string]interface{}, parent string) {
 	for k, v := range fields {
 		switch v := v.(type) {
 		case map[string]interface{}:
-			redact(v)
+			redact(v, k)
 		case string:
 			for _, i := range RedactFields {
-				if strings.EqualFold(i, k) {
+				if strings.HasSuffix(parent, i) {
 					fields[k] = "*****"
 				}
 			}
