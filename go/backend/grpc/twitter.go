@@ -2,9 +2,7 @@ package grpc
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
-	"fmt"
 	"gitlab.com/fynbos/backend/identities"
 
 	"github.com/google/uuid"
@@ -72,25 +70,6 @@ func (s *rpcService) TwitterCallback(
 			return nil, AlreadyExistsError("Identity already exists.")
 		}
 		return nil, InternalError("Error adding identity.")
-	}
-
-	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, identity.WalletID)
-	if err != nil {
-		return nil, InternalError("Error getting payment pointer by walletID")
-	}
-
-	base64SigHas := base64.URLEncoding.EncodeToString(identity.SignatureHash)
-
-	tweet, err := s.b.Twitter().PostTweet(ctx, connection.ID, "I’ve connected my fynbos wallet, to my Twitter identity so I can send and receive payments using this identity. \n\nSee the proof at "+pp.URL+"/claims/"+string(base64SigHas))
-	if err != nil {
-		return nil, InternalError("Error posting tweet")
-	}
-
-	proofUrl := fmt.Sprintf("https://twitter.com/%s/status/%s", connection.Username, tweet.ID)
-	// Verification
-	_, err = s.b.Identities().StartVerification(ctx, identity.ID, proofUrl)
-	if err != nil {
-		return nil, InternalError("Error starting verification")
 	}
 
 	return &backendv1.TwitterCallbackResponse{
