@@ -557,6 +557,7 @@ type BackendServiceClient interface {
 	ListPublicIdentities(ctx context.Context, in *ListPublicIdentitiesRequest, opts ...grpc.CallOption) (*ListIdentitiesResponse, error)
 	DeleteIdentity(ctx context.Context, in *DeleteIdentityRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetIdentityPublic(ctx context.Context, in *SetIdentityPublicRequest, opts ...grpc.CallOption) (*Identity, error)
+	GetIdentity(ctx context.Context, in *GetIdentityRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error)
 	// KYC
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	StartKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -974,6 +975,15 @@ func (c *backendServiceClient) SetIdentityPublic(ctx context.Context, in *SetIde
 	return out, nil
 }
 
+func (c *backendServiceClient) GetIdentity(ctx context.Context, in *GetIdentityRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error) {
+	out := new(GetIdentityResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetIdentity", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error) {
 	out := new(KYCStatusResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/KYCStatus", in, out, opts...)
@@ -1150,6 +1160,7 @@ type BackendServiceServer interface {
 	ListPublicIdentities(context.Context, *ListPublicIdentitiesRequest) (*ListIdentitiesResponse, error)
 	DeleteIdentity(context.Context, *DeleteIdentityRequest) (*Empty, error)
 	SetIdentityPublic(context.Context, *SetIdentityPublicRequest) (*Identity, error)
+	GetIdentity(context.Context, *GetIdentityRequest) (*GetIdentityResponse, error)
 	// KYC
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	StartKYC(context.Context, *Empty) (*Empty, error)
@@ -1304,6 +1315,9 @@ func (UnimplementedBackendServiceServer) DeleteIdentity(context.Context, *Delete
 }
 func (UnimplementedBackendServiceServer) SetIdentityPublic(context.Context, *SetIdentityPublicRequest) (*Identity, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetIdentityPublic not implemented")
+}
+func (UnimplementedBackendServiceServer) GetIdentity(context.Context, *GetIdentityRequest) (*GetIdentityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIdentity not implemented")
 }
 func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method KYCStatus not implemented")
@@ -2130,6 +2144,24 @@ func _BackendService_SetIdentityPublic_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIdentityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetIdentity",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetIdentity(ctx, req.(*GetIdentityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_KYCStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -2542,6 +2574,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetIdentityPublic",
 			Handler:    _BackendService_SetIdentityPublic_Handler,
+		},
+		{
+			MethodName: "GetIdentity",
+			Handler:    _BackendService_GetIdentity_Handler,
 		},
 		{
 			MethodName: "KYCStatus",

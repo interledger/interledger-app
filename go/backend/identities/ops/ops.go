@@ -50,13 +50,13 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	}
 
 	var existing identities.Identity
-	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(identifier)=$2 AND state=$3", cols),
-		args.Platform, strings.ToLower(args.Identifier), identities.StateVerified)
+	err = b.DB().GetContext(ctx, &existing, fmt.Sprintf("SELECT %s FROM identities WHERE platform=$1 AND lower(identifier)=$2", cols),
+		args.Platform, strings.ToLower(args.Identifier))
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 	if existing.ID != "" {
-		return nil, fmt.Errorf("%w %s identifier %s has already been verified", identities.ErrAlreadyExists, args.Platform, args.Identifier)
+		return nil, fmt.Errorf("%w %s identifier %s has already been created", identities.ErrAlreadyExists, args.Platform, args.Identifier)
 	}
 
 	id := uuid.NewString()
