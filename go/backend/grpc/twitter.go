@@ -72,18 +72,6 @@ func (s *rpcService) TwitterCallback(
 		return nil, InternalError("Error adding identity.")
 	}
 
-	// Publishing the proof
-	proofUrl, err := s.b.Twitter().PublishTweetProof(ctx, identity, connection)
-	if err != nil {
-		return nil, InternalError("Error publishing tweet proof")
-	}
-
-	// Verification
-	_, err = s.b.Identities().StartVerification(ctx, identity.ID, proofUrl)
-	if err != nil {
-		return nil, InternalError("Error starting verification")
-	}
-
 	return &backendv1.TwitterCallbackResponse{
 		Id: identity.ID,
 	}, nil
