@@ -35,7 +35,7 @@ func (s *rpcService) CreateTwitterAuthURL(
 	if err != nil {
 		return nil, InternalError("Create Twitter Auth URL")
 	}
-	// hello
+
 	return &backendv1.CreateTwitterAuthURLResponse{
 		Url: url,
 	}, nil
