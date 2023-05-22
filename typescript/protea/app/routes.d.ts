@@ -1,20 +1,8 @@
 declare module "routes-gen" {
   export type RouteParams = {
-    "/blog/the-future-digital-wallets-and-payment-pointers": Record<string, never>;
     "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
-    "/blog/how-technical-standards-promote-innovation": Record<string, never>;
-    "/blog/connecting-the-internet-economy": Record<string, never>;
     "/settings/linked-accounts/:accountId": { "accountId": string };
-    "/blog/our-fynbos-family-meet-barnard": Record<string, never>;
-    "/blog/our-fynbos-family-meet-adrian": Record<string, never>;
-    "/blog/our-fynbos-family-meet-cairin": Record<string, never>;
-    "/blog/our-fynbos-family-meet-justin": Record<string, never>;
-    "/blog/why-payment-pointers-are-urls": Record<string, never>;
-    "/blog/our-fynbos-family-meet-matt": Record<string, never>;
-    "/blog/our-fynbos-family-meet-omer": Record<string, never>;
-    "/blog/our-fynbos-family-meet-don": Record<string, never>;
-    "/blog/card-payments-still-suck": Record<string, never>;
     "/legal/accessibility-statement": Record<string, never>;
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
@@ -30,7 +18,6 @@ declare module "routes-gen" {
     "/settings/profile-public": Record<string, never>;
     "/legal/terms-of-service": Record<string, never>;
     "/legal/us/terms-of-use": Record<string, never>;
-    "/blog/joining-the-owf": Record<string, never>;
     "/legal/privacy-policy": Record<string, never>;
     "/legal/us/compliance": Record<string, never>;
     "/legal/wallet-license": Record<string, never>;
@@ -53,6 +40,7 @@ declare module "routes-gen" {
     "/link-account": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/transactions": Record<string, never>;
+    "/blog/:slug": { "slug": string };
     "/connections": Record<string, never>;
     "/pay/amount": Record<string, never>;
     "/contacts": Record<string, never>;
@@ -75,21 +63,9 @@ declare module "routes-gen" {
 
   export function route<
     T extends
-      | ["/blog/the-future-digital-wallets-and-payment-pointers"]
       | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
-      | ["/blog/how-technical-standards-promote-innovation"]
-      | ["/blog/connecting-the-internet-economy"]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
-      | ["/blog/our-fynbos-family-meet-barnard"]
-      | ["/blog/our-fynbos-family-meet-adrian"]
-      | ["/blog/our-fynbos-family-meet-cairin"]
-      | ["/blog/our-fynbos-family-meet-justin"]
-      | ["/blog/why-payment-pointers-are-urls"]
-      | ["/blog/our-fynbos-family-meet-matt"]
-      | ["/blog/our-fynbos-family-meet-omer"]
-      | ["/blog/our-fynbos-family-meet-don"]
-      | ["/blog/card-payments-still-suck"]
       | ["/legal/accessibility-statement"]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
@@ -105,7 +81,6 @@ declare module "routes-gen" {
       | ["/settings/profile-public"]
       | ["/legal/terms-of-service"]
       | ["/legal/us/terms-of-use"]
-      | ["/blog/joining-the-owf"]
       | ["/legal/privacy-policy"]
       | ["/legal/us/compliance"]
       | ["/legal/wallet-license"]
@@ -128,6 +103,7 @@ declare module "routes-gen" {
       | ["/link-account"]
       | ["/pay/confirm"]
       | ["/transactions"]
+      | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/connections"]
       | ["/pay/amount"]
       | ["/contacts"]
