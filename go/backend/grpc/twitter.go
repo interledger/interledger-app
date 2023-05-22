@@ -42,16 +42,6 @@ func (s *rpcService) CreateTwitterAuthURL(
 func (s *rpcService) TwitterCallback(
 	ctx context.Context, request *backendv1.TwitterCallbackRequest,
 ) (*backendv1.TwitterCallbackResponse, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, err = s.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
 	connection, err := s.b.Twitter().CreateConnection(ctx, &twitter.CreateConnectionArgs{
 		State:    request.State,
 		AuthCode: request.Code,

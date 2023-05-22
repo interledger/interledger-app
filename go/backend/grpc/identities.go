@@ -81,6 +81,31 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 	return identityToPB(id), nil
 }
 
+func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest) (*pb.GetIdentityResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	id, err := s.b.Identities().Get(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if id.WalletID != w.ID {
+		return nil, NotFoundError("identity not found.")
+	}
+
+	return &pb.GetIdentityResponse{
+		Identity: identityToPB(id),
+	}, nil
+}
+
 func identityToPB(identity *identities.Identity) *pb.Identity {
 	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
