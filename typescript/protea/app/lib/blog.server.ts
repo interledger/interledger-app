@@ -5,6 +5,23 @@ import type { QueryBlogPostArgs } from '~/generated/dato-cms-graphql'
 
 // TODO possibly look into https://www.datocms.com/blog/how-to-generate-typescript-types-from-graphql#how-to-avoid-nullable-types-on-required-field-in-datocms
 
+export const RESPONSIVE_IMAGE = gql`
+  fragment ResponsiveImage on FileField {
+    responsiveImage(imgixParams: { fit: max, auto: format }) {
+      srcSet
+      webpSrcSet
+      sizes
+      src
+      width
+      height
+      aspectRatio
+      alt
+      title
+      base64
+    }
+  }
+`
+
 export const getAllBlogPosts = async (variables?: QueryAllBlogPostsArgs) => {
   return await apolloClient
     .query<{ allBlogPosts: Query['allBlogPosts'] }, QueryAllBlogPostsArgs>({
@@ -48,6 +65,7 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
   return await apolloClient
     .query<{ blogPost: Query['blogPost'] }, QueryBlogPostArgs>({
       query: gql`
+        ${RESPONSIVE_IMAGE}
         query GetCurrentBlogPostQuery($filter: BlogPostModelFilter) {
           blogPost(filter: $filter) {
             slug
@@ -58,8 +76,18 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
                 __typename
                 ... on InlineImageRecord {
                   id
+                  altText
                   image {
-                    url
+                    ...ResponsiveImage
+                  }
+                  imageMobile {
+                    ...ResponsiveImage
+                  }
+                  imageDark {
+                    ...ResponsiveImage
+                  }
+                  imageDarkMobile {
+                    ...ResponsiveImage
                   }
                 }
                 ... on InlineVideoRecord {
@@ -72,12 +100,32 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
                     url
                   }
                 }
+                ... on InlinePersonRecord {
+                  id
+                  name
+                  role
+                  avatar {
+                    responsiveImage(
+                      imgixParams: { fit: max, w: 140, h: 140, auto: format }
+                    ) {
+                      srcSet
+                      webpSrcSet
+                      sizes
+                      src
+                      width
+                      height
+                      aspectRatio
+                      alt
+                      title
+                      base64
+                    }
+                  }
+                }
                 ... on InlineTwitterEmbedRecord {
                   id
                   url
                   imageOfTweet {
-                    url
-                    alt
+                    ...ResponsiveImage
                   }
                 }
               }
@@ -88,7 +136,19 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
               name
               twitterUrl
               avatar {
-                url
+                responsiveImage(
+                  imgixParams: { fit: max, w: 80, h: 80, auto: format }
+                ) {
+                  srcSet
+                  sizes
+                  src
+                  width
+                  height
+                  aspectRatio
+                  alt
+                  title
+                  base64
+                }
               }
             }
             shapes {
@@ -99,10 +159,10 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
             }
             description
             date
-            seoMeta {
-              twitterCard
-              title
-              description
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
             }
             title
           }

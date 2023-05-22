@@ -62,11 +62,12 @@ export default function Page() {
           posts.map((post) => (
             <Router to={`/blog/${post.slug}`} key={post.slug}>
               <li className='flex cursor-pointer flex-col justify-start items-start space-y-4 rounded-xl bg-mk-section p-4 pb-6 hover:bg-mk-section-hover sm:flex-row-reverse sm:justify-between sm:space-y-0 sm:space-x-8 sm:space-x-reverse sm:p-8'>
-                <div>
+                <div className='min-w-max'>
                   <img
                     src={post.shapes?.url}
                     alt=''
-                    className='hidden lg:block w-32'
+                    width='128px'
+                    className='hidden lg:flex w-32'
                   />
                   <img
                     src={post.shapesMobile?.url}

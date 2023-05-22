@@ -10,38 +10,28 @@ import { json } from '@remix-run/node'
 
 import { useLoaderData } from '@remix-run/react'
 import { getCurrentBlogPost } from '~/lib/blog.server'
-import type { MetaFunction, LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs } from '@remix-run/node'
 import type { FC, ReactNode } from 'react'
 import { route } from 'routes-gen'
-import { StructuredText } from 'react-datocms'
+import type { ResponsiveImageType } from 'react-datocms'
+import { StructuredText, Image, toRemixMeta } from 'react-datocms'
 import type {
   InlineImageRecord,
+  InlinePersonRecord,
   InlineTwitterEmbedRecord,
   InlineVideoRecord,
   PersonRecord
 } from '~/generated/dato-cms-graphql'
 
-export const meta: MetaFunction<typeof loader> = () => {
-  const metaContent = {
-    title: 'Fynbos blog',
-    description:
-      'All the ins-and-outs of how we do things, and the problems we solve along the way.'
-  }
-
+export function meta({ data, params }: any) {
   return {
-    title: metaContent.title,
-    description: metaContent.description,
-    'og:title': metaContent.title,
-    'og:url': 'https://fynbos.app/blog',
-    'og:description': metaContent.description,
-    'twitter:url': 'https://fynbos.app/blog',
-    'twitter:title': metaContent.title,
-    'twitter:description': metaContent.description
+    ...toRemixMeta(data.post.seoMeta),
+    'twitter:url': `https://fynbos.app/blog/${params.slug}`,
+    'og:url': `https://fynbos.app/blog/${params.slug}`
   }
 }
 
 export async function loader({ params }: LoaderArgs) {
-  // TODO SEO https://www.datocms.com/docs/remix/add-seo-to-remix
   return json({
     post: await getCurrentBlogPost({ filter: { slug: { eq: params.slug } } })
   })
@@ -99,13 +89,46 @@ export default function Page() {
               data={post.content}
               renderBlock={({ record }) => {
                 switch (record.__typename) {
-                  case 'InlineImageRecord': // TODO: variants
+                  case 'InlineImageRecord':
                     return (
-                      <img
-                        src={(record as InlineImageRecord).image?.url}
-                        alt={(record as InlineImageRecord).image?.alt || ''}
-                        className='w-full'
-                      />
+                      <>
+                        <Image
+                          pictureClassName='m-0'
+                          className='w-full dark:hidden lg:hidden'
+                          data={{
+                            ...((record as InlineImageRecord).imageMobile
+                              ?.responsiveImage as ResponsiveImageType),
+                            alt: (record as InlineImageRecord).altText
+                          }}
+                        />
+                        <Image
+                          pictureClassName='m-0'
+                          className='w-full hidden lg:flex lg:dark:hidden'
+                          data={{
+                            ...((record as InlineImageRecord).image
+                              ?.responsiveImage as ResponsiveImageType),
+                            alt: (record as InlineImageRecord).altText
+                          }}
+                        />
+                        <Image
+                          pictureClassName='m-0'
+                          className='w-full hidden dark:flex lg:hidden'
+                          data={{
+                            ...((record as InlineImageRecord).imageDarkMobile
+                              ?.responsiveImage as ResponsiveImageType),
+                            alt: (record as InlineImageRecord).altText
+                          }}
+                        />
+                        <Image
+                          pictureClassName='m-0'
+                          className='w-full hidden lg:dark:flex'
+                          data={{
+                            ...((record as InlineImageRecord).imageDark
+                              ?.responsiveImage as ResponsiveImageType),
+                            alt: (record as InlineImageRecord).altText
+                          }}
+                        />
+                      </>
                     )
                   case 'InlineTwitterEmbedRecord':
                     return (
@@ -122,6 +145,25 @@ export default function Page() {
                           className='w-full'
                         />
                       </AnchorRouter>
+                    )
+                  case 'InlinePersonRecord':
+                    return (
+                      <div className='flex content-start space-x-4'>
+                        <Image
+                          pictureClassName='m-0'
+                          className='aspect-square'
+                          data={
+                            (record as InlinePersonRecord).avatar
+                              ?.responsiveImage as ResponsiveImageType
+                          }
+                        />
+                        <div className='flex flex-col justify-center text-medium'>
+                          <span className='font-medium'>
+                            {(record as InlinePersonRecord).name}
+                          </span>
+                          <span>{(record as InlinePersonRecord).role}</span>
+                        </div>
+                      </div>
                     )
                   case 'InlineVideoRecord':
                     switch ((record as InlineVideoRecord).video?.provider) {
@@ -169,11 +211,10 @@ const Prose: FC<ProseProps> = ({ children }) => {
 const AuthorBlock: FC<{ author: PersonRecord }> = ({ author }) => {
   return (
     <div className='mb-6 flex'>
-      <img
-        src={author.avatar?.url}
-        className='mr-3 hidden h-20 w-20 max-w-full rounded-full lg:flex'
-        loading='lazy'
-        alt={author.avatar?.alt || 'Author avatar'}
+      <Image
+        pictureClassName='m-0'
+        className='aspect-square mr-3'
+        data={author.avatar?.responsiveImage as ResponsiveImageType}
       />
       <div className='flex flex-grow flex-col lg:mt-3'>
         <div className='font-medium'>{author.name}</div>
