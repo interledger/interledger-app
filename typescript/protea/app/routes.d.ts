@@ -4,6 +4,7 @@ declare module "routes-gen" {
     "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/blog/how-technical-standards-promote-innovation": Record<string, never>;
+    "/settings/linked-identities/:identityId": { "identityId": string };
     "/blog/connecting-the-internet-economy": Record<string, never>;
     "/settings/linked-accounts/:accountId": { "accountId": string };
     "/blog/our-fynbos-family-meet-barnard": Record<string, never>;
@@ -42,6 +43,7 @@ declare module "routes-gen" {
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
+    "/connect/twitter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
@@ -79,6 +81,7 @@ declare module "routes-gen" {
       | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
       | ["/blog/how-technical-standards-promote-innovation"]
+      | ["/settings/linked-identities/:identityId", RouteParams["/settings/linked-identities/:identityId"]]
       | ["/blog/connecting-the-internet-economy"]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
       | ["/blog/our-fynbos-family-meet-barnard"]
@@ -117,6 +120,7 @@ declare module "routes-gen" {
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/waitlist/success"]
+      | ["/connect/twitter"]
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/personal-details"]
