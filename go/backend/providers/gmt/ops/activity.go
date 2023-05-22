@@ -332,7 +332,7 @@ func (a *Activity) ACH2CardCompliance(ctx context.Context, args providers.Transf
 func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("failed to load from linked account: "+err.Error(), "NotFound", err)
 	}
 	if err != nil {
 		return nil, err
@@ -340,7 +340,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 
 	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("failed to load to linked account: "+err.Error(), "NotFound", err)
 	}
 	if err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 
 	toID, err := a.b.KYC().GetIndividualDetails(ctx, toLA.WalletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("failed to load to kyc info: "+err.Error(), "NotFound", err)
 	}
 	if err != nil {
 		return nil, err
@@ -361,7 +361,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 
 	fromAcc, err := a.b.MX().GetAccount(ctx, args.FromWalletID, fromLA.ProviderID)
 	if errors.Is(err, mx.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("failed to load from mx account: "+err.Error(), "NotFound", err)
 	}
 	if err != nil {
 		return nil, err
@@ -383,7 +383,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 
 	toAcc, err := a.b.MX().GetAccount(ctx, args.ToWalletID, toLA.ProviderID)
 	if errors.Is(err, mx.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("failed to load to mx account: "+err.Error(), "NotFound", err)
 	}
 	if err != nil {
 		return nil, err
@@ -429,7 +429,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*external.WsReceiver, error) {
 	recvID, err := b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("failed to load recv wallet KYC: "+err.Error(), "NotFound", err)
 	}
 	if err != nil {
 		return nil, err
@@ -455,8 +455,13 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 		gender = "Female"
 	}
 
+	address := recvID.Address.FormattedAddress
+	if address == "" {
+		address = recvID.Address.String()
+	}
+
 	return &external.WsReceiver{
-		ReceiverAddress:   recvID.Address.FormattedAddress,
+		ReceiverAddress:   address,
 		ReceiverBirthDate: external.GMTDate(recvID.DateOfBirth),
 		ReceiverCity:      recvID.Address.City,
 		ReceiverCountry:   recvID.Address.CountryCode,
@@ -476,7 +481,7 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersArgs, walletID string) (*external.WsSender, error) {
 	senderID, err := b.KYC().GetIndividualDetails(ctx, walletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+		return nil, temporal.NewNonRetryableApplicationError("failed to load to wallet KYC: "+err.Error(), "NotFound", err)
 	}
 	if err != nil {
 		return nil, err
@@ -507,8 +512,13 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		return nil, err
 	}
 
+	address := senderID.Address.FormattedAddress
+	if address == "" {
+		address = senderID.Address.String()
+	}
+
 	sender := &external.WsSender{
-		SenderAddress:               senderID.Address.FormattedAddress,
+		SenderAddress:               address,
 		SenderAddressStreet:         senderID.Address.Apartment,
 		SenderBirthDate:             external.GMTDate(senderID.DateOfBirth),
 		SenderCity:                  senderID.Address.City,
@@ -523,7 +533,7 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderLastName:              senderID.LastName,
 		SenderMobile:                senderUsers[0].PhoneNumber,
 		SenderName:                  senderID.FirstName,
-		SenderResidenceAddress:      senderID.Address.String(),
+		SenderResidenceAddress:      address,
 		SenderResidenceAddressExtra: senderID.Address.Apartment,
 		SenderResidenceCity:         senderID.Address.City,
 		SenderResidenceCountryCode:  senderID.Address.CountryCode,
@@ -533,9 +543,11 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderZip:                   senderID.Address.ZipCode,
 	}
 
-	if !exceeds && !args.ForceEDD {
+	if (!exceeds && !args.ForceEDD) || args.ForceNoEDD {
 		return sender, nil
 	}
+
+	log.Info("Setting user EDD on GMT sender", zap.String("wallet_id", args.FromWalletID), zap.Bool("force_edd", args.ForceEDD), zap.Bool("exceeds", exceeds))
 
 	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, walletID)
 	if err != nil {
@@ -570,6 +582,8 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 	default:
 		log.Error("Unknown Persona ID number type", zap.String("persona_id_type", idNums.IdentificationClass))
 	}
+
+	sender.SenderOccupation = "Contracting Engineer"
 
 	return sender, nil
 }
@@ -714,7 +728,7 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 	}
 
 	if res.Error != 0 {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s) Status (%s) ID (%s)", res.Error, res.Message, res.Status, res.Password), "external", nil)
 	}
 
 	return &TransactionResp{

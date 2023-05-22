@@ -203,6 +203,11 @@ func TestExceedsGMTLimits(t *testing.T) {
 			expect: true,
 		},
 		{
+			name:   "under single tx limit no previous transactions",
+			amnt:   currency.FromFloat64(1_000, currency.USD),
+			expect: false,
+		},
+		{
 			name: "does not exceed daily defaults",
 			tx: &transactions.CreateTransactionArgs{
 				State:       transactions.StateCompleted,
