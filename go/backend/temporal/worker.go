@@ -7,6 +7,7 @@ import (
 	openpayments_workflows "gitlab.com/fynbos/backend/openpayments/workflows"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
+	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
 	"go.temporal.io/sdk/worker"
 )
 
@@ -24,6 +25,10 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(platforms.DevVerifyWorkflow)
 	w.RegisterActivity(platforms.NewTwitterActivity(b))
 	w.RegisterWorkflow(platforms.TwitterVerifyWorkflow)
+
+	//Twitter
+	w.RegisterActivity(twitter_workflows.NewActivity(b))
+	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
 
 	w.RegisterActivity(gmt_workflows.NewActivity(b))
 	w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow)
