@@ -3,11 +3,11 @@ package grpc
 import (
 	"errors"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/signup"
 
-	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
@@ -155,4 +155,8 @@ func UnauthenticatedError(message string) error {
 // Not found error will build an immutable error representing the status of the response.
 func NotFoundError(message string) error {
 	return status.Error(codes.NotFound, "Not found: "+message)
+}
+
+func AlreadyExistsError(message string) error {
+	return status.Error(codes.AlreadyExists, "Already exists: "+message)
 }

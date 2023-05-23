@@ -2,9 +2,11 @@ package handler
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/openpayments"
 	"net/http"
+
+	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
@@ -49,6 +51,10 @@ func NewTwitterCallbackHandler(b Backends) http.HandlerFunc {
 			Identifier: connection.Username,
 		})
 		if err != nil {
+			if errors.Is(err, identities.ErrAlreadyExists) {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return
+			}
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Error("Error adding identity", zap.Error(err))
 			return

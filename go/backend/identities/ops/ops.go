@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go.temporal.io/api/enums/v1"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/platforms"
-	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
 )
 
@@ -56,7 +56,7 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 	if existing.ID != "" {
-		return nil, fmt.Errorf("%w %s identifier %s has already been verified", identities.ErrInvalidArgument, args.Platform, args.Identifier)
+		return nil, fmt.Errorf("%w %s identifier %s has already been verified", identities.ErrAlreadyExists, args.Platform, args.Identifier)
 	}
 
 	id := uuid.NewString()

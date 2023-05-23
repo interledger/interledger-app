@@ -576,6 +576,7 @@ type BackendServiceClient interface {
 	ListFeatures(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Features, error)
 	// Twitter
 	CreateTwitterAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateTwitterAuthURLResponse, error)
+	TwitterCallback(ctx context.Context, in *TwitterCallbackRequest, opts ...grpc.CallOption) (*TwitterCallbackResponse, error)
 }
 
 type backendServiceClient struct {
@@ -1081,6 +1082,15 @@ func (c *backendServiceClient) CreateTwitterAuthURL(ctx context.Context, in *Emp
 	return out, nil
 }
 
+func (c *backendServiceClient) TwitterCallback(ctx context.Context, in *TwitterCallbackRequest, opts ...grpc.CallOption) (*TwitterCallbackResponse, error) {
+	out := new(TwitterCallbackResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/TwitterCallback", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1159,6 +1169,7 @@ type BackendServiceServer interface {
 	ListFeatures(context.Context, *Empty) (*Features, error)
 	// Twitter
 	CreateTwitterAuthURL(context.Context, *Empty) (*CreateTwitterAuthURLResponse, error)
+	TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1329,6 +1340,9 @@ func (UnimplementedBackendServiceServer) ListFeatures(context.Context, *Empty) (
 }
 func (UnimplementedBackendServiceServer) CreateTwitterAuthURL(context.Context, *Empty) (*CreateTwitterAuthURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTwitterAuthURL not implemented")
+}
+func (UnimplementedBackendServiceServer) TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TwitterCallback not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2332,6 +2346,24 @@ func _BackendService_CreateTwitterAuthURL_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_TwitterCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TwitterCallbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).TwitterCallback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/TwitterCallback",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).TwitterCallback(ctx, req.(*TwitterCallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2558,6 +2590,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTwitterAuthURL",
 			Handler:    _BackendService_CreateTwitterAuthURL_Handler,
+		},
+		{
+			MethodName: "TwitterCallback",
+			Handler:    _BackendService_TwitterCallback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -35,6 +35,11 @@ func main() {
 		namespace, err := v1.NewNamespace(ctx, "namespace", &v1.NamespaceArgs{
 			Metadata: metav1.ObjectMetaArgs{
 				Name: pulumi.String("emissary"),
+				Labels: pulumi.StringMap{
+					"pod-security.kubernetes.io/enforce": pulumi.String("baseline"),
+					"pod-security.kubernetes.io/audit":   pulumi.String("baseline"),
+					"pod-security.kubernetes.io/warn":    pulumi.String("baseline"),
+				},
 			},
 		}, pulumi.Provider(kubeProvider))
 		if err != nil {

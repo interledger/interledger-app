@@ -267,8 +267,8 @@ func RunGMTCertification(ctx workflow.Context) error {
 			Args: providers.TransfersArgs{
 				FromPaymentPointer:  "https://eu1.fynbos.me/goldensender3",
 				ToPaymentPointer:    "https://eu1.fynbos.me/goldenreceiver5",
-				FromWalletID:        "1aa7fb3f-aa45-4c57-8ae9-75b8ec95e55f",
-				FromLinkedAccountID: "1e22948b-cf28-4d5e-8bd7-942c643d8dc1",
+				FromWalletID:        "84a92788-7d07-4a69-9f25-687de4bce8ef",
+				FromLinkedAccountID: "dc02ec43-eeb0-455a-95df-32335c415375",
 				ToWalletID:          "5b1f69b9-8e85-4a99-9932-2b522b07f6c8",
 				ToLinkedAccountID:   "73b06d41-0462-410e-84eb-21a0c157c512",
 				Amount:              currency.FromFloat64(8000, currency.USD),
