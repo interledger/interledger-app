@@ -542,7 +542,7 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 
 	senderUsers, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to listusers for wallet")
+		return nil, fmt.Errorf("%w : %s, walletID (%s)", err, "failed to listusers for wallet", walletID)
 	}
 
 	sid, err := getSenderID(ctx, b, walletID)
