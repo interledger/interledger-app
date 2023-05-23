@@ -9,18 +9,14 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
-
-	"gitlab.com/fynbos/backend/db"
-
-	client "github.com/ory/kratos-client-go"
-
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-
+	client "github.com/ory/kratos-client-go"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 const (
