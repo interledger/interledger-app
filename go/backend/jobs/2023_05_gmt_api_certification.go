@@ -277,7 +277,7 @@ func RunGMTCertification(ctx workflow.Context) error {
 				ForceNoEDD:          false,
 			},
 			Expected: "created",
-			SetupAcc: true,
+			SetupAcc: false,
 		},
 		/*				{
 								Name:  "case 1.4",

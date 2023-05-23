@@ -489,7 +489,7 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 
 	senderUsers, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return nil, fmt.Errorf("%w : %s", err, "failed to listusers for wallet")
+		return nil, fmt.Errorf("%w : %s, walletID (%s)", err, "failed to listusers for wallet", walletID)
 	}
 
 	sid, err := getSenderID(ctx, b, walletID)
@@ -510,11 +510,6 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 	exceeds, err := b.Limits().ExceedsGMTLimits(ctx, walletID, args.Amount)
 	if err != nil {
 		return nil, fmt.Errorf("%w : %s", err, "failed to get whether sender exceeds limits")
-	}
-
-	address := senderID.Address.FormattedAddress
-	if address == "" {
-		address = senderID.Address.String()
 	}
 
 	address := senderID.Address.FormattedAddress
