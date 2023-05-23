@@ -15,12 +15,16 @@ const httpLink = createHttpLink({
 })
 
 const authLink = setContext((_, { headers }) => {
+  if (process.env.FYNBOS_ENV !== 'prod') {
+    headers = Object.assign(headers || {}, {
+      'X-Include-Drafts': 'true'
+    })
+  }
   return {
     headers: Object.assign(headers || {}, {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-      'X-Include-Drafts': (process.env.FYNBOS_ENV !== 'prod').toString()
+      Authorization: `Bearer ${token}`
     })
   }
 })
