@@ -2,21 +2,16 @@ package jobs
 
 import (
 	"context"
-	"fmt"
+	"math/rand"
 	"time"
 
-	"gitlab.com/fynbos/backend/currency"
-
-	"go.temporal.io/api/enums/v1"
-
 	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers"
 	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -41,132 +36,6 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 	return nil
 }
 
-func (a *Activity) SetupReceiver(ctx context.Context, args GmtTestArgs) (*providers.TransfersArgs, error) {
-	w, err := a.b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		ID:     uuid.NewString(),
-		UserID: uuid.NewString(),
-		Name:   "GMT integration test case",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	args.Args.ToWalletID = w.ID
-
-	_, err = a.b.KYC().UpdateIndividualDetails(ctx, kyc.IndividualDetails{
-		WalletID:    w.ID,
-		FirstName:   "Golden",
-		LastName:    "Receiver" + args.Name,
-		CountryCode: "US",
-		Gender:      kyc.GenderMale,
-		DateOfBirth: time.Date(1988, time.April, 8, 0, 0, 0, 0, time.UTC),
-		Address: &kyc.Address{
-			Line1:       "31 Mulburry lane",
-			Building:    "Private",
-			City:        "San Fransico",
-			State:       args.State,
-			ZipCode:     args.Zip,
-			CountryCode: "US",
-		},
-		IPAddress: "198.0.0.36",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = a.b.KYC().SetKYCStatus(ctx, w.ID, kyc.StatusApproved)
-	if err != nil {
-		return nil, err
-	}
-
-	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID:   w.ID,
-		Name:       "TestLinkedAccount",
-		Nickname:   "GMT cert Test",
-		Mask:       "5796",
-		Provider:   "mx",
-		ProviderID: "ACT-7d3b6615-a159-4f97-8f3f-1bbc25c294c5",
-		Type:       "bankAccount",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	args.Args.ToLinkedAccountID = la.ID
-
-	// Now for the hacky part...
-	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_inquiries(external_id, wallet_id, state) VALUES ($1, $2, $3)",
-		"inq_kfjeRr7UcjUKH6fDBufwaTUr", w.ID, "approved")
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
-	}
-
-	return &args.Args, nil
-}
-
-func (a *Activity) SetupSender(ctx context.Context, args GmtTestArgs) (*providers.TransfersArgs, error) {
-	w, err := a.b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		ID:     uuid.NewString(),
-		UserID: uuid.NewString(),
-		Name:   "GMT integration test case",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	args.Args.FromWalletID = w.ID
-
-	_, err = a.b.KYC().UpdateIndividualDetails(ctx, kyc.IndividualDetails{
-		WalletID:    w.ID,
-		FirstName:   "Golden",
-		LastName:    "Sender" + args.Name,
-		CountryCode: "US",
-		Gender:      kyc.GenderMale,
-		DateOfBirth: time.Date(1988, time.April, 8, 0, 0, 0, 0, time.UTC),
-		Address: &kyc.Address{
-			Line1:       "30 Mulburry lane",
-			Building:    "Private",
-			City:        "San Fransico",
-			State:       args.State,
-			ZipCode:     args.Zip,
-			CountryCode: "US",
-		},
-		IPAddress: "198.0.0.3",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = a.b.KYC().SetKYCStatus(ctx, w.ID, kyc.StatusApproved)
-	if err != nil {
-		return nil, err
-	}
-
-	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID:   w.ID,
-		Name:       "TestLinkedAccount",
-		Nickname:   "GMT cert Test",
-		Mask:       "5796",
-		Provider:   "mx",
-		ProviderID: "ACT-10b9317a-2f2f-4b70-8de9-d33c7a56fcc8",
-		Type:       "bankAccount",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	args.Args.FromLinkedAccountID = la.ID
-
-	// Now for the hacky part...
-	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_inquiries(external_id, wallet_id, state) VALUES ($1, $2, $3)",
-		"inq_H1a6eimbnyapjsA9be4e7VQT", w.ID, "approved")
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
-	}
-
-	return &args.Args, nil
-}
-
 type GmtTestArgs struct {
 	Name      string
 	Zip       string
@@ -174,7 +43,35 @@ type GmtTestArgs struct {
 	Args      providers.TransfersArgs
 	Expected  string
 	ExpectErr bool
-	SetupAcc  bool
+}
+
+func (a *Activity) TestLogActivity(ctx context.Context) (string, error) {
+	if rand.Int()%2 == 0 {
+		return "ladida", nil
+	}
+	return "we are the golden ones", nil
+}
+
+func TestErrorLogging(ctx workflow.Context) error {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+	logger := workflow.GetLogger(ctx)
+	logger.Error("This is the last message posted")
+
+	for i := 0; i < 10; i++ {
+		var st string
+		err := workflow.ExecuteActivity(ctx, a.TestLogActivity).Get(ctx, &st)
+		if err != nil {
+			logger.Error("failed to get message to log", "err", err)
+			continue
+		}
+		logger.Info("Message from random text generator", "string", st)
+	}
+
+	return nil
 }
 
 // RunGMTCertification does a series of create transactions calls on GMT API in the dev-eu1 environment.
@@ -238,7 +135,6 @@ func RunGMTCertification(ctx workflow.Context) error {
 					ForceEDD:            false,
 				},
 				Expected: "created",
-				SetupAcc: false,
 			},*/
 		/*	{
 			Name:  "case 1.4",
@@ -258,7 +154,6 @@ func RunGMTCertification(ctx workflow.Context) error {
 			},
 			Expected:  "rejected",
 			ExpectErr: true,
-			SetupAcc:  false,
 		},*/
 		{
 			Name:  "case 1.5",
@@ -277,7 +172,6 @@ func RunGMTCertification(ctx workflow.Context) error {
 				ForceNoEDD:          false,
 			},
 			Expected: "created",
-			SetupAcc: true,
 		},
 		/*				{
 								Name:  "case 1.4",
@@ -326,51 +220,15 @@ func RunGMTCertification(ctx workflow.Context) error {
 						},*/
 	}
 
-	accMap := make(map[string][]string)
-
 	for _, tc := range cases {
 
-		if tc.SetupAcc {
-			var args providers.TransfersArgs
-			accFrom, ok := accMap[tc.Args.FromPaymentPointer]
-			if ok {
-				tc.Args.FromWalletID = accFrom[0]
-				tc.Args.FromLinkedAccountID = accFrom[1]
-			} else {
-
-				err := workflow.ExecuteActivity(ctx, a.SetupSender, tc).Get(ctx, &args)
-				if err != nil {
-					logger.Error("failed to setup sender", "err", err, "testcase", tc.Name)
-					continue
-				}
-				tc.Args = args
-
-				accMap[tc.Args.FromPaymentPointer] = []string{args.FromWalletID, args.FromLinkedAccountID}
-			}
-
-			accTo, ok := accMap[tc.Args.ToPaymentPointer]
-			if ok {
-				tc.Args.ToWalletID = accTo[0]
-				tc.Args.ToLinkedAccountID = accTo[1]
-			} else {
-				err := workflow.ExecuteActivity(ctx, a.SetupReceiver, tc).Get(ctx, &args)
-				if err != nil {
-					logger.Error("failed to setup receiver", "err", err, "testcase", tc.Name)
-					continue
-				}
-				tc.Args = args
-
-				accMap[tc.Args.ToPaymentPointer] = []string{args.ToWalletID, args.ToLinkedAccountID}
-			}
-		} else {
-			err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.Args.FromWalletID, tc.State, tc.Zip).Get(ctx, nil)
-			if err != nil {
-				logger.Error("failed to setup sender", "err", err, "testcase", tc.Name)
-				continue
-			}
+		err := workflow.ExecuteActivity(ctx, a.UpdateWalletAddress, tc.Args.FromWalletID, tc.State, tc.Zip).Get(ctx, nil)
+		if err != nil {
+			logger.Error("failed to setup sender", "err", err, "testcase", tc.Name)
+			continue
 		}
 
-		err := workflow.ExecuteActivity(ctx, gmtActivity.AddTransaction, transactions.CreateTransactionArgs{
+		err = workflow.ExecuteActivity(ctx, gmtActivity.AddTransaction, transactions.CreateTransactionArgs{
 			ID:          tc.Args.FromTransactionID,
 			WalletID:    tc.Args.FromWalletID,
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
