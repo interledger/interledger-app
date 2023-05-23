@@ -277,6 +277,7 @@ service BackendService {
   // Twitter
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
   rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
+  rpc VerifyTwitter(VerifyTwitterRequest) returns (Empty);
 }
 
 message Features {
@@ -749,4 +750,8 @@ message GetIdentityRequest{
 
 message GetIdentityResponse{
    Identity identity = 1;
+}
+
+message VerifyTwitterRequest {
+  string identity_id = 1;
 }

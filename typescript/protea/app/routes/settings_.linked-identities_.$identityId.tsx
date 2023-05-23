@@ -11,7 +11,11 @@ import {
   StatusError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { getIdentity, getLinkedAccount } from '~/lib/wallet.server'
+import {
+  getIdentity,
+  getLinkedAccount,
+  verifyTwitterIdentity
+} from '~/lib/wallet.server'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -62,13 +66,10 @@ export default function Page() {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const cookie = String(request.headers.get('cookie'))
-  const form = await request.formData()
-
   const identityId = params.identityId as string
-  console.log(identityId)
 
   // Call verify identity flow.
+  await verifyTwitterIdentity(request, identityId)
 
   await flashSnackbar(request, {
     message: 'Linked identity verification in progress',

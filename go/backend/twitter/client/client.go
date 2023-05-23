@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/identities"
 	temporal "go.temporal.io/sdk/client"
 
 	"github.com/jmoiron/sqlx"
@@ -99,6 +98,6 @@ func (c *Client) PostTweet(ctx context.Context, id string, text string) (*twitte
 	return ops.PostTweet(ctx, c.b, id, text)
 }
 
-func (c *Client) PublishTweetProof(ctx context.Context, identity *identities.Identity, connection *twitter.Connection) (string, error) {
-	return ops.PublishTweetProof(ctx, c.b, identity, connection)
+func (c *Client) PublishTweetProof(ctx context.Context, identityID string) error {
+	return ops.PublishTweetProof(ctx, c.b, identityID)
 }
