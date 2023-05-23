@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter/workflows"
 	"go.temporal.io/api/enums/v1"
 	temporal "go.temporal.io/sdk/client"
@@ -150,26 +149,20 @@ func PostTweet(ctx context.Context, b Backends, id string, text string) (*twitte
 	return tweet, nil
 }
 
-func PublishTweetProof(ctx context.Context, b Backends, identity *identities.Identity, connection *twitter.Connection) (string, error) {
+func PublishTweetProof(ctx context.Context, b Backends, id string) error {
 	workflowOptions := temporal.StartWorkflowOptions{
-		ID:                       "publish-tweet-proof" + identity.ID,
+		ID:                       "publish-tweet-proof" + id,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: time.Hour * 24 * 8, // 8 days
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
-	workflow, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.PublishTwitterProofWorkflow, identity, connection)
+	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.PublishTwitterProofWorkflow, id)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", twitter.ErrInternal, err)
+		return fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	var proofUrl string
-	err = workflow.Get(ctx, &proofUrl)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", twitter.ErrInternal, err)
-	}
-
-	return proofUrl, nil
+	return nil
 }
 
 func getConnection(ctx context.Context, b Backends, id string) (*twitter.Connection, error) {

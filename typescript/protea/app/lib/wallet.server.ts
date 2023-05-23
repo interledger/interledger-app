@@ -476,3 +476,26 @@ export async function getIdentity(
 
   return response.response.identity
 }
+
+export async function verifyTwitterIdentity(
+  request: Request,
+  id: string
+): Promise<void> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .verifyTwitter(
+      {
+        identityId: id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+}

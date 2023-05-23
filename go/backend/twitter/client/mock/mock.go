@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	identities "gitlab.com/fynbos/backend/identities"
 	twitter "gitlab.com/fynbos/backend/twitter"
 )
 
@@ -97,16 +96,15 @@ func (mr *MockClientMockRecorder) PostTweet(ctx, id, text interface{}) *gomock.C
 }
 
 // PublishTweetProof mocks base method.
-func (m *MockClient) PublishTweetProof(ctx context.Context, identity *identities.Identity, connection *twitter.Connection) (string, error) {
+func (m *MockClient) PublishTweetProof(ctx context.Context, identityID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PublishTweetProof", ctx, identity, connection)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "PublishTweetProof", ctx, identityID)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // PublishTweetProof indicates an expected call of PublishTweetProof.
-func (mr *MockClientMockRecorder) PublishTweetProof(ctx, identity, connection interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) PublishTweetProof(ctx, identityID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishTweetProof", reflect.TypeOf((*MockClient)(nil).PublishTweetProof), ctx, identity, connection)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishTweetProof", reflect.TypeOf((*MockClient)(nil).PublishTweetProof), ctx, identityID)
 }

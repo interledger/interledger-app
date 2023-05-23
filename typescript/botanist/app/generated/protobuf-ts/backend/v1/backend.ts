@@ -1807,6 +1807,15 @@ export interface GetIdentityResponse {
      */
     identity?: Identity;
 }
+/**
+ * @generated from protobuf message backend.v1.VerifyTwitterRequest
+ */
+export interface VerifyTwitterRequest {
+    /**
+     * @generated from protobuf field: string identity_id = 1;
+     */
+    identityId: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -8342,6 +8351,53 @@ class GetIdentityResponse$Type extends MessageType<GetIdentityResponse> {
  * @generated MessageType for protobuf message backend.v1.GetIdentityResponse
  */
 export const GetIdentityResponse = new GetIdentityResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VerifyTwitterRequest$Type extends MessageType<VerifyTwitterRequest> {
+    constructor() {
+        super("backend.v1.VerifyTwitterRequest", [
+            { no: 1, name: "identity_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<VerifyTwitterRequest>): VerifyTwitterRequest {
+        const message = { identityId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VerifyTwitterRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VerifyTwitterRequest): VerifyTwitterRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string identity_id */ 1:
+                    message.identityId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VerifyTwitterRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string identity_id = 1; */
+        if (message.identityId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.VerifyTwitterRequest
+ */
+export const VerifyTwitterRequest = new VerifyTwitterRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -8419,5 +8475,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: Empty },
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
-    { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse }
+    { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },
+    { name: "VerifyTwitter", options: {}, I: VerifyTwitterRequest, O: Empty }
 ]);
