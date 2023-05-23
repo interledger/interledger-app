@@ -39,7 +39,7 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
 	defer cancel()
 
-	session, resp, err := b.Kratos().V0alpha2Api.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
+	session, resp, err := b.Kratos().FrontendApi.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
 	if err != nil {
 		if resp.StatusCode == http.StatusUnauthorized {
 			return nil, nil
@@ -52,7 +52,7 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 }
 
 func GetUser(ctx context.Context, b Backends, userID string) (*user.User, error) {
-	id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, userID).Execute()
+	id, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, userID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", user.ErrInternal, err)
 	}
@@ -205,7 +205,7 @@ func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, e
 			wg.Add(1)
 			go func(uID string) {
 				defer wg.Done()
-				id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, uID).Execute()
+				id, _, err := b.Kratos().IdentityApi.GetIdentity(ctx, uID).Execute()
 				if err != nil {
 					anyErr = err
 					return
