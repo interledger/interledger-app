@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.17.2
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/bxcodec/faker/v3 v3.6.0
+	github.com/clbanning/mxj v1.8.4
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38
 	github.com/coreos/go-oidc/v3 v3.1.0
@@ -22,7 +23,7 @@ require (
 	github.com/lib/pq v1.10.3
 	github.com/machinebox/graphql v0.2.2
 	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d
-	github.com/ory/kratos-client-go v0.10.1
+	github.com/ory/kratos-client-go v0.13.1
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/riandyrn/otelchi v0.4.0
 	github.com/segmentio/analytics-go/v3 v3.2.1
@@ -58,7 +59,6 @@ require (
 require (
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
-	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
