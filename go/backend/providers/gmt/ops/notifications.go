@@ -93,3 +93,19 @@ func (a *Activity) PollNotifications(ctx context.Context) error {
 
 	return nil
 }
+
+func (a *Activity) GetNotifications(ctx context.Context) (map[string]string, error) {
+
+	nr, err := a.ext.GetNotifications(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := make(map[string]string)
+
+	for _, n := range nr {
+		resp[n.Password] = n.Status
+	}
+
+	return resp, nil
+}
