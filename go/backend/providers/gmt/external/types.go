@@ -162,7 +162,8 @@ type RequestCancellation struct {
 }
 
 type RequestCancellationResponse struct {
-	XMLName                   xml.Name    `xml:"http://tempuri.org/ RequestCancellationResponse"`
+	Text                      string      `xml:",chardata"`
+	Xmlns                     string      `xml:"xmlns,attr"`
 	RequestCancellationResult *WsResponse `json:"RequestCancellationResult,omitempty"`
 }
 
