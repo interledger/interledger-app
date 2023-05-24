@@ -1,0 +1,4 @@
+name: aws-logs-useast2-tabapay-s3
+runtime:
+  name: go
+description: Tabapay s3 for aws logs account in us-east-2
