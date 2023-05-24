@@ -1,6 +1,6 @@
 import { Outlet, useMatches } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import {
   Icon,
   IconButton,
@@ -11,7 +11,7 @@ import {
 } from '~/components'
 import { NavDrawer } from './NavDrawer'
 
-export function WalletLayout() {
+export function WalletLayout({ children }: { children: ReactNode }) {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const matches = useMatches()
   const title = matches[matches.length - 1].handle?.title
@@ -78,7 +78,7 @@ export function WalletLayout() {
                 </div>
               </WalletGrid>
             )}
-            <Outlet />
+            {children}
           </div>
         </div>
       </div>

@@ -10,7 +10,8 @@ import {
   Layouts,
   Router,
   AnimatedSchedule,
-  WalletGrid
+  WalletGrid,
+  WalletLayout
 } from '~/components'
 import type { Transaction } from '~/lib/wallet.server'
 import { getTransactionsWithPending } from '~/lib/wallet.server'
@@ -173,63 +174,65 @@ export default function Page() {
   }, [fetcher.data])
 
   return (
-    <WalletGrid ref={divHeight}>
-      {transactions && transactions.length == 0 && (
-        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <div className='flex flex-col space-y-4'>
-            <span className='text-sm text-medium'>
-              Your payment activity will appear here once you start using your
-              payment pointer.
-            </span>
-            <Router
-              to={route('/pay')}
-              className='text-sm font-medium text-primary'
-            >
-              Send or receive payments now
-            </Router>
-          </div>
-        </Card>
-      )}
-      {transactions &&
-        transactions.map((transactionGroup, index) => (
-          <Card
-            key={`group-${index}`}
-            className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
-          >
-            <span className='text-xs text-medium'>
-              {transactionGroup[0].date}
-            </span>
-            {transactionGroup.map((transaction) => (
-              <Fragment key={transaction.id}>
-                <Router
-                  to={`/transaction/${transaction.type}/${transaction.id}`}
-                  className='mt-4 flex w-full justify-between'
-                >
-                  <div className='flex space-x-1'>
-                    {transaction.icon == 'schedule' && (
-                      <div className='mt-0.5'>
-                        <AnimatedSchedule />
-                      </div>
-                    )}
-                    {transaction.icon != 'schedule' && (
-                      <Icon className='mt-0.5 text-medium'>
-                        {transaction.icon}
-                      </Icon>
-                    )}
-                    {/*<Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>*/}
-                    <div className='flex flex-col space-y-2'>
-                      <span className='text-medium'>{transaction.title}</span>
-                      <span className='text-xs text-medium'>
-                        {transaction.time}
-                      </span>
-                    </div>
-                  </div>
-                  <span className='font-medium'>{transaction.total}</span>
-                </Router>
-              </Fragment>
-            ))}
+    <WalletLayout>
+      <WalletGrid ref={divHeight}>
+        {transactions && transactions.length == 0 && (
+          <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <div className='flex flex-col space-y-4'>
+              <span className='text-sm text-medium'>
+                Your payment activity will appear here once you start using your
+                payment pointer.
+              </span>
+              <Router
+                to={route('/pay')}
+                className='text-sm font-medium text-primary'
+              >
+                Send or receive payments now
+              </Router>
+            </div>
           </Card>
-        ))}
-    </WalletGrid>
+        )}
+        {transactions &&
+          transactions.map((transactionGroup, index) => (
+            <Card
+              key={`group-${index}`}
+              className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
+            >
+              <span className='text-xs text-medium'>
+                {transactionGroup[0].date}
+              </span>
+              {transactionGroup.map((transaction) => (
+                <Fragment key={transaction.id}>
+                  <Router
+                    to={`/transaction/${transaction.type}/${transaction.id}`}
+                    className='mt-4 flex w-full justify-between'
+                  >
+                    <div className='flex space-x-1'>
+                      {transaction.icon == 'schedule' && (
+                        <div className='mt-0.5'>
+                          <AnimatedSchedule />
+                        </div>
+                      )}
+                      {transaction.icon != 'schedule' && (
+                        <Icon className='mt-0.5 text-medium'>
+                          {transaction.icon}
+                        </Icon>
+                      )}
+                      {/*<Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>*/}
+                      <div className='flex flex-col space-y-2'>
+                        <span className='text-medium'>{transaction.title}</span>
+                        <span className='text-xs text-medium'>
+                          {transaction.time}
+                        </span>
+                      </div>
+                    </div>
+                    <span className='font-medium'>{transaction.total}</span>
+                  </Router>
+                </Fragment>
+              ))}
+            </Card>
+          ))}
+      </WalletGrid>
+    </WalletLayout>
   )
 }

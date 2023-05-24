@@ -6,8 +6,9 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData, useNavigate } from '@remix-run/react'
 import { Layouts } from '~/components'
+import { useEffect } from 'react'
 
 export const handle = {
   title: 'Twitter',
@@ -38,7 +39,7 @@ export async function loader({ request }: LoaderArgs) {
     }
 
     return json({
-      message: 'Success, close window.'
+      id: resp.response.id
     })
   } else {
     let resp = await grpcClient
@@ -62,7 +63,13 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export default function Page() {
-  let { message } = useLoaderData<typeof loader>()
+  let { id } = useLoaderData<typeof loader>()
+  const nav = useNavigate()
 
-  return <div>{message}</div>
+  // We do this redirect clientside because the browser removes secure cookies when coming from another domain.
+  useEffect(() => {
+    nav(`/settings/linked-identities/${id}`)
+  }, [id, nav])
+
+  return null
 }

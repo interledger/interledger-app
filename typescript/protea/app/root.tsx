@@ -7,6 +7,7 @@ import {
   Links,
   LiveReload,
   Meta,
+  Outlet,
   Scripts,
   ScrollRestoration,
   useLoaderData,
@@ -169,18 +170,22 @@ export default function Page() {
       </Document>
     )
 
-  const layoutHandle = matches[matches.length - 1]?.handle?.layout
+  // const layoutHandle = matches[matches.length - 1]?.handle?.layout
+  //
+  // let layout, layoutComponent
+  //
+  // if (typeof layoutHandle === 'function') layout = layoutHandle(isUser)
+  // else layout = layoutHandle
 
-  let layout, layoutComponent
+  // if (layout == Layouts.FocusLayout) layoutComponent = <FocusLayout />
+  // else if (layout == Layouts.WalletLayout) layoutComponent = <WalletLayout />
+  // else layoutComponent = <LandingLayout />
 
-  if (typeof layoutHandle === 'function') layout = layoutHandle(isUser)
-  else layout = layoutHandle
-
-  if (layout == Layouts.FocusLayout) layoutComponent = <FocusLayout />
-  else if (layout == Layouts.WalletLayout) layoutComponent = <WalletLayout />
-  else layoutComponent = <LandingLayout />
-
-  return <Document>{layoutComponent}</Document>
+  return (
+    <Document>
+      <Outlet />
+    </Document>
+  )
 }
 
 export function ErrorBoundary() {
