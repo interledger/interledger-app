@@ -36,6 +36,7 @@ type Client interface {
 	ConfirmCollection(ctx context.Context, req ConfirmCollection) (*WsResponse, error)
 	ConfirmPayment(ctx context.Context, req ConfirmPayment) (*WsResponse, error)
 	GetNotifications(ctx context.Context) ([]*WsNotifications, error)
+	RequestCancellation(ctx context.Context, txID, msg string) (*WsResponse, error)
 }
 
 func NewClient(transport http.RoundTripper) Client {
@@ -78,6 +79,29 @@ func getEnvDefault(key, fallback string) string {
 	}
 
 	return val
+}
+
+func (c *client) RequestCancellation(ctx context.Context, txID, msg string) (*WsResponse, error) {
+	req := RequestCancellation{
+		Alias:   c.alias,
+		User:    c.user,
+		Pass:    c.password,
+		Receipt: txID,
+		Comment: msg,
+	}
+
+	type cancellationBody struct {
+		Text string                      `xml:",chardata"`
+		Resp RequestCancellationResponse `xml:"RequestCancellationResponse"`
+	}
+	response := cancellationBody{}
+
+	err := c.call(ctx, "http://tempuri.org/IService1/RequestCancellation", req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Resp.RequestCancellationResult, nil
 }
 
 func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*WsResponse, error) {

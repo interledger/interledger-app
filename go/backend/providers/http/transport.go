@@ -65,19 +65,23 @@ func (t *Transport) Log(b Backends, req *http.Request, resp *http.Response) {
 	if err != nil {
 		log.Error("httplogger: Failed to log external api request.", zap.Error(err))
 	}
+	origPayload := make([]byte, len(payload))
+	copy(origPayload, payload)
 	defer func() {
 		if payload != nil {
-			req.Body = io.NopCloser(bytes.NewBuffer(payload))
+			req.Body = io.NopCloser(bytes.NewBuffer(origPayload))
 		}
 	}()
 
 	respBody, err := io.ReadAll(resp.Body)
+	origRespBody := make([]byte, len(respBody))
+	copy(origRespBody, respBody)
 	if err != nil {
 		log.Error("httplogger: Failed to log external api request.", zap.Error(err))
 	}
 	defer func() {
 		if respBody != nil {
-			resp.Body = io.NopCloser(bytes.NewBuffer(respBody))
+			resp.Body = io.NopCloser(bytes.NewBuffer(origRespBody))
 		}
 	}()
 
