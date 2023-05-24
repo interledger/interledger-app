@@ -1018,3 +1018,17 @@ func (a *Activity) UpdateCardTransactionStatus(ctx context.Context, externalID s
 
 	return nil
 }
+
+func (a *Activity) RequestCancellation(ctx context.Context, externalID, comment string) (string, error) {
+	resp, err := a.ext.RequestCancellation(ctx, externalID, comment)
+
+	if err != nil {
+		return "", err
+	}
+
+	if resp.Error != 0 {
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", resp.Error, resp.Message), "external", nil)
+	}
+
+	return resp.Status, nil
+}
