@@ -33,6 +33,62 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 	return nil
 }
 
+func RunGMTCertificationStep2(ctx workflow.Context) error {
+	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+
+	if !env.IsDev() {
+		logger.Error("not going to run GMT certification in environment", "env", env.GetEnv())
+		return nil
+	}
+
+	// Cancel test case 1.2 transaction
+	/*var respStatus string
+	err := workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000581552673", "Automated test cancellation").Get(ctx, &respStatus)
+	if err != nil {
+		logger.Error("failed to request cancellation of 1.2 transaction")
+		return err
+	}
+
+	logger.Info("test case 1.2 cancellation result", "result", respStatus)
+	*/
+	var respStatus string
+	// Cancel test case 1.4 transaction
+	err := workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000197833254", "Automated test cancellation").Get(ctx, &respStatus)
+	if err != nil {
+		logger.Error("failed to request cancellation of 1.4 transaction")
+	} else {
+		logger.Info("test case 1.4  cancellation result", "result", respStatus)
+	}
+
+	// Cancel test case 1.5 transaction
+	err = workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000759265219", "Automated test cancellation").Get(ctx, &respStatus)
+	if err != nil {
+		logger.Error("failed to request cancellation of 1.5 transaction")
+	} else {
+		logger.Info("test case 1.5  cancellation result", "result", respStatus)
+	}
+
+	var notifications map[string]string
+	err = workflow.ExecuteActivity(ctx, gmtActivity.GetNotifications).Get(ctx, &notifications)
+	if err != nil {
+		logger.Error("failed to get notifications")
+		return err
+	}
+
+	for k, v := range notifications {
+		logger.Info("Notification Status", "id", k, "status", v)
+	}
+
+	return nil
+}
+
 type GmtTestArgs struct {
 	Name      string
 	Zip       string
