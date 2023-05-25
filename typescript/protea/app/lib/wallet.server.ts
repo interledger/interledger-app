@@ -477,6 +477,35 @@ export async function getIdentity(
   return response.response.identity
 }
 
+export async function getPublicIdentity(
+  request: Request,
+  id: string
+): Promise<Identity> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .getIdentity(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+  // TODO: remove, this should be handled by the backend
+  if (!response.response.identity) {
+    throw json({}, { status: 404 })
+  }
+
+  return response.response.identity
+}
+
 export async function deleteTwitterIdentity(
   request: Request,
   id: string
