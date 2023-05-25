@@ -14,7 +14,10 @@ func PublishTwitterProofWorkflow(ctx workflow.Context, identityID string) error 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("PublishTwitterProofWorkflow workflow started", "identityID", identityID)
 
-	err := workflow.ExecuteActivity(ctx, a.UpdateIdentityState, ctx, identityID, "").Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.UpdateIdentityState, ctx, UpdateStateArgs{
+		IdentityID: identityID,
+		Proof:      "",
+	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update identity state", "error", err)
 		return err
@@ -27,7 +30,10 @@ func PublishTwitterProofWorkflow(ctx workflow.Context, identityID string) error 
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateIdentityState, ctx, identityID, tweetUrl).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateIdentityState, ctx, UpdateStateArgs{
+		IdentityID: identityID,
+		Proof:      tweetUrl,
+	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update identity state", "error", err)
 		return err

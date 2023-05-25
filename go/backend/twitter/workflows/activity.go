@@ -68,8 +68,13 @@ func (a *Activity) PostProofTweet(ctx context.Context, identityID string) (strin
 	return proofUrl, nil
 }
 
-func (a *Activity) UpdateIdentityState(ctx context.Context, identityID string, proof string) error {
-	err := a.b.Identities().UpdateState(ctx, identityID, identities.StatePending, proof)
+type UpdateStateArgs struct {
+	IdentityID string
+	Proof      string
+}
+
+func (a *Activity) UpdateIdentityState(ctx context.Context, args UpdateStateArgs) error {
+	err := a.b.Identities().UpdateState(ctx, args.IdentityID, identities.StatePending, args.Proof)
 	if err != nil {
 		return err
 	}
