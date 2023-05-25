@@ -10,7 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 )
 
-const exampleRequest = `<?xml version="1.0" encoding="UTF-8"?>
+const exampleRequest = `
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
    <s:Body>
       <InsertTransaction xmlns="http://tempuri.org/">
