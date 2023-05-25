@@ -49,6 +49,7 @@ const (
 	TransactionStatusAuthorized = "Authorized"
 	TransactionStatusCancelled  = "Cancelled"
 	TransactionStatusExpired    = "Expired"
+	TransactionStatusReleased   = "Released"
 )
 
 func (gd GMTDate) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
