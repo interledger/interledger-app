@@ -250,6 +250,7 @@ service BackendService {
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
   rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+  rpc GetIdentityBySignatureHash(GetIdentityBySignatureHashRequest) returns (GetIdentityResponse);
 
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
@@ -755,4 +756,8 @@ message GetIdentityResponse{
 
 message VerifyTwitterRequest {
   string identity_id = 1;
+}
+
+message GetIdentityBySignatureHashRequest{
+  string signature_hash = 1;
 }

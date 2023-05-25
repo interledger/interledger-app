@@ -90,7 +90,6 @@ func Get(ctx context.Context, b Backends, id string) (*identities.Identity, erro
 	}
 
 	return &res, nil
-
 }
 
 // FIXME: Potentially remove
@@ -192,4 +191,17 @@ func UpdateState(ctx context.Context, b Backends, id string, state identities.St
 	}
 
 	return nil
+}
+
+func GetBySignatureHash(ctx context.Context, b Backends, sigHash []byte) (*identities.Identity, error) {
+	var res identities.Identity
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM identities WHERE signature_hash=$1 and public=true", cols), sigHash)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", identities.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return &res, nil
 }
