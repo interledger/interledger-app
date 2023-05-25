@@ -47,9 +47,10 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	})
 	var externalAccount external.CreateAccountResponse
 	err = workflow.ExecuteActivity(newCtx, a.CreateExternalCard, CreateExternalCardArgs{
-		WalletID:       args.WalletID,
-		CardNumber:     fmt.Sprintf("{{ %s | json: '$.number' }}", tokenizedCard.TokenID),
-		ExpirationDate: fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", tokenizedCard.TokenID, tokenizedCard.TokenID),
+		WalletID:            args.WalletID,
+		RejectDuplicateCard: true,
+		CardNumber:          fmt.Sprintf("{{ %s | json: '$.number' }}", tokenizedCard.TokenID),
+		ExpirationDate:      fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", tokenizedCard.TokenID, tokenizedCard.TokenID),
 	}).Get(ctx, &externalAccount)
 	if err != nil {
 		logger.Error("Failed to create card on tabapay.")
