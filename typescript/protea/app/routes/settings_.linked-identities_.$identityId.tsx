@@ -19,8 +19,7 @@ import {
   Router,
   Snackbar,
   Switch,
-  TextButton,
-  TextField
+  TextButton
 } from '~/components'
 import { route } from 'routes-gen'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
@@ -33,6 +32,7 @@ import {
   verifyTwitterIdentity
 } from '~/lib/wallet.server'
 import { useCallback, useEffect, useState } from 'react'
+import { DateTime } from 'luxon'
 
 export async function loader({ request, params }: LoaderArgs) {
   const paymentPointer = await getWalletPaymentPointer(request)
@@ -46,7 +46,12 @@ export async function loader({ request, params }: LoaderArgs) {
     snackbar,
     paymentPointer,
     publicName,
-    identity: { ...identity, state: 'verified' }
+    identity: {
+      ...identity,
+      verifiedAt: DateTime.fromSeconds(
+        parseInt(identity.verifiedAt?.seconds ?? '')
+      ).toFormat('dd MMM yyyy')
+    }
   })
 }
 
@@ -117,7 +122,7 @@ export default function Page() {
             />
             <Card.Item variant='col' className='mt-4'>
               <span className='text-medium'>Verification date</span>
-              <span className='font-medium'>TODO date</span>
+              <span className='font-medium'>{identity.verifiedAt}</span>
             </Card.Item>
             <Card.Item variant='col' className='mt-4'>
               <span className='text-medium'>Public proof</span>
@@ -129,7 +134,7 @@ export default function Page() {
               </AnchorRouter>
             </Card.Item>
           </Card>
-          <Card className='!bg-rose-100'>
+          <Card className='!bg-rose-100 dark:bg-rose-950'>
             <Card.Item variant='col'>
               <span className='text-medium font-medium text-xs'>
                 Please note
