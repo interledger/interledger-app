@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/env"
-	// "gitlab.com/fynbos/env"
 )
 
 type (
@@ -35,10 +33,6 @@ type Platform interface {
 }
 
 func Get(b Backends, platform identities.Platform) (Platform, error) {
-	if !env.IsProd() && !env.IsDev() {
-		return newDev(platform), nil
-	}
-
 	switch platform {
 	case identities.PlatformTwitter:
 		return newTwitter(b, platform), nil
