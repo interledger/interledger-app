@@ -697,6 +697,7 @@ message Identity {
   string proof = 9;
   string ctime = 10;
   bool public = 11;
+  google.protobuf.Timestamp verified_at = 12;
 }
 
 message IdentityVerificationInstructions {

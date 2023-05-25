@@ -1662,6 +1662,10 @@ export interface Identity {
      * @generated from protobuf field: bool public = 11;
      */
     public: boolean;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp verified_at = 12;
+     */
+    verifiedAt?: Timestamp;
 }
 /**
  * @generated from protobuf message backend.v1.IdentityVerificationInstructions
@@ -7605,7 +7609,8 @@ class Identity$Type extends MessageType<Identity> {
             { no: 8, name: "signature_hash", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "proof", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "ctime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 11, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 12, name: "verified_at", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<Identity>): Identity {
@@ -7653,6 +7658,9 @@ class Identity$Type extends MessageType<Identity> {
                 case /* bool public */ 11:
                     message.public = reader.bool();
                     break;
+                case /* google.protobuf.Timestamp verified_at */ 12:
+                    message.verifiedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.verifiedAt);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -7698,6 +7706,9 @@ class Identity$Type extends MessageType<Identity> {
         /* bool public = 11; */
         if (message.public !== false)
             writer.tag(11, WireType.Varint).bool(message.public);
+        /* google.protobuf.Timestamp verified_at = 12; */
+        if (message.verifiedAt)
+            Timestamp.internalBinaryWrite(message.verifiedAt, writer.tag(12, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
