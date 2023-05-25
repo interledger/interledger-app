@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"gitlab.com/fynbos/backend/identities"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -95,6 +96,9 @@ func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest
 
 	id, err := s.b.Identities().Get(ctx, req.Id)
 	if err != nil {
+		if errors.Is(err, identities.ErrNotFound) {
+			return nil, NotFoundError("identity not found.")
+		}
 		return nil, toGRPCError(err)
 	}
 
