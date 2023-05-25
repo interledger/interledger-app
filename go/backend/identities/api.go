@@ -14,4 +14,5 @@ type Client interface {
 	SetPublic(ctx context.Context, id, walletID string, public bool) (*Identity, error)
 	Get(ctx context.Context, id string) (*Identity, error)
 	UpdateState(ctx context.Context, id string, state State, proof string) error
+	GetBySignatureHash(ctx context.Context, sigHash []byte) (*Identity, error)
 }
