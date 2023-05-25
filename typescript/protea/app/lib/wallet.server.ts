@@ -469,12 +469,35 @@ export async function getIdentity(
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
-
+  // TODO: remove, this should be handled by the backend
   if (!response.response.identity) {
-    throw json({}, 404)
+    throw json({}, { status: 404 })
   }
 
   return response.response.identity
+}
+
+export async function deleteTwitterIdentity(
+  request: Request,
+  id: string
+): Promise<void> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .deleteIdentity(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
 }
 
 export async function verifyTwitterIdentity(
@@ -486,6 +509,31 @@ export async function verifyTwitterIdentity(
     .verifyTwitter(
       {
         identityId: id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+}
+
+export async function setTwitterIdentityPublic(
+  request: Request,
+  id: string,
+  publicVal: boolean
+): Promise<void> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .setIdentityPublic(
+      {
+        id,
+        public: publicVal
       },
       {
         meta: {

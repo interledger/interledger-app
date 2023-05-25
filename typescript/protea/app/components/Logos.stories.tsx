@@ -1,10 +1,10 @@
 import type { StoryFn, Meta } from '@storybook/react'
 import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
-import { Logo } from '~/components'
+import { FynbosLogo } from '~/components'
 
-const meta: Meta<typeof Logo> = {
+const meta: Meta<typeof FynbosLogo> = {
   title: 'components/Logo',
-  component: Logo,
+  component: FynbosLogo,
   decorators: [
     (Story) => {
       const RemixStub = createRemixStub([
@@ -22,7 +22,9 @@ const meta: Meta<typeof Logo> = {
 
 export default meta
 
-const Template: StoryFn<typeof Logo> = (_args) => <Logo {..._args} />
+const Template: StoryFn<typeof FynbosLogo> = (_args) => (
+  <FynbosLogo {..._args} />
+)
 
 export const LogoStory = Template.bind({})
 LogoStory.storyName = 'Default Logo'
