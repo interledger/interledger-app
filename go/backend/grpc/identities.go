@@ -111,6 +111,26 @@ func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest
 	}, nil
 }
 
+func (s *rpcService) GetIdentityBySignatureHash(ctx context.Context, req *pb.GetIdentityBySignatureHashRequest) (*pb.GetIdentityResponse, error) {
+	sigHashBase64 := req.GetSignatureHash()
+	sigHash, err := base64.URLEncoding.DecodeString(sigHashBase64)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	id, err := s.b.Identities().GetBySignatureHash(ctx, sigHash)
+	if err != nil {
+		if errors.Is(err, identities.ErrNotFound) {
+			return nil, NotFoundError("identity not found.")
+		}
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.GetIdentityResponse{
+		Identity: identityToPB(id),
+	}, nil
+}
+
 func identityToPB(identity *identities.Identity) *pb.Identity {
 	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)

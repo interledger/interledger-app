@@ -558,6 +558,7 @@ type BackendServiceClient interface {
 	DeleteIdentity(ctx context.Context, in *DeleteIdentityRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetIdentityPublic(ctx context.Context, in *SetIdentityPublicRequest, opts ...grpc.CallOption) (*Identity, error)
 	GetIdentity(ctx context.Context, in *GetIdentityRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error)
+	GetIdentityBySignatureHash(ctx context.Context, in *GetIdentityBySignatureHashRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error)
 	// KYC
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	StartKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -985,6 +986,15 @@ func (c *backendServiceClient) GetIdentity(ctx context.Context, in *GetIdentityR
 	return out, nil
 }
 
+func (c *backendServiceClient) GetIdentityBySignatureHash(ctx context.Context, in *GetIdentityBySignatureHashRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error) {
+	out := new(GetIdentityResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetIdentityBySignatureHash", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error) {
 	out := new(KYCStatusResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/KYCStatus", in, out, opts...)
@@ -1171,6 +1181,7 @@ type BackendServiceServer interface {
 	DeleteIdentity(context.Context, *DeleteIdentityRequest) (*Empty, error)
 	SetIdentityPublic(context.Context, *SetIdentityPublicRequest) (*Identity, error)
 	GetIdentity(context.Context, *GetIdentityRequest) (*GetIdentityResponse, error)
+	GetIdentityBySignatureHash(context.Context, *GetIdentityBySignatureHashRequest) (*GetIdentityResponse, error)
 	// KYC
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	StartKYC(context.Context, *Empty) (*Empty, error)
@@ -1329,6 +1340,9 @@ func (UnimplementedBackendServiceServer) SetIdentityPublic(context.Context, *Set
 }
 func (UnimplementedBackendServiceServer) GetIdentity(context.Context, *GetIdentityRequest) (*GetIdentityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetIdentity not implemented")
+}
+func (UnimplementedBackendServiceServer) GetIdentityBySignatureHash(context.Context, *GetIdentityBySignatureHashRequest) (*GetIdentityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIdentityBySignatureHash not implemented")
 }
 func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method KYCStatus not implemented")
@@ -2176,6 +2190,24 @@ func _BackendService_GetIdentity_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetIdentityBySignatureHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIdentityBySignatureHashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetIdentityBySignatureHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetIdentityBySignatureHash",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetIdentityBySignatureHash(ctx, req.(*GetIdentityBySignatureHashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_KYCStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -2610,6 +2642,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetIdentity",
 			Handler:    _BackendService_GetIdentity_Handler,
+		},
+		{
+			MethodName: "GetIdentityBySignatureHash",
+			Handler:    _BackendService_GetIdentityBySignatureHash_Handler,
 		},
 		{
 			MethodName: "KYCStatus",
