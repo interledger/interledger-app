@@ -456,20 +456,22 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 	}
 
 	return &external.WsReceiver{
-		ReceiverAddress:   recvID.Address.FormattedAddress,
-		ReceiverBirthDate: external.GMTDate(recvID.DateOfBirth),
-		ReceiverCity:      recvID.Address.City,
-		ReceiverCountry:   recvID.Address.CountryCode,
-		ReceiverCurrency:  "USD",
-		ReceiverEmail:     recvUsers[0].Email,
-		ReceiverGender:    gender,
-		ReceiverId:        int32(rid),
-		ReceiverLastName:  recvID.LastName,
-		ReceiverMobile:    recvUsers[0].PhoneNumber,
-		ReceiverName:      recvID.FirstName,
-		ReceiverState:     recvID.Address.State,
-		ReceiverZip:       recvID.Address.ZipCode,
-		SenderID:          int32(sid),
+		ReceiverAddress:             recvID.Address.FormattedAddress,
+		ReceiverBirthDate:           external.GMTDate(recvID.DateOfBirth),
+		ReceiverCity:                recvID.Address.City,
+		ReceiverCountry:             recvID.Address.CountryCode,
+		ReceiverCurrency:            "USD",
+		ReceiverEmail:               recvUsers[0].Email,
+		ReceiverGender:              gender,
+		ReceiverId:                  int32(rid),
+		ReceiverLastName:            recvID.LastName,
+		ReceiverMobile:              recvUsers[0].PhoneNumber,
+		ReceiverName:                recvID.FirstName,
+		ReceiverState:               recvID.Address.State,
+		ReceiverZip:                 recvID.Address.ZipCode,
+		SenderID:                    int32(sid),
+		ReceiverCountryNationallity: recvID.Nationality,
+		ReceiverPOB:                 recvID.PlaceOfBirth,
 	}, nil
 }
 
@@ -531,6 +533,8 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderResidenceZip:          senderID.Address.ZipCode,
 		SenderState:                 senderID.Address.State,
 		SenderZip:                   senderID.Address.ZipCode,
+		SenderCountryNationallity:   senderID.Nationality,
+		SenderPOB:                   senderID.PlaceOfBirth,
 	}
 
 	if !exceeds && !args.ForceEDD {

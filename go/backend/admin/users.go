@@ -96,15 +96,17 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 	}
 
 	return &adminv1.WalletDetails{
-		WalletID:    req.WalletID,
-		FirstName:   id.FirstName,
-		LastName:    id.LastName,
-		CountryCode: id.CountryCode,
-		Gender:      int32(id.Gender),
-		DateOfBirth: timestamppb.New(id.DateOfBirth),
-		Address:     address,
-		Users:       usersPB,
-		KycStatus:   kycStatus.String(),
+		WalletID:     req.WalletID,
+		FirstName:    id.FirstName,
+		LastName:     id.LastName,
+		CountryCode:  id.CountryCode,
+		PlaceOfBirth: id.PlaceOfBirth,
+		Nationality:  id.Nationality,
+		Gender:       int32(id.Gender),
+		DateOfBirth:  timestamppb.New(id.DateOfBirth),
+		Address:      address,
+		Users:        usersPB,
+		KycStatus:    kycStatus.String(),
 	}, nil
 }
 

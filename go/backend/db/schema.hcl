@@ -111,6 +111,14 @@ table "individual_kyc_details" {
     null = false
     type = text
   }
+  column "place_of_birth" {
+    null = true
+    type = text
+  }
+  column nationality {
+    null = true
+    type = text
+  }
   column "address" {
     null = true
     type = jsonb

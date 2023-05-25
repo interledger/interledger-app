@@ -351,6 +351,14 @@ export interface WalletDetails {
      * @generated from protobuf field: string kycStatus = 9;
      */
     kycStatus: string;
+    /**
+     * @generated from protobuf field: string placeOfBirth = 10;
+     */
+    placeOfBirth: string;
+    /**
+     * @generated from protobuf field: string nationality = 11;
+     */
+    nationality: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.PaginationRequest
@@ -1512,11 +1520,13 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
             { no: 5, name: "gender", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 6, name: "dateOfBirth", kind: "message", T: () => Timestamp },
             { no: 7, name: "address", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "kycStatus", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 9, name: "kycStatus", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "placeOfBirth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "nationality", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<WalletDetails>): WalletDetails {
-        const message = { users: [], walletID: "", firstName: "", lastName: "", countryCode: "", gender: 0, address: "", kycStatus: "" };
+        const message = { users: [], walletID: "", firstName: "", lastName: "", countryCode: "", gender: 0, address: "", kycStatus: "", placeOfBirth: "", nationality: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WalletDetails>(this, message, value);
@@ -1553,6 +1563,12 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
                     break;
                 case /* string kycStatus */ 9:
                     message.kycStatus = reader.string();
+                    break;
+                case /* string placeOfBirth */ 10:
+                    message.placeOfBirth = reader.string();
+                    break;
+                case /* string nationality */ 11:
+                    message.nationality = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1593,6 +1609,12 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
         /* string kycStatus = 9; */
         if (message.kycStatus !== "")
             writer.tag(9, WireType.LengthDelimited).string(message.kycStatus);
+        /* string placeOfBirth = 10; */
+        if (message.placeOfBirth !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.placeOfBirth);
+        /* string nationality = 11; */
+        if (message.nationality !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.nationality);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

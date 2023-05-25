@@ -47,12 +47,14 @@ func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndi
 	}
 
 	update := kyc.IndividualDetails{
-		WalletID:    wallet.ID,
-		FirstName:   req.GetFirstName(),
-		LastName:    req.GetLastName(),
-		CountryCode: req.GetCountryCode(),
-		Gender:      kyc.Gender(req.GetGender()),
-		IPAddress:   req.GetIpAddress(),
+		WalletID:     wallet.ID,
+		FirstName:    req.GetFirstName(),
+		LastName:     req.GetLastName(),
+		CountryCode:  req.GetCountryCode(),
+		Gender:       kyc.Gender(req.GetGender()),
+		IPAddress:    req.GetIpAddress(),
+		Nationality:  req.GetNationality(),
+		PlaceOfBirth: req.GetPlaceOfBirth(),
 	}
 	if req.DateOfBirth.IsValid() {
 		update.DateOfBirth = req.DateOfBirth.AsTime()
@@ -140,11 +142,13 @@ func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.I
 	}
 
 	resp := &pb.IndividualKYCResponse{
-		FirstName:   details.FirstName,
-		LastName:    details.LastName,
-		CountryCode: details.CountryCode,
-		Gender:      int32(details.Gender),
-		DateOfBirth: timestamppb.New(details.DateOfBirth),
+		FirstName:    details.FirstName,
+		LastName:     details.LastName,
+		CountryCode:  details.CountryCode,
+		Gender:       int32(details.Gender),
+		DateOfBirth:  timestamppb.New(details.DateOfBirth),
+		Nationality:  details.Nationality,
+		PlaceOfBirth: details.PlaceOfBirth,
 	}
 
 	if details.Address != nil {
