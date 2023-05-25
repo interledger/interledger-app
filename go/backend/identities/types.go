@@ -1,6 +1,7 @@
 package identities
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -21,13 +22,14 @@ type Identity struct {
 	WalletID          string `db:"wallet_id"`
 	Platform          Platform
 	State             State
-	Public            bool      // Whether the Identity is visible to the public
-	KeyID             string    `db:"key_id"`
-	Identifier        string    // Can be either the website URL, Twiter handle, Instagram handle etc based on the Platform
-	VerificationProof string    `db:"proof"` // URL to the posted tweet or wellknown file etc.
-	Signature         []byte    `db:"signature"`
-	SignatureHash     []byte    `db:"signature_hash"`
-	CreatedAt         time.Time `db:"created_at"`
+	Public            bool         // Whether the Identity is visible to the public
+	KeyID             string       `db:"key_id"`
+	Identifier        string       // Can be either the website URL, Twiter handle, Instagram handle etc based on the Platform
+	VerificationProof string       `db:"proof"` // URL to the posted tweet or wellknown file etc.
+	Signature         []byte       `db:"signature"`
+	SignatureHash     []byte       `db:"signature_hash"`
+	CreatedAt         time.Time    `db:"created_at"`
+	VerifiedAt        sql.NullTime `db:"verified_at"`
 }
 
 type State string
