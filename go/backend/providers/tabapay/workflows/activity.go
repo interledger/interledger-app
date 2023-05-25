@@ -87,6 +87,9 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 	if err != nil {
 		return nil, fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
 	}
+	if ctry != "840" {
+		return nil, fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+	}
 	stateParts := strings.Split(owner.Address.State, "-")
 	state := stateParts[0]
 	if len(stateParts) == 2 {
@@ -112,7 +115,7 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 				City:    owner.Address.City,
 				State:   state,
 				ZipCode: owner.Address.ZipCode,
-				Country: ctry,
+				// Country: ctry, // enable when we rollout to more regions
 			},
 		},
 	})
