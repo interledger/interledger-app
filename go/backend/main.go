@@ -454,6 +454,14 @@ func startWorker(args *cli.StartArgs) {
 
 	b.ident = identities_client.New(b)
 
+	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
+		ClientID:      args.TwitterClientID,
+		ClientSecret:  args.TwitterClientSecret,
+		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
+		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
+		RedirectURL:   args.TwitterRedirectURL,
+	})
+
 	b.limits = limits_client.New(b)
 
 	b.contacts = contacts_client.New(b)

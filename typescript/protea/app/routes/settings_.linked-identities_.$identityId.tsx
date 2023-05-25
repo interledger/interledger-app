@@ -134,7 +134,7 @@ export default function Page() {
               </AnchorRouter>
             </Card.Item>
           </Card>
-          <Card className='!bg-rose-100 dark:bg-rose-950'>
+          <Card className='!bg-rose-100 dark:!bg-rose-950'>
             <Card.Item variant='col'>
               <span className='text-medium font-medium text-xs'>
                 Please note

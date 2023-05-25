@@ -69,8 +69,8 @@ func (a *Activity) PostProofTweet(ctx context.Context, identityID string) (strin
 }
 
 type UpdateStateArgs struct {
-	IdentityID string
-	Proof      string
+	IdentityID string `json:"identity_id"`
+	Proof      string `json:"proof"`
 }
 
 func (a *Activity) UpdateIdentityState(ctx context.Context, args UpdateStateArgs) error {

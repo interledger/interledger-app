@@ -69,6 +69,10 @@ port-forward-crdb:
 	@echo "Port forwarding cockroachdb"
 	bash $(PF_SCRIPT) cockroachdb pod/cockroachdb-0 26257 26257
 
+port-forward-temporal-ui:
+	@echo "Port forwarding temporal ui"
+	bash $(PF_SCRIPT) temporal service/temporal-web 8080 8080
+
 job:
 	echo "package jobs" >> "./jobs/$$(date +%Y_%m)_$(name).go"
 
