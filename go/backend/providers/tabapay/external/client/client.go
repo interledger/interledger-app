@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	httplog "gitlab.com/fynbos/backend/providers/http"
@@ -25,12 +26,14 @@ type client struct {
 	baseUrl           string
 	bearerToken       string
 	clientID          string
+	subClientID       string
 	api               *http.Client
 }
 
 type NewClientArgs struct {
 	BasisTheoryProxyApiKey string
 	ClientID               string
+	SubClientID            string
 	BearerToken            string
 	Transport              http.RoundTripper
 }
@@ -50,6 +53,7 @@ func New(args NewClientArgs) (*client, error) {
 		bearerToken:       args.BearerToken,
 		basisTheoryApiKey: args.BasisTheoryProxyApiKey,
 		clientID:          args.ClientID,
+		subClientID:       args.SubClientID,
 		api: &http.Client{
 			Transport: t,
 			Timeout:   95 * time.Second, // set high as Tabapay may be waiting for transactions process
@@ -77,7 +81,7 @@ func (c *client) CreateTransaction(
 		meta.Provider = "tabapay"
 	}
 
-	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions")
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -121,7 +125,7 @@ func (c *client) RetrieveTransaction(
 		meta.Method = "GET"
 		meta.Provider = "tabapay"
 	}
-	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "transactions", id)
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}

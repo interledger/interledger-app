@@ -91,6 +91,7 @@ type StartArgs struct {
 	PusherAddr                 string
 	SegmentKey                 string
 	TabapayClientID            string
+	TabapaySubClientID         string
 	TabapayBearerToken         string
 	TabapaySettlementAccountID string
 	BasisTheoryApiKey          string
@@ -259,6 +260,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		PusherAddr:                 os.Getenv("PUSHER_ADDR"),
 		SegmentKey:                 os.Getenv("SEGMENT_KEY"),
 		TabapayClientID:            os.Getenv("TABAPAY_CLIENT_ID"),
+		TabapaySubClientID:         os.Getenv("TABAPAY_SUB_CLIENT_ID"),
 		TabapayBearerToken:         os.Getenv("TABAPAY_BEARER_TOKEN"),
 		TabapaySettlementAccountID: os.Getenv("TABAPAY_SETTLEMENT_ACCOUNT_ID"),
 		BasisTheoryApiKey:          os.Getenv("BASISTHEORY_API_KEY"),
