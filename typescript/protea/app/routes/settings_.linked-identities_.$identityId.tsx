@@ -98,8 +98,8 @@ export default function Page() {
   // Polling for now until we have pusher for this
   useEffect(() => {
     const interval = setInterval(() => {
-      if (identity.state == 'pending') revalidate()
-    }, 5000)
+      if (identity.state != 'verified') revalidate()
+    }, 2000)
     return () => clearInterval(interval)
   }, [identity.state, revalidate])
 
