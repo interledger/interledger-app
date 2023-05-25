@@ -95,7 +95,8 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 
 	referenceID := tabapay.NewReferenceID()
 	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
-		ReferenceID: referenceID,
+		RejectDuplicateCard: args.RejectDuplicateCard,
+		ReferenceID:         referenceID,
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,
@@ -115,6 +116,9 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 			},
 		},
 	})
+	if errors.Is(err, external.ErrConflict) {
+		return nil, temporal.NewNonRetryableApplicationError("tabapay: Duplicate card.", "ErrDuplicateCard", err)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
