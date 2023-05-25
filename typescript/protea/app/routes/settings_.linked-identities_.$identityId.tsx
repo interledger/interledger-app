@@ -128,7 +128,7 @@ export default function Page() {
               <span className='text-medium'>Public proof</span>
               <AnchorRouter
                 to={identity.proof}
-                className='font-medium text-primary'
+                className='font-medium text-primary break-all'
               >
                 {identity.proof}
               </AnchorRouter>
