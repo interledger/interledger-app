@@ -757,13 +757,13 @@ type WsTransferInfo struct {
 	MovilRemitente                            string   `xml:"a:MovilRemitente,omitempty"`
 	NetAmount                                 float64  `xml:"a:NetAmount,omitempty"`
 	OFACBeneficiario                          bool     `xml:"a:OFACBeneficiario,omitempty"`
-	OFACBeneficiaryBirthDate                  string   `xml:"a:OFACBeneficiaryBirthDate,omitempty"`
+	OFACBeneficiaryBirthDate                  GMTDate  `xml:"a:OFACBeneficiaryBirthDate,omitempty"`
 	OFACBeneficiaryPlaceOfBirth               string   `xml:"a:OFACBeneficiaryPlaceOfBirth,omitempty"`
 	OFACCountryOfNationality                  string   `xml:"a:OFACCountryOfNationality,omitempty"`
 	OFACPlaceOfBirth                          string   `xml:"a:OFACPlaceOfBirth,omitempty"`
 	OFACRemitente                             bool     `xml:"a:OFACRemitente,omitempty"`
 	OFACRemitenteObliga                       string   `xml:"a:OFACRemitenteObliga,omitempty"`
-	OFACSenderBirthDate                       string   `xml:"a:OFACSenderBirthDate,omitempty"`
+	OFACSenderBirthDate                       GMTDate  `xml:"a:OFACSenderBirthDate,omitempty"`
 	OfficeCode                                string   `xml:"a:OfficeCode,omitempty"`
 	OfficeNombre                              string   `xml:"a:OfficeNombre,omitempty"`
 	OriginalCurrency                          string   `xml:"a:OriginalCurrency,omitempty"`

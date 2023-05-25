@@ -15,14 +15,16 @@ const (
 )
 
 type IndividualDetails struct {
-	WalletID    string `db:"wallet_id" validate:"required,uuid"`
-	FirstName   string `db:"first_name"`
-	LastName    string `db:"last_name"`
-	CountryCode string `db:"country_code" validate:"omitempty,iso3166_1_alpha2"`
-	Gender      Gender `db:"gender" validate:"omitempty,gt=0,lt=4"`
-	DateOfBirth time.Time
-	Address     *Address
-	IPAddress   string `db:"ip_address" validate:"required,ip_addr"`
+	WalletID     string `db:"wallet_id" validate:"required,uuid"`
+	FirstName    string `db:"first_name"`
+	LastName     string `db:"last_name"`
+	CountryCode  string `db:"country_code" validate:"omitempty,iso3166_1_alpha2"`
+	PlaceOfBirth string
+	Nationality  string `validate:"omitempty,iso3166_1_alpha2"`
+	Gender       Gender `db:"gender" validate:"omitempty,gt=0,lt=4"`
+	DateOfBirth  time.Time
+	Address      *Address
+	IPAddress    string `db:"ip_address" validate:"required,ip_addr"`
 }
 
 type Address struct {

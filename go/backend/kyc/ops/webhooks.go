@@ -2,10 +2,13 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -146,6 +149,11 @@ func accountCreatedWebhook(ctx context.Context, b Backends, pc persona.Client, j
 	var inqID string
 	err = b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2 ORDER BY updated_at DESC",
 		details.ReferenceID, "approved")
+	if errors.Is(err, sql.ErrNoRows) {
+		// Lookup the latest inquiry as the webhook may not have fired to update it's status, We'll double check it
+		err = b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 ORDER BY updated_at DESC",
+			details.ReferenceID)
+	}
 	if err != nil {
 		return err
 	}
@@ -155,26 +163,44 @@ func accountCreatedWebhook(ctx context.Context, b Backends, pc persona.Client, j
 		return err
 	}
 
-	var ipAddr string
+	if inq.Data.Attributes.Status != "approved" {
+		return fmt.Errorf("failed to find approved inquiry, latest enquiry (%s) status (%s)", inqID, inq.Data.Attributes.Status)
+	}
+
+	gender := kyc.GenderUnknown
+	var ipAddr, birthplace, nationality string
 	for _, ii := range inq.Included {
-		if ii.Type != "inquiry-session" {
-			continue
+		// These are in order so the last one in the list will always be the most up to date.
+		if ii.Type == "inquiry-session" && ii.Attributes.IPAddress != "" {
+			ipAddr = ii.Attributes.IPAddress
 		}
 
-		// These are in order so the last one in the list will always be the most up to date.
-		if ii.Attributes.IPAddress != "" {
-			ipAddr = ii.Attributes.IPAddress
+		if ii.Attributes.Nationality != "" {
+			nationality = ii.Attributes.Nationality
+		}
+
+		if ii.Attributes.Birthplace != "" {
+			birthplace = ii.Attributes.Birthplace
+		}
+
+		if strings.EqualFold(ii.Attributes.Gender, "Male") {
+			gender = kyc.GenderMale
+		}
+		if strings.EqualFold(ii.Attributes.Gender, "Female") {
+			gender = kyc.GenderFemale
 		}
 	}
 
 	_, err = UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
-		WalletID:    details.ReferenceID,
-		FirstName:   fn,
-		LastName:    details.NameLast,
-		CountryCode: details.CountryCode,
-		Gender:      kyc.GenderUnknown,
-		DateOfBirth: dob,
-		IPAddress:   ipAddr,
+		WalletID:     details.ReferenceID,
+		FirstName:    fn,
+		LastName:     details.NameLast,
+		CountryCode:  details.CountryCode,
+		Gender:       gender,
+		DateOfBirth:  dob,
+		PlaceOfBirth: birthplace,
+		Nationality:  nationality,
+		IPAddress:    ipAddr,
 		Address: &kyc.Address{
 			Line1:       details.AddressStreet1,
 			Line2:       details.AddressStreet2,

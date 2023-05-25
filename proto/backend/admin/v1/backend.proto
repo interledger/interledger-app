@@ -135,6 +135,8 @@ message WalletDetails {
   google.protobuf.Timestamp dateOfBirth = 6;
   string address = 7;
   string kycStatus = 9;
+  string placeOfBirth = 10;
+  string nationality = 11;
 }
 
 message PaginationRequest {

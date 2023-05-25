@@ -53,6 +53,22 @@ func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndi
 		}
 	}
 
+	merged.Nationality = old.Nationality
+	if new.Nationality != "" {
+		merged.Nationality = sql.NullString{
+			String: new.Nationality,
+			Valid:  true,
+		}
+	}
+
+	merged.PlaceOfBirth = old.PlaceOfBirth
+	if new.PlaceOfBirth != "" {
+		merged.PlaceOfBirth = sql.NullString{
+			String: new.PlaceOfBirth,
+			Valid:  true,
+		}
+	}
+
 	merged.Address = old.Address
 	if new.Address != nil {
 		noop = false
@@ -73,15 +89,17 @@ func mergeIdentities(old dbIndividualDetails, new kyc.IndividualDetails) (dbIndi
 
 type dbIndividualDetails struct {
 	kyc.IndividualDetails
-	Revision    int            `db:"revision"`
-	DateOfBirth sql.NullTime   `db:"date_of_birth"`
-	Address     sql.NullString `db:"address"`
+	Revision     int            `db:"revision"`
+	DateOfBirth  sql.NullTime   `db:"date_of_birth"`
+	Address      sql.NullString `db:"address"`
+	PlaceOfBirth sql.NullString `db:"place_of_birth"`
+	Nationality  sql.NullString `db:"nationality"`
 }
 
 func getIndividualDetails(ctx context.Context, b Backends, walletID string) (*dbIndividualDetails, error) {
 	var id dbIndividualDetails
 	err := b.DB().GetContext(ctx, &id,
-		"SELECT wallet_id, revision, country_code, first_name, last_name, gender, date_of_birth, address, ip_address FROM individual_kyc_details WHERE wallet_id=$1 ORDER BY revision DESC LIMIT 1",
+		"SELECT wallet_id, revision, country_code, first_name, last_name, gender, date_of_birth, address, ip_address, place_of_birth, nationality FROM individual_kyc_details WHERE wallet_id=$1 ORDER BY revision DESC LIMIT 1",
 		walletID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, kyc.ErrNoKYCInfo
@@ -127,9 +145,9 @@ func UpdateIndividualDetails(ctx context.Context, b Backends, ident kyc.Individu
 		return convertDBDetails(merged)
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO individual_kyc_details (revision, wallet_id, country_code, first_name, last_name, gender, date_of_birth, address, ip_address)"+
-		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-		merged.Revision, merged.WalletID, merged.CountryCode, merged.FirstName, merged.LastName, merged.Gender, merged.DateOfBirth, merged.Address, merged.IPAddress)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO individual_kyc_details (revision, wallet_id, country_code, first_name, last_name, gender, date_of_birth, address, ip_address, place_of_birth, nationality)"+
+		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+		merged.Revision, merged.WalletID, merged.CountryCode, merged.FirstName, merged.LastName, merged.Gender, merged.DateOfBirth, merged.Address, merged.IPAddress, merged.PlaceOfBirth, merged.Nationality)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
@@ -139,13 +157,15 @@ func UpdateIndividualDetails(ctx context.Context, b Backends, ident kyc.Individu
 
 func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, error) {
 	resp := &kyc.IndividualDetails{
-		WalletID:    details.WalletID,
-		FirstName:   details.FirstName,
-		LastName:    details.LastName,
-		CountryCode: details.CountryCode,
-		Gender:      details.Gender,
-		DateOfBirth: details.DateOfBirth.Time,
-		IPAddress:   details.IPAddress,
+		WalletID:     details.WalletID,
+		FirstName:    details.FirstName,
+		LastName:     details.LastName,
+		CountryCode:  details.CountryCode,
+		PlaceOfBirth: details.PlaceOfBirth.String,
+		Nationality:  details.PlaceOfBirth.String,
+		Gender:       details.Gender,
+		DateOfBirth:  details.DateOfBirth.Time,
+		IPAddress:    details.IPAddress,
 	}
 
 	if !details.Address.Valid {

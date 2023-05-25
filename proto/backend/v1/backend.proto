@@ -422,6 +422,8 @@ message IndividualKYCResponse {
   int32 gender = 4; // 0 Unknown, 1 Male, 2 Female, 3 Other
   google.protobuf.Timestamp dateOfBirth = 5;
   Address address = 6;
+  string placeOfBirth = 7;
+  string nationality = 8;
 }
 
 message UpdateIndividualKYCRequest {
@@ -432,6 +434,8 @@ message UpdateIndividualKYCRequest {
   optional google.protobuf.Timestamp dateOfBirth = 5;
   optional Address address = 6;
   string ipAddress = 7;
+  optional string placeOfBirth = 8;
+  optional string nationality = 9;
 }
 
 message Address {

@@ -84,6 +84,9 @@ type InquiryIncludedAttributes struct {
 	CountryCode        string `json:"country-code"`
 	AddressSubdivision string `json:"address-subdivision"`
 	ExpirationDate     string `json:"expiration-date"`
+	Birthplace         string `json:"birthplace"`
+	Nationality        string `json:"nationality"`
+	Gender             string `json:"sex"`
 }
 
 type InquiryMeta struct {

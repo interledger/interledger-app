@@ -912,6 +912,14 @@ export interface IndividualKYCResponse {
      * @generated from protobuf field: backend.v1.Address address = 6;
      */
     address?: Address;
+    /**
+     * @generated from protobuf field: string placeOfBirth = 7;
+     */
+    placeOfBirth: string;
+    /**
+     * @generated from protobuf field: string nationality = 8;
+     */
+    nationality: string;
 }
 /**
  * @generated from protobuf message backend.v1.UpdateIndividualKYCRequest
@@ -945,6 +953,14 @@ export interface UpdateIndividualKYCRequest {
      * @generated from protobuf field: string ipAddress = 7;
      */
     ipAddress: string;
+    /**
+     * @generated from protobuf field: optional string placeOfBirth = 8;
+     */
+    placeOfBirth?: string;
+    /**
+     * @generated from protobuf field: optional string nationality = 9;
+     */
+    nationality?: string;
 }
 /**
  * @generated from protobuf message backend.v1.Address
@@ -4761,11 +4777,13 @@ class IndividualKYCResponse$Type extends MessageType<IndividualKYCResponse> {
             { no: 3, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "gender", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 5, name: "dateOfBirth", kind: "message", T: () => Timestamp },
-            { no: 6, name: "address", kind: "message", T: () => Address }
+            { no: 6, name: "address", kind: "message", T: () => Address },
+            { no: 7, name: "placeOfBirth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "nationality", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<IndividualKYCResponse>): IndividualKYCResponse {
-        const message = { firstName: "", lastName: "", countryCode: "", gender: 0 };
+        const message = { firstName: "", lastName: "", countryCode: "", gender: 0, placeOfBirth: "", nationality: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<IndividualKYCResponse>(this, message, value);
@@ -4793,6 +4811,12 @@ class IndividualKYCResponse$Type extends MessageType<IndividualKYCResponse> {
                     break;
                 case /* backend.v1.Address address */ 6:
                     message.address = Address.internalBinaryRead(reader, reader.uint32(), options, message.address);
+                    break;
+                case /* string placeOfBirth */ 7:
+                    message.placeOfBirth = reader.string();
+                    break;
+                case /* string nationality */ 8:
+                    message.nationality = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4824,6 +4848,12 @@ class IndividualKYCResponse$Type extends MessageType<IndividualKYCResponse> {
         /* backend.v1.Address address = 6; */
         if (message.address)
             Address.internalBinaryWrite(message.address, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* string placeOfBirth = 7; */
+        if (message.placeOfBirth !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.placeOfBirth);
+        /* string nationality = 8; */
+        if (message.nationality !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.nationality);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4844,7 +4874,9 @@ class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCReq
             { no: 4, name: "gender", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
             { no: 5, name: "dateOfBirth", kind: "message", T: () => Timestamp },
             { no: 6, name: "address", kind: "message", T: () => Address },
-            { no: 7, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 7, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "placeOfBirth", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "nationality", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<UpdateIndividualKYCRequest>): UpdateIndividualKYCRequest {
@@ -4880,6 +4912,12 @@ class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCReq
                 case /* string ipAddress */ 7:
                     message.ipAddress = reader.string();
                     break;
+                case /* optional string placeOfBirth */ 8:
+                    message.placeOfBirth = reader.string();
+                    break;
+                case /* optional string nationality */ 9:
+                    message.nationality = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4913,6 +4951,12 @@ class UpdateIndividualKYCRequest$Type extends MessageType<UpdateIndividualKYCReq
         /* string ipAddress = 7; */
         if (message.ipAddress !== "")
             writer.tag(7, WireType.LengthDelimited).string(message.ipAddress);
+        /* optional string placeOfBirth = 8; */
+        if (message.placeOfBirth !== undefined)
+            writer.tag(8, WireType.LengthDelimited).string(message.placeOfBirth);
+        /* optional string nationality = 9; */
+        if (message.nationality !== undefined)
+            writer.tag(9, WireType.LengthDelimited).string(message.nationality);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
