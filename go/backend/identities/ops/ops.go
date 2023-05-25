@@ -15,7 +15,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = ` id, wallet_id, platform, identifier, state, public, key_id, proof, signature, signature_hash, created_at `
+const cols = ` id, wallet_id, platform, identifier, state, public, key_id, proof, signature, signature_hash, created_at, verified_at `
 
 func List(ctx context.Context, b Backends, walletID string) ([]identities.Identity, error) {
 	var res []identities.Identity
@@ -180,7 +180,13 @@ func UpdateState(ctx context.Context, b Backends, id string, state identities.St
 		return err
 	}
 
-	_, err = b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, updated_at=now() WHERE id=$3", proof, state, ident.ID)
+	// Only update the verified at if the state is verified
+	var verifiedAt time.Time
+	if state == identities.StateVerified {
+		verifiedAt = time.Now()
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, updated_at=now(), verified_at=$3 WHERE id=$4", proof, state, verifiedAt, ident.ID)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

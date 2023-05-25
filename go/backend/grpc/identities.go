@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"gitlab.com/fynbos/backend/identities"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -121,6 +122,7 @@ func identityToPB(identity *identities.Identity) *pb.Identity {
 		SignatureHash: string(base64SignatureHash),
 		Proof:         identity.VerificationProof,
 		Ctime:         identity.CreatedAt.String(),
+		VerifiedAt:    timestamppb.New(identity.VerifiedAt.Time),
 		Public:        identity.Public,
 	}
 }
