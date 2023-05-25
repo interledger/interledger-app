@@ -79,6 +79,21 @@ func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id)
 }
 
+// GetBySignatureHash mocks base method.
+func (m *MockClient) GetBySignatureHash(ctx context.Context, sigHash []byte) (*identities.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBySignatureHash", ctx, sigHash)
+	ret0, _ := ret[0].(*identities.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBySignatureHash indicates an expected call of GetBySignatureHash.
+func (mr *MockClientMockRecorder) GetBySignatureHash(ctx, sigHash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySignatureHash", reflect.TypeOf((*MockClient)(nil).GetBySignatureHash), ctx, sigHash)
+}
+
 // List mocks base method.
 func (m *MockClient) List(ctx context.Context, walletID string) ([]identities.Identity, error) {
 	m.ctrl.T.Helper()

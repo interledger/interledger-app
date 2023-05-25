@@ -1,6 +1,7 @@
 package ops
 
 import (
+	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -69,5 +70,21 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 	kc := keys_mock.NewMockClient(ctrl)
 	tc := twitter_mock.NewMockClient(ctrl)
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc}
+	kc.EXPECT().List(gomock.Any(), gomock.Any()).Return([]keys.Key{
+		{
+			ID:   "test",
+			Type: keys.Custodial,
+		},
+	}, nil).AnyTimes()
+	kc.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
+	op := openpayments_mock.NewMockClient(ctrl)
+	op.EXPECT().GetWalletPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{
+		ID:         "",
+		URL:        "",
+		WalletID:   "",
+		Alias:      "",
+		Asset:      "",
+		AssetScale: 0,
+	}, nil).AnyTimes()
+	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, op: op}
 }
