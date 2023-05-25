@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -9,6 +10,7 @@ import (
 	http_log "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/temporal"
 )
 
 func (s *rpcService) CreateCard(
@@ -24,10 +26,19 @@ func (s *rpcService) CreateCard(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	_, err = s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
+	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
 		WalletID:           w.ID,
 		BasisTheoryTokenID: req.GetTokenID(),
 	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = await(ctx, nil)
+	var applicationError *temporal.ApplicationError
+	if errors.As(err, &applicationError) && applicationError.Type() == "ErrDuplicateCard" {
+		return nil, AlreadyExistsError("Invalid card.")
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
