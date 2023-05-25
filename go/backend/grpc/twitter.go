@@ -3,9 +3,8 @@ package grpc
 import (
 	"context"
 	"errors"
-	"gitlab.com/fynbos/backend/identities"
-
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )

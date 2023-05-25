@@ -154,7 +154,7 @@ func PublishTweetProof(ctx context.Context, b Backends, id string) error {
 		ID:                       "publish-tweet-proof" + id,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: time.Hour * 24 * 8, // 8 days
-		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
 	}
 
 	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.PublishTwitterProofWorkflow, id)
