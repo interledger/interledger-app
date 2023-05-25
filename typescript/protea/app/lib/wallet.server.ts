@@ -5,6 +5,7 @@ import type {
   Amount,
   GetPublicWalletDetailsResponse,
   Transaction as GrpcTransaction,
+  Identity,
   IndividualKYCResponse,
   KYCStatusResponse,
   LinkedAccount,
@@ -20,7 +21,6 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
-import type { Identity } from '~/generated/protobuf-ts/backend/v1/backend'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -415,7 +415,8 @@ export async function createCard(
       {
         meta: {
           cookies: cookie || ''
-        }
+        },
+        timeout: 60 * 1000
       }
     )
     .then((v) => v)
