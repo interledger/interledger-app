@@ -2,6 +2,7 @@ package ops
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers"
@@ -127,13 +128,23 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		return nil, err
 	}
 
+	txState := transactions.StatePending
+	if strings.EqualFold(tr.Status, "Hold") {
+		txState = transactions.StateOnHold
+		err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, args.FromTransactionID, txState).Get(ctx, nil)
+		if err != nil {
+			logger.Error("error updating transaction state to on hold", "Error", err)
+			return nil, err
+		}
+	}
+
 	// Insert/update transfers
 	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, args.FromTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: args.FromLinkedAccountID,
 			Type:            transactions.TransferTypeDebitBankAccount,
 			Amount:          args.Amount,
-			State:           transactions.StatePending,
+			State:           txState,
 			ForeignID:       tr.ID,
 		},
 	}).Get(ctx, nil)
@@ -158,7 +169,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		ForeignID:   args.ToForeignID,
 		ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
 		Provider:    transactions.ProviderOpenPayments,
-		State:       transactions.StatePending,
+		State:       txState,
 		Source:      args.FromPaymentPointer,
 		Destination: args.ToPaymentPointer,
 		Amount:      args.Amount,
@@ -168,7 +179,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 				LinkedAccountID: args.ToLinkedAccountID,
 				Type:            transactions.TransferTypeCreditBankAccount,
 				Amount:          args.Amount,
-				State:           transactions.StatePending,
+				State:           txState,
 			},
 		},
 	}).Get(ctx, nil)
@@ -223,6 +234,33 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		if notify.Password != tr.ID {
 			log.Error("received notification for different transaction")
 			continue
+		}
+
+		// If the transaction was OnHold then gets Released so it's back to pending
+		if notify.Status == external.TransactionStatusReleased {
+			// update send and receive transfer state.
+			err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, args.FromTransactionID, transactions.StatePending).Get(ctx, nil)
+			if err != nil {
+				logger.Error("error updating transaction state to pending", "Error", err)
+				return nil, err
+			}
+
+			err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, recvTrxID, transactions.StatePending).Get(ctx, nil)
+			if err != nil {
+				logger.Error("error updating transaction state to pending", "Error", err)
+				return nil, err
+			}
+
+			err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, args.FromTransactionID, args.FromWalletID, transactions.TransferTypeDebitBankAccount, transactions.StatePending).Get(ctx, nil)
+			if err != nil {
+				logger.Error("failed to update transaction state", "error", err, "state", transactions.StatePending)
+				return nil, err
+			}
+			err = workflow.ExecuteActivity(ctx, a.UpdateTransferStateByType, recvTrxID, args.ToWalletID, transactions.TransferTypeCreditBankAccount, transactions.StatePending).Get(ctx, nil)
+			if err != nil {
+				logger.Error("failed to update transaction state", "error", err, "state", transactions.StatePending)
+				return nil, err
+			}
 		}
 
 		if notify.Status == external.TransactionStatusPaid {

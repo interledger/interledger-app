@@ -14,6 +14,10 @@ func (a *Activity) AddTransactionTransfer(ctx context.Context, trxID string, arg
 	return a.b.Transactions().AddTransfers(ctx, trxID, args)
 }
 
+func (a *Activity) UpdateTransactionState(ctx context.Context, trxID string, state transactions.State) error {
+	return a.b.Transactions().SetTransactionState(ctx, trxID, state)
+}
+
 func (a *Activity) UpdateTransferStateByType(ctx context.Context, trxID string, walletID string, tfsType transactions.TransferType, state transactions.State) error {
 	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
 	if err != nil {

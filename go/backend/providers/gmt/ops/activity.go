@@ -8,17 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
-
-	"gitlab.com/fynbos/backend/transactions"
-
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -26,7 +20,14 @@ import (
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 const (
@@ -89,9 +90,21 @@ func (a *Activity) CheckWalletOFAC(ctx context.Context, walletID string) error {
 		return err
 	}
 
-	if res.Error != 0 {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+	if res.Error == 0 {
+		return nil
 	}
+
+	// Check if the user has completed transactions, hence no OFAC match or has been resolved
+	ct, err := a.b.Transactions().ListCompleted(ctx, db.Pagination{PageSize: 1}, walletID)
+	if err != nil {
+		return err
+	}
+	if len(ct) > 0 {
+		return nil
+	}
+
+	// Notify slack that user has an OFAC match
+	slack.SendToChannel(ctx, slack.NotifyGMT, "GMT_OFAC", fmt.Sprintf("GMT OFAC hit  in [%s] wallet_id [%s]", env.GetEnv(), walletID))
 
 	return nil
 }
@@ -148,7 +161,15 @@ func (a *Activity) IndividualCompliance(ctx context.Context, args providers.Tran
 		return nil, err
 	}
 
-	if res.Error != 0 {
+	// Check status for actual failures
+	if res.Error == 999 || // Required fields missing
+		res.Error == 1000 || // Invalid User
+		res.Error == 1002 || // Cannot find or insert sender
+		res.Error == 1003 || // Cannot find or insert receiver
+		res.Error == 2000 || // Amount over limit
+		res.Error == 2001 || // Compliance fields missing
+		res.Error == 2002 || // Fields missing for validation
+		res.Error == 2003 { // Sender or receiver blocked
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
 	}
 
@@ -230,7 +251,15 @@ func (a *Activity) Card2ACHCompliance(ctx context.Context, args providers.Transf
 		return nil, err
 	}
 
-	if res.Error != 0 {
+	// Check status for actual failures
+	if res.Error == 999 || // Required fields missing
+		res.Error == 1000 || // Invalid User
+		res.Error == 1002 || // Cannot find or insert sender
+		res.Error == 1003 || // Cannot find or insert receiver
+		res.Error == 2000 || // Amount over limit
+		res.Error == 2001 || // Compliance fields missing
+		res.Error == 2002 || // Fields missing for validation
+		res.Error == 2003 { // Sender or receiver blocked {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
 	}
 
@@ -317,7 +346,15 @@ func (a *Activity) ACH2CardCompliance(ctx context.Context, args providers.Transf
 		return nil, err
 	}
 
-	if res.Error != 0 {
+	// Check status for actual failures
+	if res.Error == 999 || // Required fields missing
+		res.Error == 1000 || // Invalid User
+		res.Error == 1002 || // Cannot find or insert sender
+		res.Error == 1003 || // Cannot find or insert receiver
+		res.Error == 2000 || // Amount over limit
+		res.Error == 2001 || // Compliance fields missing
+		res.Error == 2002 || // Fields missing for validation
+		res.Error == 2003 { // Sender or receiver blocked
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
 	}
 
@@ -330,6 +367,8 @@ func (a *Activity) ACH2CardCompliance(ctx context.Context, args providers.Transf
 }
 
 func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
+	logger := activity.GetLogger(ctx)
+
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
@@ -414,8 +453,20 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 		return nil, err
 	}
 
-	if res.Error != 0 {
+	// Check status for actual failures
+	if res.Error == 999 || // Required fields missing
+		res.Error == 1000 || // Invalid User
+		res.Error == 1002 || // Cannot find or insert sender
+		res.Error == 1003 || // Cannot find or insert receiver
+		res.Error == 2000 || // Amount over limit
+		res.Error == 2001 || // Compliance fields missing
+		res.Error == 2002 || // Fields missing for validation
+		res.Error == 2003 { // Sender or receiver blocked
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+	}
+
+	if res.Error != 0 {
+		logger.Warn("compliance check failed with not fatal error", "code", res.Error, "message", res.Message)
 	}
 
 	return &ComplianceResp{
@@ -719,6 +770,11 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 
 	if res.Error != 0 {
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+	}
+
+	if strings.EqualFold(res.Status, "Hold") {
+		// Notify slack that user has an OFAC match
+		slack.SendToChannel(ctx, slack.NotifyGMT, "GMT_HOLD", fmt.Sprintf("GMT transaction on Hold in [%s] tx_id[%s] from_wallet_id [%s] to_wallet_id [%s]", env.GetEnv(), args.FromTransactionID, args.FromWalletID, args.ToWalletID))
 	}
 
 	return &TransactionResp{

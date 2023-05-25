@@ -19,6 +19,7 @@ const (
 	StatePending   State = "Pending"
 	StateCompleted State = "Completed"
 	StateFailed    State = "Failed"
+	StateOnHold    State = "OnHold"
 )
 
 type Provider string
