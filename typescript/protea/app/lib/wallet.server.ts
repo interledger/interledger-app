@@ -479,19 +479,13 @@ export async function getIdentity(
 
 export async function getPublicIdentity(
   request: Request,
-  id: string
+  signatureHash: string
 ): Promise<Identity> {
-  const cookie = String(request.headers.get('cookie'))
   const response = await grpcClient
-    .getIdentity(
+    .getIdentityBySignatureHash(
       {
-        id
-      },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
+        signatureHash
+      },{}
     )
     .then((v) => v)
     .catch(StatusError)
