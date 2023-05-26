@@ -118,7 +118,7 @@ export default function Page() {
               className='max-w-[310px]'
               loading='lazy'
               alt='Identity card'
-              src='https://cdn.fynbos.app/identities/template.png'
+              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
             />
             <Card.Item variant='col' className='mt-4'>
               <span className='text-medium'>Verification date</span>
@@ -190,7 +190,7 @@ export default function Page() {
               className='mt-4 max-w-[310px]'
               loading='lazy'
               alt='Identity card'
-              src='https://cdn.fynbos.app/identities/template.png'
+              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
             />
             <Router
               className='mt-4 text-sm font-medium text-primary rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
@@ -214,7 +214,7 @@ export default function Page() {
               className='mt-4 max-w-[310px]'
               loading='lazy'
               alt='Identity card'
-              src='https://cdn.fynbos.app/identities/template.png'
+              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
             />
           </Card>
           <Button name='formName' value='retry' form='identity' type='submit'>
@@ -232,7 +232,7 @@ export default function Page() {
             className='mt-4 max-w-[310px]'
             loading='lazy'
             alt='Identity card'
-            src='https://cdn.fynbos.app/identities/template.png'
+            src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
           />
         </Card>
       )}
