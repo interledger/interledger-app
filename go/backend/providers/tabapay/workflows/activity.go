@@ -30,6 +30,7 @@ func NewActivity(cb InputBackends) *Activity {
 		BasisTheoryProxyApiKey: os.Getenv("BASISTHEORY_API_KEY"),
 		ClientID:               os.Getenv("TABAPAY_CLIENT_ID"),
 		BearerToken:            os.Getenv("TABAPAY_BEARER_TOKEN"),
+		SubClientID:            os.Getenv("TABAPAY_SUB_CLIENT_ID"),
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, cb, nil),
 		),

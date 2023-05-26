@@ -21,6 +21,7 @@ var _ tabapay.Client = &Client{}
 type NewClientArgs struct {
 	BasisTheoryProxyApiKey string
 	ClientID               string
+	SubClientID            string
 	BearerToken            string
 	SettlementAccountID    string
 }
@@ -61,6 +62,7 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 	externalClient, err := external_client.New(external_client.NewClientArgs{
 		BasisTheoryProxyApiKey: args.BasisTheoryProxyApiKey,
 		ClientID:               args.ClientID,
+		SubClientID:            args.SubClientID,
 		BearerToken:            args.BearerToken,
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, b, nil),
