@@ -484,7 +484,8 @@ export async function getPublicIdentity(
     .getIdentityBySignatureHash(
       {
         signatureHash
-      },{}
+      },
+      {}
     )
     .then((v) => v)
     .catch(StatusError)
