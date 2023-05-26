@@ -6,13 +6,16 @@ require (
 	github.com/99designs/gqlgen v0.17.2
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/bxcodec/faker/v3 v3.6.0
+	github.com/clbanning/mxj v1.8.4
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/dunglas/httpsfv v1.0.1
+	github.com/fogleman/gg v1.3.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-playground/validator/v10 v10.10.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/vault/api v1.9.0
@@ -58,7 +61,6 @@ require (
 require (
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
-	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -95,6 +97,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.9.0 // indirect
 	go.opentelemetry.io/otel/metric v0.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.18.0 // indirect
+	golang.org/x/image v0.0.0-20210216034530-4410531fe030 // indirect
 	golang.org/x/term v0.7.0 // indirect
 )
 
