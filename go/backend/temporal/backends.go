@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/images"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/limits"
@@ -44,4 +45,5 @@ type Backends interface {
 	Limits() limits.Client
 	OpenPayments() openpayments.Client
 	Identities() identities.Client
+	Images() images.Client
 }
