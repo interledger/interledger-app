@@ -18,6 +18,9 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 3,
+		},
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -44,6 +47,12 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 
 	newCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 		Context: fmt.Sprintf("walletID=%s", args.WalletID),
+	})
+	newCtx = workflow.WithActivityOptions(newCtx, workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Second,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2, // so we don't get blocked by Tabapay
+		},
 	})
 	var externalAccount external.CreateAccountResponse
 	err = workflow.ExecuteActivity(newCtx, a.CreateExternalCard, CreateExternalCardArgs{
