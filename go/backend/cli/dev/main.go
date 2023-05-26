@@ -1,6 +1,8 @@
 package main
 
 import (
+	"gitlab.com/fynbos/backend/images"
+	images_client "gitlab.com/fynbos/backend/images/client"
 	"gitlab.com/fynbos/backend/keys"
 	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/vault"
@@ -113,6 +115,7 @@ type backends struct {
 	analytics      analytics.Client
 	keys           keys.Client
 	vault          vault.Client
+	img            images.Client
 }
 
 func (b *backends) Transactions() transactions.Client {
@@ -261,4 +264,11 @@ func (b *backends) Analytics() analytics.Client {
 		b.analytics = analytics_client.New(b, "")
 	}
 	return b.analytics
+}
+
+func (b *backends) Images() images.Client {
+	if b.img == nil {
+		b.img = images_client.New(b)
+	}
+	return b.img
 }
