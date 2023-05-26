@@ -657,10 +657,40 @@ func getIdentity(b Backends) http.HandlerFunc {
 			return
 		}
 
+		// check if user agent contains twitterbot
+		if strings.Contains(strings.ToLower(req.Header.Get("User-Agent")), "twitterbot") {
+			url := env.GetUrl() + "/me/identities/" + identitySigHash
+			// get the html body from the above url
+			resp, err := http.Get(url)
+			if err != nil {
+				log.Error("error getting url", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Error("error reading response body", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			defer resp.Body.Close()
+
+			// return bytes to the caller as html response
+			w.Header().Set("Content-Type", "text/html")
+			_, err = w.Write(b)
+			if err != nil {
+				log.Error("error writing response body", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
 		// if text html redirect
 		if strings.Contains(req.Header.Get("Accept"), "text/html") {
 			url := env.GetUrl() + "/me/identities/" + identitySigHash
-			http.Redirect(w, req, url, http.StatusFound)
+			http.Redirect(w, req, url, http.StatusSeeOther)
 			return
 		}
 
