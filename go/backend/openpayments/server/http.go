@@ -38,6 +38,8 @@ func OpenPaymentsHTTPHandler(b Backends) http.Handler {
 	router.Post("/outgoing", createOutgoingPayment(b))
 	router.Get("/outgoing/{payment_id}", getOutgoingPayment(b))
 
+	router.Get("/{wallet_id}/identities/{identity_sig_hash}", getIdentity(b))
+
 	router.NotFound(catchAllHandler(b))
 	return router
 }
@@ -606,5 +608,79 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 			log.Error("error writing get incoming payment http response", zap.Error(err), zap.String("url", getFullURL(req)))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
+	}
+}
+
+func getIdentity(b Backends) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		identitySigHash := chi.URLParam(req, "identity_sig_hash")
+		ppURL, _, err := ops.ExtractPaymentPointer(getFullURL(req))
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		pp, err := ops.GetPaymentPointer(req.Context(), b, ppURL)
+		if err != nil {
+			if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+				return
+			}
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		sigHash, err := base64.URLEncoding.DecodeString(identitySigHash)
+		if err != nil {
+			// Leave as not found as decoding errors will give 500's
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		identity, err := b.Identities().GetBySignatureHash(req.Context(), sigHash)
+		if err != nil {
+			if errors.Is(err, identities.ErrNotFound) {
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+				return
+			}
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		if identity.WalletID != pp.WalletID {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		// Don't allow non verified and non public ones to be shown
+		if identity.State != identities.StateVerified || !identity.Public {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		// if text html redirect
+		if strings.Contains(req.Header.Get("Accept"), "text/html") {
+			url := env.GetUrl() + "/me/identities/" + identitySigHash
+			http.Redirect(w, req, url, http.StatusSeeOther)
+			return
+		}
+
+		sigBase64 := base64.URLEncoding.EncodeToString(identity.Signature)
+		sigHashBase64 := base64.URLEncoding.EncodeToString(identity.SignatureHash)
+		jsonResp := IdentityResponse{
+			Identifier:    identity.Identifier,
+			Kid:           identity.KeyID,
+			Ctime:         identity.CreatedAt.Unix(),
+			Signature:     sigBase64,
+			SignatureHash: sigHashBase64,
+			PublicProof:   identity.VerificationProof,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(jsonResp)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
 	}
 }
