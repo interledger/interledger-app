@@ -77,7 +77,7 @@ func TestLog(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	assert.Equal(t, ts.Listener.Addr().String()+"/", log.RequestPath)
+	assert.Equal(t, "http://"+ts.Listener.Addr().String()+"/", log.RequestPath)
 	assert.Equal(t, "{\"reqKey\":\"123\"}", log.RequestBody)
 	assert.Equal(t, "{\"respKey\":\"456\"}\n", log.ResponseBody)
 	assert.Equal(t, "200 OK", log.ResponseStatus)

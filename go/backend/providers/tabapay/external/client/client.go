@@ -67,8 +67,8 @@ func (c *client) setAuth(r *http.Request) {
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.bearerToken))
 }
 
-func (c *client) setProxy(r *http.Request) {
-	r.Header.Set("BT-PROXY-URL", c.baseUrl)
+func (c *client) setProxy(r *http.Request, proxyURL string) {
+	r.Header.Set("BT-PROXY-URL", proxyURL)
 	r.Header.Set("BT-API-KEY", c.basisTheoryApiKey)
 }
 
@@ -165,7 +165,7 @@ func (c *client) CreateAccount(
 		meta.Provider = "tabapay"
 	}
 
-	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "accounts")
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "accounts")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -174,11 +174,11 @@ func (c *client) CreateAccount(
 	}
 
 	if args.RejectDuplicateCard {
-		endpoint = fmt.Sprintf("%s?RejectDuplicateCard=", endpoint)
+		endpoint = fmt.Sprintf("%s?RejectDuplicateCard", endpoint)
 	}
 
 	if args.OKToAddDuplicateCard {
-		endpoint = fmt.Sprintf("%s?OKToAddDuplicateCard=", endpoint)
+		endpoint = fmt.Sprintf("%s?OKToAddDuplicateCard", endpoint)
 	}
 
 	payload, err := json.Marshal(args)
@@ -186,12 +186,12 @@ func (c *client) CreateAccount(
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, "POST", basisTheoryProxyUrl, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 	c.setAuth(req)
-	c.setProxy(req)
+	c.setProxy(req, endpoint)
 
 	resp, err := c.api.Do(req)
 	if err != nil {
@@ -262,7 +262,7 @@ func (c *client) QueryCard(
 		meta.Provider = "tabapay"
 	}
 
-	endpoint, err := url.JoinPath(basisTheoryProxyUrl, "v1", "clients", c.clientID, "cards")
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "cards")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -272,12 +272,12 @@ func (c *client) QueryCard(
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, "POST", basisTheoryProxyUrl, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 	c.setAuth(req)
-	c.setProxy(req)
+	c.setProxy(req, endpoint)
 
 	resp, err := c.api.Do(req)
 	if err != nil {
