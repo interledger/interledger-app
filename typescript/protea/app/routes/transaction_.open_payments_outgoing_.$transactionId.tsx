@@ -114,7 +114,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const handle = {
   title: 'Sent payment',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

@@ -12,7 +12,7 @@ import {
 
 export const handle = {
   title: 'Connect a Twitter identity',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export async function loader({ request }: LoaderArgs) {

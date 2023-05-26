@@ -53,7 +53,7 @@ WalletLayoutStory.parameters = {
   remix(_args: any) {
     return {
       handle: {
-        layout: Layouts.WalletLayout
+        layout: Layouts.Wallet
       },
       loader() {
         return []

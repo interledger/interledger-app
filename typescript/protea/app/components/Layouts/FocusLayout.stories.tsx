@@ -54,7 +54,7 @@ FocusLayoutStory.parameters = {
   remix(_args: any) {
     return {
       handle: {
-        layout: Layouts.FocusLayout
+        layout: Layouts.Focus
       },
       loader() {
         return []

@@ -55,7 +55,7 @@ LandingLayoutStory.parameters = {
   remix(_args: any) {
     return {
       handle: {
-        layout: Layouts.LandingLayout
+        layout: Layouts.Marketing
       },
       loader() {
         return { isSignupGated: false }

@@ -72,7 +72,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Transactions',
-  layout: Layouts.WalletLayout
+  layout: Layouts.Wallet
 }
 
 export const meta: MetaFunction = () => {

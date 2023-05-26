@@ -71,7 +71,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Payment pointer',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {
