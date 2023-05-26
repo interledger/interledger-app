@@ -35,7 +35,7 @@ export async function loader() {
 }
 
 export const handle = {
-  layout: Layouts.LandingLayout
+  layout: Layouts.Marketing
 }
 
 export default function Page() {

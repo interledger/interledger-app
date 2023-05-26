@@ -1,4 +1,5 @@
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
 
 import type { MetaFunction } from '@remix-run/node'
@@ -25,13 +26,16 @@ export const meta: MetaFunction = () => {
   }
 }
 
-export const handle = {
-  layout: Layouts.LandingLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Marketing,
+  scaffold: {
+    header: {}
+  }
 }
 
 export default function Page() {
   return (
-    <main className='w-full overflow-hidden'>
+    <main className='w-full'>
       <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20'>
           <div className='absolute -left-40 top-20 hidden h-20 w-20 rounded-full bg-slate-400 lg:block' />

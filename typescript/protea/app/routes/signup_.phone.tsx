@@ -60,7 +60,7 @@ export function links() {
 
 export const handle = {
   title: 'Mobile phone number',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

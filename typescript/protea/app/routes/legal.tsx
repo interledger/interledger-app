@@ -3,7 +3,7 @@ import { route } from 'routes-gen'
 import { Layouts, Router } from '~/components'
 
 export const handle = {
-  layout: Layouts.LandingLayout
+  layout: Layouts.Marketing
 }
 
 export const meta: MetaFunction = () => {
