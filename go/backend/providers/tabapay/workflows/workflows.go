@@ -41,7 +41,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	if errors.As(err, &applicationError) && applicationError.Type() != "NotFound" {
 		return nil, err
 	}
-	if la.ID == args.BasisTheoryTokenID {
+	if la.ID == tokenizedCard.ID {
 		return &la, nil
 	}
 
