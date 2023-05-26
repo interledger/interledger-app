@@ -27,7 +27,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Support',
-  layout: Layouts.WalletLayout
+  layout: Layouts.Wallet
 }
 
 export const meta: MetaFunction = () => {

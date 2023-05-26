@@ -57,7 +57,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const handle = {
   title: (match: RouteMatch) => `@${match.data.identity.identifier}`,
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

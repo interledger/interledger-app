@@ -41,7 +41,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const handle = {
   title: 'Profile details',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

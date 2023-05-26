@@ -88,7 +88,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export default function Page() {

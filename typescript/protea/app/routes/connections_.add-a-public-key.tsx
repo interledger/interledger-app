@@ -15,7 +15,7 @@ import { flashSnackbar } from '~/lib/snackbar.server'
 
 export const handle = {
   title: 'Add a public key',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

@@ -1,9 +1,9 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import type { RouteMatch } from '@remix-run/react'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
@@ -23,9 +23,15 @@ import {
 } from '~/lib/proto.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
-export const handle = {
-  title: (match: RouteMatch) => match.data.connection.applicationName,
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  title: (match) => match.data.connection.applicationName,
+  scaffold: {
+    header: {
+      title: (match) => match.data.connection.applicationName,
+      back: '/connections'
+    }
+  },
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {
