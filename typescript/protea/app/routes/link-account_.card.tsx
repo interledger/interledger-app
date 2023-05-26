@@ -1,9 +1,8 @@
-import type { LoaderArgs, MetaFunction, ActionArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useRef, useState } from 'react'
 
-import { Button, Card, Layouts } from '~/components'
 import {
   BasisTheoryProvider,
   CardExpirationDateElement,
@@ -16,9 +15,10 @@ import type {
   CardNumberElement as CardNumberElementType,
   CardVerificationCodeElement as CardVerificationCodeElementType
 } from '@basis-theory/basis-theory-react/types'
-import { route } from 'routes-gen'
-import { flashSnackbar } from '~/lib/snackbar.server'
 import clsx from 'clsx'
+import { route } from 'routes-gen'
+import { Button, Card, Layouts } from '~/components'
+import { flashSnackbar } from '~/lib/snackbar.server'
 import { createCard, getWalletId } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -63,7 +63,9 @@ export default function Page() {
   const cardExpirationDateRef = useRef<CardExpirationDateElementType>(null)
   const cardVerificationCodeRef = useRef<CardVerificationCodeElementType>(null)
 
+  const [submitting, setSubmitting] = useState<boolean>(false)
   const btSubmit = async () => {
+    setSubmitting(true)
     const cardNumber = cardNumberRef.current
     const cardExpirationDate = cardExpirationDateRef.current
     const cardVerificationCode = cardVerificationCodeRef.current
@@ -105,6 +107,9 @@ export default function Page() {
             : '',
           cvc: error.details.data.cvc ? 'Security code is invalid.' : ''
         })
+      })
+      .finally(() => {
+        setSubmitting(false)
       })
   }
 
@@ -234,7 +239,7 @@ export default function Page() {
             </label>
           </div>
         </Card>
-        <Button type='submit' onClick={btSubmit} disabled={!bt}>
+        <Button type='submit' onClick={btSubmit} disabled={!bt && submitting}>
           Submit
         </Button>
       </BasisTheoryProvider>
@@ -244,7 +249,7 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
-  const cardToken = form.get('cardToken') as string
+  const cardToken = form.get('tokenId') as string
 
   await createCard(request, cardToken)
 
