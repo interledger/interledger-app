@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/providers"
 	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"gitlab.com/fynbos/backend/transactions"
@@ -66,15 +69,15 @@ func RunGMTCertificationStep2(ctx workflow.Context) error {
 	} else {
 		logger.Info("test case 1.4  cancellation result", "result", respStatus)
 	}
-
-	// Cancel test case 1.5 transaction
-	err = workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000759265219", "Automated test cancellation").Get(ctx, &respStatus)
-	if err != nil {
-		logger.Error("failed to request cancellation of 1.5 transaction")
-	} else {
-		logger.Info("test case 1.5  cancellation result", "result", respStatus)
-	}
-
+	/*
+		// Cancel test case 1.5 transaction
+		err = workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000759265219", "Automated test cancellation").Get(ctx, &respStatus)
+		if err != nil {
+			logger.Error("failed to request cancellation of 1.5 transaction")
+		} else {
+			logger.Info("test case 1.5  cancellation result", "result", respStatus)
+		}
+	*/
 	var notifications map[string]string
 	err = workflow.ExecuteActivity(ctx, gmtActivity.GetNotifications).Get(ctx, &notifications)
 	if err != nil {
@@ -198,50 +201,49 @@ func RunGMTCertification(ctx workflow.Context) error {
 				Expected: "created",
 			},*/
 		/*				{
-								Name:  "case 1.4",
-								Zip:   "93001",
-								State: "US-CA",
-								Args: providers.TransfersArgs{
-									FromPaymentPointer: "https://eu1.fynbos.me/goldensender2",
-									ToPaymentPointer:   "https://eu1.fynbos.me/goldenrethreever4",
-									Amount:             currency.FromFloat64(2100, currency.USD),
-									FromTransactionID:  uuid.NewString(),
-									ForceEDD:           true,
-								},
-								Expected: "created",
-								SetupAcc: true,
-							},
-							{
-								Name:  "case 1.5",
-								Zip:   "93001",
-								State: "US-CA",
-								Args: providers.TransfersArgs{
-									FromPaymentPointer: "https://eu1.fynbos.me/goldensender3",
-									ToPaymentPointer:   "https://eu1.fynbos.me/goldenreceiver5",
-									Amount:             currency.FromFloat64(8000, currency.USD),
-									FromTransactionID:  uuid.NewString(),
-									ForceEDD:           true,
-								},
-								Expected: "created",
-								SetupAcc: true,
-							},
-						{
-							Name:  "case 1.6",
-							Zip:   "92101",
+							Name:  "case 1.4",
+							Zip:   "93001",
 							State: "US-CA",
 							Args: providers.TransfersArgs{
-								FromPaymentPointer:  "https://eu1.fynbos.me/newrem",
-								ToPaymentPointer:    "https://eu1.fynbos.me/julio",
-								FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
-								ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
-								FromWalletID:        "2396e098-25cf-4eb1-8a8f-f79843520cbb", //barnard+gmt+autotest+newremnewman+sender@fynbos.dev
-								ToWalletID:          "d94e01f7-3152-4379-bb8a-fc3b26c5854c", //barnard+gmt+autotest+juliosolano+recv@fynbos.dev
-								Amount:              currency.FromFloat64(10, currency.USD),
-								FromTransactionID:   uuid.NewString(),
+								FromPaymentPointer: "https://eu1.fynbos.me/goldensender2",
+								ToPaymentPointer:   "https://eu1.fynbos.me/goldenrethreever4",
+								Amount:             currency.FromFloat64(2100, currency.USD),
+								FromTransactionID:  uuid.NewString(),
+								ForceEDD:           true,
 							},
-							Expected: "hold",
-							SetupAcc: false,
+							Expected: "created",
+							SetupAcc: true,
+						},
+						{
+							Name:  "case 1.5",
+							Zip:   "93001",
+							State: "US-CA",
+							Args: providers.TransfersArgs{
+								FromPaymentPointer: "https://eu1.fynbos.me/goldensender3",
+								ToPaymentPointer:   "https://eu1.fynbos.me/goldenreceiver5",
+								Amount:             currency.FromFloat64(8000, currency.USD),
+								FromTransactionID:  uuid.NewString(),
+								ForceEDD:           true,
+							},
+							Expected: "created",
+							SetupAcc: true,
 						},*/
+		{
+			Name:  "case 1.6",
+			Zip:   "92101",
+			State: "US-CA",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/newrem",
+				ToPaymentPointer:    "https://eu1.fynbos.me/julio",
+				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
+				ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
+				FromWalletID:        "2396e098-25cf-4eb1-8a8f-f79843520cbb", //barnard+gmt+autotest+newremnewman+sender@fynbos.dev
+				ToWalletID:          "d94e01f7-3152-4379-bb8a-fc3b26c5854c", //barnard+gmt+autotest+juliosolano+recv@fynbos.dev
+				Amount:              currency.FromFloat64(10, currency.USD),
+				FromTransactionID:   uuid.NewString(),
+			},
+			Expected: "hold",
+		},
 	}
 
 	for _, tc := range cases {
