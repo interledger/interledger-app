@@ -9,6 +9,7 @@ declare module "routes-gen" {
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/connections/add-a-public-key": Record<string, never>;
     "/legal/us/e-sign-agreement": Record<string, never>;
+    "/me/identities/:identityId": { "identityId": string };
     "/settings/linked-identities": Record<string, never>;
     "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
@@ -73,6 +74,7 @@ declare module "routes-gen" {
       | ["/api/maps/placesAutocomplete"]
       | ["/connections/add-a-public-key"]
       | ["/legal/us/e-sign-agreement"]
+      | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
       | ["/settings/linked-identities"]
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
