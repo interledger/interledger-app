@@ -270,6 +270,7 @@ func start(args *cli.StartArgs) {
 		ClientID:               args.TabapayClientID,
 		BearerToken:            args.TabapayBearerToken,
 		SettlementAccountID:    args.TabapaySettlementAccountID,
+		SubClientID:            args.TabapaySubClientID,
 	}, b)
 	if err != nil {
 		log.Fatalln(err)
@@ -477,6 +478,7 @@ func startWorker(args *cli.StartArgs) {
 		ClientID:               args.TabapayClientID,
 		BearerToken:            args.TabapayBearerToken,
 		SettlementAccountID:    args.TabapaySettlementAccountID,
+		SubClientID:            args.TabapaySubClientID,
 	}, b)
 	if err != nil {
 		log.Fatalln(err)
