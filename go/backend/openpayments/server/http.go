@@ -660,7 +660,7 @@ func getIdentity(b Backends) http.HandlerFunc {
 		// if text html redirect
 		if strings.Contains(req.Header.Get("Accept"), "text/html") {
 			url := env.GetUrl() + "/me/identities/" + identitySigHash
-			http.Redirect(w, req, url, http.StatusSeeOther)
+			http.Redirect(w, req, url, http.StatusFound)
 			return
 		}
 
