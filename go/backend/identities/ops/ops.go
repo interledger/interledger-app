@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 
@@ -66,6 +68,15 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	err = p.GenerateImages(ctx, &platforms.GenerateImagesArgs{
+		Identifier:    "@" + c.Claim.Identifier,
+		SignatureHash: c.SignatureHash,
+		WalletURL:     strings.TrimPrefix("https://", c.Claim.Wallet),
+	})
+	if err != nil {
+		log.Error("error generating images", zap.Error(err))
 	}
 
 	ts := time.Unix(c.Claim.Ctime, 0)

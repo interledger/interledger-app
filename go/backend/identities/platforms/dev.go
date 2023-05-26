@@ -42,6 +42,10 @@ func (d *dev) VerifyInstructions(ctx context.Context, args *VerifyInstructionsAr
 	return `In this environment all you need to do to verify is to request it. Enjoy in a NON Production environment.`, nil
 }
 
+func (d *dev) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
+	return nil
+}
+
 type DevActivity struct {
 	b Backends
 }
