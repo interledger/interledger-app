@@ -79,6 +79,11 @@ func (c *client) CreateTransaction(
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "tabapay",
+		})
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions")
@@ -124,6 +129,11 @@ func (c *client) RetrieveTransaction(
 	if ok {
 		meta.Method = "GET"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "tabapay",
+		})
 	}
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions", id)
 	if err != nil {
@@ -163,6 +173,11 @@ func (c *client) CreateAccount(
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "tabapay",
+		})
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "accounts")
@@ -220,6 +235,11 @@ func (c *client) RetrieveAccount(
 	if ok {
 		meta.Method = "GET"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "tabapay",
+		})
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "accounts", id)
@@ -260,6 +280,11 @@ func (c *client) QueryCard(
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "tabapay",
+		})
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", c.clientID, "cards")
@@ -304,6 +329,11 @@ func (c *client) Init3DS(ctx context.Context, args external.Init3DSArgs) (*exter
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "tabapay",
+		})
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "init")
@@ -347,6 +377,11 @@ func (c *client) Lookup3DS(ctx context.Context, args external.Lookup3DSArgs) (*e
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "tabapay",
+		})
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "lookup")
@@ -390,6 +425,11 @@ func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "tabapay",
+		})
 	}
 
 	endpoint, err := url.JoinPath(c.baseUrl, "v2", "clients", c.clientID, "3ds", "authenticate")

@@ -75,7 +75,9 @@ func (s *rpcService) Init3DS(
 		return nil, InternalError("3DS not supported.")
 	}
 
-	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID))
+	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
+		Context: fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID),
+	})
 	init3DS, err := s.b.Tabapay().Init3DS(newCtx, tabapay.Init3DSArgs{
 		Amount:         quote.SendAmount,
 		IdempotencyKey: req.GetIdempotencyKey(),
@@ -122,7 +124,9 @@ func (s *rpcService) Lookup3DS(
 		return nil, NotFoundError("")
 	}
 
-	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", la.ID))
+	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
+		Context: fmt.Sprintf("linkedAccountID=%s", la.ID),
+	})
 	lookupResp, err := s.b.Tabapay().Lookup3DS(newCtx, tabapay.Lookup3DSArgs{
 		ThreeDSID:               req.GetThreeDSID(),
 		IdempotencyKey:          req.GetIdempotencyKey(),
@@ -188,7 +192,9 @@ func (s *rpcService) Authenticate3DS(
 		return nil, NotFoundError("")
 	}
 
-	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", la.ID))
+	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
+		Context: fmt.Sprintf("linkedAccountID=%s", la.ID),
+	})
 	authResp, err := s.b.Tabapay().Authenticate3DS(newCtx, tabapay.Authenticate3DSArgs{
 		IdempotencyKey: req.GetIdempotencyKey(),
 		ThreeDSID:      req.GetThreeDSID(),
