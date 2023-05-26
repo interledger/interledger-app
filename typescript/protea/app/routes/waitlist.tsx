@@ -70,7 +70,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Join the waitlist',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

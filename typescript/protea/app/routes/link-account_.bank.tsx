@@ -31,7 +31,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Bank details',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export default function Page() {

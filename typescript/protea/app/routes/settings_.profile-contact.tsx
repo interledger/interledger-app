@@ -19,7 +19,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Contact information',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

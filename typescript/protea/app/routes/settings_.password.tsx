@@ -53,7 +53,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Set password',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {
