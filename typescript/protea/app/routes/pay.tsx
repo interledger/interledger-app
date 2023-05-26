@@ -49,7 +49,10 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Pay',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus,
+  scaffold: {
+    header: { title: 'Pay' }
+  }
 }
 
 export const meta: MetaFunction = () => {

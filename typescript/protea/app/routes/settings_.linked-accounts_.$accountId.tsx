@@ -27,7 +27,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const handle = {
   title: 'Linked account name',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

@@ -3,6 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus } from '~/lib/wallet.server'
@@ -19,14 +20,21 @@ export async function loader({ request }: LoaderArgs) {
   const snackbar = await getSnackbar(request)
 
   return json({
+    chip: 'Hello',
     snackbar,
     kycStatus
   })
 }
 
-export const handle = {
+export const handle: ApplicationProps = {
   title: 'Settings',
-  layout: Layouts.WalletLayout
+  layout: Layouts.Wallet,
+  scaffold: {
+    header: {
+      title: 'Settings',
+      actions: [{ type: 'shapes' }]
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

@@ -41,7 +41,13 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Activate payment pointer',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: 'Activate payment pointer',
+      back: route('/')
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

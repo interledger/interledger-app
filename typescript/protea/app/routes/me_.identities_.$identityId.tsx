@@ -54,7 +54,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 }
 
 export const handle = {
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export default function Page() {

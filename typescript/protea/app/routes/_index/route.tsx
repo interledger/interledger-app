@@ -3,12 +3,16 @@ import { defer } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { Fragment, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   AnimatedSchedule,
   ButtonRouter,
   Card,
+  Fab,
+  FynbosLogo,
   HomeShapes,
   Icon,
+  IconButton,
   Layouts,
   Router,
   Shape,
@@ -153,9 +157,12 @@ export async function loader({ request }: LoaderArgs) {
   return defer(data)
 }
 
-export const handle = {
-  layout: (isUser: boolean) =>
-    isUser ? Layouts.WalletLayout : Layouts.LandingLayout
+export const handle: ApplicationProps = {
+  layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
+  scaffold: {
+    header: { title: 'transparent' },
+    fab: Fab.Pay
+  }
 }
 
 export default function Page() {
@@ -167,7 +174,62 @@ export default function Page() {
 
 function MarketingPage() {
   return (
-    <main className='w-full overflow-hidden'>
+    <main className='w-full'>
+      <header className='fixed top-0 z-10 mb-16 flex h-16 w-full items-center border-b border-slate-200 bg-mk-page lg:h-24'>
+        <div className='mx-auto flex w-full justify-between px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-[59rem]'>
+          <div className='flex items-center'>
+            <IconButton
+              className='lg:hidden'
+              // onClick={() => setOpenNavModal(true)}
+              aria-label='Open menu'
+            >
+              menu
+            </IconButton>
+            <div className='ml-4 lg:ml-0'>
+              <Router to={route('/')} aria-label='Fynbos logo'>
+                <FynbosLogo className='h-8' />
+              </Router>
+            </div>
+            {/*<div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>*/}
+            {/*  <HeaderLink*/}
+            {/*    to={route('/what-is-a-payment-pointer')}*/}
+            {/*    title='What is a payment pointer?'*/}
+            {/*  />*/}
+            {/*  /!*<HeaderLink to={route('/about')} title='About' />*!/*/}
+            {/*  <HeaderLink to={route('/blog')} title='Blog' />*/}
+            {/*  <HeaderLink to={route('/contact')} title='Contact' />*/}
+            {/*</div>*/}
+          </div>
+          <div className='hidden items-center lg:flex'>
+            {/*{!isUser && (*/}
+            {/*  <div className='flex space-x-10 pt-3 pb-2'>*/}
+            {/*    <Router to={route('/login')}>*/}
+            {/*      <span className='text-sm font-medium'>Log in</span>*/}
+            {/*    </Router>*/}
+            {/*    {isSignupGated && (*/}
+            {/*      <Router to={route('/waitlist')}>*/}
+            {/*        <span className='text-sm font-medium'>*/}
+            {/*          Join the waitlist*/}
+            {/*        </span>*/}
+            {/*      </Router>*/}
+            {/*    )}*/}
+            {/*    {!isSignupGated && (*/}
+            {/*      <Router to={route('/signup')}>*/}
+            {/*        <span className='text-sm font-medium'>Sign up</span>*/}
+            {/*      </Router>*/}
+            {/*    )}*/}
+            {/*  </div>*/}
+            {/*)}*/}
+            {/*{isUser && (*/}
+            <div className='flex items-center '>
+              <ButtonRouter to={route('/')}>
+                <span className='text-sm font-medium'>Go to app</span>
+              </ButtonRouter>
+            </div>
+            {/*)}*/}
+          </div>
+        </div>
+      </header>
       <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20 lg:h-48'>
           <div className='absolute -right-20 top-0 hidden h-20 w-20 rounded-br-full bg-rose-300 dark:bg-rose-400 lg:block' />

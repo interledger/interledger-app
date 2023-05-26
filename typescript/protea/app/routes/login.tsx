@@ -67,7 +67,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Log in',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {
