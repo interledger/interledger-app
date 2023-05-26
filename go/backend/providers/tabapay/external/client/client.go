@@ -174,11 +174,11 @@ func (c *client) CreateAccount(
 	}
 
 	if args.RejectDuplicateCard {
-		endpoint = fmt.Sprintf("%s?RejectDuplicateCard=", endpoint)
+		endpoint = fmt.Sprintf("%s?RejectDuplicateCard", endpoint)
 	}
 
 	if args.OKToAddDuplicateCard {
-		endpoint = fmt.Sprintf("%s?OKToAddDuplicateCard=", endpoint)
+		endpoint = fmt.Sprintf("%s?OKToAddDuplicateCard", endpoint)
 	}
 
 	payload, err := json.Marshal(args)

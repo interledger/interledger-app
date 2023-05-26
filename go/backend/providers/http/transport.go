@@ -97,7 +97,7 @@ func (t *Transport) Log(b Backends, req *http.Request, resp *http.Response) {
 		meta.Provider,
 		meta.Context,
 		string(redactedRequest),
-		fmt.Sprintf("%s%s", req.Host, req.URL.Path),
+		fmt.Sprintf("%s%s", req.Host, req.URL.String()),
 		string(respBody),
 		resp.Status,
 		meta.Method,
