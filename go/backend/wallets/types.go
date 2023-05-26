@@ -19,6 +19,8 @@ type Wallet struct {
 	Addresses []Address
 }
 
+type WalletCtxKey string
+
 type Address struct {
 	url *url.URL
 }
@@ -29,7 +31,7 @@ func (p Address) Value() (driver.Value, error) {
 
 func (p *Address) Scan(src interface{}) error {
 	if v, ok := src.(string); ok {
-		pp, err := parseAddress(v)
+		pp, err := ParseAddress(v)
 		*p = pp
 		return err
 	}
@@ -46,7 +48,7 @@ func (p *Address) ShortString() string {
 	return strings.Replace(s, "https://", "$", 1)
 }
 
-func parseAddress(rawAddress string) (Address, error) {
+func ParseAddress(rawAddress string) (Address, error) {
 
 	pp := standardize(rawAddress)
 

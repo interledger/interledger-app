@@ -15,6 +15,8 @@ import (
 	"gitlab.com/fynbos/log"
 )
 
+var walletCtxKey = wallets.WalletCtxKey("wallet_key")
+
 func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, error) {
 	err := b.Validator().StructCtx(ctx, args)
 	if err != nil {
@@ -50,6 +52,9 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	})
 
 	b.Analytics().TrackWalletCreated(walletID, userID)
+	for _, _ = range args.Addresses {
+		b.Analytics().TrackWalletPaymentPointerCreated(walletID)
+	}
 
 	if err != nil {
 		return nil, err
@@ -77,6 +82,10 @@ func AddAddresses(ctx context.Context, b Backends, id string, args []wallets.Add
 		return nil, err
 	}
 
+	for _, _ = range args {
+		b.Analytics().TrackWalletPaymentPointerCreated(id)
+	}
+
 	return Get(ctx, b, id)
 }
 
@@ -91,6 +100,14 @@ func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 		return nil, err
 	}
 
+	var wa []wallets.Address
+	err = b.DB().SelectContext(ctx, &wa, "SELECT url FROM wallet_addresses WHERE wallet_id=$1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	wallet.Addresses = wa
+
 	users, err := b.Users().ListUsers(ctx, id)
 	if err != nil {
 		log.Error("error getting users", zap.Error(err))
@@ -103,11 +120,42 @@ func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 	return &wallet, nil
 }
 
-func SetWalletName(ctx context.Context, b Backends, id, name string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", name, id)
+func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, error) {
+	var wl []wallets.Wallet
+	err := b.DB().SelectContext(ctx, &wl, "SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1", userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	for i, w := range wl {
+		var wa []wallets.Address
+		err = b.DB().SelectContext(ctx, &wa, "SELECT url FROM wallet_addresses WHERE wallet_id=$1", w.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		wl[i].Addresses = wa
+	}
+
+	return wl, nil
+}
+
+func SetWalletName(ctx context.Context, b Backends, id, name string) (*wallets.Wallet, error) {
+	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", name, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return Get(ctx, b, id)
+}
+
+func WalletForContext(ctx context.Context) (*wallets.Wallet, error) {
+	w, ok := ctx.Value(walletCtxKey).(*wallets.Wallet)
+	if !ok || w == nil {
+		return nil, wallets.ErrNoWalletFound
+	}
+	return w, nil
 }

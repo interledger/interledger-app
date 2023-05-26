@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/fynbos/backend/db"
-
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	kratos "github.com/ory/kratos-client-go"
@@ -76,34 +74,4 @@ func (c *client) GetUser(ctx context.Context, userID string) (*user.User, error)
 
 func (c *client) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
 	return ops.ListUsers(ctx, c.b, walletID)
-}
-
-func (c *client) WalletForContext(ctx context.Context) (uw *user.Wallet, err error) {
-	defer func(begin time.Time) {
-		if err != nil {
-			log.Info("no wallet in context", zap.Error(err))
-		}
-	}(time.Now())
-
-	return ops.WalletForContext(ctx)
-}
-
-func (c *client) CreateNewWallet(ctx context.Context, args user.CreateWalletArgs) (*user.Wallet, error) {
-	return ops.CreateWallet(ctx, c.b, args)
-}
-
-func (c *client) ListWallets(ctx context.Context, userID string) ([]user.Wallet, error) {
-	return ops.ListWallets(ctx, c.b, userID)
-}
-
-func (c *client) GetWallet(ctx context.Context, id string) (*user.Wallet, error) {
-	return ops.GetWallet(ctx, c.b, id)
-}
-
-func (c *client) ListAllWallets(ctx context.Context, pagination db.Pagination) ([]user.Wallet, error) {
-	return ops.ListAllWallets(ctx, c.b, pagination)
-}
-
-func (c *client) SetWalletName(ctx context.Context, id, name string) error {
-	return ops.SetWalletName(ctx, c.b, id, name)
 }

@@ -861,6 +861,38 @@ table "wallets" {
     columns = [column.name]
   }
 }
+table "wallet_addresses" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "url" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "wallet_id_ind" {
+    columns = [column.wallet_id]
+  }
+}
 table "transactions" {
   schema = schema.public
   column "id" {
