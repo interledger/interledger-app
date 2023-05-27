@@ -24,7 +24,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.3
 	github.com/machinebox/graphql v0.2.2
-	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d
+	github.com/n0madic/twitter-scraper v0.0.0-20230520222908-ec6e8f3e190e
 	github.com/ory/kratos-client-go v0.10.1
 	github.com/pusher/pusher-http-go/v5 v5.1.1
 	github.com/riandyrn/otelchi v0.4.0
@@ -98,7 +98,7 @@ require (
 	go.opentelemetry.io/otel/metric v0.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.18.0 // indirect
 	golang.org/x/image v0.0.0-20210216034530-4410531fe030 // indirect
-	golang.org/x/term v0.7.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
 )
 
 require (
@@ -152,9 +152,9 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/oauth2 v0.7.0
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/tools v0.6.0 // indirect

@@ -145,6 +145,40 @@ type (
 		ExpiresIn int      `json:"expires_in,omitempty"`
 		Flags     []string `json:"flags,omitempty"`
 	}
+
+	VerifyClaimArgs struct {
+		Type          string `json:"type"`
+		WalletAddress string `json:"walletAddress"`
+		Identifier    string `json:"identifier"`
+	}
+
+	WalletDetails struct {
+		ID         string     `json:"id"`
+		PublicName string     `json:"publicName"`
+		Identities []Identity `json:"identities"`
+	}
+
+	Identity struct {
+		Identifier    string `json:"identifier"`
+		KeyID         string `json:"kid"`
+		Type          string `json:"type"`
+		CreationTime  string `json:"ctime"`
+		Signature     string `json:"signature"`
+		SignatureHash string `json:"signature_hash"`
+		PublicProof   string `json:"public_proof"`
+	}
+
+	JWKS struct {
+		Keys []Jwk `json:"keys"`
+	}
+
+	IdentityClaim struct {
+		Wallet       string `json:"wallet"`
+		KeyID        string `json:"kid"`
+		Identifier   string `json:"identifier"`
+		Type         string `json:"type"`
+		CreationTime string `json:"ctime"`
+	}
 )
 
 type ed25519Signer struct {
