@@ -1,4 +1,4 @@
-package cmd
+package identities
 
 import (
 	"context"
@@ -6,12 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	twitterscraper "github.com/n0madic/twitter-scraper"
+	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/cli/identities/platforms"
 	"net/http"
-	"regexp"
 )
 
-func VerifyIdentity(ctx context.Context, b Backends, args VerifyClaimArgs) error {
+func VerifyIdentity(ctx context.Context, args VerifyClaimArgs) error {
 	// fetch wallet details
 	resp, err := http.Get(args.WalletAddress)
 	if err != nil {
@@ -41,21 +41,20 @@ func VerifyIdentity(ctx context.Context, b Backends, args VerifyClaimArgs) error
 	}
 
 	// fetch public proof using the public proof URL from the identity
-	tweetID, err := getTweetIDFromURL(identity.PublicProof)
+	platform, err := platforms.Get(identities.Platform(args.Type))
 	if err != nil {
-		return err
+		return fmt.Errorf("Error getting identity platform: %s", err)
 	}
 
-	scraper := twitterscraper.New()
-	tweet, err := scraper.GetTweet(tweetID)
+	publicProof, err := platform.FetchPublicProof(ctx, identity.PublicProof)
 	if err != nil {
-		return fmt.Errorf("Error fetching public proof tweet: %s", err)
+		return fmt.Errorf("Error fetching public proof: %s", err)
 	}
 
 	// check identifier and public proof content
 	// TODO: check tweet content and format
-	if tweet.Username != args.Identifier {
-		return fmt.Errorf("Public proof author identifier does not match identifier. author=%s identifier=%s", tweet.Username, args.Identifier)
+	if publicProof.Author != args.Identifier {
+		return fmt.Errorf("Public proof author identifier does not match identifier. author=%s identifier=%s", publicProof.Author, args.Identifier)
 	}
 
 	// fetch wallet public keys
@@ -116,21 +115,4 @@ func VerifyIdentity(ctx context.Context, b Backends, args VerifyClaimArgs) error
 	}
 
 	return nil
-}
-
-func getTweetIDFromURL(url string) (string, error) {
-	pattern := `^https?://(?:www\.)?twitter\.com/(?:#!/)?[^/]+/status/(\d+).*`
-
-	regex, err := regexp.Compile(pattern)
-	if err != nil {
-		return "", err
-	}
-
-	matches := regex.FindStringSubmatch(url)
-	if len(matches) < 2 {
-		return "", fmt.Errorf("Invalid public proof tweet URL")
-	}
-
-	tweetID := matches[1]
-	return tweetID, nil
 }
