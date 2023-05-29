@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	"time"
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/workflow"
@@ -43,11 +42,11 @@ func (a *Activity) ListMX(ctx context.Context) error {
 }
 
 func CleanMXAccounts(ctx workflow.Context) error {
-	var a *Activity
+	/*var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
-
+	*/
 	return nil
 }

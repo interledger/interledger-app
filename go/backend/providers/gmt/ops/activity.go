@@ -1095,17 +1095,12 @@ func (a *Activity) RequestCancellation(ctx context.Context, externalID, comment 
 
 func (a *Activity) ModifyTransactionForTesting(ctx context.Context, externalID, comment, recvWalletID string) error {
 
-	id, err := a.b.KYC().GetIndividualDetails(ctx, recvWalletID)
-	if err != nil {
-		return err
-	}
-
 	resp, err := a.ext.ModifyTransaction(ctx, external.RequestModification{
 		Receipt: externalID,
-		Comment: comment,
+		Comment: "Request Modification Comment",
 		Data: &external.WsChangeRequestData{
-			ReceiverLastName: id.LastName + "B",
-			ReceiverName:     id.FirstName,
+			ReceiverLastName: "RECEIVER BENNAME",
+			ReceiverName:     "TEST BENLAST",
 		},
 	})
 	if err != nil {
