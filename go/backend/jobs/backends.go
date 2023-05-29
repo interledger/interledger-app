@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -16,6 +17,7 @@ type Backends interface {
 	DB() *sqlx.DB
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
+	MX() mx.Client
 }
 
 type Activity struct {
