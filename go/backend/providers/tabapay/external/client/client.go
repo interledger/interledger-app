@@ -292,6 +292,10 @@ func (c *client) QueryCard(
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
 
+	if args.AVSCheck {
+		endpoint = fmt.Sprintf("%s?AVS", endpoint)
+	}
+
 	payload, err := json.Marshal(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
