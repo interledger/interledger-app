@@ -66,6 +66,7 @@ func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.Que
 		},
 	}
 	if args.AVS {
+		queryArgs.AVSCheck = true
 		queryArgs.Owner.Address = &external.Address{
 			Line1:   kyc.Address.Line1,
 			ZipCode: kyc.Address.ZipCode,

@@ -82,6 +82,28 @@ var (
 	ColorDepth48 ColorDepth = "48"
 )
 
+const (
+	AVSResponseCodeY = "Y"
+	AVSResponseCodeA = "A"
+	AVSResponseCodeS = "S"
+	AVSResponseCodeR = "R"
+	AVSResponseCodeU = "U"
+	AVSResponseCodeZ = "Z"
+	AVSResponseCodeN = "N"
+	AVSResponseCodeW = "W"
+	AVSResponseCodeX = "X"
+	AVSResponseCodeB = "B"
+	AVSResponseCodeT = "T"
+	AVSResponseCodeP = "P"
+	AVSResponseCodeC = "C"
+	AVSResponseCodeD = "D"
+	AVSResponseCodeG = "G"
+	AVSResponseCodeI = "I"
+	AVSResponseCodeM = "M"
+	AVSResponseCodeF = "F"
+	AVSResponseCodeQ = "Q"
+)
+
 type (
 	CreateTransactionPullOptions struct {
 		ThreeDS      ThreeDS `json:"3dSecure"`
@@ -233,8 +255,9 @@ type (
 	}
 
 	QueryCardArgs struct {
-		Card  *Card  `json:"card,omitempty"`
-		Owner *Owner `json:"owner,omitempty"`
+		AVSCheck bool   `json:"-"`
+		Card     *Card  `json:"card,omitempty"`
+		Owner    *Owner `json:"owner,omitempty"`
 	}
 
 	PullObject struct {
