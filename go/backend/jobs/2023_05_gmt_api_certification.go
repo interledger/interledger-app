@@ -60,7 +60,7 @@ func RunGMTCertificationStep2(ctx workflow.Context) error {
 	}
 
 	logger.Info("test case 1.2 cancellation result", "result", respStatus)
-	*/
+
 	var respStatus string
 	// Cancel test case 1.4 transaction
 	err := workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000197833254", "Automated test cancellation").Get(ctx, &respStatus)
@@ -68,25 +68,36 @@ func RunGMTCertificationStep2(ctx workflow.Context) error {
 		logger.Error("failed to request cancellation of 1.4 transaction")
 	} else {
 		logger.Info("test case 1.4  cancellation result", "result", respStatus)
-	}
+	}*/
 	/*
-		// Cancel test case 1.5 transaction
-		err = workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000759265219", "Automated test cancellation").Get(ctx, &respStatus)
+			// Cancel test case 1.5 transaction
+			err = workflow.ExecuteActivity(ctx, gmtActivity.RequestCancellation, "000759265219", "Automated test cancellation").Get(ctx, &respStatus)
+			if err != nil {
+				logger.Error("failed to request cancellation of 1.5 transaction")
+			} else {
+				logger.Info("test case 1.5  cancellation result", "result", respStatus)
+			}
+
+		var notifications map[string]string
+		err = workflow.ExecuteActivity(ctx, gmtActivity.GetNotifications).Get(ctx, &notifications)
 		if err != nil {
-			logger.Error("failed to request cancellation of 1.5 transaction")
-		} else {
-			logger.Info("test case 1.5  cancellation result", "result", respStatus)
+			logger.Error("failed to get notifications")
+			return err
+		}
+
+		for k, v := range notifications {
+			logger.Info("Notification Status", "id", k, "status", v)
 		}
 	*/
-	var notifications map[string]string
-	err = workflow.ExecuteActivity(ctx, gmtActivity.GetNotifications).Get(ctx, &notifications)
+
+	err := workflow.ExecuteActivity(ctx, gmtActivity.ModifyTransactionForTesting, "000143124210", "testing", "d94e01f7-3152-4379-bb8a-fc3b26c5854c").Get(ctx, nil)
 	if err != nil {
-		logger.Error("failed to get notifications")
-		return err
+		logger.Error("failed to request modification of 1.6 transaction beneficiary", "error", err)
 	}
 
-	for k, v := range notifications {
-		logger.Info("Notification Status", "id", k, "status", v)
+	err = workflow.ExecuteActivity(ctx, gmtActivity.PrintPaidTransactions).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to print paid transactions", "error", err)
 	}
 
 	return nil
