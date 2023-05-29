@@ -182,7 +182,7 @@ func RunGMTCertificationStep2(ctx workflow.Context) error {
 		}
 	*/
 
-	err := workflow.ExecuteActivity(ctx, gmtActivity.ModifyTransactionForTesting, "000143124210", "testing", "d94e01f7-3152-4379-bb8a-fc3b26c5854c").Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, gmtActivity.ModifyTransactionForTesting, "000426703041", "testing", "d94e01f7-3152-4379-bb8a-fc3b26c5854c").Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to request modification of 1.6 transaction beneficiary", "error", err)
 	}

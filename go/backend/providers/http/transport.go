@@ -62,8 +62,6 @@ func (t *Transport) Log(b Backends, req *http.Request, resp *http.Response) {
 	}
 
 	payload, err := io.ReadAll(reqBody)
-	origPayload := make([]byte, len(payload))
-	copy(origPayload, payload)
 	if err != nil {
 		log.Error("httplogger: Failed to log external api request.", zap.Error(err))
 	}
