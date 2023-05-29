@@ -35,3 +35,9 @@ type Account struct {
 	Type             string
 	UpdatedAt        time.Time
 }
+
+type User struct {
+	WalletID string
+	GUID     string
+	Enabled  bool
+}

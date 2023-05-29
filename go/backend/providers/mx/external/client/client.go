@@ -296,6 +296,62 @@ func (c *client) ReadUsersAccount(ctx context.Context, userGuid, accountGuid str
 	return &accountResponse.Account, nil
 }
 
+func (c *client) ListUsers(ctx context.Context) ([]external.User, error) {
+	endpoint, err := url.JoinPath(c.baseUrl, "users")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint+"?records_per_page=100", nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	var listResponse external.ListUsersResponse
+	err = json.NewDecoder(resp.Body).Decode(&listResponse)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	return listResponse.Users, nil
+}
+
+func (c *client) DeleteUser(ctx context.Context, guid string) error {
+	endpoint, err := url.JoinPath(c.baseUrl, "users", guid)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "DELETE", endpoint, nil)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func checkResponseStatusCode(r *http.Response) error {
 	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil
