@@ -58,7 +58,7 @@ func (gd GMTDate) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		return nil
 	}
 
-	v := t.Format("2006-01-02")
+	v := t.Format("2006/01/02")
 	return e.EncodeElement(v, start)
 }
 
@@ -135,7 +135,8 @@ type GetPaidTransactions struct {
 }
 
 type GetPaidTransactionsResponse struct {
-	XMLName                   xml.Name                   `xml:"http://tempuri.org/ GetPaidTransactionsResponse"`
+	Text                      string                     `xml:",chardata"`
+	Xmlns                     string                     `xml:"xmlns,attr"`
 	GetPaidTransactionsResult *ArrayOfwsPaidTransactions `xml:"GetPaidTransactionsResult,omitempty"`
 }
 
@@ -162,7 +163,8 @@ type RequestCancellation struct {
 }
 
 type RequestCancellationResponse struct {
-	XMLName                   xml.Name    `xml:"http://tempuri.org/ RequestCancellationResponse"`
+	Text                      string      `xml:",chardata"`
+	Xmlns                     string      `xml:"xmlns,attr"`
 	RequestCancellationResult *WsResponse `json:"RequestCancellationResult,omitempty"`
 }
 
@@ -202,7 +204,8 @@ type RequestModification struct {
 }
 
 type RequestModificationResponse struct {
-	XMLName                   xml.Name    `xml:"http://tempuri.org/ RequestModificationResponse"`
+	Text                      string      `xml:",chardata"`
+	Xmlns                     string      `xml:"xmlns,attr"`
 	RequestModificationResult *WsResponse `json:"RequestModificationResult,omitempty"`
 }
 
@@ -842,11 +845,13 @@ type ArrayOfwsPaidTransactions struct {
 }
 
 type WsPaidTransactions struct {
-	XMLName           xml.Name `xml:"http://schemas.datacontract.org/2004/07/gmtpay wsPaidTransactions"`
-	Password          string   `xml:"Password,omitempty"`
-	PaymentDate       GMTDate  `xml:"PaymentDate,omitempty"`
-	Receipt           string   `xml:"Receipt,omitempty"`
-	ThirdPartyReceipt string   `xml:"ThirdPartyReceipt,omitempty"`
+	Text              string  `xml:",chardata"`
+	A                 string  `xml:"a,attr"`
+	I                 string  `xml:"i,attr"`
+	Password          string  `xml:"Password,omitempty"`
+	PaymentDate       GMTDate `xml:"PaymentDate,omitempty"`
+	Receipt           string  `xml:"Receipt,omitempty"`
+	ThirdPartyReceipt string  `xml:"ThirdPartyReceipt,omitempty"`
 }
 
 type ArrayOfwsVoidTransactions struct {
@@ -863,7 +868,7 @@ type WsVoidTransactions struct {
 
 type WsChangeRequestData struct {
 	XMLName                   xml.Name `xml:"wsChangeRequestData"`
-	XmlNS                     string   `xml:"xmlns:a"`
+	XmlNS                     string   `xml:"xmlns:a,attr"`
 	ReceiverAccount           string   `xml:"a:ReceiverAccount,omitempty"`
 	ReceiverAccountType       string   `xml:"a:ReceiverAccountType,omitempty"`
 	ReceiverAddress           string   `xml:"a:ReceiverAddress,omitempty"`
