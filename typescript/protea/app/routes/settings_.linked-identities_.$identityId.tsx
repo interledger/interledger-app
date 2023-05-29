@@ -19,7 +19,8 @@ import {
   Router,
   Snackbar,
   Switch,
-  TextButton
+  TextButton,
+  TwitterIcon
 } from '~/components'
 import { route } from 'routes-gen'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
@@ -134,17 +135,20 @@ export default function Page() {
               </AnchorRouter>
             </Card.Item>
           </Card>
-          <Card className='!bg-rose-100 dark:!bg-rose-950'>
-            <Card.Item variant='col'>
-              <span className='text-medium font-medium text-xs'>
-                Please note
-              </span>
-              <span className='text-xs text-medium'>
-                Do not delete the public proof from your Twitter timeline. Doing
-                so will result in your identity no longer being verified by
-                Fynbos.
-              </span>
-            </Card.Item>
+          <Card>
+            <div className='flex items-start space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-error p-5 text-medium'>
+                <Icon className='text-error'>exclamation</Icon>
+              </div>
+              <div className='flex flex-col space-y-1'>
+                <h1 className='font-medium text-medium'>Please note</h1>
+                <span className='text-sm text-medium'>
+                  Do not delete the public proof from your Twitter timeline.
+                  Doing so will result in your identity no longer being verified
+                  by Fynbos.
+                </span>
+              </div>
+            </div>
           </Card>
           <Card>
             <div className='flex justify-between items-center'>

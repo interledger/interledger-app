@@ -428,7 +428,7 @@ export async function createCard(
 
 export async function getLinkedIdentities(
   request: Request
-): Promise<Array<Identity>> {
+): Promise<Record<string, Identity[]>> {
   const cookie = String(request.headers.get('cookie'))
   const response = await grpcClient
     .listIdentities(
@@ -439,6 +439,33 @@ export async function getLinkedIdentities(
         }
       }
     )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response.identities.reduce(
+    (acc, identity) => {
+      if (!acc[identity.platform]) {
+        acc[identity.platform] = []
+      }
+      acc[identity.platform].push(identity)
+      return acc
+    },
+
+    {} as Record<string, Identity[]>
+  )
+}
+
+export async function getPublicLinkedIdentities(
+  request: Request,
+  walletId: string
+): Promise<Array<Identity>> {
+  const response = await grpcClient
+    .listPublicIdentities({
+      walletId
+    })
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
