@@ -867,7 +867,7 @@ type WsVoidTransactions struct {
 }
 
 type WsChangeRequestData struct {
-	XMLName                   xml.Name `xml:"wsChangeRequestData"`
+	XMLName                   xml.Name `xml:"data"`
 	XmlNS                     string   `xml:"xmlns:a,attr"`
 	ReceiverAccount           string   `xml:"a:ReceiverAccount,omitempty"`
 	ReceiverAccountType       string   `xml:"a:ReceiverAccountType,omitempty"`
