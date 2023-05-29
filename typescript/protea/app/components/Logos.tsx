@@ -231,3 +231,37 @@ export const YoutubeIcon: FC<LogoProps> = ({ className }) => {
     </svg>
   )
 }
+
+export const FaceBookIcon: FC<LogoProps> = ({ className }) => {
+  return (
+    <svg
+      width='24'
+      height='24'
+      viewBox='0 0 24 24'
+      className={clsx('h-6', className ?? 'text-[#1877F2]')}
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+    >
+      <g clipPath='url(#clip0_3284_4016)'>
+        <path
+          d='M10.515 20.91C6.24 20.145 3 16.455 3 12C3 7.05 7.05 3 12 3C16.95 3 21 7.05 21 12C21 16.455 17.76 20.145 13.485 20.91L12.99 20.505H11.01L10.515 20.91Z'
+          className='fill-current'
+        />
+        <path
+          d='M15.5101 14.5201L15.9151 12.0001H13.5301V10.2451C13.5301 9.52513 13.8001 8.98513 14.8801 8.98513H16.0501V6.69013C15.4201 6.60013 14.7001 6.51013 14.0701 6.51013C12.0001 6.51013 10.5601 7.77013 10.5601 10.0201V12.0001H8.31006V14.5201H10.5601V20.8651C11.0551 20.9551 11.5501 21.0001 12.0451 21.0001C12.5401 21.0001 13.0351 20.9551 13.5301 20.8651V14.5201H15.5101Z'
+          fill='white'
+        />
+      </g>
+      <defs>
+        <clipPath id='clip0_3284_4016'>
+          <rect
+            width='18'
+            height='18'
+            fill='white'
+            transform='translate(3 3)'
+          />
+        </clipPath>
+      </defs>
+    </svg>
+  )
+}
