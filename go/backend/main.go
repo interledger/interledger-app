@@ -77,7 +77,6 @@ import (
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
-	twitter_handler "gitlab.com/fynbos/backend/twitter/callback"
 	twitter_client "gitlab.com/fynbos/backend/twitter/client"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
@@ -216,8 +215,6 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
-
-	router.Handle("/callbacks/twitter", twitter_handler.NewTwitterCallbackHandler(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
