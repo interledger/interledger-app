@@ -6,8 +6,12 @@ import {
   Card,
   Chip,
   ChipColor,
+  FaceBookIcon,
+  GithubIcon,
   Icon,
+  InstagramIcon,
   Layouts,
+  LinkedInIcon,
   Router,
   Snackbar,
   TwitterIcon
@@ -18,6 +22,7 @@ import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const identities = await getLinkedIdentities(request)
+
   const kycStatus = await getKycStatus(request)
 
   const snackbar = await getSnackbar(request)
@@ -47,13 +52,13 @@ export default function Page() {
 
   return (
     <>
-      {/*TODO Handle other identity types when we get there*/}
-      {linkedIdentities.length > 0 && (
+      {linkedIdentities.twitter && (
         <Card>
-          {linkedIdentities.map((identity) => (
+          <h1 className='font-display text-lg font-medium'>Twitter</h1>
+          {linkedIdentities.twitter.map((identity) => (
             <Router
               key={identity.id}
-              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+              className='mt-2 first-of-type:mt-6 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
               to={route('/settings/linked-identities/:identityId', {
                 identityId: identity.id
               })}
@@ -83,11 +88,11 @@ export default function Page() {
             className='mt-4 text-sm font-medium text-primary rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
             to={route('/connect/twitter')}
           >
-            Link another identity
+            Connect another twitter identity
           </Router>
         </Card>
       )}
-      {linkedIdentities.length == 0 && (
+      {!linkedIdentities.twitter && (
         <Card className='space-y-4'>
           <div className='flex items-center space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
@@ -99,8 +104,60 @@ export default function Page() {
                 className='text-sm font-medium text-primary'
                 to={route('/connect/twitter')}
               >
-                Link a Twitter identity
+                Connect a Twitter identity
               </Router>
+            </div>
+          </div>
+        </Card>
+      )}
+      {!linkedIdentities.github && (
+        <Card className='space-y-4'>
+          <div className='flex items-center space-x-4'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <GithubIcon />
+            </div>
+            <div className='flex flex-col space-y-1'>
+              <h1 className='font-medium text-medium'>Github</h1>
+              <p className='font-medium text-sm text-disabled'>Coming soon</p>
+            </div>
+          </div>
+        </Card>
+      )}
+      {!linkedIdentities.linkedIn && (
+        <Card className='space-y-4'>
+          <div className='flex items-center space-x-4'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <LinkedInIcon />
+            </div>
+            <div className='flex flex-col space-y-1'>
+              <h1 className='font-medium text-medium'>LinkedIn</h1>
+              <p className='font-medium text-sm text-disabled'>Coming soon</p>
+            </div>
+          </div>
+        </Card>
+      )}
+      {!linkedIdentities.facebook && (
+        <Card className='space-y-4'>
+          <div className='flex items-center space-x-4'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <FaceBookIcon />
+            </div>
+            <div className='flex flex-col space-y-1'>
+              <h1 className='font-medium text-medium'>Facebook</h1>
+              <p className='font-medium text-sm text-disabled'>Coming soon</p>
+            </div>
+          </div>
+        </Card>
+      )}
+      {!linkedIdentities.instagram && (
+        <Card className='space-y-4'>
+          <div className='flex items-center space-x-4'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <InstagramIcon />
+            </div>
+            <div className='flex flex-col space-y-1'>
+              <h1 className='font-medium text-medium'>Instagram</h1>
+              <p className='font-medium text-sm text-disabled'>Coming soon</p>
             </div>
           </div>
         </Card>
