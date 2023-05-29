@@ -399,6 +399,7 @@ type IdentityResponse struct {
 	Signature     string `json:"signature"`
 	SignatureHash string `json:"signature_hash"`
 	PublicProof   string `json:"public_proof"`
+	Type          string `json:"type"`
 }
 
 // getHandler handles all incoming GET requests and handles them as required
@@ -457,6 +458,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 				Identifier:    id.Identifier,
 				Kid:           id.KeyID,
 				Ctime:         id.CreatedAt.Unix(),
+				Type:          string(id.Platform),
 				Signature:     sigBase64,
 				SignatureHash: sigHashBase64,
 				PublicProof:   id.VerificationProof,
@@ -700,6 +702,7 @@ func getIdentity(b Backends) http.HandlerFunc {
 			Identifier:    identity.Identifier,
 			Kid:           identity.KeyID,
 			Ctime:         identity.CreatedAt.Unix(),
+			Type:          string(identity.Platform),
 			Signature:     sigBase64,
 			SignatureHash: sigHashBase64,
 			PublicProof:   identity.VerificationProof,
