@@ -8,16 +8,11 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func (a *Activity) CleanMX(ctx context.Context) error {
+func (a *Activity) ListMX(ctx context.Context) error {
 	logger := activity.GetLogger(ctx)
 	accs, err := a.b.LinkedAccounts().ListMXBankAccounts(ctx)
 	if err != nil {
 		return err
-	}
-
-	walletIDs := make(map[string]bool)
-	for _, acc := range accs {
-		walletIDs[acc.WalletID] = true
 	}
 
 	users, err := a.b.MX().ListUsers(ctx)
@@ -26,7 +21,13 @@ func (a *Activity) CleanMX(ctx context.Context) error {
 	}
 
 	for _, user := range users {
-		_, found := walletIDs[user.WalletID]
+		var found bool
+		for _, acc := range accs {
+			if user.WalletID == acc.WalletID {
+				found = true
+				break
+			}
+		}
 
 		if !found {
 			err = a.b.MX().DeleteExternalUser(ctx, user.GUID)
@@ -48,7 +49,5 @@ func CleanMXAccounts(ctx workflow.Context) error {
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	err := workflow.ExecuteActivity(ctx, a.CleanMX).Get(ctx, nil)
-
-	return err
+	return nil
 }

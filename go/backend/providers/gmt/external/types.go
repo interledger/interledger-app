@@ -874,15 +874,15 @@ type WsChangeRequestData struct {
 	ReceiverAddress           string   `xml:"a:ReceiverAddress,omitempty"`
 	ReceiverBankBranOrRouting string   `xml:"a:ReceiverBankBranOrRouting,omitempty"`
 	ReceiverBankName          string   `xml:"a:ReceiverBankName,omitempty"`
-	//ReceiverBirthDate         GMTDate  `xml:"a:ReceiverBirthDate,omitempty"`
-	ReceiverEmail    string `xml:"a:ReceiverEmail,omitempty"`
-	ReceiverIdNumber string `xml:"a:ReceiverIdNumber,omitempty"`
-	ReceiverIdType   string `xml:"a:ReceiverIdType,omitempty"`
-	ReceiverLastName string `xml:"a:ReceiverLastName,omitempty"`
-	ReceiverMobile   string `xml:"a:ReceiverMobile,omitempty"`
-	ReceiverName     string `xml:"a:ReceiverName,omitempty"`
-	ReceiverPhone    string `xml:"a:ReceiverPhone,omitempty"`
-	ReceiverZip      string `xml:"a:ReceiverZip,omitempty"`
+	ReceiverBirthDate         GMTDate  `xml:"a:ReceiverBirthDate,omitempty"`
+	ReceiverEmail             string   `xml:"a:ReceiverEmail,omitempty"`
+	ReceiverIdNumber          string   `xml:"a:ReceiverIdNumber,omitempty"`
+	ReceiverIdType            string   `xml:"a:ReceiverIdType,omitempty"`
+	ReceiverLastName          string   `xml:"a:ReceiverLastName,omitempty"`
+	ReceiverMobile            string   `xml:"a:ReceiverMobile,omitempty"`
+	ReceiverName              string   `xml:"a:ReceiverName,omitempty"`
+	ReceiverPhone             string   `xml:"a:ReceiverPhone,omitempty"`
+	ReceiverZip               string   `xml:"a:ReceiverZip,omitempty"`
 }
 
 type ArrayOfwsModifiedTransactions struct {

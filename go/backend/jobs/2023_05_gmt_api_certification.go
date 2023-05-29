@@ -36,6 +36,98 @@ func (a *Activity) UpdateWalletAddress(ctx context.Context, walletID, state, zip
 	return nil
 }
 
+func RunGMTCertificationCardStep1(ctx workflow.Context) error {
+	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+	childWorkflowOptions := workflow.ChildWorkflowOptions{
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_REQUEST_CANCEL,
+	}
+	ctx = workflow.WithChildOptions(ctx, childWorkflowOptions)
+
+	logger := workflow.GetLogger(ctx)
+
+	if !env.IsDev() {
+		logger.Error("not going to run GMT certification in environment", "env", env.GetEnv())
+		return nil
+	}
+
+	cases := []GmtTestArgs{
+		{
+			Name: "case 1.1 Card to ACH (GACH)",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/sendercard",
+				ToPaymentPointer:    "https://eu1.fynbos.me/receiverach",
+				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
+				ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
+				FromWalletID:        "2396e098-25cf-4eb1-8a8f-f79843520cbb", //barnard+gmt+autotest+newremnewman+sender@fynbos.dev
+				ToWalletID:          "d94e01f7-3152-4379-bb8a-fc3b26c5854c", //barnard+gmt+autotest+juliosolano+recv@fynbos.dev
+				Amount:              currency.FromFloat64(900, currency.USD),
+				FromTransactionID:   uuid.NewString(),
+			},
+			Expected: "created",
+		},
+		{
+			Name: "case 1.2 ACH to CARD (USCD)",
+			Args: providers.TransfersArgs{
+				FromPaymentPointer:  "https://eu1.fynbos.me/sendercard",
+				ToPaymentPointer:    "https://eu1.fynbos.me/receiverach",
+				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
+				ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
+				FromWalletID:        "2396e098-25cf-4eb1-8a8f-f79843520cbb", //barnard+gmt+autotest+newremnewman+sender@fynbos.dev
+				ToWalletID:          "d94e01f7-3152-4379-bb8a-fc3b26c5854c", //barnard+gmt+autotest+juliosolano+recv@fynbos.dev
+				Amount:              currency.FromFloat64(900, currency.USD),
+				FromTransactionID:   uuid.NewString(),
+			},
+			Expected: "created",
+		},
+	}
+
+	for _, tc := range cases {
+		err := workflow.ExecuteActivity(ctx, gmtActivity.AddTransaction, transactions.CreateTransactionArgs{
+			ID:          tc.Args.FromTransactionID,
+			WalletID:    tc.Args.FromWalletID,
+			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			Provider:    "gmt",
+			State:       transactions.StatePending,
+			Note:        "Used for compliance testing",
+			Source:      tc.Args.FromPaymentPointer,
+			Destination: tc.Args.ToPaymentPointer,
+			Amount:      tc.Args.Amount,
+		}).Get(ctx, nil)
+		if err != nil {
+			logger.Warn("failed to setup transaction preflight", "err", err, "testcase", tc.Name, "reference", tc.Args.FromTransactionID)
+			continue
+		}
+
+		logger.Info("Starting test case workflow", "testcase", tc.Name, "")
+
+		var resp providers.TransferResponse
+		err = workflow.ExecuteChildWorkflow(ctx, gmt_ops.ACH2ACHTransferWorkflow, tc.Args).Get(ctx, &resp)
+		if tc.ExpectErr && err != nil {
+			logger.Info("Expected Test Case Error",
+				"test_name", tc.Name,
+				"err", err)
+			continue
+		}
+		if err != nil {
+			logger.Warn("failed to add transaction", "err", err, "testcase", tc.Name)
+			continue
+		}
+
+		logger.Info("Test Case Result",
+			"test_name", tc.Name,
+			"result", resp.OutgoingTransferState,
+			"expected", tc.Expected,
+			"references", tc.Args.FromTransactionID)
+	}
+
+	return nil
+}
+
 func RunGMTCertificationStep2(ctx workflow.Context) error {
 	var gmtActivity *gmt_ops.Activity
 
