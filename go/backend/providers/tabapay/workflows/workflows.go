@@ -30,9 +30,10 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 
 	var cardInfo external.QueryCardResponse
 	err := workflow.ExecuteActivity(ctx, a.QueryCard, QueryCard{
-		WalletID:   args.WalletID,
-		CardNumber: fmt.Sprintf("{{ %s | json: '$.number' }}", args.BasisTheoryTokenID),
-		AVS:        true,
+		WalletID:       args.WalletID,
+		CardNumber:     fmt.Sprintf("{{ %s | json: '$.number' }}", args.BasisTheoryTokenID),
+		ExpirationDate: fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", args.BasisTheoryTokenID, args.BasisTheoryTokenID),
+		AVS:            true,
 	}).Get(ctx, &cardInfo)
 	if err != nil {
 		logger.Error("Failed to query card.")

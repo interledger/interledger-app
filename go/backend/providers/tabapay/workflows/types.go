@@ -19,8 +19,9 @@ type CreateExternalCardArgs struct {
 }
 
 type QueryCard struct {
-	WalletID   string
-	CardNumber string
-	CVV        string
-	AVS        bool
+	WalletID       string
+	CardNumber     string
+	ExpirationDate string
+	CVV            string
+	AVS            bool
 }
