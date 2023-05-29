@@ -55,8 +55,9 @@ func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.Que
 
 	queryArgs := external.QueryCardArgs{
 		Card: &external.Card{
-			AccountNumber: args.CardNumber,
-			SecurityCode:  args.CVV,
+			AccountNumber:  args.CardNumber,
+			SecurityCode:   args.CVV,
+			ExpirationDate: args.ExpirationDate,
 		},
 		Owner: &external.Owner{
 			Name: external.Name{

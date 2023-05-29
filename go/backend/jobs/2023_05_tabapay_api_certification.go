@@ -215,10 +215,11 @@ func TabapayCertificationWorkflow(ctx workflow.Context) error {
 			newCtx,
 			tabapayActivity.QueryCard,
 			tabapay_workflow.QueryCard{
-				WalletID:   tc.WalletID,
-				CardNumber: fmt.Sprintf("{{ %s | json: '$.number' }}", basisTheoryTokenID),
-				AVS:        tc.AVS,
-				CVV:        tc.CVV,
+				WalletID:       tc.WalletID,
+				CardNumber:     fmt.Sprintf("{{ %s | json: '$.number' }}", basisTheoryTokenID),
+				ExpirationDate: fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", basisTheoryTokenID, basisTheoryTokenID),
+				AVS:            tc.AVS,
+				CVV:            tc.CVV,
 			},
 		).Get(newCtx, &response)
 		if err != nil {
