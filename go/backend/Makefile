@@ -3,6 +3,8 @@ IMAGE_REPO := 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend
 IMAGE_HASH := latest
 CRDB_HOST?=0.0.0.0
 
+PF_SCRIPT=./forward.sh
+
 pull:
 	@echo "Pulling required images"
 	docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/cockroach:latest-v21.1
@@ -63,5 +65,14 @@ generate:
 	go generate ./...
 	@echo "Graphql generated"
 
+port-forward-crdb:
+	@echo "Port forwarding cockroachdb"
+	bash $(PF_SCRIPT) cockroachdb pod/cockroachdb-0 26257 26257
+
+port-forward-temporal-ui:
+	@echo "Port forwarding temporal ui"
+	bash $(PF_SCRIPT) temporal service/temporal-web 8080 8080
+
 job:
 	echo "package jobs" >> "./jobs/$$(date +%Y_%m)_$(name).go"
+

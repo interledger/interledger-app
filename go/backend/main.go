@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/images"
+	img_client "gitlab.com/fynbos/backend/images/client"
 	"net"
 	"net/http"
 	"os"
@@ -277,6 +279,8 @@ func start(args *cli.StartArgs) {
 	}
 	b.tabapay = tabapayClient
 
+	b.img = img_client.New(b)
+
 	vc, err := vault.NewClient()
 	if err != nil {
 		log.Error("error vault", zap.Error(err))
@@ -455,6 +459,14 @@ func startWorker(args *cli.StartArgs) {
 
 	b.ident = identities_client.New(b)
 
+	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
+		ClientID:      args.TwitterClientID,
+		ClientSecret:  args.TwitterClientSecret,
+		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
+		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
+		RedirectURL:   args.TwitterRedirectURL,
+	})
+
 	b.limits = limits_client.New(b)
 
 	b.contacts = contacts_client.New(b)
@@ -530,6 +542,7 @@ type backends struct {
 	vault          vault.Client
 	basistheory    basistheory.Client
 	feat           features.Client
+	img            images.Client
 }
 
 func (b backends) Features() features.Client {
@@ -654,4 +667,8 @@ func (b backends) Keys() keys.Client {
 
 func (b backends) Vault() vault.Client {
 	return b.vault
+}
+
+func (b backends) Images() images.Client {
+	return b.img
 }

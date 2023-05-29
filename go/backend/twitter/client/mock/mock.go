@@ -94,3 +94,17 @@ func (mr *MockClientMockRecorder) PostTweet(ctx, id, text interface{}) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostTweet", reflect.TypeOf((*MockClient)(nil).PostTweet), ctx, id, text)
 }
+
+// PublishTweetProof mocks base method.
+func (m *MockClient) PublishTweetProof(ctx context.Context, identityID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PublishTweetProof", ctx, identityID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// PublishTweetProof indicates an expected call of PublishTweetProof.
+func (mr *MockClientMockRecorder) PublishTweetProof(ctx, identityID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishTweetProof", reflect.TypeOf((*MockClient)(nil).PublishTweetProof), ctx, identityID)
+}
