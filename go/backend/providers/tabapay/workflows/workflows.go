@@ -28,8 +28,26 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating tabapay card.")
 
+	var cardInfo external.QueryCardResponse
+	err := workflow.ExecuteActivity(ctx, a.QueryCard, QueryCard{
+		WalletID:   args.WalletID,
+		CardNumber: fmt.Sprintf("{{ %s | json: '$.number' }}", args.BasisTheoryTokenID),
+		AVS:        true,
+	}).Get(ctx, &cardInfo)
+	if err != nil {
+		logger.Error("Failed to query card.")
+		return nil, err
+	}
+
+	// fail if AVS has failed.
+	// https://developers.tabapay.com/reference/avs-response-codes
+	if cardInfo.AVS.CodeAVS != external.AVSResponseCodeY && cardInfo.AVS.CodeAVS != external.AVSResponseCodeA {
+		logger.Warn("AVS failed.", "AVSCode", cardInfo.AVS.CodeAVS)
+		// TODO: notify for manual review
+	}
+
 	var tokenizedCard basistheory.Card
-	err := workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, args.WalletID, args.BasisTheoryTokenID).Get(ctx, &tokenizedCard)
+	err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, args.WalletID, args.BasisTheoryTokenID).Get(ctx, &tokenizedCard)
 	if err != nil {
 		logger.Error("Failed to create basis theory card.")
 		return nil, err
@@ -66,13 +84,21 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return nil, err
 	}
 
+	mask := cardInfo.Card.Last4
+	var network string
+	if cardInfo.Card.Push.Network != "" {
+		network = cardInfo.Card.Push.Network
+	}
+	if cardInfo.Card.Pull.Network != "" {
+		network = cardInfo.Card.Pull.Network
+	}
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
 		ID:         tokenizedCard.ID,
 		WalletID:   args.WalletID,
 		ProviderID: externalAccount.AccountID,
-		Mask:       tokenizedCard.TokenizedNumber,
-		Name:       tokenizedCard.TokenizedNumber,
-		Nickname:   tokenizedCard.TokenizedNumber,
+		Mask:       mask,
+		Name:       fmt.Sprintf("%s %s", network, mask),
+		Nickname:   fmt.Sprintf("%s %s", network, mask),
 	}).Get(ctx, &la)
 	if err != nil {
 		logger.Error("Failed to create linked account.")

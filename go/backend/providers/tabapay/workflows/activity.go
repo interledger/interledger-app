@@ -73,7 +73,15 @@ func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.Que
 		}
 	}
 
-	return a.b.External().QueryCard(ctx, queryArgs)
+	resp, err := a.b.External().QueryCard(ctx, queryArgs)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+	if resp.SC == http.StatusMultiStatus {
+		return nil, fmt.Errorf("%w MultiStatus response. Tabapay error code=%s", tabapay.ErrInternal, resp.EC)
+	}
+
+	return resp, nil
 }
 
 func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
