@@ -37,6 +37,8 @@ type Client interface {
 	ConfirmPayment(ctx context.Context, req ConfirmPayment) (*WsResponse, error)
 	GetNotifications(ctx context.Context) ([]*WsNotifications, error)
 	RequestCancellation(ctx context.Context, txID, msg string) (*WsResponse, error)
+	ModifyTransaction(ctx context.Context, args RequestModification) (*WsResponse, error)
+	GetPaidTransactions(ctx context.Context) ([]*WsPaidTransactions, error)
 }
 
 func NewClient(transport http.RoundTripper) Client {
@@ -374,4 +376,47 @@ func (c *client) RequestCancellation(ctx context.Context, txID, msg string) (*Ws
 	}
 
 	return response.Resp.RequestCancellationResult, nil
+}
+
+func (c *client) ModifyTransaction(ctx context.Context, args RequestModification) (*WsResponse, error) {
+	args.Alias = c.alias
+	args.User = c.user
+	args.Pass = c.password
+
+	type modificationBody struct {
+		Text string                      `xml:",chardata"`
+		Resp RequestModificationResponse `xml:"RequestModificationResponse"`
+	}
+
+	response := modificationBody{}
+	err := c.call(ctx, "http://tempuri.org/IService1/RequestModification", args, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Resp.RequestModificationResult, nil
+}
+
+func (c *client) GetPaidTransactions(ctx context.Context) ([]*WsPaidTransactions, error) {
+	type txBody struct {
+		Text string                      `xml:",chardata"`
+		Resp GetPaidTransactionsResponse `xml:"GetPaidTransactionsResponse"`
+	}
+	response := txBody{}
+	req := GetPaidTransactions{
+		Alias: c.alias,
+		User:  c.user,
+		Pass:  c.password,
+	}
+
+	err := c.call(ctx, "http://tempuri.org/IService1/GetPaidTransactions", req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.Resp.GetPaidTransactionsResult == nil || response.Resp.GetPaidTransactionsResult.WsPaidTransactions == nil {
+		return []*WsPaidTransactions{}, nil
+	}
+
+	return response.Resp.GetPaidTransactionsResult.WsPaidTransactions, err
 }
