@@ -11,7 +11,7 @@ import (
 func (s *rpcService) ListLimits(ctx context.Context, _ *pb.Empty) (*pb.ListLimitsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
@@ -42,7 +42,7 @@ func (s *rpcService) ListLimits(ctx context.Context, _ *pb.Empty) (*pb.ListLimit
 func (s *rpcService) UpdateClientLimits(ctx context.Context, req *pb.UpdateClientLimitsRequest) (*pb.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)

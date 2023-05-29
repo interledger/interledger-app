@@ -249,6 +249,8 @@ service BackendService {
   rpc ListPublicIdentities(ListPublicIdentitiesRequest) returns (ListIdentitiesResponse);
   rpc DeleteIdentity(DeleteIdentityRequest) returns (Empty);
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+  rpc GetIdentityBySignatureHash(GetIdentityBySignatureHashRequest) returns (GetIdentityResponse);
 
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
@@ -276,6 +278,7 @@ service BackendService {
   // Twitter
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
   rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
+  rpc VerifyTwitter(VerifyTwitterRequest) returns (Empty);
 }
 
 message Features {
@@ -699,6 +702,7 @@ message Identity {
   string proof = 9;
   string ctime = 10;
   bool public = 11;
+  google.protobuf.Timestamp verified_at = 12;
 }
 
 message IdentityVerificationInstructions {
@@ -744,4 +748,20 @@ message TwitterCallbackRequest {
 
 message TwitterCallbackResponse {
   string id = 1;
+}
+
+message GetIdentityRequest{
+  string id = 1;
+}
+
+message GetIdentityResponse{
+   Identity identity = 1;
+}
+
+message VerifyTwitterRequest {
+  string identity_id = 1;
+}
+
+message GetIdentityBySignatureHashRequest{
+  string signature_hash = 1;
 }
