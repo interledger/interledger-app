@@ -2,13 +2,17 @@ import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import {
-  getKycStatus,
-  getLinkedAccounts,
-  getLinkedIdentities
-} from '~/lib/wallet.server'
-import { KycStatus } from '~/routes/_index/route'
+  Card,
+  Chip,
+  ChipColor,
+  Icon,
+  Layouts,
+  Router,
+  Snackbar,
+  TwitterIcon
+} from '~/components'
+import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
 import { useState } from 'react'
 import { getSnackbar } from '~/lib/snackbar.server'
 
@@ -43,36 +47,64 @@ export default function Page() {
 
   return (
     <>
-      {linkedIdentities && linkedIdentities.length > 0 && (
+      {/*TODO Handle other identity types when we get there*/}
+      {linkedIdentities.length > 0 && (
         <Card>
+          {linkedIdentities.map((identity) => (
+            <Router
+              key={identity.id}
+              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+              to={route('/settings/linked-identities/:identityId', {
+                identityId: identity.id
+              })}
+            >
+              <div className='flex space-x-3'>
+                <TwitterIcon className='text-medium' />
+                <span>@{identity.identifier}</span>
+              </div>
+              <div className='flex space-x-3'>
+                {identity.state == 'verified' && (
+                  <Chip color={ChipColor.green}>Verified</Chip>
+                )}
+                {identity.state == 'unverified' && (
+                  <Chip color={ChipColor.yellow}>Unverified</Chip>
+                )}
+                {identity.state == 'failed' && (
+                  <Chip color={ChipColor.red}>Failed</Chip>
+                )}
+                {identity.state == 'pending' && (
+                  <Chip color={ChipColor.orange}>Pending</Chip>
+                )}
+                <Icon>navigate_next</Icon>
+              </div>
+            </Router>
+          ))}
           <Router
-            className='mt-6 text-sm font-medium text-primary'
-            to={route('/link-account')}
+            className='mt-4 text-sm font-medium text-primary rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
+            to={route('/connect/twitter')}
           >
-            Link another account
+            Link another identity
           </Router>
         </Card>
       )}
-      <Card>
-        <div>
-          <p>Twitter</p>
-        </div>
-        {linkedIdentities.map((identity) => (
-          <Router
-            key={identity.id}
-            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-            to={route('/')}
-          >
-            {identity.identifier} - ({identity.state})
-          </Router>
-        ))}
-        <Router
-          className='text-sm font-medium text-primary'
-          to={route('/twitter')}
-        >
-          Link twitter identity
-        </Router>
-      </Card>
+      {linkedIdentities.length == 0 && (
+        <Card className='space-y-4'>
+          <div className='flex items-center space-x-4'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <TwitterIcon />
+            </div>
+            <div className='flex flex-col space-y-1'>
+              <h1 className='font-medium text-medium'>Twitter</h1>
+              <Router
+                className='text-sm font-medium text-primary'
+                to={route('/connect/twitter')}
+              >
+                Link a Twitter identity
+              </Router>
+            </div>
+          </div>
+        </Card>
+      )}
       <Snackbar
         message={snackbar.message}
         action={snackbar.action}
@@ -80,7 +112,6 @@ export default function Page() {
         show={showSnackbar}
         id='cookie-snackbar'
         dismissAfter={3000}
-        offset
         onClose={() => setSnackbar(false)}
       />
     </>

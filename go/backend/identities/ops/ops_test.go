@@ -153,3 +153,70 @@ func TestSetPublic(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, id.Public)
 }
+
+func TestVerified(t *testing.T) {
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_mock.NewMock()
+
+	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
+	require.NoError(t, err)
+
+	env.SetEnv(t, "local")
+
+	// Publicly visible
+	iv, err := ops.Add(ctx, b, identities.AddArgs{
+		WalletID:   w.ID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "@king_cold",
+	})
+	require.NoError(t, err)
+
+	id, err := ops.Get(ctx, b, iv.ID)
+	require.NoError(t, err)
+	assert.True(t, id.Public)
+	assert.Equal(t, identities.StateUnverified, id.State)
+	assert.False(t, id.VerifiedAt.Valid)
+
+	err = ops.UpdateState(ctx, b, id.ID, identities.StateVerified, "")
+	require.NoError(t, err)
+
+	id, err = ops.Get(ctx, b, iv.ID)
+	require.NoError(t, err)
+	assert.Equal(t, identities.StateVerified, id.State)
+	assert.True(t, id.VerifiedAt.Valid)
+}
+
+func TestGetBySignatureHash(t *testing.T) {
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_mock.NewMock()
+
+	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
+	require.NoError(t, err)
+
+	env.SetEnv(t, "local")
+
+	// Publicly visible
+	iv, err := ops.Add(ctx, b, identities.AddArgs{
+		WalletID:   w.ID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "@king_cold",
+	})
+	require.NoError(t, err)
+
+	id, err := ops.GetBySignatureHash(ctx, b, iv.SignatureHash)
+	require.NoError(t, err)
+	assert.True(t, id.Public)
+	assert.Equal(t, iv.ID, id.ID)
+}

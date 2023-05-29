@@ -1,6 +1,9 @@
 package ops
 
 import (
+	"gitlab.com/fynbos/backend/images"
+	images_mock "gitlab.com/fynbos/backend/images/client/mock"
+	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -24,6 +27,7 @@ type Backends interface {
 	Analytics() analytics.Client
 	Keys() keys.Client
 	OpenPayments() openpayments.Client
+	Images() images.Client
 }
 
 type testBackends struct {
@@ -33,6 +37,7 @@ type testBackends struct {
 	kc  *keys_mock.MockClient
 	tc  *twitter_mock.MockClient
 	op  openpayments.Client
+	img images.Client
 }
 
 func (t testBackends) Temporal() temporal.Client {
@@ -64,10 +69,33 @@ func (t testBackends) OpenPayments() openpayments.Client {
 	return t.op
 }
 
+func (t testBackends) Images() images.Client {
+	return t.img
+}
+
 func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 	ctrl := gomock.NewController(t)
 	kc := keys_mock.NewMockClient(ctrl)
 	tc := twitter_mock.NewMockClient(ctrl)
+	img := images_mock.NewMockClient(ctrl)
+	img.EXPECT().GenerateTwitterIdentity(gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
+	img.EXPECT().GenerateTwitterIdentityOG(gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc}
+	kc.EXPECT().List(gomock.Any(), gomock.Any()).Return([]keys.Key{
+		{
+			ID:   "test",
+			Type: keys.Custodial,
+		},
+	}, nil).AnyTimes()
+	kc.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
+	op := openpayments_mock.NewMockClient(ctrl)
+	op.EXPECT().GetWalletPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{
+		ID:         "",
+		URL:        "",
+		WalletID:   "",
+		Alias:      "",
+		Asset:      "",
+		AssetScale: 0,
+	}, nil).AnyTimes()
+	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, op: op, img: img}
 }

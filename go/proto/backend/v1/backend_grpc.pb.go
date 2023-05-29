@@ -557,6 +557,8 @@ type BackendServiceClient interface {
 	ListPublicIdentities(ctx context.Context, in *ListPublicIdentitiesRequest, opts ...grpc.CallOption) (*ListIdentitiesResponse, error)
 	DeleteIdentity(ctx context.Context, in *DeleteIdentityRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetIdentityPublic(ctx context.Context, in *SetIdentityPublicRequest, opts ...grpc.CallOption) (*Identity, error)
+	GetIdentity(ctx context.Context, in *GetIdentityRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error)
+	GetIdentityBySignatureHash(ctx context.Context, in *GetIdentityBySignatureHashRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error)
 	// KYC
 	KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error)
 	StartKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -577,6 +579,7 @@ type BackendServiceClient interface {
 	// Twitter
 	CreateTwitterAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateTwitterAuthURLResponse, error)
 	TwitterCallback(ctx context.Context, in *TwitterCallbackRequest, opts ...grpc.CallOption) (*TwitterCallbackResponse, error)
+	VerifyTwitter(ctx context.Context, in *VerifyTwitterRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -974,6 +977,24 @@ func (c *backendServiceClient) SetIdentityPublic(ctx context.Context, in *SetIde
 	return out, nil
 }
 
+func (c *backendServiceClient) GetIdentity(ctx context.Context, in *GetIdentityRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error) {
+	out := new(GetIdentityResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetIdentity", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetIdentityBySignatureHash(ctx context.Context, in *GetIdentityBySignatureHashRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error) {
+	out := new(GetIdentityResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetIdentityBySignatureHash", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) KYCStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KYCStatusResponse, error) {
 	out := new(KYCStatusResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/KYCStatus", in, out, opts...)
@@ -1091,6 +1112,15 @@ func (c *backendServiceClient) TwitterCallback(ctx context.Context, in *TwitterC
 	return out, nil
 }
 
+func (c *backendServiceClient) VerifyTwitter(ctx context.Context, in *VerifyTwitterRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/VerifyTwitter", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1150,6 +1180,8 @@ type BackendServiceServer interface {
 	ListPublicIdentities(context.Context, *ListPublicIdentitiesRequest) (*ListIdentitiesResponse, error)
 	DeleteIdentity(context.Context, *DeleteIdentityRequest) (*Empty, error)
 	SetIdentityPublic(context.Context, *SetIdentityPublicRequest) (*Identity, error)
+	GetIdentity(context.Context, *GetIdentityRequest) (*GetIdentityResponse, error)
+	GetIdentityBySignatureHash(context.Context, *GetIdentityBySignatureHashRequest) (*GetIdentityResponse, error)
 	// KYC
 	KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error)
 	StartKYC(context.Context, *Empty) (*Empty, error)
@@ -1170,6 +1202,7 @@ type BackendServiceServer interface {
 	// Twitter
 	CreateTwitterAuthURL(context.Context, *Empty) (*CreateTwitterAuthURLResponse, error)
 	TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error)
+	VerifyTwitter(context.Context, *VerifyTwitterRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1305,6 +1338,12 @@ func (UnimplementedBackendServiceServer) DeleteIdentity(context.Context, *Delete
 func (UnimplementedBackendServiceServer) SetIdentityPublic(context.Context, *SetIdentityPublicRequest) (*Identity, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetIdentityPublic not implemented")
 }
+func (UnimplementedBackendServiceServer) GetIdentity(context.Context, *GetIdentityRequest) (*GetIdentityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIdentity not implemented")
+}
+func (UnimplementedBackendServiceServer) GetIdentityBySignatureHash(context.Context, *GetIdentityBySignatureHashRequest) (*GetIdentityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIdentityBySignatureHash not implemented")
+}
 func (UnimplementedBackendServiceServer) KYCStatus(context.Context, *Empty) (*KYCStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method KYCStatus not implemented")
 }
@@ -1343,6 +1382,9 @@ func (UnimplementedBackendServiceServer) CreateTwitterAuthURL(context.Context, *
 }
 func (UnimplementedBackendServiceServer) TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TwitterCallback not implemented")
+}
+func (UnimplementedBackendServiceServer) VerifyTwitter(context.Context, *VerifyTwitterRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyTwitter not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2130,6 +2172,42 @@ func _BackendService_SetIdentityPublic_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIdentityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetIdentity",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetIdentity(ctx, req.(*GetIdentityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetIdentityBySignatureHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIdentityBySignatureHashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetIdentityBySignatureHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetIdentityBySignatureHash",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetIdentityBySignatureHash(ctx, req.(*GetIdentityBySignatureHashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_KYCStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -2364,6 +2442,24 @@ func _BackendService_TwitterCallback_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_VerifyTwitter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyTwitterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).VerifyTwitter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/VerifyTwitter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).VerifyTwitter(ctx, req.(*VerifyTwitterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2544,6 +2640,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_SetIdentityPublic_Handler,
 		},
 		{
+			MethodName: "GetIdentity",
+			Handler:    _BackendService_GetIdentity_Handler,
+		},
+		{
+			MethodName: "GetIdentityBySignatureHash",
+			Handler:    _BackendService_GetIdentityBySignatureHash_Handler,
+		},
+		{
 			MethodName: "KYCStatus",
 			Handler:    _BackendService_KYCStatus_Handler,
 		},
@@ -2594,6 +2698,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TwitterCallback",
 			Handler:    _BackendService_TwitterCallback_Handler,
+		},
+		{
+			MethodName: "VerifyTwitter",
+			Handler:    _BackendService_VerifyTwitter_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

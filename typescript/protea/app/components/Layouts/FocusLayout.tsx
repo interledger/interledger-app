@@ -1,6 +1,6 @@
 import { Outlet, useMatches, useNavigate } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { IconButton, Logo, Router } from '~/components'
+import { IconButton, FynbosLogo, Router } from '~/components'
 
 export function FocusLayout() {
   const matches = useMatches()
@@ -27,7 +27,7 @@ export function FocusLayout() {
         {title && <h1 className='text-xl font-medium'>{title}</h1>}
         {!title && (
           <Router to={route('/')} aria-label='Fynbos logo'>
-            <Logo className='h-8' />
+            <FynbosLogo className='h-8' />
           </Router>
         )}
       </header>

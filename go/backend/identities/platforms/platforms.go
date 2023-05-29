@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/env"
-	// "gitlab.com/fynbos/env"
 )
 
 type (
@@ -26,19 +24,22 @@ type (
 		Signature     []byte
 		SignatureHash []byte
 	}
+
+	GenerateImagesArgs struct {
+		Identifier    string
+		WalletURL     string
+		SignatureHash []byte
+	}
 )
 
 type Platform interface {
 	VerifyWorkflow() interface{} // Return the child workflow func to call with the identity ID, only args the workflow must expect is the identityID and the proof URL
 	GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error)
 	VerifyInstructions(ctx context.Context, args *VerifyInstructionsArgs) (string, error)
+	GenerateImages(ctx context.Context, args *GenerateImagesArgs) error
 }
 
 func Get(b Backends, platform identities.Platform) (Platform, error) {
-	if !env.IsProd() && !env.IsDev() {
-		return newDev(platform), nil
-	}
-
 	switch platform {
 	case identities.PlatformTwitter:
 		return newTwitter(b, platform), nil
