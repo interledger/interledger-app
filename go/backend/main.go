@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/images"
+	img_client "gitlab.com/fynbos/backend/images/client"
 	"net"
 	"net/http"
 	"os"
@@ -75,7 +77,6 @@ import (
 	transactions_client "gitlab.com/fynbos/backend/transactions/client"
 	_twilio "gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
-	twitter_handler "gitlab.com/fynbos/backend/twitter/callback"
 	twitter_client "gitlab.com/fynbos/backend/twitter/client"
 	"gitlab.com/fynbos/backend/user"
 	user_client "gitlab.com/fynbos/backend/user/client"
@@ -215,8 +216,6 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 
-	router.Handle("/callbacks/twitter", twitter_handler.NewTwitterCallbackHandler(b))
-
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
@@ -276,6 +275,8 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	b.tabapay = tabapayClient
+
+	b.img = img_client.New(b)
 
 	vc, err := vault.NewClient()
 	if err != nil {
@@ -455,6 +456,14 @@ func startWorker(args *cli.StartArgs) {
 
 	b.ident = identities_client.New(b)
 
+	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
+		ClientID:      args.TwitterClientID,
+		ClientSecret:  args.TwitterClientSecret,
+		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
+		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
+		RedirectURL:   args.TwitterRedirectURL,
+	})
+
 	b.limits = limits_client.New(b)
 
 	b.contacts = contacts_client.New(b)
@@ -530,6 +539,7 @@ type backends struct {
 	vault          vault.Client
 	basistheory    basistheory.Client
 	feat           features.Client
+	img            images.Client
 }
 
 func (b backends) Features() features.Client {
@@ -654,4 +664,8 @@ func (b backends) Keys() keys.Client {
 
 func (b backends) Vault() vault.Client {
 	return b.vault
+}
+
+func (b backends) Images() images.Client {
+	return b.img
 }

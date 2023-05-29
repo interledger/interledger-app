@@ -447,3 +447,127 @@ export async function getLinkedIdentities(
 
   return response.response.identities
 }
+
+export async function getIdentity(
+  request: Request,
+  id: string
+): Promise<Identity> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .getIdentity(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+  // TODO: remove, this should be handled by the backend
+  if (!response.response.identity) {
+    throw json({}, { status: 404 })
+  }
+
+  return response.response.identity
+}
+
+export async function getPublicIdentity(
+  request: Request,
+  signatureHash: string
+): Promise<Identity> {
+  const response = await grpcClient
+    .getIdentityBySignatureHash(
+      {
+        signatureHash
+      },
+      {}
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+  // TODO: remove, this should be handled by the backend
+  if (!response.response.identity) {
+    throw json({}, { status: 404 })
+  }
+
+  return response.response.identity
+}
+
+export async function deleteTwitterIdentity(
+  request: Request,
+  id: string
+): Promise<void> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .deleteIdentity(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+}
+
+export async function verifyTwitterIdentity(
+  request: Request,
+  id: string
+): Promise<void> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .verifyTwitter(
+      {
+        identityId: id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+}
+
+export async function setTwitterIdentityPublic(
+  request: Request,
+  id: string,
+  publicVal: boolean
+): Promise<void> {
+  const cookie = String(request.headers.get('cookie'))
+  const response = await grpcClient
+    .setIdentityPublic(
+      {
+        id,
+        public: publicVal
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+}

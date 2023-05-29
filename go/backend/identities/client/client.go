@@ -54,3 +54,7 @@ func (c client) Get(ctx context.Context, id string) (*identities.Identity, error
 func (c client) UpdateState(ctx context.Context, id string, state identities.State, proof string) error {
 	return ops.UpdateState(ctx, c.b, id, state, proof)
 }
+
+func (c client) GetBySignatureHash(ctx context.Context, sigHash []byte) (*identities.Identity, error) {
+	return ops.GetBySignatureHash(ctx, c.b, sigHash)
+}

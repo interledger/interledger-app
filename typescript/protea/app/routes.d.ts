@@ -2,12 +2,14 @@ declare module "routes-gen" {
   export type RouteParams = {
     "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
+    "/settings/linked-identities/:identityId": { "identityId": string };
     "/settings/linked-accounts/:accountId": { "accountId": string };
     "/legal/accessibility-statement": Record<string, never>;
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/connections/add-a-public-key": Record<string, never>;
     "/legal/us/e-sign-agreement": Record<string, never>;
+    "/me/identities/:identityId": { "identityId": string };
     "/settings/linked-identities": Record<string, never>;
     "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
@@ -29,6 +31,7 @@ declare module "routes-gen" {
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
+    "/connect/twitter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
@@ -50,7 +53,6 @@ declare module "routes-gen" {
     "/waitlist": Record<string, never>;
     "/contact": Record<string, never>;
     "/support": Record<string, never>;
-    "/twitter": Record<string, never>;
     "/": Record<string, never>;
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
@@ -65,12 +67,14 @@ declare module "routes-gen" {
     T extends
       | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
+      | ["/settings/linked-identities/:identityId", RouteParams["/settings/linked-identities/:identityId"]]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
       | ["/legal/accessibility-statement"]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/connections/add-a-public-key"]
       | ["/legal/us/e-sign-agreement"]
+      | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
       | ["/settings/linked-identities"]
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
@@ -92,6 +96,7 @@ declare module "routes-gen" {
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/waitlist/success"]
+      | ["/connect/twitter"]
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/personal-details"]
@@ -113,7 +118,6 @@ declare module "routes-gen" {
       | ["/waitlist"]
       | ["/contact"]
       | ["/support"]
-      | ["/twitter"]
       | ["/"]
       | ["/logout"]
       | ["/signup"]
