@@ -1092,3 +1092,44 @@ func (a *Activity) RequestCancellation(ctx context.Context, externalID, comment 
 
 	return resp.Status, nil
 }
+
+func (a *Activity) ModifyTransactionForTesting(ctx context.Context, externalID, comment, recvWalletID string) error {
+
+	id, err := a.b.KYC().GetIndividualDetails(ctx, recvWalletID)
+	if err != nil {
+		return err
+	}
+
+	resp, err := a.ext.ModifyTransaction(ctx, external.RequestModification{
+		Receipt: externalID,
+		Comment: comment,
+		Data: &external.WsChangeRequestData{
+			ReceiverBirthDate: external.GMTDate(id.DateOfBirth),
+			ReceiverLastName:  id.LastName + "B",
+			ReceiverName:      id.FirstName,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	if resp.Error != 0 {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s) Status (%s)", resp.Error, resp.Message, resp.Status), "external", nil)
+	}
+
+	return nil
+}
+
+func (a *Activity) PrintPaidTransactions(ctx context.Context) error {
+	logger := activity.GetLogger(ctx)
+	txs, err := a.ext.GetPaidTransactions(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, tx := range txs {
+		logger.Info("Paid transaction notification", "id", tx.Receipt, "receipt", tx.Receipt)
+	}
+
+	return nil
+}
