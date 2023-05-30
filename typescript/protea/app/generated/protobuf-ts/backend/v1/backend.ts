@@ -1682,6 +1682,10 @@ export interface Identity {
      * @generated from protobuf field: google.protobuf.Timestamp verified_at = 12;
      */
     verifiedAt?: Timestamp;
+    /**
+     * @generated from protobuf field: string wallet_id = 13;
+     */
+    walletId: string;
 }
 /**
  * @generated from protobuf message backend.v1.IdentityVerificationInstructions
@@ -7663,11 +7667,12 @@ class Identity$Type extends MessageType<Identity> {
             { no: 9, name: "proof", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "ctime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 11, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 12, name: "verified_at", kind: "message", T: () => Timestamp }
+            { no: 12, name: "verified_at", kind: "message", T: () => Timestamp },
+            { no: 13, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Identity>): Identity {
-        const message = { id: "", wallet: "", platform: "", identifier: "", state: "", keyId: "", signature: "", signatureHash: "", proof: "", ctime: "", public: false };
+        const message = { id: "", wallet: "", platform: "", identifier: "", state: "", keyId: "", signature: "", signatureHash: "", proof: "", ctime: "", public: false, walletId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Identity>(this, message, value);
@@ -7713,6 +7718,9 @@ class Identity$Type extends MessageType<Identity> {
                     break;
                 case /* google.protobuf.Timestamp verified_at */ 12:
                     message.verifiedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.verifiedAt);
+                    break;
+                case /* string wallet_id */ 13:
+                    message.walletId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -7762,6 +7770,9 @@ class Identity$Type extends MessageType<Identity> {
         /* google.protobuf.Timestamp verified_at = 12; */
         if (message.verifiedAt)
             Timestamp.internalBinaryWrite(message.verifiedAt, writer.tag(12, WireType.LengthDelimited).fork(), options).join();
+        /* string wallet_id = 13; */
+        if (message.walletId !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.walletId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

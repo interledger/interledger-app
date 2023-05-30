@@ -142,11 +142,12 @@ func identityToPB(identity *identities.Identity) *pb.Identity {
 		Identifier:    identity.Identifier,
 		State:         string(identity.State),
 		KeyId:         identity.KeyID,
-		Signature:     string(base64Signature),
-		SignatureHash: string(base64SignatureHash),
+		Signature:     base64Signature,
+		SignatureHash: base64SignatureHash,
 		Proof:         identity.VerificationProof,
 		Ctime:         identity.CreatedAt.String(),
 		VerifiedAt:    timestamppb.New(identity.VerifiedAt.Time),
 		Public:        identity.Public,
+		WalletId:      identity.WalletID,
 	}
 }

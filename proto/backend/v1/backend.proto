@@ -703,6 +703,7 @@ message Identity {
   string ctime = 10;
   bool public = 11;
   google.protobuf.Timestamp verified_at = 12;
+  string wallet_id = 13;
 }
 
 message IdentityVerificationInstructions {
