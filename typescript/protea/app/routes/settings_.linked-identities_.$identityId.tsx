@@ -203,9 +203,24 @@ export default function Page() {
               Read more about how we verify your Twitter handle.
             </Router>
           </Card>
-          <Button name='formName' value='verify' form='identity' type='submit'>
-            Continue
-          </Button>
+          <div className='flex w-full space-x-2'>
+            <OutlineButton
+              shrink
+              className='!text-error outline-error focus-visible:outline-red-800 hover:!text-red-800 hover:outline-red-800'
+              type='button'
+              onClick={() => setShowDialog(true)}
+            >
+              Delete
+            </OutlineButton>
+            <Button
+              name='formName'
+              value='verify'
+              form='identity'
+              type='submit'
+            >
+              Continue
+            </Button>
+          </div>
         </>
       )}
       {identity.state == 'failed' && (
@@ -221,9 +236,19 @@ export default function Page() {
               src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
             />
           </Card>
-          <Button name='formName' value='retry' form='identity' type='submit'>
-            Retry
-          </Button>
+          <div className='flex w-full space-x-2'>
+            <OutlineButton
+              shrink
+              className='!text-error outline-error focus-visible:outline-red-800 hover:!text-red-800 hover:outline-red-800'
+              type='button'
+              onClick={() => setShowDialog(true)}
+            >
+              Delete
+            </OutlineButton>
+            <Button name='formName' value='retry' form='identity' type='submit'>
+              Retry
+            </Button>
+          </div>
         </>
       )}
       {identity.state == 'pending' && (
