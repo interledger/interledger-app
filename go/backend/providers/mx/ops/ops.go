@@ -184,3 +184,30 @@ func GetAccount(ctx context.Context, b Backends, walletID, guid string) (*mx.Acc
 		AvailableBalance: currency.FromFloat64(externalAccount.AvailableBalance, currency.Currency(externalAccount.CurrencyCode)),
 	}, nil
 }
+
+func ListUsers(ctx context.Context, b Backends) ([]mx.User, error) {
+	ul, err := b.External().ListUsers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	resp := make([]mx.User, len(ul))
+	for i, u := range ul {
+		resp[i] = mx.User{
+			WalletID: u.ID,
+			GUID:     u.Guid,
+			Enabled:  !u.IsDisabled,
+		}
+	}
+
+	return resp, nil
+}
+
+func DeleteUser(ctx context.Context, b Backends, guid string) error {
+	err := b.External().DeleteUser(ctx, guid)
+	if err != nil {
+		return fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	return nil
+}

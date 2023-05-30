@@ -19,6 +19,7 @@ type TransfersArgs struct {
 	IPAddress           string
 	ThreeDSID           string
 	ForceEDD            bool // Used for testing to force the sending of enhanced due diligence info to providers
+	ForceNoEDD          bool // Used for testing to force not sending EDD
 }
 
 type TransferResponse struct {
