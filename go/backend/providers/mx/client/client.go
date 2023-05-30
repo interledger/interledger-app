@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"errors"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
