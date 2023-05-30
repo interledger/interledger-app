@@ -3,9 +3,21 @@ import type { LoaderArgs, ActionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Button, Card, Icon, Layouts, Router, Snackbar } from '~/components'
+import {
+  Button,
+  Card,
+  Chip,
+  ChipColor,
+  FynbosIcon,
+  Icon,
+  Layouts,
+  Router,
+  Snackbar,
+  TwitterIcon
+} from '~/components'
 import { hasUserSession } from '~/lib/kratos.server'
 import {
+  getPublicLinkedIdentities,
   getPublicWalletDetails,
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
@@ -48,10 +60,14 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const paymentPointer = response.response
 
-  const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
-
   if (request.headers.get('Content-type') == 'application/json')
     return redirect(paymentPointer.url)
+
+  const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
+  const identities = await getPublicLinkedIdentities(
+    request,
+    paymentPointer.walletID
+  )
 
   let editable = false
   const isUser = hasUserSession(request)
@@ -62,8 +78,10 @@ export async function loader({ request, params }: LoaderArgs) {
   }
 
   return json({
+    isUser,
     editable,
     wallet,
+    identities,
     paymentPointer,
     paymentPointerParam
   })
@@ -74,8 +92,14 @@ export const handle = {
 }
 
 export default function Page() {
-  const { editable, wallet, paymentPointer, paymentPointerParam } =
-    useLoaderData<typeof loader>()
+  const {
+    isUser,
+    editable,
+    wallet,
+    identities,
+    paymentPointer,
+    paymentPointerParam
+  } = useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>({
     message: 'Payment pointer copied to clipboard.',
@@ -85,53 +109,72 @@ export default function Page() {
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false)
 
   return (
-    <Card>
-      <h1 className='flex items-center justify-between font-display text-2xl font-medium'>
-        <span>{wallet.publicName}</span>
-        {editable && (
-          <Router to={route('/settings/profile-public')}>
-            <Icon>edit</Icon>
+    <>
+      <Card>
+        <h1 className='flex items-center justify-between font-display text-2xl font-medium'>
+          <span>{wallet.publicName}</span>
+          {editable && (
+            <Router to={route('/settings/profile-public')}>
+              <Icon>edit</Icon>
+            </Router>
+          )}
+        </h1>
+        <button
+          type='button'
+          onClick={async () => {
+            if (typeof navigator.clipboard == 'undefined') {
+              setSnackbar({
+                message: "Couldn't copy to clipboard.",
+                icon: 'close',
+                show: true
+              })
+              setShowSnackbar(true)
+            } else
+              navigator.clipboard.writeText(paymentPointer.formatted).then(
+                () => {
+                  setSnackbar({
+                    message: 'Payment pointer copied to clipboard.',
+                    icon: 'close',
+                    show: true
+                  })
+                  setShowSnackbar(true)
+                },
+                () => {
+                  setSnackbar({
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    show: true
+                  })
+                  setShowSnackbar(true)
+                }
+              )
+          }}
+          className='mt-4 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
+        >
+          <span className='text-medium'>{paymentPointer.formatted}</span>
+          <Icon className='text-medium'>content_copy</Icon>
+        </button>
+        {identities.map((identity) => (
+          <Router
+            key={identity.id}
+            className='mt-2 first-of-type:mt-6 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+            to={route('/me/identities/:identityId', {
+              identityId: identity.signatureHash
+            })}
+          >
+            <div className='flex space-x-3'>
+              <TwitterIcon />
+              <span>@{identity.identifier}</span>
+            </div>
+            <div className='flex space-x-3'>
+              {identity.state == 'verified' && (
+                <Chip color={ChipColor.green}>Verified</Chip>
+              )}
+              <Icon>navigate_next</Icon>
+            </div>
           </Router>
-        )}
-      </h1>
-      <button
-        type='button'
-        onClick={async () => {
-          if (typeof navigator.clipboard == 'undefined') {
-            setSnackbar({
-              message: "Couldn't copy to clipboard.",
-              icon: 'close',
-              show: true
-            })
-            setShowSnackbar(true)
-          } else
-            navigator.clipboard.writeText(paymentPointer.formatted).then(
-              () => {
-                setSnackbar({
-                  message: 'Payment pointer copied to clipboard.',
-                  icon: 'close',
-                  show: true
-                })
-                setShowSnackbar(true)
-              },
-              () => {
-                setSnackbar({
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close',
-                  show: true
-                })
-                setShowSnackbar(true)
-              }
-            )
-        }}
-        className='mt-4 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
-      >
-        <span className='font-medium text-medium'>
-          {paymentPointer.formatted}
-        </span>
-        <Icon className='text-medium'>content_copy</Icon>
-      </button>
-
+        ))}
+      </Card>
       <Form
         id='me'
         action={`/me/${paymentPointerParam}`}
@@ -144,11 +187,31 @@ export default function Page() {
         name='paymentPointer'
         type='hidden'
       />
-      <div className='mt-12'>
-        <Button form='me' type='submit'>
-          Pay
-        </Button>
-      </div>
+      <Button form='me' type='submit'>
+        Send a payment
+      </Button>
+      {!isUser && (
+        <Card className='space-y-4'>
+          <h1 className='font-display text-lg font-medium'>Sign up</h1>
+          <div className='flex items-start space-x-4'>
+            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <FynbosIcon />
+            </div>
+            <div className='flex flex-col space-y-4'>
+              <p className='text-sm text-medium'>
+                Sign up with Fynbos to reserve your wallet address and start
+                transacting.
+              </p>
+              <Router
+                className='text-sm font-medium text-primary'
+                to={route('/signup')}
+              >
+                Sign up now
+              </Router>
+            </div>
+          </div>
+        </Card>
+      )}
       <Snackbar
         message={snackbarState.message}
         action={snackbarState.action}
@@ -158,7 +221,7 @@ export default function Page() {
         dismissAfter={3000}
         onClose={() => setShowSnackbar(false)}
       />
-    </Card>
+    </>
   )
 }
 

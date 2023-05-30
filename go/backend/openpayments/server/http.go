@@ -1,9 +1,11 @@
 package server
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/identities"
 	"io"
 	"net"
 	"net/http"
@@ -35,6 +37,8 @@ func OpenPaymentsHTTPHandler(b Backends) http.Handler {
 
 	router.Post("/outgoing", createOutgoingPayment(b))
 	router.Get("/outgoing/{payment_id}", getOutgoingPayment(b))
+
+	router.Get("/{wallet_id}/identities/{identity_sig_hash}", getIdentity(b))
 
 	router.NotFound(catchAllHandler(b))
 	return router
@@ -382,6 +386,22 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 	}
 }
 
+type JsonResponse struct {
+	Id         string             `json:"id"`
+	PublicName string             `json:"publicName"`
+	Identities []IdentityResponse `json:"identities"`
+}
+
+type IdentityResponse struct {
+	Identifier    string `json:"identifier"`
+	Kid           string `json:"kid"`
+	Ctime         int64  `json:"ctime"`
+	Signature     string `json:"signature"`
+	SignatureHash string `json:"signature_hash"`
+	PublicProof   string `json:"public_proof"`
+	Type          string `json:"type"`
+}
+
 // getHandler handles all incoming GET requests and handles them as required
 func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
@@ -408,15 +428,59 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Check if the content type is from browser and redirect
+	if strings.Contains(req.Header.Get("Accept"), "text/html") {
+		url := env.GetUrl() + "/me/" + pp.URL
+		http.Redirect(w, req, url, http.StatusFound)
+		return
+	}
+
 	switch suffix {
 	case "jwks.json":
 		listKeys(b, pp.WalletID, w, req)
 		return
 	}
 
+	ids, err := b.Identities().ListPublic(ctx, pp.WalletID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	jsonIds := make([]IdentityResponse, 0)
+
+	for _, id := range ids {
+		if id.State == identities.StateVerified {
+			sigBase64 := base64.URLEncoding.EncodeToString(id.Signature)
+			sigHashBase64 := base64.URLEncoding.EncodeToString(id.SignatureHash)
+
+			jsonIds = append(jsonIds, IdentityResponse{
+				Identifier:    id.Identifier,
+				Kid:           id.KeyID,
+				Ctime:         id.CreatedAt.Unix(),
+				Type:          string(id.Platform),
+				Signature:     sigBase64,
+				SignatureHash: sigHashBase64,
+				PublicProof:   id.VerificationProof,
+			})
+		}
+	}
+
+	wallet, err := b.Users().GetWallet(ctx, pp.WalletID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	jsonResponse := JsonResponse{
+		Id:         pp.URL,
+		PublicName: wallet.Name,
+		Identities: jsonIds,
+	}
+
 	// Fallback to get payment pointer
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(pp)
+	err = json.NewEncoder(w).Encode(jsonResponse)
 	if err != nil {
 		log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -435,7 +499,7 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 	for i, k := range keys {
 		jwks[i] = openpayments.Jwk{
 			Kty: "OKP",
-			Kid: k.Name,
+			Kid: k.ID,
 			Crv: "Ed25519",
 			Alg: "edDSA",
 			Use: "sign",
@@ -546,5 +610,110 @@ func getIncomingPayment(b Backends) http.HandlerFunc {
 			log.Error("error writing get incoming payment http response", zap.Error(err), zap.String("url", getFullURL(req)))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
+	}
+}
+
+func getIdentity(b Backends) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		identitySigHash := chi.URLParam(req, "identity_sig_hash")
+		ppURL, _, err := ops.ExtractPaymentPointer(getFullURL(req))
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		pp, err := ops.GetPaymentPointer(req.Context(), b, ppURL)
+		if err != nil {
+			if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+				return
+			}
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		sigHash, err := base64.URLEncoding.DecodeString(identitySigHash)
+		if err != nil {
+			// Leave as not found as decoding errors will give 500's
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		identity, err := b.Identities().GetBySignatureHash(req.Context(), sigHash)
+		if err != nil {
+			if errors.Is(err, identities.ErrNotFound) {
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+				return
+			}
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		if identity.WalletID != pp.WalletID {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		// Don't allow non verified and non public ones to be shown
+		if identity.State != identities.StateVerified || !identity.Public {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		// check if user agent contains twitterbot
+		if strings.Contains(strings.ToLower(req.Header.Get("User-Agent")), "twitterbot") {
+			url := env.GetUrl() + "/me/identities/" + identitySigHash
+			// get the html body from the above url
+			resp, err := http.Get(url)
+			if err != nil {
+				log.Error("error getting url", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Error("error reading response body", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			defer resp.Body.Close()
+
+			// return bytes to the caller as html response
+			w.Header().Set("Content-Type", "text/html")
+			_, err = w.Write(b)
+			if err != nil {
+				log.Error("error writing response body", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
+		// if text html redirect
+		if strings.Contains(req.Header.Get("Accept"), "text/html") {
+			url := env.GetUrl() + "/me/identities/" + identitySigHash
+			http.Redirect(w, req, url, http.StatusSeeOther)
+			return
+		}
+
+		sigBase64 := base64.URLEncoding.EncodeToString(identity.Signature)
+		sigHashBase64 := base64.URLEncoding.EncodeToString(identity.SignatureHash)
+		jsonResp := IdentityResponse{
+			Identifier:    identity.Identifier,
+			Kid:           identity.KeyID,
+			Ctime:         identity.CreatedAt.Unix(),
+			Type:          string(identity.Platform),
+			Signature:     sigBase64,
+			SignatureHash: sigHashBase64,
+			PublicProof:   identity.VerificationProof,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(jsonResp)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
 	}
 }
