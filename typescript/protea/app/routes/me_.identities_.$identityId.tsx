@@ -1,7 +1,7 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { AnchorRouter, Card, FynbosIcon, Layouts, Router } from '~/components'
-import { getPublicIdentity } from '~/lib/wallet.server'
+import {getPublicIdentity, getPublicWalletDetails} from '~/lib/wallet.server'
 import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
@@ -9,6 +9,7 @@ import { hasUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const identity = await getPublicIdentity(request, params.identityId as string)
+  const wallet = await getPublicWalletDetails(request, identity.walletId)
 
   if (identity.state !== 'verified')
     throw json({}, { status: 404, statusText: 'Not found' })
@@ -16,7 +17,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const isUser = hasUserSession(request)
   return json({
     wallet: {
-      publicName: 'Henry Ford' // TODO Get this from the public wallet details somehow.
+      publicName: wallet.publicName,
     },
     identity: {
       ...identity,
