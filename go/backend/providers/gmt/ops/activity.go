@@ -1093,7 +1093,7 @@ func (a *Activity) RequestCancellation(ctx context.Context, externalID, comment 
 	return resp.Status, nil
 }
 
-func (a *Activity) ModifyTransactionForTesting(ctx context.Context, externalID, comment, recvWalletID string) error {
+func (a *Activity) ModifyTransactionForTesting(ctx context.Context, externalID string) error {
 
 	resp, err := a.ext.ModifyTransaction(ctx, external.RequestModification{
 		Receipt: externalID,
