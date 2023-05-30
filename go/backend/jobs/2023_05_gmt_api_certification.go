@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -61,10 +62,10 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 			Args: providers.TransfersArgs{
 				FromPaymentPointer:  "https://eu1.fynbos.me/sendercard",
 				ToPaymentPointer:    "https://eu1.fynbos.me/receiverach",
-				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
-				ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
-				FromWalletID:        "2396e098-25cf-4eb1-8a8f-f79843520cbb", //barnard+gmt+autotest+newremnewman+sender@fynbos.dev
-				ToWalletID:          "d94e01f7-3152-4379-bb8a-fc3b26c5854c", //barnard+gmt+autotest+juliosolano+recv@fynbos.dev
+				FromLinkedAccountID: "1c746b7c-1b44-4b13-8b43-a1a433fa22ae",
+				ToLinkedAccountID:   "337be12c-b7f5-4d8c-bcbf-bce42aa879e0",
+				FromWalletID:        "2e7c7fa0-2913-4231-a02c-db2b18528393", //barnard+gmt+card+sender@fynbos.dev
+				ToWalletID:          "d049ce11-1f18-452a-a07a-c0eced4088a2", //barnard+gmt+ach+recv@fynbos.dev
 				Amount:              currency.FromFloat64(900, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
@@ -75,10 +76,10 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 			Args: providers.TransfersArgs{
 				FromPaymentPointer:  "https://eu1.fynbos.me/sendercard",
 				ToPaymentPointer:    "https://eu1.fynbos.me/receiverach",
-				FromLinkedAccountID: "6b5ca5f0-7148-4e6d-a6f3-83d7c139fada",
-				ToLinkedAccountID:   "531ffd56-2b60-4085-bbae-f557bb742a7e",
-				FromWalletID:        "2396e098-25cf-4eb1-8a8f-f79843520cbb", //barnard+gmt+autotest+newremnewman+sender@fynbos.dev
-				ToWalletID:          "d94e01f7-3152-4379-bb8a-fc3b26c5854c", //barnard+gmt+autotest+juliosolano+recv@fynbos.dev
+				FromLinkedAccountID: "cbc286f2-dfff-418f-9aa8-5c1863b2d2dd",
+				ToLinkedAccountID:   "6df8976b-ed52-4abb-8af6-83d8b9356265",
+				FromWalletID:        "e1f55b16-0647-47d8-b1bd-ec297b57f432", //barnard+gmt+ach+sender@fynbos.dev
+				ToWalletID:          "394ccfbc-0a4a-490b-a642-30871f43969e", //barnard+gmt+card+recv@fynbos.dev
 				Amount:              currency.FromFloat64(900, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
@@ -106,7 +107,12 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 		logger.Info("Starting test case workflow", "testcase", tc.Name, "")
 
 		var resp providers.TransferResponse
-		err = workflow.ExecuteChildWorkflow(ctx, gmt_ops.ACH2ACHTransferWorkflow, tc.Args).Get(ctx, &resp)
+		if strings.Contains(tc.Name, "GACH") {
+			err = workflow.ExecuteChildWorkflow(ctx, gmt_ops.Card2ACHTransferWorkflow, tc.Args).Get(ctx, &resp)
+		} else if strings.Contains(tc.Name, "USCD") {
+			err = workflow.ExecuteChildWorkflow(ctx, gmt_ops.ACH2CardTransferWorkflow, tc.Args).Get(ctx, &resp)
+		}
+
 		if tc.ExpectErr && err != nil {
 			logger.Info("Expected Test Case Error",
 				"test_name", tc.Name,
@@ -182,7 +188,7 @@ func RunGMTCertificationStep2(ctx workflow.Context) error {
 		}
 	*/
 
-	err := workflow.ExecuteActivity(ctx, gmtActivity.ModifyTransactionForTesting, "000426703041", "testing", "d94e01f7-3152-4379-bb8a-fc3b26c5854c").Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, gmtActivity.ModifyTransactionForTesting, "000033674224").Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to request modification of 1.6 transaction beneficiary", "error", err)
 	}
