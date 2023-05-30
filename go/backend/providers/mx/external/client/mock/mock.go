@@ -50,6 +50,20 @@ func (mr *MockClientMockRecorder) CreateUser(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockClient)(nil).CreateUser), ctx, id)
 }
 
+// DeleteUser mocks base method.
+func (m *MockClient) DeleteUser(ctx context.Context, guid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", ctx, guid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockClientMockRecorder) DeleteUser(ctx, guid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockClient)(nil).DeleteUser), ctx, guid)
+}
+
 // GetWidgetURL mocks base method.
 func (m *MockClient) GetWidgetURL(ctx context.Context, args external.GetWidgetURLArgs) (*external.WidgetURL, error) {
 	m.ctrl.T.Helper()
@@ -108,6 +122,21 @@ func (m *MockClient) ListAccountsByMember(ctx context.Context, userGuid, memberG
 func (mr *MockClientMockRecorder) ListAccountsByMember(ctx, userGuid, memberGuid interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccountsByMember", reflect.TypeOf((*MockClient)(nil).ListAccountsByMember), ctx, userGuid, memberGuid)
+}
+
+// ListUsers mocks base method.
+func (m *MockClient) ListUsers(ctx context.Context) ([]external.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers", ctx)
+	ret0, _ := ret[0].([]external.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockClientMockRecorder) ListUsers(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockClient)(nil).ListUsers), ctx)
 }
 
 // ListUsersByID mocks base method.
