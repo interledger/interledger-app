@@ -59,3 +59,11 @@ func (c *Client) CreateBankAccounts(ctx context.Context, args mx.CreateBankAccou
 func (c *Client) GetAccount(ctx context.Context, walletID, accountGuid string) (*mx.Account, error) {
 	return ops.GetAccount(ctx, c.b, walletID, accountGuid)
 }
+
+func (c *Client) ListUsers(ctx context.Context) ([]mx.User, error) {
+	return ops.ListUsers(ctx, c.b)
+}
+
+func (c *Client) DeleteExternalUser(ctx context.Context, guid string) error {
+	return ops.DeleteUser(ctx, c.b, guid)
+}
