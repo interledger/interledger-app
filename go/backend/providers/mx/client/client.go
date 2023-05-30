@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"errors"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -62,9 +61,9 @@ func (c *Client) GetAccount(ctx context.Context, walletID, accountGuid string) (
 }
 
 func (c *Client) ListUsers(ctx context.Context) ([]mx.User, error) {
-	return nil, errors.New("not implmented")
+	return ops.ListUsers(ctx, c.b)
 }
 
 func (c *Client) DeleteExternalUser(ctx context.Context, guid string) error {
-	return errors.New("not implmented")
+	return ops.DeleteUser(ctx, c.b, guid)
 }
