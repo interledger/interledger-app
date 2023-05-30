@@ -51,6 +51,20 @@ func (mr *MockClientMockRecorder) CreateBankAccounts(ctx, args interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBankAccounts", reflect.TypeOf((*MockClient)(nil).CreateBankAccounts), ctx, args)
 }
 
+// DeleteExternalUser mocks base method.
+func (m *MockClient) DeleteExternalUser(ctx context.Context, guid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExternalUser", ctx, guid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExternalUser indicates an expected call of DeleteExternalUser.
+func (mr *MockClientMockRecorder) DeleteExternalUser(ctx, guid interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExternalUser", reflect.TypeOf((*MockClient)(nil).DeleteExternalUser), ctx, guid)
+}
+
 // GetAccount mocks base method.
 func (m *MockClient) GetAccount(ctx context.Context, walletID, accountGuid string) (*mx.Account, error) {
 	m.ctrl.T.Helper()
@@ -79,4 +93,19 @@ func (m *MockClient) GetWidget(ctx context.Context, walletID string) (string, er
 func (mr *MockClientMockRecorder) GetWidget(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWidget", reflect.TypeOf((*MockClient)(nil).GetWidget), ctx, walletID)
+}
+
+// ListUsers mocks base method.
+func (m *MockClient) ListUsers(ctx context.Context) ([]mx.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListUsers", ctx)
+	ret0, _ := ret[0].([]mx.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListUsers indicates an expected call of ListUsers.
+func (mr *MockClientMockRecorder) ListUsers(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockClient)(nil).ListUsers), ctx)
 }
