@@ -578,6 +578,7 @@ export type HeroContentRecord = RecordInterface & {
   button: Array<LinkRecord>;
   id: Scalars['ItemId'];
   image?: Maybe<FileField>;
+  imageDark?: Maybe<FileField>;
   title?: Maybe<Scalars['String']>;
 };
 
@@ -601,8 +602,11 @@ export type HomeHeroContentRecord = RecordInterface & {
   _status: ItemStatus;
   _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
   _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  button: Array<LinkRecord>;
   id: Scalars['ItemId'];
   iterations: Array<HeroContentRecord>;
+  title?: Maybe<Scalars['String']>;
 };
 
 
@@ -2616,6 +2620,7 @@ export type ShowcaseContentRecord = RecordInterface & {
   _updatedAt: Scalars['DateTime'];
   cases: Array<ShowcaseRecord>;
   id: Scalars['ItemId'];
+  rowReverse?: Maybe<Scalars['BooleanType']>;
 };
 
 
