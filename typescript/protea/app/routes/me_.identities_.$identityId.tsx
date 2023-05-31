@@ -1,8 +1,8 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { AnchorRouter, Card, FynbosIcon, Layouts, Router } from '~/components'
+import { AnchorRouter, Button, Card, Layouts, Router } from '~/components'
 import { getPublicIdentity, getPublicWalletDetails } from '~/lib/wallet.server'
-import { useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import { hasUserSession } from '~/lib/kratos.server'
@@ -21,6 +21,8 @@ export async function loader({ request, params }: LoaderArgs) {
     },
     identity: {
       ...identity,
+      identifierWithPrefix: '@' + identity.identifier,
+      walletUrlWithoutProtocol: removeProtocol(wallet.publicName),
       verifiedAt: DateTime.fromSeconds(
         parseInt(identity.verifiedAt?.seconds ?? '')
       ).toFormat('dd MMM yyyy')
@@ -31,7 +33,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const metaContent = {
-    title: `@${data.identity.identifier} has verified they are a real person`,
+    title: `${data.identity.identifierWithPrefix} has verified they are a real person`,
     description:
       'Fynbos has verified that this person is real and this is the public proof of their twitter identity.'
   }
@@ -65,6 +67,22 @@ export default function Page() {
       {identity.state == 'verified' && (
         <Card>
           <p>{wallet.publicName} has linked their Fynbos wallet to Twitter.</p>
+          <p className='mt-4'>
+            This identity card shows that
+            <AnchorRouter
+              to={`https://twitter.com/${identity.identifier}`}
+              className='text-primary'
+            >
+              {' '}
+              {identity.identifierWithPrefix}{' '}
+            </AnchorRouter>
+            is the same person as
+            <AnchorRouter to={identity.wallet} className='text-primary'>
+              {' '}
+              {identity.walletUrlWithoutProtocol}{' '}
+            </AnchorRouter>
+            who Fynbos have verified is a real person.
+          </p>
           <img
             className='max-w-[310px] mt-4'
             loading='lazy'
@@ -86,28 +104,37 @@ export default function Page() {
           </Card.Item>
         </Card>
       )}
+      <Form id='me' action={`/me/${identity.walletUrlWithoutProtocol}`} method='post' className='hidden' />
+      <input
+        form='me'
+        value={'paymentPointer'}
+        name='paymentPointer'
+        type='hidden'
+      />
+      {isUser && (
+        <Button form='me' type='submit'>
+          Pay {identity.identifierWithPrefix}
+        </Button>
+      )}
       {!isUser && (
         <Card className='space-y-4'>
-          <h1 className='font-display text-lg font-medium'>Sign up</h1>
-          <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-              <FynbosIcon />
-            </div>
-            <div className='flex flex-col space-y-4'>
-              <p className='text-sm text-medium'>
-                Sign up with Fynbos to reserve your wallet address and start
-                transacting.
-              </p>
-              <Router
-                className='text-sm font-medium text-primary'
-                to={route('/signup')}
-              >
-                Sign up now
-              </Router>
-            </div>
-          </div>
+          <h1 className='font-display text-lg font-medium'>What is Fynbos?</h1>
+          <p className='text-sm text-medium'>
+            Fynbos is a digital wallet for verifying identities, paying
+            contacts, and building trust.
+          </p>
+          <Router
+            className='text-sm font-medium text-primary'
+            to={route('/signup')}
+          >
+            Get your own identity card
+          </Router>
         </Card>
       )}
     </>
   )
+}
+
+function removeProtocol(url: string): string {
+  return url.replace(/(http(s)?:\/\/)/i, '')
 }
