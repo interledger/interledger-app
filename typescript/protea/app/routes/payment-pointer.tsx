@@ -38,6 +38,8 @@ export async function loader({ request }: LoaderArgs) {
   let usernameIsValid = false
   let attempts = 0
   let username = session.identity.traits.firstName
+  let publicName =
+    session.identity.traits.firstName + ' ' + session.identity.traits.lastName
 
   while (!usernameIsValid && attempts < 5) {
     let response = await openPaymentsClient
@@ -65,6 +67,7 @@ export async function loader({ request }: LoaderArgs) {
   return json({
     paymentPointerBase: PAYMENT_POINTER_BASE,
     username: username.toLowerCase(),
+    publicName: publicName,
     snackbar
   })
 }
@@ -82,7 +85,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const fetcher = useFetcher()
-  const { paymentPointerBase, username, snackbar } =
+  const { paymentPointerBase, username, snackbar, publicName } =
     useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
@@ -108,6 +111,20 @@ export default function Page() {
         <p>Create your unique, memorable payment pointer.</p>
 
         <TextField
+          id='publicName'
+          form='payment-pointer'
+          label='Public name'
+          name='publicName'
+          defaultValue={publicName}
+          type='text'
+          className='mt-6'
+          aria-invalid={Boolean(fetcher.data?.errors.publicName) || undefined}
+          aria-describedby={
+            fetcher.data?.errors.publicName ? 'public-name-error' : undefined
+          }
+          errorMessage={fetcher.data?.errors.publicName || undefined}
+        />
+        <TextField
           id='username'
           form='payment-pointer'
           label='Payment pointer'
@@ -125,7 +142,7 @@ export default function Page() {
           defaultValue={username}
           onChange={_onChangeInput}
           type='text'
-          className='mt-6'
+          className='mt-2'
           aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
           aria-describedby={
             fetcher.data?.errors.username ? 'username-error' : undefined
@@ -161,12 +178,14 @@ export default function Page() {
 }
 
 // The field names given by the backend for field violations
-type fieldErrorsMap = 'url'
+type fieldErrorsMap = 'url' | 'Alias'
 
-function mapper(field: fieldErrorsMap): 'username' | null {
+function mapper(field: fieldErrorsMap): 'username' | 'publicName' | null {
   switch (field) {
     case 'url':
       return 'username'
+    case 'Alias':
+      return 'publicName'
     default:
       return null
   }
@@ -176,11 +195,13 @@ export async function action({ request }: ActionArgs) {
   const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
   const username = form.get('username') as string
+  const publicName = form.get('publicName')?.toString() ?? ''
   const canSubmit = Boolean(form.get('canSubmit') as string)
 
   const fieldErrors = {
     form: '',
-    username: ''
+    username: '',
+    publicName: ''
   }
 
   let response = await openPaymentsClient
@@ -220,7 +241,7 @@ export async function action({ request }: ActionArgs) {
           url: `https://${PAYMENT_POINTER_BASE}/${username}`,
           asset: 'USD',
           assetScale: 2,
-          alias: 'default'
+          alias: publicName
         },
         {
           meta: {
@@ -234,6 +255,7 @@ export async function action({ request }: ActionArgs) {
       if (response.code == 3) {
         for (let violation of (response as GrpcError).details[0]
           .fieldViolations) {
+          console.log(violation)
           const field = mapper(violation.field as fieldErrorsMap)
           if (field != null) fieldErrors[field] = violation.description
         }
