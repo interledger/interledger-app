@@ -26,23 +26,33 @@ func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListI
 		return nil, toGRPCError(err)
 	}
 
-	resp := make([]*pb.Identity, len(ids))
-	for i, id := range ids {
-		resp[i] = identityToPB(&id)
-	}
-
-	return &pb.ListIdentitiesResponse{Identities: resp}, nil
-}
-
-func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPublicIdentitiesRequest) (*pb.ListIdentitiesResponse, error) {
-	ids, err := s.b.Identities().ListPublic(ctx, req.WalletId)
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, w.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	resp := make([]*pb.Identity, len(ids))
 	for i, id := range ids {
-		resp[i] = identityToPB(&id)
+		resp[i] = identityToPB(&id, pp.URL)
+	}
+
+	return &pb.ListIdentitiesResponse{Identities: resp}, nil
+}
+
+func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPublicIdentitiesRequest) (*pb.ListIdentitiesResponse, error) {
+	ids, err := s.b.Identities().ListPublic(ctx, req.GetWalletId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, req.GetWalletId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	resp := make([]*pb.Identity, len(ids))
+	for i, id := range ids {
+		resp[i] = identityToPB(&id, pp.URL)
 	}
 
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
@@ -80,7 +90,12 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 		return nil, toGRPCError(err)
 	}
 
-	return identityToPB(id), nil
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, id.WalletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return identityToPB(id, pp.URL), nil
 }
 
 func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest) (*pb.GetIdentityResponse, error) {
@@ -106,8 +121,13 @@ func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest
 		return nil, NotFoundError("identity not found.")
 	}
 
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, id.WalletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	return &pb.GetIdentityResponse{
-		Identity: identityToPB(id),
+		Identity: identityToPB(id, pp.URL),
 	}, nil
 }
 
@@ -126,18 +146,23 @@ func (s *rpcService) GetIdentityBySignatureHash(ctx context.Context, req *pb.Get
 		return nil, toGRPCError(err)
 	}
 
+	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, id.WalletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	return &pb.GetIdentityResponse{
-		Identity: identityToPB(id),
+		Identity: identityToPB(id, pp.URL),
 	}, nil
 }
 
-func identityToPB(identity *identities.Identity) *pb.Identity {
+func identityToPB(identity *identities.Identity, walletURL string) *pb.Identity {
 	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
 
 	return &pb.Identity{
 		Id:            identity.ID,
-		Wallet:        "",
+		Wallet:        walletURL,
 		Platform:      string(identity.Platform),
 		Identifier:    identity.Identifier,
 		State:         string(identity.State),
