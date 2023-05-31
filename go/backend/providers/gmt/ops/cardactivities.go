@@ -53,7 +53,7 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (*ta
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
 		ReferenceID: args.ReferenceID,
-		Amount:      args.Amount,
+		Amount:      currency.FromFloat64(0.03, currency.USD),
 		ThreeDSID:   args.ThreeDSID,
 	})
 	if err != nil {
@@ -83,7 +83,7 @@ func (a *Activity) PushToCard(ctx context.Context, args PushToCard) (*tabapay.Tr
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
 		ReferenceID: args.ReferenceID,
-		Amount:      args.Amount,
+		Amount:      currency.FromFloat64(0.03, currency.USD),
 	})
 	if err != nil {
 		return nil, err
