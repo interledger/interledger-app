@@ -3,6 +3,7 @@
  */
 module.exports = {
   tailwind: true,
+  postcss: true,
   future: {
     v2_errorBoundary: true,
     // v2_meta: true,

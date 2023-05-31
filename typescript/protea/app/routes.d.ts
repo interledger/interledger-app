@@ -60,6 +60,7 @@ declare module "routes-gen" {
     "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
+    "/test": Record<string, never>;
     "/pay": Record<string, never>;
   };
 
@@ -125,6 +126,7 @@ declare module "routes-gen" {
       | ["/legal"]
       | ["/login"]
       | ["/blog"]
+      | ["/test"]
       | ["/pay"]
   >(...args: T): typeof args[0];
 }
