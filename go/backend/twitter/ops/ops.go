@@ -8,7 +8,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/twitter/workflows"
+	"go.temporal.io/api/enums/v1"
+	temporal "go.temporal.io/sdk/client"
 	"io"
+	"time"
 
 	"github.com/lib/pq"
 	"gitlab.com/fynbos/backend/twitter"
@@ -143,6 +147,22 @@ func PostTweet(ctx context.Context, b Backends, id string, text string) (*twitte
 	}
 
 	return tweet, nil
+}
+
+func PublishTweetProof(ctx context.Context, b Backends, id string) error {
+	workflowOptions := temporal.StartWorkflowOptions{
+		ID:                       "publish-tweet-proof" + id,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24 * 8, // 8 days
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
+	}
+
+	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.PublishTwitterProofWorkflow, id)
+	if err != nil {
+		return fmt.Errorf("%w %s", twitter.ErrInternal, err)
+	}
+
+	return nil
 }
 
 func getConnection(ctx context.Context, b Backends, id string) (*twitter.Connection, error) {

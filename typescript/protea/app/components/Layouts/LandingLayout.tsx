@@ -2,7 +2,7 @@ import { NavLink, Outlet, useMatches } from '@remix-run/react'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
-import { Logo } from '../Logo'
+import { FynbosLogo } from '../Logos'
 import { AnchorRouter, ButtonRouter, Router } from '../Router'
 import { NavDrawer } from './NavDrawer'
 import { IconButton } from '~/components'
@@ -53,7 +53,7 @@ export function LandingLayout() {
             </IconButton>
             <div className='ml-4 lg:ml-0'>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <Logo className='h-8' />
+                <FynbosLogo className='h-8' />
               </Router>
             </div>
             <div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>
@@ -117,7 +117,7 @@ export function LandingLayout() {
             <div className='absolute top-0 left-[3.75rem] h-5 w-5 rounded-bl-full bg-lime-500' />
             <div className='absolute top-0 left-20 h-5 w-5 rounded-br-full bg-slate-300' />
             <div className='absolute top-0 left-[6.25rem] h-5 w-5 rounded-tr-full bg-slate-700' />
-            <Logo className='absolute top-8 h-8 text-white' />
+            <FynbosLogo className='absolute top-8 h-8 text-white' />
           </div>
           <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-4'>
             <span className='pb-2 text-sm font-medium text-white'>Menu</span>
@@ -228,7 +228,7 @@ export function LandingLayout() {
               </IconButton>
               <div className='ml-4 lg:ml-0'>
                 <Router to={route('/')} aria-label='Fynbos logo'>
-                  <Logo className='h-8' />
+                  <FynbosLogo className='h-8' />
                 </Router>
               </div>
             </div>

@@ -13,7 +13,7 @@ func (s *rpcService) GetLinkedAccounts(
 ) (*pb.GetLinkedAccountsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	wallet, err := s.b.Users().WalletForContext(ctx)

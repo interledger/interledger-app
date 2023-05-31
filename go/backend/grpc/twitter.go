@@ -2,12 +2,9 @@ package grpc
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
-	"fmt"
-	"gitlab.com/fynbos/backend/identities"
-
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -35,7 +32,7 @@ func (s *rpcService) CreateTwitterAuthURL(
 	if err != nil {
 		return nil, InternalError("Create Twitter Auth URL")
 	}
-	// hello
+
 	return &backendv1.CreateTwitterAuthURLResponse{
 		Url: url,
 	}, nil
@@ -44,16 +41,6 @@ func (s *rpcService) CreateTwitterAuthURL(
 func (s *rpcService) TwitterCallback(
 	ctx context.Context, request *backendv1.TwitterCallbackRequest,
 ) (*backendv1.TwitterCallbackResponse, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, err = s.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
 	connection, err := s.b.Twitter().CreateConnection(ctx, &twitter.CreateConnectionArgs{
 		State:    request.State,
 		AuthCode: request.Code,
@@ -74,26 +61,39 @@ func (s *rpcService) TwitterCallback(
 		return nil, InternalError("Error adding identity.")
 	}
 
-	pp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, identity.WalletID)
-	if err != nil {
-		return nil, InternalError("Error getting payment pointer by walletID")
-	}
-
-	base64SigHas := base64.URLEncoding.EncodeToString(identity.SignatureHash)
-
-	tweet, err := s.b.Twitter().PostTweet(ctx, connection.ID, "I’ve connected my fynbos wallet, to my Twitter identity so I can send and receive payments using this identity. \n\nSee the proof at "+pp.URL+"/claims/"+string(base64SigHas))
-	if err != nil {
-		return nil, InternalError("Error posting tweet")
-	}
-
-	proofUrl := fmt.Sprintf("https://twitter.com/%s/status/%s", connection.Username, tweet.ID)
-	// Verification
-	_, err = s.b.Identities().StartVerification(ctx, identity.ID, proofUrl)
-	if err != nil {
-		return nil, InternalError("Error starting verification")
-	}
-
 	return &backendv1.TwitterCallbackResponse{
 		Id: identity.ID,
 	}, nil
+}
+
+func (s *rpcService) VerifyTwitter(ctx context.Context, request *backendv1.VerifyTwitterRequest) (*backendv1.Empty, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	id, err := s.b.Identities().Get(ctx, request.GetIdentityId())
+	if err != nil {
+		return nil, InternalError("error getting identity")
+	}
+
+	if id.WalletID != wallet.ID {
+		return nil, NotFoundError("unknown identity")
+	}
+
+	if id.State == identities.StateVerified {
+		return &backendv1.Empty{}, nil
+	}
+
+	err = s.b.Twitter().PublishTweetProof(ctx, id.ID)
+	if err != nil {
+		return nil, InternalError("error starting workflow")
+	}
+
+	return &backendv1.Empty{}, nil
 }

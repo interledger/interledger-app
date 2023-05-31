@@ -4,7 +4,7 @@ import { useState } from 'react'
 import {
   Icon,
   IconButton,
-  Logo,
+  FynbosLogo,
   Router,
   WalletGrid,
   WalletShapes
@@ -22,7 +22,7 @@ export function WalletLayout() {
           <NavDrawer.List>
             <div className='ml-4'>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <Logo className='h-8' />
+                <FynbosLogo className='h-8' />
               </Router>
             </div>
             <Router
@@ -66,7 +66,7 @@ export function WalletLayout() {
             menu
           </IconButton>
           {title && <h1 className='text-xl font-medium'>{title}</h1>}
-          {!title && <Logo className='h-8' />}
+          {!title && <FynbosLogo className='h-8' />}
         </header>
         <div className='mt-16 mb-32 lg:my-[5.5rem] lg:ml-64'>
           <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
@@ -93,7 +93,7 @@ export function WalletLayout() {
                 menu_open
               </IconButton>
               <Router to={route('/')} aria-label='Fynbos logo'>
-                <Logo className='h-8' />
+                <FynbosLogo className='h-8' />
               </Router>
             </div>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
