@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
+	"go.temporal.io/sdk/temporal"
 )
 
 type Activity struct {
@@ -48,7 +49,7 @@ func (a *Activity) PostProofTweet(ctx context.Context, identityID string) (strin
 
 	// If no connection found, return error
 	if connection == nil {
-		return "", fmt.Errorf("no connection found for identity %s", identityID)
+		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("no connection found for identity %s", identityID), "ErrNotFound", nil)
 	}
 
 	pp, err := a.b.OpenPayments().GetWalletPaymentPointer(ctx, id.WalletID)

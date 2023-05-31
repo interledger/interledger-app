@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 	"time"
@@ -430,8 +431,13 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	// Check if the content type is from browser and redirect
 	if strings.Contains(req.Header.Get("Accept"), "text/html") {
-		url := env.GetUrl() + "/me/" + pp.URL
-		http.Redirect(w, req, url, http.StatusFound)
+		u, err := url.JoinPath(env.GetUrl(), "/me/", pp.URL)
+		if err != nil {
+			log.Error("error generating url", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, req, u, http.StatusFound)
 		return
 	}
 
@@ -659,11 +665,15 @@ func getIdentity(b Backends) http.HandlerFunc {
 			return
 		}
 
-		// check if user agent contains twitterbot
-		if strings.Contains(strings.ToLower(req.Header.Get("User-Agent")), "twitterbot") {
-			url := env.GetUrl() + "/me/identities/" + identitySigHash
+		if isSocialMediaScraper(req) {
+			u, err := url.JoinPath(env.GetUrl(), "me/identities", identitySigHash)
+			if err != nil {
+				log.Error("error generate url", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
 			// get the html body from the above url
-			resp, err := http.Get(url)
+			resp, err := http.Get(u)
 			if err != nil {
 				log.Error("error getting url", zap.Error(err))
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -691,8 +701,13 @@ func getIdentity(b Backends) http.HandlerFunc {
 
 		// if text html redirect
 		if strings.Contains(req.Header.Get("Accept"), "text/html") {
-			url := env.GetUrl() + "/me/identities/" + identitySigHash
-			http.Redirect(w, req, url, http.StatusSeeOther)
+			u, err := url.JoinPath(env.GetUrl(), "me/identities", identitySigHash)
+			if err != nil {
+				log.Error("error generate url", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			http.Redirect(w, req, u, http.StatusSeeOther)
 			return
 		}
 
@@ -716,4 +731,18 @@ func getIdentity(b Backends) http.HandlerFunc {
 		}
 
 	}
+}
+
+func isSocialMediaScraper(req *http.Request) bool {
+	ua := strings.ToLower(req.UserAgent())
+
+	// Check if the User-Agent contains any of the desired strings
+	if strings.Contains(ua, "linkedinbot") ||
+		strings.Contains(ua, "facebookexternalhit") ||
+		strings.Contains(ua, "facebookcatalog") ||
+		strings.Contains(ua, "twitterbot") {
+		return true
+	}
+
+	return false
 }
