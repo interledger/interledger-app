@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -9,6 +10,7 @@ import (
 	http_log "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.temporal.io/sdk/temporal"
 )
 
 func (s *rpcService) CreateCard(
@@ -24,10 +26,19 @@ func (s *rpcService) CreateCard(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	_, err = s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
+	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
 		WalletID:           w.ID,
 		BasisTheoryTokenID: req.GetTokenID(),
 	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = await(ctx, nil)
+	var applicationError *temporal.ApplicationError
+	if errors.As(err, &applicationError) && applicationError.Type() == "ErrDuplicateCard" {
+		return nil, AlreadyExistsError("Invalid card.")
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -64,7 +75,9 @@ func (s *rpcService) Init3DS(
 		return nil, InternalError("3DS not supported.")
 	}
 
-	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID))
+	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
+		Context: fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID),
+	})
 	init3DS, err := s.b.Tabapay().Init3DS(newCtx, tabapay.Init3DSArgs{
 		Amount:         quote.SendAmount,
 		IdempotencyKey: req.GetIdempotencyKey(),
@@ -111,7 +124,9 @@ func (s *rpcService) Lookup3DS(
 		return nil, NotFoundError("")
 	}
 
-	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", la.ID))
+	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
+		Context: fmt.Sprintf("linkedAccountID=%s", la.ID),
+	})
 	lookupResp, err := s.b.Tabapay().Lookup3DS(newCtx, tabapay.Lookup3DSArgs{
 		ThreeDSID:               req.GetThreeDSID(),
 		IdempotencyKey:          req.GetIdempotencyKey(),
@@ -177,7 +192,9 @@ func (s *rpcService) Authenticate3DS(
 		return nil, NotFoundError("")
 	}
 
-	newCtx := context.WithValue(ctx, http_log.ContextKey, fmt.Sprintf("linkedAccountID=%s", la.ID))
+	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
+		Context: fmt.Sprintf("linkedAccountID=%s", la.ID),
+	})
 	authResp, err := s.b.Tabapay().Authenticate3DS(newCtx, tabapay.Authenticate3DSArgs{
 		IdempotencyKey: req.GetIdempotencyKey(),
 		ThreeDSID:      req.GetThreeDSID(),

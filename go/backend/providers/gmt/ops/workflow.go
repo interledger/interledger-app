@@ -391,6 +391,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		Context: fmt.Sprintf("transactionID=%s", args.FromTransactionID),
 	})
 	newCtx = workflow.WithActivityOptions(newCtx, workflow.ActivityOptions{
+		StartToCloseTimeout: 95 * time.Second, // cmay take up to 90 seconds.
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2, // tabapay will block us if we keep retrying
 		},
@@ -789,6 +790,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		Context: fmt.Sprintf("transactionID=%s", args.FromTransactionID),
 	})
 	newCtx = workflow.WithActivityOptions(newCtx, workflow.ActivityOptions{
+		StartToCloseTimeout: 95 * time.Second, // cmay take up to 90 seconds.,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2, // tabapay will block us if we keep retrying
 		},

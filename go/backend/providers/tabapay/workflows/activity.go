@@ -30,6 +30,7 @@ func NewActivity(cb InputBackends) *Activity {
 		BasisTheoryProxyApiKey: os.Getenv("BASISTHEORY_API_KEY"),
 		ClientID:               os.Getenv("TABAPAY_CLIENT_ID"),
 		BearerToken:            os.Getenv("TABAPAY_BEARER_TOKEN"),
+		SubClientID:            os.Getenv("TABAPAY_SUB_CLIENT_ID"),
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, cb, nil),
 		),
@@ -54,8 +55,9 @@ func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.Que
 
 	queryArgs := external.QueryCardArgs{
 		Card: &external.Card{
-			AccountNumber: args.CardNumber,
-			SecurityCode:  args.CVV,
+			AccountNumber:  args.CardNumber,
+			SecurityCode:   args.CVV,
+			ExpirationDate: args.ExpirationDate,
 		},
 		Owner: &external.Owner{
 			Name: external.Name{
@@ -65,13 +67,22 @@ func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.Que
 		},
 	}
 	if args.AVS {
+		queryArgs.AVSCheck = true
 		queryArgs.Owner.Address = &external.Address{
 			Line1:   kyc.Address.Line1,
 			ZipCode: kyc.Address.ZipCode,
 		}
 	}
 
-	return a.b.External().QueryCard(ctx, queryArgs)
+	resp, err := a.b.External().QueryCard(ctx, queryArgs)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+	if resp.SC == http.StatusMultiStatus {
+		return nil, fmt.Errorf("%w MultiStatus response. Tabapay error code=%s", tabapay.ErrInternal, resp.EC)
+	}
+
+	return resp, nil
 }
 
 func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCardArgs) (*external.CreateAccountResponse, error) {
@@ -87,6 +98,9 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 	if err != nil {
 		return nil, fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
 	}
+	if ctry != "840" {
+		return nil, fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+	}
 	stateParts := strings.Split(owner.Address.State, "-")
 	state := stateParts[0]
 	if len(stateParts) == 2 {
@@ -95,7 +109,8 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 
 	referenceID := tabapay.NewReferenceID()
 	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
-		ReferenceID: referenceID,
+		RejectDuplicateCard: args.RejectDuplicateCard,
+		ReferenceID:         referenceID,
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,
@@ -111,10 +126,13 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 				City:    owner.Address.City,
 				State:   state,
 				ZipCode: owner.Address.ZipCode,
-				Country: ctry,
+				// Country: ctry, // enable when we rollout to more regions
 			},
 		},
 	})
+	if errors.Is(err, external.ErrConflict) {
+		return nil, temporal.NewNonRetryableApplicationError("tabapay: Duplicate card.", "ErrDuplicateCard", err)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}

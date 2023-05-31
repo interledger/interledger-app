@@ -215,10 +215,11 @@ func TabapayCertificationWorkflow(ctx workflow.Context) error {
 			newCtx,
 			tabapayActivity.QueryCard,
 			tabapay_workflow.QueryCard{
-				WalletID:   tc.WalletID,
-				CardNumber: fmt.Sprintf("{{ %s | json: '$.number' }}", basisTheoryTokenID),
-				AVS:        tc.AVS,
-				CVV:        tc.CVV,
+				WalletID:       tc.WalletID,
+				CardNumber:     fmt.Sprintf("{{ %s | json: '$.number' }}", basisTheoryTokenID),
+				ExpirationDate: fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", basisTheoryTokenID, basisTheoryTokenID),
+				AVS:            tc.AVS,
+				CVV:            tc.CVV,
 			},
 		).Get(newCtx, &response)
 		if err != nil {
@@ -289,9 +290,10 @@ func TabapayCertificationWorkflow(ctx workflow.Context) error {
 			newCtx,
 			tabapayActivity.CreateExternalCard,
 			tabapay_workflow.CreateExternalCardArgs{
-				WalletID:       tc.WalletID,
-				CardNumber:     fmt.Sprintf("{{ %s | json: '$.number' }}", basisTheoryTokenID),
-				ExpirationDate: fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", basisTheoryTokenID, basisTheoryTokenID),
+				RejectDuplicateCard: true,
+				WalletID:            tc.WalletID,
+				CardNumber:          fmt.Sprintf("{{ %s | json: '$.number' }}", basisTheoryTokenID),
+				ExpirationDate:      fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", basisTheoryTokenID, basisTheoryTokenID),
 			},
 		).Get(newCtx, &response)
 		if err != nil {
@@ -417,11 +419,13 @@ func TabapayCertificationWorkflow(ctx workflow.Context) error {
 		var tabapayTransaction tabapay.Transaction
 		if tc.Pull {
 			err = workflow.ExecuteActivity(newCtx, gmtActivity.PullFromCard, gmt_workflow.PullFromCardArgs{
+				ReferenceID:         tabapay.NewReferenceID(),
 				CardLinkedAccountID: tc.LinkedAccountID,
 				Amount:              tc.Amount,
 			}).Get(newCtx, &tabapayTransaction)
 		} else {
 			err = workflow.ExecuteActivity(newCtx, gmtActivity.PushToCard, gmt_workflow.PullFromCardArgs{
+				ReferenceID:         tabapay.NewReferenceID(),
 				CardLinkedAccountID: tc.LinkedAccountID,
 				Amount:              tc.Amount,
 			}).Get(newCtx, &tabapayTransaction)

@@ -12,6 +12,9 @@ docker push localhost:5005/backend:latest
 docker build "$(dirname "$0")/../../typescript/protea" -f "$(dirname "$0")/../../typescript/protea/Dockerfile" --target dev -t localhost:5005/protea:latest
 docker push localhost:5005/protea:latest
 
+docker build "$(dirname "$0")/../../typescript/botanist" -f "$(dirname "$0")/../../typescript/botanist/Dockerfile" --target dev -t localhost:5005/botanist:latest
+docker push localhost:5005/botanist:latest
+
 # Pull and push temporal
 docker pull 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalite
 docker tag 823058932981.dkr.ecr.eu-west-1.amazonaws.com/temporalite localhost:5005/temporalite
