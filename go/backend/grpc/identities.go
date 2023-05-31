@@ -3,7 +3,9 @@ package grpc
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"gitlab.com/fynbos/backend/identities"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -11,7 +13,7 @@ import (
 func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListIdentitiesResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
@@ -49,7 +51,7 @@ func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPubli
 func (s *rpcService) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityRequest) (*pb.Empty, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
@@ -65,7 +67,7 @@ func (s *rpcService) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityR
 func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityPublicRequest) (*pb.Identity, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Users().WalletForContext(ctx)
@@ -81,6 +83,54 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 	return identityToPB(id), nil
 }
 
+func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest) (*pb.GetIdentityResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	id, err := s.b.Identities().Get(ctx, req.Id)
+	if err != nil {
+		if errors.Is(err, identities.ErrNotFound) {
+			return nil, NotFoundError("identity not found.")
+		}
+		return nil, toGRPCError(err)
+	}
+
+	if id.WalletID != w.ID {
+		return nil, NotFoundError("identity not found.")
+	}
+
+	return &pb.GetIdentityResponse{
+		Identity: identityToPB(id),
+	}, nil
+}
+
+func (s *rpcService) GetIdentityBySignatureHash(ctx context.Context, req *pb.GetIdentityBySignatureHashRequest) (*pb.GetIdentityResponse, error) {
+	sigHashBase64 := req.GetSignatureHash()
+	sigHash, err := base64.URLEncoding.DecodeString(sigHashBase64)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	id, err := s.b.Identities().GetBySignatureHash(ctx, sigHash)
+	if err != nil {
+		if errors.Is(err, identities.ErrNotFound) {
+			return nil, NotFoundError("identity not found.")
+		}
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.GetIdentityResponse{
+		Identity: identityToPB(id),
+	}, nil
+}
+
 func identityToPB(identity *identities.Identity) *pb.Identity {
 	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
@@ -92,10 +142,12 @@ func identityToPB(identity *identities.Identity) *pb.Identity {
 		Identifier:    identity.Identifier,
 		State:         string(identity.State),
 		KeyId:         identity.KeyID,
-		Signature:     string(base64Signature),
-		SignatureHash: string(base64SignatureHash),
+		Signature:     base64Signature,
+		SignatureHash: base64SignatureHash,
 		Proof:         identity.VerificationProof,
 		Ctime:         identity.CreatedAt.String(),
+		VerifiedAt:    timestamppb.New(identity.VerifiedAt.Time),
 		Public:        identity.Public,
+		WalletId:      identity.WalletID,
 	}
 }
