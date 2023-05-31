@@ -1,17 +1,17 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import { trimHeaders } from '~/lib/headers.server'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   getUserSession,
   handleFlowError,
-  KRATOS_URL,
   kratosErrorMapping
 } from '~/lib/kratos.server'
-import { trimHeaders } from '~/lib/headers.server'
-import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)

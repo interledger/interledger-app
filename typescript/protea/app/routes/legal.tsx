@@ -1,6 +1,6 @@
-import { Layouts, Router } from '~/components'
-import { route } from 'routes-gen'
 import type { MetaFunction } from '@remix-run/node'
+import { route } from 'routes-gen'
+import { Layouts, Router } from '~/components'
 
 export const handle = {
   layout: Layouts.LandingLayout
@@ -30,7 +30,7 @@ export default function Page() {
           </span>
         </div>
       </section>
-      <section className='relative mx-auto mt-6 mb-20 grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
+      <section className='relative mx-auto mb-20 mt-6 grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='col-span-full'>
           <h2 className='flex font-sans text-xl font-medium text-medium'>
             For all users
@@ -73,7 +73,7 @@ export default function Page() {
           </ul>
         </div>
       </section>
-      <section className='relative mx-auto mt-6 mb-20 grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
+      <section className='relative mx-auto mb-20 mt-6 grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='col-span-full'>
           <h2 className='flex font-sans text-xl font-medium text-medium'>
             Additional terms for US users

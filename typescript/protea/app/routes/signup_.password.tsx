@@ -1,6 +1,9 @@
+import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import {
   Button,
   Card,
@@ -11,20 +14,17 @@ import {
   TextField
 } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { trimHeaders } from '~/lib/headers.server'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  KRATOS_URL,
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
-import { route } from 'routes-gen'
-import { trimHeaders } from '~/lib/headers.server'
 import { grpcClient } from '~/lib/proto.server'
-import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import { canSignup, setWaitlistSignupComplete } from '~/lib/signupCheck.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)

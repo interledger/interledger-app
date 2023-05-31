@@ -11,10 +11,10 @@ import {
 } from '~/components'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 
 export const handle = {
@@ -107,7 +107,7 @@ export default function Page() {
             Submit
           </Button>
         </div>
-        <div className='col-span-full mt-10 mb-48 flex flex-col justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+        <div className='col-span-full mb-48 mt-10 flex flex-col justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h2 className='font-display font-medium text-strong'>Support</h2>
           <span className='mt-4 text-sm'>
             Our telephone support lines are open Monday to Friday between 9am
@@ -135,14 +135,14 @@ export default function Page() {
 
         {/* Both */}
         <div className='absolute right-4 top-0 h-20 w-20 rounded-full bg-lime-300' />
-        <div className='absolute right-4 bottom-20 h-20 w-20 rounded-full bg-rose-300 lg:right-16 lg:bottom-0' />
-        <div className='absolute left-4 bottom-0 h-20 w-20 rounded-tl-full bg-orange-200 lg:-left-20 lg:bottom-40' />
+        <div className='absolute bottom-20 right-4 h-20 w-20 rounded-full bg-rose-300 lg:bottom-0 lg:right-16' />
+        <div className='absolute bottom-0 left-4 h-20 w-20 rounded-tl-full bg-orange-200 lg:-left-20 lg:bottom-40' />
 
         <div className='absolute -right-40 top-40 hidden h-20 w-20 rounded-br-full bg-slate-100 lg:block' />
         <div className='absolute -left-20 top-60 hidden h-20 w-20 rounded-br-full bg-rose-500 lg:block' />
         <div className='absolute -left-[calc(100vw)] bottom-20 hidden h-20 w-screen bg-orange-400 lg:block' />
         <div className='absolute -right-[calc(100vw-4rem)] bottom-20 hidden h-20 w-screen rounded-tl-full bg-slate-700 lg:block' />
-        <div className='absolute left-0 bottom-0 hidden h-20 w-20 rounded-br-full bg-slate-100 lg:block' />
+        <div className='absolute bottom-0 left-0 hidden h-20 w-20 rounded-br-full bg-slate-100 lg:block' />
         <div className='absolute -right-4 bottom-40 hidden h-20 w-20 rounded-bl-full bg-slate-100 lg:block' />
         <div className='absolute -right-24 bottom-60 hidden h-20 w-20 rounded-br-full bg-slate-200 lg:block' />
       </section>

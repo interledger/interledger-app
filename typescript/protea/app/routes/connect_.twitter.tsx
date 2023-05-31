@@ -1,14 +1,14 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
+import { Form, useLoaderData, useNavigate } from '@remix-run/react'
+import { useEffect } from 'react'
+import { Button, Card, Layouts, LoadingShapes, Shape } from '~/components'
 import {
   StatusError,
   grpcClient,
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { Form, useLoaderData, useNavigate } from '@remix-run/react'
-import { Button, Card, Layouts, LoadingShapes, Shape } from '~/components'
-import { useEffect } from 'react'
 
 export const handle = {
   title: 'Connect a Twitter identity',

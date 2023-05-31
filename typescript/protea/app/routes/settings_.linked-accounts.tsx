@@ -1,12 +1,12 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
+import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
-import { useState } from 'react'
-import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { linkedAccounts, canTopUp, canWithdraw } = await getLinkedAccounts(

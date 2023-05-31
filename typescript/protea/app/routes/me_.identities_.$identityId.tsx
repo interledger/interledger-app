@@ -1,11 +1,11 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { AnchorRouter, Card, FynbosIcon, Layouts, Router } from '~/components'
-import {getPublicIdentity, getPublicWalletDetails} from '~/lib/wallet.server'
 import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
+import { AnchorRouter, Card, FynbosIcon, Layouts, Router } from '~/components'
 import { hasUserSession } from '~/lib/kratos.server'
+import { getPublicIdentity, getPublicWalletDetails } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const identity = await getPublicIdentity(request, params.identityId as string)
@@ -17,7 +17,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const isUser = hasUserSession(request)
   return json({
     wallet: {
-      publicName: wallet.publicName,
+      publicName: wallet.publicName
     },
     identity: {
       ...identity,
@@ -66,7 +66,7 @@ export default function Page() {
         <Card>
           <p>{wallet.publicName} has linked their Fynbos wallet to Twitter.</p>
           <img
-            className='max-w-[310px] mt-4'
+            className='mt-4 max-w-[310px]'
             loading='lazy'
             alt='Identity card'
             src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
@@ -79,7 +79,7 @@ export default function Page() {
             <span className='text-medium'>Public proof</span>
             <AnchorRouter
               to={identity.proof}
-              className='font-medium text-primary break-all'
+              className='break-all font-medium text-primary'
             >
               {identity.proof}
             </AnchorRouter>

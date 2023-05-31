@@ -1,17 +1,17 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import { trimHeaders } from '~/lib/headers.server'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  KRATOS_URL,
   kratosErrorMapping
 } from '~/lib/kratos.server'
-import { trimHeaders } from '~/lib/headers.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
