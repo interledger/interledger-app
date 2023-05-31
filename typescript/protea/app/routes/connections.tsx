@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 

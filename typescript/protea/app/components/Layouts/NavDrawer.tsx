@@ -1,7 +1,7 @@
-import { Transition, Dialog } from '@headlessui/react'
+import { Dialog, Transition } from '@headlessui/react'
 import { NavLink, useNavigation } from '@remix-run/react'
 import { motion } from 'framer-motion'
-import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
+import type { Dispatch, FC, ReactNode, SetStateAction } from 'react'
 import { Fragment, useEffect } from 'react'
 
 type ListItemProps = {
@@ -49,7 +49,7 @@ type NavDrawerRootProps = {
 
 const NavDrawerRoot: FC<NavDrawerRootProps> = ({ children }) => {
   return (
-    <ul className='flex h-full min-w-max select-none flex-col justify-between bg-container-strong py-4 px-3 lg:h-screen lg:bg-page'>
+    <ul className='flex h-full min-w-max select-none flex-col justify-between bg-container-strong px-3 py-4 lg:h-screen lg:bg-page'>
       {children}
     </ul>
   )
@@ -82,7 +82,7 @@ const Modal: FC<ModalProps> = ({ children, open, setOpen }) => {
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <div className='bg-scrim/75 fixed inset-0 backdrop-blur-sm transition-opacity' />
+          <div className='fixed inset-0 bg-scrim/75 backdrop-blur-sm transition-opacity' />
         </Transition.Child>
 
         <div className='fixed inset-0 overflow-hidden'>

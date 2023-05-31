@@ -1,34 +1,34 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { defer } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { Fragment, useState } from 'react'
 import { route } from 'routes-gen'
 import {
+  AnimatedSchedule,
   ButtonRouter,
+  Card,
+  HomeShapes,
   Icon,
   Layouts,
   Router,
   Shape,
   Snackbar,
-  AnimatedSchedule,
-  WalletGrid,
-  Card,
-  HomeShapes
+  WalletGrid
 } from '~/components'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
+import { getPusherArgs } from '~/lib/pusher.server'
+import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
+import type { SnackbarType } from '~/lib/snackbar.server'
+import { getSnackbar } from '~/lib/snackbar.server'
+import type { PusherArgs } from '~/lib/usePusher'
+import { usePusher } from '~/lib/usePusher'
 import type { Transaction } from '~/lib/wallet.server'
 import {
   getKycStatus,
-  getWalletPaymentPointer,
   getLinkedAccounts,
-  getTransactionsWithPending
+  getTransactionsWithPending,
+  getWalletPaymentPointer
 } from '~/lib/wallet.server'
-import { Fragment, useState } from 'react'
-import type { SnackbarType } from '~/lib/snackbar.server'
-import { getSnackbar } from '~/lib/snackbar.server'
-import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
-import type { PusherArgs } from '~/lib/usePusher'
-import { usePusher } from '~/lib/usePusher'
-import { getPusherArgs } from '~/lib/pusher.server'
 
 export enum KycStatus {
   Unknown = 0,
@@ -172,10 +172,10 @@ function MarketingPage() {
         <div className='relative col-span-full h-20 lg:h-48'>
           <div className='absolute -right-20 top-0 hidden h-20 w-20 rounded-br-full bg-rose-300 dark:bg-rose-400 lg:block' />
           <div className='absolute right-0 top-20 hidden h-20 w-20 rounded-br-full bg-slate-300 dark:bg-slate-600 lg:block' />
-          <div className='absolute top-0 left-0 hidden h-20 w-20 rounded-bl-full bg-lime-300 dark:bg-lime-500 lg:block' />
-          <div className='absolute top-20 -left-20 hidden h-20 w-20 rounded-br-full bg-slate-100 dark:bg-slate-800 lg:block' />
+          <div className='absolute left-0 top-0 hidden h-20 w-20 rounded-bl-full bg-lime-300 dark:bg-lime-500 lg:block' />
+          <div className='absolute -left-20 top-20 hidden h-20 w-20 rounded-br-full bg-slate-100 dark:bg-slate-800 lg:block' />
           {/* Mobile */}
-          <div className='absolute top-0 -left-4 block h-20 w-20 rounded-br-full bg-slate-100 dark:bg-slate-800 lg:hidden' />
+          <div className='absolute -left-4 top-0 block h-20 w-20 rounded-br-full bg-slate-100 dark:bg-slate-800 lg:hidden' />
         </div>
         <div className='col-span-full'>
           <span className='flex justify-center text-center font-display text-3xl font-medium lg:text-6xl'>
@@ -188,7 +188,7 @@ function MarketingPage() {
             which connects to all your accounts.
           </span>
         </div>
-        <div className='col-span-full mt-10 flex flex-col items-center justify-center space-y-4 lg:mt-5 lg:flex-row lg:space-y-0 lg:space-x-4'>
+        <div className='col-span-full mt-10 flex flex-col items-center justify-center space-y-4 lg:mt-5 lg:flex-row lg:space-x-4 lg:space-y-0'>
           <ButtonRouter shrink to={route('/waitlist')}>
             Join the waitlist
           </ButtonRouter>
@@ -196,16 +196,16 @@ function MarketingPage() {
         <div className='relative col-span-full h-48 lg:h-56'>
           <div className='absolute -left-[calc(100vw)] bottom-20 hidden h-20 w-screen bg-slate-700 dark:bg-slate-800 lg:block' />
           <div className='absolute -left-20 bottom-0 hidden h-20 w-20 rounded-tl-full bg-slate-700 dark:bg-slate-800 lg:block' />
-          <div className='absolute left-0 bottom-0 hidden h-20 w-20 rounded-br-full bg-lime-500 dark:bg-lime-600 lg:block' />
-          <div className='absolute right-20 bottom-20 hidden h-20 w-20 rounded-tl-full bg-lime-300 lg:block' />
-          <div className='absolute right-0 bottom-20 hidden h-20 w-20 rounded-tr-full bg-lime-500 lg:block' />
-          <div className='absolute right-20 bottom-0 hidden h-20 w-20 rounded-full bg-rose-500 lg:block' />
+          <div className='absolute bottom-0 left-0 hidden h-20 w-20 rounded-br-full bg-lime-500 dark:bg-lime-600 lg:block' />
+          <div className='absolute bottom-20 right-20 hidden h-20 w-20 rounded-tl-full bg-lime-300 lg:block' />
+          <div className='absolute bottom-20 right-0 hidden h-20 w-20 rounded-tr-full bg-lime-500 lg:block' />
+          <div className='absolute bottom-0 right-20 hidden h-20 w-20 rounded-full bg-rose-500 lg:block' />
           <div className='absolute -right-[calc(100vw-5rem)] bottom-0 hidden h-20 w-screen rounded-bl-full bg-yellow-200 lg:block' />
           {/* Mobile */}
           <div className='absolute -right-4 bottom-0 block h-20 w-20 rounded-br-full bg-lime-300 lg:hidden' />
-          <div className='absolute right-16 bottom-0 block h-20 w-20 rounded-bl-full bg-lime-500 lg:hidden' />
+          <div className='absolute bottom-0 right-16 block h-20 w-20 rounded-bl-full bg-lime-500 lg:hidden' />
           <div className='absolute -right-4 bottom-20 block h-20 w-20 rounded-full bg-rose-500 lg:hidden' />
-          <div className='absolute right-16 bottom-20 block h-20 w-20 rounded-tr-full bg-yellow-200 lg:hidden' />
+          <div className='absolute bottom-20 right-16 block h-20 w-20 rounded-tr-full bg-yellow-200 lg:hidden' />
         </div>
       </section>
       <div className='w-full bg-mk-section'>
@@ -260,7 +260,7 @@ function MarketingPage() {
               receiving payments.
             </span>
           </div>
-          <div className='order-9 col-span-full mt-8 mb-40 flex flex-col space-y-4 lg:order-8 lg:col-span-6 lg:col-start-2 lg:mt-36 lg:space-y-7'>
+          <div className='order-9 col-span-full mb-40 mt-8 flex flex-col space-y-4 lg:order-8 lg:col-span-6 lg:col-start-2 lg:mt-36 lg:space-y-7'>
             <span className='font-display text-xl font-medium'>
               Complete Control
             </span>
@@ -283,8 +283,8 @@ function MarketingPage() {
       </div>
       <section className='relative mx-auto  grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20'>
-          <div className='absolute top-0 -left-4 h-20 w-20 rounded-full bg-mk-section lg:-left-40' />
-          <div className='absolute top-0 left-16 h-20 w-20 rounded-br-full bg-mk-section lg:-left-20' />
+          <div className='absolute -left-4 top-0 h-20 w-20 rounded-full bg-mk-section lg:-left-40' />
+          <div className='absolute left-16 top-0 h-20 w-20 rounded-br-full bg-mk-section lg:-left-20' />
         </div>
         <div className='col-span-full mt-14'>
           <span className='font-display text-2xl lg:text-4xl'>
@@ -342,10 +342,10 @@ function MarketingPage() {
           </span>
         </div>
         <div className='relative order-9 col-span-full mt-20 h-20'>
-          <div className='absolute top-0 right-12 h-20 w-20 rounded-bl-full bg-mk-section lg:right-20' />
-          <div className='absolute top-0 -right-8 h-20 w-20 rounded-tr-full bg-mk-section lg:right-0' />
-          <div className='absolute top-0 -right-20 hidden h-20 w-20 rounded-br-full bg-mk-section lg:block' />
-          <div className='absolute top-0 -right-40 hidden h-20 w-20 rounded-tr-full bg-mk-section lg:block' />
+          <div className='absolute right-12 top-0 h-20 w-20 rounded-bl-full bg-mk-section lg:right-20' />
+          <div className='absolute -right-8 top-0 h-20 w-20 rounded-tr-full bg-mk-section lg:right-0' />
+          <div className='absolute -right-20 top-0 hidden h-20 w-20 rounded-br-full bg-mk-section lg:block' />
+          <div className='absolute -right-40 top-0 hidden h-20 w-20 rounded-tr-full bg-mk-section lg:block' />
         </div>
       </section>
       <div className='w-full bg-mk-section'>
@@ -470,18 +470,18 @@ function AppPage() {
           Welcome {firstName}
         </h1>
         {kycStatus != KycStatus.Verified && (
-          <p className='mt-4 mb-2 text-center'>
+          <p className='mb-2 mt-4 text-center'>
             Thank you for signing up to Fynbos.
           </p>
         )}
         {kycStatus == KycStatus.Verified && !canTopUp && (
-          <p className='mt-4 mb-2 text-center'>
+          <p className='mb-2 mt-4 text-center'>
             Your payment pointer is activated. You are now able to send and
             receive payments.
           </p>
         )}
         {kycStatus == KycStatus.Verified && canTopUp && (
-          <p className='mt-4 mb-2 text-center'>
+          <p className='mb-2 mt-4 text-center'>
             Send and receive payments with your payment pointer.
           </p>
         )}

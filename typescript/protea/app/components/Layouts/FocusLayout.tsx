@@ -1,6 +1,6 @@
 import { Outlet, useMatches, useNavigate } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { IconButton, FynbosLogo, Router } from '~/components'
+import { FynbosLogo, IconButton, Router } from '~/components'
 
 export function FocusLayout() {
   const matches = useMatches()
