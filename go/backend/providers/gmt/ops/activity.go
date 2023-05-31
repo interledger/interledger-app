@@ -512,6 +512,7 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 	}
 
 	return &external.WsReceiver{
+		ReceiverActive:              true,
 		ReceiverAddress:             address,
 		ReceiverBirthDate:           external.GMTDate(recvID.DateOfBirth),
 		ReceiverCity:                recvID.Address.City,
@@ -958,6 +959,7 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 			SenderID:              sender.SenderId,
 			TipoCuentaCodigo:      "CDN",
 			ServicioCodigo:        "BD",
+			BankAccount:           "1234123412341234",
 		},
 	})
 	if err != nil {
