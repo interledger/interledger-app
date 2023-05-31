@@ -10,4 +10,6 @@ type Client interface {
 	ListAccountNumbersByMember(ctx context.Context, userGuid, memberGuid string) (*ListAccountNumbersResponse, error)
 	ListAccountsByMember(ctx context.Context, userGuid, memberGuid string) (*ListAccountsResponse, error)
 	ReadUsersAccount(ctx context.Context, userGuid, accountGuid string) (*Account, error)
+	ListUsers(ctx context.Context) ([]User, error)
+	DeleteUser(ctx context.Context, guid string) error
 }
