@@ -38,9 +38,9 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 	pp := openpayments.PaymentPointer{
 		URL:        ops.StandardisePaymentPointer(req.Url),
 		WalletID:   wallet.ID,
-		Alias:      req.Alias,
-		Asset:      currency.ParseCurrency(req.Asset),
-		AssetScale: int(req.AssetScale),
+		Alias:      req.GetAlias(),
+		Asset:      currency.ParseCurrency(req.GetAsset()),
+		AssetScale: int(req.GetAssetScale()),
 	}
 
 	err = g.b.Validator().Struct(pp)
@@ -52,6 +52,11 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 	if errors.Is(err, openpayments.ErrInvalidPointerPath) {
 		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), openpayments.ErrInvalidPointerPath.Error())))
 	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = g.b.Users().SetWalletName(ctx, wallet.ID, req.GetAlias())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
