@@ -1,4 +1,4 @@
-package identities
+package ops
 
 import (
 	"context"
@@ -6,33 +6,33 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/cli/identities"
 	"gitlab.com/fynbos/cli/identities/platforms"
 	"net/http"
 )
 
-func VerifyIdentity(ctx context.Context, args VerifyClaimArgs) error {
+func VerifyIdentity(ctx context.Context, args *identities.VerifyArgs) error {
 	// fetch wallet details
 	resp, err := http.Get(args.WalletAddress)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error fetching wallet details: %s", err)
 	}
 
 	defer resp.Body.Close()
 
-	var walletDetails WalletDetails
+	var walletDetails identities.WalletDetails
 	switch {
 	case resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices:
 		err := json.NewDecoder(resp.Body).Decode(&walletDetails)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error decoding wallet details: %s", err)
 		}
 	default:
 		return fmt.Errorf("Unsuccessful get request to wallet details. statusCode=%d url=%s", resp.StatusCode, args.WalletAddress)
 	}
 
 	// find the identity in the wallet details using the given identifier and type
-	var identity Identity
+	var identity identities.Identity
 	for _, id := range walletDetails.Identities {
 		if id.Type == args.Type && id.Identifier == args.Identifier {
 			identity = id
@@ -65,7 +65,7 @@ func VerifyIdentity(ctx context.Context, args VerifyClaimArgs) error {
 
 	defer resp.Body.Close()
 
-	var jwks JWKS
+	var jwks identities.JWKS
 	switch {
 	case resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices:
 		err := json.NewDecoder(resp.Body).Decode(&jwks)
@@ -76,7 +76,7 @@ func VerifyIdentity(ctx context.Context, args VerifyClaimArgs) error {
 		return fmt.Errorf("Unsuccessful get request to wallet public keys. statusCode=%d url=%s", resp.StatusCode, args.WalletAddress)
 	}
 
-	var jwk Jwk
+	var jwk identities.Jwk
 	for _, k := range jwks.Keys {
 		if k.Kid == identity.KeyID {
 			jwk = k
@@ -88,7 +88,7 @@ func VerifyIdentity(ctx context.Context, args VerifyClaimArgs) error {
 	}
 
 	// construct the identity claim
-	claim := IdentityClaim{
+	claim := identities.IdentityClaim{
 		Wallet:       args.WalletAddress,
 		Identifier:   args.Identifier,
 		Type:         args.Type,

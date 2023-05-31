@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -16,7 +17,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewKeysCmd(b Backends) *cobra.Command {
+type keysBackends interface {
+	Config() *viper.Viper
+}
+
+func NewKeysCmd(b keysBackends) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "keys",
 		Short: "Create key pair to sign requests.",
@@ -30,7 +35,7 @@ func NewKeysCmd(b Backends) *cobra.Command {
 	return cmd
 }
 
-func NewCreateKeysCmd(b Backends) *cobra.Command {
+func NewCreateKeysCmd(b keysBackends) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Creates a ed25519 key pair.",
@@ -73,7 +78,7 @@ func NewCreateKeysCmd(b Backends) *cobra.Command {
 	return cmd
 }
 
-func CreateKeyPair(ctx context.Context, b Backends, keyID string, force bool) error {
+func CreateKeyPair(ctx context.Context, b keysBackends, keyID string, force bool) error {
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return err

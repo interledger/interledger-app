@@ -3,7 +3,7 @@ package platforms
 import (
 	"context"
 	"fmt"
-	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/cli/identities"
 )
 
 type Platform interface {

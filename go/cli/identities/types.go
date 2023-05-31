@@ -17,17 +17,17 @@ type (
 	}
 
 	IdentityClaim struct {
-		Wallet       string `json:"wallet"`
-		KeyID        string `json:"kid"`
-		Identifier   string `json:"identifier"`
-		Type         string `json:"type"`
-		CreationTime string `json:"ctime"`
+		Wallet       string   `json:"wallet"`
+		KeyID        string   `json:"kid"`
+		Identifier   string   `json:"identifier"`
+		Type         Platform `json:"type"`
+		CreationTime string   `json:"ctime"`
 	}
 
-	VerifyClaimArgs struct {
-		Type          string `json:"type"`
-		WalletAddress string `json:"walletAddress"`
-		Identifier    string `json:"identifier"`
+	VerifyArgs struct {
+		Type          Platform `json:"type"`
+		WalletAddress string   `json:"walletAddress"`
+		Identifier    string   `json:"identifier"`
 	}
 
 	WalletDetails struct {
@@ -37,13 +37,13 @@ type (
 	}
 
 	Identity struct {
-		Identifier    string `json:"identifier"`
-		KeyID         string `json:"kid"`
-		Type          string `json:"type"`
-		CreationTime  string `json:"ctime"`
-		Signature     string `json:"signature"`
-		SignatureHash string `json:"signature_hash"`
-		PublicProof   string `json:"public_proof"`
+		Identifier    string   `json:"identifier"`
+		KeyID         string   `json:"kid"`
+		Type          Platform `json:"type"`
+		CreationTime  string   `json:"ctime"`
+		Signature     string   `json:"signature"`
+		SignatureHash string   `json:"signature_hash"`
+		PublicProof   string   `json:"public_proof"`
 	}
 
 	Platform string

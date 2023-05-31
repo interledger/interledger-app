@@ -1,6 +1,9 @@
 package main
 
 import (
+	"github.com/go-playground/validator/v10"
+	"gitlab.com/fynbos/cli/identities"
+	identities_client "gitlab.com/fynbos/cli/identities/client"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +29,8 @@ func main() {
 type backends struct {
 	config     *viper.Viper
 	httpClient *http.Client
+	validator  *validator.Validate
+	identities identities.Client
 }
 
 func (b *backends) Config() *viper.Viper {
@@ -87,4 +92,17 @@ func (b *backends) HttpClient() *http.Client {
 	}
 
 	return b.httpClient
+}
+
+func (b *backends) Validator() *validator.Validate {
+	b.validator = validator.New()
+
+	return b.validator
+}
+
+func (b *backends) Identities() identities.Client {
+	client := identities_client.New()
+	b.identities = client
+
+	return b.identities
 }

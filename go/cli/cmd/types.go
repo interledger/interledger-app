@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"gitlab.com/fynbos/cli/identities"
 	"io"
 	"os"
 	"time"
@@ -144,6 +145,12 @@ type (
 		Manage    string   `json:"manage,omitempty"`
 		ExpiresIn int      `json:"expires_in,omitempty"`
 		Flags     []string `json:"flags,omitempty"`
+	}
+
+	VerifyCommandArgs struct {
+		Type          identities.Platform `validate:"required"`
+		Identifier    string              `validate:"required"`
+		WalletAddress string              `validate:"required,url"`
 	}
 )
 

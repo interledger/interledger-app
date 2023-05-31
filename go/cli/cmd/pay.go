@@ -6,6 +6,7 @@ import (
 	"crypto"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"time"
 
@@ -14,7 +15,12 @@ import (
 	"gitlab.com/fynbos/httpmessagesignatures"
 )
 
-func NewPayCmd(b Backends) *cobra.Command {
+type payBackends interface {
+	Config() *viper.Viper
+	HttpClient() *http.Client
+}
+
+func NewPayCmd(b payBackends) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pay [payment-pointer]",
 		Short: "Pay a payment pointer",
@@ -88,7 +94,7 @@ func NewPayCmd(b Backends) *cobra.Command {
 	return cmd
 }
 
-func CreateOutgoingPayment(ctx context.Context, b Backends, args CreateOutgoingPaymentArgs) error {
+func CreateOutgoingPayment(ctx context.Context, b payBackends, args CreateOutgoingPaymentArgs) error {
 	signer, err := NewEd25519Signer(b.Config())
 	if err != nil {
 		return err
@@ -185,7 +191,7 @@ type newGrantRequestArgs struct {
 	GrantRequest GrantRequest
 }
 
-func newGrantRequest(ctx context.Context, b Backends, args newGrantRequestArgs) (*http.Request, error) {
+func newGrantRequest(ctx context.Context, b payBackends, args newGrantRequestArgs) (*http.Request, error) {
 	gr := bytes.NewBuffer(nil)
 	err := json.NewEncoder(gr).Encode(args.GrantRequest)
 	if err != nil {
@@ -226,7 +232,7 @@ type newOutgoingPaymentRequestArgs struct {
 	Signer              crypto.Signer
 }
 
-func newOutgoingPaymentRequest(ctx context.Context, b Backends, args newOutgoingPaymentRequestArgs) (*http.Request, error) {
+func newOutgoingPaymentRequest(ctx context.Context, b payBackends, args newOutgoingPaymentRequestArgs) (*http.Request, error) {
 	op := bytes.NewBuffer(nil)
 	err := json.NewEncoder(op).Encode(args.CreateOutgoingPaymentArgs)
 	if err != nil {

@@ -6,11 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/spf13/cobra"
 )
 
-func NewPaymentPointerCmd(b Backends) *cobra.Command {
+type paymentPointerBackends interface {
+	HttpClient() *http.Client
+}
+
+func NewPaymentPointerCmd(b paymentPointerBackends) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get [payment-pointer]",
 		Short: "View details about the payment pointer",
@@ -26,7 +31,7 @@ fynbos get https://fynbos.me/791f09c0-c6a2-4a27-8e05-6f7ae37a8a28
 	return cmd
 }
 
-func getPaymentPointer(ctx context.Context, b Backends, url string) error {
+func getPaymentPointer(ctx context.Context, b paymentPointerBackends, url string) error {
 	resp, err := b.HttpClient().Get(url)
 	if err != nil {
 		return err
