@@ -13,20 +13,6 @@ module.exports = {
   assetsBuildDirectory: 'public/build',
   serverModuleFormat: 'cjs',
   publicPath: '/build/',
-  ignoredRouteFiles: [
-    '.*',
-    '**/*.draft.mdx',
-    '**/*.stories.tsx',
-    '**/*.test.{ts,tsx}'
-  ],
-  sourcemap: true,
-  mdx: async (filename) => {
-    const [rehypePrism] = await Promise.all([
-      import('@mapbox/rehype-prism').then((mod) => mod.default)
-    ])
-
-    return {
-      rehypePlugins: [rehypePrism]
-    }
-  }
+  ignoredRouteFiles: ['.*', '**/*.stories.tsx', '**/*.test.{ts,tsx}'],
+  sourcemap: true
 }
