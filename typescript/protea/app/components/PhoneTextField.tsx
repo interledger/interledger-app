@@ -1,9 +1,9 @@
-import type { ChangeEventHandler, InputHTMLAttributes } from 'react'
-import { forwardRef, Fragment, useCallback, useRef, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
-import { AsYouType, getCountryCallingCode } from 'libphonenumber-js'
-import type { CountryCode } from 'libphonenumber-js'
 import clsx from 'clsx'
+import type { CountryCode } from 'libphonenumber-js'
+import { AsYouType, getCountryCallingCode } from 'libphonenumber-js'
+import type { ChangeEventHandler, InputHTMLAttributes } from 'react'
+import { Fragment, forwardRef, useCallback, useRef, useState } from 'react'
 
 interface PhoneFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
@@ -165,7 +165,7 @@ export const PhoneTextField = forwardRef<
             </Transition>
           </div>
         </Listbox>
-        <div className='h-7 pt-2 pl-2'>
+        <div className='h-7 pl-2 pt-2'>
           {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
         </div>
       </div>

@@ -1,10 +1,10 @@
-import type { LoaderArgs, ActionArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { requireNoUserSession } from '~/lib/kratos.server'
-import { flowType, requireFlow } from '~/lib/flows.server'
-import { Button, Card, Layouts, Router, Shape } from '~/components'
-import { route } from 'routes-gen'
 import { Form } from '@remix-run/react'
+import { route } from 'routes-gen'
+import { Button, Card, Layouts, Router, Shape } from '~/components'
+import { flowType, requireFlow } from '~/lib/flows.server'
+import { requireNoUserSession } from '~/lib/kratos.server'
 import { canSignup } from '~/lib/signupCheck.server'
 
 export async function loader({ request }: LoaderArgs) {

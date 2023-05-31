@@ -2,6 +2,8 @@ import { ChannelCredentials } from '@grpc/grpc-js'
 import { GrpcTransport } from '@protobuf-ts/grpc-transport'
 import { base64decode } from '@protobuf-ts/runtime'
 import type { RpcError } from '@protobuf-ts/runtime-rpc'
+import { redirect } from '@remix-run/node'
+import { route } from 'routes-gen'
 import {
   BackendServiceClient,
   OpenPaymentServiceClient
@@ -21,8 +23,6 @@ import {
   RetryInfo
 } from '~/generated/protobuf-ts/google/rpc/error_details'
 import { Status } from '~/generated/protobuf-ts/google/rpc/status'
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
 
 const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend:443'
 

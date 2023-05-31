@@ -1,10 +1,10 @@
 import { Outlet, useMatches } from '@remix-run/react'
-import { route } from 'routes-gen'
 import { useState } from 'react'
+import { route } from 'routes-gen'
 import {
+  FynbosLogo,
   Icon,
   IconButton,
-  FynbosLogo,
   Router,
   WalletGrid,
   WalletShapes
@@ -27,7 +27,7 @@ export function WalletLayout() {
             </div>
             <Router
               to={route('/pay')}
-              className='mt-10 mb-2 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
+              className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
             >
               <Icon>attach_money</Icon>
               <span className='font-display font-medium'>Pay</span>
@@ -43,7 +43,7 @@ export function WalletLayout() {
               Support
             </NavDrawer.ListItem>
           </NavDrawer.List>
-          <footer className='flex w-full space-x-3 pl-4 pb-2'>
+          <footer className='flex w-full space-x-3 pb-2 pl-4'>
             <span className='text-xs font-medium text-medium'>
               &copy;&nbsp;Fynbos
             </span>
@@ -68,7 +68,7 @@ export function WalletLayout() {
           {title && <h1 className='text-xl font-medium'>{title}</h1>}
           {!title && <FynbosLogo className='h-8' />}
         </header>
-        <div className='mt-16 mb-32 lg:my-[5.5rem] lg:ml-64'>
+        <div className='mb-32 mt-16 lg:my-[5.5rem] lg:ml-64'>
           <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
             {title && (
               <WalletGrid>
@@ -85,7 +85,7 @@ export function WalletLayout() {
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='relative ml-1 mb-8 flex items-center space-x-4'>
+            <div className='relative mb-8 ml-1 flex items-center space-x-4'>
               <IconButton
                 onClick={() => setOpenNavModal(!openNavModal)}
                 aria-label='Close menu'
@@ -107,7 +107,7 @@ export function WalletLayout() {
               Support
             </NavDrawer.ListItem>
           </NavDrawer.List>
-          <footer className='flex w-full space-x-3 pl-4 pb-2'>
+          <footer className='flex w-full space-x-3 pb-2 pl-4'>
             <span className='text-xs font-medium text-medium'>
               &copy;&nbsp;Fynbos
             </span>

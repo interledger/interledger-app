@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { v4 } from 'uuid'
 
 const FLOW_URL_PREFIX =

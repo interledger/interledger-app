@@ -1,3 +1,4 @@
+import { json } from '@remix-run/node'
 import {
   AnchorRouter,
   Chip,
@@ -6,15 +7,13 @@ import {
   Layouts,
   Router
 } from '~/components'
-import { json } from '@remix-run/node'
 
-import { useLoaderData } from '@remix-run/react'
-import { getCurrentBlogPost } from '~/lib/blog.server'
 import type { LoaderArgs } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
 import type { FC, ReactNode } from 'react'
-import { route } from 'routes-gen'
 import type { ResponsiveImageType } from 'react-datocms'
-import { StructuredText, Image, toRemixMeta } from 'react-datocms'
+import { Image, StructuredText, toRemixMeta } from 'react-datocms'
+import { route } from 'routes-gen'
 import type {
   InlineImageRecord,
   InlinePersonRecord,
@@ -22,6 +21,7 @@ import type {
   InlineVideoRecord,
   PersonRecord
 } from '~/generated/dato-cms-graphql'
+import { getCurrentBlogPost } from '~/lib/blog.server'
 
 export function meta({ data, params }: any) {
   return {
@@ -58,21 +58,21 @@ export default function Page() {
           <h1 className='font-display text-3xl font-medium text-medium sm:text-5xl'>
             {post?.title}
           </h1>
-          <img src={post.shapes?.url} alt='' className='hidden lg:block w-60' />
+          <img src={post.shapes?.url} alt='' className='hidden w-60 lg:block' />
         </div>
       </div>
       <div className='col-span-2 mb-2 lg:hidden'>
         <img
           src={post.shapesMobile?.url}
           alt=''
-          className='flex lg:hidden h-10'
+          className='flex h-10 lg:hidden'
         />
       </div>
       <h1 className='col-span-full mb-4 font-display text-3xl font-medium text-medium sm:text-5xl lg:hidden'>
         {post?.title}
       </h1>
       <div className='relative col-span-full flex h-min flex-col justify-start border-t-2 border-black lg:sticky lg:top-24 lg:col-span-3 lg:border-b-0'>
-        <div className='mt-6 mb-2 lg:mb-6'>{post?.date}</div>
+        <div className='mb-2 mt-6 lg:mb-6'>{post?.date}</div>
         {post?.authors.map((author: PersonRecord) => (
           <AuthorBlock key={author.id} author={author} />
         ))}
@@ -103,7 +103,7 @@ export default function Page() {
                         />
                         <Image
                           pictureClassName='m-0'
-                          className='w-full hidden lg:flex lg:dark:hidden'
+                          className='hidden w-full lg:flex lg:dark:hidden'
                           data={{
                             ...((record as InlineImageRecord).image
                               ?.responsiveImage as ResponsiveImageType),
@@ -112,7 +112,7 @@ export default function Page() {
                         />
                         <Image
                           pictureClassName='m-0'
-                          className='w-full hidden dark:flex lg:hidden'
+                          className='hidden w-full dark:flex lg:hidden'
                           data={{
                             ...((record as InlineImageRecord).imageDarkMobile
                               ?.responsiveImage as ResponsiveImageType),
@@ -121,7 +121,7 @@ export default function Page() {
                         />
                         <Image
                           pictureClassName='m-0'
-                          className='w-full hidden lg:dark:flex'
+                          className='hidden w-full lg:dark:flex'
                           data={{
                             ...((record as InlineImageRecord).imageDark
                               ?.responsiveImage as ResponsiveImageType),
@@ -202,7 +202,7 @@ type ProseProps = {
 
 const Prose: FC<ProseProps> = ({ children }) => {
   return (
-    <div className='prose dark:prose-invert prose-slate prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:rounded prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'>
+    <div className='prose prose-slate dark:prose-invert prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:rounded prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'>
       {children}
     </div>
   )
@@ -213,7 +213,7 @@ const AuthorBlock: FC<{ author: PersonRecord }> = ({ author }) => {
     <div className='mb-6 flex'>
       <Image
         pictureClassName='m-0'
-        className='aspect-square mr-3'
+        className='mr-3 aspect-square'
         data={author.avatar?.responsiveImage as ResponsiveImageType}
       />
       <div className='flex flex-grow flex-col lg:mt-3'>

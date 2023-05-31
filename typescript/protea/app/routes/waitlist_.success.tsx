@@ -1,6 +1,6 @@
-import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
-import { route } from 'routes-gen'
 import type { MetaFunction } from '@remix-run/node'
+import { route } from 'routes-gen'
+import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
 
 export const handle = {
   title: 'Success',
