@@ -958,6 +958,7 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 			SenderID:              sender.SenderId,
 			TipoCuentaCodigo:      "CDN",
 			ServicioCodigo:        "BD",
+			BankAccount:           "1234123412341234",
 		},
 	})
 	if err != nil {

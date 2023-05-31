@@ -57,7 +57,7 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 	}
 
 	cases := []GmtTestArgs{
-		{
+		/*{
 			Name: "case 1.1 Card to ACH (GACH)",
 			Args: providers.TransfersArgs{
 				FromPaymentPointer:  "https://eu1.fynbos.me/sendercard",
@@ -70,7 +70,7 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 				FromTransactionID:   uuid.NewString(),
 			},
 			Expected: "created",
-		},
+		},*/
 		{
 			Name: "case 1.2 ACH to CARD (USCD)",
 			Args: providers.TransfersArgs{
@@ -80,7 +80,7 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 				ToLinkedAccountID:   "6df8976b-ed52-4abb-8af6-83d8b9356265",
 				FromWalletID:        "e1f55b16-0647-47d8-b1bd-ec297b57f432", //barnard+gmt+ach+sender@fynbos.dev
 				ToWalletID:          "394ccfbc-0a4a-490b-a642-30871f43969e", //barnard+gmt+card+recv@fynbos.dev
-				Amount:              currency.FromFloat64(9, currency.USD),
+				Amount:              currency.FromFloat64(900, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
 			Expected: "created",
