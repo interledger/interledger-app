@@ -1,7 +1,7 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { AnchorRouter, Card, FynbosIcon, Layouts, Router } from '~/components'
-import {getPublicIdentity, getPublicWalletDetails} from '~/lib/wallet.server'
+import { getPublicIdentity, getPublicWalletDetails } from '~/lib/wallet.server'
 import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
@@ -17,7 +17,7 @@ export async function loader({ request, params }: LoaderArgs) {
   const isUser = hasUserSession(request)
   return json({
     wallet: {
-      publicName: wallet.publicName,
+      publicName: wallet.publicName
     },
     identity: {
       ...identity,

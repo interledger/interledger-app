@@ -58,7 +58,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "invalid_url",
 			url:       "httpssss://fynbos.me/creature",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "USD",
 			scale:     2,
 			err:       openpayments.ErrInvalidPointerPath,
@@ -66,7 +66,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "invalid_asset",
 			url:       "https://fynbos.me/abcd2",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "FUzzY",
 			scale:     2,
 			err:       openpayments.ErrInvalidArgument,
@@ -74,7 +74,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "duplicate",
 			url:       "https://fynbos.me/abcd3",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "ZAR",
 			scale:     2,
 			duplicate: true,
@@ -83,7 +83,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "regex_first_4_not_alpha",
 			url:       "https://fynbos.me/1234PayMe",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "ZAR",
 			scale:     2,
 			err:       openpayments.ErrInvalidPointerPath,
@@ -92,7 +92,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "regex_contains_slash",
 			url:       "https://fynbos.me/PayMe/1234",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "ZAR",
 			scale:     2,
 			err:       openpayments.ErrInvalidPointerPath,
@@ -101,7 +101,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "regex_too_short",
 			url:       "https://fynbos.me/Pay",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "ZAR",
 			scale:     2,
 			err:       openpayments.ErrInvalidPointerPath,
@@ -110,7 +110,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 		{
 			name:      "regex_too_long",
 			url:       "https://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
-			alias:     "",
+			alias:     "Alias",
 			assetCode: "ZAR",
 			scale:     2,
 			err:       openpayments.ErrInvalidPointerPath,
@@ -447,6 +447,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 		URL:        "https://fynbos.me/ValidPaymentPointer",
 		WalletID:   wallet.ID,
 		Asset:      "ZAR",
+		Alias:      "test",
 		AssetScale: 2,
 	})
 	require.NoError(t, err)
@@ -466,6 +467,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 		URL:        "https://fynbos.me/VaLidPaymenTPoinTer",
 		WalletID:   wallet.ID,
 		Asset:      "ZAR",
+		Alias:      "test",
 		AssetScale: 2,
 	})
 	require.ErrorIs(t, err, openpayments.ErrPaymentPointerExists)
