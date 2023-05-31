@@ -57,7 +57,7 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 	}
 
 	cases := []GmtTestArgs{
-		{
+		/*{
 			Name: "case 1.1 Card to ACH (GACH)",
 			Args: providers.TransfersArgs{
 				FromPaymentPointer:  "https://eu1.fynbos.me/sendercard",
@@ -70,7 +70,7 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 				FromTransactionID:   uuid.NewString(),
 			},
 			Expected: "created",
-		},
+		},*/
 		{
 			Name: "case 1.2 ACH to CARD (USCD)",
 			Args: providers.TransfersArgs{
