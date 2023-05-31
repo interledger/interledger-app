@@ -630,7 +630,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}
 
 	var cr ComplianceResp
-	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, &cr)
+	err = workflow.ExecuteActivity(ctx, a.ACH2CardCompliance, args).Get(ctx, &cr)
 	if err != nil {
 		logger.Warn("failed to do compliance checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
