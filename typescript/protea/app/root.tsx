@@ -2,30 +2,30 @@ import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
-  isRouteErrorResponse,
   Link,
   Links,
   LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
+  isRouteErrorResponse,
   useLoaderData,
   useLocation,
   useMatches,
   useRouteError
 } from '@remix-run/react'
+import type { ReactNode } from 'react'
 import {
-  WalletLayout,
-  LandingLayout,
+  AnchorRouter,
   Error,
   FocusLayout,
+  LandingLayout,
   Layouts,
-  AnchorRouter
+  WalletLayout
 } from '~/components'
-import type { ReactNode } from 'react'
+import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import styles from '~/styles/app.css'
 import { hasUserSession } from './lib/kratos.server'
-import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 
 const metaContent = {
   title: 'Fynbos',

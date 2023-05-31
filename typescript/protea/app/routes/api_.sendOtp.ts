@@ -5,10 +5,10 @@ import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 
 type fieldErrorsMap = 'To'

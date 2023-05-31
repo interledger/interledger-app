@@ -1,7 +1,7 @@
-import { forwardRef } from 'react'
-import type { ReactNode } from 'react'
 import { Link } from '@remix-run/react'
 import clsx from 'clsx'
+import type { ReactNode } from 'react'
+import { forwardRef } from 'react'
 
 /**
  * TODO: Router refactor:

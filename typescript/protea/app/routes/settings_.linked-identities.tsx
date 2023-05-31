@@ -1,6 +1,7 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
   Card,
@@ -16,9 +17,8 @@ import {
   Snackbar,
   TwitterIcon
 } from '~/components'
-import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
-import { useState } from 'react'
 import { getSnackbar } from '~/lib/snackbar.server'
+import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const identities = await getLinkedIdentities(request)
@@ -58,7 +58,7 @@ export default function Page() {
           {linkedIdentities.twitter.map((identity) => (
             <Router
               key={identity.id}
-              className='mt-2 first-of-type:mt-6 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium first-of-type:mt-6 hover:bg-nav-hover'
               to={route('/settings/linked-identities/:identityId', {
                 identityId: identity.id
               })}
@@ -85,7 +85,7 @@ export default function Page() {
             </Router>
           ))}
           <Router
-            className='mt-4 text-sm font-medium text-primary rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
+            className='mt-4 rounded text-sm font-medium text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
             to={route('/connect/twitter')}
           >
             Connect another twitter identity
@@ -118,7 +118,7 @@ export default function Page() {
             </div>
             <div className='flex flex-col space-y-1'>
               <h1 className='font-medium text-medium'>Github</h1>
-              <p className='font-medium text-sm text-disabled'>Coming soon</p>
+              <p className='text-sm font-medium text-disabled'>Coming soon</p>
             </div>
           </div>
         </Card>
@@ -131,7 +131,7 @@ export default function Page() {
             </div>
             <div className='flex flex-col space-y-1'>
               <h1 className='font-medium text-medium'>LinkedIn</h1>
-              <p className='font-medium text-sm text-disabled'>Coming soon</p>
+              <p className='text-sm font-medium text-disabled'>Coming soon</p>
             </div>
           </div>
         </Card>
@@ -144,7 +144,7 @@ export default function Page() {
             </div>
             <div className='flex flex-col space-y-1'>
               <h1 className='font-medium text-medium'>Facebook</h1>
-              <p className='font-medium text-sm text-disabled'>Coming soon</p>
+              <p className='text-sm font-medium text-disabled'>Coming soon</p>
             </div>
           </div>
         </Card>
@@ -157,7 +157,7 @@ export default function Page() {
             </div>
             <div className='flex flex-col space-y-1'>
               <h1 className='font-medium text-medium'>Instagram</h1>
-              <p className='font-medium text-sm text-disabled'>Coming soon</p>
+              <p className='text-sm font-medium text-disabled'>Coming soon</p>
             </div>
           </div>
         </Card>

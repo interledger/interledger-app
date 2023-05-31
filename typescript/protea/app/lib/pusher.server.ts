@@ -1,5 +1,5 @@
-import { getWalletId } from '~/lib/wallet.server'
 import type { PusherArgs } from '~/lib/usePusher'
+import { getWalletId } from '~/lib/wallet.server'
 
 const PUSHER_APP_KEY = process.env.PUSHER_APP_KEY || '91988d6075551d29760a'
 const PUSHER_CLUSTER = process.env.PUSHER_APP_CLUSTER || 'eu'

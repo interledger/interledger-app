@@ -1,10 +1,10 @@
-import type { LoaderArgs, ActionArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, Card, Layouts } from '~/components'
-import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
-import { trimHeaders } from '~/lib/headers.server'
 import { route } from 'routes-gen'
+import { Button, Card, Layouts } from '~/components'
+import { trimHeaders } from '~/lib/headers.server'
+import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 import { destroySession, getSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {

@@ -6,10 +6,10 @@ import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import { Card, Layouts } from '~/components'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {

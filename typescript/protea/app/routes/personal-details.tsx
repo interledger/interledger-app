@@ -1,18 +1,18 @@
-import type { LoaderArgs, ActionArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
-import { Button, Card, Layouts, Shape } from '~/components'
-import { route } from 'routes-gen'
 import { useLoaderData, useSubmit } from '@remix-run/react'
-import { useScript } from '~/lib/useScript'
 import { useEffect, useRef, useState } from 'react'
+import { route } from 'routes-gen'
+import { Button, Card, Layouts, Shape } from '~/components'
+import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { useScript } from '~/lib/useScript'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)

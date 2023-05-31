@@ -16,10 +16,10 @@ import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { getConnection, getConnectionLimits } from '~/lib/connections.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
