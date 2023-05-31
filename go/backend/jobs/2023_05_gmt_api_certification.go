@@ -66,7 +66,7 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 				ToLinkedAccountID:   "337be12c-b7f5-4d8c-bcbf-bce42aa879e0",
 				FromWalletID:        "2e7c7fa0-2913-4231-a02c-db2b18528393", //barnard+gmt+card+sender@fynbos.dev
 				ToWalletID:          "d049ce11-1f18-452a-a07a-c0eced4088a2", //barnard+gmt+ach+recv@fynbos.dev
-				Amount:              currency.FromFloat64(900, currency.USD),
+				Amount:              currency.FromFloat64(9, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
 			Expected: "created",
@@ -76,11 +76,11 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 			Args: providers.TransfersArgs{
 				FromPaymentPointer:  "https://eu1.fynbos.me/sendercard",
 				ToPaymentPointer:    "https://eu1.fynbos.me/receiverach",
-				FromLinkedAccountID: "cbc286f2-dfff-418f-9aa8-5c1863b2d2dd",
+				FromLinkedAccountID: "7c4efb2f-380f-409b-8117-ad5c7346870c",
 				ToLinkedAccountID:   "6df8976b-ed52-4abb-8af6-83d8b9356265",
 				FromWalletID:        "e1f55b16-0647-47d8-b1bd-ec297b57f432", //barnard+gmt+ach+sender@fynbos.dev
 				ToWalletID:          "394ccfbc-0a4a-490b-a642-30871f43969e", //barnard+gmt+card+recv@fynbos.dev
-				Amount:              currency.FromFloat64(900, currency.USD),
+				Amount:              currency.FromFloat64(9, currency.USD),
 				FromTransactionID:   uuid.NewString(),
 			},
 			Expected: "created",
