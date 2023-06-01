@@ -31,11 +31,6 @@ export const handle: ApplicationProps = {
   }
 }
 
-type PageResponse = {
-  homepage: Query['homepage']
-  footer: Query['footer']
-}
-
 export async function loader() {
   const { homepage, footer } = await apolloClient
     .query<{
@@ -124,6 +119,22 @@ export async function loader() {
                     title
                     body
                     image {
+                      id
+                      url
+                    }
+                    imageDark {
+                      id
+                      url
+                    }
+                    imageMobile {
+                      id
+                      url
+                    }
+                    imageDarkMobile {
+                      id
+                      url
+                    }
+                    mobileShape {
                       id
                       url
                     }
@@ -229,7 +240,7 @@ export default function Page() {
           <Shape radius='rounded-full' color='bg-transparent' width='w-20' />
           <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
         </div>
-        <div className='relative mx-auto flex w-full max-w-[59rem] flex-col items-center lg:py-20'>
+        <div className='relative mx-auto flex w-full max-w-[59rem] flex-col items-center py-20'>
           {content.content.map((innerContent) =>
             renderSectionModelContentField(
               innerContent as SectionModelContentField
@@ -310,8 +321,30 @@ function FeatureBlocksContentRecordComponent(
 
 function FeatureContentRecordComponent(content: FeatureContentRecord) {
   return (
-    <div key={content.id} className='mt-40 first-of-type:mt-0'>
-      {content.__typename}
+    <div
+      key={content.id}
+      className={clsx(
+        'mt-20 flex w-full flex-col justify-between px-4 first-of-type:mt-0 lg:mt-40 lg:flex-row lg:gap-x-20 lg:px-0',
+        content.rowReverse && 'lg:flex-row-reverse'
+      )}
+    >
+      <div className='flex w-full flex-col justify-center gap-y-6'>
+        <h2 className='font-display text-3xl font-medium'>{content.title}</h2>
+        <p className='text-xl text-medium'>{content.body}</p>
+      </div>
+      <img
+        className={clsx(
+          'hidden lg:-mr-[10.5rem] lg:block',
+          content.rowReverse && 'lg:-ml-[10.5rem] lg:mr-0'
+        )}
+        loading='lazy'
+        src={content.image?.url}
+      />
+      <img
+        className='mt-6 block lg:hidden'
+        loading='lazy'
+        src={content.imageMobile?.url}
+      />
     </div>
   )
 }
@@ -322,8 +355,10 @@ function HeaderContentRecordComponent(content: HeaderContentRecord) {
       key={content.id}
       className='flex w-full flex-col items-end space-y-20 px-4 lg:flex-row lg:flex-row-reverse lg:items-center lg:justify-between lg:space-y-0 lg:px-0'
     >
-      <img className='block h-64 lg:-mr-20' src={content.shapes?.url} />
-      <h2 className='font-display text-5xl font-medium lg:mr-6'>
+      {content.shapes && (
+        <img className='block h-64 lg:-mr-20' src={content.shapes?.url} />
+      )}
+      <h2 className='font-display text-4xl font-medium lg:mr-6 lg:text-5xl'>
         {content.title}
       </h2>
     </div>
@@ -417,8 +452,23 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
   })
 
   return (
-    <div key={content.id} className={clsx('px-4 py-20 lg:py-16')}>
-      <div className='flex flex-col space-y-8 lg:w-1/2'>
+    <div
+      key={content.id}
+      className={clsx(
+        'flex flex-col space-y-10 px-4 pb-10 lg:space-y-0 lg:py-16'
+      )}
+    >
+      <AnimatePresence mode='wait'>
+        <motion.img
+          key={content.iterations[active]?.mobileShape?.url + 'shapeMobile'}
+          src={content.iterations[active]?.mobileShape?.url}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='-mr-4 -mt-20 block h-44 w-44 self-end lg:hidden'
+        />
+      </AnimatePresence>
+      <div className='flex w-full flex-col space-y-8 lg:w-1/2'>
         <div className='font-display text-5xl font-bold leading-[1.15]'>
           <AnimatePresence mode='wait'>
             {getSegments(
@@ -490,12 +540,38 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
       </div>
       <AnimatePresence mode='wait'>
         <motion.img
-          key={content.iterations[active]?.image?.url}
+          key={content.iterations[active]?.imageMobile?.url + 'imageMobile'}
+          src={content.iterations[active]?.imageMobile?.url}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='block w-full dark:hidden lg:hidden'
+        />
+        <motion.img
+          key={
+            content.iterations[active]?.imageDarkMobile?.url + 'imageDarkMobile'
+          }
+          src={content.iterations[active]?.imageDarkMobile?.url}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='hidden w-full dark:block lg:hidden'
+        />
+        <motion.img
+          key={content.iterations[active]?.image?.url + 'image'}
           src={content.iterations[active]?.image?.url}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.15 } }}
           exit={{ opacity: 0 }}
-          className='absolute -right-[10.5rem] top-0 block'
+          className='absolute -right-[10.5rem] top-0 hidden lg:block lg:dark:hidden'
+        />
+        <motion.img
+          key={content.iterations[active]?.imageDark?.url + 'imageDark'}
+          src={content.iterations[active]?.imageDark?.url}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='absolute -right-[10.5rem] top-0 hidden lg:dark:block'
         />
       </AnimatePresence>
     </div>
