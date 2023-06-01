@@ -1,5 +1,5 @@
-import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
+import type { FC, ReactNode } from 'react'
 
 const colors: {
   [K in AvatarColor]: string

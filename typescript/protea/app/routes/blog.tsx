@@ -1,10 +1,10 @@
-import { Chip, ChipColor, Layouts, Router } from '~/components'
 import type { MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import { Chip, ChipColor, Layouts, Router } from '~/components'
 
 import { useLoaderData } from '@remix-run/react'
-import { getAllBlogPosts } from '~/lib/blog.server'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
+import { getAllBlogPosts } from '~/lib/blog.server'
 
 export const meta: MetaFunction<typeof loader> = () => {
   const metaContent = {
@@ -35,7 +35,7 @@ export async function loader() {
 }
 
 export const handle = {
-  layout: Layouts.LandingLayout
+  layout: Layouts.Marketing
 }
 
 export default function Page() {
@@ -43,11 +43,11 @@ export default function Page() {
   return (
     <main className='relative mx-auto w-full flex-grow overflow-x-visible px-4 sm:max-w-lg sm:px-0 lg:max-w-3xl xl:max-w-[59rem]'>
       <div className='relative col-span-full mb-2 h-20'>
-        <div className='absolute top-0 -left-4 h-20 w-20 rounded-tl-full bg-sky-50 lg:-left-40' />
-        <div className='absolute top-0 -right-4 h-20 w-20 rounded-tl-full bg-sky-200 lg:-right-40' />
-        <div className='absolute top-20 -right-40 hidden h-20 w-20 rounded-tl-full bg-slate-50 lg:block' />
-        <div className='absolute top-[25.5rem] -right-40 hidden h-20 w-20 rounded-full bg-lime-200 lg:block' />
-        <div className='absolute top-[35.5rem] -left-40 hidden h-20 w-20 rounded-bl-full bg-yellow-100 lg:block' />
+        <div className='absolute -left-4 top-0 h-20 w-20 rounded-tl-full bg-sky-50 lg:-left-40' />
+        <div className='absolute -right-4 top-0 h-20 w-20 rounded-tl-full bg-sky-200 lg:-right-40' />
+        <div className='absolute -right-40 top-20 hidden h-20 w-20 rounded-tl-full bg-slate-50 lg:block' />
+        <div className='absolute -right-40 top-[25.5rem] hidden h-20 w-20 rounded-full bg-lime-200 lg:block' />
+        <div className='absolute -left-40 top-[35.5rem] hidden h-20 w-20 rounded-bl-full bg-yellow-100 lg:block' />
       </div>
       <div className='flex flex-col space-y-3 text-center sm:space-y-6'>
         <h1 className='font-display text-3xl font-medium sm:text-4xl'>Blog</h1>
@@ -61,17 +61,17 @@ export default function Page() {
         {posts &&
           posts.map((post) => (
             <Router to={`/blog/${post.slug}`} key={post.slug}>
-              <li className='flex cursor-pointer flex-col justify-start items-start space-y-4 rounded-xl bg-mk-section p-4 pb-6 hover:bg-mk-section-hover sm:flex-row-reverse sm:justify-between sm:space-y-0 sm:space-x-8 sm:space-x-reverse sm:p-8'>
+              <li className='flex cursor-pointer flex-col items-start justify-start space-y-4 rounded-xl bg-mk-section p-4 pb-6 hover:bg-mk-section-hover sm:flex-row-reverse sm:justify-between sm:space-x-8 sm:space-y-0 sm:space-x-reverse sm:p-8'>
                 <div className='min-w-max'>
                   <img
                     src={post.shapes?.url}
                     alt=''
-                    className='hidden lg:flex w-[7.5rem]'
+                    className='hidden w-[7.5rem] lg:flex'
                   />
                   <img
                     src={post.shapesMobile?.url}
                     alt=''
-                    className='flex lg:hidden h-10'
+                    className='flex h-10 lg:hidden'
                   />
                 </div>
                 {post._status === 'draft' && (
@@ -99,9 +99,9 @@ export default function Page() {
           ))}
       </ul>
       <div className='relative col-span-full mt-20 h-20'>
-        <div className='absolute top-0 -left-4 h-20 w-20 rounded-full bg-slate-300 lg:-left-20' />
-        <div className='absolute top-0 -right-4 h-20 w-20 rounded-tl-full bg-slate-100 lg:-right-20' />
-        <div className='absolute top-0 -right-40 hidden h-20 w-20 rounded-tl-full bg-slate-100 lg:block' />
+        <div className='absolute -left-4 top-0 h-20 w-20 rounded-full bg-slate-300 lg:-left-20' />
+        <div className='absolute -right-4 top-0 h-20 w-20 rounded-tl-full bg-slate-100 lg:-right-20' />
+        <div className='absolute -right-40 top-0 hidden h-20 w-20 rounded-tl-full bg-slate-100 lg:block' />
       </div>
     </main>
   )

@@ -1,5 +1,5 @@
-import type { Radius } from '~/components'
 import QRCode from 'qrcode'
+import type { Radius } from '~/components'
 
 type QRdot = {
   shape: Radius

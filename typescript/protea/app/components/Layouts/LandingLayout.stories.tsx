@@ -1,5 +1,5 @@
-import type { StoryFn, Meta } from '@storybook/react'
 import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import type { Meta, StoryFn } from '@storybook/react'
 import { LandingLayout, Layouts } from '~/components'
 
 function Home() {
@@ -55,7 +55,7 @@ LandingLayoutStory.parameters = {
   remix(_args: any) {
     return {
       handle: {
-        layout: Layouts.LandingLayout
+        layout: Layouts.Marketing
       },
       loader() {
         return { isSignupGated: false }

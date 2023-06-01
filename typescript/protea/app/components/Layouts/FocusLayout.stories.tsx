@@ -1,5 +1,5 @@
-import type { StoryFn, Meta } from '@storybook/react'
 import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import type { Meta, StoryFn } from '@storybook/react'
 import { FocusLayout, Layouts } from '~/components'
 
 function Home() {
@@ -54,7 +54,7 @@ FocusLayoutStory.parameters = {
   remix(_args: any) {
     return {
       handle: {
-        layout: Layouts.FocusLayout
+        layout: Layouts.Focus
       },
       loader() {
         return []

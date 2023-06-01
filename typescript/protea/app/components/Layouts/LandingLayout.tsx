@@ -1,12 +1,12 @@
 import { NavLink, Outlet, useMatches } from '@remix-run/react'
+import { DateTime } from 'luxon'
 import type { FC } from 'react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
+import { IconButton } from '~/components'
 import { FynbosLogo } from '../Logos'
 import { AnchorRouter, ButtonRouter, Router } from '../Router'
 import { NavDrawer } from './NavDrawer'
-import { IconButton } from '~/components'
-import { DateTime } from 'luxon'
 
 type HeaderLinkProps = {
   title: string
@@ -56,7 +56,7 @@ export function LandingLayout() {
                 <FynbosLogo className='h-8' />
               </Router>
             </div>
-            <div className='hidden space-x-10 pt-3 pb-2 pl-10 lg:flex'>
+            <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
               <HeaderLink
                 to={route('/what-is-a-payment-pointer')}
                 title='What is a payment pointer?'
@@ -68,7 +68,7 @@ export function LandingLayout() {
           </div>
           <div className='hidden items-center lg:flex'>
             {!isUser && (
-              <div className='flex space-x-10 pt-3 pb-2'>
+              <div className='flex space-x-10 pb-2 pt-3'>
                 <Router to={route('/login')}>
                   <span className='text-sm font-medium'>Log in</span>
                 </Router>
@@ -111,12 +111,12 @@ export function LandingLayout() {
             <div className='absolute -right-8  top-0 h-20 w-20 rounded-tr-full bg-[#182C4F] lg:-right-44' />
           </div>
           <div className='relative col-span-full mt-10 h-20 lg:col-span-3'>
-            <div className='absolute top-0 left-0 h-5 w-5 rounded-full bg-rose-500' />
-            <div className='absolute top-0 left-5 h-5 w-5 rounded-tl-full bg-yellow-400' />
-            <div className='absolute top-0 left-10 h-5 w-5 rounded-full bg-slate-500' />
-            <div className='absolute top-0 left-[3.75rem] h-5 w-5 rounded-bl-full bg-lime-500' />
-            <div className='absolute top-0 left-20 h-5 w-5 rounded-br-full bg-slate-300' />
-            <div className='absolute top-0 left-[6.25rem] h-5 w-5 rounded-tr-full bg-slate-700' />
+            <div className='absolute left-0 top-0 h-5 w-5 rounded-full bg-rose-500' />
+            <div className='absolute left-5 top-0 h-5 w-5 rounded-tl-full bg-yellow-400' />
+            <div className='absolute left-10 top-0 h-5 w-5 rounded-full bg-slate-500' />
+            <div className='absolute left-[3.75rem] top-0 h-5 w-5 rounded-bl-full bg-lime-500' />
+            <div className='absolute left-20 top-0 h-5 w-5 rounded-br-full bg-slate-300' />
+            <div className='absolute left-[6.25rem] top-0 h-5 w-5 rounded-tr-full bg-slate-700' />
             <FynbosLogo className='absolute top-8 h-8 text-white' />
           </div>
           <div className='col-span-full mt-10 flex flex-col space-y-1 lg:col-span-3 lg:col-start-4'>
@@ -206,7 +206,7 @@ export function LandingLayout() {
               &copy;&nbsp;{DateTime.now().year} Fynbos Technologies Ltd.
             </span>
           </div>
-          <div className='col-span-full mt-8 mb-20 flex flex-col lg:col-start-4'>
+          <div className='col-span-full mb-20 mt-8 flex flex-col lg:col-start-4'>
             <span className='text-sm text-slate-300'>
               Fynbos Technologies LLC is registered as an agent of Golden Money
               Transfer Inc. a licensed money services business with FINCEN MSB
@@ -219,7 +219,7 @@ export function LandingLayout() {
       <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
         <NavDrawer>
           <NavDrawer.List>
-            <div className='relative ml-1 mb-8 flex items-center space-x-4'>
+            <div className='relative mb-8 ml-1 flex items-center space-x-4'>
               <IconButton
                 onClick={() => setOpenNavModal(!openNavModal)}
                 aria-label='Close menu'

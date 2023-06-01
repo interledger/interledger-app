@@ -1,20 +1,20 @@
-import type { ChangeEventHandler } from 'react'
-import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
+import type { ChangeEventHandler } from 'react'
+import { useCallback, useState } from 'react'
+import { route } from 'routes-gen'
 import { Button, Card, Icon, Layouts, Snackbar, TextField } from '~/components'
+import { getUserSession } from '~/lib/kratos.server'
+import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   httpMapping,
   isGrpcError,
-  openPaymentsClient,
-  StatusError
+  openPaymentsClient
 } from '~/lib/proto.server'
-import { route } from 'routes-gen'
-import { getUserSession } from '~/lib/kratos.server'
-import { getSnackbar, flashSnackbar } from '~/lib/snackbar.server'
-import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
+import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   let response = await openPaymentsClient
@@ -71,7 +71,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Payment pointer',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

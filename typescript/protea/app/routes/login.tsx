@@ -6,6 +6,8 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import {
   Button,
   Card,
@@ -14,17 +16,15 @@ import {
   Snackbar,
   TextField
 } from '~/components'
-import { route } from 'routes-gen'
+import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  requireNoUserSession,
-  kratosErrorMapping
+  kratosErrorMapping,
+  requireNoUserSession
 } from '~/lib/kratos.server'
-import { trimHeaders } from '~/lib/headers.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
-import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -67,7 +67,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Log in',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

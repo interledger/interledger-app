@@ -1,6 +1,6 @@
-import type { StoryFn, Meta } from '@storybook/react'
 import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
-import { WalletLayout, Layouts } from '~/components'
+import type { Meta, StoryFn } from '@storybook/react'
+import { Layouts, WalletLayout } from '~/components'
 
 function Home() {
   return (
@@ -53,7 +53,7 @@ WalletLayoutStory.parameters = {
   remix(_args: any) {
     return {
       handle: {
-        layout: Layouts.WalletLayout
+        layout: Layouts.Wallet
       },
       loader() {
         return []
