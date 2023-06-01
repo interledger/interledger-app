@@ -100,6 +100,8 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		Mask:       mask,
 		Name:       fmt.Sprintf("%s %s", network, mask),
 		Nickname:   fmt.Sprintf("%s %s", network, mask),
+		CanSend:    cardInfo.Card.Pull.Enabled,
+		CanReceive: cardInfo.Card.Push.Enabled,
 	}).Get(ctx, &la)
 	if err != nil {
 		logger.Error("Failed to create linked account.")

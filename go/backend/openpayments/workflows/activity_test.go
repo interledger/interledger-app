@@ -113,13 +113,17 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 
 			la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
 				{
-					ID:       uuid.NewString(),
-					Provider: mx.ProviderName,
-					Type:     mx.TypeBankAccount,
+					ID:         uuid.NewString(),
+					Provider:   mx.ProviderName,
+					Type:       mx.TypeBankAccount,
+					CanSend:    true,
+					CanReceive: true,
 				}, {
-					ID:       uuid.NewString(),
-					Provider: gmt.ProviderName,
-					Type:     mx.TypeBankAccount,
+					ID:         uuid.NewString(),
+					Provider:   gmt.ProviderName,
+					Type:       mx.TypeBankAccount,
+					CanSend:    true,
+					CanReceive: true,
 				},
 			}, nil).Times(2)
 

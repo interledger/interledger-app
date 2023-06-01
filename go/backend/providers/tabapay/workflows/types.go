@@ -7,6 +7,8 @@ type CreateLinkedCardArgs struct {
 	Mask       string
 	Name       string
 	Nickname   string
+	CanSend    bool
+	CanReceive bool
 }
 
 type CreateExternalCardArgs struct {

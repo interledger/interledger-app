@@ -5,6 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -30,10 +35,6 @@ import (
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/mocks"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestGetHandler(t *testing.T) {
@@ -397,17 +398,23 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		// Create outgoing payment
 
 		la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{{
-			ID:       uuid.NewString(),
-			Provider: gmt.ProviderName,
-			Type:     gmt.TypeBankAccount,
+			ID:         uuid.NewString(),
+			Provider:   gmt.ProviderName,
+			Type:       gmt.TypeBankAccount,
+			CanSend:    true,
+			CanReceive: true,
 		}, {
-			ID:       uuid.NewString(),
-			Provider: gmt.ProviderName,
-			Type:     gmt.TypeBankAccount,
+			ID:         uuid.NewString(),
+			Provider:   gmt.ProviderName,
+			Type:       gmt.TypeBankAccount,
+			CanSend:    true,
+			CanReceive: true,
 		}, {
-			ID:       uuid.NewString(),
-			Provider: gmt.ProviderName,
-			Type:     gmt.TypeBankAccount,
+			ID:         uuid.NewString(),
+			Provider:   gmt.ProviderName,
+			Type:       gmt.TypeBankAccount,
+			CanSend:    true,
+			CanReceive: true,
 		},
 		}, nil).Times(2)
 
