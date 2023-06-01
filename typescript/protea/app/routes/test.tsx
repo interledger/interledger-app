@@ -400,9 +400,18 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
     }
   ]
 
+  const baseDefault = useMemo(() => {
+    return getSegments(
+      content.body as string,
+      content.iterations[active].body as string
+    )
+  }, [active, content.body, content.iterations])
+
   useEffect(() => {
     const interval: NodeJS.Timeout = setInterval(() => {
-      setActive((active + 1) % content.iterations.length)
+      if (document.visibilityState === 'visible') {
+        setActive((active + 1) % content.iterations.length)
+      }
     }, 3000)
     return () => clearInterval(interval)
   })
@@ -442,10 +451,7 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
         </div>
         <div className='text-xl text-medium'>
           <AnimatePresence mode='wait'>
-            {getSegments(
-              content.body as string,
-              content.iterations[active].body as string
-            ).map((segment, index) => {
+            {baseDefault.map((segment, index) => {
               if (segment.active) {
                 return (
                   <motion.span
@@ -482,6 +488,16 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
           {content.button[0].displayText}
         </ButtonRouter>
       </div>
+      <AnimatePresence mode='wait'>
+        <motion.img
+          key={content.iterations[active]?.image?.url}
+          src={content.iterations[active]?.image?.url}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='absolute -right-[10.5rem] top-0 block'
+        />
+      </AnimatePresence>
     </div>
   )
 }
