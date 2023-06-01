@@ -34,11 +34,13 @@ func TestLinkedAccounts(s *testing.T) {
 		}
 
 		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-			WalletID: wallet.ID,
-			Name:     "Test",
-			Mask:     "1234",
-			Provider: "mx",
-			Type:     "bank",
+			WalletID:   wallet.ID,
+			Name:       "Test",
+			Mask:       "1234",
+			Provider:   "mx",
+			Type:       "bank",
+			CanSend:    true,
+			CanReceive: true,
 		})
 		require.NoError(t, err)
 
@@ -47,6 +49,8 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.Equal(t, linkedAccount.ProviderID, "")
 		assert.Equal(t, linkedAccount.Type, "bank")
 		assert.Equal(t, linkedAccount.WalletID, wallet.ID)
+		assert.True(t, linkedAccount.CanSend)
+		assert.True(t, linkedAccount.CanReceive)
 	})
 
 	s.Run("can get a linked account", func(t *testing.T) {
@@ -66,6 +70,8 @@ func TestLinkedAccounts(s *testing.T) {
 			Provider:   "mx",
 			ProviderID: "123",
 			Type:       "bank",
+			CanSend:    true,
+			CanReceive: true,
 		})
 		require.NoError(t, err)
 
@@ -84,6 +90,8 @@ func TestLinkedAccounts(s *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, linkedAccount.ID, laByProviderID.ID)
 		assert.Equal(t, wallet.ID, laByProviderID.WalletID)
+		assert.True(t, laByProviderID.CanSend)
+		assert.True(t, laByProviderID.CanReceive)
 	})
 
 	s.Run("can get a list of wallet linked accounts", func(t *testing.T) {
@@ -97,11 +105,13 @@ func TestLinkedAccounts(s *testing.T) {
 			t.Fatal(err)
 		}
 		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-			WalletID: wallet.ID,
-			Name:     "Test",
-			Mask:     "1234",
-			Provider: "mx",
-			Type:     "bank",
+			WalletID:   wallet.ID,
+			Name:       "Test",
+			Mask:       "1234",
+			Provider:   "mx",
+			Type:       "bank",
+			CanSend:    true,
+			CanReceive: true,
 		})
 		require.NoError(t, err)
 
@@ -114,6 +124,8 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.NotNil(t, la)
 		assert.Equal(t, la.ID, linkedAccount.ID)
 		assert.Equal(t, la.WalletID, wallet.ID)
+		assert.True(t, la.CanSend)
+		assert.True(t, la.CanReceive)
 	})
 }
 
@@ -184,6 +196,8 @@ func TestListMXBankAccounts(t *testing.T) {
 			Provider:   mx.ProviderName,
 			Type:       mx.TypeBankAccount,
 			ProviderID: "2345",
+			CanSend:    true,
+			CanReceive: true,
 		},
 		{
 			WalletID:   wallet.ID,
@@ -206,10 +220,14 @@ func TestListMXBankAccounts(t *testing.T) {
 			assert.Equal(t, "Test", la.Name)
 			assert.Equal(t, "TestNickname", la.Nickname)
 			assert.Equal(t, "1234", la.Mask)
+			assert.True(t, la.CanReceive)
+			assert.True(t, la.CanSend)
 		} else {
 			assert.Equal(t, "Test2", la.Name)
 			assert.Equal(t, "Test2Nickname", la.Nickname)
 			assert.Equal(t, "4321", la.Mask)
+			assert.False(t, la.CanReceive)
+			assert.False(t, la.CanSend)
 		}
 	}
 }

@@ -11,6 +11,8 @@ type LinkedAccount struct {
 	Provider   string
 	ProviderID string `db:"provider_id"`
 	Type       string
+	CanSend    bool   `db:"can_send"`
+	CanReceive bool   `db:"can_receive"`
 	CreatedAt  string `db:"created_at"`
 	UpdatedAt  string `db:"updated_at"`
 }
@@ -24,6 +26,8 @@ type CreateArgs struct {
 	Provider   string `validate:"oneof=mx gmt tabapay"`
 	ProviderID string
 	Type       string `validate:"required"`
+	CanSend    bool
+	CanReceive bool
 }
 
 type GetByProviderIDArgs struct {

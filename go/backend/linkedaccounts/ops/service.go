@@ -19,6 +19,14 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, created_at, updated_at"
+
+	// If you update this, then remember to update the create and createBatch functions.
+	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive"
+	insertColumns = 10
+)
+
 func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
 	// TODO: refactor errors
 	err := b.Validator().Struct(args)
@@ -36,20 +44,17 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 	err = b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		`
-			INSERT INTO linked_accounts (
-				id, wallet_id, name, mask, provider, provider_id, type
-			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
-			RETURNING id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at;
-		`,
+		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING %s;", insertFields, allFields),
 		linkedAccountID,
 		args.WalletID,
 		args.Name,
+		args.Nickname,
 		args.Mask,
 		args.Provider,
 		args.ProviderID,
 		args.Type,
+		args.CanSend,
+		args.CanReceive,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
@@ -75,30 +80,23 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 		}
 	}
 
-	const insertColumns = 8
 	var placeholders []string
 	var values []interface{}
 	for i, arg := range args {
-		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8))
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10))
 
 		linkedAccountID := arg.ID
 		if linkedAccountID == "" {
 			linkedAccountID = uuid.NewString()
 		}
-		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Nickname, arg.Mask, arg.Provider, arg.ProviderID, arg.Type)
+		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Nickname, arg.Mask, arg.Provider, arg.ProviderID, arg.Type, arg.CanSend, arg.CanReceive)
 	}
 
 	var linkedAccounts []linkedaccounts.LinkedAccount
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		fmt.Sprintf(`
-			INSERT INTO linked_accounts (
-				id, wallet_id, name, nickname, mask, provider, provider_id, type
-			)
-			VALUES %s
-			RETURNING id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at;
-		`, strings.Join(placeholders, ",")),
+		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES %s RETURNING %s;", insertFields, strings.Join(placeholders, ","), allFields),
 		values...,
 	)
 	if err != nil {
@@ -132,7 +130,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 	err := b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		"SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts where id=$1 and deleted_at IS NULL LIMIT 1;",
+		fmt.Sprintf("SELECT %s FROM linked_accounts where id=$1 and deleted_at IS NULL LIMIT 1;", allFields),
 		id,
 	)
 	if err != nil {
@@ -178,10 +176,7 @@ func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByP
 	err := b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		`
-			SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts 
-			WHERE provider=$1 AND provider_id=$2;
-		`,
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE provider=$1 AND provider_id=$2;", allFields),
 		args.Provider,
 		args.ProviderID,
 	)
@@ -202,7 +197,7 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		"SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND wallet_id=$1;",
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE deleted_at IS NULL AND wallet_id=$1;", allFields),
 		walletId,
 	)
 	if err != nil {
@@ -221,7 +216,7 @@ func ListMXBankAccounts(ctx context.Context, b Backends) ([]linkedaccounts.Linke
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		"SELECT id, wallet_id, name, nickname, mask, provider, provider_id, type, created_at, updated_at FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND type=$2;",
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND type=$2;", allFields),
 		mx.ProviderName, mx.TypeBankAccount,
 	)
 	if err != nil {

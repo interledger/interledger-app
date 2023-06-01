@@ -175,6 +175,14 @@ table "linked_accounts" {
     type = text
     default = ""
   }
+  column "can_send" {
+    type = bool
+    default = false
+  }
+  column "can_receive" {
+    type = bool
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamp
