@@ -1,15 +1,15 @@
+import type { Session } from '@ory/kratos-client'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
-import { Button, Card, Layouts } from '~/components'
 import { route } from 'routes-gen'
+import { Button, Card, Layouts } from '~/components'
+import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError
 } from '~/lib/kratos.server'
-import type { Session } from '@ory/kratos-client'
-import { trimHeaders } from '~/lib/headers.server'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -78,7 +78,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Verify your email',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

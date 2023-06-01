@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import type { LoaderArgs, ActionArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
   Button,
@@ -15,19 +15,19 @@ import {
   Snackbar,
   TwitterIcon
 } from '~/components'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
+import {
+  StatusError,
+  httpMapping,
+  isGrpcError,
+  openPaymentsClient
+} from '~/lib/proto.server'
 import {
   getPublicLinkedIdentities,
   getPublicWalletDetails,
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
-import {
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient,
-  StatusError
-} from '~/lib/proto.server'
-import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const paymentPointerParam = params['*'] as string
@@ -88,7 +88,7 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle = {
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export default function Page() {
@@ -157,7 +157,7 @@ export default function Page() {
         {identities.map((identity) => (
           <Router
             key={identity.id}
-            className='mt-2 first-of-type:mt-6 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium first-of-type:mt-6 hover:bg-nav-hover'
             to={route('/me/identities/:identityId', {
               identityId: identity.signatureHash
             })}

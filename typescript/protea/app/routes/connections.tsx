@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 
@@ -36,7 +36,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Connections',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

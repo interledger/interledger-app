@@ -1,6 +1,6 @@
-import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
+import type { FC, ReactNode } from 'react'
 
 // TODO: refactor children to use label prop rather.
 type IconProps = {

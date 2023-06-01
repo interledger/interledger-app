@@ -22,6 +22,29 @@ export type Scalars = {
   UploadId: any;
 };
 
+/** Record of type AboutPage (aboutpage) */
+export type AboutpageRecord = RecordInterface & {
+  __typename?: 'AboutpageRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  id: Scalars['ItemId'];
+};
+
+
+/** Record of type AboutPage (aboutpage) */
+export type AboutpageRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export type BlogPostModelContentBlocksField = InlineImageRecord | InlinePersonRecord | InlineTwitterEmbedRecord | InlineVideoRecord;
 
 export type BlogPostModelContentField = {
@@ -167,6 +190,33 @@ export type CreatedAtFilter = {
   neq?: InputMaybe<Scalars['DateTime']>;
 };
 
+/** Block of type CTA content (cta_content) */
+export type CtaContentRecord = RecordInterface & {
+  __typename?: 'CtaContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  button: Array<LinkRecord>;
+  id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type CTA content (cta_content) */
+export type CtaContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 /** Specifies how to filter Date fields */
 export type DateFilter = {
   /** Search for records with an exact match */
@@ -190,6 +240,85 @@ export enum FaviconType {
   Icon = 'icon',
   MsApplication = 'msApplication'
 }
+
+/** Block of type Feature blocks content (feature_blocks_content) */
+export type FeatureBlocksContentRecord = RecordInterface & {
+  __typename?: 'FeatureBlocksContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  blocks: Array<FeatureRecord>;
+  id: Scalars['ItemId'];
+};
+
+
+/** Block of type Feature blocks content (feature_blocks_content) */
+export type FeatureBlocksContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Feature content (feature_content) */
+export type FeatureContentRecord = RecordInterface & {
+  __typename?: 'FeatureContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
+  imageMobile?: Maybe<FileField>;
+  rowReverse?: Maybe<Scalars['BooleanType']>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Feature content (feature_content) */
+export type FeatureContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Feature (feature) */
+export type FeatureRecord = RecordInterface & {
+  __typename?: 'FeatureRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  backgroundColour?: Maybe<ColorField>;
+  direction?: Maybe<Scalars['BooleanType']>;
+  id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Feature (feature) */
+export type FeatureRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
 
 export type FileField = FileFieldInterface & {
   __typename?: 'FileField';
@@ -358,6 +487,45 @@ export type FileFilter = {
   notIn?: InputMaybe<Array<InputMaybe<Scalars['UploadId']>>>;
 };
 
+export type FooterModelLegalTextField = {
+  __typename?: 'FooterModelLegalTextField';
+  blocks: Array<Scalars['String']>;
+  links: Array<Scalars['String']>;
+  value: Scalars['JsonField'];
+};
+
+/** Record of type Footer (footer) */
+export type FooterRecord = RecordInterface & {
+  __typename?: 'FooterRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  column1: Array<LinkRecord>;
+  column1Title?: Maybe<Scalars['String']>;
+  column2: Array<LinkRecord>;
+  column2Title?: Maybe<Scalars['String']>;
+  column3: Array<LinkRecord>;
+  column3Title?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  legalText?: Maybe<FooterModelLegalTextField>;
+  logo?: Maybe<FileField>;
+  socialIcons: Array<SocialIconRecord>;
+};
+
+
+/** Record of type Footer (footer) */
+export type FooterRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export type GlobalSeoField = {
   __typename?: 'GlobalSeoField';
   facebookPageUrl?: Maybe<Scalars['String']>;
@@ -365,6 +533,86 @@ export type GlobalSeoField = {
   siteName?: Maybe<Scalars['String']>;
   titleSuffix?: Maybe<Scalars['String']>;
   twitterAccount?: Maybe<Scalars['String']>;
+};
+
+/** Block of type Header content (header_content) */
+export type HeaderContentRecord = RecordInterface & {
+  __typename?: 'HeaderContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  id: Scalars['ItemId'];
+  shapes?: Maybe<FileField>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Header content (header_content) */
+export type HeaderContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Hero content (hero_content) */
+export type HeroContentRecord = RecordInterface & {
+  __typename?: 'HeroContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  button: Array<LinkRecord>;
+  id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
+  imageDark?: Maybe<FileField>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Hero content (hero_content) */
+export type HeroContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Home hero content (home_hero_content) */
+export type HomeHeroContentRecord = RecordInterface & {
+  __typename?: 'HomeHeroContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  button: Array<LinkRecord>;
+  id: Scalars['ItemId'];
+  iterations: Array<HeroContentRecord>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Home hero content (home_hero_content) */
+export type HomeHeroContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
 };
 
 /** Record of type HomePage (homepage) */
@@ -381,8 +629,9 @@ export type HomepageRecord = RecordInterface & {
   _status: ItemStatus;
   _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
   _updatedAt: Scalars['DateTime'];
-  content: Array<Scalars['String']>;
+  body: Array<SectionRecord>;
   id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
 };
 
 
@@ -1932,6 +2181,32 @@ export enum ItemStatus {
   Updated = 'updated'
 }
 
+/** Block of type Link (link) */
+export type LinkRecord = RecordInterface & {
+  __typename?: 'LinkRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  button?: Maybe<Scalars['BooleanType']>;
+  displayText?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  url?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Link (link) */
+export type LinkRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 /** Specifies how to filter Multiple-links fields */
 export type LinksFilter = {
   /** Filter records linked to all of the specified records. The specified values must be Record IDs */
@@ -1958,6 +2233,30 @@ export type OrientationFilter = {
   eq?: InputMaybe<UploadOrientation>;
   /** Exclude uploads with the specified orientation */
   neq?: InputMaybe<UploadOrientation>;
+};
+
+/** Block of type Person content (person_content) */
+export type PersonContentRecord = RecordInterface & {
+  __typename?: 'PersonContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  id: Scalars['ItemId'];
+  person?: Maybe<PersonRecord>;
+};
+
+
+/** Block of type Person content (person_content) */
+export type PersonContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
 };
 
 export type PersonModelFilter = {
@@ -2073,6 +2372,8 @@ export type Query = {
   _allUploadsMeta: CollectionMetadata;
   /** Returns the single instance record */
   _site: Site;
+  /** Returns the single instance record */
+  aboutpage?: Maybe<AboutpageRecord>;
   /** Returns a collection of records */
   allBlogPosts: Array<BlogPostRecord>;
   /** Returns a collection of records */
@@ -2082,9 +2383,13 @@ export type Query = {
   /** Returns a specific record */
   blogPost?: Maybe<BlogPostRecord>;
   /** Returns the single instance record */
+  footer?: Maybe<FooterRecord>;
+  /** Returns the single instance record */
   homepage?: Maybe<HomepageRecord>;
   /** Returns a specific record */
   person?: Maybe<PersonRecord>;
+  /** Returns the single instance record */
+  testpage?: Maybe<TestpageRecord>;
   /** Returns a specific asset */
   upload?: Maybe<FileField>;
 };
@@ -2113,6 +2418,13 @@ export type Query_AllUploadsMetaArgs = {
 
 /** The query root for this schema */
 export type Query_SiteArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type QueryAboutpageArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
@@ -2161,6 +2473,13 @@ export type QueryBlogPostArgs = {
 
 
 /** The query root for this schema */
+export type QueryFooterArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
 export type QueryHomepageArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
@@ -2173,6 +2492,13 @@ export type QueryPersonArgs = {
   filter?: InputMaybe<PersonModelFilter>;
   locale?: InputMaybe<SiteLocale>;
   orderBy?: InputMaybe<Array<InputMaybe<PersonModelOrderBy>>>;
+};
+
+
+/** The query root for this schema */
+export type QueryTestpageArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  locale?: InputMaybe<SiteLocale>;
 };
 
 
@@ -2238,6 +2564,32 @@ export type ResponsiveImage = {
   width: Scalars['IntType'];
 };
 
+export type SectionModelContentField = CtaContentRecord | FeatureBlocksContentRecord | FeatureContentRecord | HeaderContentRecord | HeroContentRecord | HomeHeroContentRecord | ShowcaseContentRecord | StoryContentRecord | TeamContentRecord | TextContentRecord;
+
+/** Block of type Section (section) */
+export type SectionRecord = RecordInterface & {
+  __typename?: 'SectionRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  content: Array<SectionModelContentField>;
+  id: Scalars['ItemId'];
+};
+
+
+/** Block of type Section (section) */
+export type SectionRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export type SeoField = {
   __typename?: 'SeoField';
   description?: Maybe<Scalars['String']>;
@@ -2250,6 +2602,58 @@ export type SeoField = {
 export type SeoFilter = {
   /** Filter records with the specified field defined (i.e. with any value) or not */
   exists?: InputMaybe<Scalars['BooleanType']>;
+};
+
+/** Block of type Showcase content (showcase_content) */
+export type ShowcaseContentRecord = RecordInterface & {
+  __typename?: 'ShowcaseContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  cases: Array<ShowcaseRecord>;
+  id: Scalars['ItemId'];
+  rowReverse?: Maybe<Scalars['BooleanType']>;
+};
+
+
+/** Block of type Showcase content (showcase_content) */
+export type ShowcaseContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Showcase (showcase) */
+export type ShowcaseRecord = RecordInterface & {
+  __typename?: 'ShowcaseRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
+  imagedark?: Maybe<FileField>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Showcase (showcase) */
+export type ShowcaseRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
 };
 
 export type Site = {
@@ -2287,6 +2691,31 @@ export type SlugFilter = {
   notIn?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
 };
 
+/** Block of type Social icon (social_icon) */
+export type SocialIconRecord = RecordInterface & {
+  __typename?: 'SocialIconRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  icon?: Maybe<FileField>;
+  id: Scalars['ItemId'];
+  url?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Social icon (social_icon) */
+export type SocialIconRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 /** Specifies how to filter by status */
 export type StatusFilter = {
   /** Search the record with the specified status */
@@ -2297,6 +2726,46 @@ export type StatusFilter = {
   neq?: InputMaybe<ItemStatus>;
   /** Search records without the specified statuses */
   notIn?: InputMaybe<Array<InputMaybe<ItemStatus>>>;
+};
+
+export type StoryContentModelBlurbField = {
+  __typename?: 'StoryContentModelBlurbField';
+  blocks: Array<Scalars['String']>;
+  links: Array<Scalars['String']>;
+  value: Scalars['JsonField'];
+};
+
+export type StoryContentModelBodyTextField = {
+  __typename?: 'StoryContentModelBodyTextField';
+  blocks: Array<Scalars['String']>;
+  links: Array<Scalars['String']>;
+  value: Scalars['JsonField'];
+};
+
+/** Block of type Story content (story_content) */
+export type StoryContentRecord = RecordInterface & {
+  __typename?: 'StoryContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  blurb?: Maybe<StoryContentModelBlurbField>;
+  bodyText?: Maybe<StoryContentModelBodyTextField>;
+  id: Scalars['ItemId'];
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Story content (story_content) */
+export type StoryContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
 };
 
 /** Specifies how to filter Single-line string fields */
@@ -2346,6 +2815,83 @@ export type Tag = {
   attributes?: Maybe<Scalars['MetaTagAttributes']>;
   content?: Maybe<Scalars['String']>;
   tag: Scalars['String'];
+};
+
+/** Block of type Team content (team_content) */
+export type TeamContentRecord = RecordInterface & {
+  __typename?: 'TeamContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  id: Scalars['ItemId'];
+  people: Array<PersonContentRecord>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Team content (team_content) */
+export type TeamContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Record of type TestPage (testpage) */
+export type TestpageRecord = RecordInterface & {
+  __typename?: 'TestpageRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body: Array<SectionRecord>;
+  id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
+};
+
+
+/** Record of type TestPage (testpage) */
+export type TestpageRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Text content (text_content) */
+export type TextContentRecord = RecordInterface & {
+  __typename?: 'TextContentRecord';
+  _createdAt: Scalars['DateTime'];
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  button: Array<LinkRecord>;
+  id: Scalars['ItemId'];
+  textCentered?: Maybe<Scalars['BooleanType']>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Text content (text_content) */
+export type TextContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
 };
 
 /** Specifies how to filter by upload type */

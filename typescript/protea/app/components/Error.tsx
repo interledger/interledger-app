@@ -1,5 +1,5 @@
-import type { FC } from 'react'
 import { Link } from '@remix-run/react'
+import type { FC } from 'react'
 
 type ErrorProps = {
   status?: number
