@@ -16,7 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/paymentpointers"
-	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/env"
@@ -29,38 +28,6 @@ type Activity struct {
 
 func NewActivity(b Backends) *Activity {
 	return &Activity{b: b}
-}
-
-func accCanSend(la linkedaccounts.LinkedAccount) bool {
-	switch la.Provider {
-	case gmt.ProviderName:
-		if la.Type == gmt.TypeBankAccount {
-			return true
-		}
-	case mx.ProviderName:
-		if la.Type == mx.TypeBankAccount {
-			return true
-		}
-	case tabapay.ProviderName:
-		return true
-	}
-
-	return false
-}
-
-func accCanRecv(la linkedaccounts.LinkedAccount) bool {
-	switch la.Provider {
-	case gmt.ProviderName:
-		if la.Type == gmt.TypeBankAccount {
-			return true
-		}
-	case mx.ProviderName:
-		if la.Type == mx.TypeBankAccount {
-			return true
-		}
-	}
-
-	return false
 }
 
 func getDefaultSendAcc(ctx context.Context, b Backends, pointer string) (*linkedaccounts.LinkedAccount, error) {
@@ -77,7 +44,7 @@ func getDefaultSendAcc(ctx context.Context, b Backends, pointer string) (*linked
 	// Search all linked accounts and check for the first account that can send funds.
 	// TODO: Add default flags to linked accounts and add more providers
 	for _, ra := range accs {
-		if accCanSend(ra) {
+		if ra.CanSend {
 			return &ra, nil
 		}
 	}
@@ -99,7 +66,7 @@ func getDefaultRecvAcc(ctx context.Context, b Backends, pointer string) (*linked
 	// Search all linked accounts and check for the first account that can receive funds.
 	// TODO: Add default flags to linked accounts and add more providers
 	for _, ra := range accs {
-		if accCanRecv(ra) {
+		if ra.CanReceive {
 			return &ra, nil
 		}
 	}

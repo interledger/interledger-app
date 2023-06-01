@@ -61,7 +61,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		span.RecordError(err)
 		return nil, err
 	}
-	if !accCanSend(*sendLA) {
+	if !sendLA.CanSend {
 		return nil, fmt.Errorf("%w send linked account (%s) not send enabled", openpayments.ErrInternal, q.FromLinkedAccount)
 	}
 

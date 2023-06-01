@@ -112,6 +112,8 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 					Provider:   mx.ProviderName,
 					ProviderID: account.GUID,
 					Type:       mx.TypeBankAccount,
+					CanSend:    true,
+					CanReceive: true,
 				})
 			}
 		}

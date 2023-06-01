@@ -664,8 +664,8 @@ func TestCreateQuote(t *testing.T) {
 
 			if tc.args.LinkedAccID != "" {
 				providerID := uuid.NewString()
-				_, err = db.ExecContext(ctx, "insert into linked_accounts (id, wallet_id, name, mask, provider, provider_id, type) values ($1, $2, $3, $4, $5, $6, $7)",
-					tc.args.LinkedAccID, sendWallet.ID, "testing", "mask", gmt.ProviderName, providerID, gmt.TypeBankAccount)
+				_, err = db.ExecContext(ctx, "insert into linked_accounts (id, wallet_id, name, mask, provider, provider_id, type, can_send, can_receive) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+					tc.args.LinkedAccID, sendWallet.ID, "testing", "mask", gmt.ProviderName, providerID, gmt.TypeBankAccount, true, true)
 				require.NoError(t, err)
 				laClient.EXPECT().Get(ctx, tc.args.LinkedAccID).Return(&linkedaccounts.LinkedAccount{
 					ID:         tc.args.LinkedAccID,
