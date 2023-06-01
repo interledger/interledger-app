@@ -1,7 +1,10 @@
 import { gql } from '@apollo/client'
-import type { Query, QueryAllBlogPostsArgs } from '~/generated/dato-cms-graphql'
+import type {
+  Query,
+  QueryAllBlogPostsArgs,
+  QueryBlogPostArgs
+} from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
-import type { QueryBlogPostArgs } from '~/generated/dato-cms-graphql'
 
 export const RESPONSIVE_IMAGE = gql`
   fragment ResponsiveImage on FileField {

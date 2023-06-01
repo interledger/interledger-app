@@ -10,14 +10,14 @@ import {
   TextArea,
   WalletGrid
 } from '~/components'
+import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
-import { getUserSession } from '~/lib/kratos.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -27,7 +27,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Support',
-  layout: Layouts.WalletLayout
+  layout: Layouts.Wallet
 }
 
 export const meta: MetaFunction = () => {

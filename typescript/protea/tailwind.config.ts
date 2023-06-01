@@ -1,5 +1,7 @@
-const colors = require('tailwindcss/colors')
-/** @type {import('tailwindcss').Config} */
+import type { Config } from 'tailwindcss'
+import colors from 'tailwindcss/colors'
+// const colors = require('tailwindcss/colors')
+
 module.exports = {
   mode: 'jit',
   content: ['./app/**/*.{ts,tsx}'],
@@ -91,4 +93,4 @@ module.exports = {
     }
   },
   plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')]
-}
+} satisfies Config

@@ -10,7 +10,7 @@ export const WalletGrid = forwardRef<any, WalletGridProps>(
     return (
       <div
         ref={ref}
-        className='grid w-full grid-cols-4 content-start gap-4 gap-y-6 px-4 sm:grid-cols-8 sm:px-0 lg:grid-cols-12'
+        className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-6 sm:max-w-lg sm:grid-cols-8 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'
       >
         {children}
       </div>

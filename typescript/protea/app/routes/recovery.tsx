@@ -6,15 +6,15 @@ import {
   useLoaderData,
   useNavigation
 } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  requireNoUserSession,
-  kratosErrorMapping
+  kratosErrorMapping,
+  requireNoUserSession
 } from '~/lib/kratos.server'
-import { useEffect, useState } from 'react'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -57,7 +57,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Recover account',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

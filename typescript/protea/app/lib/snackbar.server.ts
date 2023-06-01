@@ -1,4 +1,4 @@
-import { getSession, commitSession } from '~/session.server'
+import { commitSession, getSession } from '~/session.server'
 
 export type SnackbarType = {
   message: string

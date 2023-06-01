@@ -1,5 +1,5 @@
-import type { FC, ReactNode } from 'react'
 import clsx from 'clsx'
+import type { FC, ReactNode } from 'react'
 
 // TODO: Refactor to use static string types for colours rather
 export enum ChipColor {
