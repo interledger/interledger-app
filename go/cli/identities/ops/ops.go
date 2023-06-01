@@ -39,6 +39,9 @@ func VerifyIdentity(ctx context.Context, args *identities.VerifyArgs) error {
 			break
 		}
 	}
+	if identity.Identifier == "" {
+		return fmt.Errorf("No matching identity found in wallet. identifier=%s type=%s", args.Identifier, args.Type)
+	}
 
 	// fetch public proof using the public proof URL from the identity
 	platform, err := platforms.Get(identities.Platform(args.Type))
@@ -100,13 +103,15 @@ func VerifyIdentity(ctx context.Context, args *identities.VerifyArgs) error {
 		return fmt.Errorf("Error marshalling identity claim: %s", err)
 	}
 
-	signature, err := base64.RawURLEncoding.DecodeString(identity.Signature)
+	signature, err := base64.URLEncoding.DecodeString(identity.Signature)
 	if err != nil {
 		return fmt.Errorf("Error decoding identity signature: %s", err)
 	}
 
-	// TODO: i'm not sure if this is the right way to parse the public key
-	publicKey := ed25519.PublicKey(jwk.X)
+	publicKey, err := base64.URLEncoding.DecodeString(jwk.X)
+	if err != nil {
+		return fmt.Errorf("Error decoding identity public key: %s", err)
+	}
 
 	// verify the signature
 	verified := ed25519.Verify(publicKey, jsonClaim, signature)

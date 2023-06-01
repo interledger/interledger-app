@@ -47,7 +47,7 @@ func getTweetIDFromURL(url string) (string, error) {
 
 	matches := regex.FindStringSubmatch(url)
 	if len(matches) < 2 {
-		return "", fmt.Errorf("Invalid public proof tweet URL")
+		return "", fmt.Errorf("Invalid public proof tweet URL %s", url)
 	}
 
 	tweetID := matches[1]

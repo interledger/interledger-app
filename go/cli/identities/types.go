@@ -18,10 +18,10 @@ type (
 
 	IdentityClaim struct {
 		Wallet       string   `json:"wallet"`
-		KeyID        string   `json:"kid"`
-		Identifier   string   `json:"identifier"`
 		Type         Platform `json:"type"`
-		CreationTime string   `json:"ctime"`
+		Identifier   string   `json:"identifier"`
+		KeyID        string   `json:"kid"`
+		CreationTime int64    `json:"ctime"`
 	}
 
 	VerifyArgs struct {
@@ -33,14 +33,14 @@ type (
 	WalletDetails struct {
 		ID         string     `json:"id"`
 		PublicName string     `json:"publicName"`
-		Identities []Identity `json:"platforms"`
+		Identities []Identity `json:"identities"`
 	}
 
 	Identity struct {
 		Identifier    string   `json:"identifier"`
 		KeyID         string   `json:"kid"`
 		Type          Platform `json:"type"`
-		CreationTime  string   `json:"ctime"`
+		CreationTime  int64    `json:"ctime"`
 		Signature     string   `json:"signature"`
 		SignatureHash string   `json:"signature_hash"`
 		PublicProof   string   `json:"public_proof"`
