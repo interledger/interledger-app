@@ -2,7 +2,12 @@ package db
 
 import (
 	"context"
+	"crypto/sha256"
+	"database/sql"
+	"encoding/base64"
+	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -13,7 +18,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
 	"gitlab.com/fynbos/log"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
 )
 
@@ -25,7 +33,36 @@ func Migrate(ctx context.Context, connString string) error {
 		return fmt.Errorf("Could not get directory path for utils/testing.")
 	}
 
-	_, err := exec.LookPath("atlas")
+	f, err := os.Open(filepath.Join(moduleDir, "../schema.hcl"))
+	if err != nil {
+		log.Warn("Failed to store schema hash in database.", zap.Error(err))
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		log.Warn("Failed to store schema hash in database.", zap.Error(err))
+	}
+	schemaHash := base64.StdEncoding.EncodeToString(h.Sum(nil))
+
+	var currentHash string
+	db, err := otelsqlx.Connect("postgres", connString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	if err != nil {
+		log.Warn("Failed to connect to database to determine currently deployed schema.", zap.Error(err))
+	} else {
+		defer db.Close()
+		err = db.GetContext(ctx, &currentHash, "SELECT hash FROM atlas_schema_history ORDER BY created_at desc LIMIT 1;")
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			log.Warn("Failed to close db connection after storing schema hash.", zap.Error(err))
+		}
+	}
+
+	if strings.EqualFold(currentHash, schemaHash) {
+		log.Info("Schema already deployed.", zap.String("hash", currentHash))
+		return nil
+	}
+
+	_, err = exec.LookPath("atlas")
 	if err != nil {
 		return err
 	}
@@ -51,6 +88,17 @@ func Migrate(ctx context.Context, connString string) error {
 	}
 
 	log.Info("atlas output", zap.String("out", fmt.Sprintf("out: %s", out)))
+
+	if db != nil {
+		result, err := db.ExecContext(ctx, "INSERT INTO atlas_schema_history (hash) VALUES ($1);", schemaHash)
+		if err != nil {
+			log.Warn("Failed to update deployed schema hash.", zap.Error(err))
+		}
+
+		if rows, _ := result.RowsAffected(); rows < 1 {
+			log.Warn("Failed to update deployed schema hash. No row inserted.", zap.String("hash", schemaHash))
+		}
+	}
 
 	return nil
 }
