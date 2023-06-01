@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -165,8 +166,10 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
+	if resp.SC == http.StatusMultiStatus {
+		return nil, fmt.Errorf("%w Received 207 from tabapay. EC=%s, EM=%s", tabapay.ErrInternal, resp.EC, resp.EM)
+	}
 
-	// TODO: handle resp.SC
 	_, err = update3DSSession(ctx, b, tabapay.ThreeDSSession{
 		ID:       resp.ID3DS,
 		CardID:   args.CardID,
@@ -209,8 +212,10 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
+	if resp.SC == http.StatusMultiStatus {
+		return nil, fmt.Errorf("%w Received 207 from tabapay. EC=%s, EM=%s", tabapay.ErrInternal, resp.EC, resp.EM)
+	}
 
-	// TODO: handle resp.SC
 	_, err = update3DSSession(ctx, b, tabapay.ThreeDSSession{
 		ID:                     args.ThreeDSID,
 		Version:                resp.Version3DS,
@@ -250,6 +255,9 @@ func Authenticate3DS(ctx context.Context, b Backends, args tabapay.Authenticate3
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+	if resp.SC == http.StatusMultiStatus {
+		return nil, fmt.Errorf("%w Received 207 from tabapay. EC=%s, EM=%s", tabapay.ErrInternal, resp.EC, resp.EM)
 	}
 
 	_, err = update3DSSession(ctx, b, tabapay.ThreeDSSession{
