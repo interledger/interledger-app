@@ -1910,5 +1910,23 @@ table "twitter_connections" {
     columns = [column.wallet_id, column.user_id]
   }
 }
+
+table "atlas_schema_history" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+}
 schema "public" {
 }
