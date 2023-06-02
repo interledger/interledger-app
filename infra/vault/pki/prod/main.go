@@ -119,6 +119,7 @@ func main() {
 			AllowSubdomains:  pulumi.Bool(true),
 			AllowedDomains: pulumi.StringArray{
 				pulumi.String("fynbos.app"),
+				pulumi.String("fynbos.me"),
 			},
 			MaxTtl: pulumi.String("276500"), // 32days in seconds
 		})

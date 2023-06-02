@@ -27,6 +27,16 @@ func main() {
 			Proxied: pulumi.Bool(true),
 		})
 
+		// Prod Cluster
+		_, err = cloudflare.NewRecord(ctx, "use2-prod-cluster", &cloudflare.RecordArgs{
+			ZoneId:  zone.ID().ToStringOutput(),
+			Name:    pulumi.String("fynbos.me"),
+			Value:   pulumi.String("k8s-emissary-emissary-308d683aeb-2f6d1ec4587303c6.elb.us-east-2.amazonaws.com"),
+			Type:    pulumi.String("CNAME"),
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(true),
+		})
+
 		// DNSSEC
 		_, err = cloudflare.NewZoneDnssec(ctx, "dnssec", &cloudflare.ZoneDnssecArgs{
 			ZoneId: zone.ID(),
