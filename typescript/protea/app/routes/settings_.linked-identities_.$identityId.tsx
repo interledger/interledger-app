@@ -218,7 +218,7 @@ export default function Page() {
               form='identity'
               type='submit'
             >
-              Continue
+              Send Tweet
             </Button>
           </div>
         </>
