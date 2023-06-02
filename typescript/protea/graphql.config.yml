@@ -16,7 +16,7 @@ generates:
             FloatType: number
             IntType: number
             ItemId: string
-            JsonField: any
+            JsonField: StructuredText<Record, Record>
             MetaTagAttributes: Record<string, string>
             UploadId: string
       - typed-document-node

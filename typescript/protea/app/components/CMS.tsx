@@ -1,11 +1,7 @@
-import { gql } from '@apollo/client'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
-import type { ApplicationProps } from '~/components'
-import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
+import { ButtonRouter, Shape } from '~/components'
 
 import { StructuredText } from 'react-datocms'
 import type {
@@ -15,284 +11,41 @@ import type {
   HeaderContentRecord,
   HeroContentRecord,
   HomeHeroContentRecord,
-  Query,
   SectionModelContentField,
+  SectionRecord,
   ShowcaseContentRecord,
   StoryContentRecord,
   TeamContentRecord,
   TextContentRecord
 } from '~/generated/dato-cms-graphql'
-import { apolloClient } from '~/lib/apollo.server'
 
-export const handle: ApplicationProps = {
-  title: 'Fynbos',
-  layout: Layouts.Marketing,
-  scaffold: {
-    header: {},
-    footer: (match) => match.data.footer
-  }
-}
-
-export async function loader() {
-  const { homepage, footer } = await apolloClient
-    .query<{
-      homepage: Query['homepage']
-      footer: Query['footer']
-    }>({
-      query: gql`
-        query GetTestPageContent {
-          homepage {
-            id
-            body {
-              id
-              content {
-                ... on CtaContentRecord {
-                  title
-                  body
-                  button {
-                    id
-                    displayText
-                    url
-                    button
-                  }
-                }
-                ... on FeatureBlocksContentRecord {
-                  blocks {
-                    id
-                    image {
-                      id
-                      url
-                    }
-                    title
-                    direction
-                    backgroundColour {
-                      hex
-                    }
-                  }
-                }
-                ... on FeatureContentRecord {
-                  title
-                  body
-                  image {
-                    id
-                    url
-                  }
-                  imageMobile {
-                    id
-                    url
-                  }
-                  rowReverse
-                }
-                ... on HeaderContentRecord {
-                  id
-                  title
-                  shapes {
-                    id
-                    url
-                  }
-                }
-                ... on HeroContentRecord {
-                  id
-                  title
-                  body
-                  button {
-                    id
-                    displayText
-                    url
-                    button
-                  }
-                  image {
-                    id
-                    url
-                  }
-                }
-                ... on HomeHeroContentRecord {
-                  id
-                  title
-                  body
-                  button {
-                    id
-                    displayText
-                    url
-                    button
-                  }
-                  iterations {
-                    id
-                    title
-                    body
-                    image {
-                      id
-                      url
-                    }
-                    imageDark {
-                      id
-                      url
-                    }
-                    imageMobile {
-                      id
-                      url
-                    }
-                    imageDarkMobile {
-                      id
-                      url
-                    }
-                    mobileShape {
-                      id
-                      url
-                    }
-                  }
-                }
-                ... on ShowcaseContentRecord {
-                  id
-                  cases {
-                    id
-                    title
-                    body
-                    image {
-                      id
-                      url
-                    }
-                    imagedark {
-                      id
-                      url
-                    }
-                  }
-                }
-                ... on StoryContentRecord {
-                  id
-                  title
-                  blurb {
-                    value
-                  }
-                  bodyText {
-                    value
-                  }
-                }
-                ... on TeamContentRecord {
-                  id
-                  title
-                  people {
-                    id
-                    person {
-                      name
-                      role
-                      twitterUrl
-                      linkedinUrl
-                      fynbosUrl
-                      avatar {
-                        id
-                        url
-                        # TODO: Add responsive image
-                      }
-                    }
-                  }
-                }
-                ... on TextContentRecord {
-                  id
-                  title
-                  bodyText {
-                    value
-                  }
-                  textCentered
-                  button {
-                    id
-                    displayText
-                    url
-                    button
-                  }
-                }
-              }
-            }
-            _status
-            _firstPublishedAt
-          }
-          footer {
-            id
-            logo {
-              id
-              url
-            }
-            column1Title
-            column1 {
-              id
-              displayText
-              url
-            }
-            column2Title
-            column2 {
-              id
-              displayText
-              url
-            }
-            column3Title
-            column3 {
-              id
-              displayText
-              url
-            }
-            legalText {
-              value
-            }
-            socialIcons {
-              id
-              url
-              icon {
-                id
-                url
-              }
-            }
-          }
-        }
-      `
-    })
-    .then((res) => {
-      console.log(res.data)
-      return res.data
-    })
-    .catch((error) => {
-      console.log(error)
-      return { homepage: null, footer: null }
-    })
-
-  console.log(homepage, footer)
-
-  return json({
-    theme: 'system',
-    homepage,
-    footer
-  })
-}
-
-export default function Page() {
-  const { homepage } = useLoaderData<typeof loader>()
-  return homepage?.body.map((content, index) => {
-    return (
-      <div
-        key={content.id}
-        className='group w-full overflow-hidden even:rounded-2xl even:bg-mk-section'
-      >
-        <div className='flex w-full group-first:hidden group-even:hidden'>
-          <Shape radius='rounded-l-full' color='bg-mk-section' width='w-20' />
-          <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
-          <Shape radius='rounded-full' color='bg-transparent' width='w-20' />
-          <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
-        </div>
-        <div className='relative mx-auto flex w-full max-w-[59rem] flex-col items-center py-20'>
-          {content.content.map((innerContent) =>
-            renderSectionModelContentField(
-              innerContent as SectionModelContentField
-            )
-          )}
-        </div>
-        <div className='flex w-full justify-end group-first:hidden group-even:hidden'>
-          <Shape radius='rounded-tl-full' color='bg-mk-section' width='w-20' />
-          <Shape radius='rounded-tr-full' color='bg-mk-section' width='w-20' />
-          <Shape radius='rounded-br-full' color='bg-mk-section' width='w-20' />
-          <Shape radius='rounded-tr-full' color='bg-mk-section' width='w-20' />
-        </div>
+export function renderMarketingPageWithSections(section: SectionRecord) {
+  return (
+    <div
+      key={section.id}
+      className='group w-full overflow-hidden even:rounded-2xl even:bg-mk-section'
+    >
+      <div className='flex w-full group-first:hidden group-even:hidden'>
+        <Shape radius='rounded-l-full' color='bg-mk-section' width='w-20' />
+        <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
+        <Shape radius='rounded-full' color='bg-transparent' width='w-20' />
+        <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
       </div>
-    )
-  })
+      <div className='relative mx-auto flex w-full max-w-[59rem] flex-col items-center py-20'>
+        {section.content.map((innerContent) =>
+          renderSectionModelContentField(
+            innerContent as SectionModelContentField
+          )
+        )}
+      </div>
+      <div className='flex w-full justify-end group-first:hidden group-even:hidden'>
+        <Shape radius='rounded-tl-full' color='bg-mk-section' width='w-20' />
+        <Shape radius='rounded-tr-full' color='bg-mk-section' width='w-20' />
+        <Shape radius='rounded-br-full' color='bg-mk-section' width='w-20' />
+        <Shape radius='rounded-tr-full' color='bg-mk-section' width='w-20' />
+      </div>
+    </div>
+  )
 }
 
 function renderSectionModelContentField(content: SectionModelContentField) {
@@ -339,7 +92,7 @@ function CtaContentRecordComponent(content: CtaContentRecord) {
         <p className='text-2xl text-medium'>{content.body}</p>
         {content.button.length > 0 && (
           <ButtonRouter
-            className='h-20'
+            className='h-20 px-20'
             shrink
             to={content.button[0].url as string}
           >
@@ -410,7 +163,59 @@ function HeaderContentRecordComponent(content: HeaderContentRecord) {
 }
 
 function HeroContentRecordComponent(content: HeroContentRecord) {
-  return <h1 key={content.id}>{content.__typename}</h1>
+  return (
+    <div
+      key={content.id}
+      className='flex w-full flex-col lg:-my-20 lg:flex-row lg:gap-x-12'
+    >
+      <AnimatePresence mode='wait'>
+        <motion.img
+          key={content.imageMobile?.url + 'imageMobile'}
+          src={content.imageMobile?.url}
+          loading='lazy'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='-mt-20 block dark:hidden lg:hidden'
+        />
+        <motion.img
+          key={content.imageDarkMobile?.url + 'imageDarkMobile'}
+          src={content.imageDarkMobile?.url}
+          loading='lazy'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='-mt-20 hidden dark:block lg:hidden'
+        />
+      </AnimatePresence>
+      <div className='flex w-full flex-col justify-center space-y-8 px-4 text-center lg:px-0 lg:text-start'>
+        <h1 className='mt-10 font-display text-5xl font-medium lg:mt-0 lg:text-6xl'>
+          {content.title}
+        </h1>
+        <p className='text text-lg text-medium lg:text-2xl'>{content.body}</p>
+      </div>
+      <AnimatePresence mode='wait'>
+        <motion.img
+          key={content.image?.url + 'image'}
+          src={content.image?.url}
+          loading='lazy'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='-mr-[10.5rem] hidden lg:block lg:dark:hidden'
+        />
+        <motion.img
+          key={content.imageDark?.url + 'imageDark'}
+          src={content.imageDark?.url}
+          loading='lazy'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0 }}
+          className='-mr-[10.5rem] hidden lg:dark:block'
+        />
+      </AnimatePresence>
+    </div>
+  )
 }
 
 type Segment = {
@@ -428,12 +233,14 @@ function getSegments(str: string, search: string): Segment[] {
 }
 
 function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
-  const { theme } = useLoaderData<typeof loader>()
+  // TODO Upgrade to pull theme once thats done
+  const theme = 'system'
+  // const { theme } = useLoaderData<typeof loader>()
   const [active, setActive] = useState<number>(0)
 
   // We do this because framer doesn't animate values from classes
   const currentTheme: 'dark' | 'light' = useMemo(() => {
-    if (theme === 'dark' || theme === 'light') return theme
+    // if (theme === 'dark' || theme === 'light') return theme
     if (typeof window !== 'undefined' && theme === 'system') {
       const prefersDark = window.matchMedia(
         '(prefers-color-scheme: dark)'
@@ -505,9 +312,7 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
   return (
     <div
       key={content.id}
-      className={clsx(
-        'flex flex-col space-y-10 px-4 pb-10 lg:space-y-0 lg:py-16'
-      )}
+      className='flex flex-col space-y-10 px-4 pb-10 lg:space-y-0 lg:py-16'
     >
       <AnimatePresence mode='wait'>
         <motion.img
@@ -655,7 +460,7 @@ function TextContentRecordComponent(content: TextContentRecord) {
       key={content.id}
       className={clsx(
         content.textCentered && 'text-center',
-        'flex flex-col space-y-6 px-4 py-20 lg:px-0'
+        'flex flex-col items-center space-y-6 px-4 py-20 lg:px-0'
       )}
     >
       {content.title && (
@@ -667,9 +472,13 @@ function TextContentRecordComponent(content: TextContentRecord) {
         </p>
       )}
       {content.button.length > 0 && (
-        <AnchorRouter to={content.button[0]?.url as string}>
+        <ButtonRouter
+          className='h-20 px-20'
+          shrink
+          to={content.button[0].url as string}
+        >
           {content.button[0].displayText}
-        </AnchorRouter>
+        </ButtonRouter>
       )}
     </div>
   )

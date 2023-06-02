@@ -1,6 +1,7 @@
 export * from './Autocomplete'
 export * from './Avatar'
 export * from './Buttons'
+export * from './CMS'
 export * from './Card'
 export * from './Checkbox'
 export * from './Chip'

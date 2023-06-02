@@ -3,9 +3,11 @@ import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { useState } from 'react'
+import { StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ScaffoldProps } from '~/components'
 import {
+  AnchorRouter,
   ButtonRouter,
   FynbosLogo,
   Icon,
@@ -32,7 +34,7 @@ export function Scaffold() {
   const isSignupGated = matches[0]?.data.isSignupGated
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
   const scaffold: ScaffoldProps = matches[matches.length - 1].handle?.scaffold
-
+  const footer = scaffold.footer && scaffold.footer(matches[matches.length - 1])
   const titleHandle = scaffold.header?.title
   const navigate = useNavigate()
 
@@ -48,6 +50,9 @@ export function Scaffold() {
     title = titleHandle(matches[matches.length - 1])
   else title = titleHandle ?? ''
 
+  // @ts-ignore
+  // @ts-ignore
+  // @ts-ignore
   return (
     <div
       className={clsx(
@@ -217,9 +222,9 @@ export function Scaffold() {
       </main>
       <footer
         className={clsx(
-          'h-16 w-full',
+          'w-full',
           layout === Layouts.Marketing &&
-            'mx-auto mb-8 max-w-[80rem] rounded-2xl bg-mk-footer',
+            'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
           layout === Layouts.Focus &&
             'mx-auto flex w-full items-center gap-x-3 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet &&
@@ -239,6 +244,79 @@ export function Scaffold() {
               Privacy &amp; Terms
             </Router>
           </>
+        )}
+        {layout === Layouts.Marketing && footer && (
+          <div className='relative mx-auto flex w-full flex-col px-4 pb-12 pt-52 lg:px-0 lg:pl-40 lg:pt-20 xl:max-w-[59rem]'>
+            <img
+              className='absolute left-4 top-10 lg:left-0 lg:top-20'
+              loading='lazy'
+              src={footer.logo?.url}
+            />
+            <div className='flex w-full flex-col gap-y-10 lg:flex-row lg:gap-x-40 lg:gap-y-0'>
+              <div className='flex flex-col'>
+                <h3 className='font-medium text-on-color'>
+                  {footer.column1Title}
+                </h3>
+                {footer.column1.map((link, index) => (
+                  <AnchorRouter
+                    className='mt-1 text-disabled first-of-type:mt-4'
+                    to={link.url ?? ''}
+                    key={'footer-link' + index}
+                  >
+                    {link.displayText}
+                  </AnchorRouter>
+                ))}
+              </div>
+              <div className='flex flex-col'>
+                <h3 className='font-medium text-on-color'>
+                  {footer.column2Title}
+                </h3>
+                {footer.column2.map((link, index) => (
+                  <AnchorRouter
+                    className='mt-1 text-disabled first-of-type:mt-4'
+                    to={link.url ?? ''}
+                    key={'footer-link' + index}
+                  >
+                    {link.displayText}
+                  </AnchorRouter>
+                ))}
+              </div>
+              <div className='flex flex-col'>
+                <h3 className='font-medium text-on-color'>
+                  {footer.column3Title}
+                </h3>
+                {footer.column3.map((link, index) => (
+                  <AnchorRouter
+                    className='mt-1 text-disabled first-of-type:mt-4'
+                    to={link.url ?? ''}
+                    key={'footer-link' + index}
+                  >
+                    {link.displayText}
+                  </AnchorRouter>
+                ))}
+              </div>
+            </div>
+            <div className='mt-10 flex items-center space-x-4'>
+              {footer.socialIcons.map((icon, index) => {
+                return (
+                  <AnchorRouter to={icon.url ?? ''} key={'social-icon' + index}>
+                    <img
+                      className='block'
+                      loading='lazy'
+                      src={icon.icon?.url}
+                    />
+                  </AnchorRouter>
+                )
+              })}
+            </div>
+            <div className='mt-6 flex w-full items-center justify-between'>
+              <div className='prose prose-sm prose-invert prose-a:rounded prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus'>
+                {footer.legalText && (
+                  <StructuredText data={footer.legalText.value} />
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </footer>
 
@@ -346,7 +424,9 @@ export function Scaffold() {
         </NavDrawer>
       </NavDrawer.Modal>
       <AnimatePresence>
-        {scaffold.fab && <FAB to={route('/pay')} />}
+        {scaffold.fab && layout !== Layouts.Marketing && (
+          <FAB to={route('/pay')} />
+        )}
       </AnimatePresence>
     </div>
   )

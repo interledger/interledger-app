@@ -1,5 +1,6 @@
 import type { RouteMatch } from '@remix-run/react'
 import type { ReactNode } from 'react'
+import type { FooterRecord } from '~/generated/dato-cms-graphql'
 
 export type ApplicationProps = {
   title?: string | ((match: RouteMatch) => string) // TODO deprecate once all routes are updated with scaffold
@@ -32,8 +33,8 @@ export type ScaffoldHeaderActions = {
  * @property header.back - Scaffold Back button route
  * @property header.title - Scaffold header title
  * @property header.actions - Scaffold header actions
- * @property hasFab - Scaffold has floating action button
- * @property hasNavDrawer - Scaffold has navigation drawer
+ * @property fab - Scaffold floating action button
+ * @property footer - Scaffold footer for marketing pages
  * @property isNested - Is the current route nested in a parent route?
  */
 export type ScaffoldProps = {
@@ -43,6 +44,7 @@ export type ScaffoldProps = {
     title?: string | ((match: RouteMatch) => string)
     actions?: ScaffoldHeaderActions[] // TODO: use a better type here, this is too generic
   }
+  footer?: (match: RouteMatch) => FooterRecord
   fab?: Fab
   isNested?: boolean
 }
