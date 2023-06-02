@@ -42,6 +42,13 @@ var (
 	CardTypePrepaid CardType = "Prepaid"
 )
 
+type DeleteType string
+
+var (
+	DeleteTypeVoid     DeleteType = "void"
+	DeleteTypeReversal DeleteType = "reversal"
+)
+
 type DeviceChannelType string
 
 var (

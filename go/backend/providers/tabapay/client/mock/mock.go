@@ -126,10 +126,10 @@ func (mr *MockClientMockRecorder) Lookup3DS(ctx, args interface{}) *gomock.Call 
 }
 
 // PullFromCard mocks base method.
-func (m *MockClient) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs) (string, error) {
+func (m *MockClient) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs) (*tabapay.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PullFromCard", ctx, args)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*tabapay.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -141,10 +141,10 @@ func (mr *MockClientMockRecorder) PullFromCard(ctx, args interface{}) *gomock.Ca
 }
 
 // PushToCard mocks base method.
-func (m *MockClient) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (string, error) {
+func (m *MockClient) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (*tabapay.Transaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PushToCard", ctx, args)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*tabapay.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -153,4 +153,18 @@ func (m *MockClient) PushToCard(ctx context.Context, args tabapay.PushToCardArgs
 func (mr *MockClientMockRecorder) PushToCard(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushToCard", reflect.TypeOf((*MockClient)(nil).PushToCard), ctx, args)
+}
+
+// ReverseTransaction mocks base method.
+func (m *MockClient) ReverseTransaction(ctx context.Context, id string, txSettled bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReverseTransaction", ctx, id, txSettled)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReverseTransaction indicates an expected call of ReverseTransaction.
+func (mr *MockClientMockRecorder) ReverseTransaction(ctx, id, txSettled interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReverseTransaction", reflect.TypeOf((*MockClient)(nil).ReverseTransaction), ctx, id, txSettled)
 }

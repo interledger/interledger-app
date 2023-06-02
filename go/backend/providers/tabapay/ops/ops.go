@@ -506,3 +506,16 @@ func merge3DSSession(
 
 	return merged, noop, err
 }
+
+func ReverseTransaction(ctx context.Context, b Backends, id string, isSettled bool) error {
+	deleteType := external.DeleteTypeVoid
+	if isSettled {
+		deleteType = external.DeleteTypeReversal
+	}
+
+	err := b.External().DeleteTransaction(ctx, id, deleteType)
+	if err != nil {
+		return fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+	return err
+}

@@ -100,3 +100,8 @@ func (a *Activity) GetTabapayTransaction(ctx context.Context, id string) (*tabap
 
 	return externalTransaction, nil
 }
+
+func (a *Activity) ReverseTabapayTransaction(ctx context.Context, id string) error {
+	// TODO: Get if the transaction was actually settled from the reports.
+	return a.b.Tabapay().ReverseTransaction(ctx, id, false)
+}
