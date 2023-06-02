@@ -6,7 +6,9 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
+	"gitlab.com/fynbos/log"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
+	"go.uber.org/zap"
 )
 
 func (s *rpcService) CreateTwitterAuthURL(
@@ -46,6 +48,7 @@ func (s *rpcService) TwitterCallback(
 		AuthCode: request.Code,
 	})
 	if err != nil {
+		log.Error("creating twitter connection", zap.Error(err))
 		return nil, InternalError("Create Twitter Connection")
 	}
 
@@ -55,6 +58,7 @@ func (s *rpcService) TwitterCallback(
 		Identifier: connection.Username,
 	})
 	if err != nil {
+		log.Error("adding identity", zap.Error(err))
 		if errors.Is(err, identities.ErrAlreadyExists) {
 			return nil, AlreadyExistsError("Identity already exists.")
 		}
