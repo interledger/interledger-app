@@ -422,6 +422,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}
 	if tabapay.IsTransactionStatusUnknown(tabapayTransaction) {
 		// check again in 90 sec
+		_ = workflow.Sleep(ctx, time.Second*90)
 		logger.Info("Tabapay transaction status unknown. Checking again. id=", tabapayTransaction.ID)
 		err = workflow.ExecuteActivity(newCtx, a.GetTabapayTransaction, tabapayTransaction.ID).Get(newCtx, &tabapayTransaction)
 	}
@@ -461,6 +462,10 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(newCtx, a.ReverseTabapayTransaction, tabapayTransaction.ID).Get(newCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
 				OutgoingTransferState:      transactions.StateCompleted,
@@ -509,6 +514,11 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	if err != nil {
 		logger.Error("failed to add transaction for recipient", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(newCtx, a.ReverseTabapayTransaction, tabapayTransaction.ID).Get(newCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
+
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
 				OutgoingTransferState:      transactions.StateCompleted,
@@ -524,6 +534,10 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	if err != nil {
 		logger.Error("failed to verify gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(newCtx, a.ReverseTabapayTransaction, tabapayTransaction.ID).Get(newCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
 				OutgoingTransferState:      transactions.StateCompleted,
@@ -582,6 +596,10 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	if err != nil {
 		logger.Error("failed to clear paid notification", "error", err, "ext ID", achTransaction.ID)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(newCtx, a.ReverseTabapayTransaction, tabapayTransaction.ID).Get(newCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
 				OutgoingTransferState:      transactions.StateCompleted,
@@ -831,6 +849,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}
 	if tabapay.IsTransactionStatusUnknown(tabapayTransaction) {
 		// check again in 90 sec
+		_ = workflow.Sleep(ctx, time.Second*90)
 		logger.Info("Tabapay transaction status unknown. Checking again id=", tabapayTransaction.ID)
 		err = workflow.ExecuteActivity(newCtx, a.GetTabapayTransaction, tabapayTransaction.ID).Get(newCtx, &tabapayTransaction)
 	}
@@ -1006,7 +1025,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}
 	if tabapay.IsTransactionStatusUnknown(sendTransaction) {
 		// check again in 90 sec
-		// TODO: Actually sleep here for a few seconds...
+		_ = workflow.Sleep(ctx, time.Second*90)
 		logger.Info("Tabapay transaction status unknown. Checking again. id=", sendTransaction.ID)
 		err = workflow.ExecuteActivity(tabapayCtx, a.GetTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, &sendTransaction)
 	}
@@ -1014,7 +1033,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 		logger.Error("failed to pull from card", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
 			return &providers.TransferResponse{
-				Type:                       providers.GMTCARD2ACH,
+				Type:                       providers.GMTCARD2CARD,
 				OutgoingTransferState:      transactions.StateFailed,
 				OutgoingTransferExternalID: sendTransaction.ID,
 				IncomingTransferState:      transactions.StateFailed,
@@ -1044,6 +1063,10 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2CARD,
 				OutgoingTransferState:      transactions.StateCompleted,
@@ -1066,6 +1089,10 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}).Get(&recvTrxID)
 	if err != nil {
 		logger.Error("error generating recvTrxID as side effect", "Error", err)
+		err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
+		if err != nil {
+			logger.Error("failed to rollback tabapay card transaction", "err", err)
+		}
 		return &providers.TransferResponse{
 			Type:                       providers.GMTCARD2CARD,
 			OutgoingTransferState:      transactions.StateCompleted,
@@ -1080,6 +1107,10 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}).Get(&recvRefID)
 	if err != nil {
 		logger.Error("error generating tabapay ReferenceID as side effect", "Error", err)
+		err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
+		if err != nil {
+			logger.Error("failed to rollback tabapay card transaction", "err", err)
+		}
 		return &providers.TransferResponse{
 			Type:                       providers.GMTCARD2CARD,
 			OutgoingTransferState:      transactions.StateFailed,
@@ -1098,13 +1129,17 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	if err != nil {
 		logger.Error("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
 			// Try to fail tx on GMT
 			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StateFailed).Get(ctx, nil)
 			if innerErr != nil {
 				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
 			}
 			return &providers.TransferResponse{
-				Type:                       providers.GMTACH2CARD,
+				Type:                       providers.GMTCARD2CARD,
 				OutgoingTransferState:      transactions.StateCompleted,
 				OutgoingTransferExternalID: sendTransaction.ID,
 				IncomingTransferState:      transactions.StateFailed,
@@ -1114,19 +1149,24 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}
 	if tabapay.IsTransactionStatusUnknown(recvTransaction) {
 		// check again in 90 sec
+		_ = workflow.Sleep(ctx, time.Second*90)
 		logger.Info("Tabapay transaction status unknown. Checking again id=", recvTransaction.ID)
 		err = workflow.ExecuteActivity(tabapayCtx, a.GetTabapayTransaction, recvTransaction.ID).Get(tabapayCtx, &recvTransaction)
 	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(recvTransaction) {
 		logger.Error("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
 			// Try to fail tx on GMT
 			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StateFailed).Get(ctx, nil)
 			if innerErr != nil {
 				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
 			}
 			return &providers.TransferResponse{
-				Type:                       providers.GMTACH2CARD,
+				Type:                       providers.GMTCARD2CARD,
 				OutgoingTransferState:      transactions.StateCompleted,
 				OutgoingTransferExternalID: sendTransaction.ID,
 				IncomingTransferState:      transactions.StateFailed,
@@ -1167,6 +1207,10 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	if err != nil {
 		logger.Error("failed to add transaction for recipient", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
+			err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
+			if err != nil {
+				logger.Error("failed to rollback tabapay card transaction", "err", err)
+			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2CARD,
 				OutgoingTransferState:      transactions.StateCompleted,

@@ -472,6 +472,43 @@ func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate
 	return &authResp, nil
 }
 
+func (c *client) DeleteTransaction(ctx context.Context, id string, deleteType external.DeleteType) error {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "DELETE"
+		meta.Provider = "tabapay"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "DELETE",
+			Provider: "tabapay",
+		})
+	}
+
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions", id)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "DELETE", endpoint+"?"+string(deleteType), nil)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	c.setAuth(req)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w %s", external.ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func checkResponseStatusCode(r *http.Response) error {
 	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil

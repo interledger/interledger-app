@@ -131,3 +131,7 @@ func (c *Client) Authenticate3DS(ctx context.Context, args tabapay.Authenticate3
 func (c *Client) Get3DSSession(ctx context.Context, id string) (*tabapay.ThreeDSSession, error) {
 	return ops.Get3DSSession(ctx, c.b, id)
 }
+
+func (c *Client) ReverseTransaction(ctx context.Context, id string, txSettled bool) error {
+	return ops.ReverseTransaction(ctx, c.b, id, txSettled)
+}

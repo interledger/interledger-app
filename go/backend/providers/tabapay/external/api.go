@@ -11,4 +11,5 @@ type Client interface {
 	Init3DS(ctx context.Context, args Init3DSArgs) (*Init3DSResponse, error)
 	Lookup3DS(ctx context.Context, args Lookup3DSArgs) (*Lookup3DSResponse, error)
 	Authenticate3DS(ctx context.Context, args Authenticate3DSArgs) (*Authenticate3DSResponse, error)
+	DeleteTransaction(ctx context.Context, id string, deleteType DeleteType) error
 }
