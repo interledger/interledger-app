@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/providers"
 
 	"github.com/google/uuid"
@@ -36,7 +38,9 @@ func OnboardUserWorkflow(ctx workflow.Context, walletID string) (string, error) 
 	}
 
 	var cr ComplianceResp
-	err = workflow.ExecuteActivity(ctx, a.IndividualCompliance, walletID).Get(ctx, &cr)
+	err = workflow.ExecuteActivity(ctx, a.IndividualCompliance, providers.TransfersArgs{
+		Amount:       currency.FromFloat64(1, currency.USD),
+		FromWalletID: walletID}).Get(ctx, &cr)
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
 		return "", err
@@ -467,6 +471,12 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, achTransaction).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to save gmt transaction receipt", "err", err)
+		return nil, err
+	}
+
 	var recvTrxID string
 	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 		return uuid.NewString()
@@ -630,7 +640,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}
 
 	var cr ComplianceResp
-	err = workflow.ExecuteActivity(ctx, a.ACHCompliance, args).Get(ctx, &cr)
+	err = workflow.ExecuteActivity(ctx, a.ACH2CardCompliance, args).Get(ctx, &cr)
 	if err != nil {
 		logger.Error("failed to do compliance checks", "err", err)
 		if temporal_utils.IsNonRetryableError(err) {
@@ -891,5 +901,288 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		OutgoingTransferExternalID: achTransaction.ID,
 		IncomingTransferState:      transactions.StateCompleted,
 		IncomingTransferExternalID: tabapayTransaction.ID,
+	}, nil
+}
+
+func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs) (*providers.TransferResponse, error) {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Card2CardTransferWorkflow workflow started", "From", args.FromLinkedAccountID, "Amount", args.Amount)
+
+	err := workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.ToWalletID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to do to linked account OFAC checks", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                  providers.GMTCARD2CARD,
+				OutgoingTransferState: transactions.StateFailed,
+				IncomingTransferState: transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CheckWalletOFAC, args.FromWalletID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to do from linked account OFAC checks", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                  providers.GMTCARD2CARD,
+				OutgoingTransferState: transactions.StateFailed,
+				IncomingTransferState: transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+
+	var cr ComplianceResp
+	err = workflow.ExecuteActivity(ctx, a.Card2CardCompliance, args).Get(ctx, &cr)
+	if err != nil {
+		logger.Error("failed to do compliance checks", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                  providers.GMTCARD2CARD,
+				OutgoingTransferState: transactions.StateFailed,
+				IncomingTransferState: transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to upsert gmt send recv user", "err", err)
+		return nil, err
+	}
+
+	var sendRefID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return tabapay.NewReferenceID()
+	}).Get(&sendRefID)
+	if err != nil {
+		logger.Error("error generating tabapay send ReferenceID as side effect", "err", err)
+		return &providers.TransferResponse{
+			Type:                  providers.GMTCARD2CARD,
+			OutgoingTransferState: transactions.StateFailed,
+			IncomingTransferState: transactions.StateFailed,
+		}, nil
+	}
+
+	tabapayCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("transactionID=%s", args.FromTransactionID),
+	})
+	tabapayCtx = workflow.WithActivityOptions(tabapayCtx, workflow.ActivityOptions{
+		StartToCloseTimeout: 95 * time.Second, // cmay take up to 90 seconds.
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2, // tabapay will block us if we keep retrying
+		},
+	})
+
+	var sendTransaction tabapay.Transaction
+	err = workflow.ExecuteActivity(tabapayCtx, a.PullFromCard, PullFromCardArgs{
+		TransactionID:       args.FromTransactionID,
+		CardLinkedAccountID: args.FromLinkedAccountID,
+		Amount:              args.Amount,
+		ThreeDSID:           args.ThreeDSID,
+		ReferenceID:         sendRefID,
+	}).Get(ctx, &sendTransaction)
+	if err != nil {
+		logger.Error("failed to pull from card", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                       providers.GMTCARD2CARD,
+				OutgoingTransferState:      transactions.StateFailed,
+				OutgoingTransferExternalID: sendTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+	if tabapay.IsTransactionStatusUnknown(sendTransaction) {
+		// check again in 90 sec
+		// TODO: Actually sleep here for a few seconds...
+		logger.Info("Tabapay transaction status unknown. Checking again. id=", sendTransaction.ID)
+		err = workflow.ExecuteActivity(tabapayCtx, a.GetTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, &sendTransaction)
+	}
+	if err != nil || !tabapay.IsSuccessfulTransaction(sendTransaction) {
+		logger.Error("failed to pull from card", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                       providers.GMTCARD2ACH,
+				OutgoingTransferState:      transactions.StateFailed,
+				OutgoingTransferExternalID: sendTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+
+	// Insert/update transfers
+	err = workflow.ExecuteActivity(ctx, a.AddTransactionTransfer, args.FromTransactionID, []transactions.TransferArgs{
+		{
+			LinkedAccountID: args.FromLinkedAccountID,
+			Type:            transactions.TransferTypeDebitCard,
+			Amount:          args.Amount,
+			State:           transactions.StateCompleted,
+			ForeignID:       sendTransaction.ID,
+		},
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("error updating transaction transfer", "Error", err)
+		return nil, err
+	}
+
+	// Insert GMT TX
+	var gmtTransaction TransactionResp
+	err = workflow.ExecuteActivity(ctx, a.InsertCard2Card, args).Get(ctx, &gmtTransaction)
+	if err != nil {
+		logger.Error("failed to insert gmt transaction", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                       providers.GMTCARD2CARD,
+				OutgoingTransferState:      transactions.StateCompleted,
+				OutgoingTransferExternalID: sendTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, gmtTransaction).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to save gmt transaction receipt", "err", err)
+		return nil, err
+	}
+
+	var recvTrxID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&recvTrxID)
+	if err != nil {
+		logger.Error("error generating recvTrxID as side effect", "Error", err)
+		return &providers.TransferResponse{
+			Type:                       providers.GMTCARD2CARD,
+			OutgoingTransferState:      transactions.StateCompleted,
+			OutgoingTransferExternalID: sendTransaction.ID,
+			IncomingTransferState:      transactions.StateFailed,
+		}, nil
+	}
+
+	var recvRefID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return tabapay.NewReferenceID()
+	}).Get(&recvRefID)
+	if err != nil {
+		logger.Error("error generating tabapay ReferenceID as side effect", "Error", err)
+		return &providers.TransferResponse{
+			Type:                       providers.GMTCARD2CARD,
+			OutgoingTransferState:      transactions.StateFailed,
+			OutgoingTransferExternalID: sendTransaction.ID,
+			IncomingTransferState:      transactions.StateFailed,
+		}, nil
+	}
+
+	var recvTransaction tabapay.Transaction
+	err = workflow.ExecuteActivity(tabapayCtx, a.PushToCard, PushToCard{
+		TransactionID:       recvTrxID,
+		CardLinkedAccountID: args.ToLinkedAccountID,
+		Amount:              args.Amount,
+		ReferenceID:         recvRefID,
+	}).Get(ctx, &recvTransaction)
+	if err != nil {
+		logger.Error("Failed to push to card.", "Error", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			// Try to fail tx on GMT
+			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StateFailed).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
+			}
+			return &providers.TransferResponse{
+				Type:                       providers.GMTACH2CARD,
+				OutgoingTransferState:      transactions.StateCompleted,
+				OutgoingTransferExternalID: sendTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+	if tabapay.IsTransactionStatusUnknown(recvTransaction) {
+		// check again in 90 sec
+		logger.Info("Tabapay transaction status unknown. Checking again id=", recvTransaction.ID)
+		err = workflow.ExecuteActivity(tabapayCtx, a.GetTabapayTransaction, recvTransaction.ID).Get(tabapayCtx, &recvTransaction)
+	}
+	if err != nil || !tabapay.IsSuccessfulTransaction(recvTransaction) {
+		logger.Error("Failed to push to card.", "Error", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			// Try to fail tx on GMT
+			innerErr := workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StateFailed).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("failed to update card transaction on gmt to failed", "err", innerErr)
+			}
+			return &providers.TransferResponse{
+				Type:                       providers.GMTACH2CARD,
+				OutgoingTransferState:      transactions.StateCompleted,
+				OutgoingTransferExternalID: sendTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+			}, nil
+		}
+		return nil, err
+	}
+
+	// Notify GMT of completed card transaction.
+	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to update card transaction on gmt", "err", err)
+		return nil, err
+	}
+
+	// TODO: risk assessment
+
+	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+		ID:          recvTrxID,
+		WalletID:    args.ToWalletID,
+		ForeignID:   args.ToForeignID,
+		ForeignType: transactions.TransactionTypeOpenPaymentIncoming,
+		Provider:    transactions.ProviderOpenPayments,
+		State:       transactions.StatePending,
+		Source:      args.FromPaymentPointer,
+		Destination: args.ToPaymentPointer,
+		Amount:      args.Amount,
+		Transfers: []transactions.TransferArgs{
+			{
+				ForeignID:       recvTransaction.ID,
+				LinkedAccountID: args.ToLinkedAccountID,
+				Type:            transactions.TransferTypeCreditCard,
+				Amount:          args.Amount,
+				State:           transactions.StateCompleted,
+			},
+		},
+	}).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to add transaction for recipient", "err", err)
+		if temporal_utils.IsNonRetryableError(err) {
+			return &providers.TransferResponse{
+				Type:                       providers.GMTCARD2CARD,
+				OutgoingTransferState:      transactions.StateCompleted,
+				OutgoingTransferExternalID: sendTransaction.ID,
+				IncomingTransferState:      transactions.StateFailed,
+				IncomingTransferExternalID: recvTransaction.ID,
+			}, nil
+		}
+		return nil, err
+	}
+
+	return &providers.TransferResponse{
+		Type:                       providers.GMTCARD2CARD,
+		OutgoingTransferState:      transactions.StateCompleted,
+		OutgoingTransferExternalID: sendTransaction.ID,
+		IncomingTransferState:      transactions.StateFailed,
+		IncomingTransferExternalID: recvTransaction.ID,
 	}, nil
 }

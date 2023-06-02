@@ -117,8 +117,8 @@ type ComplianceResp struct {
 }
 
 // IndividualCompliance does a compliance check by doing a $1 payment where the user is both the sender and receiver.
-func (a *Activity) IndividualCompliance(ctx context.Context, args providers.TransfersArgs, walletID string) (*ComplianceResp, error) {
-	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
+func (a *Activity) IndividualCompliance(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
+	id, err := a.b.KYC().GetIndividualDetails(ctx, args.FromWalletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
@@ -126,12 +126,12 @@ func (a *Activity) IndividualCompliance(ctx context.Context, args providers.Tran
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, args, walletID)
+	sender, err := senderFromWallet(ctx, a.b, args)
 	if err != nil {
 		return nil, err
 	}
 
-	recv, err := receiverFromWallet(ctx, a.b, walletID)
+	recv, err := receiverFromWallet(ctx, a.b, args.FromWalletID)
 	if err != nil {
 		return nil, err
 	}
@@ -142,9 +142,9 @@ func (a *Activity) IndividualCompliance(ctx context.Context, args providers.Tran
 		Transfer: &external.WsTransferInfo{
 			AgenciaCodigo:          "",
 			AgencySpecialDiscounts: "",
-			AmountToReceive:        1.0,
+			AmountToReceive:        args.Amount.Float64(),
 			CorrespondentCode:      "GACH",
-			DestinationCurrency:    "USD",
+			DestinationCurrency:    args.Amount.Currency.String(),
 			ExchangeRate:           1,
 			Fee:                    0,
 			MTSID:                  a.mts,
@@ -175,20 +175,13 @@ func (a *Activity) IndividualCompliance(ctx context.Context, args providers.Tran
 
 	return &ComplianceResp{
 		SenderID:         int64(res.SenderID),
-		SenderWalletID:   walletID,
+		SenderWalletID:   args.FromWalletID,
 		ReceiverID:       int64(res.ReceiverID),
-		ReceiverWalletID: walletID,
+		ReceiverWalletID: args.FromWalletID,
 	}, nil
 }
 
 func (a *Activity) Card2ACHCompliance(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
-	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
-	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
-	}
-	if err != nil {
-		return nil, err
-	}
 
 	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
@@ -206,7 +199,7 @@ func (a *Activity) Card2ACHCompliance(ctx context.Context, args providers.Transf
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args)
 	if err != nil {
 		return nil, err
 	}
@@ -271,6 +264,80 @@ func (a *Activity) Card2ACHCompliance(ctx context.Context, args providers.Transf
 	}, nil
 }
 
+func (a *Activity) Card2CardCompliance(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
+
+	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	toID, err := a.b.KYC().GetIndividualDetails(ctx, toLA.WalletID)
+	if errors.Is(err, kyc.ErrNoKYCInfo) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := senderFromWallet(ctx, a.b, args)
+	if err != nil {
+		return nil, err
+	}
+	sender.SenderTrackingNumber = args.FromTransactionID
+
+	receiver, err := receiverFromWallet(ctx, a.b, toLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := a.ext.ComplianceCheck(ctx, external.ComplianceCheck{
+		Sender:   sender,
+		Receiver: receiver,
+		Transfer: &external.WsTransferInfo{
+			AmountToReceive:       args.Amount.Float64(),
+			CorrespondentCode:     "USCD",
+			DestinationCurrency:   args.Amount.Currency.String(),
+			ExchangeRate:          1,
+			Fee:                   0,
+			MTSID:                 a.mts,
+			OfficeCode:            "0",
+			NetAmount:             args.Amount.Float64(),
+			OriginalCurrency:      args.Amount.Currency.String(),
+			OriginalPaymentMethod: "DEBIT", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
+			ReceiverCity:          toID.Address.City,
+			ReceiverState:         toID.Address.State,
+			SenderID:              sender.SenderId,
+			TipoCuentaCodigo:      "CDN",
+			ServicioCodigo:        "BD",
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Check status for actual failures
+	if res.Error == 999 || // Required fields missing
+		res.Error == 1000 || // Invalid User
+		res.Error == 1002 || // Cannot find or insert sender
+		res.Error == 1003 || // Cannot find or insert receiver
+		res.Error == 2000 || // Amount over limit
+		res.Error == 2001 || // Compliance fields missing
+		res.Error == 2002 || // Fields missing for validation
+		res.Error == 2003 { // Sender or receiver blocked
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+	}
+
+	return &ComplianceResp{
+		SenderID:         int64(res.SenderID),
+		SenderWalletID:   args.FromWalletID,
+		ReceiverID:       int64(res.ReceiverID),
+		ReceiverWalletID: args.ToWalletID,
+	}, nil
+}
+
 func (a *Activity) ACH2CardCompliance(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
@@ -304,7 +371,7 @@ func (a *Activity) ACH2CardCompliance(ctx context.Context, args providers.Transf
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args)
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +460,7 @@ func (a *Activity) ACHCompliance(ctx context.Context, args providers.TransfersAr
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args)
 	if err != nil {
 		return nil, err
 	}
@@ -526,8 +593,8 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 	}, nil
 }
 
-func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersArgs, walletID string) (*external.WsSender, error) {
-	senderID, err := b.KYC().GetIndividualDetails(ctx, walletID)
+func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersArgs) (*external.WsSender, error) {
+	senderID, err := b.KYC().GetIndividualDetails(ctx, args.FromWalletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
@@ -535,12 +602,12 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		return nil, err
 	}
 
-	senderUsers, err := b.Users().ListUsers(ctx, walletID)
+	senderUsers, err := b.Users().ListUsers(ctx, args.FromWalletID)
 	if err != nil {
 		return nil, err
 	}
 
-	sid, err := getSenderID(ctx, b, walletID)
+	sid, err := getSenderID(ctx, b, args.FromWalletID)
 	if err != nil {
 		return nil, err
 	}
@@ -555,18 +622,23 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		gender = "Female"
 	}
 
-	exceeds, err := b.Limits().ExceedsGMTLimits(ctx, walletID, args.Amount)
+	exceeds, err := b.Limits().ExceedsGMTLimits(ctx, args.FromWalletID, args.Amount)
 	if err != nil {
 		return nil, err
 	}
 
+	address := senderID.Address.FormattedAddress
+	if address == "" {
+		address = senderID.Address.String()
+	}
+
 	sender := &external.WsSender{
-		SenderAddress:               senderID.Address.FormattedAddress,
+		SenderAddress:               address,
 		SenderAddressStreet:         senderID.Address.Apartment,
 		SenderBirthDate:             external.GMTDate(senderID.DateOfBirth),
 		SenderCity:                  senderID.Address.City,
 		SenderCountryCode:           senderID.Address.CountryCode,
-		SenderCurrencyCode:          "USD",
+		SenderCurrencyCode:          args.Amount.Currency.String(),
 		SenderEmail:                 senderUsers[0].Email,
 		SenderForceNew:              false,
 		SenderGender:                gender,
@@ -576,7 +648,7 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderLastName:              senderID.LastName,
 		SenderMobile:                senderUsers[0].PhoneNumber,
 		SenderName:                  senderID.FirstName,
-		SenderResidenceAddress:      senderID.Address.String(),
+		SenderResidenceAddress:      address,
 		SenderResidenceAddressExtra: senderID.Address.Apartment,
 		SenderResidenceCity:         senderID.Address.City,
 		SenderResidenceCountryCode:  senderID.Address.CountryCode,
@@ -592,7 +664,7 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		return sender, nil
 	}
 
-	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, walletID)
+	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, args.FromWalletID)
 	if err != nil {
 		return nil, err
 	}
@@ -705,7 +777,7 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args)
 	if err != nil {
 		return nil, err
 	}
@@ -789,13 +861,6 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 }
 
 func (a *Activity) InsertCard2ACH(ctx context.Context, args providers.TransfersArgs) (*TransactionResp, error) {
-	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
-	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
-	}
-	if err != nil {
-		return nil, err
-	}
 
 	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
@@ -813,7 +878,7 @@ func (a *Activity) InsertCard2ACH(ctx context.Context, args providers.TransfersA
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args)
 	if err != nil {
 		return nil, err
 	}
@@ -875,7 +940,7 @@ func (a *Activity) InsertCard2ACH(ctx context.Context, args providers.TransfersA
 	}, nil
 }
 
-func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersArgs) (*ComplianceResp, error) {
+func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersArgs) (*TransactionResp, error) {
 	fromLA, err := a.b.LinkedAccounts().Get(ctx, args.FromLinkedAccountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
@@ -908,7 +973,7 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 		return nil, err
 	}
 
-	sender, err := senderFromWallet(ctx, a.b, args, fromLA.WalletID)
+	sender, err := senderFromWallet(ctx, a.b, args)
 	if err != nil {
 		return nil, err
 	}
@@ -935,6 +1000,7 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 			DestinationCurrency:   args.Amount.Currency.String(),
 			ExchangeRate:          1,
 			Fee:                   0,
+			OfficeCode:            "0",
 			MTSID:                 a.mts,
 			NetAmount:             args.Amount.Float64(),
 			OriginalCurrency:      args.Amount.Currency.String(),
@@ -954,11 +1020,91 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
 	}
 
-	return &ComplianceResp{
-		SenderID:         int64(res.SenderID),
-		SenderWalletID:   args.FromWalletID,
-		ReceiverID:       int64(res.ReceiverID),
-		ReceiverWalletID: args.ToWalletID,
+	return &TransactionResp{
+		ID:         res.Password,
+		ReceiptRef: res.Receipt,
+		Status:     res.Status,
+		Licence:    res.Receipt_License,
+		RTR:        res.Receipt_RTR_EN,
+		ErrorMsg:   res.Receipt_Error_EN,
+		Contact:    res.Status,
+	}, nil
+}
+
+func (a *Activity) InsertCard2Card(ctx context.Context, args providers.TransfersArgs) (*TransactionResp, error) {
+
+	toLA, err := a.b.LinkedAccounts().Get(ctx, args.ToLinkedAccountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	toID, err := a.b.KYC().GetIndividualDetails(ctx, toLA.WalletID)
+	if errors.Is(err, kyc.ErrNoKYCInfo) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := senderFromWallet(ctx, a.b, args)
+	if err != nil {
+		return nil, err
+	}
+	sender.SenderTrackingNumber = args.FromTransactionID
+
+	receiver, err := receiverFromWallet(ctx, a.b, toLA.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := a.ext.InsertTransaction(ctx, external.InsertTransaction{
+		Sender:   sender,
+		Receiver: receiver,
+		Transfer: &external.WsTransferInfo{
+			AmountToReceive:       args.Amount.Float64(),
+			CorrespondentCode:     "USCD",
+			DestinationCurrency:   args.Amount.Currency.String(),
+			ExchangeRate:          1,
+			Fee:                   0,
+			MTSID:                 a.mts,
+			OfficeCode:            "0",
+			NetAmount:             args.Amount.Float64(),
+			OriginalCurrency:      args.Amount.Currency.String(),
+			OriginalPaymentMethod: "DEBIT", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
+			ReceiverCity:          toID.Address.City,
+			ReceiverState:         toID.Address.State,
+			SenderID:              sender.SenderId,
+			TipoCuentaCodigo:      "CDN",
+			ServicioCodigo:        "BD",
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Check status for actual failures
+	if res.Error == 999 || // Required fields missing
+		res.Error == 1000 || // Invalid User
+		res.Error == 1002 || // Cannot find or insert sender
+		res.Error == 1003 || // Cannot find or insert receiver
+		res.Error == 2000 || // Amount over limit
+		res.Error == 2001 || // Compliance fields missing
+		res.Error == 2002 || // Fields missing for validation
+		res.Error == 2003 { // Sender or receiver blocked
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+	}
+
+	return &TransactionResp{
+		ID:         res.Password,
+		ReceiptRef: res.Receipt,
+		Status:     res.Status,
+		Licence:    res.Receipt_License,
+		RTR:        res.Receipt_RTR_EN,
+		ErrorMsg:   res.Receipt_Error_EN,
+		Contact:    res.Status,
 	}, nil
 }
 
