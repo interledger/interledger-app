@@ -431,7 +431,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	// Check if the content type is from browser and redirect
 	if strings.Contains(req.Header.Get("Accept"), "text/html") {
-		u, err := url.JoinPath(env.GetUrl(), "/me/", pp.URL)
+		u, err := url.JoinPath(env.GetUrl(), "/me/", removeProtocol(pp.URL))
 		if err != nil {
 			log.Error("error generating url", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -745,4 +745,9 @@ func isSocialMediaScraper(req *http.Request) bool {
 	}
 
 	return false
+}
+
+func removeProtocol(url string) string {
+	url = strings.Replace(url, "http://", "", 1)
+	return strings.Replace(url, "https://", "", 1)
 }
