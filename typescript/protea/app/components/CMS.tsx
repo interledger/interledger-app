@@ -232,13 +232,18 @@ function FeatureContentRecordComponent({
         <p className='text-xl text-medium'>{content.body}</p>
       </div>
       <img
+        alt='Feature'
         className={clsx(
           'hidden lg:-mr-[10.5rem] lg:block',
           content.rowReverse && 'lg:-ml-[10.5rem] lg:mr-0'
         )}
         src={content.image?.url}
       />
-      <img className='mt-6 block lg:hidden' src={content.imageMobile?.url} />
+      <img
+        alt='Feature'
+        className='mt-6 block lg:hidden'
+        src={content.imageMobile?.url}
+      />
     </div>
   )
 }
@@ -251,10 +256,14 @@ function HeaderContentRecordComponent({
   return (
     <div
       key={content.id}
-      className='flex w-full flex-col items-end space-y-20 px-4 lg:flex-row lg:flex-row-reverse lg:items-center lg:justify-between lg:space-y-0 lg:px-0'
+      className='flex w-full flex-col items-end space-y-20 px-4 lg:flex-row-reverse lg:items-center lg:justify-between lg:space-y-0 lg:px-0'
     >
       {content.shapes && (
-        <img className='block h-64 lg:-mr-20' src={content.shapes?.url} />
+        <img
+          alt='Fynbos shapes'
+          className='block h-64 lg:-mr-20'
+          src={content.shapes?.url}
+        />
       )}
       {content.title && (
         <h2 className='font-display text-4xl font-medium lg:mr-6 lg:text-5xl'>
@@ -277,6 +286,7 @@ function HeroContentRecordComponent({
     >
       <AnimatePresence mode='wait'>
         <motion.img
+          alt='Hero image'
           key={content.imageMobile?.url + 'imageMobile'}
           src={content.imageMobile?.url}
           initial={{ opacity: 0 }}
@@ -285,6 +295,7 @@ function HeroContentRecordComponent({
           className='-mt-20 block dark:hidden lg:hidden'
         />
         <motion.img
+          alt='Hero image'
           key={content.imageDarkMobile?.url + 'imageDarkMobile'}
           src={content.imageDarkMobile?.url}
           initial={{ opacity: 0 }}
@@ -301,6 +312,7 @@ function HeroContentRecordComponent({
       </div>
       <AnimatePresence mode='wait'>
         <motion.img
+          alt='Hero image'
           key={content.image?.url + 'image'}
           src={content.image?.url}
           initial={{ opacity: 0 }}
@@ -309,6 +321,7 @@ function HeroContentRecordComponent({
           className='-mr-[10.5rem] hidden lg:block lg:dark:hidden'
         />
         <motion.img
+          alt='Hero image'
           key={content.imageDark?.url + 'imageDark'}
           src={content.imageDark?.url}
           initial={{ opacity: 0 }}
@@ -398,7 +411,7 @@ function HomeHeroContentRecordComponent({
       content.title as string,
       content.iterations[active].title as string
     )
-  }, [active, content.body, content.iterations])
+  }, [active, content.iterations, content.title])
 
   const bodySegments = useMemo(() => {
     return getSegments(
@@ -423,6 +436,7 @@ function HomeHeroContentRecordComponent({
     >
       <AnimatePresence mode='wait'>
         <motion.img
+          alt='Hero image'
           key={content.iterations[active]?.mobileShape?.url + 'shapeMobile'}
           src={content.iterations[active]?.mobileShape?.url}
           initial={{ opacity: 0 }}
@@ -520,6 +534,7 @@ function HomeHeroContentRecordComponent({
         {/*  className='hidden w-full dark:block lg:hidden'*/}
         {/*/>*/}
         <motion.img
+          alt='Hero image'
           key={content.iterations[active]?.image?.url + 'image'}
           src={content.iterations[active]?.image?.url}
           initial={{ opacity: 0 }}
@@ -528,6 +543,7 @@ function HomeHeroContentRecordComponent({
           className='absolute -right-[10.5rem] top-0 hidden lg:block lg:dark:hidden'
         />
         <motion.img
+          alt='Hero image'
           key={content.iterations[active]?.imageDark?.url + 'imageDark'}
           src={content.iterations[active]?.imageDark?.url}
           initial={{ opacity: 0 }}
@@ -596,6 +612,7 @@ function ShowCaseDesktop({ content }: { content: ShowcaseContentRecord }) {
                     className='flex focus:outline-offset-[32px] [&:not(:focus-visible)]:focus:outline-none'
                   >
                     <motion.img
+                      alt={feature.title as string}
                       key={feature.image?.url + 'image'}
                       src={feature.image?.url}
                       initial={{ opacity: 0 }}
@@ -604,6 +621,7 @@ function ShowCaseDesktop({ content }: { content: ShowcaseContentRecord }) {
                       className='block dark:hidden'
                     />
                     <motion.img
+                      alt={feature.title as string}
                       key={feature.imageDark?.url + 'imageDark'}
                       src={feature.imageDark?.url}
                       initial={{ opacity: 0 }}
@@ -671,6 +689,7 @@ function ShowCaseMobile({ content }: { content: ShowcaseContentRecord }) {
             <div className='relative transform'>
               <div className='relative mx-auto w-full'>
                 <motion.img
+                  alt={feature.title as string}
                   key={feature.image?.url + 'image'}
                   src={feature.image?.url}
                   initial={{ opacity: 0 }}
@@ -679,6 +698,7 @@ function ShowCaseMobile({ content }: { content: ShowcaseContentRecord }) {
                   className='block w-full dark:hidden'
                 />
                 <motion.img
+                  alt={feature.title as string}
                   key={feature.imageDark?.url + 'imageDark'}
                   src={feature.imageDark?.url}
                   initial={{ opacity: 0 }}
@@ -737,18 +757,6 @@ function ShowcaseContentRecordComponent({
   )
 }
 
-type ProseProps = {
-  children?: ReactNode
-}
-
-const Prose: FC<ProseProps> = ({ children }) => {
-  return (
-    <div className='prose prose-slate dark:prose-invert prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:rounded prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'>
-      {children}
-    </div>
-  )
-}
-
 function StoryContentRecordComponent({
   content
 }: {
@@ -762,6 +770,7 @@ function StoryContentRecordComponent({
       <div className='col-span-full flex items-start lg:col-span-4'>
         <AnimatePresence mode='wait'>
           <motion.img
+            alt='Fynbos shapes'
             key={content.image?.url + 'image'}
             src={content.image?.url}
             initial={{ opacity: 0 }}
@@ -770,6 +779,7 @@ function StoryContentRecordComponent({
             className='block dark:hidden'
           />
           <motion.img
+            alt='Fynbos shapes'
             key={content.imageDark?.url + 'imageDark'}
             src={content.imageDark?.url}
             initial={{ opacity: 0 }}
@@ -783,7 +793,7 @@ function StoryContentRecordComponent({
         <h2 className='text-4xl font-medium'>{content.title}</h2>
       </div>
       <div className='col-span-full w-full items-start lg:col-span-4'>
-        <span className='text-2xl text-medium'>
+        <div className='text-2xl text-medium'>
           {/*<Prose>*/}
           <StructuredText
             data={content.blurb?.value}
@@ -800,14 +810,14 @@ function StoryContentRecordComponent({
             ]}
           />
           {/*</Prose>*/}
-        </span>
+        </div>
       </div>
       <div className='col-span-full lg:col-span-8'>
-        <span className='text-2xl text-medium'>
+        <div className='text-2xl text-medium'>
           {/*<Prose>*/}
           <StructuredText data={content.bodyText?.value} />
           {/*</Prose>*/}
-        </span>
+        </div>
       </div>
     </div>
   )
@@ -826,6 +836,7 @@ function TeamContentRecordComponent({
       <div className='col-span-full flex flex-col items-center space-y-10 text-center'>
         <AnimatePresence mode='wait'>
           <motion.img
+            alt='Fynbos shapes'
             key={content.image?.url + 'image'}
             src={content.image?.url}
             initial={{ opacity: 0 }}
@@ -834,6 +845,7 @@ function TeamContentRecordComponent({
             className='block dark:hidden'
           />
           <motion.img
+            alt='Fynbos shapes'
             key={content.imageDark?.url + 'imageDark'}
             src={content.imageDark?.url}
             initial={{ opacity: 0 }}

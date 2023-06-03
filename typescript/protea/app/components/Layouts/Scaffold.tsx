@@ -300,6 +300,7 @@ export function Scaffold() {
                 return (
                   <AnchorRouter to={icon.url ?? ''} key={'social-icon' + index}>
                     <img
+                      alt='Social logo'
                       className='block'
                       loading='lazy'
                       src={icon.icon?.url}

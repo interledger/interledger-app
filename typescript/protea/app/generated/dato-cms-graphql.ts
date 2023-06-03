@@ -22,9 +22,9 @@ export type Scalars = {
   UploadId: any;
 };
 
-/** Record of type AboutPage (aboutpage) */
-export type AboutpageRecord = RecordInterface & {
-  __typename?: 'AboutpageRecord';
+/** Record of type About Route (about_route) */
+export type AboutRouteRecord = RecordInterface & {
+  __typename?: 'AboutRouteRecord';
   _createdAt: Scalars['DateTime'];
   /** Editing URL */
   _editingUrl?: Maybe<Scalars['String']>;
@@ -44,8 +44,8 @@ export type AboutpageRecord = RecordInterface & {
 };
 
 
-/** Record of type AboutPage (aboutpage) */
-export type AboutpageRecord_SeoMetaTagsArgs = {
+/** Record of type About Route (about_route) */
+export type AboutRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -142,9 +142,9 @@ export type BlogPostRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
-/** Record of type BlogPage (blogpage) */
-export type BlogpageRecord = RecordInterface & {
-  __typename?: 'BlogpageRecord';
+/** Record of type Blog Route (blog_route) */
+export type BlogRouteRecord = RecordInterface & {
+  __typename?: 'BlogRouteRecord';
   _createdAt: Scalars['DateTime'];
   /** Editing URL */
   _editingUrl?: Maybe<Scalars['String']>;
@@ -164,8 +164,8 @@ export type BlogpageRecord = RecordInterface & {
 };
 
 
-/** Record of type BlogPage (blogpage) */
-export type BlogpageRecord_SeoMetaTagsArgs = {
+/** Record of type Blog Route (blog_route) */
+export type BlogRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -205,9 +205,9 @@ export type ColorField = {
   red: Scalars['IntType'];
 };
 
-/** Record of type ContactPage (contactpage) */
-export type ContactpageRecord = RecordInterface & {
-  __typename?: 'ContactpageRecord';
+/** Record of type Contact Route (contact_route) */
+export type ContactRouteRecord = RecordInterface & {
+  __typename?: 'ContactRouteRecord';
   _createdAt: Scalars['DateTime'];
   /** Editing URL */
   _editingUrl?: Maybe<Scalars['String']>;
@@ -227,8 +227,8 @@ export type ContactpageRecord = RecordInterface & {
 };
 
 
-/** Record of type ContactPage (contactpage) */
-export type ContactpageRecord_SeoMetaTagsArgs = {
+/** Record of type Contact Route (contact_route) */
+export type ContactRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -695,9 +695,9 @@ export type HomeHeroContentRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
-/** Record of type HomePage (homepage) */
-export type HomepageRecord = RecordInterface & {
-  __typename?: 'HomepageRecord';
+/** Record of type Home Route (home_route) */
+export type HomeRouteRecord = RecordInterface & {
+  __typename?: 'HomeRouteRecord';
   _createdAt: Scalars['DateTime'];
   /** Editing URL */
   _editingUrl?: Maybe<Scalars['String']>;
@@ -717,8 +717,8 @@ export type HomepageRecord = RecordInterface & {
 };
 
 
-/** Record of type HomePage (homepage) */
-export type HomepageRecord_SeoMetaTagsArgs = {
+/** Record of type Home Route (home_route) */
+export type HomeRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -2271,6 +2271,13 @@ export enum ItemStatus {
   Updated = 'updated'
 }
 
+export type LegalPageModelBodyField = {
+  __typename?: 'LegalPageModelBodyField';
+  blocks: Array<Scalars['String']>;
+  links: Array<Scalars['String']>;
+  value: Scalars['JsonField'];
+};
+
 export type LegalPageModelFilter = {
   AND?: InputMaybe<Array<InputMaybe<LegalPageModelFilter>>>;
   OR?: InputMaybe<Array<InputMaybe<LegalPageModelFilter>>>;
@@ -2282,7 +2289,10 @@ export type LegalPageModelFilter = {
   _status?: InputMaybe<StatusFilter>;
   _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
   _updatedAt?: InputMaybe<UpdatedAtFilter>;
+  body?: InputMaybe<StructuredTextFilter>;
   id?: InputMaybe<ItemIdFilter>;
+  slug?: InputMaybe<SlugFilter>;
+  title?: InputMaybe<StringFilter>;
 };
 
 export enum LegalPageModelOrderBy {
@@ -2303,7 +2313,9 @@ export enum LegalPageModelOrderBy {
   UpdatedAtAsc = '_updatedAt_ASC',
   UpdatedAtDesc = '_updatedAt_DESC',
   IdAsc = 'id_ASC',
-  IdDesc = 'id_DESC'
+  IdDesc = 'id_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
 }
 
 /** Record of type Legal page (legal_page) */
@@ -2322,7 +2334,10 @@ export type LegalPageRecord = RecordInterface & {
   _status: ItemStatus;
   _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
   _updatedAt: Scalars['DateTime'];
+  body?: Maybe<LegalPageModelBodyField>;
   id: Scalars['ItemId'];
+  slug?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
 };
 
 
@@ -2331,9 +2346,9 @@ export type LegalPageRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
-/** Record of type LegalPage (legalpage) */
-export type LegalpageRecord = RecordInterface & {
-  __typename?: 'LegalpageRecord';
+/** Record of type Legal Route (legal_route) */
+export type LegalRouteRecord = RecordInterface & {
+  __typename?: 'LegalRouteRecord';
   _createdAt: Scalars['DateTime'];
   /** Editing URL */
   _editingUrl?: Maybe<Scalars['String']>;
@@ -2353,8 +2368,8 @@ export type LegalpageRecord = RecordInterface & {
 };
 
 
-/** Record of type LegalPage (legalpage) */
-export type LegalpageRecord_SeoMetaTagsArgs = {
+/** Record of type Legal Route (legal_route) */
+export type LegalRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -2583,7 +2598,7 @@ export type Query = {
   /** Returns the single instance record */
   _site: Site;
   /** Returns the single instance record */
-  aboutpage?: Maybe<AboutpageRecord>;
+  aboutRoute?: Maybe<AboutRouteRecord>;
   /** Returns a collection of records */
   allBlogPosts: Array<BlogPostRecord>;
   /** Returns a collection of records */
@@ -2595,23 +2610,23 @@ export type Query = {
   /** Returns a specific record */
   blogPost?: Maybe<BlogPostRecord>;
   /** Returns the single instance record */
-  blogpage?: Maybe<BlogpageRecord>;
+  blogRoute?: Maybe<BlogRouteRecord>;
   /** Returns the single instance record */
-  contactpage?: Maybe<ContactpageRecord>;
+  contactRoute?: Maybe<ContactRouteRecord>;
   /** Returns the single instance record */
   footer?: Maybe<FooterRecord>;
   /** Returns the single instance record */
-  homepage?: Maybe<HomepageRecord>;
+  homeRoute?: Maybe<HomeRouteRecord>;
   /** Returns a specific record */
   legalPage?: Maybe<LegalPageRecord>;
   /** Returns the single instance record */
-  legalpage?: Maybe<LegalpageRecord>;
+  legalRoute?: Maybe<LegalRouteRecord>;
   /** Returns a specific record */
   person?: Maybe<PersonRecord>;
   /** Returns a specific asset */
   upload?: Maybe<FileField>;
   /** Returns the single instance record */
-  walletpage?: Maybe<WalletpageRecord>;
+  walletRoute?: Maybe<WalletRouteRecord>;
 };
 
 
@@ -2651,7 +2666,7 @@ export type Query_SiteArgs = {
 
 
 /** The query root for this schema */
-export type QueryAboutpageArgs = {
+export type QueryAboutRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
@@ -2711,14 +2726,14 @@ export type QueryBlogPostArgs = {
 
 
 /** The query root for this schema */
-export type QueryBlogpageArgs = {
+export type QueryBlogRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
 
 
 /** The query root for this schema */
-export type QueryContactpageArgs = {
+export type QueryContactRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
@@ -2732,7 +2747,7 @@ export type QueryFooterArgs = {
 
 
 /** The query root for this schema */
-export type QueryHomepageArgs = {
+export type QueryHomeRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
@@ -2748,7 +2763,7 @@ export type QueryLegalPageArgs = {
 
 
 /** The query root for this schema */
-export type QueryLegalpageArgs = {
+export type QueryLegalRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
@@ -2773,7 +2788,7 @@ export type QueryUploadArgs = {
 
 
 /** The query root for this schema */
-export type QueryWalletpageArgs = {
+export type QueryWalletRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
@@ -3541,9 +3556,9 @@ export enum VideoMp4Res {
   Medium = 'medium'
 }
 
-/** Record of type WalletPage (walletpage) */
-export type WalletpageRecord = RecordInterface & {
-  __typename?: 'WalletpageRecord';
+/** Record of type Wallet Route (wallet_route) */
+export type WalletRouteRecord = RecordInterface & {
+  __typename?: 'WalletRouteRecord';
   _createdAt: Scalars['DateTime'];
   /** Editing URL */
   _editingUrl?: Maybe<Scalars['String']>;
@@ -3563,8 +3578,8 @@ export type WalletpageRecord = RecordInterface & {
 };
 
 
-/** Record of type WalletPage (walletpage) */
-export type WalletpageRecord_SeoMetaTagsArgs = {
+/** Record of type Wallet Route (wallet_route) */
+export type WalletRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 

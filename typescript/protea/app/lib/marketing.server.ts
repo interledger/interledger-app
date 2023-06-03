@@ -3,17 +3,17 @@ import type { Query } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
 import { RESPONSIVE_IMAGE } from '~/lib/blog.server'
 
-export const getAboutPage = async () => {
+export const getAboutRoute = async () => {
   return apolloClient
     .query<{
-      aboutpage: Query['aboutpage']
+      aboutRoute: Query['aboutRoute']
       footer: Query['footer']
     }>({
       query: gql`
         ${FOOTER}
         ${SECTION}
-        query GetTestPageContent {
-          aboutpage {
+        query GetRouteContent {
+          aboutRoute {
             id
             body {
               ...Section
@@ -36,21 +36,21 @@ export const getAboutPage = async () => {
     })
     .catch((error) => {
       console.log(error)
-      return { aboutpage: null, footer: null }
+      return { aboutRoute: null, footer: null }
     })
 }
 
-export const getBlogPage = async () => {
+export const getBlogRoute = async () => {
   return apolloClient
     .query<{
-      blogpage: Query['blogpage']
+      blogRoute: Query['blogRoute']
       footer: Query['footer']
     }>({
       query: gql`
         ${FOOTER}
         ${SECTION}
-        query GetTestPageContent {
-          blogpage {
+        query GetBlogRouteContent {
+          blogRoute {
             id
             body {
               ...Section
@@ -73,21 +73,21 @@ export const getBlogPage = async () => {
     })
     .catch((error) => {
       console.log(error)
-      return { blogpage: null, footer: null }
+      return { blogRoute: null, footer: null }
     })
 }
 
-export const getHomePage = async () => {
+export const getContactRoute = async () => {
   return apolloClient
     .query<{
-      homepage: Query['homepage']
+      contactRoute: Query['contactRoute']
       footer: Query['footer']
     }>({
       query: gql`
         ${FOOTER}
         ${SECTION}
-        query GetTestPageContent {
-          homepage {
+        query GetContactRouteContent {
+          contactRoute {
             id
             body {
               ...Section
@@ -110,21 +110,21 @@ export const getHomePage = async () => {
     })
     .catch((error) => {
       console.log(error)
-      return { homepage: null, footer: null }
+      return { contactRoute: null, footer: null }
     })
 }
 
-export const getWalletPage = async () => {
+export const getLegalRoute = async () => {
   return apolloClient
     .query<{
-      walletpage: Query['walletpage']
+      legalRoute: Query['legalRoute']
       footer: Query['footer']
     }>({
       query: gql`
         ${FOOTER}
         ${SECTION}
-        query GetPageContent {
-          walletpage {
+        query GetLegalRouteContent {
+          legalRoute {
             id
             body {
               ...Section
@@ -147,7 +147,81 @@ export const getWalletPage = async () => {
     })
     .catch((error) => {
       console.log(error)
-      return { walletpage: null, footer: null }
+      return { legalRoute: null, footer: null }
+    })
+}
+
+export const getHomeRoute = async () => {
+  return apolloClient
+    .query<{
+      homeRoute: Query['homeRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetHomeRouteContent {
+          homeRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { homeRoute: null, footer: null }
+    })
+}
+
+export const getWalletRoute = async () => {
+  return apolloClient
+    .query<{
+      walletRoute: Query['walletRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetWalletRouteContent {
+          walletRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { walletRoute: null, footer: null }
     })
 }
 

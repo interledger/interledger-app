@@ -5,15 +5,15 @@ import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts, MarketingPageWithSections } from '~/components'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { getAboutPage } from '~/lib/marketing.server'
+import { getLegalRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const { aboutpage, footer } = await getAboutPage()
-  return json({ aboutpage, footer })
+  const { legalRoute, footer } = await getLegalRoute()
+  return json({ legalRoute, footer })
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
+  layout: Layouts.Marketing,
   scaffold: {
     header: {},
     fab: Fab.Pay,
@@ -23,17 +23,17 @@ export const handle: ApplicationProps = {
 
 export function meta({ data, params }: any) {
   return {
-    ...toRemixMeta(data.aboutpage.seoMeta),
+    ...toRemixMeta(data.legalRoute.seoMeta),
     'twitter:url': 'https://fynbos.app/about',
     'og:url': 'https://fynbos.app/about'
   }
 }
 
 export default function Page() {
-  const { aboutpage } = useLoaderData<typeof loader>()
+  const { legalRoute } = useLoaderData<typeof loader>()
   return (
     <>
-      {aboutpage?.body.map((section) => (
+      {legalRoute?.body.map((section) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}

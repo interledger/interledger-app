@@ -5,9 +5,12 @@ import { toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
-import type { FooterRecord, HomepageRecord } from '~/generated/dato-cms-graphql'
+import type {
+  FooterRecord,
+  HomeRouteRecord
+} from '~/generated/dato-cms-graphql'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
-import { getHomePage } from '~/lib/marketing.server'
+import { getHomeRoute } from '~/lib/marketing.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import type { SnackbarType } from '~/lib/snackbar.server'
@@ -36,7 +39,7 @@ export async function loader({ request }: LoaderArgs) {
 
   let data = {
     isUser: isUser,
-    homepage: {} as HomepageRecord,
+    homeRoute: {} as HomeRouteRecord,
     footer: {} as FooterRecord,
     pusherArgs: {} as PusherArgs,
     isSignupGated: IS_SIGNUP_GATED,
@@ -145,8 +148,8 @@ export async function loader({ request }: LoaderArgs) {
       }
     }
   } else {
-    const { homepage, footer } = await getHomePage()
-    data.homepage = homepage as HomepageRecord
+    const { homeRoute, footer } = await getHomeRoute()
+    data.homeRoute = homeRoute as HomeRouteRecord
     data.footer = footer as FooterRecord
   }
   return defer(data)
@@ -163,7 +166,7 @@ export const handle: ApplicationProps = {
 
 export function meta({ data, params }: any) {
   return {
-    ...toRemixMeta(data.homepage.seoMeta),
+    ...toRemixMeta(data.homeRoute.seoMeta),
     'twitter:url': 'https://fynbos.app/',
     'og:url': 'https://fynbos.app/'
   }

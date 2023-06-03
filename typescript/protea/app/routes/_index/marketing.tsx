@@ -6,7 +6,6 @@ import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import type { loader } from './route'
 
 export const handle: ApplicationProps = {
-  title: 'Fynbos',
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
@@ -15,10 +14,10 @@ export const handle: ApplicationProps = {
 }
 
 export function MarketingPage() {
-  const { homepage } = useLoaderData<typeof loader>()
+  const { homeRoute } = useLoaderData<typeof loader>()
   return (
     <>
-      {homepage?.body.map((section) => (
+      {homeRoute?.body.map((section) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}

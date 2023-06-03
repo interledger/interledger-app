@@ -1,3 +1,15 @@
+---
+handle:
+  layout: Marketing
+  scaffold:
+    header: {}
+    footer: (match) => match.data.footer
+---
+
+import {json} from "@remix-run/node";
+import {getAboutRoute} from "~/lib/marketing.server";
+import {Layouts} from "~/components";
+
 export default ({ children }) => {
   return (
     <main className='w-full overflow-hidden'>

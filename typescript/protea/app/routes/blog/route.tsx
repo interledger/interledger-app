@@ -15,18 +15,18 @@ import {
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
 import { getAllBlogPosts } from '~/lib/blog.server'
-import { getBlogPage } from '~/lib/marketing.server'
+import { getBlogRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const { blogpage, footer } = await getBlogPage()
+  const { blogRoute, footer } = await getBlogRoute()
   const posts = await getAllBlogPosts({
     orderBy: [BlogPostModelOrderBy.DateDesc]
   })
-  return json({ posts, blogpage, footer })
+  return json({ posts, blogRoute, footer })
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
+  layout: Layouts.Marketing,
   scaffold: {
     header: {},
     fab: Fab.Pay,
@@ -36,22 +36,22 @@ export const handle: ApplicationProps = {
 
 export function meta({ data, params }: any) {
   return {
-    ...toRemixMeta(data.blogpage.seoMeta),
+    ...toRemixMeta(data.blogRoute.seoMeta),
     'twitter:url': 'https://fynbos.app/blog',
     'og:url': 'https://fynbos.app/blog'
   }
 }
 
 export default function Page() {
-  const { posts, blogpage } = useLoaderData<typeof loader>()
+  const { posts, blogRoute } = useLoaderData<typeof loader>()
   return (
     <>
-      {blogpage?.body.map((section) => (
+      {blogRoute?.body.map((section) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}
         >
-          <div className='mt-20 grid w-full grid-cols-12 gap-y-8 px-4 py-20 lg:gap-10 lg:px-0'>
+          <div className='mt-20  grid w-full grid-cols-12 gap-y-8 px-4 py-20 lg:gap-10 lg:px-0'>
             {posts &&
               posts.map((post, index) => (
                 <Router
