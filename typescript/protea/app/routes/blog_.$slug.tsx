@@ -1,8 +1,10 @@
 import { json } from '@remix-run/node'
+import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Chip,
   ChipColor,
+  Fab,
   Icon,
   Layouts,
   Router
@@ -22,6 +24,7 @@ import type {
   PersonRecord
 } from '~/generated/dato-cms-graphql'
 import { getCurrentBlogPost } from '~/lib/blog.server'
+import { getAboutPage } from '~/lib/marketing.server'
 
 export function meta({ data, params }: any) {
   return {
@@ -32,13 +35,20 @@ export function meta({ data, params }: any) {
 }
 
 export async function loader({ params }: LoaderArgs) {
+  const { footer } = await getAboutPage()
   return json({
+    footer,
     post: await getCurrentBlogPost({ filter: { slug: { eq: params.slug } } })
   })
 }
 
-export const handle = {
-  layout: Layouts.Marketing
+export const handle: ApplicationProps = {
+  layout: Layouts.Marketing,
+  scaffold: {
+    header: {},
+    fab: Fab.Pay,
+    footer: (match) => match.data.footer
+  }
 }
 
 export default function Page() {

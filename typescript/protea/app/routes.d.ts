@@ -57,9 +57,12 @@ declare module "routes-gen" {
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
+    "/wallet": Record<string, never>;
+    "/about": Record<string, never>;
     "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
+    "/docs": Record<string, never>;
     "/test": Record<string, never>;
     "/pay": Record<string, never>;
   };
@@ -123,9 +126,12 @@ declare module "routes-gen" {
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
+      | ["/wallet"]
+      | ["/about"]
       | ["/legal"]
       | ["/login"]
       | ["/blog"]
+      | ["/docs"]
       | ["/test"]
       | ["/pay"]
   >(...args: T): typeof args[0];

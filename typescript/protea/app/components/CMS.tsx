@@ -1,9 +1,28 @@
+import { Tab } from '@headlessui/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useMemo, useState } from 'react'
-import { ButtonRouter, Shape } from '~/components'
+import type { FC, ReactNode } from 'react'
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
+import {
+  AnchorRouter,
+  ButtonRouter,
+  FynbosIcon,
+  LinkedInIcon,
+  Shape,
+  TwitterIcon
+} from '~/components'
 
-import { StructuredText } from 'react-datocms'
+import { isLink } from 'datocms-structured-text-utils'
+import { Info } from 'luxon'
+import type { ResponsiveImageType } from 'react-datocms'
+import { Image, renderNodeRule, StructuredText } from 'react-datocms'
 import type {
   CtaContentRecord,
   FeatureBlocksContentRecord,
@@ -18,6 +37,7 @@ import type {
   TeamContentRecord,
   TextContentRecord
 } from '~/generated/dato-cms-graphql'
+import features = Info.features
 
 export function renderMarketingPageWithSections(section: SectionRecord) {
   return (
@@ -84,8 +104,24 @@ function CtaContentRecordComponent(content: CtaContentRecord) {
       className='flex w-full flex-col space-y-16 px-4 py-10 lg:flex-row lg:space-x-16 lg:space-y-0 lg:px-0 lg:py-16'
     >
       <div className='flex items-start'>
-        <Shape radius='rounded-full' color='bg-sky-400' width='w-32' />
-        <Shape radius='rounded-l-full' color='bg-slate-200' width='w-32' />
+        <AnimatePresence mode='wait'>
+          <motion.img
+            key={content.image?.url + 'image'}
+            src={content.image?.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='block dark:hidden'
+          />
+          <motion.img
+            key={content.imageDark?.url + 'imageDark'}
+            src={content.imageDark?.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='hidden dark:block'
+          />
+        </AnimatePresence>
       </div>
       <div className='flex flex-col space-y-6'>
         <h2 className='text-4xl font-medium'>{content.title}</h2>
@@ -107,7 +143,25 @@ function CtaContentRecordComponent(content: CtaContentRecord) {
 function FeatureBlocksContentRecordComponent(
   content: FeatureBlocksContentRecord
 ) {
-  return <h1 key={content.id}>{content.__typename}</h1>
+  return (
+    <div
+      key={content.id}
+      className='w-full columns-1 gap-10 space-y-10 px-4 lg:columns-2 lg:px-0'
+    >
+      <AnimatePresence>
+        {content.blocks.map((block) => (
+          <motion.img
+            key={block.image?.url}
+            src={block.image?.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='w-full'
+          />
+        ))}
+      </AnimatePresence>
+    </div>
+  )
 }
 
 function FeatureContentRecordComponent(content: FeatureContentRecord) {
@@ -128,14 +182,9 @@ function FeatureContentRecordComponent(content: FeatureContentRecord) {
           'hidden lg:-mr-[10.5rem] lg:block',
           content.rowReverse && 'lg:-ml-[10.5rem] lg:mr-0'
         )}
-        loading='lazy'
         src={content.image?.url}
       />
-      <img
-        className='mt-6 block lg:hidden'
-        loading='lazy'
-        src={content.imageMobile?.url}
-      />
+      <img className='mt-6 block lg:hidden' src={content.imageMobile?.url} />
     </div>
   )
 }
@@ -147,11 +196,7 @@ function HeaderContentRecordComponent(content: HeaderContentRecord) {
       className='flex w-full flex-col items-end space-y-20 px-4 lg:flex-row lg:flex-row-reverse lg:items-center lg:justify-between lg:space-y-0 lg:px-0'
     >
       {content.shapes && (
-        <img
-          className='block h-64 lg:-mr-20'
-          src={content.shapes?.url}
-          loading='lazy'
-        />
+        <img className='block h-64 lg:-mr-20' src={content.shapes?.url} />
       )}
       {content.title && (
         <h2 className='font-display text-4xl font-medium lg:mr-6 lg:text-5xl'>
@@ -172,7 +217,6 @@ function HeroContentRecordComponent(content: HeroContentRecord) {
         <motion.img
           key={content.imageMobile?.url + 'imageMobile'}
           src={content.imageMobile?.url}
-          loading='lazy'
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.15 } }}
           exit={{ opacity: 0 }}
@@ -181,7 +225,6 @@ function HeroContentRecordComponent(content: HeroContentRecord) {
         <motion.img
           key={content.imageDarkMobile?.url + 'imageDarkMobile'}
           src={content.imageDarkMobile?.url}
-          loading='lazy'
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.15 } }}
           exit={{ opacity: 0 }}
@@ -198,7 +241,6 @@ function HeroContentRecordComponent(content: HeroContentRecord) {
         <motion.img
           key={content.image?.url + 'image'}
           src={content.image?.url}
-          loading='lazy'
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.15 } }}
           exit={{ opacity: 0 }}
@@ -207,7 +249,6 @@ function HeroContentRecordComponent(content: HeroContentRecord) {
         <motion.img
           key={content.imageDark?.url + 'imageDark'}
           src={content.imageDark?.url}
-          loading='lazy'
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.15 } }}
           exit={{ opacity: 0 }}
@@ -318,7 +359,6 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
         <motion.img
           key={content.iterations[active]?.mobileShape?.url + 'shapeMobile'}
           src={content.iterations[active]?.mobileShape?.url}
-          loading='lazy'
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.15 } }}
           exit={{ opacity: 0 }}
@@ -394,64 +434,377 @@ function HomeHeroContentRecordComponent(content: HomeHeroContentRecord) {
           </ButtonRouter>
         )}
       </div>
-      <AnimatePresence mode='wait'>
-        <motion.img
-          key={content.iterations[active]?.imageMobile?.url + 'imageMobile'}
-          src={content.iterations[active]?.imageMobile?.url}
-          loading='lazy'
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.15 } }}
-          exit={{ opacity: 0 }}
-          className='block w-full dark:hidden lg:hidden'
-        />
-        <motion.img
-          key={
-            content.iterations[active]?.imageDarkMobile?.url + 'imageDarkMobile'
-          }
-          src={content.iterations[active]?.imageDarkMobile?.url}
-          loading='lazy'
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.15 } }}
-          exit={{ opacity: 0 }}
-          className='hidden w-full dark:block lg:hidden'
-        />
-        <motion.img
-          key={content.iterations[active]?.image?.url + 'image'}
-          src={content.iterations[active]?.image?.url}
-          loading='lazy'
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.15 } }}
-          exit={{ opacity: 0 }}
-          className='absolute -right-[10.5rem] top-0 hidden lg:block lg:dark:hidden'
-        />
-        <motion.img
-          key={content.iterations[active]?.imageDark?.url + 'imageDark'}
-          src={content.iterations[active]?.imageDark?.url}
-          loading='lazy'
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.15 } }}
-          exit={{ opacity: 0 }}
-          className='absolute -right-[10.5rem] top-0 hidden lg:dark:block'
-        />
-      </AnimatePresence>
+      {/*<AnimatePresence mode='wait'>*/}
+      {/*  <motion.img*/}
+      {/*    key={content.iterations[active]?.imageMobile?.url + 'imageMobile'}*/}
+      {/*    src={content.iterations[active]?.imageMobile?.url}*/}
+      {/*    initial={{ opacity: 0 }}*/}
+      {/*    animate={{ opacity: 1, transition: { duration: 0.15 } }}*/}
+      {/*    exit={{ opacity: 0 }}*/}
+      {/*    className='block w-full dark:hidden lg:hidden'*/}
+      {/*  />*/}
+      {/*  <motion.img*/}
+      {/*    key={*/}
+      {/*      content.iterations[active]?.imageDarkMobile?.url + 'imageDarkMobile'*/}
+      {/*    }*/}
+      {/*    src={content.iterations[active]?.imageDarkMobile?.url}*/}
+      {/*    initial={{ opacity: 0 }}*/}
+      {/*    animate={{ opacity: 1, transition: { duration: 0.15 } }}*/}
+      {/*    exit={{ opacity: 0 }}*/}
+      {/*    className='hidden w-full dark:block lg:hidden'*/}
+      {/*  />*/}
+      {/*  <motion.img*/}
+      {/*    key={content.iterations[active]?.image?.url + 'image'}*/}
+      {/*    src={content.iterations[active]?.image?.url}*/}
+      {/*    initial={{ opacity: 0 }}*/}
+      {/*    animate={{ opacity: 1, transition: { duration: 0.15 } }}*/}
+      {/*    exit={{ opacity: 0 }}*/}
+      {/*    className='absolute -right-[10.5rem] top-0 hidden lg:block lg:dark:hidden'*/}
+      {/*  />*/}
+      {/*  <motion.img*/}
+      {/*    key={content.iterations[active]?.imageDark?.url + 'imageDark'}*/}
+      {/*    src={content.iterations[active]?.imageDark?.url}*/}
+      {/*    initial={{ opacity: 0 }}*/}
+      {/*    animate={{ opacity: 1, transition: { duration: 0.15 } }}*/}
+      {/*    exit={{ opacity: 0 }}*/}
+      {/*    className='absolute -right-[10.5rem] top-0 hidden lg:dark:block'*/}
+      {/*  />*/}
+      {/*</AnimatePresence>*/}
     </div>
+  )
+}
+
+function ShowCaseDesktop({ content }: { content: ShowcaseContentRecord }) {
+  let [selectedIndex, setSelectedIndex] = useState(0)
+
+  let onChange = useCallback(
+    (selectedIndex: number) => {
+      setSelectedIndex(selectedIndex)
+    },
+    [setSelectedIndex]
+  )
+
+  return (
+    <Tab.Group
+      as='div'
+      className='hidden grid-cols-12 items-center gap-6 sm:grid'
+      selectedIndex={selectedIndex}
+      onChange={onChange}
+      vertical
+    >
+      <Tab.List
+        className={clsx(
+          !content.rowReverse && 'order-last',
+          'relative z-10 col-span-7 space-y-6'
+        )}
+      >
+        {content.cases.map((feature, featureIndex) => (
+          <div
+            key={feature.id}
+            className='relative rounded-2xl transition-colors hover:bg-mk-section-hover/50'
+          >
+            {featureIndex === selectedIndex && (
+              <motion.div
+                layoutId={'activeBackground' + content.id}
+                className='absolute inset-0 rounded-2xl bg-mk-section-hover'
+              />
+            )}
+            <Tab className='relative z-10 rounded-2xl p-6 text-left focus:outline-none'>
+              <h3 className='font-display text-2xl font-medium'>
+                {feature.title}
+              </h3>
+              <p className='mt-4 text-lg text-medium'>{feature.body}</p>
+            </Tab>
+          </div>
+        ))}
+      </Tab.List>
+      <div className='relative col-span-5 h-[42.1875rem]'>
+        <div className='z-10 mx-auto w-full'>
+          <Tab.Panels as={Fragment}>
+            <AnimatePresence initial={false} mode='wait'>
+              {content.cases.map((feature, featureIndex) =>
+                selectedIndex === featureIndex ? (
+                  <Tab.Panel
+                    static
+                    key={feature.image?.url}
+                    className='flex focus:outline-offset-[32px] [&:not(:focus-visible)]:focus:outline-none'
+                  >
+                    <motion.img
+                      key={feature.image?.url + 'image'}
+                      src={feature.image?.url}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1, transition: { duration: 0.15 } }}
+                      exit={{ opacity: 0 }}
+                      className='block dark:hidden'
+                    />
+                    <motion.img
+                      key={feature.imageDark?.url + 'imageDark'}
+                      src={feature.imageDark?.url}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1, transition: { duration: 0.15 } }}
+                      exit={{ opacity: 0 }}
+                      className='hidden dark:block'
+                    />
+                  </Tab.Panel>
+                ) : null
+              )}
+            </AnimatePresence>
+          </Tab.Panels>
+        </div>
+      </div>
+    </Tab.Group>
+  )
+}
+
+function ShowCaseMobile({ content }: { content: ShowcaseContentRecord }) {
+  let [activeIndex, setActiveIndex] = useState(0)
+  let slideContainerRef = useRef<HTMLDivElement>(null)
+  let slideRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => {
+    let observer = new window.IntersectionObserver(
+      (entries) => {
+        for (let entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveIndex(
+              slideRefs.current.indexOf(entry.target as HTMLDivElement)
+            )
+            break
+          }
+        }
+      },
+      {
+        root: slideContainerRef.current,
+        threshold: 0.6
+      }
+    )
+
+    for (let slide of slideRefs.current) {
+      if (slide) {
+        observer.observe(slide)
+      }
+    }
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [slideContainerRef, slideRefs])
+
+  return (
+    <>
+      <div
+        ref={slideContainerRef}
+        className='flex snap-x snap-mandatory -space-x-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 [scrollbar-width:none] sm:hidden sm:-space-x-6 [&::-webkit-scrollbar]:hidden'
+      >
+        {content.cases.map((feature, featureIndex) => (
+          <div
+            key={featureIndex}
+            ref={(ref) => (slideRefs.current[featureIndex] = ref)}
+            className='w-full flex-none snap-center px-4 sm:px-6'
+          >
+            <div className='relative transform'>
+              <div className='relative mx-auto w-full'>
+                <motion.img
+                  key={feature.image?.url + 'image'}
+                  src={feature.image?.url}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { duration: 0.15 } }}
+                  exit={{ opacity: 0 }}
+                  className='block w-full dark:hidden'
+                />
+                <motion.img
+                  key={feature.imageDark?.url + 'imageDark'}
+                  src={feature.imageDark?.url}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { duration: 0.15 } }}
+                  exit={{ opacity: 0 }}
+                  className='hidden w-full dark:block'
+                />
+              </div>
+              <div className='absolute inset-x-0 bottom-0 rounded-b-2xl bg-mk-section-hover p-6 backdrop-blur sm:p-10'>
+                <h3 className='font-display text-2xl font-medium'>
+                  {feature.title}
+                </h3>
+                <p className='mt-2 text-lg text-medium'>{feature.body}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className='mt-6 flex justify-center gap-3 sm:hidden'>
+        {content.cases.map((_, featureIndex) => (
+          <button
+            type='button'
+            key={featureIndex}
+            className={clsx(
+              'relative h-0.5 w-8 rounded-full',
+              featureIndex === activeIndex
+                ? 'bg-slate-950 dark:bg-slate-300'
+                : 'bg-slate-300 dark:bg-slate-700'
+            )}
+            aria-label={`Go to slide ${featureIndex + 1}`}
+            onClick={() => {
+              slideRefs.current[featureIndex]?.scrollIntoView({
+                block: 'nearest',
+                inline: 'nearest'
+              })
+            }}
+          >
+            <span className='absolute -inset-x-1.5 -inset-y-3' />
+          </button>
+        ))}
+      </div>
+    </>
   )
 }
 
 function ShowcaseContentRecordComponent(content: ShowcaseContentRecord) {
   return (
     <div key={content.id} className='mt-40 last-of-type:mt-0'>
-      {content.__typename}
+      <ShowCaseDesktop content={content} />
+      <ShowCaseMobile content={content} />
+    </div>
+  )
+}
+
+type ProseProps = {
+  children?: ReactNode
+}
+
+const Prose: FC<ProseProps> = ({ children }) => {
+  return (
+    <div className='prose prose-slate dark:prose-invert prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:rounded prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'>
+      {children}
     </div>
   )
 }
 
 function StoryContentRecordComponent(content: StoryContentRecord) {
-  return <h1 key={content.id}>{content.__typename}</h1>
+  return (
+    <div
+      key={content.id}
+      className='grid w-full grid-cols-12 gap-x-6 gap-y-10 px-4 lg:gap-y-14 lg:px-0'
+    >
+      <div className='col-span-full flex items-start lg:col-span-4'>
+        <AnimatePresence mode='wait'>
+          <motion.img
+            key={content.image?.url + 'image'}
+            src={content.image?.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='block dark:hidden'
+          />
+          <motion.img
+            key={content.imageDark?.url + 'imageDark'}
+            src={content.imageDark?.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='hidden dark:block'
+          />
+        </AnimatePresence>
+      </div>
+      <div className='col-span-full flex w-full items-center lg:col-span-8'>
+        <h2 className='text-4xl font-medium'>{content.title}</h2>
+      </div>
+      <div className='col-span-full w-full items-start lg:col-span-4'>
+        <span className='text-2xl text-medium'>
+          {/*<Prose>*/}
+          <StructuredText
+            data={content.blurb?.value}
+            customNodeRules={[
+              renderNodeRule(isLink, ({ node, children }) => {
+                console.log(node)
+                // TODO handle target blank and internal links
+                return (
+                  <AnchorRouter to={node.url} className='text-primary'>
+                    {children}
+                  </AnchorRouter>
+                )
+              })
+            ]}
+          />
+          {/*</Prose>*/}
+        </span>
+      </div>
+      <div className='col-span-full lg:col-span-8'>
+        <span className='text-2xl text-medium'>
+          {/*<Prose>*/}
+          <StructuredText data={content.bodyText?.value} />
+          {/*</Prose>*/}
+        </span>
+      </div>
+    </div>
+  )
 }
 
 function TeamContentRecordComponent(content: TeamContentRecord) {
-  return <h1 key={content.id}>{content.__typename}</h1>
+  return (
+    <div
+      key={content.id}
+      className='grid w-full grid-cols-12 gap-x-10 gap-y-20 px-4 lg:gap-y-14 lg:px-0'
+    >
+      <div className='col-span-full flex flex-col items-center space-y-10 text-center'>
+        <AnimatePresence mode='wait'>
+          <motion.img
+            key={content.image?.url + 'image'}
+            src={content.image?.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='block dark:hidden'
+          />
+          <motion.img
+            key={content.imageDark?.url + 'imageDark'}
+            src={content.imageDark?.url}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+            className='hidden dark:block'
+          />
+        </AnimatePresence>
+        {content.title && (
+          <h2 className='font-display text-4xl font-medium'>{content.title}</h2>
+        )}
+      </div>
+      {content.people.map((member) => (
+        <div
+          key={member.id}
+          className='col-span-full flex flex-col items-center lg:col-span-4'
+        >
+          <Image
+            pictureClassName='m-0'
+            className='block w-full rounded-2xl'
+            data={{
+              ...(member.person?.avatar?.responsiveImage as ResponsiveImageType)
+            }}
+          />
+          <h3 className='mt-10 font-display text-2xl font-medium'>
+            {member.person?.name}
+          </h3>
+          <h3 className='mt-3 text-lg text-medium'>{member.person?.role}</h3>
+          <div className='mt-3 flex space-x-4'>
+            {member.person?.twitterUrl && (
+              <AnchorRouter to={member.person.twitterUrl}>
+                <TwitterIcon />
+              </AnchorRouter>
+            )}
+            {member.person?.linkedinUrl && (
+              <AnchorRouter to={member.person.linkedinUrl}>
+                <LinkedInIcon />
+              </AnchorRouter>
+            )}
+            {member.person?.fynbosUrl && (
+              <AnchorRouter to={member.person.fynbosUrl}>
+                <FynbosIcon />
+              </AnchorRouter>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function TextContentRecordComponent(content: TextContentRecord) {
@@ -467,9 +820,9 @@ function TextContentRecordComponent(content: TextContentRecord) {
         <h2 className='font-display text-4xl font-medium'>{content.title}</h2>
       )}
       {content.bodyText && (
-        <p className='text-lg text-medium lg:text-2xl'>
+        <span className='text-lg text-medium lg:text-2xl'>
           <StructuredText data={content.bodyText.value} />
-        </p>
+        </span>
       )}
       {content.button.length > 0 && (
         <ButtonRouter
@@ -483,174 +836,3 @@ function TextContentRecordComponent(content: TextContentRecord) {
     </div>
   )
 }
-
-// function FeaturesDesktop(content: ShowcaseContentRecord) {
-//   let [changeCount, setChangeCount] = useState(0)
-//   let [selectedIndex, setSelectedIndex] = useState(0)
-//   let prevIndex = usePrevious(selectedIndex)
-//   let isForwards = prevIndex === undefined ? true : selectedIndex > prevIndex
-//
-//   let onChange = useCallback(
-//     (selectedIndex: number) => {
-//       setSelectedIndex(selectedIndex)
-//       setChangeCount((changeCount) => changeCount + 1)
-//     },
-//     [setSelectedIndex]
-//   )
-//
-//   return (
-//     <Tab.Group
-//       as='div'
-//       className='grid grid-cols-12 items-center gap-8 lg:gap-16 xl:gap-24'
-//       selectedIndex={selectedIndex}
-//       onChange={onChange}
-//       vertical
-//     >
-//       <Tab.List className='relative z-10 order-last col-span-6 space-y-6'>
-//         {content.cases.map((feature, featureIndex) => (
-//           <div
-//             key={feature.id}
-//             className='relative rounded-2xl transition-colors hover:bg-nav-hover'
-//           >
-//             {featureIndex === selectedIndex && (
-//               <motion.div
-//                 layoutId='activeBackground'
-//                 className='absolute inset-0 bg-nav'
-//                 initial={{ borderRadius: 20 }}
-//               />
-//             )}
-//             <div className='relative z-10 p-8'>
-//               <h3 className='mt-6 text-lg font-semibold text-white'>
-//                 <Tab className='text-left [&:not(:focus-visible)]:focus:outline-none'>
-//                   <span className='absolute inset-0 rounded-2xl' />
-//                   {feature.title}
-//                 </Tab>
-//               </h3>
-//               <p className='mt-2 text-sm text-gray-400'>{feature.body}</p>
-//             </div>
-//           </div>
-//         ))}
-//       </Tab.List>
-//       <div className='relative col-span-6'>
-//         <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
-//           <CircleBackground color='#13B5C8' className='animate-spin-slower' />
-//         </div>
-//         <PhoneFrame className='z-10 mx-auto w-full max-w-[366px]'>
-//           <Tab.Panels as={Fragment}>
-//             <AnimatePresence
-//               initial={false}
-//               custom={{ isForwards, changeCount }}
-//             >
-//               {features.map((feature, featureIndex) =>
-//                 selectedIndex === featureIndex ? (
-//                   <Tab.Panel
-//                     static
-//                     key={feature.name + changeCount}
-//                     className='col-start-1 row-start-1 flex focus:outline-offset-[32px] [&:not(:focus-visible)]:focus:outline-none'
-//                   >
-//                     <feature.screen
-//                       animated
-//                       custom={{ isForwards, changeCount }}
-//                     />
-//                   </Tab.Panel>
-//                 ) : null
-//               )}
-//             </AnimatePresence>
-//           </Tab.Panels>
-//         </PhoneFrame>
-//       </div>
-//     </Tab.Group>
-//   )
-// }
-//
-// function FeaturesMobile() {
-//   let [activeIndex, setActiveIndex] = useState(0)
-//   let slideContainerRef = useRef()
-//   let slideRefs = useRef([])
-//
-//   useEffect(() => {
-//     let observer = new window.IntersectionObserver(
-//       (entries) => {
-//         for (let entry of entries) {
-//           if (entry.isIntersecting) {
-//             setActiveIndex(slideRefs.current.indexOf(entry.target))
-//             break
-//           }
-//         }
-//       },
-//       {
-//         root: slideContainerRef.current,
-//         threshold: 0.6
-//       }
-//     )
-//
-//     for (let slide of slideRefs.current) {
-//       if (slide) {
-//         observer.observe(slide)
-//       }
-//     }
-//
-//     return () => {
-//       observer.disconnect()
-//     }
-//   }, [slideContainerRef, slideRefs])
-//
-//   return (
-//     <>
-//       <div
-//         ref={slideContainerRef}
-//         className='-mb-4 flex snap-x snap-mandatory -space-x-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 [scrollbar-width:none] sm:-space-x-6 [&::-webkit-scrollbar]:hidden'
-//       >
-//         {features.map((feature, featureIndex) => (
-//           <div
-//             key={featureIndex}
-//             ref={(ref) => (slideRefs.current[featureIndex] = ref)}
-//             className='w-full flex-none snap-center px-4 sm:px-6'
-//           >
-//             <div className='relative transform overflow-hidden rounded-2xl bg-gray-800 px-5 py-6'>
-//               <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
-//                 <CircleBackground
-//                   color='#13B5C8'
-//                   className={featureIndex % 2 === 1 ? 'rotate-180' : undefined}
-//                 />
-//               </div>
-//               <PhoneFrame className='relative mx-auto w-full max-w-[366px]'>
-//                 <feature.screen />
-//               </PhoneFrame>
-//               <div className='absolute inset-x-0 bottom-0 bg-gray-800/95 p-6 backdrop-blur sm:p-10'>
-//                 <feature.icon className='h-8 w-8' />
-//                 <h3 className='mt-6 text-sm font-semibold text-white sm:text-lg'>
-//                   {feature.name}
-//                 </h3>
-//                 <p className='mt-2 text-sm text-gray-400'>
-//                   {feature.description}
-//                 </p>
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//       <div className='mt-6 flex justify-center gap-3'>
-//         {features.map((_, featureIndex) => (
-//           <button
-//             type='button'
-//             key={featureIndex}
-//             className={clsx(
-//               'relative h-0.5 w-4 rounded-full',
-//               featureIndex === activeIndex ? 'bg-gray-300' : 'bg-gray-500'
-//             )}
-//             aria-label={`Go to slide ${featureIndex + 1}`}
-//             onClick={() => {
-//               slideRefs.current[featureIndex].scrollIntoView({
-//                 block: 'nearest',
-//                 inline: 'nearest'
-//               })
-//             }}
-//           >
-//             <span className='absolute -inset-x-1.5 -inset-y-3' />
-//           </button>
-//         ))}
-//       </div>
-//     </>
-//   )
-// }

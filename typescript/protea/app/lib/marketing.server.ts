@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client'
 import type { Query } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
+import { RESPONSIVE_IMAGE } from '~/lib/blog.server'
 
 export const getAboutPage = async () => {
   return apolloClient
@@ -113,6 +114,43 @@ export const getHomePage = async () => {
     })
 }
 
+export const getWalletPage = async () => {
+  return apolloClient
+    .query<{
+      walletpage: Query['walletpage']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetPageContent {
+          walletpage {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { walletpage: null, footer: null }
+    })
+}
+
 export const FOOTER = gql`
   fragment Footer on FooterRecord {
     id
@@ -153,6 +191,7 @@ export const FOOTER = gql`
 `
 
 export const SECTION = gql`
+  ${RESPONSIVE_IMAGE}
   fragment Section on SectionRecord {
     id
     content {
@@ -164,6 +203,14 @@ export const SECTION = gql`
           displayText
           url
           button
+        }
+        image {
+          id
+          url
+        }
+        imageDark {
+          id
+          url
         }
       }
       ... on FeatureBlocksContentRecord {
@@ -266,6 +313,7 @@ export const SECTION = gql`
       }
       ... on ShowcaseContentRecord {
         id
+        rowReverse
         cases {
           id
           title
@@ -274,7 +322,7 @@ export const SECTION = gql`
             id
             url
           }
-          imagedark {
+          imageDark {
             id
             url
           }
@@ -289,10 +337,26 @@ export const SECTION = gql`
         bodyText {
           value
         }
+        image {
+          id
+          url
+        }
+        imageDark {
+          id
+          url
+        }
       }
       ... on TeamContentRecord {
         id
         title
+        image {
+          id
+          url
+        }
+        imageDark {
+          id
+          url
+        }
         people {
           id
           person {
@@ -302,9 +366,7 @@ export const SECTION = gql`
             linkedinUrl
             fynbosUrl
             avatar {
-              id
-              url
-              # TODO: Add responsive image
+              ...ResponsiveImage
             }
           }
         }

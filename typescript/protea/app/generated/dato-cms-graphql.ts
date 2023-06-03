@@ -270,6 +270,7 @@ export type CtaContentRecord = RecordInterface & {
   button: Array<LinkRecord>;
   id: Scalars['ItemId'];
   image?: Maybe<FileField>;
+  imageDark?: Maybe<FileField>;
   title?: Maybe<Scalars['String']>;
 };
 
@@ -2896,7 +2897,7 @@ export type ShowcaseRecord = RecordInterface & {
   body?: Maybe<Scalars['String']>;
   id: Scalars['ItemId'];
   image?: Maybe<FileField>;
-  imagedark?: Maybe<FileField>;
+  imageDark?: Maybe<FileField>;
   title?: Maybe<Scalars['String']>;
 };
 
@@ -3013,6 +3014,8 @@ export type StoryContentRecord = RecordInterface & {
   blurb?: Maybe<StoryContentModelBlurbField>;
   bodyText?: Maybe<StoryContentModelBodyTextField>;
   id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
+  imageDark?: Maybe<FileField>;
   title?: Maybe<Scalars['String']>;
 };
 
@@ -3088,6 +3091,8 @@ export type TeamContentRecord = RecordInterface & {
   _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
   _updatedAt: Scalars['DateTime'];
   id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
+  imageDark?: Maybe<FileField>;
   people: Array<PersonContentRecord>;
   title?: Maybe<Scalars['String']>;
 };

@@ -92,7 +92,7 @@ export function Scaffold() {
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
           layout === Layouts.Marketing &&
-            'h-16 border-b border-slate-200 bg-mk-page lg:h-24',
+            'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
           layout === Layouts.Focus &&
             'mx-auto h-16 select-none bg-app sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
@@ -115,17 +115,15 @@ export function Scaffold() {
               </Router>
             </div>
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
-              <HeaderLink
-                to={route('/what-is-a-payment-pointer')}
-                title='What is a payment pointer?'
-              />
-              {/*<HeaderLink to={route('/about')} title='About' />*/}
+              <HeaderLink to={route('/wallet')} title='Wallet' />
+              <HeaderLink to={route('/about')} title='About' />
+              {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
               <HeaderLink to={route('/blog')} title='Blog' />
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
-            <div className='ml-auto flex items-center lg:hidden'>
-              <IconButton>light_mode</IconButton>
-            </div>
+            {/*<div className='ml-auto flex items-center lg:hidden'>*/}
+            {/*  <IconButton>light_mode</IconButton>*/}
+            {/*</div>*/}
             <div className='ml-auto hidden items-center lg:flex'>
               {!isUser && (
                 <div className='flex space-x-10 pb-2 pt-3'>
@@ -248,7 +246,8 @@ export function Scaffold() {
         {layout === Layouts.Marketing && footer && (
           <div className='relative mx-auto flex w-full flex-col px-4 pb-12 pt-52 lg:px-0 lg:pl-40 lg:pt-20 xl:max-w-[59rem]'>
             <img
-              className='absolute left-4 top-10 lg:left-0 lg:top-20'
+              alt='Fynbos logo'
+              className='absolute left-4 top-10 lg:left-4 lg:top-20'
               loading='lazy'
               src={footer.logo?.url}
             />
@@ -377,10 +376,15 @@ export function Scaffold() {
                   </div>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/what-is-a-payment-pointer')}>
-                  What is a payment pointer?
+                <NavDrawer.ListItem to={route('/wallet')}>
+                  Wallet
                 </NavDrawer.ListItem>
-                {/*<NavDrawer.ListItem to={route('/about')}>About</NavDrawer.ListItem> */}
+                <NavDrawer.ListItem to={route('/about')}>
+                  About
+                </NavDrawer.ListItem>
+                {/*<NavDrawer.ListItem to={route('/docs')}>*/}
+                {/*  Docs*/}
+                {/*</NavDrawer.ListItem>*/}
                 <NavDrawer.ListItem to={route('/blog')}>
                   Blog
                 </NavDrawer.ListItem>
