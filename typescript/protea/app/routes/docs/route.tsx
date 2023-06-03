@@ -3,11 +3,13 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
-import { Fab, Layouts, renderMarketingPageWithSections } from '~/components'
+import { Fab, Layouts, MarketingPageWithSections } from '~/components'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { getAboutPage } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
+  if (process.env.FYNBOS_ENV == 'prod')
+    throw json(null, { status: 404, statusText: 'Not found' })
   const { aboutpage, footer } = await getAboutPage()
   return json({ aboutpage, footer })
 }
@@ -33,9 +35,12 @@ export default function Page() {
   const { aboutpage } = useLoaderData<typeof loader>()
   return (
     <>
-      {aboutpage?.body.map((section) =>
-        renderMarketingPageWithSections(section as SectionRecord)
-      )}
+      {aboutpage?.body.map((section) => (
+        <MarketingPageWithSections
+          key={section.id}
+          section={section as SectionRecord}
+        />
+      ))}
     </>
   )
 }

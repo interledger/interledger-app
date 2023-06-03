@@ -2400,6 +2400,31 @@ export type LinksFilter = {
   notIn?: InputMaybe<Array<InputMaybe<Scalars['ItemId']>>>;
 };
 
+/** Block of type Manual content (manual_content) */
+export type ManualContentRecord = RecordInterface & {
+  __typename?: 'ManualContentRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  id: Scalars['ItemId'];
+};
+
+
+/** Block of type Manual content (manual_content) */
+export type ManualContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export enum MuxThumbnailFormatType {
   Gif = 'gif',
   Jpg = 'jpg',
@@ -2809,7 +2834,7 @@ export type ResponsiveImage = {
   width: Scalars['IntType'];
 };
 
-export type SectionModelContentField = CtaContentRecord | FeatureBlocksContentRecord | FeatureContentRecord | HeaderContentRecord | HeroContentRecord | HomeHeroContentRecord | ShowcaseContentRecord | StoryContentRecord | TeamContentRecord | TextContentRecord;
+export type SectionModelContentField = CtaContentRecord | FeatureBlocksContentRecord | FeatureContentRecord | HeaderContentRecord | HeroContentRecord | HomeHeroContentRecord | ManualContentRecord | ShowcaseContentRecord | StoryContentRecord | TeamContentRecord | TextContentRecord;
 
 /** Block of type Section (section) */
 export type SectionRecord = RecordInterface & {

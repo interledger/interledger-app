@@ -1,6 +1,6 @@
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
-import { Layouts, renderMarketingPageWithSections } from '~/components'
+import { Layouts, MarketingPageWithSections } from '~/components'
 
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import type { loader } from './route'
@@ -18,9 +18,12 @@ export function MarketingPage() {
   const { homepage } = useLoaderData<typeof loader>()
   return (
     <>
-      {homepage?.body.map((section) =>
-        renderMarketingPageWithSections(section as SectionRecord)
-      )}
+      {homepage?.body.map((section) => (
+        <MarketingPageWithSections
+          key={section.id}
+          section={section as SectionRecord}
+        />
+      ))}
     </>
   )
 }
