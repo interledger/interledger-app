@@ -137,21 +137,15 @@ export default function Page() {
           errorMessage={actionData?.errors.serviceAgreement}
         >
           I agree to the Fynbos&nbsp;
-          <Router className='text-primary' to={route('/legal/privacy-policy')}>
+          <Router className='text-primary' to='/legal/privacy-policy'>
             Privacy Policy
           </Router>
           ,&nbsp;
-          <Router
-            className='text-primary'
-            to={route('/legal/terms-of-service')}
-          >
+          <Router className='text-primary' to='/legal/terms-of-service'>
             Terms of Use
           </Router>
           , and&nbsp;
-          <Router
-            className='text-primary'
-            to={route('/legal/us/e-sign-agreement')}
-          >
+          <Router className='text-primary' to='/legal/us/e-sign-agreement'>
             E-sign Agreement
           </Router>
           .

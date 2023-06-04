@@ -4,7 +4,6 @@ declare module "routes-gen" {
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/settings/linked-identities/:identityId": { "identityId": string };
     "/settings/linked-accounts/:accountId": { "accountId": string };
-    "/legal/accessibility-statement": Record<string, never>;
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/connections/add-a-public-key": Record<string, never>;
@@ -18,11 +17,8 @@ declare module "routes-gen" {
     "/settings/profile-contact": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
-    "/legal/terms-of-service": Record<string, never>;
     "/legal/us/terms-of-use": Record<string, never>;
-    "/legal/privacy-policy": Record<string, never>;
     "/legal/us/compliance": Record<string, never>;
-    "/legal/wallet-license": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
     "/legal/us/licences": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
@@ -40,6 +36,7 @@ declare module "routes-gen" {
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
+    "/legal/:slug": { "slug": string };
     "/link-account": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/transactions": Record<string, never>;
@@ -57,10 +54,12 @@ declare module "routes-gen" {
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
+    "/wallet": Record<string, never>;
+    "/about": Record<string, never>;
     "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
-    "/test": Record<string, never>;
+    "/docs": Record<string, never>;
     "/pay": Record<string, never>;
   };
 
@@ -70,7 +69,6 @@ declare module "routes-gen" {
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
       | ["/settings/linked-identities/:identityId", RouteParams["/settings/linked-identities/:identityId"]]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
-      | ["/legal/accessibility-statement"]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/connections/add-a-public-key"]
@@ -84,11 +82,8 @@ declare module "routes-gen" {
       | ["/settings/profile-contact"]
       | ["/what-is-a-payment-pointer"]
       | ["/settings/profile-public"]
-      | ["/legal/terms-of-service"]
       | ["/legal/us/terms-of-use"]
-      | ["/legal/privacy-policy"]
       | ["/legal/us/compliance"]
-      | ["/legal/wallet-license"]
       | ["/temp-cloudflare-error"]
       | ["/legal/us/licences"]
       | ["/api/maps/geocode"]
@@ -106,6 +101,7 @@ declare module "routes-gen" {
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/api/sendOtp"]
+      | ["/legal/:slug", RouteParams["/legal/:slug"]]
       | ["/link-account"]
       | ["/pay/confirm"]
       | ["/transactions"]
@@ -123,10 +119,12 @@ declare module "routes-gen" {
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
+      | ["/wallet"]
+      | ["/about"]
       | ["/legal"]
       | ["/login"]
       | ["/blog"]
-      | ["/test"]
+      | ["/docs"]
       | ["/pay"]
   >(...args: T): typeof args[0];
 }
