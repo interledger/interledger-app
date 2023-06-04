@@ -7,7 +7,7 @@ import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { StructuredText, toRemixMeta } from 'react-datocms'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML'
-import { getCurrentLegalPage, getLegalRoute } from '~/lib/marketing.server'
+import { getCurrentLegalPage } from '~/lib/marketing.server'
 
 export function meta({ data, params }: any) {
   return {
@@ -22,28 +22,30 @@ export function meta({ data, params }: any) {
 }
 
 export async function loader({ request, params, context }: LoaderArgs) {
-  const page = await getCurrentLegalPage({
+  const { legalPage, footer } = await getCurrentLegalPage({
     filter: {
       slug: { eq: params.slug },
       jurisdiction: { eq: params.jurisdiction ?? 'global' }
     }
   })
 
-  if (page === null) throw json(null, { status: 404, statusText: 'Not Found' })
+  if (legalPage === null)
+    throw json(null, { status: 404, statusText: 'Not Found' })
 
   // TODO decide if we want to route to the global version if there isn't a jurisdiction specific one.
 
   let externalContent
-  if (page?.external) {
-    externalContent = await fetchAndSanitizeHTML(page.external)
+  if (legalPage?.external) {
+    externalContent = await fetchAndSanitizeHTML(legalPage.external)
   }
-  const { footer } = await getLegalRoute()
 
   return json({
     footer,
     page: {
-      ...page,
-      updatedAt: DateTime.fromISO(page?._publishedAt).toFormat('dd MMM yyyy')
+      ...legalPage,
+      updatedAt: DateTime.fromISO(legalPage?._publishedAt).toFormat(
+        'dd MMM yyyy'
+      )
     },
     externalContent
   })

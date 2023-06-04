@@ -17,14 +17,13 @@ import type { ResponsiveImageType } from 'react-datocms'
 import { Image, StructuredText, toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
 import type {
+  BlogPostRecord,
   InlineImageRecord,
   InlinePersonRecord,
   InlineTwitterEmbedRecord,
-  InlineVideoRecord,
-  PersonRecord
+  InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
-import { getCurrentBlogPost } from '~/lib/blog.server'
-import { getBlogRoute } from '~/lib/marketing.server'
+import { getCurrentBlogPost } from '~/lib/marketing.server'
 
 export function meta({ data, params }: any) {
   return {
@@ -35,10 +34,12 @@ export function meta({ data, params }: any) {
 }
 
 export async function loader({ params }: LoaderArgs) {
-  const { footer } = await getBlogRoute()
+  const { footer, blogPost } = await getCurrentBlogPost({
+    filter: { slug: { eq: params.slug } }
+  })
   return json({
     footer,
-    post: await getCurrentBlogPost({ filter: { slug: { eq: params.slug } } })
+    post: blogPost as BlogPostRecord
   })
 }
 
@@ -52,7 +53,7 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { post } = useLoaderData()
+  const { post } = useLoaderData<typeof loader>()
 
   return (
     <main className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 p-4 pb-24 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
@@ -68,12 +69,16 @@ export default function Page() {
           <h1 className='font-display text-3xl font-medium text-medium sm:text-5xl'>
             {post?.title}
           </h1>
-          <img src={post.shapes?.url} alt='' className='hidden w-60 lg:block' />
+          <img
+            src={post?.shapes?.url}
+            alt=''
+            className='hidden w-60 lg:block'
+          />
         </div>
       </div>
       <div className='col-span-2 mb-2 lg:hidden'>
         <img
-          src={post.shapesMobile?.url}
+          src={post?.shapesMobile?.url}
           alt=''
           className='flex h-10 lg:hidden'
         />
@@ -83,10 +88,28 @@ export default function Page() {
       </h1>
       <div className='relative col-span-full flex h-min flex-col justify-start border-t-2 border-black lg:sticky lg:top-24 lg:col-span-3 lg:border-b-0'>
         <div className='mb-2 mt-6 lg:mb-6'>{post?.date}</div>
-        {post?.authors.map((author: PersonRecord) => (
-          <AuthorBlock key={author.id} author={author} />
-        ))}
-        {post._status === 'draft' && (
+        {post &&
+          post?.authors.length > 0 &&
+          post?.authors.map((author) => (
+            <div key={author.id} className='mb-6 flex'>
+              <Image
+                pictureClassName='m-0'
+                className='mr-3 aspect-square'
+                data={author.avatar?.responsiveImage as ResponsiveImageType}
+              />
+              <div className='flex flex-grow flex-col lg:mt-3'>
+                <div className='font-medium'>{author.name}</div>
+                <AnchorRouter
+                  to={author.twitterUrl as string}
+                  aria-label='Author twitter'
+                  className='text-primary'
+                >
+                  @{author.twitterUrl?.split('/').pop()}
+                </AnchorRouter>
+              </div>
+            </div>
+          ))}
+        {post?._status === 'draft' && (
           <div className='relative'>
             <Chip color={ChipColor.purple}>Draft</Chip>
           </div>
@@ -96,7 +119,7 @@ export default function Page() {
         <Prose>
           {post && (
             <StructuredText
-              data={post.content}
+              data={post.content as any}
               renderBlock={({ record }) => {
                 switch (record.__typename) {
                   case 'InlineImageRecord':
@@ -214,28 +237,6 @@ const Prose: FC<ProseProps> = ({ children }) => {
   return (
     <div className='prose prose-slate dark:prose-invert prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:rounded prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'>
       {children}
-    </div>
-  )
-}
-//
-const AuthorBlock: FC<{ author: PersonRecord }> = ({ author }) => {
-  return (
-    <div className='mb-6 flex'>
-      <Image
-        pictureClassName='m-0'
-        className='mr-3 aspect-square'
-        data={author.avatar?.responsiveImage as ResponsiveImageType}
-      />
-      <div className='flex flex-grow flex-col lg:mt-3'>
-        <div className='font-medium'>{author.name}</div>
-        <AnchorRouter
-          to={author.twitterUrl as string}
-          aria-label='Author twitter'
-          className='text-primary'
-        >
-          @{author.twitterUrl?.split('/').pop()}
-        </AnchorRouter>
-      </div>
     </div>
   )
 }

@@ -7,29 +7,25 @@ import type { ApplicationProps } from '~/components'
 import {
   Chip,
   ChipColor,
-  Fab,
   Layouts,
   MarketingPageWithSections,
   Router
 } from '~/components'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
-import { getAllBlogPosts } from '~/lib/blog.server'
 import { getBlogRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const { blogRoute, footer } = await getBlogRoute()
-  const posts = await getAllBlogPosts({
+  const { blogRoute, allBlogPosts, footer } = await getBlogRoute({
     orderBy: [BlogPostModelOrderBy.DateDesc]
   })
-  return json({ posts, blogRoute, footer })
+  return json({ allBlogPosts, blogRoute, footer })
 }
 
 export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    fab: Fab.Pay,
     footer: (match) => match.data.footer
   }
 }
@@ -43,7 +39,7 @@ export function meta({ data, params }: any) {
 }
 
 export default function Page() {
-  const { posts, blogRoute } = useLoaderData<typeof loader>()
+  const { allBlogPosts, blogRoute } = useLoaderData<typeof loader>()
   return (
     <>
       {blogRoute?.body.map((section) => (
@@ -52,8 +48,8 @@ export default function Page() {
           section={section as SectionRecord}
         >
           <div className='mt-20  grid w-full grid-cols-12 gap-y-8 px-4 py-20 lg:gap-10 lg:px-0'>
-            {posts &&
-              posts.map((post, index) => (
+            {allBlogPosts &&
+              allBlogPosts.map((post, index) => (
                 <Router
                   className={clsx(
                     'col-span-full',

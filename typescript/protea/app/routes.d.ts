@@ -7,20 +7,16 @@ declare module "routes-gen" {
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/connections/add-a-public-key": Record<string, never>;
-    "/legal/us/e-sign-agreement": Record<string, never>;
+    "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
     "/me/identities/:identityId": { "identityId": string };
     "/settings/linked-identities": Record<string, never>;
     "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
-    "/legal/us/privacy-policy": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
     "/settings/profile-contact": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
-    "/legal/us/terms-of-use": Record<string, never>;
-    "/legal/us/compliance": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
-    "/legal/us/licences": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/link-account/bank": Record<string, never>;
     "/link-account/card": Record<string, never>;
@@ -36,7 +32,6 @@ declare module "routes-gen" {
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
-    "/legal/:slug": { "slug": string };
     "/link-account": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/transactions": Record<string, never>;
@@ -60,6 +55,7 @@ declare module "routes-gen" {
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
     "/docs": Record<string, never>;
+    "/test": Record<string, never>;
     "/pay": Record<string, never>;
   };
 
@@ -72,20 +68,16 @@ declare module "routes-gen" {
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/connections/add-a-public-key"]
-      | ["/legal/us/e-sign-agreement"]
+      | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
       | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
       | ["/settings/linked-identities"]
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
-      | ["/legal/us/privacy-policy"]
       | ["/settings/linked-accounts"]
       | ["/settings/profile-contact"]
       | ["/what-is-a-payment-pointer"]
       | ["/settings/profile-public"]
-      | ["/legal/us/terms-of-use"]
-      | ["/legal/us/compliance"]
       | ["/temp-cloudflare-error"]
-      | ["/legal/us/licences"]
       | ["/api/maps/geocode"]
       | ["/link-account/bank"]
       | ["/link-account/card"]
@@ -101,7 +93,6 @@ declare module "routes-gen" {
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/api/sendOtp"]
-      | ["/legal/:slug", RouteParams["/legal/:slug"]]
       | ["/link-account"]
       | ["/pay/confirm"]
       | ["/transactions"]
@@ -125,6 +116,7 @@ declare module "routes-gen" {
       | ["/login"]
       | ["/blog"]
       | ["/docs"]
+      | ["/test"]
       | ["/pay"]
   >(...args: T): typeof args[0];
 }
