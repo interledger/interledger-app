@@ -1,0 +1,44 @@
+import type { LoaderArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
+import { toRemixMeta } from 'react-datocms'
+import type { ApplicationProps } from '~/components'
+import { Fab, Layouts, MarketingPageWithSections } from '~/components'
+import type { SectionRecord } from '~/generated/dato-cms-graphql'
+import { getAboutRoute } from '~/lib/marketing.server'
+
+export async function loader({ request }: LoaderArgs) {
+  const { aboutRoute, footer } = await getAboutRoute()
+  return json({ aboutRoute, footer })
+}
+
+export const handle: ApplicationProps = {
+  layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
+  scaffold: {
+    header: {},
+    fab: Fab.Pay,
+    footer: (match) => match.data.footer
+  }
+}
+
+export function meta({ data, params }: any) {
+  return {
+    ...toRemixMeta(data.aboutRoute.seoMeta),
+    'twitter:url': 'https://fynbos.app/about',
+    'og:url': 'https://fynbos.app/about'
+  }
+}
+
+export default function Page() {
+  const { aboutRoute } = useLoaderData<typeof loader>()
+  return (
+    <>
+      {aboutRoute?.body.map((section) => (
+        <MarketingPageWithSections
+          key={section.id}
+          section={section as SectionRecord}
+        />
+      ))}
+    </>
+  )
+}
