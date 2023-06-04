@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export type Status = 'idle' | 'loading' | 'ready' | 'error'
 export type ScriptElt = HTMLScriptElement | null

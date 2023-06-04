@@ -29,7 +29,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Confirm payment',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {
@@ -79,7 +79,7 @@ export default function Page() {
         </div>
         <div className='mt-2 flex w-full justify-between'>
           <span className='text-sm'>They receive</span>
-          <span className='text-sm text-2xl font-medium text-strong'>
+          <span className='text-2xl text-sm font-medium text-strong'>
             {flow?.data.displayReceiveAmount || '$ 0.00'}
           </span>
         </div>

@@ -1,5 +1,5 @@
-import { Transition, Dialog as HeadlessDialog } from '@headlessui/react'
-import type { Dispatch, FC, SetStateAction, ReactNode } from 'react'
+import { Dialog as HeadlessDialog, Transition } from '@headlessui/react'
+import type { Dispatch, FC, ReactNode, SetStateAction } from 'react'
 import { Fragment } from 'react'
 
 type DialogProps = {
@@ -21,7 +21,7 @@ export const Dialog: FC<DialogProps> = ({ children, open, setOpen }) => {
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <div className='bg-scrim/75 fixed inset-0 backdrop-blur-sm transition-opacity' />
+          <div className='fixed inset-0 bg-scrim/75 backdrop-blur-sm transition-opacity' />
         </Transition.Child>
 
         <div className='pointer-events-none fixed inset-0 flex items-center justify-center overflow-hidden'>

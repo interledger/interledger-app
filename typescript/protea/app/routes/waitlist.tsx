@@ -1,3 +1,8 @@
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import {
   Autocomplete,
   Button,
@@ -6,15 +11,14 @@ import {
   Layouts,
   TextField
 } from '~/components'
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import type { GrpcError } from '~/lib/proto.server'
-import { httpMapping } from '~/lib/proto.server'
-import { grpcClient, isGrpcError, StatusError } from '~/lib/proto.server'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { requireNoUserSession } from '~/lib/kratos.server'
-import { useEffect, useState } from 'react'
-import { route } from 'routes-gen'
+import type { GrpcError } from '~/lib/proto.server'
+import {
+  StatusError,
+  grpcClient,
+  httpMapping,
+  isGrpcError
+} from '~/lib/proto.server'
 
 type Country = {
   id: string
@@ -66,7 +70,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Join the waitlist',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {
@@ -127,7 +131,7 @@ export default function Page() {
             <span className='font-display text-2xl font-medium'>
               Congratulations!
             </span>
-            <div className='mt-4 flex flex-col space-y-4 sm:flex-row-reverse sm:items-center sm:space-y-0 sm:space-x-6 sm:space-x-reverse'>
+            <div className='mt-4 flex flex-col space-y-4 sm:flex-row-reverse sm:items-center sm:space-x-6 sm:space-y-0 sm:space-x-reverse'>
               <span className='text-medium'>
                 You got your hands on a limited edition Fynbos mug.
               </span>
