@@ -64,7 +64,7 @@ export async function canSignup(request: Request): Promise<void> {
     })
   }
 
-  throw redirect(route('/'))
+  throw redirect(route('/waitlist'))
 }
 
 export async function setWaitlistSignupComplete(
