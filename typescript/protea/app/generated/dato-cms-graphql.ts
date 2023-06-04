@@ -2291,6 +2291,7 @@ export type LegalPageModelFilter = {
   _updatedAt?: InputMaybe<UpdatedAtFilter>;
   body?: InputMaybe<StructuredTextFilter>;
   id?: InputMaybe<ItemIdFilter>;
+  seoMeta?: InputMaybe<SeoFilter>;
   slug?: InputMaybe<SlugFilter>;
   title?: InputMaybe<StringFilter>;
 };
@@ -2336,6 +2337,7 @@ export type LegalPageRecord = RecordInterface & {
   _updatedAt: Scalars['DateTime'];
   body?: Maybe<LegalPageModelBodyField>;
   id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
   slug?: Maybe<Scalars['String']>;
   title?: Maybe<Scalars['String']>;
 };
@@ -3170,6 +3172,7 @@ export type TextContentRecord = RecordInterface & {
   button: Array<LinkRecord>;
   id: Scalars['ItemId'];
   textCentered?: Maybe<Scalars['BooleanType']>;
+  textStandard?: Maybe<Scalars['BooleanType']>;
   title?: Maybe<Scalars['String']>;
 };
 

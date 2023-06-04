@@ -1,7 +1,7 @@
 import { Tab } from '@headlessui/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { FC, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import {
   Fragment,
   useCallback,
@@ -794,29 +794,34 @@ function StoryContentRecordComponent({
       </div>
       <div className='col-span-full w-full items-start lg:col-span-4'>
         <div className='text-2xl text-medium'>
-          {/*<Prose>*/}
+          <span
+            className='prose prose-slate max-w-none dark:prose-invert prose-p:text-lg prose-p:lg:text-2xl prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'
+          >
           <StructuredText
             data={content.blurb?.value}
             customNodeRules={[
               renderNodeRule(isLink, ({ node, children }) => {
-                console.log(node)
+                // console.log(node)
                 // TODO handle target blank and internal links
                 return (
-                  <AnchorRouter to={node.url} className='text-primary'>
+                  <AnchorRouter key={node.url} to={node.url} className='text-primary'>
                     {children}
                   </AnchorRouter>
                 )
               })
             ]}
           />
-          {/*</Prose>*/}
+            </span>
         </div>
       </div>
       <div className='col-span-full lg:col-span-8'>
         <div className='text-2xl text-medium'>
-          {/*<Prose>*/}
-          <StructuredText data={content.bodyText?.value} />
-          {/*</Prose>*/}
+
+          <span
+            className='prose prose-slate max-w-none dark:prose-invert prose-p:text-lg prose-p:lg:text-2xl prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'
+          >
+            <StructuredText data={content.bodyText?.value} />
+          </span>
         </div>
       </div>
     </div>
@@ -831,7 +836,7 @@ function TeamContentRecordComponent({
   return (
     <div
       key={content.id}
-      className='grid w-full grid-cols-12 gap-x-10 gap-y-20 px-4 lg:gap-y-14 lg:px-0'
+      className='grid w-full grid-cols-4 sm:grid-cols-8 lg:grid-cols-12  lg:gap-x-10 gap-y-20 px-4 lg:gap-y-14 lg:px-0'
     >
       <div className='col-span-full flex flex-col items-center space-y-10 text-center'>
         <AnimatePresence mode='wait'>
@@ -861,7 +866,7 @@ function TeamContentRecordComponent({
       {content.people.map((member) => (
         <div
           key={member.id}
-          className='col-span-full flex flex-col items-center lg:col-span-4'
+          className='col-span-full flex flex-col items-center sm:col-span-4'
         >
           <Image
             pictureClassName='m-0'
@@ -914,7 +919,15 @@ function TextContentRecordComponent({
         <h2 className='font-display text-4xl font-medium'>{content.title}</h2>
       )}
       {content.bodyText && (
-        <span className='text-lg text-medium lg:text-2xl'>
+        <span
+          className={clsx(
+            'prose prose-slate max-w-none dark:prose-invert ',
+            content.textStandard && '',
+            !content.textStandard && 'prose-p:text-lg prose-p:lg:text-2xl',
+            'prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'
+          )}
+        >
+          {/*<span className='text-lg text-medium lg:text-2xl'>*/}
           <StructuredText data={content.bodyText.value} />
         </span>
       )}

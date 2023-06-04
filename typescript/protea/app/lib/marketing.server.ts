@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client'
-import type { Query } from '~/generated/dato-cms-graphql'
+import type { Query, QueryLegalPageArgs } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
 import { RESPONSIVE_IMAGE } from '~/lib/blog.server'
 
@@ -148,6 +148,37 @@ export const getLegalRoute = async () => {
     .catch((error) => {
       console.log(error)
       return { legalRoute: null, footer: null }
+    })
+}
+
+export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
+  return apolloClient
+    .query<{ legalPage: Query['legalPage'] }, QueryLegalPageArgs>({
+      query: gql`
+        query GetCurrentBlogPostQuery($filter: LegalPageModelFilter) {
+          legalPage(filter: $filter) {
+            slug
+            body {
+              value
+            }
+            id
+            title
+            _updatedAt
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data.legalPage
+    })
+    .catch((error) => {
+      console.log(error)
     })
 }
 
@@ -452,6 +483,7 @@ export const SECTION = gql`
           value
         }
         textCentered
+        textStandard
         button {
           id
           displayText
