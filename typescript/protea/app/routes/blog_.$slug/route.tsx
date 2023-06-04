@@ -24,7 +24,7 @@ import type {
   PersonRecord
 } from '~/generated/dato-cms-graphql'
 import { getCurrentBlogPost } from '~/lib/blog.server'
-import { getAboutRoute } from '~/lib/marketing.server'
+import { getBlogRoute } from '~/lib/marketing.server'
 
 export function meta({ data, params }: any) {
   return {
@@ -35,7 +35,7 @@ export function meta({ data, params }: any) {
 }
 
 export async function loader({ params }: LoaderArgs) {
-  const { footer } = await getAboutRoute()
+  const { footer } = await getBlogRoute()
   return json({
     footer,
     post: await getCurrentBlogPost({ filter: { slug: { eq: params.slug } } })
