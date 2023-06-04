@@ -1,6 +1,7 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
   AnchorRouter,
@@ -10,12 +11,11 @@ import {
   Router,
   Snackbar
 } from '~/components'
+import { getSnackbar } from '~/lib/snackbar.server'
 import {
   getPublicWalletDetails,
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
-import { getSnackbar } from '~/lib/snackbar.server'
-import { useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   const paymentPointer = await getWalletPaymentPointer(request)
@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Public information',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export default function Page() {

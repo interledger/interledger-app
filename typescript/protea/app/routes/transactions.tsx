@@ -1,15 +1,15 @@
-import { Fragment, useCallback, useEffect, useState } from 'react'
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
+  AnimatedSchedule,
   Card,
   Icon,
   Layouts,
   Router,
-  AnimatedSchedule,
   WalletGrid
 } from '~/components'
 import type { Transaction } from '~/lib/wallet.server'
@@ -72,7 +72,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export const handle = {
   title: 'Transactions',
-  layout: Layouts.WalletLayout
+  layout: Layouts.Wallet
 }
 
 export const meta: MetaFunction = () => {

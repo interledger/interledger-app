@@ -1,5 +1,6 @@
-import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
 
 import type { MetaFunction } from '@remix-run/node'
 
@@ -25,17 +26,20 @@ export const meta: MetaFunction = () => {
   }
 }
 
-export const handle = {
-  layout: Layouts.LandingLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Marketing,
+  scaffold: {
+    header: {}
+  }
 }
 
 export default function Page() {
   return (
-    <main className='w-full overflow-hidden'>
+    <main className='w-full'>
       <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20'>
-          <div className='absolute top-20 -left-40 hidden h-20 w-20 rounded-full bg-slate-400 lg:block' />
-          <div className='absolute top-0 -left-20 hidden h-20 w-20 rounded-tl-full bg-slate-600 lg:block' />
+          <div className='absolute -left-40 top-20 hidden h-20 w-20 rounded-full bg-slate-400 lg:block' />
+          <div className='absolute -left-20 top-0 hidden h-20 w-20 rounded-tl-full bg-slate-600 lg:block' />
           <div className='absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-yellow-400 lg:-right-40' />
         </div>
         <div className='col-span-full'>
@@ -50,7 +54,7 @@ export default function Page() {
         </div>
         <WalletSVG />
         <div className='relative col-span-full h-28'>
-          <div className='absolute right-16 bottom-0 h-20 w-20 rounded-tl-full bg-mk-section lg:-right-20' />
+          <div className='absolute bottom-0 right-16 h-20 w-20 rounded-tl-full bg-mk-section lg:-right-20' />
           <div className='absolute -right-4 bottom-0 h-20 w-20 rounded-tr-full bg-mk-section lg:-right-40' />
         </div>
       </section>
@@ -106,9 +110,9 @@ export default function Page() {
       </div>
       <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-12 overflow-x-visible px-4 pb-12 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 lg:pb-14 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-40 lg:h-20'>
-          <div className='absolute top-0 -left-4 h-20 w-20 rounded-tr-full bg-mk-section lg:-left-40' />
-          <div className='absolute top-0 left-16 h-20 w-20 rounded-bl-full bg-mk-section lg:-left-20' />
-          <div className='absolute top-20 -left-4 h-20 w-20 rounded-br-full bg-mk-section lg:-left-40' />
+          <div className='absolute -left-4 top-0 h-20 w-20 rounded-tr-full bg-mk-section lg:-left-40' />
+          <div className='absolute left-16 top-0 h-20 w-20 rounded-bl-full bg-mk-section lg:-left-20' />
+          <div className='absolute -left-4 top-20 h-20 w-20 rounded-br-full bg-mk-section lg:-left-40' />
         </div>
         <div className='col-span-full lg:col-span-10 lg:col-start-2'>
           <p className='mb-6 text-xl'>
@@ -297,8 +301,8 @@ export default function Page() {
       <div className='w-full bg-mk-section'>
         <section className='mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-2 overflow-x-visible px-4 sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
           <div className='relative col-span-full h-20'>
-            <div className='absolute bottom-0 -right-20 hidden h-20 w-20 rounded-full bg-mk-page lg:block' />
-            <div className='absolute bottom-0 -left-4 h-20 w-20 rounded-full bg-mk-page lg:-left-40' />
+            <div className='absolute -right-20 bottom-0 hidden h-20 w-20 rounded-full bg-mk-page lg:block' />
+            <div className='absolute -left-4 bottom-0 h-20 w-20 rounded-full bg-mk-page lg:-left-40' />
             <div className='absolute bottom-0 left-16 h-20 w-20 rounded-br-full bg-mk-page lg:-left-20' />
           </div>
           <div className='col-span-full mt-4 flex items-center justify-center text-center'>
@@ -314,16 +318,16 @@ export default function Page() {
             </ButtonRouter>
           </div>
           <div className='relative col-span-full h-16 lg:h-20'>
-            <div className='absolute bottom-0 -right-20 hidden h-20 w-20 rounded-tl-full bg-mk-page lg:block' />
-            <div className='absolute bottom-0 -right-40 hidden h-20 w-20 rounded-tr-full bg-mk-page lg:block' />
+            <div className='absolute -right-20 bottom-0 hidden h-20 w-20 rounded-tl-full bg-mk-page lg:block' />
+            <div className='absolute -right-40 bottom-0 hidden h-20 w-20 rounded-tr-full bg-mk-page lg:block' />
           </div>
         </section>
       </div>
       <section className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 gap-y-12 overflow-x-visible px-4 text-center sm:max-w-lg sm:grid-cols-8 sm:px-0 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'>
         <div className='relative col-span-full h-20'>
-          <div className='absolute top-0 -left-4 h-20 w-20 rounded-tr-full bg-mk-section lg:-left-40' />
-          <div className='absolute top-0 left-16 h-20 w-20 rounded-bl-full bg-mk-section lg:-left-20' />
-          <div className='absolute top-0 left-36 h-20 w-20 rounded-br-full bg-mk-section lg:left-0' />
+          <div className='absolute -left-4 top-0 h-20 w-20 rounded-tr-full bg-mk-section lg:-left-40' />
+          <div className='absolute left-16 top-0 h-20 w-20 rounded-bl-full bg-mk-section lg:-left-20' />
+          <div className='absolute left-36 top-0 h-20 w-20 rounded-br-full bg-mk-section lg:left-0' />
         </div>
         <div className='col-span-full lg:col-span-10 lg:col-start-2'>
           <h1 className='mb-6 font-display text-4xl'>More information</h1>
@@ -587,9 +591,9 @@ export default function Page() {
           </p>
         </AnchorRouter>
         <div className='relative col-span-full h-40 lg:h-20'>
-          <div className='absolute bottom-0 -right-4 h-20 w-20 rounded-bl-full bg-mk-section lg:-right-40' />
-          <div className='absolute bottom-20 -right-4 h-20 w-20 rounded-bl-full bg-mk-section lg:-right-40' />
-          <div className='absolute bottom-0 -left-4 h-20 w-20 rounded-tr-full bg-rose-300 dark:bg-rose-400 lg:-left-20' />
+          <div className='absolute -right-4 bottom-0 h-20 w-20 rounded-bl-full bg-mk-section lg:-right-40' />
+          <div className='absolute -right-4 bottom-20 h-20 w-20 rounded-bl-full bg-mk-section lg:-right-40' />
+          <div className='absolute -left-4 bottom-0 h-20 w-20 rounded-tr-full bg-rose-300 dark:bg-rose-400 lg:-left-20' />
         </div>
       </section>
     </main>

@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
@@ -7,6 +6,8 @@ import {
   useFetcher,
   useLoaderData
 } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import type { PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
@@ -19,19 +20,18 @@ import {
   TextButton,
   TextField
 } from '~/components'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
+import { requireNoUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
-import { route } from 'routes-gen'
-import styles from '~/styles/flags.css'
-import { requireNoUserSession } from '~/lib/kratos.server'
 import { canSignup } from '~/lib/signupCheck.server'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -60,7 +60,7 @@ export function links() {
 
 export const handle = {
   title: 'Mobile phone number',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus
 }
 
 export const meta: MetaFunction = () => {

@@ -1,14 +1,14 @@
+import type { NormalizedCacheObject } from '@apollo/client'
 import {
   ApolloClient,
-  createHttpLink,
   InMemoryCache,
+  createHttpLink,
   from
 } from '@apollo/client'
-import type { NormalizedCacheObject } from '@apollo/client'
-import { onError } from '@apollo/client/link/error'
 import { setContext } from '@apollo/client/link/context'
+import { onError } from '@apollo/client/link/error'
 
-const token = process.env.DATO_API_TOKEN || ''
+const token = process.env.DATO_API_TOKEN || 'd2f4f8ed8e71b5302b23ad3e6822c7'
 
 const httpLink = createHttpLink({
   uri: 'https://graphql.datocms.com/'

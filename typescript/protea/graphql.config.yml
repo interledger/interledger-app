@@ -1,7 +1,7 @@
 schema:
   - https://graphql.datocms.com:
       headers:
-        Authorization: ${DATO_API_TOKEN}
+        Authorization: d2f4f8ed8e71b5302b23ad3e6822c7
 generates:
   app/generated/dato-cms-graphql.ts:
     plugins:
@@ -16,7 +16,7 @@ generates:
             FloatType: number
             IntType: number
             ItemId: string
-            JsonField: any
+            JsonField: StructuredText<Record, Record>
             MetaTagAttributes: Record<string, string>
             UploadId: string
       - typed-document-node
