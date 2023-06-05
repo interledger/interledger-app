@@ -1,6 +1,7 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Button,
@@ -10,14 +11,14 @@ import {
   TextArea,
   WalletGrid
 } from '~/components'
+import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
-import { getUserSession } from '~/lib/kratos.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -25,9 +26,13 @@ export async function loader({ request }: LoaderArgs) {
   return json({ traits: session.identity.traits })
 }
 
-export const handle = {
-  title: 'Support',
-  layout: Layouts.WalletLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Wallet,
+  scaffold: {
+    header: {
+      title: 'Support'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

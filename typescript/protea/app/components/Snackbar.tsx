@@ -1,8 +1,8 @@
 import { Transition } from '@headlessui/react'
+import clsx from 'clsx'
 import type { FC } from 'react'
 import { Fragment, useEffect } from 'react'
 import { IconButton, TextButton } from './Buttons'
-import clsx from 'clsx'
 
 interface SnackbarProps {
   id: string
@@ -45,7 +45,7 @@ export const Snackbar: FC<SnackbarProps> = ({
       show={show}
       as={'div'}
       className={clsx(
-        'fixed top-2 left-0 z-[100] mx-auto w-full overflow-y-visible lg:top-4',
+        'fixed left-0 top-2 z-[100] mx-auto w-full overflow-y-visible lg:top-4',
         offset ? 'lg:pl-64' : ''
       )}
     >
@@ -59,7 +59,7 @@ export const Snackbar: FC<SnackbarProps> = ({
           leaveFrom='opacity-100 scale-100'
           leaveTo='opacity-0 scale-95'
         >
-          <div className='mx-4 flex w-full transform items-center justify-between space-x-3 overflow-hidden rounded-xl bg-snackbar py-3 px-4 text-left align-middle shadow-lg transition-all sm:max-w-[22rem]'>
+          <div className='mx-4 flex w-full transform items-center justify-between space-x-3 overflow-hidden rounded-xl bg-snackbar px-4 py-3 text-left align-middle shadow-lg transition-all sm:max-w-[22rem]'>
             <p className='text-sm text-inverted'>{message}</p>
             {action && (
               <TextButton onClick={() => onClose()}>{action}</TextButton>

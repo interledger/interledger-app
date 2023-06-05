@@ -4,27 +4,19 @@ declare module "routes-gen" {
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/settings/linked-identities/:identityId": { "identityId": string };
     "/settings/linked-accounts/:accountId": { "accountId": string };
-    "/legal/accessibility-statement": Record<string, never>;
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/connections/add-a-public-key": Record<string, never>;
-    "/legal/us/e-sign-agreement": Record<string, never>;
+    "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
     "/me/identities/:identityId": { "identityId": string };
     "/settings/linked-identities": Record<string, never>;
     "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
-    "/legal/us/privacy-policy": Record<string, never>;
     "/settings/linked-accounts": Record<string, never>;
     "/settings/profile-contact": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
-    "/legal/terms-of-service": Record<string, never>;
-    "/legal/us/terms-of-use": Record<string, never>;
-    "/legal/privacy-policy": Record<string, never>;
-    "/legal/us/compliance": Record<string, never>;
-    "/legal/wallet-license": Record<string, never>;
     "/temp-cloudflare-error": Record<string, never>;
-    "/legal/us/licences": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/link-account/bank": Record<string, never>;
     "/link-account/card": Record<string, never>;
@@ -57,9 +49,12 @@ declare module "routes-gen" {
     "/logout": Record<string, never>;
     "/signup": Record<string, never>;
     "/verify": Record<string, never>;
+    "/wallet": Record<string, never>;
+    "/about": Record<string, never>;
     "/legal": Record<string, never>;
     "/login": Record<string, never>;
     "/blog": Record<string, never>;
+    "/docs": Record<string, never>;
     "/pay": Record<string, never>;
   };
 
@@ -69,27 +64,19 @@ declare module "routes-gen" {
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
       | ["/settings/linked-identities/:identityId", RouteParams["/settings/linked-identities/:identityId"]]
       | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
-      | ["/legal/accessibility-statement"]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/connections/add-a-public-key"]
-      | ["/legal/us/e-sign-agreement"]
+      | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
       | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
       | ["/settings/linked-identities"]
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
-      | ["/legal/us/privacy-policy"]
       | ["/settings/linked-accounts"]
       | ["/settings/profile-contact"]
       | ["/what-is-a-payment-pointer"]
       | ["/settings/profile-public"]
-      | ["/legal/terms-of-service"]
-      | ["/legal/us/terms-of-use"]
-      | ["/legal/privacy-policy"]
-      | ["/legal/us/compliance"]
-      | ["/legal/wallet-license"]
       | ["/temp-cloudflare-error"]
-      | ["/legal/us/licences"]
       | ["/api/maps/geocode"]
       | ["/link-account/bank"]
       | ["/link-account/card"]
@@ -122,9 +109,12 @@ declare module "routes-gen" {
       | ["/logout"]
       | ["/signup"]
       | ["/verify"]
+      | ["/wallet"]
+      | ["/about"]
       | ["/legal"]
       | ["/login"]
       | ["/blog"]
+      | ["/docs"]
       | ["/pay"]
   >(...args: T): typeof args[0];
 }

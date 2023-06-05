@@ -1,6 +1,7 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import {
   Avatar,
   Button,
@@ -11,20 +12,19 @@ import {
   TextField
 } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
-import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   httpMapping,
   isGrpcError,
-  openPaymentsClient,
-  StatusError
+  openPaymentsClient
 } from '~/lib/proto.server'
+import { generateQR, qrSvg } from '~/lib/qr.server'
 import {
   getKycStatus,
   getWalletContacts,
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
-import { generateQR, qrSvg } from '~/lib/qr.server'
 import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {
@@ -48,8 +48,10 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  title: 'Pay',
-  layout: Layouts.FocusLayout
+  layout: Layouts.Focus,
+  scaffold: {
+    header: { title: 'Pay' }
+  }
 }
 
 export const meta: MetaFunction = () => {

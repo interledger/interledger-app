@@ -1,6 +1,10 @@
+import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
@@ -11,20 +15,17 @@ import {
   TextField
 } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { trimHeaders } from '~/lib/headers.server'
 import {
+  KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  KRATOS_URL,
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
-import { route } from 'routes-gen'
-import { trimHeaders } from '~/lib/headers.server'
 import { grpcClient } from '~/lib/proto.server'
-import type { SuccessfulSelfServiceRegistrationWithoutBrowser } from '@ory/kratos-client'
 import { canSignup, setWaitlistSignupComplete } from '~/lib/signupCheck.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { useEffect, useState } from 'react'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -67,9 +68,14 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Password',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/signup/phone'),
+      title: 'Password'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {
@@ -137,21 +143,15 @@ export default function Page() {
           errorMessage={actionData?.errors.serviceAgreement}
         >
           I agree to the Fynbos&nbsp;
-          <Router className='text-primary' to={route('/legal/privacy-policy')}>
+          <Router className='text-primary' to='/legal/privacy-policy'>
             Privacy Policy
           </Router>
           ,&nbsp;
-          <Router
-            className='text-primary'
-            to={route('/legal/terms-of-service')}
-          >
+          <Router className='text-primary' to='/legal/terms-of-service'>
             Terms of Use
           </Router>
           , and&nbsp;
-          <Router
-            className='text-primary'
-            to={route('/legal/us/e-sign-agreement')}
-          >
+          <Router className='text-primary' to='/legal/us/e-sign-agreement'>
             E-sign Agreement
           </Router>
           .

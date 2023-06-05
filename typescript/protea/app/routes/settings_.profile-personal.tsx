@@ -1,15 +1,17 @@
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { DateTime } from 'luxon'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Icon, Layouts } from '~/components'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { getKycDetails, getKycStatus } from '~/lib/wallet.server'
-import { DateTime } from 'luxon'
 
 export async function loader({ request }: LoaderArgs) {
   const kycStatus = await getKycStatus(request)
@@ -57,11 +59,14 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-// TODO: page title
-
-export const handle = {
-  title: 'Personal information',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/settings'),
+      title: 'Personal information'
+    }
+  }
 }
 
 export default function Page() {

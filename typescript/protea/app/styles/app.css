@@ -1,8 +1,4 @@
 @import 'fonts.css';
-/* Prism syntax highlighting */
-/*! purgecss start ignore */
-@import 'prism.css';
-/*! purgecss end ignore */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
