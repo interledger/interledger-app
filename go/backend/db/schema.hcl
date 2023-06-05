@@ -1837,5 +1837,163 @@ table "twitter_connections" {
     columns = [column.wallet_id, column.user_id]
   }
 }
+table "tabapay_report_files" {
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "processed_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.filename]
+  }
+}
+table "tabapay_report_chargebacks" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "iso" {
+    null = false
+    type = text
+  }
+  column "mid" {
+    null = false
+    type = text
+  }
+  column "merchant_ref" {
+    null = false
+    type = text
+  }
+  column "transaction_id" {
+    null = false
+    type = text
+  }
+  column "exception_id" {
+    null = false
+    type = text
+  }
+  column "exception_code" {
+    null = false
+    type = text
+  }
+  column "exception_description" {
+    null = false
+    type = text
+  }
+  column "exception_date" {
+    null = false
+    type = timestamp
+  }
+  column "action_status" {
+    null = false
+    type = text
+  }
+  column "status_date" {
+    null = false
+    type = timestamp
+  }
+  column "days_open" {
+    null = false
+    type = bigint
+  }
+  column "network_transaction_id" {
+    null = false
+    type = text
+  }
+  column "original_date_created" {
+    null = false
+    type = timestamp
+  }
+  column "original_date_processed" {
+    null = false
+    type = timestamp
+  }
+  column "original_transaction_type" {
+    null = false
+    type = text
+  }
+  column "exception_source" {
+    null = false
+    type = text
+  }
+  column "exception_destination" {
+    null = false
+    type = text
+  }
+  column "exception_network" {
+    null = false
+    type = text
+  }
+  column "last_four" {
+    null = false
+    type = text
+  }
+  column "original_settled_amount" {
+    null = false
+    type = bigint
+  }
+  column "exception_settled_amount" {
+    null = false
+    type = bigint
+  }
+  column "tabapay_fee" {
+    null = false
+    type = bigint
+  }
+  column "network_fee" {
+    null = false
+    type = bigint
+  }
+  column "interchange" {
+    null = false
+    type = text
+  }
+  column "memo" {
+    null = false
+    type = text
+  }
+  column "cb_id" {
+    null = false
+    type = text
+  }
+  column "first_name" {
+    null = false
+    type = text
+  }
+  column "last_name" {
+    null = false
+    type = text
+  }
+  column "network_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_chargebacks_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
 schema "public" {
 }
