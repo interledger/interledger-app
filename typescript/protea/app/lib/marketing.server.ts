@@ -2,6 +2,7 @@ import { gql } from '@apollo/client'
 import type {
   Query,
   QueryAllBlogPostsArgs,
+  QueryAllPeopleArgs,
   QueryBlogPostArgs,
   QueryLegalPageArgs
 } from '~/generated/dato-cms-graphql'
@@ -246,6 +247,43 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
     .catch((error) => {
       console.log(error)
       return { blogPost: null, footer: null }
+    })
+}
+export const getPerson = async (variables: QueryAllPeopleArgs) => {
+  return apolloClient
+    .query<{ person: Query['person'] }, QueryAllPeopleArgs>({
+      query: gql`
+        ${RESPONSIVE_IMAGE}
+        query GetPersonProfile($filter: PersonModelFilter) {
+          person(filter: $filter) {
+            id
+            name
+            avatar {
+              responsiveImage(
+                imgixParams: { fit: max, w: 80, h: 80, auto: format }
+              ) {
+                srcSet
+                sizes
+                src
+                width
+                height
+                aspectRatio
+                alt
+                title
+                base64
+              }
+            }
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { person: null }
     })
 }
 
