@@ -20,7 +20,6 @@ import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
-  title?: string | ((match: RouteMatch) => string) // TODO deprecate once all routes are updated with scaffold
   layout: Layouts | ((match: RouteMatch) => Layouts)
   scaffold?: ScaffoldProps
 }
@@ -96,9 +95,6 @@ export function Scaffold() {
     title = titleHandle(matches[matches.length - 1])
   else title = titleHandle ?? ''
 
-  // @ts-ignore
-  // @ts-ignore
-  // @ts-ignore
   return (
     <div
       className={clsx(
@@ -212,6 +208,7 @@ export function Scaffold() {
             >
               menu
             </IconButton>
+            {/* TODO Make this smarter. */}
             {scaffold.header.back && (
               <IconButton
                 className='mr-4'

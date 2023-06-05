@@ -4,6 +4,7 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Layouts } from '~/components'
 import {
   StatusError,
@@ -29,9 +30,14 @@ export async function loader({ request }: LoaderArgs) {
   return json({ url: rpc.response.url })
 }
 
-export const handle = {
-  title: 'Bank details',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Bank details'
+    }
+  }
 }
 
 export default function Page() {

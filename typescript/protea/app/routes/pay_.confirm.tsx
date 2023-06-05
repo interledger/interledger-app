@@ -2,6 +2,7 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Checkbox, Layouts } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { getClientIP } from '~/lib/ip.server'
@@ -27,9 +28,14 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Confirm payment',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/pay/amount'),
+      title: 'Confirm Payment'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

@@ -4,7 +4,6 @@ import {
   AnchorRouter,
   Chip,
   ChipColor,
-  Fab,
   Icon,
   Layouts,
   Router
@@ -47,7 +46,6 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    fab: Fab.Pay,
     footer: (match) => match.data.footer
   }
 }

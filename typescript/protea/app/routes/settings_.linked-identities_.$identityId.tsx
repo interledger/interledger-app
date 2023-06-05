@@ -1,6 +1,5 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import type { RouteMatch } from '@remix-run/react'
 import {
   Form,
   useActionData,
@@ -11,6 +10,7 @@ import {
 import { DateTime } from 'luxon'
 import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Button,
@@ -55,9 +55,14 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: (match: RouteMatch) => `@${match.data.identity.identifier}`,
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/settings/linked-identities'),
+      title: (match) => `@${match.data.identity.identifier}`
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

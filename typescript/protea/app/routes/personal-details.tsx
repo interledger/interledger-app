@@ -40,7 +40,6 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  title: 'Activate payment pointer',
   layout: Layouts.Focus,
   scaffold: {
     header: {

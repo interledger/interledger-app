@@ -4,6 +4,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Autocomplete, Button, Card, Layouts, TextField } from '~/components'
 import type {
   Country,
@@ -39,9 +40,14 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Profile details',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/signup'),
+      title: 'Profile details'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

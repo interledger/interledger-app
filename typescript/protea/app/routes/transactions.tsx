@@ -4,6 +4,7 @@ import type { ShouldRevalidateFunction } from '@remix-run/react'
 import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   AnimatedSchedule,
   Card,
@@ -70,9 +71,13 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Transactions',
-  layout: Layouts.Wallet
+export const handle: ApplicationProps = {
+  layout: Layouts.Wallet,
+  scaffold: {
+    header: {
+      title: 'Transactions'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

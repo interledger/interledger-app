@@ -24,14 +24,13 @@ import {
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
-  title: (match) => match.data.connection.applicationName,
+  layout: Layouts.Focus,
   scaffold: {
     header: {
-      title: (match) => match.data.connection.applicationName,
-      back: '/connections'
+      back: '/connections',
+      title: (match) => match.data.connection.applicationName
     }
-  },
-  layout: Layouts.Focus
+  }
 }
 
 export const meta: MetaFunction = () => {

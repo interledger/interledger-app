@@ -2,6 +2,8 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, LoadingShapes, Shape } from '~/components'
 import {
   StatusError,
@@ -10,9 +12,14 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 
-export const handle = {
-  title: 'Connect a Twitter identity',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Connect a Twitter identity'
+    }
+  }
 }
 
 export async function loader({ request }: LoaderArgs) {
