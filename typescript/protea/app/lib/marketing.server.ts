@@ -259,7 +259,7 @@ export const getPerson = async (variables: QueryAllPeopleArgs) => {
             name
             avatar {
               responsiveImage(
-                imgixParams: { fit: max, w: 80, h: 80, auto: format }
+                imgixParams: { fit: max, w: 120, h: 120, auto: format }
               ) {
                 srcSet
                 sizes
