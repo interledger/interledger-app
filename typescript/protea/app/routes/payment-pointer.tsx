@@ -4,6 +4,7 @@ import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Icon, Layouts, Snackbar, TextField } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
@@ -72,9 +73,13 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Payment pointer',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: 'Payment pointer'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

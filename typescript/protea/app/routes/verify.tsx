@@ -3,6 +3,7 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
@@ -76,9 +77,13 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Verify your email',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: 'Verify your email'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

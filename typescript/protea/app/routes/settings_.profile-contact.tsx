@@ -2,6 +2,8 @@ import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Icon, Layouts, Snackbar } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
@@ -17,9 +19,14 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Contact information',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/settings'),
+      title: 'Contact information'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

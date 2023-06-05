@@ -3,6 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
@@ -13,9 +14,13 @@ import {
 } from '~/lib/kratos.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
-export const handle = {
-  title: 'Set password',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: 'Set password'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

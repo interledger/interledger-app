@@ -48,7 +48,6 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle = {
-  title: 'Pay',
   layout: Layouts.Focus,
   scaffold: {
     header: { title: 'Pay' }

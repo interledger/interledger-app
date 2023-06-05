@@ -2,7 +2,8 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { Form, useParams } from '@remix-run/react'
 import { useState } from 'react'
-import type { RadioGroupOption } from '~/components'
+import { route } from 'routes-gen'
+import type { ApplicationProps, RadioGroupOption } from '~/components'
 import { Button, Card, Layouts, RadioGroup, Shape } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 
@@ -11,9 +12,14 @@ export async function loader({ request }: LoaderArgs) {
   return null
 }
 
-export const handle = {
-  title: 'Add linked account',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Add linked account'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

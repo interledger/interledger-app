@@ -3,6 +3,7 @@ import { json } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { AnchorRouter, Button, Card, Layouts, Router } from '~/components'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPublicIdentity, getPublicWalletDetails } from '~/lib/wallet.server'
@@ -53,8 +54,11 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   }
 }
 
-export const handle = {
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {}
+  }
 }
 
 export default function Page() {

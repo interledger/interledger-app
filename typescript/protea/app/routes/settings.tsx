@@ -27,7 +27,6 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  title: 'Settings',
   layout: Layouts.Wallet,
   scaffold: {
     header: {

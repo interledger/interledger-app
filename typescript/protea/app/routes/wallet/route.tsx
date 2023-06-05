@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
-import { Fab, Layouts, MarketingPageWithSections } from '~/components'
+import { Layouts, MarketingPageWithSections } from '~/components'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { getWalletRoute } from '~/lib/marketing.server'
 
@@ -16,7 +16,6 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    fab: Fab.Pay,
     footer: (match) => match.data.footer
   }
 }
