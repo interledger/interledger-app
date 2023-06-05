@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -13,10 +14,12 @@ import (
 )
 
 type Backends interface {
+	DB() *sqlx.DB
 	External() external.Client
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
+	S3() *s3.Client
 }
 
 type InputBackends interface {
@@ -24,6 +27,7 @@ type InputBackends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
+	S3() *s3.Client
 }
 
 type backends struct {
@@ -33,6 +37,14 @@ type backends struct {
 
 func (ob *backends) External() external.Client {
 	return ob.external
+}
+
+func (ob *backends) DB() *sqlx.DB {
+	return ob.b.DB()
+}
+
+func (ob *backends) S3() *s3.Client {
+	return ob.b.S3()
 }
 
 func (ob *backends) KYC() kyc.Client {
