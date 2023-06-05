@@ -7,7 +7,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -76,21 +75,8 @@ func computeHash(line []string, filename string) (string, error) {
 	return fmt.Sprintf("%x", md5.Sum(buf.Bytes())), nil
 }
 
-func getFile(ctx context.Context, s3c *s3.Client, filename string) (io.ReadCloser, error) {
-	goo, err := s3c.GetObject(ctx, &s3.GetObjectInput{
-		Bucket: &tabapayBucketName,
-		Key:    &filename,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return goo.Body, nil
-}
-
 func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename string) error {
-	s3c := getS3Client(ctx)
-	data, err := getFile(ctx, s3c, filename)
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
 	if err != nil {
 		return err
 	}
@@ -156,11 +142,7 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 
 func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	// Get all files from S3
-	s3c := getS3Client(ctx)
-
-	pl := s3.NewListObjectsV2Paginator(s3c, &s3.ListObjectsV2Input{
-		Bucket: &tabapayBucketName,
-	})
+	pl := a.b.AWS().S3ListObjects(tabapayBucketName)
 
 	// Load all files and mark them as "unprocessed" i.e. false
 	var s3Files map[string]bool
@@ -198,14 +180,4 @@ func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	}
 
 	return unprocessed, nil
-}
-
-func getS3Client(ctx context.Context) *s3.Client {
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		log.Fatalf("failed to load SDK configuration, %v", err)
-	}
-	client := s3.NewFromConfig(cfg)
-
-	return client
 }
