@@ -15,6 +15,7 @@ import {
   ButtonRouter,
   FynbosIcon,
   LinkedInIcon,
+  Router,
   Shape,
   TwitterIcon
 } from '~/components'
@@ -29,6 +30,7 @@ import type {
   HeaderContentRecord,
   HeroContentRecord,
   HomeHeroContentRecord,
+  LinkRecord,
   SectionRecord,
   ShowcaseContentRecord,
   StoryContentRecord,
@@ -145,8 +147,51 @@ export function MarketingPageWithSections({
   )
 }
 
-// Stub out functions that return the content to replace the h1 tags in the switch cases above
-// They should have typed input params and return the correct JSX
+type MarketingRouterProps = {
+  className?: string
+  to: LinkRecord
+  shrink?: boolean
+}
+
+function sanitizeCMSLinks(url?: string) {
+  return {
+    internal: url?.startsWith('https://fynbos.app'),
+    url: url?.replace('https://fynbos.app', '') ?? ''
+  }
+}
+
+export function MarketingRouter({
+  to,
+  shrink,
+  className
+}: MarketingRouterProps) {
+  let { url, internal } = sanitizeCMSLinks(to.url as string)
+  if (to.button) {
+    return (
+      <ButtonRouter
+        to={url}
+        shrink={shrink}
+        className={clsx('h-20 px-20', className)}
+      >
+        {to.displayText}
+      </ButtonRouter>
+    )
+  } else {
+    if (internal) {
+      return (
+        <Router to={url} className={className}>
+          {to.displayText}
+        </Router>
+      )
+    }
+    return (
+      <AnchorRouter to={url} className={className}>
+        {to.displayText}
+      </AnchorRouter>
+    )
+  }
+}
+
 function CtaContentRecordComponent({ content }: { content: CtaContentRecord }) {
   return (
     <div
@@ -177,13 +222,7 @@ function CtaContentRecordComponent({ content }: { content: CtaContentRecord }) {
         <h2 className='text-4xl font-medium'>{content.title}</h2>
         <p className='text-2xl text-medium'>{content.body}</p>
         {content.button.length > 0 && (
-          <ButtonRouter
-            className='h-20 px-20'
-            shrink
-            to={content.button[0].url as string}
-          >
-            {content.button[0].displayText}
-          </ButtonRouter>
+          <MarketingRouter shrink to={content.button[0]} />
         )}
       </div>
     </div>
@@ -507,13 +546,7 @@ function HomeHeroContentRecordComponent({
           </AnimatePresence>
         </div>
         {content.button.length > 0 && (
-          <ButtonRouter
-            className='h-20 px-20'
-            shrink
-            to={content.button[0]?.url as string}
-          >
-            {content.button[0].displayText}
-          </ButtonRouter>
+          <MarketingRouter shrink to={content.button[0]} />
         )}
       </div>
       <AnimatePresence mode='wait'>
@@ -803,6 +836,7 @@ function StoryContentRecordComponent({
                 renderNodeRule(isLink, ({ node, children }) => {
                   // console.log(node)
                   // TODO handle target blank and internal links
+
                   return (
                     <AnchorRouter
                       key={node.url}
@@ -928,18 +962,11 @@ function TextContentRecordComponent({
             'prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'
           )}
         >
-          {/*<span className='text-lg text-medium lg:text-2xl'>*/}
           <StructuredText data={content.bodyText.value} />
         </span>
       )}
       {content.button.length > 0 && (
-        <ButtonRouter
-          className='h-20 px-20'
-          shrink
-          to={content.button[0].url as string}
-        >
-          {content.button[0].displayText}
-        </ButtonRouter>
+        <MarketingRouter shrink to={content.button[0]} />
       )}
     </div>
   )
