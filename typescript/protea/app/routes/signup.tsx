@@ -2,6 +2,7 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, Router, Shape } from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
@@ -14,9 +15,14 @@ export async function loader({ request }: LoaderArgs) {
   return json({})
 }
 
-export const handle = {
-  title: 'Sign up',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Sign up'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

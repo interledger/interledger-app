@@ -8,7 +8,7 @@ import {
 } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
-import type { PhoneAutocompleteOptions } from '~/components'
+import type { ApplicationProps, PhoneAutocompleteOptions } from '~/components'
 import {
   Button,
   ButtonRouter,
@@ -58,9 +58,14 @@ export function links() {
   return [{ rel: 'stylesheet', href: styles }]
 }
 
-export const handle = {
-  title: 'Mobile phone number',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/signup/about'),
+      title: 'Mobile phone number'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

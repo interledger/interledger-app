@@ -6,7 +6,7 @@ import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
 import { v4 } from 'uuid'
-import type { SelectOptions } from '~/components'
+import type { ApplicationProps, SelectOptions } from '~/components'
 import { Button, Card, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
@@ -32,9 +32,14 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Make a payment',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/pay'),
+      title: 'Make a payment'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

@@ -1,6 +1,7 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Button,
@@ -25,9 +26,13 @@ export async function loader({ request }: LoaderArgs) {
   return json({ traits: session.identity.traits })
 }
 
-export const handle = {
-  title: 'Support',
-  layout: Layouts.Wallet
+export const handle: ApplicationProps = {
+  layout: Layouts.Wallet,
+  scaffold: {
+    header: {
+      title: 'Support'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

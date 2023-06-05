@@ -8,6 +8,8 @@ import {
   useSearchParams
 } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Avatar, Card, Layouts } from '~/components'
 import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getWalletContacts } from '~/lib/wallet.server'
@@ -56,9 +58,14 @@ export async function loader({ request }: LoaderArgs) {
   return json({ contacts: allContacts, nextPageToken: pageInfo.pageToken })
 }
 
-export const handle = {
-  title: 'Contacts',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Contacts'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

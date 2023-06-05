@@ -2,6 +2,7 @@ import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Chip, ChipColor, Layouts } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import {
@@ -112,9 +113,15 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Sent payment',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/transactions'),
+      title: 'Sent payment'
+      // TODO chip as action
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

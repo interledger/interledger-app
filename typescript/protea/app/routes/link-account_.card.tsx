@@ -17,6 +17,7 @@ import type {
 } from '@basis-theory/basis-theory-react/types'
 import clsx from 'clsx'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts } from '~/components'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { createCard, getWalletId } from '~/lib/wallet.server'
@@ -30,9 +31,14 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Add debit card',
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Add debit card'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

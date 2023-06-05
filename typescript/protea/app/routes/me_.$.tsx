@@ -3,6 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
@@ -87,8 +88,11 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  layout: Layouts.Focus
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {}
+  }
 }
 
 export default function Page() {
