@@ -8,6 +8,7 @@ import { Image } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
+  AnchorRouter,
   Button,
   Card,
   Chip,
@@ -15,6 +16,7 @@ import {
   FynbosIcon,
   Icon,
   Layouts,
+  LinkedInIcon,
   Router,
   Snackbar,
   TwitterIcon
@@ -213,6 +215,34 @@ export default function Page() {
             </div>
           </Router>
         ))}
+        {paymentPointerParam.includes('fynbos.me/adrian') && (
+          <AnchorRouter
+            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+            to='https://www.linkedin.com/in/adrianhopebailie/'
+          >
+            <div className='flex space-x-3'>
+              <LinkedInIcon />
+              <span>Adrian Hope-Bailie</span>
+            </div>
+            <div className='flex space-x-3'>
+              <Icon>navigate_next</Icon>
+            </div>
+          </AnchorRouter>
+        )}
+        {paymentPointerParam.includes('fynbos.me/matt') && (
+          <AnchorRouter
+            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+            to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
+          >
+            <div className='flex space-x-3'>
+              <LinkedInIcon />
+              <span>Matthew de Haast</span>
+            </div>
+            <div className='flex space-x-3'>
+              <Icon>navigate_next</Icon>
+            </div>
+          </AnchorRouter>
+        )}
       </Card>
       <Form
         id='me'
