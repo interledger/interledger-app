@@ -215,7 +215,6 @@ export function Scaffold() {
                 className='mr-4'
                 onClick={() => {
                   navigate(-1)
-                  console.log('Go back sir')
                 }}
                 aria-label='Back'
               >

@@ -260,7 +260,6 @@ export async function action({ request }: ActionArgs) {
       if (response.code == 3) {
         for (let violation of (response as GrpcError).details[0]
           .fieldViolations) {
-          console.log(violation)
           const field = mapper(violation.field as fieldErrorsMap)
           if (field != null) fieldErrors[field] = violation.description
         }
