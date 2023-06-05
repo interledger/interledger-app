@@ -12,6 +12,7 @@ import {
   FynbosLogo,
   Icon,
   IconButton,
+  MarketingRouter,
   Router,
   WalletGrid,
   WalletShapes
@@ -300,13 +301,11 @@ export function Scaffold() {
                   {footer.column1Title}
                 </h3>
                 {footer.column1.map((link, index) => (
-                  <AnchorRouter
+                  <MarketingRouter
+                    key={link.id + 'FooterLink'}
+                    to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
-                    to={link.url ?? ''}
-                    key={'footer-link' + index}
-                  >
-                    {link.displayText}
-                  </AnchorRouter>
+                  />
                 ))}
               </div>
               <div className='flex flex-col'>
@@ -314,13 +313,11 @@ export function Scaffold() {
                   {footer.column2Title}
                 </h3>
                 {footer.column2.map((link, index) => (
-                  <AnchorRouter
+                  <MarketingRouter
+                    key={link.id + 'FooterLink'}
+                    to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
-                    to={link.url ?? ''}
-                    key={'footer-link' + index}
-                  >
-                    {link.displayText}
-                  </AnchorRouter>
+                  />
                 ))}
               </div>
               <div className='flex flex-col'>
@@ -328,13 +325,11 @@ export function Scaffold() {
                   {footer.column3Title}
                 </h3>
                 {footer.column3.map((link, index) => (
-                  <AnchorRouter
+                  <MarketingRouter
+                    key={link.id + 'FooterLink'}
+                    to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
-                    to={link.url ?? ''}
-                    key={'footer-link' + index}
-                  >
-                    {link.displayText}
-                  </AnchorRouter>
+                  />
                 ))}
               </div>
             </div>
