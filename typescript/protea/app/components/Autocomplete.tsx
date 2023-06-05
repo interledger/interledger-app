@@ -69,7 +69,7 @@ export const Autocomplete: FC<AutocompleteProps> = ({
                 </div>
               )}
               {prefix && (
-                <span className='z-10 ml-4 -mr-3 font-medium text-weak'>
+                <span className='z-10 -mr-3 ml-4 font-medium text-weak'>
                   {prefix}
                 </span>
               )}
@@ -132,7 +132,7 @@ export const Autocomplete: FC<AutocompleteProps> = ({
           </Transition>
         </div>
       </Combobox>
-      <div className='h-7 pt-2 pl-2'>
+      <div className='h-7 pl-2 pt-2'>
         {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
       </div>
     </div>
