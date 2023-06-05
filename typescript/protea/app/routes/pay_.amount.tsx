@@ -1,23 +1,23 @@
-import type { ChangeEventHandler } from 'react'
-import { useCallback, useState } from 'react'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import type { SelectOptions } from '~/components'
+import { DateTime } from 'luxon'
+import type { ChangeEventHandler } from 'react'
+import { useCallback, useState } from 'react'
+import { route } from 'routes-gen'
+import { v4 } from 'uuid'
+import type { ApplicationProps, SelectOptions } from '~/components'
 import { Button, Card, Layouts, Select, TextField } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
-import { route } from 'routes-gen'
+import { hasUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   httpMapping,
   isGrpcError,
-  openPaymentsClient,
-  StatusError
+  openPaymentsClient
 } from '~/lib/proto.server'
-import { DateTime } from 'luxon'
 import { getLinkedAccounts, getWalletPaymentPointer } from '~/lib/wallet.server'
-import { v4 } from 'uuid'
-import { hasUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
   if (!hasUserSession(request)) {
@@ -32,9 +32,14 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Make a payment',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/pay'),
+      title: 'Make a payment'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {
@@ -110,7 +115,7 @@ export default function Page() {
         </div>
         <div className='mt-4 flex w-full justify-between'>
           <span className='text-sm'>They receive</span>
-          <span className='text-sm text-2xl font-medium text-strong'>
+          <span className='text-2xl text-sm font-medium text-strong'>
             {flow?.data.displayReceiveAmount || '$ 0.00'}
           </span>
         </div>

@@ -17,6 +17,7 @@ import type {
 } from '@basis-theory/basis-theory-react/types'
 import clsx from 'clsx'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts } from '~/components'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { createCard, getWalletId } from '~/lib/wallet.server'
@@ -30,9 +31,14 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Add debit card',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Add debit card'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {
@@ -177,7 +183,7 @@ export default function Page() {
                 />
               </div>
             </div>
-            <div className='h-7 pt-2 pl-2'>
+            <div className='h-7 pl-2 pt-2'>
               {fieldErrors.number && (
                 <p className='text-sm text-error'>{fieldErrors.number}</p>
               )}
@@ -204,7 +210,7 @@ export default function Page() {
                   />
                 </div>
               </div>
-              <div className='h-7 pt-2 pl-2'>
+              <div className='h-7 pl-2 pt-2'>
                 {fieldErrors.date && (
                   <p className='text-sm text-error'>{fieldErrors.date}</p>
                 )}
@@ -231,7 +237,7 @@ export default function Page() {
                   />
                 </div>
               </div>
-              <div className='h-7 pt-2 pl-2'>
+              <div className='h-7 pl-2 pt-2'>
                 {fieldErrors.cvc && (
                   <p className='text-sm text-error'>{fieldErrors.cvc}</p>
                 )}

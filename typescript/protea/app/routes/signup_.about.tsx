@@ -4,20 +4,21 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Autocomplete, Button, Card, Layouts, TextField } from '~/components'
-import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
-import type { GrpcError } from '~/lib/proto.server'
-import {
-  grpcClient,
-  httpMapping,
-  isGrpcError,
-  StatusError
-} from '~/lib/proto.server'
 import type {
   Country,
   SetSignupUserDataResponse
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
+import type { GrpcError } from '~/lib/proto.server'
+import {
+  StatusError,
+  grpcClient,
+  httpMapping,
+  isGrpcError
+} from '~/lib/proto.server'
 import { canSignup } from '~/lib/signupCheck.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -39,9 +40,14 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Profile details',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/signup'),
+      title: 'Profile details'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

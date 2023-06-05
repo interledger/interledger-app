@@ -7,10 +7,12 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import { Avatar, Card, Layouts } from '~/components'
-import { getWalletContacts } from '~/lib/wallet.server'
-import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 import { useCallback, useEffect, useState } from 'react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { Avatar, Card, Layouts } from '~/components'
+import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
+import { getWalletContacts } from '~/lib/wallet.server'
 
 /**
  * Allows us to change the searchParams without revalidating the pages data
@@ -56,9 +58,14 @@ export async function loader({ request }: LoaderArgs) {
   return json({ contacts: allContacts, nextPageToken: pageInfo.pageToken })
 }
 
-export const handle = {
-  title: 'Contacts',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Contacts'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

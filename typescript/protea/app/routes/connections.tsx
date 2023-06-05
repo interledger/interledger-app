@@ -3,12 +3,13 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 
@@ -34,9 +35,14 @@ export async function loader({ request }: LoaderArgs) {
   return json({ connections, snackbar })
 }
 
-export const handle = {
-  title: 'Connections',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Connections'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

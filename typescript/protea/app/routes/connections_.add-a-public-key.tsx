@@ -2,20 +2,26 @@ import type { ActionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextArea, TextField } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
-export const handle = {
-  title: 'Add a public key',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Add a public key'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

@@ -1,7 +1,7 @@
+import type { AddressComponent } from '@googlemaps/google-maps-services-js'
 import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { mapsClient } from '~/lib/maps.server'
-import type { AddressComponent } from '@googlemaps/google-maps-services-js'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)

@@ -1,13 +1,16 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import type { RouteMatch } from '@remix-run/react'
 import {
   Form,
-  useFetcher,
   useActionData,
+  useFetcher,
   useLoaderData,
   useRevalidator
 } from '@remix-run/react'
+import { DateTime } from 'luxon'
+import { useCallback, useEffect, useState } from 'react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Button,
@@ -19,10 +22,8 @@ import {
   Router,
   Snackbar,
   Switch,
-  TextButton,
-  TwitterIcon
+  TextButton
 } from '~/components'
-import { route } from 'routes-gen'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 import {
   deleteTwitterIdentity,
@@ -32,8 +33,6 @@ import {
   setTwitterIdentityPublic,
   verifyTwitterIdentity
 } from '~/lib/wallet.server'
-import { useCallback, useEffect, useState } from 'react'
-import { DateTime } from 'luxon'
 
 export async function loader({ request, params }: LoaderArgs) {
   const paymentPointer = await getWalletPaymentPointer(request)
@@ -56,9 +55,14 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: (match: RouteMatch) => `@${match.data.identity.identifier}`,
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/settings/linked-identities'),
+      title: (match) => `@${match.data.identity.identifier}`
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {
@@ -129,7 +133,7 @@ export default function Page() {
               <span className='text-medium'>Public proof</span>
               <AnchorRouter
                 to={identity.proof}
-                className='font-medium text-primary break-all'
+                className='break-all font-medium text-primary'
               >
                 {identity.proof}
               </AnchorRouter>
@@ -151,7 +155,7 @@ export default function Page() {
             </div>
           </Card>
           <Card>
-            <div className='flex justify-between items-center'>
+            <div className='flex items-center justify-between'>
               <span className='text-sm'>
                 Show on your Fynbos public profile.
               </span>
@@ -161,7 +165,7 @@ export default function Page() {
                 onChange={() => _onChangeSwitch('publish', !identity.public)}
               />
             </div>
-            <h2 className='text-sm font-medium mt-6'>Public profile</h2>
+            <h2 className='mt-6 text-sm font-medium'>Public profile</h2>
             <Router
               to={`/me/${paymentPointer.formatted}`}
               className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
@@ -174,7 +178,7 @@ export default function Page() {
             </Router>
           </Card>
           <OutlineButton
-            className='!text-error outline-error focus-visible:outline-red-800 hover:!text-red-800 hover:outline-red-800'
+            className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
             type='button'
             onClick={() => setShowDialog(true)}
           >
@@ -197,7 +201,7 @@ export default function Page() {
               src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
             />
             <Router
-              className='mt-4 text-sm font-medium text-primary rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
+              className='mt-4 rounded text-sm font-medium text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
               to={route('/connect/twitter')}
             >
               Read more about how we verify your Twitter handle.
@@ -206,7 +210,7 @@ export default function Page() {
           <div className='flex w-full space-x-2'>
             <OutlineButton
               shrink
-              className='!text-error outline-error focus-visible:outline-red-800 hover:!text-red-800 hover:outline-red-800'
+              className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
               type='button'
               onClick={() => setShowDialog(true)}
             >
@@ -239,7 +243,7 @@ export default function Page() {
           <div className='flex w-full space-x-2'>
             <OutlineButton
               shrink
-              className='!text-error outline-error focus-visible:outline-red-800 hover:!text-red-800 hover:outline-red-800'
+              className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
               type='button'
               onClick={() => setShowDialog(true)}
             >

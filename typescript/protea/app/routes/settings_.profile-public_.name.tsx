@@ -1,21 +1,22 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Card, Layouts, TextField } from '~/components'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { Button, Card, Layouts, TextField } from '~/components'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import type { GrpcError } from '~/lib/proto.server'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import {
   getPublicWalletDetails,
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 
 export async function loader({ request }: LoaderArgs) {
   const paymentPointer = await getWalletPaymentPointer(request)
@@ -26,9 +27,14 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Edit public name',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/settings/profile-public'),
+      title: 'Edit public name'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {
