@@ -1,18 +1,19 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Chip, ChipColor, Layouts } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
-import { getLinkedAccount, getTransaction } from '~/lib/wallet.server'
-import { route } from 'routes-gen'
 import {
+  StatusError,
   httpMapping,
   isGrpcError,
-  openPaymentsClient,
-  StatusError
+  openPaymentsClient
 } from '~/lib/proto.server'
-import { usePusher } from '~/lib/usePusher'
 import { getPusherArgs } from '~/lib/pusher.server'
+import { usePusher } from '~/lib/usePusher'
+import { getLinkedAccount, getTransaction } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -112,9 +113,15 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: 'Sent payment',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/transactions'),
+      title: 'Sent payment'
+      // TODO chip as action
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {
@@ -167,7 +174,7 @@ export default function Page() {
         </Card.Item>
         <Card.Item className='mt-2'>
           <span className='text-sm text-medium'>They receive</span>
-          <span className='text-sm text-2xl font-medium text-strong'>
+          <span className='text-2xl text-sm font-medium text-strong'>
             {transaction.total || '$ 0.00'}
           </span>
         </Card.Item>

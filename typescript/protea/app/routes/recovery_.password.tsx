@@ -1,21 +1,26 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
   kratosErrorMapping
 } from '~/lib/kratos.server'
-import { trimHeaders } from '~/lib/headers.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { useEffect, useState } from 'react'
 
-export const handle = {
-  title: 'Set password',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: 'Set password'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

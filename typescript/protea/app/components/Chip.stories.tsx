@@ -1,5 +1,5 @@
-import type { Meta, StoryFn } from '@storybook/react'
 import { unstable_createRemixStub as createRemixStub } from '@remix-run/testing'
+import type { Meta, StoryFn } from '@storybook/react'
 import { Chip, ChipColor } from '~/components'
 
 const meta: Meta<typeof Chip> = {

@@ -1,10 +1,11 @@
-import type { LoaderArgs, ActionArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { requireNoUserSession } from '~/lib/kratos.server'
-import { flowType, requireFlow } from '~/lib/flows.server'
-import { Button, Card, Layouts, Router, Shape } from '~/components'
-import { route } from 'routes-gen'
 import { Form } from '@remix-run/react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { Button, Card, Layouts, Router, Shape } from '~/components'
+import { flowType, requireFlow } from '~/lib/flows.server'
+import { requireNoUserSession } from '~/lib/kratos.server'
 import { canSignup } from '~/lib/signupCheck.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -14,9 +15,14 @@ export async function loader({ request }: LoaderArgs) {
   return json({})
 }
 
-export const handle = {
-  title: 'Sign up',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Sign up'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

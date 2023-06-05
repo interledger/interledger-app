@@ -1,12 +1,12 @@
+import type { NormalizedCacheObject } from '@apollo/client'
 import {
   ApolloClient,
-  createHttpLink,
   InMemoryCache,
+  createHttpLink,
   from
 } from '@apollo/client'
-import type { NormalizedCacheObject } from '@apollo/client'
-import { onError } from '@apollo/client/link/error'
 import { setContext } from '@apollo/client/link/context'
+import { onError } from '@apollo/client/link/error'
 
 const token = process.env.DATO_API_TOKEN || ''
 

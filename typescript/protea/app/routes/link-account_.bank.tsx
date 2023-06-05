@@ -4,12 +4,13 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import { Card, Layouts } from '~/components'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -29,9 +30,14 @@ export async function loader({ request }: LoaderArgs) {
   return json({ url: rpc.response.url })
 }
 
-export const handle = {
-  title: 'Bank details',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Bank details'
+    }
+  }
 }
 
 export default function Page() {

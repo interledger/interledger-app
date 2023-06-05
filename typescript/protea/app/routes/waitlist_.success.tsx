@@ -1,10 +1,16 @@
-import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
-import { route } from 'routes-gen'
 import type { MetaFunction } from '@remix-run/node'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
 
-export const handle = {
-  title: 'Success',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: route('/'),
+      title: 'Success'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {

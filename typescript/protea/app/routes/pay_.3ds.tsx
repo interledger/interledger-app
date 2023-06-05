@@ -3,6 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
   Button,
   ButtonRouter,
@@ -50,9 +51,13 @@ export async function loader({ request }: LoaderArgs) {
   })
 }
 
-export const handle = {
-  title: '3DS Verification',
-  layout: Layouts.FocusLayout
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      title: '3DS Verification'
+    }
+  }
 }
 
 export const meta: MetaFunction = () => {
