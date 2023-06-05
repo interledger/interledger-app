@@ -253,7 +253,6 @@ export const getPerson = async (variables: QueryAllPeopleArgs) => {
   return apolloClient
     .query<{ person: Query['person'] }, QueryAllPeopleArgs>({
       query: gql`
-        ${RESPONSIVE_IMAGE}
         query GetPersonProfile($filter: PersonModelFilter) {
           person(filter: $filter) {
             id

@@ -1,6 +1,7 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
+import clsx from 'clsx'
 import { useState } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image } from 'react-datocms'
@@ -133,15 +134,19 @@ export default function Page() {
     <>
       <Card>
         <h1 className='flex items-center justify-between font-display text-2xl font-medium'>
-          <Image
-            pictureClassName='m-0'
-            className='aspect-square'
-            data={
-              profilePicture?.person?.avatar
-                ?.responsiveImage as ResponsiveImageType
-            }
-          />
-          <span className='mt-6'>{wallet.publicName}</span>
+          {profilePicture && (
+            <Image
+              pictureClassName='m-0'
+              className='aspect-square'
+              data={
+                profilePicture?.person?.avatar
+                  ?.responsiveImage as ResponsiveImageType
+              }
+            />
+          )}
+          <span className={clsx(profilePicture && 'mt-6')}>
+            {wallet.publicName}
+          </span>
           {editable && (
             <Router to={route('/settings/profile-public')}>
               <Icon>edit</Icon>
