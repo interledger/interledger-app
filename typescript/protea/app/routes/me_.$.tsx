@@ -2,6 +2,8 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
+import type { ResponsiveImageType } from 'react-datocms'
+import { Image } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -18,6 +20,7 @@ import {
 } from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
+import { getPerson } from '~/lib/marketing.server'
 import {
   StatusError,
   httpMapping,
@@ -32,6 +35,18 @@ import {
 
 export async function loader({ request, params }: LoaderArgs) {
   const paymentPointerParam = params['*'] as string
+  let profilePicture = null
+
+  if (paymentPointerParam.includes('fynbos.me/adrian')) {
+    profilePicture = await getPerson({
+      filter: { name: { eq: 'Adrian' } }
+    })
+  }
+  if (paymentPointerParam.includes('fynbos.me/matt')) {
+    profilePicture = await getPerson({
+      filter: { name: { eq: 'Matt' } }
+    })
+  }
 
   const response = await openPaymentsClient
     .getPaymentPointer({ url: paymentPointerParam })
@@ -79,6 +94,7 @@ export async function loader({ request, params }: LoaderArgs) {
   }
 
   return json({
+    profilePicture,
     isUser,
     editable,
     wallet,
@@ -97,6 +113,7 @@ export const handle: ApplicationProps = {
 
 export default function Page() {
   const {
+    profilePicture,
     isUser,
     editable,
     wallet,
@@ -116,7 +133,15 @@ export default function Page() {
     <>
       <Card>
         <h1 className='flex items-center justify-between font-display text-2xl font-medium'>
-          <span>{wallet.publicName}</span>
+          <Image
+            pictureClassName='m-0'
+            className='aspect-square'
+            data={
+              profilePicture?.person?.avatar
+                ?.responsiveImage as ResponsiveImageType
+            }
+          />
+          <span className='mt-6'>{wallet.publicName}</span>
           {editable && (
             <Router to={route('/settings/profile-public')}>
               <Icon>edit</Icon>
