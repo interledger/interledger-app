@@ -133,7 +133,7 @@ export default function Page() {
   return (
     <>
       <Card>
-        <h1 className='flex items-center justify-between font-display text-2xl font-medium'>
+        <div className='flex w-full items-center justify-center'>
           {profilePicture && (
             <Image
               pictureClassName='m-0'
@@ -144,9 +144,14 @@ export default function Page() {
               }
             />
           )}
-          <span className={clsx(profilePicture && 'mt-6')}>
-            {wallet.publicName}
-          </span>
+        </div>
+        <h1
+          className={clsx(
+            profilePicture && 'mt-6',
+            'flex items-center justify-between font-display text-2xl font-medium'
+          )}
+        >
+          <span>{wallet.publicName}</span>
           {editable && (
             <Router to={route('/settings/profile-public')}>
               <Icon>edit</Icon>
