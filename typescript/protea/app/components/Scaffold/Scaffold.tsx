@@ -137,10 +137,10 @@ export function Scaffold() {
           layout === Layouts.Marketing &&
             'h-16 border-b border-slate-200 bg-mk-page dark:border-slate-800 lg:h-24',
           layout === Layouts.Focus &&
-            'mx-auto h-16 select-none bg-app sm:mt-[5.5rem] sm:max-w-[29rem]',
+            'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
-            'h-16 bg-app lg:mt-[5.5rem] lg:pl-[16.25rem]',
-          layout === Layouts.Docs && 'h-[9.5rem] bg-app lg:pl-[15.75rem]'
+            'h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
+          layout === Layouts.Docs && 'h-[9.5rem] bg-page lg:pl-[15.75rem]'
         )}
       >
         {layout === Layouts.Marketing && (
