@@ -281,8 +281,7 @@ export default function Page() {
       </Button>
       {!isUser && (
         <p className='-mt-2 text-center text-xs text-medium'>
-          Payments are in currently in beta and are only enabled for certain
-          users.
+          Payments are currently in beta and are only enabled for certain users.
         </p>
       )}
       {!isUser && (
