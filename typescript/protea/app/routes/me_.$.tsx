@@ -8,6 +8,7 @@ import { Image } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
+  AnchorRouter,
   Button,
   Card,
   Chip,
@@ -15,6 +16,7 @@ import {
   FynbosIcon,
   Icon,
   Layouts,
+  LinkedInIcon,
   Router,
   Snackbar,
   TwitterIcon
@@ -100,6 +102,7 @@ export async function loader({ request, params }: LoaderArgs) {
     editable,
     wallet,
     identities,
+    walletAddress: paymentPointer.url.replace(/(http(s)?:\/\/)/i, ''),
     paymentPointer,
     paymentPointerParam
   })
@@ -119,6 +122,7 @@ export default function Page() {
     editable,
     wallet,
     identities,
+    walletAddress,
     paymentPointer,
     paymentPointerParam
   } = useLoaderData<typeof loader>()
@@ -148,16 +152,18 @@ export default function Page() {
         <h1
           className={clsx(
             profilePicture && 'mt-6',
-            'flex items-center justify-between font-display text-2xl font-medium'
+            'flex w-full text-center font-display text-2xl font-medium'
           )}
         >
           <span>{wallet.publicName}</span>
-          {editable && (
-            <Router to={route('/settings/profile-public')}>
-              <Icon>edit</Icon>
-            </Router>
-          )}
+          {/*TODO Possibly put this edit button in the header*/}
+          {/*{editable && (*/}
+          {/*  <Router to={route('/settings/profile-public')}>*/}
+          {/*    <Icon>edit</Icon>*/}
+          {/*  </Router>*/}
+          {/*)}*/}
         </h1>
+        <p className='ml-2 mt-6 text-sm text-medium'>Wallet address</p>
         <button
           type='button'
           onClick={async () => {
@@ -169,7 +175,7 @@ export default function Page() {
               })
               setShowSnackbar(true)
             } else
-              navigator.clipboard.writeText(paymentPointer.formatted).then(
+              navigator.clipboard.writeText(walletAddress).then(
                 () => {
                   setSnackbar({
                     message: 'Payment pointer copied to clipboard.',
@@ -188,15 +194,18 @@ export default function Page() {
                 }
               )
           }}
-          className='mt-4 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
+          className='mt-2 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
         >
-          <span className='text-medium'>{paymentPointer.formatted}</span>
+          <span className='text-medium'>{walletAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
         </button>
+        {identities.length > 0 && (
+          <p className='ml-2 mt-6 text-sm text-medium'>Twitter</p>
+        )}
         {identities.map((identity) => (
           <Router
             key={identity.id}
-            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium first-of-type:mt-6 hover:bg-nav-hover'
+            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
             to={route('/me/identities/:identityId', {
               identityId: identity.signatureHash
             })}
@@ -213,6 +222,40 @@ export default function Page() {
             </div>
           </Router>
         ))}
+        {paymentPointerParam.includes('fynbos.me/adrian') && (
+          <>
+            <p className='ml-2 mt-6 text-sm text-medium'>LinkedIn</p>
+            <AnchorRouter
+              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+              to='https://www.linkedin.com/in/adrianhopebailie/'
+            >
+              <div className='flex space-x-3'>
+                <LinkedInIcon />
+                <span>Adrian Hope-Bailie</span>
+              </div>
+              <div className='flex space-x-3'>
+                <Icon>navigate_next</Icon>
+              </div>
+            </AnchorRouter>
+          </>
+        )}
+        {paymentPointerParam.includes('fynbos.me/matt') && (
+          <>
+            <p className='ml-2 mt-6 text-sm text-medium'>LinkedIn</p>
+            <AnchorRouter
+              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+              to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
+            >
+              <div className='flex space-x-3'>
+                <LinkedInIcon />
+                <span>Matthew de Haast</span>
+              </div>
+              <div className='flex space-x-3'>
+                <Icon>navigate_next</Icon>
+              </div>
+            </AnchorRouter>
+          </>
+        )}
       </Card>
       <Form
         id='me'
@@ -226,9 +269,15 @@ export default function Page() {
         name='paymentPointer'
         type='hidden'
       />
-      <Button form='me' type='submit'>
+      <Button disabled={!isUser} form='me' type='submit'>
         Send a payment
       </Button>
+      {!isUser && (
+        <p className='-mt-2 text-center text-xs text-medium'>
+          Payments are in currently in beta and are only enabled for certain
+          users.
+        </p>
+      )}
       {!isUser && (
         <Card className='space-y-4'>
           <h1 className='font-display text-lg font-medium'>Sign up</h1>
