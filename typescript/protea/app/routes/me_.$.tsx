@@ -256,9 +256,15 @@ export default function Page() {
         name='paymentPointer'
         type='hidden'
       />
-      <Button form='me' type='submit'>
+      <Button disabled={!isUser} form='me' type='submit'>
         Send a payment
       </Button>
+      {!isUser && (
+        <p className='-mt-2 text-center text-xs text-medium'>
+          Payments are in currently in beta and are only enabled for certain
+          users.
+        </p>
+      )}
       {!isUser && (
         <Card className='space-y-4'>
           <h1 className='font-display text-lg font-medium'>Sign up</h1>
