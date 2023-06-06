@@ -223,7 +223,10 @@ export function Scaffold() {
             )}
             {title && <h1 className='text-xl font-medium'>{title}</h1>}
             <Router
-              className={clsx(!title && 'lg:hidden', title && 'hidden')}
+              className={clsx(
+                !title && layout !== Layouts.Focus && 'lg:hidden',
+                title && 'hidden'
+              )}
               to={route('/')}
               aria-label='Fynbos logo'
             >
