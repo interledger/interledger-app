@@ -8,6 +8,7 @@ import { Image } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
+  AnchorRouter,
   Button,
   Card,
   Chip,
@@ -15,6 +16,7 @@ import {
   FynbosIcon,
   Icon,
   Layouts,
+  LinkedInIcon,
   Router,
   Snackbar,
   TwitterIcon
@@ -213,6 +215,34 @@ export default function Page() {
             </div>
           </Router>
         ))}
+        {paymentPointerParam.includes('fynbos.me/adrian') && (
+          <AnchorRouter
+            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+            to='https://www.linkedin.com/in/adrianhopebailie/'
+          >
+            <div className='flex space-x-3'>
+              <LinkedInIcon />
+              <span>Adrian Hope-Bailie</span>
+            </div>
+            <div className='flex space-x-3'>
+              <Icon>navigate_next</Icon>
+            </div>
+          </AnchorRouter>
+        )}
+        {paymentPointerParam.includes('fynbos.me/matt') && (
+          <AnchorRouter
+            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+            to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
+          >
+            <div className='flex space-x-3'>
+              <LinkedInIcon />
+              <span>Matthew de Haast</span>
+            </div>
+            <div className='flex space-x-3'>
+              <Icon>navigate_next</Icon>
+            </div>
+          </AnchorRouter>
+        )}
       </Card>
       <Form
         id='me'
@@ -226,9 +256,15 @@ export default function Page() {
         name='paymentPointer'
         type='hidden'
       />
-      <Button form='me' type='submit'>
+      <Button disabled={!isUser} form='me' type='submit'>
         Send a payment
       </Button>
+      {!isUser && (
+        <p className='-mt-2 text-center text-xs text-medium'>
+          Payments are in currently in beta and are only enabled for certain
+          users.
+        </p>
+      )}
       {!isUser && (
         <Card className='space-y-4'>
           <h1 className='font-display text-lg font-medium'>Sign up</h1>

@@ -96,7 +96,7 @@ export default function Page() {
         <h2 className='font-display font-medium text-strong'>Support</h2>
         <span className='mt-4 text-sm'>
           Our telephone support lines are open Monday to Friday between 9am and
-          5pm PST.
+          5pm EST.
         </span>
         <div className='mt-3 flex items-center space-x-2 text-medium'>
           <Icon>call</Icon>
