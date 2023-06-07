@@ -91,6 +91,62 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 	return nil
 }
 
+func (a *Activity) ProcessAMLTransactionsReport(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	csvReader := csv.NewReader(data)
+	var i int
+	for {
+		i++
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		// Ignore the heading column
+		if i == 1 {
+			continue
+		}
+
+		// Compute the line hash so we don't insert duplicates
+		lineHash, err := computeHash(line, filename)
+		if err != nil {
+			return err
+		}
+
+		settleDate, _ := time.Parse("20060102", line[11])
+		reportDate, _ := time.Parse("02/01/2006", line[11])
+		txAmount, _ := strconv.ParseFloat(line[12], 64)
+		settleAmount, _ := strconv.ParseFloat(line[13], 64)
+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_aml_transaction "+
+			"(hash, filename, aml_id, aml_code, iso, iso_name, mid, merchant_name, "+
+			"caid, bin_last_four, transaction_type, transaction_id, settle_date,"+
+			"transaction_amount, settle_amount, fn, ln, report_date, avs,"+
+			"cvv_cav, type) "+
+			"VALUES "+
+			"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, "+
+			"$18, $19, $20, $21, $22) "+
+			"ON CONFLICT DO NOTHING",
+			lineHash, filename, line[0], line[1], line[2], line[3], line[4], line[5],
+			line[6], line[7], line[8], line[9], line[10], settleDate,
+			txAmount*10, settleAmount*10, line[14], line[15], reportDate, line[17],
+			line[18], line[19],
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	// Get all files from S3
 	pl := a.b.AWS().S3ListObjects(tabapayBucketName)
