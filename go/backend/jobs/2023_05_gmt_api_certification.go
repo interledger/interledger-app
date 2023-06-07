@@ -134,6 +134,29 @@ func RunGMTCertificationCardStep1(ctx workflow.Context) error {
 	return nil
 }
 
+func RunGMTCertificationCardStep2(ctx workflow.Context) error {
+	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+
+	if !env.IsDev() {
+		logger.Error("not going to run GMT certification in environment", "env", env.GetEnv())
+		return nil
+	}
+
+	err := workflow.ExecuteActivity(ctx, gmtActivity.UpdateCardTransactionStatus, "GMT000679086413", transactions.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to request modification of 1.6 transaction beneficiary", "error", err)
+	}
+
+	return nil
+}
+
 func RunGMTCertificationStep2(ctx workflow.Context) error {
 	var gmtActivity *gmt_ops.Activity
 
