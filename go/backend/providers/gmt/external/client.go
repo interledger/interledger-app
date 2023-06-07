@@ -65,7 +65,7 @@ func NewClient(transport http.RoundTripper) Client {
 		user:     getEnvDefault("GMT_USER", user),
 		password: getEnvDefault("GMT_PASSWORD", pass),
 
-		txURL:      getEnvDefault("GMT_TX_PASSWORD", txURL),
+		txURL:      getEnvDefault("GMT_TX_URL", txURL),
 		txUser:     getEnvDefault("GMT_TX_USER", txUser),
 		txPassword: getEnvDefault("GMT_TX_PASSWORD", txPassword),
 		txPartner:  getEnvDefault("GMT_TX_PARTNER", txPartner),
@@ -239,13 +239,13 @@ func (c *client) GetNotifications(ctx context.Context) ([]*WsNotifications, erro
 
 func (c *client) UpdateTransactionStatus(ctx context.Context, tx UpdateTransactionStatus) (*WsResponse, error) {
 	type txBody struct {
-		Text string                    `xml:",chardata"`
-		Resp InsertTransactionResponse `xml:"UpdateTransactionStatusResponse"`
+		Text string                          `xml:",chardata"`
+		Resp UpdateTransactionStatusResponse `xml:"UpdateTransactionStatusResponse"`
 	}
 	response := txBody{}
 
 	tx.User = c.txUser
-	tx.Pass = c.txPartner
+	tx.Pass = c.txPassword
 	tx.Partner = c.txPartner
 
 	err := c.txCall(ctx, "http://tempuri.org/IService1/UpdateTransactionStatus", tx, &response)
@@ -253,56 +253,18 @@ func (c *client) UpdateTransactionStatus(ctx context.Context, tx UpdateTransacti
 		return nil, err
 	}
 
-	return response.Resp.InsertTransactionResult, err
+	return response.Resp.UpdateTransactionStatusResult, err
 }
 
 func (c *client) txCall(ctx context.Context, action string, request, resp interface{}) error {
-	envelope := SOAPEnvelope{
-		XmlNS: "http://schemas.xmlsoap.org/soap/envelope/",
-	}
-
-	envelope.Body.Content = request
-
-	payload, err := xml.Marshal(envelope)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.txURL, bytes.NewBuffer(payload))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Add("Content-Type", "text/xml; charset=\"utf-8\"")
-	req.Header.Add("SOAPAction", action)
-
-	res, err := c.cl.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("http error code (%d) msg (%s)", res.StatusCode, body)
-	}
-
-	respEnv := &SOAPEnvelopeResponse{
-		Body: resp,
-	}
-
-	err = xml.Unmarshal(body, respEnv)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.httpCall(ctx, action, c.txURL, request, resp)
 }
 
 func (c *client) call(ctx context.Context, action string, request, resp interface{}) error {
+	return c.httpCall(ctx, action, c.url, request, resp)
+}
+
+func (c *client) httpCall(ctx context.Context, action, url string, request, resp interface{}) error {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = action
@@ -319,7 +281,7 @@ func (c *client) call(ctx context.Context, action string, request, resp interfac
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(payload))
 	if err != nil {
 		return err
 	}
