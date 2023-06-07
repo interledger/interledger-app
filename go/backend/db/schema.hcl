@@ -1838,6 +1838,7 @@ table "twitter_connections" {
   }
 }
 table "tabapay_report_files" {
+  schema = schema.public
   column "filename" {
     null = false
     type = text
@@ -1883,6 +1884,10 @@ table "tabapay_report_chargebacks" {
     type = text
   }
   column "exception_id" {
+    null = false
+    type = text
+  }
+  column "exception_type" {
     null = false
     type = text
   }
