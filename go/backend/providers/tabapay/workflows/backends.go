@@ -1,8 +1,9 @@
 package workflows
 
 import (
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/aws"
+	aws_mock "gitlab.com/fynbos/backend/aws/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -19,7 +20,7 @@ type Backends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
-	S3() *s3.Client
+	AWS() aws.Client
 }
 
 type InputBackends interface {
@@ -27,7 +28,7 @@ type InputBackends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
-	S3() *s3.Client
+	AWS() aws.Client
 }
 
 type backends struct {
@@ -43,8 +44,8 @@ func (ob *backends) DB() *sqlx.DB {
 	return ob.b.DB()
 }
 
-func (ob *backends) S3() *s3.Client {
-	return ob.b.S3()
+func (ob *backends) AWS() aws.Client {
+	return ob.b.AWS()
 }
 
 func (ob *backends) KYC() kyc.Client {
@@ -65,6 +66,11 @@ type TestBackends struct {
 	Kyc            *kyc_mock.MockClient
 	Linkedaccounts *linkedaccount_mock.MockClient
 	Basistheory    *mock_bt.MockClient
+	AWSImpl        *aws_mock.MockClient
+}
+
+func (tb *TestBackends) AWS() aws.Client {
+	return tb.AWSImpl
 }
 
 func (tb *TestBackends) DB() *sqlx.DB {
