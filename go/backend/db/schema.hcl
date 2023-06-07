@@ -2000,5 +2000,109 @@ table "tabapay_report_chargebacks" {
     columns = [column.hash]
   }
 }
+table "tabapay_report_aml_transaction" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "aml_id" {
+    null = false
+    type = text
+  }
+  column "aml_code" {
+    null = false
+    type = text
+  }
+  column "iso" {
+    null = false
+    type = text
+  }
+  column "iso_name" {
+    null = false
+    type = text
+  }
+  column "mid" {
+    null = false
+    type = text
+  }
+  column "merchant_name" {
+    null = false
+    type = text
+  }
+  column "caid" {
+    null = false
+    type = text
+  }
+  column "bin_last_four" {
+    null = false
+    type = text
+  }
+  column "transaction_type" {
+    null = false
+    type = text
+  }
+  column "transaction_id" {
+    null = false
+    type = text
+  }
+  column "settle_date" {
+    null = false
+    type = timestamp
+  }
+  column "transaction_amount" {
+    null = false
+    type = bigint
+  }
+  column "settle_amount" {
+    null = false
+    type = bigint
+  }
+  column "fn" {
+    null = false
+    type = text
+  }
+  column "ln" {
+    null = false
+    type = text
+  }
+  column "report_date" {
+    null = false
+    type = timestamp
+  }
+  column "avs" {
+    null = false
+    type = text
+  }
+  column "cvv_cav" {
+    null = false
+    type = text
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_aml_transaction_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
 schema "public" {
 }
