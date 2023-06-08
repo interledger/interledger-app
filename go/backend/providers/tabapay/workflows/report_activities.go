@@ -58,11 +58,11 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 		statusDate, _ := time.Parse("02-01-2006", line[10])
 		origCreatedDate, _ := time.Parse("02-01-2006", line[13])
 		origProcessedDate, _ := time.Parse("02-01-2006", line[14])
-		settledAmount, _ := strconv.Atoi(line[20])
-		exceptionSettledAmount, _ := strconv.Atoi(line[21])
-		tabapayFee, _ := strconv.Atoi(line[22])
-		networkFee, _ := strconv.Atoi(line[23])
-		daysOpen, _ := strconv.Atoi(strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(line[11], "days", ""), "day", "")))
+		settledAmount, _ := strconv.ParseFloat(line[20], 64)
+		exceptionSettledAmount, _ := strconv.ParseFloat(line[21], 64)
+		tabapayFee, _ := strconv.ParseFloat(line[22], 64)
+		networkFee, _ := strconv.ParseFloat(line[23], 64)
+		daysOpen, _ := strconv.ParseFloat(strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(line[11], "days", ""), "day", "")), 64)
 
 		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_chargebacks "+
 			"(hash, filename, iso, mid, merchant_ref, transaction_id, exception_id, exception_type, "+
@@ -80,8 +80,8 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 			line[6], line[7], exceptionDate, line[9],
 			statusDate, daysOpen, line[12], origCreatedDate,
 			origProcessedDate, line[15], line[16],
-			line[17], line[18], line[19], settledAmount,
-			exceptionSettledAmount, tabapayFee, networkFee, line[24], line[25], line[26],
+			line[17], line[18], line[19], settledAmount*10,
+			exceptionSettledAmount*10, tabapayFee*10, networkFee*10, line[24], line[25], line[26],
 			line[27], line[28], line[29])
 		if err != nil {
 			return err
@@ -121,22 +121,22 @@ func (a *Activity) ProcessAMLTransactionsReport(ctx context.Context, filename st
 		}
 
 		settleDate, _ := time.Parse("20060102", line[11])
-		reportDate, _ := time.Parse("02/01/2006", line[11])
+		reportDate, _ := time.Parse("01/02/2006", line[16])
 		txAmount, _ := strconv.ParseFloat(line[12], 64)
 		settleAmount, _ := strconv.ParseFloat(line[13], 64)
 
 		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_aml_transaction "+
-			"(hash, filename, aml_id, aml_code, iso, iso_name, mid, merchant_name, "+
-			"caid, bin_last_four, transaction_type, transaction_id, settle_date,"+
-			"transaction_amount, settle_amount, fn, ln, report_date, avs,"+
+			"(hash, filename, aml_id, aml_code, aml_description, iso, iso_name, mid, "+
+			"merchant_name, caid, bin_last_four, transaction_type, transaction_id,"+
+			"settle_date, transaction_amount, settle_amount, fn, ln, report_date, avs,"+
 			"cvv_cav, type) "+
 			"VALUES "+
 			"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, "+
 			"$18, $19, $20, $21, $22) "+
 			"ON CONFLICT DO NOTHING",
 			lineHash, filename, line[0], line[1], line[2], line[3], line[4], line[5],
-			line[6], line[7], line[8], line[9], line[10], settleDate,
-			txAmount*10, settleAmount*10, line[14], line[15], reportDate, line[17],
+			line[6], line[7], line[8], line[9], line[10],
+			settleDate, txAmount*10, settleAmount*10, line[14], line[15], reportDate, line[17],
 			line[18], line[19],
 		)
 		if err != nil {
@@ -152,7 +152,7 @@ func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	pl := a.b.AWS().S3ListObjects(tabapayBucketName)
 
 	// Load all files and mark them as "unprocessed" i.e. false
-	var s3Files map[string]bool
+	s3Files := make(map[string]bool)
 
 	for pl.HasMorePages() {
 		page, err := pl.NextPage(ctx)
