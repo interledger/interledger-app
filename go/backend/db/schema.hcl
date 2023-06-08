@@ -2077,6 +2077,10 @@ table "tabapay_report_aml_transaction" {
     null = false
     type = text
   }
+  column "aml_description" {
+    null = false
+    type = text
+  }
   column "iso" {
     null = false
     type = text

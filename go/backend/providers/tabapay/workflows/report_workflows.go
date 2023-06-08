@@ -4,9 +4,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -14,7 +11,7 @@ import (
 var tabapayBucketName = "tabapayreports"
 
 // ProcessReports reads files in the TabaPay S3 bucket. Processes each individual report
-func ProcessReports(ctx workflow.Context, args tabapay.CreateCardArgs) error {
+func ProcessReports(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
@@ -43,6 +40,8 @@ func ProcessReports(ctx workflow.Context, args tabapay.CreateCardArgs) error {
 		// TODO: Add more reports
 		if strings.Contains(r, "chargebacks") {
 			err = workflow.ExecuteActivity(ctx, a.ProcessChargebacksReports, r).Get(ctx, nil)
+		} else if strings.Contains(r, "AMLtransactions") {
+			err = workflow.ExecuteActivity(ctx, a.ProcessAMLTransactionsReport, r).Get(ctx, nil)
 		} else {
 			logger.Error("Unhandled Report", "report_file", r)
 		}
