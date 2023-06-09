@@ -44,6 +44,8 @@ func ProcessReports(ctx workflow.Context) error {
 			err = workflow.ExecuteActivity(ctx, a.ProcessAMLTransactionsReport, r).Get(ctx, nil)
 		} else if strings.Contains(r, "AMLSummary") {
 			err = workflow.ExecuteActivity(ctx, a.ProcessAMLSummaryReport, r).Get(ctx, nil)
+		} else if strings.Contains(r, "exceptions") {
+			err = workflow.ExecuteActivity(ctx, a.ProcessExceptionsReports, r).Get(ctx, nil)
 		} else {
 			logger.Error("Unhandled Report", "report_file", r)
 		}
