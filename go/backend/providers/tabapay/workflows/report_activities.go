@@ -80,8 +80,8 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 			line[6], line[7], exceptionDate, line[9],
 			statusDate, daysOpen, line[12], origCreatedDate,
 			origProcessedDate, line[15], line[16],
-			line[17], line[18], line[19], settledAmount*10,
-			exceptionSettledAmount*10, tabapayFee*10, networkFee*10, line[24], line[25], line[26],
+			line[17], line[18], line[19], settledAmount*100,
+			exceptionSettledAmount*100, tabapayFee*100, networkFee*100, line[24], line[25], line[26],
 			line[27], line[28], line[29])
 		if err != nil {
 			return err
@@ -136,8 +136,60 @@ func (a *Activity) ProcessAMLTransactionsReport(ctx context.Context, filename st
 			"ON CONFLICT DO NOTHING",
 			lineHash, filename, line[0], line[1], line[2], line[3], line[4], line[5],
 			line[6], line[7], line[8], line[9], line[10],
-			settleDate, txAmount*10, settleAmount*10, line[14], line[15], reportDate, line[17],
+			settleDate, txAmount*100, settleAmount*100, line[14], line[15], reportDate, line[17],
 			line[18], line[19],
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *Activity) ProcessAMLSummaryReport(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	csvReader := csv.NewReader(data)
+	var i int
+	for {
+		i++
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		// Ignore the heading column
+		if i == 1 {
+			continue
+		}
+
+		// Compute the line hash so we don't insert duplicates
+		lineHash, err := computeHash(line, filename)
+		if err != nil {
+			return err
+		}
+
+		reportDate, _ := time.Parse("01/02/2006", line[12])
+		txCount, _ := strconv.Atoi(line[10])
+		amount, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[11], "$")), 64)
+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_aml_summary "+
+			"(hash, filename, aml_id, aml_code, aml_description, iso, iso_name, mid, "+
+			"merchant_name, caid, bin_last_four, transaction_type, count,"+
+			"total, report_date) "+
+			"VALUES "+
+			"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) "+
+			"ON CONFLICT DO NOTHING",
+			lineHash, filename, line[0], line[1], line[2], line[3], line[4], line[5],
+			line[6], line[7], line[8], line[9], txCount,
+			amount*100, reportDate,
 		)
 		if err != nil {
 			return err
