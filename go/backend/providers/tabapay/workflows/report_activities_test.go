@@ -89,3 +89,41 @@ func TestActivity_ProcessAMLTransactionsReport(t *testing.T) {
 		fmt.Println(row)
 	}
 }
+
+func TestActivity_ProcessAMLSummaryReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/aml_summary.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "aml_summary.csv").Return(fd, nil)
+
+	err = a.ProcessAMLSummaryReport(ctx, "aml_summary.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_aml_summary")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 17)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	// 4 valid lines in the file all identical so only inserted the first one
+	assert.Len(t, rows, 3)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
