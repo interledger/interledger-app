@@ -871,7 +871,13 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
-	// Notify GMT of completed card transaction.
+	// Notify GMT of completed card transaction.Their state machine goes from "created" -> "transmitted" -> "paid" so we need to do 2 updates
+	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StatePending).Get(ctx, nil)
+	if err != nil {
+		logger.Warn("failed to update card transaction on gmt", "err", err)
+		return nil, err
+	}
+
 	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, achTransaction.ID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update card transaction on gmt", "err", err)
@@ -1175,7 +1181,13 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 		return nil, err
 	}
 
-	// Notify GMT of completed card transaction.
+	// Notify GMT of completed card transaction. Their state machine goes from "created" -> "transmitted" -> "paid" so we need to do 2 updates
+	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StatePending).Get(ctx, nil)
+	if err != nil {
+		logger.Warn("failed to update card transaction on gmt", "err", err)
+		return nil, err
+	}
+
 	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update card transaction on gmt", "err", err)
