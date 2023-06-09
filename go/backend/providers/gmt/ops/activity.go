@@ -1190,6 +1190,9 @@ func (a *Activity) ConfirmPaidNotification(ctx context.Context, externalID strin
 func (a *Activity) UpdateCardTransactionStatus(ctx context.Context, externalID string, txStatus transactions.State) error {
 	// GMT status codes : 0=paid, 1=cancelled, 2=transmitted, 3=undo payment
 	status := "0"
+	if txStatus == transactions.StatePending {
+		status = "2"
+	}
 	if txStatus != transactions.StateCompleted {
 		status = "3"
 	}
