@@ -199,6 +199,72 @@ func (a *Activity) ProcessAMLSummaryReport(ctx context.Context, filename string)
 	return nil
 }
 
+func (a *Activity) ProcessExceptionsReports(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	csvReader := csv.NewReader(data)
+	var i int
+	for {
+		i++
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		// Ignore the heading column
+		if i == 1 {
+			continue
+		}
+
+		// Compute the line hash so we don't insert duplicates
+		lineHash, err := computeHash(line, filename)
+		if err != nil {
+			return err
+		}
+
+		exceptionDate, _ := time.Parse("02-01-2006", line[8])
+		statusDate, _ := time.Parse("02-01-2006", line[10])
+		origCreatedDate, _ := time.Parse("02-01-2006", line[13])
+		origProcessedDate, _ := time.Parse("02-01-2006", line[14])
+		settledAmount, _ := strconv.ParseFloat(line[20], 64)
+		exceptionSettledAmount, _ := strconv.ParseFloat(line[21], 64)
+		tabapayFee, _ := strconv.ParseFloat(line[22], 64)
+		networkFee, _ := strconv.ParseFloat(line[23], 64)
+		daysOpen, _ := strconv.ParseFloat(strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(line[11], "days", ""), "day", "")), 64)
+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_exceptions "+
+			"(hash, filename, iso, mid, merchant_reference_id, original_transaction_id, exception_id, exception_type, "+
+			"exception_code, exception_description, exception_date, action_status, "+
+			"status_date, days_open, network_transaction_id, original_date_created, "+
+			"original_date_processed, original_transaction_type, exception_source, "+
+			"exception_destination, exception_network, last_four, original_settled_amount, "+
+			"exception_settled_amount, tabapay_fee, network_fee, interchange, memo, cb_id, "+
+			"first_name, last_name, network_id) "+
+			"VALUES "+
+			"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, "+
+			"$18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32) "+
+			"ON CONFLICT DO NOTHING",
+			lineHash, filename, line[0], line[1], line[2], line[3], line[4], line[5],
+			line[6], line[7], exceptionDate, line[9],
+			statusDate, daysOpen, line[12], origCreatedDate,
+			origProcessedDate, line[15], line[16],
+			line[17], line[18], line[19], settledAmount*100,
+			exceptionSettledAmount*100, tabapayFee*100, networkFee*100, line[24], line[25], line[26],
+			line[27], line[28], line[29])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	// Get all files from S3
 	pl := a.b.AWS().S3ListObjects(tabapayBucketName)
