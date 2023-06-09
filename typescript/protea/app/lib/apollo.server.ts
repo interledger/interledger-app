@@ -11,7 +11,7 @@ import { onError } from '@apollo/client/link/error'
 const token = process.env.DATO_API_TOKEN || ''
 
 const httpLink = createHttpLink({
-  uri: 'https://graphql.datocms.com/'
+  uri: 'https://dato.fynbos.workers.dev/'
 })
 
 const authLink = setContext((_, { headers }) => {
