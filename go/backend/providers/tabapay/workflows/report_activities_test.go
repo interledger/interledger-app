@@ -201,3 +201,40 @@ func TestActivity_ProcessInterchangeReport(t *testing.T) {
 		fmt.Println(row)
 	}
 }
+
+func TestActivity_ProcessSummaryReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/summary.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "summary.csv").Return(fd, nil)
+
+	err = a.ProcessSummaryReport(ctx, "summary.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_summary")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 10)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 12)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
