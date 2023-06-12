@@ -53,6 +53,8 @@ func ProcessReports(ctx workflow.Context) error {
 		if err != nil {
 			return err
 		}
+
+		// TODO insert the filename to mark it as processed
 	}
 
 	return nil
