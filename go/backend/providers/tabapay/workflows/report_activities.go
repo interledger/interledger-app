@@ -314,6 +314,53 @@ func (a *Activity) ProcessInterchangeReport(ctx context.Context, filename string
 	return nil
 }
 
+func (a *Activity) ProcessSummaryReport(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	csvReader := csv.NewReader(data)
+	var i int
+	for {
+		i++
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		// Ignore the heading column
+		if i == 1 {
+			continue
+		}
+
+		// Compute the line hash so we don't insert duplicates
+		lineHash, err := computeHash(line, filename)
+		if err != nil {
+			return err
+		}
+
+		txCount, _ := strconv.Atoi(strings.TrimSpace(line[4]))
+		txAmount, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[5], "$")), 64)
+		sumDate := parseReportDate(line[2])
+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_summary "+
+			"(hash, filename, iso, mid, type, summary_date, transactions_count, transactions_amount) "+
+			"VALUES "+
+			"($1, $2, $3, $4, $5, $6, $7, $8) "+
+			"ON CONFLICT DO NOTHING",
+			lineHash, filename, line[0], line[1], line[3], sumDate, txCount, txAmount*100)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	// Get all files from S3
 	pl := a.b.AWS().S3ListObjects(tabapayBucketName)

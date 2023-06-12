@@ -2404,5 +2404,57 @@ table "tabapay_report_interchange" {
     columns = [column.hash]
   }
 }
+table "tabapay_report_summary" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "iso" {
+    null = false
+    type = text
+  }
+  column "mid" {
+    null = false
+    type = text
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "summary_date" {
+    null = false
+    type = timestamp
+  }
+  column "transactions_count" {
+    null = false
+    type = bigint
+  }
+  column "transactions_amount" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_summary_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
 schema "public" {
 }
