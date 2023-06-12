@@ -48,6 +48,10 @@ func ProcessReports(ctx workflow.Context) error {
 			err = workflow.ExecuteActivity(ctx, a.ProcessExceptionsReports, r).Get(ctx, nil)
 		} else if strings.Contains(r, "interchange") {
 			err = workflow.ExecuteActivity(ctx, a.ProcessInterchangeReport, r).Get(ctx, nil)
+		} else if strings.Contains(r, "summary") {
+			err = workflow.ExecuteActivity(ctx, a.ProcessSummaryReport, r).Get(ctx, nil)
+		} else if strings.Contains(r, "transactions") {
+			err = workflow.ExecuteActivity(ctx, a.ProcessTransactionsReport, r).Get(ctx, nil)
 		} else {
 			logger.Error("Unhandled Report", "report_file", r)
 		}

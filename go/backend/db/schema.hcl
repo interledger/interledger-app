@@ -2456,5 +2456,233 @@ table "tabapay_report_summary" {
     columns = [column.hash]
   }
 }
+table "tabapay_report_transactions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "iso" {
+    null = false
+    type = text
+  }
+  column "mid" {
+    null = false
+    type = text
+  }
+  column "reference_id" {
+    null = false
+    type = text
+  }
+  column "transaction_id" {
+    null = false
+    type = text
+  }
+  column "corresponding_id" {
+    null = false
+    type = text
+  }
+  column "approval_code" {
+    null = false
+    type = text
+  }
+  column "processed_date" {
+    null = false
+    type = timestamp
+  }
+  column "transaction_date" {
+    null = false
+    type = timestamp
+  }
+  column "type" {
+    null = false
+    type = text
+  }
+  column "source" {
+    null = false
+    type = text
+  }
+  column "destination" {
+    null = false
+    type = text
+  }
+  column "settlement_network" {
+    null = false
+    type = text
+  }
+  column "last_four" {
+    null = false
+    type = text
+  }
+  column "status" {
+    null = false
+    type = text
+  }
+  column "network_rc" {
+    null = false
+    type = text
+  }
+  column "transaction_amount" {
+    null = false
+    type = bigint
+  }
+  column "settled_amount" {
+    null = false
+    type = bigint
+  }
+  column "tabapay_fee" {
+    null = false
+    type = float
+  }
+  column "network_fee" {
+    null = false
+    type = float
+  }
+  column "interchange" {
+    null = false
+    type = bigint
+  }
+  column "convenience_fee" {
+    null = false
+    type = bigint
+  }
+  column "first_name" {
+    null = false
+    type = text
+  }
+  column "last_name" {
+    null = false
+    type = text
+  }
+  column "memo" {
+    null = false
+    type = text
+  }
+  column "location_name" {
+    null = false
+    type = text
+  }
+  column "location_address_1" {
+    null = false
+    type = text
+  }
+  column "location_address_2" {
+    null = false
+    type = text
+  }
+  column "location_city" {
+    null = false
+    type = text
+  }
+  column "location_state" {
+    null = false
+    type = text
+  }
+  column "location_zip" {
+    null = false
+    type = text
+  }
+  column "avs" {
+    null = false
+    type = text
+  }
+  column "cvv2" {
+    null = false
+    type = text
+  }
+  column "network_id" {
+    null = false
+    type = text
+  }
+  column "settlement_date" {
+    null = false
+    type = timestamp
+  }
+  column "card_brand" {
+    null = false
+    type = text
+  }
+  column "card_type" {
+    null = false
+    type = text
+  }
+  column "interchange_category" {
+    null = false
+    type = text
+  }
+  column "network_fee_codes" {
+    null = false
+    type = text
+  }
+  column "bin" {
+    null = false
+    type = text
+  }
+  column "beneficiary_amount" {
+    null = false
+    type = bigint
+  }
+  column "beneficiary_currency" {
+    null = false
+    type = text
+  }
+  column "fx_rate_applied" {
+    null = false
+    type = text
+  }
+  column "ofac_date" {
+    null = false
+    type = timestamp
+  }
+  column "ofac_code" {
+    null = false
+    type = text
+  }
+  column "issuer_name" {
+    null = false
+    type = text
+  }
+  column "issuer_country" {
+    null = false
+    type = text
+  }
+  column "corr_ofac_date" {
+    null = false
+    type = timestamp
+  }
+  column "corr_ofac_code" {
+    null = false
+    type = text
+  }
+  column "corresponding_fn" {
+    null = false
+    type = text
+  }
+  column "corresponding_ln" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null = false
+    type = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_transactions_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
 schema "public" {
 }
