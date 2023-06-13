@@ -2,21 +2,19 @@ declare module "routes-gen" {
   export type RouteParams = {
     "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
     "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
-    "/settings/linked-identities/:identityId": { "identityId": string };
-    "/settings/linked-accounts/:accountId": { "accountId": string };
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/connections/add-a-public-key": Record<string, never>;
     "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
     "/me/identities/:identityId": { "identityId": string };
-    "/settings/linked-identities": Record<string, never>;
     "/connections/:connectionId": { "connectionId": string };
     "/settings/profile-personal": Record<string, never>;
-    "/settings/linked-accounts": Record<string, never>;
     "/settings/profile-contact": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
+    "/identities/:identityId": { "identityId": string };
     "/temp-cloudflare-error": Record<string, never>;
+    "/accounts/:accountId": { "accountId": string };
     "/api/maps/geocode": Record<string, never>;
     "/link-account/bank": Record<string, never>;
     "/link-account/card": Record<string, never>;
@@ -28,7 +26,7 @@ declare module "routes-gen" {
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
     "/signup/password": Record<string, never>;
-    "/payment-pointer": Record<string, never>;
+    "/wallet-address": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
@@ -38,6 +36,8 @@ declare module "routes-gen" {
     "/blog/:slug": { "slug": string };
     "/connections": Record<string, never>;
     "/pay/amount": Record<string, never>;
+    "/identities": Record<string, never>;
+    "/accounts": Record<string, never>;
     "/contacts": Record<string, never>;
     "/pay/3ds": Record<string, never>;
     "/recovery": Record<string, never>;
@@ -62,21 +62,19 @@ declare module "routes-gen" {
     T extends
       | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
       | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
-      | ["/settings/linked-identities/:identityId", RouteParams["/settings/linked-identities/:identityId"]]
-      | ["/settings/linked-accounts/:accountId", RouteParams["/settings/linked-accounts/:accountId"]]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/connections/add-a-public-key"]
       | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
       | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
-      | ["/settings/linked-identities"]
       | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
       | ["/settings/profile-personal"]
-      | ["/settings/linked-accounts"]
       | ["/settings/profile-contact"]
       | ["/what-is-a-payment-pointer"]
       | ["/settings/profile-public"]
+      | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
       | ["/temp-cloudflare-error"]
+      | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/api/maps/geocode"]
       | ["/link-account/bank"]
       | ["/link-account/card"]
@@ -88,7 +86,7 @@ declare module "routes-gen" {
       | ["/login/challenge"]
       | ["/personal-details"]
       | ["/signup/password"]
-      | ["/payment-pointer"]
+      | ["/wallet-address"]
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/api/sendOtp"]
@@ -98,6 +96,8 @@ declare module "routes-gen" {
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/connections"]
       | ["/pay/amount"]
+      | ["/identities"]
+      | ["/accounts"]
       | ["/contacts"]
       | ["/pay/3ds"]
       | ["/recovery"]

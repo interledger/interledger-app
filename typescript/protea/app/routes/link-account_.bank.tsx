@@ -93,5 +93,5 @@ export async function action({ request }: ActionArgs) {
     throw json(null, httpMapping(rpc.code))
   }
 
-  return redirect(route('/settings/linked-accounts'))
+  return redirect(route('/accounts'))
 }
