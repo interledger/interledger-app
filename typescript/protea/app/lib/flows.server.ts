@@ -132,13 +132,18 @@ const flowTemplate = (type: flowType): Flow => {
         },
         returnTo: '/'
       }
-    // TODO Temp
-    // case flowType.LinkCardAccount:
-    //   return {
-    //     startRoute: route('/linked-account/:type/widget', { type: 'card' }),
-    //     data: {},
-    //     returnTo: route('/settings/linked-accounts')
-    //   }
+    case flowType.LinkCardAccount:
+      return {
+        startRoute: route('/link-account/card'),
+        data: {},
+        returnTo: route('/accounts')
+      }
+    case flowType.LinkBankAccount:
+      return {
+        startRoute: route('/link-account/bank'),
+        data: {},
+        returnTo: route('/accounts')
+      }
     case flowType.Signup:
       return {
         startRoute: route('/signup'),
