@@ -16,13 +16,10 @@ import { flashSnackbar } from '~/lib/snackbar.server'
 import { getLinkedAccount } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const linkedAccount = await getLinkedAccount(
-    request,
-    params.accountId as string
-  )
+  const account = await getLinkedAccount(request, params.accountId as string)
 
   return json({
-    name: linkedAccount.nickname
+    name: account.nickname
   })
 }
 
@@ -30,15 +27,15 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings/linked-accounts'),
-      title: 'Linked account name'
+      back: route('/accounts'),
+      title: 'Account name'
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Settings | Edit public name'
+    title: 'Account name'
   }
 }
 
@@ -51,14 +48,14 @@ export default function Page() {
     <>
       <Form
         id='edit-linked-account-name'
-        action={`/settings/linked-accounts/${params.accountId}`}
+        action={`/accounts/${params.accountId}`}
         method='post'
         className='hidden'
       />
       <Card>
         <div className='flex flex-col space-y-6'>
           <h1 className='font-display text-2xl font-medium'>
-            Linked account nickname
+            Account nickname
           </h1>
         </div>
 
@@ -136,5 +133,5 @@ export async function action({ request, params }: ActionArgs) {
     icon: 'close'
   })
 
-  return redirect(route('/settings/linked-accounts'))
+  return redirect(route('/accounts'))
 }

@@ -59,7 +59,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/settings/linked-identities'),
+      back: route('/identities'),
       title: (match) => `@${match.data.identity.identifier}`
     }
   }
@@ -112,7 +112,7 @@ export default function Page() {
     <>
       <Form
         id='identity'
-        action={`/settings/linked-identities/${identity.id}`}
+        action={`/identities/${identity.id}`}
         method='post'
         className='hidden'
       />
@@ -362,7 +362,7 @@ export async function action({ request, params }: ActionArgs) {
       )
     case 'delete':
       await deleteTwitterIdentity(request, identityId)
-      return redirect(route('/settings/linked-identities'), {
+      return redirect(route('/identities'), {
         headers: {
           'Set-Cookie': await flashSnackbar(request, {
             message: 'Identity deleted successfully.',
