@@ -77,14 +77,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      title: 'Payment pointer'
+      title: 'Wallet address'
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Payment pointer'
+    title: 'Wallet address'
   }
 }
 
@@ -107,17 +107,17 @@ export default function Page() {
   return (
     <>
       <fetcher.Form
-        id='payment-pointer'
-        action='/payment-pointer'
+        id='wallet-address'
+        action='/wallet-address'
         method='post'
         className='hidden'
       />
       <Card>
-        <p>Create your unique, memorable payment pointer.</p>
+        <p>Create your unique, memorable wallet address.</p>
 
         <TextField
           id='publicName'
-          form='payment-pointer'
+          form='wallet-address'
           label='Public name'
           name='publicName'
           defaultValue={publicName}
@@ -131,10 +131,10 @@ export default function Page() {
         />
         <TextField
           id='username'
-          form='payment-pointer'
-          label='Payment pointer'
+          form='wallet-address'
+          label='Wallet address'
           name='username'
-          prefix={`$${paymentPointerBase}/`}
+          prefix={`${paymentPointerBase}/`}
           appendIcon={
             username == '' &&
             typeof fetcher.data == 'undefined' ? undefined : fetcher.data
@@ -156,17 +156,17 @@ export default function Page() {
           successMessage={
             fetcher.data?.errors.username || username == ''
               ? undefined
-              : 'This payment pointer is available.'
+              : 'This wallet address is available.'
           }
         />
         <input
-          form='payment-pointer'
+          form='wallet-address'
           value='true'
           name='canSubmit'
           type='hidden'
         />
       </Card>
-      <Button form='payment-pointer' type='submit'>
+      <Button form='wallet-address' type='submit'>
         Save
       </Button>
       <Snackbar
@@ -231,8 +231,7 @@ export async function action({ request }: ActionArgs) {
     return json(
       {
         errors: {
-          username:
-            'That payment pointer has been taken. Please choose another.'
+          username: 'That wallet address has been taken. Please choose another.'
         }
       },
       { status: 400 }
@@ -270,7 +269,7 @@ export async function action({ request }: ActionArgs) {
     return redirect(route('/'), {
       headers: {
         'Set-Cookie': await flashSnackbar(request, {
-          message: 'Payment pointer reserved.',
+          message: 'Wallet address reserved.',
           icon: 'close'
         })
       }

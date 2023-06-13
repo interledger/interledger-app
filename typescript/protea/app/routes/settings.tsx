@@ -83,26 +83,6 @@ export default function Page() {
         </Router>
         <h2 className='mt-6 text-sm font-medium'>Account</h2>
         <Router
-          to={route('/settings/linked-accounts')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-        >
-          <div className='flex space-x-3'>
-            <Icon>add_card</Icon>
-            <span>Linked accounts</span>
-          </div>
-          <Icon>navigate_next</Icon>
-        </Router>
-        <Router
-          to={route('/settings/linked-identities')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-        >
-          <div className='flex space-x-3'>
-            <Icon>add_card</Icon>
-            <span>Linked identities</span>
-          </div>
-          <Icon>navigate_next</Icon>
-        </Router>
-        <Router
           to={route('/connections')}
           className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
