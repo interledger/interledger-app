@@ -137,7 +137,7 @@ export async function getWalletPaymentPointer(
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   } else if (response.response.pointers.length == 0) {
-    throw redirect(route('/payment-pointer'))
+    throw redirect(route('/wallet-address'))
   }
 
   return response.response.pointers[0]

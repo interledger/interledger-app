@@ -4,7 +4,7 @@ import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
+import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
@@ -29,18 +29,17 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
-      title: 'Linked accounts'
+      title: 'Accounts'
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Settings | Linked accounts'
+    title: 'Accounts'
   }
 }
 
@@ -51,13 +50,13 @@ export default function Page() {
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   return (
-    <>
+    <WalletGrid>
       {linkedAccounts && linkedAccounts.length > 0 && (
-        <Card>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           {linkedAccounts.map((method) => (
             <Router
               key={method.id}
-              to={route('/settings/linked-accounts/:accountId', {
+              to={route('/accounts/:accountId', {
                 accountId: method.id
               })}
               className='mt-4 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
@@ -75,17 +74,17 @@ export default function Page() {
             className='mt-6 text-sm font-medium text-primary'
             to={route('/link-account')}
           >
-            Link another account
+            Connect another account
           </Router>
         </Card>
       )}
       {linkedAccounts && linkedAccounts.length == 0 && (
-        <Card>
-          <p>You do not have any linked accounts.</p>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+          <p>You do not have any connected accounts.</p>
         </Card>
       )}
       {kycStatus == KycStatus.Unknown && (
-        <Card className='space-y-4'>
+        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h1 className='font-display text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
@@ -93,8 +92,8 @@ export default function Page() {
             </div>
             <div className='flex flex-col space-y-4'>
               <p className='text-sm text-medium'>
-                Your payment pointer is reserved, we just need a few more
-                details to activate it.
+                Your wallet address is reserved, we just need a few more details
+                to activate it.
               </p>
               <Router
                 className='text-sm font-medium text-primary'
@@ -107,7 +106,7 @@ export default function Page() {
         </Card>
       )}
       {kycStatus == KycStatus.Verified && !canTopUp && (
-        <Card className='space-y-6'>
+        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>credit_card</Icon>
@@ -129,7 +128,7 @@ export default function Page() {
         </Card>
       )}
       {kycStatus == KycStatus.Verified && !canWithdraw && (
-        <Card className='space-y-6'>
+        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>account_balance</Icon>
@@ -160,6 +159,6 @@ export default function Page() {
         offset
         onClose={() => setSnackbar(false)}
       />
-    </>
+    </WalletGrid>
   )
 }
