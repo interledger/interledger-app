@@ -119,6 +119,12 @@ export function Scaffold() {
               <span className='font-display font-medium'>Pay</span>
             </Router>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/accounts')}>
+              Accounts
+            </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/identities')}>
+              Identities
+            </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/transactions')}>
               Transactions
             </NavDrawer.ListItem>
@@ -377,6 +383,12 @@ export function Scaffold() {
                   </Router>
                 </div>
                 <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
+                <NavDrawer.ListItem to={route('/accounts')}>
+                  Accounts
+                </NavDrawer.ListItem>
+                <NavDrawer.ListItem to={route('/identities')}>
+                  Identities
+                </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={route('/transactions')}>
                   Transactions
                 </NavDrawer.ListItem>
