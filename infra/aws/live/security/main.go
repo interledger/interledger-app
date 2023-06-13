@@ -170,6 +170,11 @@ func main() {
 			return err
 		}
 
+		err = createGMTUser(ctx, provider)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -229,6 +234,33 @@ func createTabapayUser(ctx *pulumi.Context, provider *aws.Provider) error {
 	}
 
 	ctx.Export(fmt.Sprintf("tabapayUser"), pulumi.Map{
+		"arn":       user.Arn,
+		"user":      accessKey.User,
+		"keyID":     accessKey.ID(),
+		"keySecret": accessKey.EncryptedSecret,
+	})
+	return nil
+}
+
+func createGMTUser(ctx *pulumi.Context, provider *aws.Provider) error {
+
+	user, err := iam.NewUser(ctx, fmt.Sprintf("gmt"), &iam.UserArgs{
+		Name: pulumi.String("gmt"),
+		Path: pulumi.String("/"),
+	}, pulumi.Provider(provider))
+	if err != nil {
+		return err
+	}
+
+	accessKey, err := iam.NewAccessKey(ctx, "gmt", &iam.AccessKeyArgs{
+		User:   user.Name,
+		PgpKey: pulumi.String("keybase:matdehaast"),
+	}, pulumi.Provider(provider))
+	if err != nil {
+		return err
+	}
+
+	ctx.Export(fmt.Sprintf("gmtUser"), pulumi.Map{
 		"arn":       user.Arn,
 		"user":      accessKey.User,
 		"keyID":     accessKey.ID(),
