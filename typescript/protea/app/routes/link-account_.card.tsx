@@ -259,7 +259,7 @@ export async function action({ request }: ActionArgs) {
 
   await createCard(request, cardToken)
 
-  return redirect(route('/'), {
+  return redirect(route('/accounts'), {
     headers: {
       'Set-Cookie': await flashSnackbar(request, {
         message: 'New card successfully saved.',

@@ -16,7 +16,8 @@ import {
   LinkedInIcon,
   Router,
   Snackbar,
-  TwitterIcon
+  TwitterIcon,
+  WalletGrid
 } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
@@ -36,18 +37,17 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings'),
-      title: 'Linked identities'
+      title: 'Identities'
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Settings | Linked identities'
+    title: 'Identities'
   }
 }
 
@@ -57,15 +57,15 @@ export default function Page() {
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   return (
-    <>
+    <WalletGrid>
       {linkedIdentities.twitter && (
-        <Card>
+        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <h1 className='font-display text-lg font-medium'>Twitter</h1>
           {linkedIdentities.twitter.map((identity) => (
             <Router
               key={identity.id}
               className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium first-of-type:mt-6 hover:bg-nav-hover'
-              to={route('/settings/linked-identities/:identityId', {
+              to={route('/identities/:identityId', {
                 identityId: identity.id
               })}
             >
@@ -99,7 +99,7 @@ export default function Page() {
         </Card>
       )}
       {!linkedIdentities.twitter && (
-        <Card className='space-y-4'>
+        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <TwitterIcon />
@@ -117,7 +117,7 @@ export default function Page() {
         </Card>
       )}
       {!linkedIdentities.github && (
-        <Card className='space-y-4'>
+        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <GithubIcon />
@@ -130,7 +130,7 @@ export default function Page() {
         </Card>
       )}
       {!linkedIdentities.linkedIn && (
-        <Card className='space-y-4'>
+        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <LinkedInIcon />
@@ -143,7 +143,7 @@ export default function Page() {
         </Card>
       )}
       {!linkedIdentities.facebook && (
-        <Card className='space-y-4'>
+        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <FaceBookIcon />
@@ -156,7 +156,7 @@ export default function Page() {
         </Card>
       )}
       {!linkedIdentities.instagram && (
-        <Card className='space-y-4'>
+        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           <div className='flex items-center space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <InstagramIcon />
@@ -177,6 +177,6 @@ export default function Page() {
         dismissAfter={3000}
         onClose={() => setSnackbar(false)}
       />
-    </>
+    </WalletGrid>
   )
 }
