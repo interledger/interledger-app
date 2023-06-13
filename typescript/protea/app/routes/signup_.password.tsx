@@ -262,7 +262,7 @@ export async function action({ request }: ActionArgs) {
   })
   resHeaders.append('set-cookie', sessionHeaders)
 
-  return redirect(route('/payment-pointer'), {
+  return redirect(route('/wallet-address'), {
     headers: resHeaders
   })
 }

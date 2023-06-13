@@ -56,10 +56,10 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/settings/linked-identities'),
+      back: route('/identities'),
       title: (match) => `@${match.data.identity.identifier}`
     }
   }
@@ -362,7 +362,7 @@ export async function action({ request, params }: ActionArgs) {
       )
     case 'delete':
       await deleteTwitterIdentity(request, identityId)
-      return redirect(route('/settings/linked-identities'), {
+      return redirect(route('/identities'), {
         headers: {
           'Set-Cookie': await flashSnackbar(request, {
             message: 'Identity deleted successfully.',

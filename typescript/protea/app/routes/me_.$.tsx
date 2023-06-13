@@ -119,7 +119,6 @@ export default function Page() {
   const {
     profilePicture,
     isUser,
-    editable,
     wallet,
     identities,
     walletAddress,
