@@ -449,6 +449,55 @@ func (a *Activity) ProcessTransactionsReport(ctx context.Context, filename strin
 	return nil
 }
 
+func (a *Activity) ProcessMonthlyInterchangeReport(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	csvReader := csv.NewReader(data)
+	var i int
+	for {
+		i++
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		// Ignore the heading column
+		if i == 1 {
+			continue
+		}
+
+		// Compute the line hash so we don't insert duplicates
+		lineHash, err := computeHash(line, filename)
+		if err != nil {
+			return err
+		}
+
+		txCount, _ := strconv.Atoi(strings.TrimSpace(line[7]))
+		txDollars, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[8], "$")), 64)
+		interchangeDollars, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[9], "$")), 64)
+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_monthly_interchange "+
+			"(hash, filename, iso, iso_name, mid, merchant_name, brand, card_type, "+
+			"interchange_category, transaction_count, transaction_dollars, interchange_dollars) "+
+			"VALUES "+
+			"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "+
+			"ON CONFLICT DO NOTHING",
+			lineHash, filename, line[0], line[1], line[2], line[3], line[4], line[5],
+			line[6], txCount, txDollars*100, interchangeDollars*100)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	// Get all files from S3
 	pl := a.b.AWS().S3ListObjects(tabapayBucketName)
