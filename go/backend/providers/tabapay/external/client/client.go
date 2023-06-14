@@ -41,7 +41,7 @@ type NewClientArgs struct {
 func New(args NewClientArgs) (*client, error) {
 	baseUrl := "https://api.sandbox.tabapay.net:10443"
 	if env.IsProd() {
-		baseUrl = "https://api.tabapay.net:10443"
+		baseUrl = "https://api11.tabapay.net:10443"
 	}
 	t := args.Transport
 	if t == nil {
