@@ -54,7 +54,7 @@ export default function Page() {
       />
       <Card>
         <div className='flex flex-col space-y-6'>
-          <h1 className='font-display text-2xl font-medium'>
+          <h1 className='text-2xl font-medium'>
             Account nickname
           </h1>
         </div>

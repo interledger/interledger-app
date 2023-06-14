@@ -279,7 +279,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
       />
       <Dialog open={showDialog} setOpen={setShowDialog}>
-        <h1 className='font-display text-2xl'>Remove Twitter ID card</h1>
+        <h1 className='text-2xl'>Remove Twitter ID card</h1>
         <span className='text-medium'>
           Are you sure you want to remove the Twitter identity card? This action
           cannot be undone.

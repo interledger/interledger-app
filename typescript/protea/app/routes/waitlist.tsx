@@ -134,7 +134,7 @@ export default function Page() {
         )}
         {mug.available && (
           <>
-            <span className='font-display text-2xl font-medium'>
+            <span className='text-2xl font-medium'>
               Congratulations!
             </span>
             <div className='mt-4 flex flex-col space-y-4 sm:flex-row-reverse sm:items-center sm:space-x-6 sm:space-y-0 sm:space-x-reverse'>

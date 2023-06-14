@@ -85,7 +85,7 @@ export default function Page() {
       </Card>
 
       <Card>
-        <h2 className='font-display text-lg font-medium'>Limits</h2>
+        <h2 className='text-lg font-medium'>Limits</h2>
         <p className='mt-6'>
           Providing access to your Fynbos wallet allows the external application
           to make payments. Set the limits below.
