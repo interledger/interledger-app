@@ -1,0 +1,46 @@
+ISO,ISO name, MID, Merchant name,Fee category,Quantity,Unit Fee,Fee
+ISO,ISO Name,MID,Merchant Name,AVS,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchases,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchase $,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Pur-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disburse,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disb-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Chargebacks,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Deletes,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,MID Fee,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,AVS,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchases,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchase $,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Pur-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disburse,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disb-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Chargebacks,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Deletes,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,MID Fee,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,AVS,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchases,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchase $,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Pur-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disburse,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disb-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Chargebacks,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Deletes,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,MID Fee,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,AVS,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchases,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchase $,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Pur-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disburse,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disb-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Chargebacks,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Deletes,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,MID Fee,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,AVS,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchases,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Purchase $,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Pur-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disburse,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Disb-Failed,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Chargebacks,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,Deletes,1,$0.01 ,$0.01 
+ISO,ISO Name,MID,Merchant Name,MID Fee,1,$0.01 ,$0.01 
