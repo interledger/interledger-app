@@ -3034,5 +3034,65 @@ table "tabapay_report_monthly_interchange" {
     columns = [column.hash]
   }
 }
+table "tabapay_report_monthly_processing_fee" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "iso" {
+    null = false
+    type = text
+  }
+  column "iso_name" {
+    null = false
+    type = text
+  }
+  column "mid" {
+    null = false
+    type = text
+  }
+  column "merchant_name" {
+    null = false
+    type = text
+  }
+  column "fee_category" {
+    null = false
+    type = text
+  }
+  column "quantity" {
+    null = false
+    type = text
+  }
+  column "unit_fee" {
+    null = false
+    type = bigint
+  }
+  column "fee" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_monthly_processing_fee_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
 schema "public" {
 }

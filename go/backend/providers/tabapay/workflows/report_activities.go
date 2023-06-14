@@ -25,6 +25,19 @@ func computeHash(line []string, filename string) (string, error) {
 	return fmt.Sprintf("%x", md5.Sum(buf.Bytes())), nil
 }
 
+func isEmptyLine(line []string) bool {
+	if len(line) == 0 {
+		return true
+	}
+	for _, le := range line {
+		if strings.TrimSpace(le) != "" {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename string) error {
 	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
 	if err != nil {
@@ -44,7 +57,7 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 			return err
 		}
 		// Ignore the heading column
-		if i == 1 {
+		if i == 1 || isEmptyLine(line) {
 			continue
 		}
 
@@ -110,7 +123,7 @@ func (a *Activity) ProcessAMLTransactionsReport(ctx context.Context, filename st
 			return err
 		}
 		// Ignore the heading column
-		if i == 1 {
+		if i == 1 || isEmptyLine(line) {
 			continue
 		}
 
@@ -166,7 +179,7 @@ func (a *Activity) ProcessAMLSummaryReport(ctx context.Context, filename string)
 			return err
 		}
 		// Ignore the heading column
-		if i == 1 {
+		if i == 1 || isEmptyLine(line) {
 			continue
 		}
 
@@ -218,7 +231,7 @@ func (a *Activity) ProcessExceptionsReports(ctx context.Context, filename string
 			return err
 		}
 		// Ignore the heading column
-		if i == 1 {
+		if i == 1 || isEmptyLine(line) {
 			continue
 		}
 
@@ -284,7 +297,7 @@ func (a *Activity) ProcessInterchangeReport(ctx context.Context, filename, table
 			return err
 		}
 		// Ignore the heading column
-		if i == 1 {
+		if i == 1 || isEmptyLine(line) {
 			continue
 		}
 
@@ -333,7 +346,7 @@ func (a *Activity) ProcessSummaryReport(ctx context.Context, filename string) er
 			return err
 		}
 		// Ignore the heading column
-		if i == 1 {
+		if i == 1 || isEmptyLine(line) {
 			continue
 		}
 
@@ -380,7 +393,7 @@ func (a *Activity) ProcessTransactionsReport(ctx context.Context, filename, tabl
 			return err
 		}
 		// Ignore the heading column
-		if i == 1 {
+		if i == 1 || isEmptyLine(line) {
 			continue
 		}
 
@@ -441,6 +454,53 @@ func (a *Activity) ProcessTransactionsReport(ctx context.Context, filename, tabl
 			line[43], line[44], line[45], corOfacDate, line[47],
 			line[48], line[49])
 
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *Activity) ProcessMonthlyProcessingFee(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	csvReader := csv.NewReader(data)
+	var i int
+	for {
+		i++
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		// Ignore the heading column
+		if i == 1 || isEmptyLine(line) {
+			continue
+		}
+
+		// Compute the line hash so we don't insert duplicates
+		lineHash, err := computeHash(line, filename)
+		if err != nil {
+			return err
+		}
+
+		quantity, _ := strconv.Atoi(strings.TrimSpace(line[5]))
+		unitFee, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[6], "$")), 64)
+		fee, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[7], "$")), 64)
+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_monthly_processing_fee "+
+			"(hash, filename, iso, iso_name, mid, merchant_name, fee_category, quantity, unit_fee, fee) "+
+			"VALUES "+
+			"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "+
+			"ON CONFLICT DO NOTHING",
+			lineHash, filename, line[0], line[1], line[2], line[3], line[4], quantity, unitFee*100, fee*100)
 		if err != nil {
 			return err
 		}
