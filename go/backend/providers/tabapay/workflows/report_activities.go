@@ -265,7 +265,7 @@ func (a *Activity) ProcessExceptionsReports(ctx context.Context, filename string
 	return nil
 }
 
-func (a *Activity) ProcessInterchangeReport(ctx context.Context, filename string) error {
+func (a *Activity) ProcessInterchangeReport(ctx context.Context, filename, tableName string) error {
 	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
 	if err != nil {
 		return err
@@ -298,7 +298,7 @@ func (a *Activity) ProcessInterchangeReport(ctx context.Context, filename string
 		txDollars, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[8], "$")), 64)
 		interchangeDollars, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[9], "$")), 64)
 
-		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_interchange "+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO "+tableName+" "+
 			"(hash, filename, iso, iso_name, mid, merchant_name, brand, card_type, "+
 			"interchange_category, transaction_count, transaction_dollars, interchange_dollars) "+
 			"VALUES "+
@@ -361,7 +361,7 @@ func (a *Activity) ProcessSummaryReport(ctx context.Context, filename string) er
 	return nil
 }
 
-func (a *Activity) ProcessTransactionsReport(ctx context.Context, filename string) error {
+func (a *Activity) ProcessTransactionsReport(ctx context.Context, filename, tableName string) error {
 	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
 	if err != nil {
 		return err
@@ -404,7 +404,7 @@ func (a *Activity) ProcessTransactionsReport(ctx context.Context, filename strin
 		convenienceFee, _ := strconv.ParseFloat(line[20], 64)
 		beneficiaryAmount, _ := strconv.ParseFloat(line[39], 64)
 
-		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_transactions "+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO "+tableName+" "+
 			"(hash, filename, iso, mid, reference_id, "+
 			"transaction_id, corresponding_id, approval_code, processed_date, transaction_date, "+
 			"type, source, destination, settlement_network, last_four, "+
@@ -441,55 +441,6 @@ func (a *Activity) ProcessTransactionsReport(ctx context.Context, filename strin
 			line[43], line[44], line[45], corOfacDate, line[47],
 			line[48], line[49])
 
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (a *Activity) ProcessMonthlyInterchangeReport(ctx context.Context, filename string) error {
-	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
-	if err != nil {
-		return err
-	}
-	defer data.Close()
-
-	csvReader := csv.NewReader(data)
-	var i int
-	for {
-		i++
-		line, err := csvReader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-		// Ignore the heading column
-		if i == 1 {
-			continue
-		}
-
-		// Compute the line hash so we don't insert duplicates
-		lineHash, err := computeHash(line, filename)
-		if err != nil {
-			return err
-		}
-
-		txCount, _ := strconv.Atoi(strings.TrimSpace(line[7]))
-		txDollars, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[8], "$")), 64)
-		interchangeDollars, _ := strconv.ParseFloat(strings.TrimSpace(strings.TrimPrefix(line[9], "$")), 64)
-
-		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_monthly_interchange "+
-			"(hash, filename, iso, iso_name, mid, merchant_name, brand, card_type, "+
-			"interchange_category, transaction_count, transaction_dollars, interchange_dollars) "+
-			"VALUES "+
-			"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "+
-			"ON CONFLICT DO NOTHING",
-			lineHash, filename, line[0], line[1], line[2], line[3], line[4], line[5],
-			line[6], txCount, txDollars*100, interchangeDollars*100)
 		if err != nil {
 			return err
 		}

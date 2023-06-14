@@ -181,7 +181,7 @@ func TestActivity_ProcessInterchangeReport(t *testing.T) {
 
 	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "interchange.csv").Return(fd, nil)
 
-	err = a.ProcessInterchangeReport(ctx, "interchange.csv")
+	err = a.ProcessInterchangeReport(ctx, "interchange.csv", "tabapay_report_interchange")
 	require.NoError(t, err)
 
 	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_interchange")
@@ -255,10 +255,47 @@ func TestActivity_ProcessTransactionsReport(t *testing.T) {
 
 	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "transactions.csv").Return(fd, nil)
 
-	err = a.ProcessTransactionsReport(ctx, "transactions.csv")
+	err = a.ProcessTransactionsReport(ctx, "transactions.csv", "tabapay_report_transactions")
 	require.NoError(t, err)
 
 	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_transactions")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 54)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23], &row[24], &row[25], &row[26], &row[27], &row[28], &row[29], &row[30], &row[31], &row[32], &row[33], &row[34], &row[35], &row[36], &row[37], &row[38], &row[39], &row[40], &row[41], &row[42], &row[43], &row[44], &row[45], &row[46], &row[47], &row[48], &row[49], &row[50], &row[51], &row[52], &row[53])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 11)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessMonthlyTransactionsReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/transactions.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "monthly_transactions.csv").Return(fd, nil)
+
+	err = a.ProcessTransactionsReport(ctx, "monthly_transactions.csv", "tabapay_monthly_report_transactions")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_monthly_report_transactions")
 	require.NoError(t, err)
 
 	var rows [][]string
@@ -292,7 +329,7 @@ func TestActivity_ProcessMonthlyInterchangeReport(t *testing.T) {
 
 	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "monthly_interchange.csv").Return(fd, nil)
 
-	err = a.ProcessMonthlyInterchangeReport(ctx, "monthly_interchange.csv")
+	err = a.ProcessInterchangeReport(ctx, "monthly_interchange.csv", "tabapay_report_monthly_interchange")
 	require.NoError(t, err)
 
 	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_monthly_interchange")
