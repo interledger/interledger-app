@@ -38,6 +38,13 @@ func ProcessReports(ctx workflow.Context) error {
 	for _, r := range reports {
 		// Load the report based on the filename
 		// TODO: Add more reports
+		if strings.Contains(r, "Monthly") {
+			if strings.Contains(r, "interchange") {
+				err = workflow.ExecuteActivity(ctx, a.ProcessInterchangeReport, r, "tabapay_report_monthly_interchange").Get(ctx, nil)
+			} else if strings.Contains(r, "transactions") {
+				err = workflow.ExecuteActivity(ctx, a.ProcessTransactionsReport, r, "tabapay_monthly_report_transactions").Get(ctx, nil)
+			}
+		}
 		if strings.Contains(r, "chargebacks") {
 			err = workflow.ExecuteActivity(ctx, a.ProcessChargebacksReports, r).Get(ctx, nil)
 		} else if strings.Contains(r, "AMLtransactions") {
@@ -47,11 +54,11 @@ func ProcessReports(ctx workflow.Context) error {
 		} else if strings.Contains(r, "exceptions") {
 			err = workflow.ExecuteActivity(ctx, a.ProcessExceptionsReports, r).Get(ctx, nil)
 		} else if strings.Contains(r, "interchange") {
-			err = workflow.ExecuteActivity(ctx, a.ProcessInterchangeReport, r).Get(ctx, nil)
+			err = workflow.ExecuteActivity(ctx, a.ProcessInterchangeReport, r, "tabapay_report_interchange").Get(ctx, nil)
 		} else if strings.Contains(r, "summary") {
 			err = workflow.ExecuteActivity(ctx, a.ProcessSummaryReport, r).Get(ctx, nil)
 		} else if strings.Contains(r, "transactions") {
-			err = workflow.ExecuteActivity(ctx, a.ProcessTransactionsReport, r).Get(ctx, nil)
+			err = workflow.ExecuteActivity(ctx, a.ProcessTransactionsReport, r, "tabapay_report_transactions").Get(ctx, nil)
 		} else {
 			logger.Error("Unhandled Report", "report_file", r)
 		}
