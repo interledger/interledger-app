@@ -2684,5 +2684,73 @@ table "tabapay_report_transactions" {
     columns = [column.hash]
   }
 }
+table "tabapay_report_monthly_interchange" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "iso" {
+    null = false
+    type = text
+  }
+  column "iso_name" {
+    null = false
+    type = text
+  }
+  column "mid" {
+    null = false
+    type = text
+  }
+  column "merchant_name" {
+    null = false
+    type = text
+  }
+  column "brand" {
+    null = false
+    type = text
+  }
+  column "card_type" {
+    null = false
+    type = text
+  }
+  column "interchange_category" {
+    null = false
+    type = text
+  }
+  column "transaction_count" {
+    null = false
+    type = bigint
+  }
+  column "transaction_dollars" {
+    null = false
+    type = bigint
+  }
+  column "interchange_dollars" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_monthly_interchange_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
 schema "public" {
 }
