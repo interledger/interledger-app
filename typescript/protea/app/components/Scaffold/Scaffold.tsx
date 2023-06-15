@@ -205,16 +205,15 @@ export function Scaffold() {
         )}
         {layout !== Layouts.Marketing && (
           <div className='mx-auto flex w-full items-center sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
-            <IconButton
-              className={clsx(
-                layout === Layouts.Focus && 'hidden',
-                'mr-4 lg:hidden'
-              )}
-              onClick={() => setOpenNavModal(true)}
-              aria-label='Open menu'
-            >
-              menu
-            </IconButton>
+            <div className='lg:hidden'>
+              <IconButton
+                className={clsx(layout === Layouts.Focus && 'hidden', 'mr-4')}
+                onClick={() => setOpenNavModal(true)}
+                aria-label='Open menu'
+              >
+                menu
+              </IconButton>
+            </div>
             {/* TODO Make this smarter. */}
             {scaffold.header.back && (
               <IconButton
