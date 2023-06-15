@@ -12,6 +12,7 @@ import (
 	mock_bt "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	mock_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
+	"go.temporal.io/sdk/client"
 )
 
 type Backends interface {
@@ -21,6 +22,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
 	AWS() aws.Client
+	Temporal() client.Client
 }
 
 type InputBackends interface {
@@ -29,6 +31,7 @@ type InputBackends interface {
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
 	AWS() aws.Client
+	Temporal() client.Client
 }
 
 type backends struct {
@@ -58,6 +61,10 @@ func (ob *backends) LinkedAccounts() linkedaccounts.Client {
 
 func (ob *backends) BasisTheory() basistheory.Client {
 	return ob.b.BasisTheory()
+}
+
+func (ob *backends) Temporal() client.Client {
+	return ob.b.Temporal()
 }
 
 type TestBackends struct {
@@ -91,6 +98,9 @@ func (tb *TestBackends) KYC() kyc.Client {
 
 func (tb *TestBackends) LinkedAccounts() linkedaccounts.Client {
 	return tb.Linkedaccounts
+}
+func (tb *TestBackends) Temporal() client.Client {
+	return nil
 }
 
 func NewTestBackends(opts ...func(b *TestBackends)) *TestBackends {
