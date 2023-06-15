@@ -145,7 +145,7 @@ export default function Page() {
       </Card>
       {hasVerified && (
         <ButtonRouter to={route('/signup/password')}>
-          <span className='font-display font-medium text-white'>Continue</span>
+          <span className='font-medium text-white'>Continue</span>
         </ButtonRouter>
       )}
       {!hasVerified && (
@@ -161,7 +161,7 @@ export default function Page() {
           method='post'
           className='hidden'
         />
-        <h1 className='font-display text-2xl'>Two-step verification</h1>
+        <h1 className='text-2xl'>Two-step verification</h1>
         <span className='text-medium'>
           Enter the six digit verification code sent to your mobile number.
         </span>

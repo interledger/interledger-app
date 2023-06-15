@@ -69,7 +69,7 @@ export default function Page() {
 
       {connections.length > 0 && (
         <Card>
-          <h1 className='font-display text-2xl font-medium'>Public keys</h1>
+          <h1 className='text-2xl font-medium'>Public keys</h1>
           {connections.map((conn) => (
             <Router
               to={route('/connections/:connectionId', {
