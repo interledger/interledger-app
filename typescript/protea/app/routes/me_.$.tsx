@@ -152,7 +152,7 @@ export default function Page() {
         <h1
           className={clsx(
             profilePicture && 'mt-6',
-            'text-center font-display text-2xl font-medium'
+            'text-center text-2xl font-medium'
           )}
         >
           {wallet.publicName}
@@ -285,7 +285,7 @@ export default function Page() {
       )}
       {!isUser && (
         <Card className='space-y-4'>
-          <h1 className='font-display text-lg font-medium'>
+          <h1 className='text-lg font-medium'>
             Join the waitlist
           </h1>
           <div className='flex items-start space-x-4'>

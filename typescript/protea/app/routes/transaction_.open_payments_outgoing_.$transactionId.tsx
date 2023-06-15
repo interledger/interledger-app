@@ -208,7 +208,7 @@ export default function Page() {
       {transfers &&
         transfers.map((transfer) => (
           <Card key={transfer?.title} className='mt-6'>
-            <h2 className='font-display text-sm font-medium'>
+            <h2 className='text-sm font-medium'>
               {transfer?.title}
             </h2>
             <Card.Item className='mt-3'>
