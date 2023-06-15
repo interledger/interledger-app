@@ -423,3 +423,22 @@ func TestActivity_ProcessMonthlyNetworkFees(t *testing.T) {
 		fmt.Println(row)
 	}
 }
+
+func TestActivity_MarkReportAsProcessed(t *testing.T) {
+	ctx := context.Background()
+
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+
+	a := workflows.NewActivity(b)
+
+	err := a.MarkReportAsProcessed(ctx, "somefilename.csv")
+	require.NoError(t, err)
+
+	var fn string
+	err = b.DB().GetContext(ctx, &fn, "SELECT filename FROM tabapay_report_files")
+	require.NoError(t, err)
+
+	assert.Equal(t, "somefilename.csv", fn)
+}

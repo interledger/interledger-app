@@ -636,6 +636,11 @@ func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	return unprocessed, nil
 }
 
+func (a *Activity) MarkReportAsProcessed(ctx context.Context, filename string) error {
+	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_files (filename) VALUES ($1)", filename)
+	return err
+}
+
 func parseReportDate(input string) time.Time {
 	dt, err := time.Parse("01/02/2006", input)
 	if err == nil {
