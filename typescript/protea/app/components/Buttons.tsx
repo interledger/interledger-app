@@ -25,7 +25,7 @@ export const Button = forwardRef<any, ButtonProps>(
         {...buttonProps}
         disabled={buttonProps.disabled ?? navigation.state == 'submitting'}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-6 font-display font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:ring-blue-400 hover:enabled:bg-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-6 font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:ring-blue-400 hover:enabled:bg-blue-400 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
           shrink && 'sm:max-w-fit',
           buttonProps.className
         )}
@@ -47,7 +47,7 @@ export const OutlineButton = forwardRef<any, ButtonProps>(
         {...buttonProps}
         disabled={buttonProps.disabled ?? navigation.state == 'submitting'}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full border border-transparent px-6 font-display font-medium text-primary outline outline-2 -outline-offset-2 outline-blue-500 hover:text-primary-hover hover:outline-hover focus-visible:bg-container-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent px-6 font-medium text-primary outline outline-2 -outline-offset-2 outline-blue-500 hover:text-primary-hover hover:outline-hover focus-visible:bg-container-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
           shrink && 'sm:max-w-fit',
           buttonProps.className
         )}

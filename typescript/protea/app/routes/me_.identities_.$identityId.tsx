@@ -146,7 +146,7 @@ export default function Page() {
       )}
       {!isUser && (
         <Card className='space-y-4'>
-          <h1 className='font-display text-lg font-medium'>What is Fynbos?</h1>
+          <h1 className='text-lg font-medium'>What is Fynbos?</h1>
           <p className='text-sm text-medium'>
             Fynbos is a digital wallet for verifying identities, paying
             contacts, and building trust.
