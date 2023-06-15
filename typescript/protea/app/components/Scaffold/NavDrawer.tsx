@@ -18,7 +18,7 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
     >
       {({ isActive }) => (
         <li className='relative flex w-56 items-center rounded-xl p-4'>
-          <span className='z-10 font-display'>{children}</span>
+          <span className='z-10'>{children}</span>
           {isActive && (
             <motion.div
               className='absolute -ml-4 h-full w-full rounded-xl bg-nav-active'

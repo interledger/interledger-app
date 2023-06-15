@@ -75,7 +75,7 @@ export const ButtonRouter = forwardRef<any, ButtonRouterProps>(
         ref={ref}
         to={to}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-10 font-display font-medium text-white hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500',
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-10 font-medium text-white hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500',
           shrink ? 'sm:max-w-fit' : '',
           className
         )}
