@@ -93,7 +93,7 @@ export default function Page() {
         </Button>
       </Card>
       <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h2 className='font-display font-medium text-strong'>Support</h2>
+        <h2 className='font-medium text-strong'>Support</h2>
         <span className='mt-4 text-sm'>
           Our telephone support lines are open Monday to Friday between 9am and
           5pm EST.

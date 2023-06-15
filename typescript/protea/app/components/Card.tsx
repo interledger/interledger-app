@@ -23,6 +23,24 @@ const CardRoot = forwardRef<any, CardProps>(({ children, className }, ref) => {
 
 CardRoot.displayName = 'Card'
 
+type TitleProps = {
+  children?: ReactNode
+  className?: string
+}
+
+const Title = forwardRef<any, TitleProps>(({ children, className }, ref) => {
+  return (
+    <h2
+      ref={ref}
+      className={clsx('text-lg font-medium text-strong', className)}
+    >
+      {children}
+    </h2>
+  )
+})
+
+Title.displayName = 'Title'
+
 type CardItemProps = {
   children?: ReactNode
   className?: string
@@ -39,4 +57,4 @@ const Item: FC<CardItemProps> = ({ children, className, variant = 'row' }) => {
   )
 }
 
-export const Card = Object.assign(CardRoot, { Item })
+export const Card = Object.assign(CardRoot, { Item, Title })
