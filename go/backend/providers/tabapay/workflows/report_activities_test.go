@@ -386,3 +386,40 @@ func TestActivity_ProcessMonthlyProcessingFee(t *testing.T) {
 		fmt.Println(row)
 	}
 }
+
+func TestActivity_ProcessMonthlyNetworkFees(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/monthly_networkfees.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "monthly_networkfees.csv").Return(fd, nil)
+
+	err = a.ProcessMonthlyNetworkFees(ctx, "monthly_networkfees.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_monthly_network_fees")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 51)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23], &row[24], &row[25], &row[26], &row[27], &row[28], &row[29], &row[30], &row[31], &row[32], &row[33], &row[34], &row[35], &row[36], &row[37], &row[38], &row[39], &row[40], &row[41], &row[42], &row[43], &row[44], &row[45], &row[46], &row[47], &row[48], &row[49], &row[50])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 5)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}

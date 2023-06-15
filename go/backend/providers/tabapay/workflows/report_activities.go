@@ -509,6 +509,91 @@ func (a *Activity) ProcessMonthlyProcessingFee(ctx context.Context, filename str
 	return nil
 }
 
+func (a *Activity) ProcessMonthlyNetworkFees(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	csvReader := csv.NewReader(data)
+	var i int
+	for {
+		i++
+		line, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		// Ignore the heading column
+		if i == 1 || isEmptyLine(line) {
+			continue
+		}
+
+		// Compute the line hash so we don't insert duplicates
+		lineHash, err := computeHash(line, filename)
+		if err != nil {
+			return err
+		}
+
+		parseAmount := func(input string) int64 {
+			isNeg := strings.Contains(input, "(")
+			val := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(input, "(", ""), ")", ""), "$", ""), ",", "")
+			amt, _ := strconv.ParseFloat(val, 64)
+
+			if isNeg {
+				return int64(amt * -100)
+			}
+			return int64(amt * 100)
+		}
+
+		reportDate := parseReportDate(line[5])
+		numPurchases, _ := strconv.Atoi(strings.TrimSpace(line[6]))
+		numDispersements, _ := strconv.Atoi(strings.TrimSpace(line[8]))
+
+		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_report_monthly_network_fees "+
+			"(hash, filename, iso, mid, iso_name, "+
+			"merchant_name, caid, report_date, purchases_count, purchases_amount, "+
+			"disbursements_count, disbursements_amount, vda, vnapf, vsnaf, "+
+			"vkbaf, vtif, vdf, vgwy, vxbaf, "+
+			"vfanf, vavs, vexs, masess, mdef, "+
+			"malf, mkbaf, mcvc, mnabu, mcxbf, "+
+			"marf, mpavs, mdf, mcloc, mcavs, "+
+			"mexs, dasf, ddata, dduff, dxbf, "+
+			"star_switch, nyce_switch, pulse_switch, accel_switch, amex_fees, "+
+			"discover_fees, bill_pay_fees, adjustments, total_network_fees) "+
+			"VALUES "+
+			"($1, $2, $3, $4, $5, "+
+			"$6, $7, $8, $9, $10, "+
+			"$11, $12, $13, $14, $15, "+
+			"$16, $17, $18, $19, $20, "+
+			"$21, $22, $23, $24, $25, "+
+			"$26, $27, $28, $29, $30, "+
+			"$31, $32, $33, $34, $35, "+
+			"$36, $37, $38, $39, $40, "+
+			"$41, $42, $43, $44, $45, "+
+			"$46, $47, $48, $49) "+
+			"ON CONFLICT DO NOTHING",
+			lineHash, filename, line[0], line[2], line[1],
+			line[3], line[4], reportDate, numPurchases, parseAmount(line[7]),
+			numDispersements, parseAmount(line[9]), parseAmount(line[10]), parseAmount(line[11]), parseAmount(line[12]),
+			parseAmount(line[13]), parseAmount(line[14]), parseAmount(line[15]), parseAmount(line[16]), parseAmount(line[17]),
+			parseAmount(line[18]), parseAmount(line[19]), parseAmount(line[20]), parseAmount(line[21]), parseAmount(line[22]),
+			parseAmount(line[23]), parseAmount(line[24]), parseAmount(line[25]), parseAmount(line[26]), parseAmount(line[27]),
+			parseAmount(line[28]), parseAmount(line[29]), parseAmount(line[30]), parseAmount(line[31]), parseAmount(line[32]),
+			parseAmount(line[33]), parseAmount(line[34]), parseAmount(line[35]), parseAmount(line[36]), parseAmount(line[37]),
+			parseAmount(line[38]), parseAmount(line[39]), parseAmount(line[40]), parseAmount(line[41]), parseAmount(line[42]),
+			parseAmount(line[43]), parseAmount(line[44]), parseAmount(line[45]), parseAmount(line[46]))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 	// Get all files from S3
 	pl := a.b.AWS().S3ListObjects(tabapayBucketName)
