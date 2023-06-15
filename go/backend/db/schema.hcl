@@ -3040,5 +3040,222 @@ table "tabapay_report_monthly_processing_fee" {
     columns = [column.hash]
   }
 }
+table "tabapay_report_monthly_network_fees" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "iso" {
+    null = false
+    type = text
+  }
+  column "iso_name" {
+    null = false
+    type = text
+  }
+  column "mid" {
+    null = false
+    type = text
+  }
+  column "merchant_name" {
+    null = false
+    type = text
+  }
+  column "caid" {
+    null = false
+    type = text
+  }
+  column "report_date" {
+    null = false
+    type = timestamp
+  }
+  column "purchases_count" {
+    null = false
+    type = bigint
+  }
+  column "purchases_amount" {
+    null = false
+    type = bigint
+  }
+  column "disbursements_count" {
+    null = false
+    type = bigint
+  }
+  column "disbursements_amount" {
+    null = false
+    type = bigint
+  }
+  column "vda" {
+    null = false
+    type = text
+  }
+  column "vnapf" {
+    null = false
+    type = bigint
+  }
+  column "vsnaf" {
+    null = false
+    type = bigint
+  }
+  column "vkbaf" {
+    null = false
+    type = bigint
+  }
+  column "vtif" {
+    null = false
+    type = bigint
+  }
+  column "vdf" {
+    null = false
+    type = bigint
+  }
+  column "vgwy" {
+    null = false
+    type = bigint
+  }
+  column "vxbaf" {
+    null = false
+    type = bigint
+  }
+  column "vfanf" {
+    null = false
+    type = bigint
+  }
+  column "vavs" {
+    null = false
+    type = bigint
+  }
+  column "vexs" {
+    null = false
+    type = bigint
+  }
+  column "masess" {
+    null = false
+    type = bigint
+  }
+  column "mdef" {
+    null = false
+    type = bigint
+  }
+  column "malf" {
+    null = false
+    type = bigint
+  }
+  column "mkbaf" {
+    null = false
+    type = bigint
+  }
+  column "mcvc" {
+    null = false
+    type = bigint
+  }
+  column "mnabu" {
+    null = false
+    type = bigint
+  }
+  column "mcxbf" {
+    null = false
+    type = bigint
+  }
+  column "marf" {
+    null = false
+    type = bigint
+  }
+  column "mpavs" {
+    null = false
+    type = bigint
+  }
+  column "mdf" {
+    null = false
+    type = bigint
+  }
+  column "mcloc" {
+    null = false
+    type = bigint
+  }
+  column "mcavs" {
+    null = false
+    type = bigint
+  }
+  column "mexs" {
+    null = false
+    type = bigint
+  }
+  column "dasf" {
+    null = false
+    type = bigint
+  }
+  column "ddata" {
+    null = false
+    type = bigint
+  }
+  column "dduff" {
+    null = false
+    type = bigint
+  }
+  column "dxbf" {
+    null = false
+    type = bigint
+  }
+  column "star_switch" {
+    null = false
+    type = bigint
+  }
+  column "nyce_switch" {
+    null = false
+    type = bigint
+  }
+  column "pulse_switch" {
+    null = false
+    type = bigint
+  }
+  column "accel_switch" {
+    null = false
+    type = bigint
+  }
+  column "amex_fees" {
+    null = false
+    type = bigint
+  }
+  column "discover_fees" {
+    null = false
+    type = bigint
+  }
+  column "bill_pay_fees" {
+    null = false
+    type = bigint
+  }
+  column "adjustments" {
+    null = false
+    type = bigint
+  }
+  column "total_network_fees" {
+    null = false
+    type = bigint
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_monthly_network_fees_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
+
 schema "public" {
 }
