@@ -96,9 +96,7 @@ export default function Page() {
       </Button>
       <Card>
         <div className='flex items-center justify-between'>
-          <h1 className='font-display text-lg font-medium'>
-            Last transacted with
-          </h1>
+          <h1 className='text-lg font-medium'>Last transacted with</h1>
           <Router className='flex max-h-fit' to={route('/contacts')}>
             <Icon className='text-medium'>read_more</Icon>
           </Router>

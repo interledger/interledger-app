@@ -85,7 +85,7 @@ export default function Page() {
       )}
       {kycStatus == KycStatus.Unknown && (
         <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h1 className='font-display text-lg font-medium'>Next step</h1>
+          <h1 className='text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>attach_money</Icon>
