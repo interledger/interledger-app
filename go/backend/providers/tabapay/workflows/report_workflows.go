@@ -58,12 +58,10 @@ func ProcessReportsWorkflow(ctx workflow.Context) error {
 
 	for _, r := range reports {
 		// Load the report based on the filename
-		if !strings.HasSuffix(r, ".csv") {
-			// Ignore non csv files
-			continue
-		}
 		if strings.Contains(r, "Monthly") {
-			if strings.Contains(r, "interchange") {
+			if strings.Contains(r, "invoice") && strings.HasSuffix(r, ".xlsx") {
+				err = workflow.ExecuteActivity(ctx, a.MailReport, r).Get(ctx, nil)
+			} else if strings.Contains(r, "interchange") {
 				err = workflow.ExecuteActivity(ctx, a.ProcessInterchangeReport, r, "tabapay_report_monthly_interchange").Get(ctx, nil)
 			} else if strings.Contains(r, "transactions") {
 				err = workflow.ExecuteActivity(ctx, a.ProcessTransactionsReport, r, "tabapay_monthly_report_transactions").Get(ctx, nil)

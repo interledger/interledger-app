@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/email"
+
 	"gitlab.com/fynbos/backend/slack"
 )
 
@@ -38,6 +40,38 @@ func isEmptyLine(line []string) bool {
 	}
 
 	return true
+}
+
+func (a *Activity) MailReport(ctx context.Context, filename string) error {
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayBucketName, filename)
+	if err != nil {
+		return err
+	}
+	defer data.Close()
+
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return err
+	}
+
+	if idx := strings.LastIndex(filename, "/"); idx > 0 {
+		filename = filename[idx+1:]
+	}
+
+	contentType := "text/csv"
+	if strings.HasSuffix(filename, ".xls") {
+		contentType = "application/vnd.ms-excel"
+	} else if strings.HasSuffix(filename, ".xlsx") {
+		contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	}
+
+	attach := email.Attachment{
+		Content:     content,
+		ContentType: contentType,
+		Name:        filename,
+	}
+
+	return a.b.Email().SendPlainText(ctx, "Tabapay invoice", "", []string{"matt@fynbos.dev", "adrian@fynbos.dev"}, []email.Attachment{attach})
 }
 
 func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename string) error {

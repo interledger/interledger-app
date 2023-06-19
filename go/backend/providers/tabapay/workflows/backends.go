@@ -4,6 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/aws"
 	aws_mock "gitlab.com/fynbos/backend/aws/client/mock"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -23,6 +24,7 @@ type Backends interface {
 	BasisTheory() basistheory.Client
 	AWS() aws.Client
 	Temporal() client.Client
+	Email() email.Client
 }
 
 type InputBackends interface {
@@ -32,6 +34,7 @@ type InputBackends interface {
 	BasisTheory() basistheory.Client
 	AWS() aws.Client
 	Temporal() client.Client
+	Email() email.Client
 }
 
 type backends struct {
@@ -67,6 +70,10 @@ func (ob *backends) Temporal() client.Client {
 	return ob.b.Temporal()
 }
 
+func (ob *backends) Email() email.Client {
+	return ob.b.Email()
+}
+
 type TestBackends struct {
 	Db             *sqlx.DB
 	ExternalClient *mock_client.MockClient
@@ -99,7 +106,12 @@ func (tb *TestBackends) KYC() kyc.Client {
 func (tb *TestBackends) LinkedAccounts() linkedaccounts.Client {
 	return tb.Linkedaccounts
 }
+
 func (tb *TestBackends) Temporal() client.Client {
+	return nil
+}
+
+func (tb *TestBackends) Email() email.Client {
 	return nil
 }
 
