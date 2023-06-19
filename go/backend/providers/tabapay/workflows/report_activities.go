@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/slack"
 )
 
 func computeHash(line []string, filename string) (string, error) {
@@ -45,6 +47,7 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 	}
 	defer data.Close()
 
+	var notify []string
 	csvReader := csv.NewReader(data)
 	var i int
 	for {
@@ -99,7 +102,17 @@ func (a *Activity) ProcessChargebacksReports(ctx context.Context, filename strin
 		if err != nil {
 			return err
 		}
+
+		notify = append(notify, fmt.Sprintf("TransactionID[%s] Status[%s] Amount[%s]", line[3], line[9], line[20]))
 	}
+
+	msg := fmt.Sprintf("The following new chargebacks were processed in Report (%s) ```", filename)
+	for _, nl := range notify {
+		msg += fmt.Sprintln(nl)
+	}
+	msg += "```"
+
+	slack.SendToChannel(ctx, slack.NotifyTabapay, "Chargebacks", msg)
 
 	return nil
 }
