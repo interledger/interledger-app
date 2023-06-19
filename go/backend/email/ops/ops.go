@@ -53,3 +53,29 @@ func SendMailTemplate(ctx context.Context, b Backends, walletID string, template
 
 	return nil
 }
+
+func SendPlainText(ctx context.Context, b Backends, subject, body string, to []string, attachments []email.Attachment) error {
+	var emails []sendgrid.Email
+	for _, address := range to {
+		emails = append(emails, sendgrid.Email{
+			Address: address,
+		})
+	}
+
+	mailAttachments := make([]mail.Attachment, len(attachments))
+	for i, attachment := range attachments {
+		mailAttachments[i] = mail.Attachment{
+			Content:     base64.StdEncoding.EncodeToString(attachment.Content),
+			Type:        attachment.ContentType,
+			Filename:    attachment.Name,
+			Disposition: "attachment",
+		}
+	}
+
+	err := b.External().SendPlainText(ctx, subject, body, emails, mailAttachments)
+	if err != nil {
+		return fmt.Errorf("%w %s", email.ErrInternal, err)
+	}
+
+	return nil
+}
