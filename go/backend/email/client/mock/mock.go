@@ -48,3 +48,17 @@ func (mr *MockClientMockRecorder) SendMailTemplate(ctx, walletID, template, pers
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMailTemplate", reflect.TypeOf((*MockClient)(nil).SendMailTemplate), ctx, walletID, template, personalization, attachments)
 }
+
+// SendPlainText mocks base method.
+func (m *MockClient) SendPlainText(ctx context.Context, subject, body string, to []string, attachments []email.Attachment) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendPlainText", ctx, subject, body, to, attachments)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendPlainText indicates an expected call of SendPlainText.
+func (mr *MockClientMockRecorder) SendPlainText(ctx, subject, body, to, attachments interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPlainText", reflect.TypeOf((*MockClient)(nil).SendPlainText), ctx, subject, body, to, attachments)
+}

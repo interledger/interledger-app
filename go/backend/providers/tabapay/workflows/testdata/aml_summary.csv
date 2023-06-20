@@ -1,0 +1,4 @@
+AML ID,AML Code, AML description,ISO,ISO Name,MID,Merchant Name,CAID,BINLast4,Type,Count,Total,Report Date
+AML ID,8101L,MID limit amount,ISO,ISO NAME,MID,Merchant Name,,,,,,04/20/2022
+AML ID,9001U,identical amount,ISO,ISO NAME,MID,Merchant Name,,,Amount,305,,04/20/2022
+AML ID,1201C,Multiple names,ISO,ISO NAME,MID,Merchant Name,,,NAME,3,$12.10 ,04/20/2022

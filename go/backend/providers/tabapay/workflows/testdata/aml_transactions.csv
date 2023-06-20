@@ -1,0 +1,4 @@
+AML ID,AML Code, AML description,ISO,ISO Name,MID,Merchant Name,CAID,BINLast4,Txn type,TxnID,SettleDate,txn amount,settle amount,FN,LN,Report Date,AVS,CVV-CAV,Type
+AML ID,1201C,Multiple names,ISO,ISO Name,MID,Merchant Name,,,NAME,,20220402,60.6,0,,,4/20/2022,Y,,Debit
+AML ID,1201C,Multiple names,ISO,ISO Name,MID,Merchant Name,,,NAME,,20220402,60.6,0,,,4/20/2022,Y,,Debit
+AML ID,1201C,Multiple names,ISO,ISO Name,MID,Merchant Name,,,NAME,,20220402,60.6,0,,,4/20/2022,Y,,Debit

@@ -31,3 +31,7 @@ func New(b Backends, sendgridAPIKey string) email.Client {
 func (c *client) SendMailTemplate(ctx context.Context, walletID string, template email.TemplateID, templateData map[string]interface{}, attachments []email.Attachment) error {
 	return ops.SendMailTemplate(ctx, c.b, walletID, template, templateData, attachments)
 }
+
+func (c *client) SendPlainText(ctx context.Context, subject, body string, to []string, attachments []email.Attachment) error {
+	return ops.SendPlainText(ctx, c.b, subject, body, to, attachments)
+}
