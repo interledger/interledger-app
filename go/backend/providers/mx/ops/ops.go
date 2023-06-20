@@ -67,7 +67,11 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
-	var accountsToCreate []string
+	type createAccountInfo struct {
+		Guid  string
+		State linkedaccounts.State
+	}
+	var accountsToCreate []createAccountInfo
 	for _, accountOwner := range accountOwnersResponse.AccountOwners {
 		var skip bool
 		for _, existingAccount := range existingAccounts {
@@ -80,10 +84,14 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 			continue
 		}
 
+		state := linkedaccounts.Verified
 		if !isAccountOwner(walletOwner, accountOwner) {
-			return nil, mx.ErrInvalidAccountOwner
+			state = linkedaccounts.OwnershipReviewRequired
 		}
-		accountsToCreate = append(accountsToCreate, accountOwner.AccountGuid)
+		accountsToCreate = append(accountsToCreate, createAccountInfo{
+			Guid:  accountOwner.AccountGuid,
+			State: state,
+		})
 	}
 
 	accountsResponse, err := b.External().ListAccountsByMember(ctx, args.UserGuid, args.MemberGuid)
@@ -92,14 +100,14 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 	}
 
 	var createLinkedAccounts []linkedaccounts.CreateArgs
-	for _, accountGuid := range accountsToCreate {
+	for _, accountToCreate := range accountsToCreate {
 		for _, account := range accountsResponse.Accounts {
 			// only add checking or savings
 			if account.Type != mx.TypeChecking && account.Type != mx.TypeSavings {
 				continue
 			}
 
-			if account.GUID == accountGuid {
+			if account.GUID == accountToCreate.Guid {
 				mask := account.AccountNumber
 				if len(mask) > 4 {
 					mask = mask[len(mask)-4:]
@@ -114,6 +122,7 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 					Type:       mx.TypeBankAccount,
 					CanSend:    true,
 					CanReceive: true,
+					State:      accountToCreate.State,
 				})
 			}
 		}
@@ -123,6 +132,8 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
+
+	// TODO: notify that this requires review
 
 	return las, nil
 }
