@@ -16,19 +16,30 @@ import (
 var tabapayBucketName = "tabapayreports"
 
 func StartTabapayS3ReportProcessing(tc client.Client) {
+	scheduleID := "schedule_tabapay_s3_reports"
 	workflowID := "cron_tabapay_s3_reports"
-	workflowOptions := client.StartWorkflowOptions{
-		ID:                    workflowID,
-		TaskQueue:             "backend",
-		CronSchedule:          "0 */4 * * *",                                       // Every 4 Hours
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
+
+	schedule, err := tc.ScheduleClient().Create(context.Background(), client.ScheduleOptions{
+		ID: scheduleID,
+		Spec: client.ScheduleSpec{
+			Intervals: []client.ScheduleIntervalSpec{
+				{
+					Every: 4 * time.Hour,
+				},
+			},
+		},
+		Action: &client.ScheduleWorkflowAction{
+			ID:        workflowID,
+			TaskQueue: "backend",
+			Workflow:  ProcessReportsWorkflow,
+		},
+		Overlap: enums.SCHEDULE_OVERLAP_POLICY_CANCEL_OTHER,
+	})
+	if err != nil {
+		log.Fatalln("Unable to start tabapay report process schedule", err)
 	}
 
-	we, err := tc.ExecuteWorkflow(context.Background(), workflowOptions, ProcessReportsWorkflow)
-	if err != nil {
-		log.Fatalln("Unable to execute workflow", err)
-	}
-	log.Println("Started workflow", "WorkflowID", we.GetID(), "RunID", we.GetRunID())
+	log.Println("Started schedule", "ScheduleID", schedule.GetID())
 }
 
 // ProcessReportsWorkflow reads files in the TabaPay S3 bucket. Processes each individual report
