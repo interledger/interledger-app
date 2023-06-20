@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 
 	aws_ext "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -17,6 +18,10 @@ type client struct {
 	s3Client *s3.Client
 }
 
+func (c *client) GetIdentityToken() ([]byte, error) {
+	return os.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+}
+
 func New(ctx context.Context) (aws.Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-2"))
 	if err != nil {
@@ -24,7 +29,7 @@ func New(ctx context.Context) (aws.Client, error) {
 	}
 
 	stsClient := sts.NewFromConfig(cfg)
-	provider := stscreds.NewAssumeRoleProvider(stsClient, "arn:aws:iam::993870605858:role/tabapay-s3-read-d515329")
+	provider := stscreds.NewWebIdentityRoleProvider(stsClient, "arn:aws:iam::993870605858:role/tabapay-s3-read-d515329", &client{})
 	cfg.Credentials = aws_ext.NewCredentialsCache(provider)
 
 	_, err = cfg.Credentials.Retrieve(ctx)

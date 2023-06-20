@@ -7,6 +7,8 @@ import (
 	"log"
 	"time"
 
+	"go.temporal.io/sdk/temporal"
+
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
@@ -32,7 +34,8 @@ func StartNotificationsPolling(b Backends) {
 		},
 		Overlap: enums.SCHEDULE_OVERLAP_POLICY_CANCEL_OTHER,
 	})
-	if err != nil {
+
+	if err != nil && !errors.Is(err, temporal.ErrScheduleAlreadyRunning) {
 		log.Fatalln("Unable to start gmt notifications schedule", err)
 	}
 
