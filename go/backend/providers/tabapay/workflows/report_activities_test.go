@@ -28,7 +28,7 @@ func TestActivity_ProcessChargebacksReports(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "chargebacks.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "chargebacks.csv").Return(fd, nil)
 
 	err = a.ProcessChargebacksReports(ctx, "chargebacks.csv")
 	require.NoError(t, err)
@@ -66,7 +66,7 @@ func TestActivity_ProcessAMLTransactionsReport(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "aml_transactions.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "aml_transactions.csv").Return(fd, nil)
 
 	err = a.ProcessAMLTransactionsReport(ctx, "aml_transactions.csv")
 	require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestActivity_ProcessAMLSummaryReport(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "aml_summary.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "aml_summary.csv").Return(fd, nil)
 
 	err = a.ProcessAMLSummaryReport(ctx, "aml_summary.csv")
 	require.NoError(t, err)
@@ -142,7 +142,7 @@ func TestActivity_ProcessExceptionsReports(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "exceptions.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "exceptions.csv").Return(fd, nil)
 
 	err = a.ProcessExceptionsReports(ctx, "exceptions.csv")
 	require.NoError(t, err)
@@ -179,7 +179,7 @@ func TestActivity_ProcessInterchangeReport(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "interchange.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "interchange.csv").Return(fd, nil)
 
 	err = a.ProcessInterchangeReport(ctx, "interchange.csv", "tabapay_report_interchange")
 	require.NoError(t, err)
@@ -216,7 +216,7 @@ func TestActivity_ProcessSummaryReport(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "summary.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "summary.csv").Return(fd, nil)
 
 	err = a.ProcessSummaryReport(ctx, "summary.csv")
 	require.NoError(t, err)
@@ -253,7 +253,7 @@ func TestActivity_ProcessTransactionsReport(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "transactions.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "transactions.csv").Return(fd, nil)
 
 	err = a.ProcessTransactionsReport(ctx, "transactions.csv", "tabapay_report_transactions")
 	require.NoError(t, err)
@@ -290,7 +290,7 @@ func TestActivity_ProcessMonthlyTransactionsReport(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "monthly_transactions.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_transactions.csv").Return(fd, nil)
 
 	err = a.ProcessTransactionsReport(ctx, "monthly_transactions.csv", "tabapay_monthly_report_transactions")
 	require.NoError(t, err)
@@ -327,7 +327,7 @@ func TestActivity_ProcessMonthlyInterchangeReport(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "monthly_interchange.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_interchange.csv").Return(fd, nil)
 
 	err = a.ProcessInterchangeReport(ctx, "monthly_interchange.csv", "tabapay_report_monthly_interchange")
 	require.NoError(t, err)
@@ -364,7 +364,7 @@ func TestActivity_ProcessMonthlyProcessingFee(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "monthly_processingfees.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_processingfees.csv").Return(fd, nil)
 
 	err = a.ProcessMonthlyProcessingFee(ctx, "monthly_processingfees.csv")
 	require.NoError(t, err)
@@ -401,7 +401,7 @@ func TestActivity_ProcessMonthlyNetworkFees(t *testing.T) {
 	require.NoError(t, err)
 	defer fd.Close()
 
-	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "tabapayreports", "monthly_networkfees.csv").Return(fd, nil)
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_networkfees.csv").Return(fd, nil)
 
 	err = a.ProcessMonthlyNetworkFees(ctx, "monthly_networkfees.csv")
 	require.NoError(t, err)
