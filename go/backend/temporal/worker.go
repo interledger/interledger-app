@@ -40,7 +40,6 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(tabapay_workflows.CreateTabapayCardWorkflow)
 	w.RegisterWorkflow(tabapay_workflows.ProcessReportsWorkflow)
 
-	tabapay_workflows.StartTabapayS3ReportProcessing(b.Temporal())
 	gmt_workflows.StartNotificationsPolling(b)
 
 	// Jobs
