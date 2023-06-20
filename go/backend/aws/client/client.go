@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 
+	aws_ext "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"gitlab.com/fynbos/backend/aws"
 )
 
@@ -19,6 +22,16 @@ func New(ctx context.Context) (aws.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load aws SDK configuration, %v", err)
 	}
+
+	stsClient := sts.NewFromConfig(cfg)
+	provider := stscreds.NewAssumeRoleProvider(stsClient, "arn:aws:iam::993870605858:role/tabapay-s3-read-d515329")
+	cfg.Credentials = aws_ext.NewCredentialsCache(provider)
+
+	_, err = cfg.Credentials.Retrieve(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed assume IAM role for AWS sdk, %v", err)
+	}
+
 	cl := s3.NewFromConfig(cfg)
 
 	return &client{s3Client: cl}, nil

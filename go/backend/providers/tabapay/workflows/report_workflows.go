@@ -1,20 +1,16 @@
 package workflows
 
 import (
-	"context"
-	"log"
 	"strings"
 	"time"
-
-	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/sdk/client"
 
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
-var tabapayBucketName = "tabapayreports"
+var tabapayBucketName = "fynbos-tabapay"
 
+/*
 func StartTabapayS3ReportProcessing(tc client.Client) {
 	scheduleID := "schedule_tabapay_s3_reports"
 	workflowID := "cron_tabapay_s3_reports"
@@ -40,7 +36,7 @@ func StartTabapayS3ReportProcessing(tc client.Client) {
 	}
 
 	log.Println("Started schedule", "ScheduleID", schedule.GetID())
-}
+}*/
 
 // ProcessReportsWorkflow reads files in the TabaPay S3 bucket. Processes each individual report
 func ProcessReportsWorkflow(ctx workflow.Context) error {
