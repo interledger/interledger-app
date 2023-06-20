@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -25,6 +26,11 @@ const (
 	// If you update this, then remember to update the create and createBatch functions.
 	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state"
 	insertColumns = 11
+)
+
+const (
+	reviewAllFields    = "id, linked_account_id, state, new_state, reason, reviewed_by, created_at, completed_at"
+	reviewInsertFields = "linked_account_id, state"
 )
 
 func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
@@ -258,4 +264,136 @@ func Requires3DS(ctx context.Context, b Backends, id string) (bool, error) {
 	}
 
 	return la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard, nil
+}
+
+type dbReview struct {
+	ID              string
+	LinkedAccountID string `db:"linked_account_id"`
+	State           linkedaccounts.State
+	NewState        linkedaccounts.State `db:"new_state"`
+	Reason          string
+	ReviewedBy      string       `db:"reviewed_by"`
+	CreatedAt       time.Time    `db:"created_at"`
+	CompletedAt     sql.NullTime `db:"completed_at"`
+}
+
+func toReview(record dbReview) linkedaccounts.Review {
+	return linkedaccounts.Review{
+		ID:              record.ID,
+		LinkedAccountID: record.LinkedAccountID,
+		State:           record.State,
+		NewState:        record.NewState,
+		Reason:          record.Reason,
+		ReviewedBy:      record.ReviewedBy,
+		CreatedAt:       record.CreatedAt,
+		CompletedAt:     record.CompletedAt.Time,
+	}
+}
+
+func CreateReviews(ctx context.Context, b Backends, reviewsArgs []linkedaccounts.CreateReviewArgs) ([]linkedaccounts.Review, error) {
+	var placeholders []string
+	var values []interface{}
+	insertColumns := 2
+	for i, review := range reviewsArgs {
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d)", i*insertColumns+1, i*insertColumns+2))
+		values = append(values, review.LinkedAccountID, review.State)
+	}
+
+	var dbReviews []dbReview
+	err := b.DB().SelectContext(
+		ctx,
+		&dbReviews,
+		fmt.Sprintf("INSERT INTO linked_account_reviews (%s) VALUES %s RETURNING %s;", reviewInsertFields, strings.Join(placeholders, ","), reviewAllFields),
+		values...,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	reviews := make([]linkedaccounts.Review, len(dbReviews))
+	for i, record := range dbReviews {
+		reviews[i] = toReview(record)
+	}
+
+	return reviews, nil
+}
+
+func GetReview(ctx context.Context, b Backends, id string) (*linkedaccounts.Review, error) {
+	var dbReview dbReview
+	err := b.DB().GetContext(
+		ctx,
+		&dbReview,
+		fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE id=$1;", reviewAllFields),
+		id,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	review := toReview(dbReview)
+	return &review, nil
+}
+
+func UpdateReviewState(ctx context.Context, b Backends, reviewID string, newState linkedaccounts.State) (*linkedaccounts.Review, error) {
+	var dbReview dbReview
+	err := b.DB().GetContext(
+		ctx,
+		&dbReview,
+		fmt.Sprintf("UPDATE linked_account_reviews SET new_state=$1 WHERE id=$2  RETURNING %s;", reviewAllFields),
+		newState,
+		reviewID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	review := toReview(dbReview)
+	return &review, nil
+}
+
+func UpdateReviewReason(ctx context.Context, b Backends, reviewID string, reason string) (*linkedaccounts.Review, error) {
+	var dbReview dbReview
+	err := b.DB().GetContext(
+		ctx,
+		&dbReview,
+		fmt.Sprintf("UPDATE linked_account_reviews SET reason=$1 WHERE id=$2  RETURNING %s;", reviewAllFields),
+		reason,
+		reviewID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	review := toReview(dbReview)
+	return &review, nil
+}
+
+func CompleteReview(ctx context.Context, b Backends, reviewID string, reviewedBy string) (*linkedaccounts.Review, error) {
+	var dbReview dbReview
+	err := b.DB().GetContext(
+		ctx,
+		&dbReview,
+		fmt.Sprintf("UPDATE linked_account_reviews SET reviewed_by=$1, completed_at=now() WHERE id=$2  RETURNING %s;", reviewAllFields),
+		reviewedBy,
+		reviewID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	result, err := b.DB().ExecContext(
+		ctx,
+		"UPDATE linked_accounts SET state=$1 WHERE id=$2;",
+		dbReview.NewState,
+		dbReview.LinkedAccountID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return nil, fmt.Errorf("%w Failed to update linked account's new state after review.", linkedaccounts.ErrInternal)
+	}
+
+	review := toReview(dbReview)
+	return &review, nil
 }

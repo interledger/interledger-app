@@ -272,3 +272,58 @@ func TestSetNickname(s *testing.T) {
 		require.ErrorIs(t, err, linkedaccounts.ErrNotFound)
 	})
 }
+
+func TestReviews(t *testing.T) {
+	ctx := context.Background()
+	c, err := NewTestContainer(ctx, t)
+	require.NoError(t, err)
+
+	userId := uuid.NewString()
+	// Create Wallet
+	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userId,
+		Name:   "",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID: wallet.ID,
+		Name:     "Test",
+		Mask:     "1234",
+		Provider: "mx",
+		Type:     "bank",
+	})
+	require.NoError(t, err)
+
+	reviews, err := c.LinkedAccounts.CreateReviews(ctx, []linkedaccounts.CreateReviewArgs{
+		{LinkedAccountID: la.ID, State: linkedaccounts.OwnershipReviewRequired},
+	})
+	require.NoError(t, err)
+	require.Len(t, reviews, 1)
+	assert.Equal(t, reviews[0].LinkedAccountID, la.ID)
+	assert.Equal(t, reviews[0].State, linkedaccounts.OwnershipReviewRequired)
+	assert.Empty(t, reviews[0].NewState)
+	assert.Empty(t, reviews[0].ReviewedBy)
+
+	review, err := c.LinkedAccounts.UpdateReviewState(ctx, reviews[0].ID, linkedaccounts.Verified)
+	require.NoError(t, err)
+	assert.Equal(t, linkedaccounts.Verified, review.NewState)
+
+	review, err = c.LinkedAccounts.UpdateReviewReason(ctx, reviews[0].ID, "Manual check passed.")
+	require.NoError(t, err)
+	assert.Equal(t, "Manual check passed.", review.Reason)
+
+	review, err = c.LinkedAccounts.CompleteReview(ctx, reviews[0].ID, "test@fynbos.dev")
+	require.NoError(t, err)
+	assert.Equal(t, "test@fynbos.dev", review.ReviewedBy)
+	assert.NotEmpty(t, review.CompletedAt)
+
+	review, err = c.LinkedAccounts.GetReview(ctx, reviews[0].ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Manual check passed.", review.Reason)
+	assert.Equal(t, "test@fynbos.dev", review.ReviewedBy)
+	assert.Equal(t, linkedaccounts.OwnershipReviewRequired, review.State)
+	assert.Equal(t, linkedaccounts.Verified, review.NewState)
+	assert.NotEmpty(t, review.CompletedAt)
+}

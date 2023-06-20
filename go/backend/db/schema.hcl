@@ -210,6 +210,47 @@ table "linked_accounts" {
     columns = [column.wallet_id, column.provider, column.provider_id]
   }
 }
+table "linked_account_reviews" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "linked_account_id" {
+    null = false
+    type = uuid
+  }
+  column "reason" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "state" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "new_state" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "reviewed_by" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "completed_at" {
+    null = true
+    type = timestamp
+  }
+}
 table "basistheory_cards" {
   schema = schema.public
   column "id" {

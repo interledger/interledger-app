@@ -118,3 +118,23 @@ func (c client) SetNickname(ctx context.Context, id, nickname string) (*linkedac
 func (c client) Requires3DS(ctx context.Context, id string) (bool, error) {
 	return ops.Requires3DS(ctx, c.b, id)
 }
+
+func (c client) CreateReviews(ctx context.Context, args []linkedaccounts.CreateReviewArgs) ([]linkedaccounts.Review, error) {
+	return ops.CreateReviews(ctx, c.b, args)
+}
+
+func (c client) GetReview(ctx context.Context, id string) (*linkedaccounts.Review, error) {
+	return ops.GetReview(ctx, c.b, id)
+}
+
+func (c client) UpdateReviewState(ctx context.Context, id string, newState linkedaccounts.State) (*linkedaccounts.Review, error) {
+	return ops.UpdateReviewState(ctx, c.b, id, newState)
+}
+
+func (c client) UpdateReviewReason(ctx context.Context, id, reason string) (*linkedaccounts.Review, error) {
+	return ops.UpdateReviewReason(ctx, c.b, id, reason)
+}
+
+func (c client) CompleteReview(ctx context.Context, id, reviewedBy string) (*linkedaccounts.Review, error) {
+	return ops.CompleteReview(ctx, c.b, id, reviewedBy)
+}

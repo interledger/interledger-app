@@ -1,6 +1,10 @@
 package linkedaccounts
 
-import "gitlab.com/fynbos/backend/providers/tabapay"
+import (
+	"time"
+
+	"gitlab.com/fynbos/backend/providers/tabapay"
+)
 
 type LinkedAccount struct {
 	ID         string
@@ -52,3 +56,19 @@ var (
 	OwnershipReviewRequired State = "OwnershipReviewRequired"
 	Rejected                State = "Rejected"
 )
+
+type Review struct {
+	ID              string
+	LinkedAccountID string
+	State           State
+	NewState        State
+	Reason          string
+	ReviewedBy      string
+	CreatedAt       time.Time
+	CompletedAt     time.Time
+}
+
+type CreateReviewArgs struct {
+	LinkedAccountID string
+	State           State
+}
