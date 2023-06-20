@@ -49,6 +49,7 @@ export const OutlineButton = forwardRef<any, ButtonProps>(
         className={clsx(
           'flex h-12 w-full items-center justify-center rounded-full border border-transparent px-6 font-display font-medium text-primary outline outline-2 -outline-offset-2 outline-blue-500 hover:text-primary-hover hover:outline-hover focus-visible:bg-container-primary disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled',
           shrink && 'sm:max-w-fit',
+          navigation.state == 'submitting' && 'cursor-progress',
           buttonProps.className
         )}
       >

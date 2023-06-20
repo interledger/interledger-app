@@ -16,6 +16,12 @@ export type Radius =
   | 'rounded-br-full'
   | 'rounded-l-full'
   | 'rounded-r-full'
+  | 'rounded-full rounded-tl-none'
+  | 'rounded-full rounded-tr-none'
+  | 'rounded-full rounded-bl-none'
+  | 'rounded-full rounded-br-none'
+  | 'rounded-tr-full rounded-bl-full'
+  | 'rounded-tl-full rounded-br-full'
 
 interface MotionShapeProps extends MotionProps {
   children?: ReactNode

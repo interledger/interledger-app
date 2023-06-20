@@ -1,42 +1,48 @@
 import clsx from 'clsx'
-import type { FC, ReactNode } from 'react'
+import type { HTMLAttributes } from 'react'
 import { forwardRef } from 'react'
 
-type CardProps = {
-  children?: ReactNode
-  className?: string
-}
+const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={clsx(
+          'flex w-full flex-col rounded-2xl bg-container-strong p-4',
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
+Card.displayName = 'Card'
 
-const CardRoot = forwardRef<any, CardProps>(({ children, className }, ref) => {
+const CardTitle = forwardRef<
+  HTMLParagraphElement,
+  HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => {
   return (
-    <div
+    <h2
       ref={ref}
-      className={clsx(
-        'flex w-full flex-col rounded-2xl bg-container-strong p-4',
-        className
-      )}
-    >
-      {children}
-    </div>
+      className={clsx('text-lg font-medium text-strong', className)}
+      {...props}
+    />
   )
 })
+CardTitle.displayName = 'CardTitle'
 
-CardRoot.displayName = 'Card'
+const CardRow = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={clsx('flex w-full justify-between', className)}
+        {...props}
+      />
+    )
+  }
+)
+CardRow.displayName = 'CardRow'
 
-type CardItemProps = {
-  children?: ReactNode
-  className?: string
-  variant?: 'row' | 'col'
-}
-
-const Item: FC<CardItemProps> = ({ children, className, variant = 'row' }) => {
-  const variantStyle =
-    variant == 'row' ? 'justify-between' : 'flex-col space-y-1'
-  return (
-    <div className={clsx('flex w-full', variantStyle, className)}>
-      {children}
-    </div>
-  )
-}
-
-export const Card = Object.assign(CardRoot, { Item })
+export { Card, CardRow, CardTitle }
