@@ -13,4 +13,10 @@ type Client interface {
 	ListMXBankAccounts(ctx context.Context) ([]LinkedAccount, error)
 	SetNickname(ctx context.Context, id, nickname string) (*LinkedAccount, error)
 	Requires3DS(ctx context.Context, id string) (bool, error)
+
+	CreateReviews(ctx context.Context, args []CreateReviewArgs) ([]Review, error)
+	GetReview(ctx context.Context, id string) (*Review, error)
+	UpdateReviewState(ctx context.Context, reviewID string, newState State) (*Review, error)
+	UpdateReviewReason(ctx context.Context, reviewID, reason string) (*Review, error)
+	CompleteReview(ctx context.Context, reviewID, reviewedBy string) (*Review, error)
 }

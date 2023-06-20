@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CompleteReview mocks base method.
+func (m *MockClient) CompleteReview(ctx context.Context, reviewID, reviewedBy string) (*linkedaccounts.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CompleteReview", ctx, reviewID, reviewedBy)
+	ret0, _ := ret[0].(*linkedaccounts.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CompleteReview indicates an expected call of CompleteReview.
+func (mr *MockClientMockRecorder) CompleteReview(ctx, reviewID, reviewedBy interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompleteReview", reflect.TypeOf((*MockClient)(nil).CompleteReview), ctx, reviewID, reviewedBy)
+}
+
 // Create mocks base method.
 func (m *MockClient) Create(ctx context.Context, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
@@ -63,6 +78,21 @@ func (m *MockClient) CreateBatch(ctx context.Context, args []linkedaccounts.Crea
 func (mr *MockClientMockRecorder) CreateBatch(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBatch", reflect.TypeOf((*MockClient)(nil).CreateBatch), ctx, args)
+}
+
+// CreateReviews mocks base method.
+func (m *MockClient) CreateReviews(ctx context.Context, args []linkedaccounts.CreateReviewArgs) ([]linkedaccounts.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateReviews", ctx, args)
+	ret0, _ := ret[0].([]linkedaccounts.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateReviews indicates an expected call of CreateReviews.
+func (mr *MockClientMockRecorder) CreateReviews(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateReviews", reflect.TypeOf((*MockClient)(nil).CreateReviews), ctx, args)
 }
 
 // Delete mocks base method.
@@ -107,6 +137,21 @@ func (m *MockClient) GetByProviderID(ctx context.Context, args linkedaccounts.Ge
 func (mr *MockClientMockRecorder) GetByProviderID(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProviderID", reflect.TypeOf((*MockClient)(nil).GetByProviderID), ctx, args)
+}
+
+// GetReview mocks base method.
+func (m *MockClient) GetReview(ctx context.Context, id string) (*linkedaccounts.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReview", ctx, id)
+	ret0, _ := ret[0].(*linkedaccounts.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReview indicates an expected call of GetReview.
+func (mr *MockClientMockRecorder) GetReview(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReview", reflect.TypeOf((*MockClient)(nil).GetReview), ctx, id)
 }
 
 // ListByWalletId mocks base method.
@@ -182,4 +227,34 @@ func (m *MockClient) SetNickname(ctx context.Context, id, nickname string) (*lin
 func (mr *MockClientMockRecorder) SetNickname(ctx, id, nickname interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetNickname", reflect.TypeOf((*MockClient)(nil).SetNickname), ctx, id, nickname)
+}
+
+// UpdateReviewReason mocks base method.
+func (m *MockClient) UpdateReviewReason(ctx context.Context, reviewID, reason string) (*linkedaccounts.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateReviewReason", ctx, reviewID, reason)
+	ret0, _ := ret[0].(*linkedaccounts.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateReviewReason indicates an expected call of UpdateReviewReason.
+func (mr *MockClientMockRecorder) UpdateReviewReason(ctx, reviewID, reason interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateReviewReason", reflect.TypeOf((*MockClient)(nil).UpdateReviewReason), ctx, reviewID, reason)
+}
+
+// UpdateReviewState mocks base method.
+func (m *MockClient) UpdateReviewState(ctx context.Context, reviewID string, newState linkedaccounts.State) (*linkedaccounts.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateReviewState", ctx, reviewID, newState)
+	ret0, _ := ret[0].(*linkedaccounts.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateReviewState indicates an expected call of UpdateReviewState.
+func (mr *MockClientMockRecorder) UpdateReviewState(ctx, reviewID, newState interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateReviewState", reflect.TypeOf((*MockClient)(nil).UpdateReviewState), ctx, reviewID, newState)
 }
