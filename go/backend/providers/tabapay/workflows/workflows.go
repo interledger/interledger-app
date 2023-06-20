@@ -42,9 +42,11 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 
 	// fail if AVS has failed.
 	// https://developers.tabapay.com/reference/avs-response-codes
+	linkedAccountState := linkedaccounts.Verified
 	if cardInfo.AVS.CodeAVS != external.AVSResponseCodeY && cardInfo.AVS.CodeAVS != external.AVSResponseCodeA {
 		logger.Warn("AVS failed.", "AVSCode", cardInfo.AVS.CodeAVS)
 		// TODO: notify for manual review
+		linkedAccountState = linkedaccounts.OwnershipReviewRequired
 	}
 
 	var tokenizedCard basistheory.Card
@@ -102,6 +104,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		Nickname:   fmt.Sprintf("%s %s", network, mask),
 		CanSend:    cardInfo.Card.Pull.Enabled,
 		CanReceive: cardInfo.Card.Push.Enabled,
+		State:      linkedAccountState,
 	}).Get(ctx, &la)
 	if err != nil {
 		logger.Error("Failed to create linked account.")

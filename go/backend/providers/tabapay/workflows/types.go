@@ -1,5 +1,7 @@
 package workflows
 
+import "gitlab.com/fynbos/backend/linkedaccounts"
+
 type CreateLinkedCardArgs struct {
 	ID         string
 	WalletID   string
@@ -9,6 +11,7 @@ type CreateLinkedCardArgs struct {
 	Nickname   string
 	CanSend    bool
 	CanReceive bool
+	State      linkedaccounts.State
 }
 
 type CreateExternalCardArgs struct {
