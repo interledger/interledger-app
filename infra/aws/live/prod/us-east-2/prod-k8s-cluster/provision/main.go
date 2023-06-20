@@ -243,6 +243,32 @@ func main() {
 		}
 		ctx.Export("crdbBackupsRole", backupRole.Arn)
 
+		readBackupTrustPolicy := k8s.NewIamTrustPolicyDocumentV2(ctx, pulumi.String(accountID), provider.Url, pulumi.String("cockroachbackupcheck"), pulumi.String("cockroachdb"))
+		readBackupAccessPolicy := pulumi.All(crdbBackupsBucket.Arn).ApplyT(func(args []interface{}) (string, error) {
+			bucketARN := args[0].(string)
+
+			policy, err := k8s.NewBucketReadOnlyAccessPolicy(ctx, bucketARN)
+			if err != nil {
+				return "", err
+			}
+
+			return policy.Json, nil
+		}).(pulumi.StringOutput)
+
+		readBackupRole, err := iam.NewRole(ctx, "crdb-read-backup", &iam.RoleArgs{
+			AssumeRolePolicy: readBackupTrustPolicy,
+			InlinePolicies: iam.RoleInlinePolicyArray{
+				iam.RoleInlinePolicyArgs{
+					Name:   pulumi.String("read-access"),
+					Policy: readBackupAccessPolicy,
+				},
+			},
+		}, pulumi.Provider(kubeProvider))
+		if err != nil {
+			return err
+		}
+		ctx.Export("crdbReadBackupsRole", readBackupRole.Arn)
+
 		return nil
 	})
 }
