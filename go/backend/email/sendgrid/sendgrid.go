@@ -15,6 +15,7 @@ import (
 
 type Client interface {
 	SendTemplate(ctx context.Context, subject string, to []Email, templateID string, templateData map[string]interface{}, attachments []mail.Attachment) error
+	SendPlainText(ctx context.Context, subject, body string, to []Email, attachments []mail.Attachment) error
 }
 
 type Email mail.Email
@@ -45,6 +46,30 @@ func (c *client) SendTemplate(ctx context.Context, subject string, to []Email, t
 	for _, t := range to {
 		p := mail.NewPersonalization()
 		p.DynamicTemplateData = templateData
+		p.AddTos(mail.NewEmail(t.Name, t.Address))
+		msg.AddPersonalizations(p)
+	}
+
+	for _, attachment := range attachments {
+		msg.AddAttachment(&attachment)
+	}
+
+	_, err := c.mailer.SendWithContext(ctx, msg)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrExternal, err)
+	}
+
+	return nil
+}
+
+func (c *client) SendPlainText(ctx context.Context, subject, body string, to []Email, attachments []mail.Attachment) error {
+	msg := new(mail.SGMailV3)
+	msg.SetFrom(c.from)
+	msg.Subject = subject
+	msg.AddContent(mail.NewContent("text/plain", body))
+
+	for _, t := range to {
+		p := mail.NewPersonalization()
 		p.AddTos(mail.NewEmail(t.Name, t.Address))
 		msg.AddPersonalizations(p)
 	}

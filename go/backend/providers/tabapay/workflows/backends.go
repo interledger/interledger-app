@@ -2,6 +2,9 @@ package workflows
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/aws"
+	aws_mock "gitlab.com/fynbos/backend/aws/client/mock"
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -10,13 +13,18 @@ import (
 	mock_bt "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	mock_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
+	"go.temporal.io/sdk/client"
 )
 
 type Backends interface {
+	DB() *sqlx.DB
 	External() external.Client
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
+	AWS() aws.Client
+	Temporal() client.Client
+	Email() email.Client
 }
 
 type InputBackends interface {
@@ -24,6 +32,9 @@ type InputBackends interface {
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
+	AWS() aws.Client
+	Temporal() client.Client
+	Email() email.Client
 }
 
 type backends struct {
@@ -33,6 +44,14 @@ type backends struct {
 
 func (ob *backends) External() external.Client {
 	return ob.external
+}
+
+func (ob *backends) DB() *sqlx.DB {
+	return ob.b.DB()
+}
+
+func (ob *backends) AWS() aws.Client {
+	return ob.b.AWS()
 }
 
 func (ob *backends) KYC() kyc.Client {
@@ -47,12 +66,25 @@ func (ob *backends) BasisTheory() basistheory.Client {
 	return ob.b.BasisTheory()
 }
 
+func (ob *backends) Temporal() client.Client {
+	return ob.b.Temporal()
+}
+
+func (ob *backends) Email() email.Client {
+	return ob.b.Email()
+}
+
 type TestBackends struct {
 	Db             *sqlx.DB
 	ExternalClient *mock_client.MockClient
 	Kyc            *kyc_mock.MockClient
 	Linkedaccounts *linkedaccount_mock.MockClient
 	Basistheory    *mock_bt.MockClient
+	AWSImpl        *aws_mock.MockClient
+}
+
+func (tb *TestBackends) AWS() aws.Client {
+	return tb.AWSImpl
 }
 
 func (tb *TestBackends) DB() *sqlx.DB {
@@ -73,6 +105,14 @@ func (tb *TestBackends) KYC() kyc.Client {
 
 func (tb *TestBackends) LinkedAccounts() linkedaccounts.Client {
 	return tb.Linkedaccounts
+}
+
+func (tb *TestBackends) Temporal() client.Client {
+	return nil
+}
+
+func (tb *TestBackends) Email() email.Client {
+	return nil
 }
 
 func NewTestBackends(opts ...func(b *TestBackends)) *TestBackends {

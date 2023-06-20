@@ -1,0 +1,13 @@
+ISO,ISO Name,MID,Merchant name,Brand,Card type,Interchange category,Txn Count,Txn $,Interchange $
+ISO,NAME,MID,NAME,V,Debit Card,CPS/EC BASIC DB,1,$100 ,-1
+ISO,NAME,MID,NAME,V,Debit Card,US BUS CNP DB,1,$100 ,-1
+ISO,NAME,MID,NAME,V,Prepaid Card,CPS/EC BASIC PP,1,$100 ,-1
+ISO,NAME,MID,NAME,V,Debit Card,US REG,1,$100 ,-1
+ISO,NAME,MID,NAME,V,Debit Card,EIRF-US DB,1,$100 ,-1
+ISO,NAME,MID,NAME,M,Debit Card,Data Rate 1-COM (Comm Debit),1,$100 ,-1
+ISO,NAME,MID,NAME,M,Debit Card,Merit 1-DP (Debit),1,$100 ,-1
+ISO,NAME,MID,NAME,M,Debit Card,Merit 1-DP (Prepaid),1,$100 ,-1
+ISO,NAME,MID,NAME,M,Debit Card,Reg POS Debit Fraud Adj-DP (Debit),1,$100 ,-1
+ISO,NAME,MID,NAME,M,Debit Card,Reg POS Debit-DP (Debit),1,$100 ,-1
+ISO,NAME,MID,NAME,S,Debit Card,PINless debit,1,$100 ,-1
+ISO,NAME,MID,NAME,A,Debit Card,PINless debit,1,$100 ,-1
