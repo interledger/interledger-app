@@ -32,12 +32,13 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
       back: route('/settings'),
       title: 'Public information'
-    }
+    },
+    isNested: true
   }
 }
 
