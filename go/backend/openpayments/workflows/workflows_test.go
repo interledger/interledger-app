@@ -74,7 +74,6 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, mock.Anything).Return(nil)
 	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id).Return(nil)
 
-	env.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
 	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.4", "")
 
 	require.True(t, env.IsWorkflowCompleted())
@@ -131,7 +130,6 @@ func TestOutgoingTransactionSendsFailedTransactionEmail(t *testing.T) {
 	env.OnActivity(a.FailOutgoingPayment, mock.Anything, id).Return(nil)
 	env.OnActivity(a.SendFailedOutgoingPaymentMail, mock.Anything, id).Return(nil)
 
-	env.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
 	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.3", "")
 
 	require.True(t, env.IsWorkflowCompleted())

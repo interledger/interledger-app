@@ -4,6 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/analytics"
+	"gitlab.com/fynbos/backend/aws"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/identities"
@@ -46,4 +47,5 @@ type Backends interface {
 	OpenPayments() openpayments.Client
 	Identities() identities.Client
 	Images() images.Client
+	AWS() aws.Client
 }
