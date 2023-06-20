@@ -293,9 +293,9 @@ max-pods = 40
 		NodeGroupName: pulumi.String("managed-general"),
 		ClusterName:   args.Cluster.Name,
 		ScalingConfig: eks.NodeGroupScalingConfigArgs{
-			DesiredSize: pulumi.Int(4),
+			DesiredSize: pulumi.Int(6),
 			MinSize:     pulumi.Int(3),
-			MaxSize:     pulumi.Int(5),
+			MaxSize:     pulumi.Int(6),
 		},
 		NodeRoleArn: args.InstanceRole.Arn,
 		LaunchTemplate: eks.NodeGroupLaunchTemplateArgs{
