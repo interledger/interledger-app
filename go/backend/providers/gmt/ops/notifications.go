@@ -7,6 +7,8 @@ import (
 	"log"
 	"time"
 
+	"go.temporal.io/sdk/temporal"
+
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
@@ -16,7 +18,7 @@ import (
 func StartNotificationsPolling(b Backends) {
 	scheduleID := "schedule_gmt_notifications"
 	workflowID := "cron_gmt_notifications"
-	schedule, err := b.Temporal().ScheduleClient().Create(context.Background(), client.ScheduleOptions{
+	_, err := b.Temporal().ScheduleClient().Create(context.Background(), client.ScheduleOptions{
 		ID: scheduleID,
 		Spec: client.ScheduleSpec{
 			Intervals: []client.ScheduleIntervalSpec{
@@ -32,11 +34,12 @@ func StartNotificationsPolling(b Backends) {
 		},
 		Overlap: enums.SCHEDULE_OVERLAP_POLICY_CANCEL_OTHER,
 	})
-	if err != nil {
+
+	if err != nil && !errors.Is(err, temporal.ErrScheduleAlreadyRunning) {
 		log.Fatalln("Unable to start gmt notifications schedule", err)
 	}
 
-	log.Println("Started schedule gmt notifications schedule", "ScheduleID", schedule.GetID())
+	log.Println("Started schedule gmt notifications schedule")
 }
 
 func PollNotificationsWorkflow(ctx workflow.Context) error {
