@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/images"
 	img_client "gitlab.com/fynbos/backend/images/client"
+	"gitlab.com/fynbos/backend/linkedin"
 	"net"
 	"net/http"
 	"os"
@@ -14,8 +17,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/riandyrn/otelchi"
@@ -53,6 +54,7 @@ import (
 	limits_client "gitlab.com/fynbos/backend/limits/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
+	linkedin_client "gitlab.com/fynbos/backend/linkedin/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/openpayments"
@@ -193,6 +195,14 @@ func start(args *cli.StartArgs) {
 		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
 		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
 		RedirectURL:   args.TwitterRedirectURL,
+	})
+
+	b.linkedin = linkedin_client.New(b, &linkedin_client.NewClientArgs{
+		ClientID:      args.LinkedinClientID,
+		ClientSecret:  args.LinkedinClientSecret,
+		AuthEndpoint:  "https://www.linkedin.com/oauth/v2/authorization",
+		TokenEndpoint: "https://www.linkedin.com/oauth/v2/accessToken",
+		RedirectURL:   args.LinkedinRedirectURL,
 	})
 
 	b.auth = authorisation_client.New(b)
@@ -464,6 +474,14 @@ func startWorker(args *cli.StartArgs) {
 		RedirectURL:   args.TwitterRedirectURL,
 	})
 
+	b.linkedin = linkedin_client.New(b, &linkedin_client.NewClientArgs{
+		ClientID:      args.LinkedinClientID,
+		ClientSecret:  args.LinkedinClientSecret,
+		AuthEndpoint:  "https://www.linkedin.com/oauth/v2/authorization",
+		TokenEndpoint: "https://www.linkedin.com/oauth/v2/accessToken",
+		RedirectURL:   args.LinkedinRedirectURL,
+	})
+
 	b.limits = limits_client.New(b)
 
 	b.contacts = contacts_client.New(b)
@@ -511,6 +529,7 @@ type backends struct {
 	val            *validator.Validate
 	db             *sqlx.DB
 	twitter        twitter.Client
+	linkedin       linkedin.Client
 	adminAuth      auth.Service
 	agreements     agreements.Client
 	linkedaccounts linkedaccounts.Client

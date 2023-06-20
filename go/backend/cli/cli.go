@@ -98,6 +98,9 @@ type StartArgs struct {
 	TwitterClientID            string
 	TwitterClientSecret        string
 	TwitterRedirectURL         string
+	LinkedinClientID           string
+	LinkedinClientSecret       string
+	LinkedinRedirectURL        string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -252,6 +255,9 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwitterClientID:            twitterClientId,
 		TwitterClientSecret:        twitterClientSecret,
 		TwitterRedirectURL:         twitterRedirectURL,
+		LinkedinClientID:           os.Getenv("LINKEDIN_CLIENT_ID"),
+		LinkedinClientSecret:       os.Getenv("LINKEDIN_CLIENT_SECRET"),
+		LinkedinRedirectURL:        os.Getenv("LINKEDIN_REDIRECT_URL"),
 		AdminPolicyAud:             os.Getenv("ADMIN_POLICY_AUD"),
 		AdminTeamDomain:            os.Getenv("ADMIN_TEAM_DOMAIN"),
 		SendgridAPIKey:             os.Getenv("SENDGRID_API_KEY"),

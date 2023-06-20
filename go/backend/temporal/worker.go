@@ -4,6 +4,7 @@ import (
 	"gitlab.com/fynbos/backend/identities/platforms"
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
+	linkedin_workflows "gitlab.com/fynbos/backend/linkedin/workflows"
 	openpayments_workflows "gitlab.com/fynbos/backend/openpayments/workflows"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
@@ -20,13 +21,17 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
 	w.RegisterWorkflow(kyc_workflows.StartKYC)
 
-	//Identities
+	// Identities
 	w.RegisterActivity(platforms.NewTwitterActivity(b))
 	w.RegisterWorkflow(platforms.TwitterVerifyWorkflow)
 
-	//Twitter
+	// Twitter
 	w.RegisterActivity(twitter_workflows.NewActivity(b))
 	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
+
+	// Linkedin
+	w.RegisterWorkflow(linkedin_workflows.NewActivity(b))
+	w.RegisterWorkflow(linkedin_workflows.PublishLinkedinProofWorkflow)
 
 	w.RegisterActivity(gmt_workflows.NewActivity(b))
 	w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow)

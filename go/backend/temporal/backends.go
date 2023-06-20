@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/linkedin"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/providers/basistheory"
@@ -46,4 +47,5 @@ type Backends interface {
 	OpenPayments() openpayments.Client
 	Identities() identities.Client
 	Images() images.Client
+	Linkedin() linkedin.Client
 }
