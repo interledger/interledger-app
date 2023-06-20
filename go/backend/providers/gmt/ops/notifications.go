@@ -14,20 +14,29 @@ import (
 )
 
 func StartNotificationsPolling(b Backends) {
-	// This workflow ID can be user business logic identifier as well.
+	scheduleID := "schedule_gmt_notifications"
 	workflowID := "cron_gmt_notifications"
-	workflowOptions := client.StartWorkflowOptions{
-		ID:                    workflowID,
-		TaskQueue:             "backend",
-		CronSchedule:          "*/1 * * * *",                                       // Every minute
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
+	schedule, err := b.Temporal().ScheduleClient().Create(context.Background(), client.ScheduleOptions{
+		ID: scheduleID,
+		Spec: client.ScheduleSpec{
+			Intervals: []client.ScheduleIntervalSpec{
+				{
+					Every: 2 * time.Minute,
+				},
+			},
+		},
+		Action: &client.ScheduleWorkflowAction{
+			ID:        workflowID,
+			TaskQueue: "backend",
+			Workflow:  PollNotificationsWorkflow,
+		},
+		Overlap: enums.SCHEDULE_OVERLAP_POLICY_CANCEL_OTHER,
+	})
+	if err != nil {
+		log.Fatalln("Unable to start gmt notifications schedule", err)
 	}
 
-	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, PollNotificationsWorkflow)
-	if err != nil {
-		log.Fatalln("Unable to execute workflow", err)
-	}
-	log.Println("Started workflow", "WorkflowID", we.GetID(), "RunID", we.GetRunID())
+	log.Println("Started schedule gmt notifications schedule", "ScheduleID", schedule.GetID())
 }
 
 func PollNotificationsWorkflow(ctx workflow.Context) error {
