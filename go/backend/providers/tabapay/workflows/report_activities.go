@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"gitlab.com/fynbos/backend/email"
 
@@ -661,7 +664,10 @@ func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 
 	// Now all files from
 	var processed []string
-	err := a.b.DB().GetContext(ctx, &processed, "SELECT filename FROM tabapay_report_files")
+	err := a.b.DB().SelectContext(ctx, &processed, "SELECT filename FROM tabapay_report_files")
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -710,6 +716,21 @@ func parseReportDate(input string) time.Time {
 	}
 
 	dt, err = time.Parse("1/2/2006 15:04", input)
+	if err == nil {
+		return dt
+	}
+
+	dt, err = time.Parse("01/2/2006 15:04", input)
+	if err == nil {
+		return dt
+	}
+
+	dt, err = time.Parse("1/02/2006 15:04", input)
+	if err == nil {
+		return dt
+	}
+
+	dt, err = time.Parse("01/02/2006 15:04", input)
 	if err == nil {
 		return dt
 	}
