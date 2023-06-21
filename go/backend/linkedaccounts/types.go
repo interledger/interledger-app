@@ -72,3 +72,10 @@ type CreateReviewArgs struct {
 	LinkedAccountID string
 	State           State
 }
+
+type CompleteReviewArgs struct {
+	ID         string
+	Reason     string
+	NewState   State
+	ReviewedBy string
+}

@@ -22,7 +22,5 @@ type Client interface {
 	GetReview(ctx context.Context, id string) (*Review, error)
 	ListReviews(ctx context.Context, pagination db.Pagination) ([]Review, error)
 	ListIncompleteReviews(ctx context.Context, pagination db.Pagination) ([]Review, error)
-	UpdateReviewState(ctx context.Context, reviewID string, newState State) (*Review, error)
-	UpdateReviewReason(ctx context.Context, reviewID, reason string) (*Review, error)
-	CompleteReview(ctx context.Context, reviewID, reviewedBy string) (*Review, error)
+	CompleteReview(ctx context.Context, args CompleteReviewArgs) (*Review, error)
 }
