@@ -15,6 +15,7 @@ import {
   AnchorRouter,
   Button,
   Card,
+  CardRow,
   Dialog,
   Icon,
   Layouts,
@@ -125,11 +126,11 @@ export default function Page() {
               alt='Identity card'
               src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
             />
-            <Card.Item variant='col' className='mt-4'>
+            <CardRow className='mt-4'>
               <span className='text-medium'>Verification date</span>
               <span className='font-medium'>{identity.verifiedAt}</span>
-            </Card.Item>
-            <Card.Item variant='col' className='mt-4'>
+            </CardRow>
+            <CardRow className='mt-4'>
               <span className='text-medium'>Public proof</span>
               <AnchorRouter
                 to={identity.proof}
@@ -137,7 +138,7 @@ export default function Page() {
               >
                 {identity.proof}
               </AnchorRouter>
-            </Card.Item>
+            </CardRow>
           </Card>
           <Card>
             <div className='flex items-start space-x-4'>
@@ -279,7 +280,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
       />
       <Dialog open={showDialog} setOpen={setShowDialog}>
-        <h1 className='font-display text-2xl'>Remove Twitter ID card</h1>
+        <h1 className='text-2xl'>Remove Twitter ID card</h1>
         <span className='text-medium'>
           Are you sure you want to remove the Twitter identity card? This action
           cannot be undone.

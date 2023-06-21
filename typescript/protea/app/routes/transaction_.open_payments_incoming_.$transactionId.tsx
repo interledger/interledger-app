@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, Chip, ChipColor, Layouts } from '~/components'
+import { Card, CardRow, Chip, ChipColor, Layouts } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import {
   StatusError,
@@ -91,43 +91,43 @@ export default function Page() {
   return (
     <>
       <Card>
-        <Card.Item variant='col'>
+        <CardRow>
           <span className='text-sm'>From</span>
           <span className='text-sm text-strong'>{paymentPointer}</span>
-        </Card.Item>
+        </CardRow>
         {beneficiaryName != '' && (
-          <Card.Item className='mt-6' variant='col'>
+          <CardRow className='mt-6'>
             <span className='text-sm'>Sender name</span>
             <span className='text-sm text-strong'>{beneficiaryName}</span>
-          </Card.Item>
+          </CardRow>
         )}
-        <Card.Item className='mt-6'>
+        <CardRow className='mt-6'>
           <span className='text-sm'>They sent</span>
           <span className='text-sm font-medium text-strong'>
             {transaction.subTotal || '$ 0.00'}
           </span>
-        </Card.Item>
-        <Card.Item className='mt-2'>
+        </CardRow>
+        <CardRow className='mt-2'>
           <span className='text-sm'>Total fees</span>
           <span className='text-sm font-medium text-strong'>
             {transaction.fees || '$ 0.00'}
           </span>
-        </Card.Item>
-        <Card.Item className='mt-2'>
+        </CardRow>
+        <CardRow className='mt-2'>
           <span className='text-sm'>You received</span>
           <span className='text-2xl text-sm font-medium text-strong'>
             {transaction.total || '$ 0.00'}
           </span>
-        </Card.Item>
+        </CardRow>
       </Card>
       <Card>
-        <Card.Item>
+        <CardRow>
           <span className='text-sm text-medium'>Payment date</span>
           <span className='text-sm text-strong'>
             {transaction.date || 'Pending'}
           </span>
-        </Card.Item>
-        <Card.Item className='mt-4 items-center'>
+        </CardRow>
+        <CardRow className='mt-4 items-center'>
           <span className='text-sm text-medium'>Status</span>
           {transaction.status == 'Completed' && (
             <Chip color={ChipColor.green}>Complete</Chip>
@@ -138,13 +138,13 @@ export default function Page() {
           {transaction.status == 'Failed' && (
             <Chip color={ChipColor.orange}>Failed</Chip>
           )}
-        </Card.Item>
+        </CardRow>
       </Card>
       <Card>
-        <Card.Item variant='col'>
+        <CardRow>
           <span className='text-sm text-medium'>Transaction ID</span>
           <span className='text-sm text-strong'>{transaction.id}</span>
-        </Card.Item>
+        </CardRow>
       </Card>
     </>
   )
