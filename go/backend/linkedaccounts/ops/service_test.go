@@ -41,6 +41,7 @@ func TestLinkedAccounts(s *testing.T) {
 			Type:       "bank",
 			CanSend:    true,
 			CanReceive: true,
+			State:    linkedaccounts.OwnershipReviewRequired,
 		})
 		require.NoError(t, err)
 
@@ -51,6 +52,7 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.Equal(t, linkedAccount.WalletID, wallet.ID)
 		assert.True(t, linkedAccount.CanSend)
 		assert.True(t, linkedAccount.CanReceive)
+		assert.Equal(t, linkedAccount.State, linkedaccounts.OwnershipReviewRequired)
 	})
 
 	s.Run("can get a linked account", func(t *testing.T) {
@@ -92,6 +94,7 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.Equal(t, wallet.ID, laByProviderID.WalletID)
 		assert.True(t, laByProviderID.CanSend)
 		assert.True(t, laByProviderID.CanReceive)
+		assert.Equal(t, linkedAccount.State, linkedaccounts.Verified)
 	})
 
 	s.Run("can get a list of wallet linked accounts", func(t *testing.T) {

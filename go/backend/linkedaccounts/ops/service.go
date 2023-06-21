@@ -20,31 +20,34 @@ import (
 )
 
 const (
-	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, created_at, updated_at"
+	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, created_at, updated_at"
 
 	// If you update this, then remember to update the create and createBatch functions.
-	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive"
-	insertColumns = 10
+	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state"
+	insertColumns = 11
 )
 
 func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
-	// TODO: refactor errors
 	err := b.Validator().Struct(args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInvalidArgument, err.Error())
 	}
 
-	// TODO: add back ACL
-
 	linkedAccountID := args.ID
 	if linkedAccountID == "" {
 		linkedAccountID = uuid.NewString()
 	}
+
+	state := args.State
+	if state == "" {
+		state = linkedaccounts.Verified
+	}
+
 	var linkedAccount linkedaccounts.LinkedAccount
 	err = b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING %s;", insertFields, allFields),
+		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING %s;", insertFields, allFields),
 		linkedAccountID,
 		args.WalletID,
 		args.Name,
@@ -55,6 +58,7 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		args.Type,
 		args.CanSend,
 		args.CanReceive,
+		state,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
@@ -83,13 +87,18 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 	var placeholders []string
 	var values []interface{}
 	for i, arg := range args {
-		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10))
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10, i*insertColumns+11))
 
 		linkedAccountID := arg.ID
 		if linkedAccountID == "" {
 			linkedAccountID = uuid.NewString()
 		}
-		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Nickname, arg.Mask, arg.Provider, arg.ProviderID, arg.Type, arg.CanSend, arg.CanReceive)
+		state := arg.State
+		if state == "" {
+			state = linkedaccounts.Verified
+		}
+
+		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Nickname, arg.Mask, arg.Provider, arg.ProviderID, arg.Type, arg.CanSend, arg.CanReceive, state)
 	}
 
 	var linkedAccounts []linkedaccounts.LinkedAccount

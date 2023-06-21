@@ -175,6 +175,11 @@ table "linked_accounts" {
     type = text
     default = ""
   }
+  column "state" {
+    null = false
+    type = text
+    default = ""
+  }
   column "can_send" {
     type = bool
     default = false
