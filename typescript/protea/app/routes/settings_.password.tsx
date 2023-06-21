@@ -4,7 +4,14 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  Snackbar,
+  TextField
+} from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -92,29 +99,30 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <input
+        form='settings-password'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
       <Card>
-        <span>Set a new password to continue.</span>
-        <TextField
-          id='new-password'
-          form='settings-password'
-          label='New password'
-          name='new-password'
-          type='password'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
-
-        <input
-          form='settings-password'
-          defaultValue={csrfToken}
-          name='csrf_token'
-          type='hidden'
-        />
+        <CardContent>
+          <p>Set a new password to continue.</p>
+          <TextField
+            id='new-password'
+            form='settings-password'
+            label='New password'
+            name='new-password'
+            type='password'
+            className='mt-4'
+            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+            aria-describedby={
+              actionData?.errors?.password ? 'password-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.password}
+          />
+        </CardContent>
       </Card>
       <Button form='settings-password' type='submit'>
         Continue
