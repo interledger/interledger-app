@@ -40,12 +40,10 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return nil, err
 	}
 
-	// fail if AVS has failed.
 	// https://developers.tabapay.com/reference/avs-response-codes
 	linkedAccountState := linkedaccounts.Verified
 	if cardInfo.AVS.CodeAVS != external.AVSResponseCodeY && cardInfo.AVS.CodeAVS != external.AVSResponseCodeA {
 		logger.Warn("AVS failed.", "AVSCode", cardInfo.AVS.CodeAVS)
-		// TODO: notify for manual review
 		linkedAccountState = linkedaccounts.OwnershipReviewRequired
 	}
 
