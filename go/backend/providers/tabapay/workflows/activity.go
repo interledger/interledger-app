@@ -150,7 +150,20 @@ func (a *Activity) CreateLinkedCard(ctx context.Context, args CreateLinkedCardAr
 		ProviderID: args.ProviderID,
 		Nickname:   args.Name,
 		Type:       tabapay.TypeCard,
+		State:      args.State,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+
+	if la.State != linkedaccounts.Verified {
+		_, err = a.b.LinkedAccounts().CreateReviews(ctx, []linkedaccounts.CreateReviewArgs{
+			{
+				LinkedAccountID: la.ID,
+				State:           la.State,
+			},
+		})
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}

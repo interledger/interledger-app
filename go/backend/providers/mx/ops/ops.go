@@ -133,7 +133,20 @@ func CreateBankAccounts(ctx context.Context, b Backends, args mx.CreateBankAccou
 		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
-	// TODO: notify that this requires review
+	var reviews []linkedaccounts.CreateReviewArgs
+	for _, la := range las {
+		if la.State != linkedaccounts.Verified {
+			reviews = append(reviews, linkedaccounts.CreateReviewArgs{
+				LinkedAccountID: la.ID,
+				State:           la.State,
+			})
+		}
+	}
+
+	_, err = b.LinkedAccounts().CreateReviews(ctx, reviews)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
 
 	return las, nil
 }
