@@ -1,10 +1,19 @@
-import type { ActionArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts, TextArea, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  Layouts,
+  OutlineButton,
+  Snackbar,
+  TextField
+} from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { getConnection, getConnectionLimits } from '~/lib/connections.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -12,80 +21,66 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
-      title: 'Add a public key'
+      back: '/settings/keys',
+      title: (match) => match.data.connection.applicationName
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Connections | Add a public key'
+    title: 'Key'
   }
 }
 
+export async function loader({ request, params }: LoaderArgs) {
+  let data = await Promise.all([
+    getConnection(request, params.keyId as string),
+    getConnectionLimits(request, params.keyId as string),
+    getSnackbar(request)
+  ])
+
+  return json({ connection: data[0], limits: data[1], snackbar: data[2] })
+}
+
 export default function Page() {
+  const { connection, limits, snackbar } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
+  const [showSnackbar, setShowSnackbar] = useState<boolean>(
+    snackbar.show ?? false
+  )
+
+  useEffect(() => {
+    setShowSnackbar(snackbar.show ?? false)
+  }, [snackbar])
 
   return (
     <>
       <Form
-        id='add-public-key'
-        action={'/connections/add-a-public-key'}
+        id='key-id'
+        action={`/settings/keys/${connection.id}`}
         method='post'
         className='hidden'
       />
 
       <Card>
-        <p className='text-medium'>
-          Add the public key of the external application that is connecting to
-          your wallet.
-        </p>
+        <code className='flex items-center justify-between break-all rounded-xl bg-nav p-2 font-mono text-medium'>
+          {connection.publicKeyFingerprint}
+        </code>
 
-        <TextField
-          id='applicationName'
-          label='Application Name'
-          name='applicationName'
-          form='add-public-key'
-          type='text'
-          defaultValue=''
-          className='mt-6'
-          aria-invalid={
-            Boolean(actionData?.errors.applicationName) || undefined
-          }
-          aria-describedby={
-            actionData?.errors.applicationName
-              ? 'applicationName-error'
-              : undefined
-          }
-          required
-          errorMessage={actionData?.errors.applicationName}
-        />
-
-        <TextArea
-          id='publicKey'
-          form='add-public-key'
-          label='Public key'
-          name='publicKey'
-          placeholder='-----BEGIN PUBLIC KEY-----'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.publicKey) || undefined}
-          aria-describedby={
-            actionData?.errors.publicKey ? 'publicKey-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.publicKey}
-        />
+        <p className='mt-4 text-sm text-medium'>Added {connection.createdAt}</p>
+        {/*TODO: implement last used*/}
+        {/*<p className='mt-1 text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>*/}
       </Card>
 
       <Card>
-        <h2 className='text-lg font-medium'>Limits</h2>
+        <h1 className='text-lg font-medium'>Limits</h1>
         <p className='mt-6'>
           Providing access to your Fynbos wallet allows the external application
           to make payments. Set the limits below.
@@ -94,11 +89,11 @@ export default function Page() {
           id='dailyLimit'
           label='Daily'
           name='dailyLimit'
-          form='add-public-key'
+          form='key-id'
           type='number'
           min='0'
           step='0.01'
-          defaultValue={100}
+          defaultValue={limits.daily}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
@@ -113,11 +108,11 @@ export default function Page() {
           id='monthlyLimit'
           label='Monthly'
           name='monthlyLimit'
-          form='add-public-key'
+          form='key-id'
           type='number'
           min='0'
           step='0.01'
-          defaultValue={1000}
+          defaultValue={limits.monthly}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
@@ -132,11 +127,11 @@ export default function Page() {
           id='overallLimit'
           label='Overall'
           name='overallLimit'
-          form='add-public-key'
+          form='key-id'
           type='number'
           min='0'
           step='0.01'
-          defaultValue={10000}
+          defaultValue={limits.overall}
           prefix='$'
           className='mt-6'
           aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
@@ -148,35 +143,49 @@ export default function Page() {
         />
       </Card>
 
-      <Button form='add-public-key' type='submit'>
-        Add key
-      </Button>
+      <div className='flex w-full space-x-2'>
+        <OutlineButton
+          shrink
+          // TODO error token colors
+          className='text-red-700 outline-red-700 focus-visible:outline-red-800'
+          form='key-id'
+          name='formName'
+          value='delete'
+          type='submit'
+        >
+          Delete
+        </OutlineButton>
+        <Button
+          className='col-span-2'
+          form='key-id'
+          name='formName'
+          value='update'
+          type='submit'
+        >
+          Save
+        </Button>
+      </div>
+
+      <Snackbar
+        message={snackbar.message}
+        action={snackbar.action}
+        icon={snackbar.icon}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        dismissAfter={3000}
+        onClose={() => setShowSnackbar(false)}
+      />
     </>
   )
 }
 
 // The field names given by the backend for field violations
-type fieldErrorsMap =
-  | 'ApplicationName'
-  | 'PublicKey'
-  | 'DailyLimit'
-  | 'MonthlyLimit'
-  | 'OverallLimit'
+type fieldErrorsMap = 'DailyLimit' | 'MonthlyLimit' | 'OverallLimit'
 
 function mapper(
   field: fieldErrorsMap
-):
-  | 'applicationName'
-  | 'publicKey'
-  | 'dailyLimit'
-  | 'monthlyLimit'
-  | 'overallLimit'
-  | null {
+): 'dailyLimit' | 'monthlyLimit' | 'overallLimit' | null {
   switch (field) {
-    case 'ApplicationName':
-      return 'applicationName'
-    case 'PublicKey':
-      return 'publicKey'
     case 'DailyLimit':
       return 'dailyLimit'
     case 'MonthlyLimit':
@@ -188,36 +197,62 @@ function mapper(
   }
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
+  const formName = await form.get('formName')
+
+  if (formName === 'delete') {
+    const response = await grpcClient
+      .deleteConnection(
+        { id: params.keyId as string },
+        {
+          meta: {
+            cookies: String(request.headers.get('cookie')) || ''
+          }
+        }
+      )
+      .then((v) => v)
+      .catch((e) => {
+        console.log(e)
+        return StatusError(e)
+      })
+    if (isGrpcError(response)) {
+      throw json({}, httpMapping(response.code))
+    }
+
+    await flashSnackbar(request, {
+      message: 'Public key was deleted.',
+      icon: 'close'
+    })
+
+    return redirect(route('/settings/keys'))
+  }
+
   const fieldErrors = {
-    applicationName: '',
-    publicKey: '',
     dailyLimit: '',
     monthlyLimit: '',
     overallLimit: ''
   }
 
   const response = await grpcClient
-    .createConnection(
+    .updateConnectionLimits(
       {
-        applicationName: form.get('applicationName') as string,
-        publicKey: form.get('publicKey') as string,
-        dailyLimit: {
+        id: params.keyId as string,
+        daily: {
           amount: String(
             Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
           ),
           asset: 'USD',
           assetScale: 2
         },
-        monthlyLimit: {
+        monthly: {
           amount: String(
             Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
           ),
           asset: 'USD',
           assetScale: 2
         },
-        overallLimit: {
+        overall: {
           amount: String(
             Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
           ),
@@ -233,7 +268,6 @@ export async function action({ request }: ActionArgs) {
     )
     .then((v) => v)
     .catch(StatusError)
-
   if (isGrpcError(response)) {
     if (response.code == Code.INVALID_ARGUMENT) {
       for (let violation of (response as GrpcError).details[0]
@@ -246,9 +280,9 @@ export async function action({ request }: ActionArgs) {
   }
 
   await flashSnackbar(request, {
-    message: 'Public key was added.',
+    message: 'Public key was updated.',
     icon: 'close'
   })
 
-  return redirect(route('/connections'))
+  return json({ errors: { ...fieldErrors } })
 }
