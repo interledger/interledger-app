@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	pb "gitlab.com/fynbos/proto/backend/admin/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -57,7 +58,12 @@ func (s *AdminRpcService) CompleteLinkedAccountReview(ctx context.Context, req *
 		return nil, toGRPCError(err)
 	}
 
-	r, err := s.b.LinkedAccounts().CompleteReview(ctx, req.GetId(), reviewer.Email)
+	r, err := s.b.LinkedAccounts().CompleteReview(ctx, linkedaccounts.CompleteReviewArgs{
+		ID:         req.GetId(),
+		Reason:     req.GetReason(),
+		NewState:   linkedaccounts.State(req.GetNewState()),
+		ReviewedBy: reviewer.Email,
+	})
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

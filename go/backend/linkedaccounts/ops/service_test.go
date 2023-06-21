@@ -307,17 +307,16 @@ func TestReviews(t *testing.T) {
 	assert.Empty(t, reviews[0].NewState)
 	assert.Empty(t, reviews[0].ReviewedBy)
 
-	review, err := c.LinkedAccounts.UpdateReviewState(ctx, reviews[0].ID, linkedaccounts.Verified)
-	require.NoError(t, err)
-	assert.Equal(t, linkedaccounts.Verified, review.NewState)
-
-	review, err = c.LinkedAccounts.UpdateReviewReason(ctx, reviews[0].ID, "Manual check passed.")
+	review, err := c.LinkedAccounts.CompleteReview(ctx, linkedaccounts.CompleteReviewArgs{
+		ID:         reviews[0].ID,
+		ReviewedBy: "test@fynbos.dev",
+		NewState:   linkedaccounts.Verified,
+		Reason:     "Manual check passed.",
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "Manual check passed.", review.Reason)
-
-	review, err = c.LinkedAccounts.CompleteReview(ctx, reviews[0].ID, "test@fynbos.dev")
-	require.NoError(t, err)
 	assert.Equal(t, "test@fynbos.dev", review.ReviewedBy)
+	assert.Equal(t, linkedaccounts.Verified, review.NewState)
 	assert.NotEmpty(t, review.CompletedAt)
 
 	review, err = c.LinkedAccounts.GetReview(ctx, reviews[0].ID)
@@ -371,7 +370,11 @@ func TestListReviews(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, reviews, 3)
 
-	_, err = c.LinkedAccounts.CompleteReview(ctx, reviews[0].ID, "test@fynbos.dev")
+	_, err = c.LinkedAccounts.CompleteReview(ctx, linkedaccounts.CompleteReviewArgs{
+		ID:         reviews[0].ID,
+		ReviewedBy: "test@fynbos.dev",
+		NewState:   linkedaccounts.Verified,
+	})
 	require.NoError(t, err)
 
 	reviews, err = c.LinkedAccounts.ListIncompleteReviews(ctx, db.Pagination{})

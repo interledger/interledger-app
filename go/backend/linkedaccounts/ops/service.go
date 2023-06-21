@@ -389,48 +389,34 @@ func ListIncompleteReviews(ctx context.Context, b Backends, pagination db.Pagina
 	return reviews, nil
 }
 
-func UpdateReviewState(ctx context.Context, b Backends, reviewID string, newState linkedaccounts.State) (*linkedaccounts.Review, error) {
-	var dbReview dbReview
-	err := b.DB().GetContext(
-		ctx,
-		&dbReview,
-		fmt.Sprintf("UPDATE linked_account_reviews SET new_state=$1 WHERE id=$2  RETURNING %s;", reviewAllFields),
-		newState,
-		reviewID,
-	)
+func CompleteReview(ctx context.Context, b Backends, args linkedaccounts.CompleteReviewArgs) (*linkedaccounts.Review, error) {
+	var old dbReview
+	err := b.DB().GetContext(ctx, &old, fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE id=$1", reviewAllFields), args.ID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
 	}
 
-	review := toReview(dbReview)
-	return &review, nil
-}
-
-func UpdateReviewReason(ctx context.Context, b Backends, reviewID string, reason string) (*linkedaccounts.Review, error) {
-	var dbReview dbReview
-	err := b.DB().GetContext(
-		ctx,
-		&dbReview,
-		fmt.Sprintf("UPDATE linked_account_reviews SET reason=$1 WHERE id=$2  RETURNING %s;", reviewAllFields),
-		reason,
-		reviewID,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	reason := old.Reason
+	if args.Reason != "" {
+		reason = args.Reason
 	}
 
-	review := toReview(dbReview)
-	return &review, nil
-}
+	newState := old.NewState
+	if args.NewState != "" {
+		newState = args.NewState
+	}
 
-func CompleteReview(ctx context.Context, b Backends, reviewID string, reviewedBy string) (*linkedaccounts.Review, error) {
+	reviewedBy := old.ReviewedBy
+	if args.ReviewedBy != "" {
+		reviewedBy = args.ReviewedBy
+	}
+
 	var dbReview dbReview
-	err := b.DB().GetContext(
+	err = b.DB().GetContext(
 		ctx,
 		&dbReview,
-		fmt.Sprintf("UPDATE linked_account_reviews SET reviewed_by=$1, completed_at=now() WHERE id=$2  RETURNING %s;", reviewAllFields),
-		reviewedBy,
-		reviewID,
+		fmt.Sprintf("UPDATE linked_account_reviews SET reviewed_by=$1, reason=$2, new_state=$3, completed_at=now() WHERE id=$4  RETURNING %s;", reviewAllFields),
+		reviewedBy, reason, newState, args.ID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)

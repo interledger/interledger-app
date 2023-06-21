@@ -136,14 +136,6 @@ func (c client) ListIncompleteReviews(ctx context.Context, pagination db.Paginat
 	return ops.ListIncompleteReviews(ctx, c.b, pagination)
 }
 
-func (c client) UpdateReviewState(ctx context.Context, id string, newState linkedaccounts.State) (*linkedaccounts.Review, error) {
-	return ops.UpdateReviewState(ctx, c.b, id, newState)
-}
-
-func (c client) UpdateReviewReason(ctx context.Context, id, reason string) (*linkedaccounts.Review, error) {
-	return ops.UpdateReviewReason(ctx, c.b, id, reason)
-}
-
-func (c client) CompleteReview(ctx context.Context, id, reviewedBy string) (*linkedaccounts.Review, error) {
-	return ops.CompleteReview(ctx, c.b, id, reviewedBy)
+func (c client) CompleteReview(ctx context.Context, args linkedaccounts.CompleteReviewArgs) (*linkedaccounts.Review, error) {
+	return ops.CompleteReview(ctx, c.b, args)
 }
