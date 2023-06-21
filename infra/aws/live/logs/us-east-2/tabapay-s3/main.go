@@ -77,6 +77,27 @@ func policy(ctx *pulumi.Context, bucket *s3.Bucket) (pulumi.StringPtrOutput, err
 					}).(pulumi.StringOutput),
 				},
 			},
+			// Allow backend worker to read the bucket
+			&iam.GetPolicyDocumentStatementArgs{
+				Principals: iam.GetPolicyDocumentStatementPrincipalArray{
+					&iam.GetPolicyDocumentStatementPrincipalArgs{
+						Type: pulumi.String("AWS"),
+						Identifiers: pulumi.StringArray{
+							pulumi.String("arn:aws:iam::634848879735:role/backend-worker-46d7caa"),
+						},
+					},
+				},
+				Actions: pulumi.StringArray{
+					pulumi.String("s3:GetObject"),
+					pulumi.String("s3:ListBucket"),
+				},
+				Resources: pulumi.StringArray{
+					bucket.Arn,
+					bucket.Arn.ApplyT(func(arn string) (string, error) {
+						return fmt.Sprintf("%v/*", arn), nil
+					}).(pulumi.StringOutput),
+				},
+			},
 		},
 	}, nil)
 
