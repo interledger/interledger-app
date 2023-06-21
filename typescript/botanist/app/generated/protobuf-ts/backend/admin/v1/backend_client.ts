@@ -4,6 +4,10 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { CompleteLinkedAccountReviewRequest } from "./backend";
+import type { LinkedAccountReview } from "./backend";
+import type { GetLinkedAccountReviewRequest } from "./backend";
+import type { LinkedAccountReviews } from "./backend";
 import type { Features } from "./backend";
 import type { GetWalletFeaturesRequest } from "./backend";
 import type { ListAuditResponse } from "./backend";
@@ -69,6 +73,18 @@ export interface IBackendClient {
      * @generated from protobuf rpc: SetWalletFeatures(backend.admin.v1.Features) returns (backend.admin.v1.Features);
      */
     setWalletFeatures(input: Features, options?: RpcOptions): UnaryCall<Features, Features>;
+    /**
+     * @generated from protobuf rpc: ListIncompleteLinkedAccountReviews(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.LinkedAccountReviews);
+     */
+    listIncompleteLinkedAccountReviews(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, LinkedAccountReviews>;
+    /**
+     * @generated from protobuf rpc: GetLinkedAccountReview(backend.admin.v1.GetLinkedAccountReviewRequest) returns (backend.admin.v1.LinkedAccountReview);
+     */
+    getLinkedAccountReview(input: GetLinkedAccountReviewRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountReviewRequest, LinkedAccountReview>;
+    /**
+     * @generated from protobuf rpc: CompleteLinkedAccountReview(backend.admin.v1.CompleteLinkedAccountReviewRequest) returns (backend.admin.v1.LinkedAccountReview);
+     */
+    completeLinkedAccountReview(input: CompleteLinkedAccountReviewRequest, options?: RpcOptions): UnaryCall<CompleteLinkedAccountReviewRequest, LinkedAccountReview>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -148,5 +164,26 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     setWalletFeatures(input: Features, options?: RpcOptions): UnaryCall<Features, Features> {
         const method = this.methods[9], opt = this._transport.mergeOptions(options);
         return stackIntercept<Features, Features>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListIncompleteLinkedAccountReviews(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.LinkedAccountReviews);
+     */
+    listIncompleteLinkedAccountReviews(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, LinkedAccountReviews> {
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, LinkedAccountReviews>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetLinkedAccountReview(backend.admin.v1.GetLinkedAccountReviewRequest) returns (backend.admin.v1.LinkedAccountReview);
+     */
+    getLinkedAccountReview(input: GetLinkedAccountReviewRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountReviewRequest, LinkedAccountReview> {
+        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetLinkedAccountReviewRequest, LinkedAccountReview>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CompleteLinkedAccountReview(backend.admin.v1.CompleteLinkedAccountReviewRequest) returns (backend.admin.v1.LinkedAccountReview);
+     */
+    completeLinkedAccountReview(input: CompleteLinkedAccountReviewRequest, options?: RpcOptions): UnaryCall<CompleteLinkedAccountReviewRequest, LinkedAccountReview> {
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CompleteLinkedAccountReviewRequest, LinkedAccountReview>("unary", this._transport, method, opt, input);
     }
 }

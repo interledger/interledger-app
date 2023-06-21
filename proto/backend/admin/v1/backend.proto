@@ -21,9 +21,37 @@ service Backend {
   rpc ListAudit(ListAuditRequest) returns (ListAuditResponse);
   rpc GetWalletFeatures(GetWalletFeaturesRequest) returns (Features);
   rpc SetWalletFeatures(Features) returns (Features);
+  rpc ListIncompleteLinkedAccountReviews(PaginationRequest) returns (LinkedAccountReviews);
+  rpc GetLinkedAccountReview(GetLinkedAccountReviewRequest) returns (LinkedAccountReview);
+  rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns(LinkedAccountReview);
 }
 
 message Empty {}
+
+message LinkedAccountReview {
+  string id = 1;
+  string state = 2;
+  string newState = 3;
+  string linkedAccountID = 4;
+  string reviewedBy = 5;
+  string reason = 6;
+  google.protobuf.Timestamp createdAt = 7; 
+  google.protobuf.Timestamp completedAt = 8; 
+}
+
+message LinkedAccountReviews {
+  repeated LinkedAccountReview reviews = 1;
+}
+
+message GetLinkedAccountReviewRequest {
+  string id = 1;
+}
+
+message CompleteLinkedAccountReviewRequest {
+  string id = 1;
+  string reason = 2;
+  string newState = 3;
+}
 
 message GetWalletFeaturesRequest {
   string walletID = 1;

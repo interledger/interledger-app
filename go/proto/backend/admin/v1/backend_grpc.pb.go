@@ -33,6 +33,9 @@ type BackendClient interface {
 	ListAudit(ctx context.Context, in *ListAuditRequest, opts ...grpc.CallOption) (*ListAuditResponse, error)
 	GetWalletFeatures(ctx context.Context, in *GetWalletFeaturesRequest, opts ...grpc.CallOption) (*Features, error)
 	SetWalletFeatures(ctx context.Context, in *Features, opts ...grpc.CallOption) (*Features, error)
+	ListIncompleteLinkedAccountReviews(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*LinkedAccountReviews, error)
+	GetLinkedAccountReview(ctx context.Context, in *GetLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
+	CompleteLinkedAccountReview(ctx context.Context, in *CompleteLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
 }
 
 type backendClient struct {
@@ -133,6 +136,33 @@ func (c *backendClient) SetWalletFeatures(ctx context.Context, in *Features, opt
 	return out, nil
 }
 
+func (c *backendClient) ListIncompleteLinkedAccountReviews(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*LinkedAccountReviews, error) {
+	out := new(LinkedAccountReviews)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListIncompleteLinkedAccountReviews", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) GetLinkedAccountReview(ctx context.Context, in *GetLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error) {
+	out := new(LinkedAccountReview)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/GetLinkedAccountReview", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) CompleteLinkedAccountReview(ctx context.Context, in *CompleteLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error) {
+	out := new(LinkedAccountReview)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/CompleteLinkedAccountReview", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -147,6 +177,9 @@ type BackendServer interface {
 	ListAudit(context.Context, *ListAuditRequest) (*ListAuditResponse, error)
 	GetWalletFeatures(context.Context, *GetWalletFeaturesRequest) (*Features, error)
 	SetWalletFeatures(context.Context, *Features) (*Features, error)
+	ListIncompleteLinkedAccountReviews(context.Context, *PaginationRequest) (*LinkedAccountReviews, error)
+	GetLinkedAccountReview(context.Context, *GetLinkedAccountReviewRequest) (*LinkedAccountReview, error)
+	CompleteLinkedAccountReview(context.Context, *CompleteLinkedAccountReviewRequest) (*LinkedAccountReview, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -182,6 +215,15 @@ func (UnimplementedBackendServer) GetWalletFeatures(context.Context, *GetWalletF
 }
 func (UnimplementedBackendServer) SetWalletFeatures(context.Context, *Features) (*Features, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetWalletFeatures not implemented")
+}
+func (UnimplementedBackendServer) ListIncompleteLinkedAccountReviews(context.Context, *PaginationRequest) (*LinkedAccountReviews, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListIncompleteLinkedAccountReviews not implemented")
+}
+func (UnimplementedBackendServer) GetLinkedAccountReview(context.Context, *GetLinkedAccountReviewRequest) (*LinkedAccountReview, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccountReview not implemented")
+}
+func (UnimplementedBackendServer) CompleteLinkedAccountReview(context.Context, *CompleteLinkedAccountReviewRequest) (*LinkedAccountReview, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteLinkedAccountReview not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -375,6 +417,60 @@ func _Backend_SetWalletFeatures_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ListIncompleteLinkedAccountReviews_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListIncompleteLinkedAccountReviews(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ListIncompleteLinkedAccountReviews",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListIncompleteLinkedAccountReviews(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_GetLinkedAccountReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLinkedAccountReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetLinkedAccountReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/GetLinkedAccountReview",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetLinkedAccountReview(ctx, req.(*GetLinkedAccountReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_CompleteLinkedAccountReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteLinkedAccountReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).CompleteLinkedAccountReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/CompleteLinkedAccountReview",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).CompleteLinkedAccountReview(ctx, req.(*CompleteLinkedAccountReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -421,6 +517,18 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetWalletFeatures",
 			Handler:    _Backend_SetWalletFeatures_Handler,
+		},
+		{
+			MethodName: "ListIncompleteLinkedAccountReviews",
+			Handler:    _Backend_ListIncompleteLinkedAccountReviews_Handler,
+		},
+		{
+			MethodName: "GetLinkedAccountReview",
+			Handler:    _Backend_GetLinkedAccountReview_Handler,
+		},
+		{
+			MethodName: "CompleteLinkedAccountReview",
+			Handler:    _Backend_CompleteLinkedAccountReview_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
