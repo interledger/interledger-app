@@ -11,8 +11,9 @@ type LinkedAccount struct {
 	Provider   string
 	ProviderID string `db:"provider_id"`
 	Type       string
-	CanSend    bool   `db:"can_send"`
-	CanReceive bool   `db:"can_receive"`
+	CanSend    bool `db:"can_send"`
+	CanReceive bool `db:"can_receive"`
+	State      State
 	CreatedAt  string `db:"created_at"`
 	UpdatedAt  string `db:"updated_at"`
 }
@@ -28,6 +29,7 @@ type CreateArgs struct {
 	Type       string `validate:"required"`
 	CanSend    bool
 	CanReceive bool
+	State      State
 }
 
 type GetByProviderIDArgs struct {
@@ -42,3 +44,11 @@ func Requires3DS(la *LinkedAccount) bool {
 
 	return la.Provider == tabapay.ProviderName
 }
+
+type State string
+
+var (
+	Verified                State = "Verified"
+	OwnershipReviewRequired State = "OwnershipReviewRequired"
+	Rejected                State = "Rejected"
+)
