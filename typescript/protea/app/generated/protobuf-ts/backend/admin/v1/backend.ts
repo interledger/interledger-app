@@ -20,6 +20,78 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.admin.v1.LinkedAccountReview
+ */
+export interface LinkedAccountReview {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string state = 2;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: string newState = 3;
+     */
+    newState: string;
+    /**
+     * @generated from protobuf field: string linkedAccountID = 4;
+     */
+    linkedAccountID: string;
+    /**
+     * @generated from protobuf field: string reviewedBy = 5;
+     */
+    reviewedBy: string;
+    /**
+     * @generated from protobuf field: string reason = 6;
+     */
+    reason: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp createdAt = 7;
+     */
+    createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp completedAt = 8;
+     */
+    completedAt?: Timestamp;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.LinkedAccountReviews
+ */
+export interface LinkedAccountReviews {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.LinkedAccountReview reviews = 1;
+     */
+    reviews: LinkedAccountReview[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetLinkedAccountReviewRequest
+ */
+export interface GetLinkedAccountReviewRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.CompleteLinkedAccountReviewRequest
+ */
+export interface CompleteLinkedAccountReviewRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string reason = 2;
+     */
+    reason: string;
+    /**
+     * @generated from protobuf field: string newState = 3;
+     */
+    newState: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.GetWalletFeaturesRequest
  */
 export interface GetWalletFeaturesRequest {
@@ -497,6 +569,257 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.admin.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LinkedAccountReview$Type extends MessageType<LinkedAccountReview> {
+    constructor() {
+        super("backend.admin.v1.LinkedAccountReview", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "newState", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "linkedAccountID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "reviewedBy", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "createdAt", kind: "message", T: () => Timestamp },
+            { no: 8, name: "completedAt", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<LinkedAccountReview>): LinkedAccountReview {
+        const message = { id: "", state: "", newState: "", linkedAccountID: "", reviewedBy: "", reason: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LinkedAccountReview>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkedAccountReview): LinkedAccountReview {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string state */ 2:
+                    message.state = reader.string();
+                    break;
+                case /* string newState */ 3:
+                    message.newState = reader.string();
+                    break;
+                case /* string linkedAccountID */ 4:
+                    message.linkedAccountID = reader.string();
+                    break;
+                case /* string reviewedBy */ 5:
+                    message.reviewedBy = reader.string();
+                    break;
+                case /* string reason */ 6:
+                    message.reason = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp createdAt */ 7:
+                    message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
+                case /* google.protobuf.Timestamp completedAt */ 8:
+                    message.completedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.completedAt);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LinkedAccountReview, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string state = 2; */
+        if (message.state !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.state);
+        /* string newState = 3; */
+        if (message.newState !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.newState);
+        /* string linkedAccountID = 4; */
+        if (message.linkedAccountID !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.linkedAccountID);
+        /* string reviewedBy = 5; */
+        if (message.reviewedBy !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.reviewedBy);
+        /* string reason = 6; */
+        if (message.reason !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.reason);
+        /* google.protobuf.Timestamp createdAt = 7; */
+        if (message.createdAt)
+            Timestamp.internalBinaryWrite(message.createdAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* google.protobuf.Timestamp completedAt = 8; */
+        if (message.completedAt)
+            Timestamp.internalBinaryWrite(message.completedAt, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.LinkedAccountReview
+ */
+export const LinkedAccountReview = new LinkedAccountReview$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LinkedAccountReviews$Type extends MessageType<LinkedAccountReviews> {
+    constructor() {
+        super("backend.admin.v1.LinkedAccountReviews", [
+            { no: 1, name: "reviews", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => LinkedAccountReview }
+        ]);
+    }
+    create(value?: PartialMessage<LinkedAccountReviews>): LinkedAccountReviews {
+        const message = { reviews: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LinkedAccountReviews>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkedAccountReviews): LinkedAccountReviews {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.LinkedAccountReview reviews */ 1:
+                    message.reviews.push(LinkedAccountReview.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LinkedAccountReviews, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.LinkedAccountReview reviews = 1; */
+        for (let i = 0; i < message.reviews.length; i++)
+            LinkedAccountReview.internalBinaryWrite(message.reviews[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.LinkedAccountReviews
+ */
+export const LinkedAccountReviews = new LinkedAccountReviews$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetLinkedAccountReviewRequest$Type extends MessageType<GetLinkedAccountReviewRequest> {
+    constructor() {
+        super("backend.admin.v1.GetLinkedAccountReviewRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetLinkedAccountReviewRequest>): GetLinkedAccountReviewRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetLinkedAccountReviewRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetLinkedAccountReviewRequest): GetLinkedAccountReviewRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetLinkedAccountReviewRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetLinkedAccountReviewRequest
+ */
+export const GetLinkedAccountReviewRequest = new GetLinkedAccountReviewRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CompleteLinkedAccountReviewRequest$Type extends MessageType<CompleteLinkedAccountReviewRequest> {
+    constructor() {
+        super("backend.admin.v1.CompleteLinkedAccountReviewRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "newState", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CompleteLinkedAccountReviewRequest>): CompleteLinkedAccountReviewRequest {
+        const message = { id: "", reason: "", newState: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CompleteLinkedAccountReviewRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CompleteLinkedAccountReviewRequest): CompleteLinkedAccountReviewRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string reason */ 2:
+                    message.reason = reader.string();
+                    break;
+                case /* string newState */ 3:
+                    message.newState = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CompleteLinkedAccountReviewRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string reason = 2; */
+        if (message.reason !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.reason);
+        /* string newState = 3; */
+        if (message.newState !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.newState);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.CompleteLinkedAccountReviewRequest
+ */
+export const CompleteLinkedAccountReviewRequest = new CompleteLinkedAccountReviewRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetWalletFeaturesRequest$Type extends MessageType<GetWalletFeaturesRequest> {
     constructor() {
@@ -2051,5 +2374,8 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListLinkedAccounts", options: {}, I: ListLinkedAccountsRequest, O: ListLinkedAccountsResponse },
     { name: "ListAudit", options: {}, I: ListAuditRequest, O: ListAuditResponse },
     { name: "GetWalletFeatures", options: {}, I: GetWalletFeaturesRequest, O: Features },
-    { name: "SetWalletFeatures", options: {}, I: Features, O: Features }
+    { name: "SetWalletFeatures", options: {}, I: Features, O: Features },
+    { name: "ListIncompleteLinkedAccountReviews", options: {}, I: PaginationRequest, O: LinkedAccountReviews },
+    { name: "GetLinkedAccountReview", options: {}, I: GetLinkedAccountReviewRequest, O: LinkedAccountReview },
+    { name: "CompleteLinkedAccountReview", options: {}, I: CompleteLinkedAccountReviewRequest, O: LinkedAccountReview }
 ]);
