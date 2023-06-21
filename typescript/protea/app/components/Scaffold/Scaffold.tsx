@@ -134,7 +134,7 @@ export function Scaffold() {
               className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
             >
               <Icon>attach_money</Icon>
-              <span className='font-display font-medium'>Pay</span>
+              <span className='font-medium'>Pay</span>
             </Router>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/accounts')}>
@@ -483,9 +483,7 @@ export function Scaffold() {
                       className='flex h-11 w-full items-center justify-center'
                       to={route('/login')}
                     >
-                      <span className='font-display font-medium text-medium'>
-                        Log in
-                      </span>
+                      <span className='font-medium text-medium'>Log in</span>
                     </Router>
                     {isSignupGated && (
                       <ButtonRouter className='h-11' to={route('/waitlist')}>
