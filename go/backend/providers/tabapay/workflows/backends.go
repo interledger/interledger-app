@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/aws"
 	aws_mock "gitlab.com/fynbos/backend/aws/client/mock"
