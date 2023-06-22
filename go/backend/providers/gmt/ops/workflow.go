@@ -1238,7 +1238,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 		Type:                       providers.GMTCARD2CARD,
 		OutgoingTransferState:      transactions.StateCompleted,
 		OutgoingTransferExternalID: sendTransaction.ID,
-		IncomingTransferState:      transactions.StateFailed,
+		IncomingTransferState:      transactions.StateCompleted,
 		IncomingTransferExternalID: recvTransaction.ID,
 	}, nil
 }
