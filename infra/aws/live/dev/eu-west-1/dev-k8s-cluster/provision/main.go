@@ -270,8 +270,19 @@ func main() {
 		ctx.Export("crdbReadBackupsRole", readBackupRole.Arn)
 
 		backendWorkerTrustPolicy := k8s.NewIamTrustPolicyDocumentV2(ctx, pulumi.String(accountID), provider.Url, pulumi.String("backend"), pulumi.String("backend"))
+		policy, err := k8s.NewBucketReadOnlyAccessPolicy(ctx, "arn:aws:s3:::fynbos-tabapay")
+		if err != nil {
+			return err
+		}
+
 		backendWorkerRole, err := iam.NewRole(ctx, "k8sBackend", &iam.RoleArgs{
 			AssumeRolePolicy: backendWorkerTrustPolicy,
+			InlinePolicies: iam.RoleInlinePolicyArray{
+				iam.RoleInlinePolicyArgs{
+					Name:   pulumi.String("s3-logs-read-access"),
+					Policy: pulumi.String(policy.Json),
+				},
+			},
 		}, pulumi.Provider(kubeProvider))
 		if err != nil {
 			return err
