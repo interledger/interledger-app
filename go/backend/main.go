@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/images"
-	img_client "gitlab.com/fynbos/backend/images/client"
 	"net"
 	"net/http"
 	"os"
@@ -32,6 +30,8 @@ import (
 	"gitlab.com/fynbos/backend/authorisation"
 	authorisation_client "gitlab.com/fynbos/backend/authorisation/client"
 	auth_http "gitlab.com/fynbos/backend/authorisation/http"
+	"gitlab.com/fynbos/backend/aws"
+	aws_client "gitlab.com/fynbos/backend/aws/client"
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
@@ -44,6 +44,8 @@ import (
 	"gitlab.com/fynbos/backend/healthcheck"
 	"gitlab.com/fynbos/backend/identities"
 	identities_client "gitlab.com/fynbos/backend/identities/client"
+	"gitlab.com/fynbos/backend/images"
+	img_client "gitlab.com/fynbos/backend/images/client"
 	"gitlab.com/fynbos/backend/keys"
 	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/kyc"
@@ -258,6 +260,11 @@ func start(args *cli.StartArgs) {
 
 	b.ident = identities_client.New(b)
 
+	b.aws, err = aws_client.New(context.Background())
+	if err != nil {
+		log.Error("error aws", zap.Error(err))
+	}
+
 	b.contacts = contacts_client.New(b)
 
 	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
@@ -456,6 +463,11 @@ func startWorker(args *cli.StartArgs) {
 
 	b.ident = identities_client.New(b)
 
+	b.aws, err = aws_client.New(context.Background())
+	if err != nil {
+		log.Error("error aws", zap.Error(err))
+	}
+
 	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
 		ClientID:      args.TwitterClientID,
 		ClientSecret:  args.TwitterClientSecret,
@@ -540,6 +552,11 @@ type backends struct {
 	basistheory    basistheory.Client
 	feat           features.Client
 	img            images.Client
+	aws            aws.Client
+}
+
+func (b backends) AWS() aws.Client {
+	return b.aws
 }
 
 func (b backends) Features() features.Client {
