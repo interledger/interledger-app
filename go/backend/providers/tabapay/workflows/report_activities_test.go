@@ -1,0 +1,444 @@
+package workflows_test
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	aws_mock "gitlab.com/fynbos/backend/aws/client/mock"
+	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/providers/tabapay/workflows"
+)
+
+func TestActivity_ProcessChargebacksReports(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/chargebacks.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "chargebacks.csv").Return(fd, nil)
+
+	err = a.ProcessChargebacksReports(ctx, "chargebacks.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_chargebacks")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 34)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23], &row[24], &row[25], &row[26], &row[27], &row[28], &row[29], &row[30], &row[31], &row[32], &row[33])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	// 17 valid lines in the file 4 identical so only inserted the first one
+	assert.Len(t, rows, 14)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessAMLTransactionsReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/aml_transactions.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "aml_transactions.csv").Return(fd, nil)
+
+	err = a.ProcessAMLTransactionsReport(ctx, "aml_transactions.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_aml_transaction")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 24)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	// 4 valid lines in the file all identical so only inserted the first one
+	assert.Len(t, rows, 1)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessAMLSummaryReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/aml_summary.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "aml_summary.csv").Return(fd, nil)
+
+	err = a.ProcessAMLSummaryReport(ctx, "aml_summary.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_aml_summary")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 17)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	// 4 valid lines in the file all identical so only inserted the first one
+	assert.Len(t, rows, 3)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessExceptionsReports(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/exceptions.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "exceptions.csv").Return(fd, nil)
+
+	err = a.ProcessExceptionsReports(ctx, "exceptions.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_exceptions")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 34)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23], &row[24], &row[25], &row[26], &row[27], &row[28], &row[29], &row[30], &row[31], &row[32], &row[33])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 2)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessInterchangeReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/interchange.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "interchange.csv").Return(fd, nil)
+
+	err = a.ProcessInterchangeReport(ctx, "interchange.csv", "tabapay_report_interchange")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_interchange")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 14)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 12)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessSummaryReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/summary.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "summary.csv").Return(fd, nil)
+
+	err = a.ProcessSummaryReport(ctx, "summary.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_summary")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 10)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 12)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessTransactionsReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/transactions.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "transactions.csv").Return(fd, nil)
+
+	err = a.ProcessTransactionsReport(ctx, "transactions.csv", "tabapay_report_transactions")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_transactions")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 54)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23], &row[24], &row[25], &row[26], &row[27], &row[28], &row[29], &row[30], &row[31], &row[32], &row[33], &row[34], &row[35], &row[36], &row[37], &row[38], &row[39], &row[40], &row[41], &row[42], &row[43], &row[44], &row[45], &row[46], &row[47], &row[48], &row[49], &row[50], &row[51], &row[52], &row[53])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 11)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessMonthlyTransactionsReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/transactions.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_transactions.csv").Return(fd, nil)
+
+	err = a.ProcessTransactionsReport(ctx, "monthly_transactions.csv", "tabapay_monthly_report_transactions")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_monthly_report_transactions")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 54)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23], &row[24], &row[25], &row[26], &row[27], &row[28], &row[29], &row[30], &row[31], &row[32], &row[33], &row[34], &row[35], &row[36], &row[37], &row[38], &row[39], &row[40], &row[41], &row[42], &row[43], &row[44], &row[45], &row[46], &row[47], &row[48], &row[49], &row[50], &row[51], &row[52], &row[53])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 11)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessMonthlyInterchangeReport(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/monthly_interchange.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_interchange.csv").Return(fd, nil)
+
+	err = a.ProcessInterchangeReport(ctx, "monthly_interchange.csv", "tabapay_report_monthly_interchange")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_monthly_interchange")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 14)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 12)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessMonthlyProcessingFee(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/monthly_processingfees.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_processingfees.csv").Return(fd, nil)
+
+	err = a.ProcessMonthlyProcessingFee(ctx, "monthly_processingfees.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_monthly_processing_fee")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 12)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 9)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_ProcessMonthlyNetworkFees(t *testing.T) {
+	ctx := context.Background()
+
+	ctrl := gomock.NewController(t)
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.AWSImpl = aws_mock.NewMockClient(ctrl)
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+	a := workflows.NewActivity(b)
+
+	fd, err := os.Open("testdata/monthly_networkfees.csv")
+	require.NoError(t, err)
+	defer fd.Close()
+
+	b.AWSImpl.EXPECT().S3GetObjectData(ctx, "fynbos-tabapay", "monthly_networkfees.csv").Return(fd, nil)
+
+	err = a.ProcessMonthlyNetworkFees(ctx, "monthly_networkfees.csv")
+	require.NoError(t, err)
+
+	res, err := b.DB().QueryContext(ctx, "SELECT * FROM tabapay_report_monthly_network_fees")
+	require.NoError(t, err)
+
+	var rows [][]string
+	for res.Next() {
+		row := make([]string, 51)
+		err = res.Scan(&row[0], &row[1], &row[2], &row[3], &row[4], &row[5], &row[6], &row[7], &row[8], &row[9], &row[10], &row[11], &row[12], &row[13], &row[14], &row[15], &row[16], &row[17], &row[18], &row[19], &row[20], &row[21], &row[22], &row[23], &row[24], &row[25], &row[26], &row[27], &row[28], &row[29], &row[30], &row[31], &row[32], &row[33], &row[34], &row[35], &row[36], &row[37], &row[38], &row[39], &row[40], &row[41], &row[42], &row[43], &row[44], &row[45], &row[46], &row[47], &row[48], &row[49], &row[50])
+		require.NoError(t, err)
+		rows = append(rows, row)
+	}
+
+	assert.Len(t, rows, 5)
+
+	for _, row := range rows {
+		fmt.Println(row)
+	}
+}
+
+func TestActivity_MarkReportAsProcessed(t *testing.T) {
+	ctx := context.Background()
+
+	b := workflows.NewTestBackends(func(tb *workflows.TestBackends) {
+		tb.Db = db.MigrateTestDB(t, ctx)
+	})
+
+	a := workflows.NewActivity(b)
+
+	err := a.MarkReportAsProcessed(ctx, "somefilename.csv")
+	require.NoError(t, err)
+
+	var fn string
+	err = b.DB().GetContext(ctx, &fn, "SELECT filename FROM tabapay_report_files")
+	require.NoError(t, err)
+
+	assert.Equal(t, "somefilename.csv", fn)
+}
