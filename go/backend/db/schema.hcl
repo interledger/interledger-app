@@ -1891,6 +1891,109 @@ table "twitter_connections" {
     columns = [column.wallet_id, column.user_id]
   }
 }
+table "gmt_report_files" {
+  schema = schema.public
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "processed_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.filename]
+  }
+}
+table "gmt_daily_report" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "hash" {
+    null = false
+    type = text
+  }
+  column "filename" {
+    null = false
+    type = text
+  }
+  column "receipt" {
+    null = false
+    type = text
+  }
+  column "third_party" {
+    null = false
+    type = text
+  }
+  column "transaction_date" {
+    null = false
+    type = timestamp
+  }
+  column "status" {
+    null = false
+    type = text
+  }
+  column "method_of_payment" {
+    null = false
+    type = text
+  }
+  column "correspondent" {
+    null = false
+    type = text
+  }
+  column "sender" {
+    null = false
+    type = text
+  }
+  column "money_sent" {
+    null = false
+    type = float
+  }
+  column "total_amount" {
+    null = false
+    type = float
+  }
+  column "gmt_rate" {
+    null = false
+    type = float
+  }
+  column "agency_rate" {
+    null = false
+    type = float
+  }
+  column "agency_com" {
+    null = false
+    type = float
+  }
+  column "agency_fee" {
+    null = false
+    type = float
+  }
+  column "gain_by_exchange_rate" {
+    null = false
+    type = float
+  }
+  column "fees" {
+    null = false
+    type = float
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_report_summary_hash_idx" {
+    unique  = true
+    columns = [column.hash]
+  }
+}
 table "tabapay_report_files" {
   schema = schema.public
   column "filename" {

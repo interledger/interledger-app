@@ -695,42 +695,12 @@ func (a *Activity) MarkReportAsProcessed(ctx context.Context, filename string) e
 }
 
 func parseReportDate(input string) time.Time {
-	dt, err := time.Parse("01/02/2006", input)
+	dt, err := time.Parse("1/2/2006", input)
 	if err == nil {
 		return dt
 	}
 
-	dt, err = time.Parse("01/2/2006", input)
-	if err == nil {
-		return dt
-	}
-
-	dt, err = time.Parse("1/02/2006", input)
-	if err == nil {
-		return dt
-	}
-
-	dt, err = time.Parse("1/2/2006", input)
-	if err == nil {
-		return dt
-	}
-
-	dt, err = time.Parse("1/2/2006 15:04", input)
-	if err == nil {
-		return dt
-	}
-
-	dt, err = time.Parse("01/2/2006 15:04", input)
-	if err == nil {
-		return dt
-	}
-
-	dt, err = time.Parse("1/02/2006 15:04", input)
-	if err == nil {
-		return dt
-	}
-
-	dt, err = time.Parse("01/02/2006 15:04", input)
+	dt, err = time.Parse("1/2/2006 15:4", input)
 	if err == nil {
 		return dt
 	}
