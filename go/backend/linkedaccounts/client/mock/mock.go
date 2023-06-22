@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	db "gitlab.com/fynbos/backend/db"
 	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
 )
 
@@ -169,6 +170,21 @@ func (mr *MockClientMockRecorder) ListByWalletId(ctx, walletId interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByWalletId", reflect.TypeOf((*MockClient)(nil).ListByWalletId), ctx, walletId)
 }
 
+// ListIncompleteReviews mocks base method.
+func (m *MockClient) ListIncompleteReviews(ctx context.Context, pagination db.Pagination) ([]linkedaccounts.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListIncompleteReviews", ctx, pagination)
+	ret0, _ := ret[0].([]linkedaccounts.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIncompleteReviews indicates an expected call of ListIncompleteReviews.
+func (mr *MockClientMockRecorder) ListIncompleteReviews(ctx, pagination interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIncompleteReviews", reflect.TypeOf((*MockClient)(nil).ListIncompleteReviews), ctx, pagination)
+}
+
 // ListMXBankAccounts mocks base method.
 func (m *MockClient) ListMXBankAccounts(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
@@ -182,6 +198,21 @@ func (m *MockClient) ListMXBankAccounts(ctx context.Context) ([]linkedaccounts.L
 func (mr *MockClientMockRecorder) ListMXBankAccounts(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMXBankAccounts", reflect.TypeOf((*MockClient)(nil).ListMXBankAccounts), ctx)
+}
+
+// ListReviews mocks base method.
+func (m *MockClient) ListReviews(ctx context.Context, pagination db.Pagination) ([]linkedaccounts.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListReviews", ctx, pagination)
+	ret0, _ := ret[0].([]linkedaccounts.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListReviews indicates an expected call of ListReviews.
+func (mr *MockClientMockRecorder) ListReviews(ctx, pagination interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListReviews", reflect.TypeOf((*MockClient)(nil).ListReviews), ctx, pagination)
 }
 
 // MarkNotDeleted mocks base method.
