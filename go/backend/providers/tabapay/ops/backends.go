@@ -4,7 +4,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_mock "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
-	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -29,7 +28,7 @@ func NewTestBackends(opts ...func(*TestBackends)) *TestBackends {
 type TestBackends struct {
 	Db             *sqlx.DB
 	ExternalClient *external_mock.MockClient
-	TemporalClient *temporal_mock.MockClient
+	TemporalClient temporal.Client
 }
 
 func (b *TestBackends) DB() *sqlx.DB {
