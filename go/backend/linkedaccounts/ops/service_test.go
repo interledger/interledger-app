@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/user"
 
@@ -41,7 +42,7 @@ func TestLinkedAccounts(s *testing.T) {
 			Type:       "bank",
 			CanSend:    true,
 			CanReceive: true,
-			State:    linkedaccounts.OwnershipReviewRequired,
+			State:      linkedaccounts.OwnershipReviewRequired,
 		})
 		require.NoError(t, err)
 
@@ -326,4 +327,54 @@ func TestReviews(t *testing.T) {
 	assert.Equal(t, linkedaccounts.OwnershipReviewRequired, review.State)
 	assert.Equal(t, linkedaccounts.Verified, review.NewState)
 	assert.NotEmpty(t, review.CompletedAt)
+}
+
+func TestListReviews(t *testing.T) {
+	ctx := context.Background()
+	c, err := NewTestContainer(ctx, t)
+	require.NoError(t, err)
+
+	userId := uuid.NewString()
+	// Create Wallet
+	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: userId,
+		Name:   "",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID: wallet.ID,
+		Name:     "Test",
+		Mask:     "1234",
+		Provider: "mx",
+		Type:     "bank",
+	})
+	require.NoError(t, err)
+
+	args := []linkedaccounts.CreateReviewArgs{
+		{LinkedAccountID: la.ID, State: linkedaccounts.OwnershipReviewRequired},
+		{LinkedAccountID: la.ID, State: linkedaccounts.OwnershipReviewRequired},
+		{LinkedAccountID: la.ID, State: linkedaccounts.OwnershipReviewRequired},
+		{LinkedAccountID: la.ID, State: linkedaccounts.Rejected},
+	}
+	for _, r := range args {
+		_, err = c.LinkedAccounts.CreateReviews(ctx, []linkedaccounts.CreateReviewArgs{r})
+		require.NoError(t, err)
+	}
+
+	reviews, err := c.LinkedAccounts.ListReviews(ctx, db.Pagination{})
+	require.NoError(t, err)
+	assert.Len(t, reviews, 4)
+
+	reviews, err = c.LinkedAccounts.ListReviews(ctx, db.Pagination{PageToken: reviews[0].ID})
+	require.NoError(t, err)
+	assert.Len(t, reviews, 3)
+
+	_, err = c.LinkedAccounts.CompleteReview(ctx, reviews[0].ID, "test@fynbos.dev")
+	require.NoError(t, err)
+
+	reviews, err = c.LinkedAccounts.ListIncompleteReviews(ctx, db.Pagination{})
+	require.NoError(t, err)
+	assert.Len(t, reviews, 3)
 }

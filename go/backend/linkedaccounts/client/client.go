@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/linkedaccounts/ops"
 	"gitlab.com/fynbos/log"
@@ -125,6 +126,14 @@ func (c client) CreateReviews(ctx context.Context, args []linkedaccounts.CreateR
 
 func (c client) GetReview(ctx context.Context, id string) (*linkedaccounts.Review, error) {
 	return ops.GetReview(ctx, c.b, id)
+}
+
+func (c client) ListReviews(ctx context.Context, pagination db.Pagination) ([]linkedaccounts.Review, error) {
+	return ops.ListReviews(ctx, c.b, pagination)
+}
+
+func (c client) ListIncompleteReviews(ctx context.Context, pagination db.Pagination) ([]linkedaccounts.Review, error) {
+	return ops.ListIncompleteReviews(ctx, c.b, pagination)
 }
 
 func (c client) UpdateReviewState(ctx context.Context, id string, newState linkedaccounts.State) (*linkedaccounts.Review, error) {

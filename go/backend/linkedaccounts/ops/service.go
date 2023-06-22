@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
@@ -332,6 +333,60 @@ func GetReview(ctx context.Context, b Backends, id string) (*linkedaccounts.Revi
 
 	review := toReview(dbReview)
 	return &review, nil
+}
+
+func ListReviews(ctx context.Context, b Backends, pagination db.Pagination) ([]linkedaccounts.Review, error) {
+	pageSize := pagination.PageSize
+	if pageSize < 1 || pageSize > 50 {
+		pageSize = 50
+	}
+
+	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE created_at < (SELECT created_at FROM linked_account_reviews WHERE id=$1) OR (created_at = (SELECT created_at FROM linked_account_reviews WHERE id=$1) AND id < $1) ORDER BY created_at desc LIMIT $2;", reviewAllFields)
+	args := []interface{}{pagination.PageToken, pageSize}
+	if pagination.PageToken == "" {
+		query = fmt.Sprintf("SELECT %s FROM linked_account_reviews ORDER BY created_at desc LIMIT $1;", reviewAllFields)
+		args = []interface{}{pageSize}
+	}
+
+	var dbReviews []dbReview
+	err := b.DB().SelectContext(ctx, &dbReviews, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	reviews := make([]linkedaccounts.Review, len(dbReviews))
+	for i, record := range dbReviews {
+		reviews[i] = toReview(record)
+	}
+
+	return reviews, nil
+}
+
+func ListIncompleteReviews(ctx context.Context, b Backends, pagination db.Pagination) ([]linkedaccounts.Review, error) {
+	pageSize := pagination.PageSize
+	if pageSize < 1 || pageSize > 50 {
+		pageSize = 50
+	}
+
+	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE (created_at < (SELECT created_at FROM linked_account_reviews WHERE id=$1) OR (created_at = (SELECT created_at FROM linked_account_reviews WHERE id=$1) AND id < $1)) AND competed_at is null ORDER BY created_at desc LIMIT $2;", reviewAllFields)
+	args := []interface{}{pagination.PageToken, pageSize}
+	if pagination.PageToken == "" {
+		query = fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE completed_at is NULL ORDER BY created_at desc LIMIT $1;", reviewAllFields)
+		args = []interface{}{pageSize}
+	}
+
+	var dbReviews []dbReview
+	err := b.DB().SelectContext(ctx, &dbReviews, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	reviews := make([]linkedaccounts.Review, len(dbReviews))
+	for i, record := range dbReviews {
+		reviews[i] = toReview(record)
+	}
+
+	return reviews, nil
 }
 
 func UpdateReviewState(ctx context.Context, b Backends, reviewID string, newState linkedaccounts.State) (*linkedaccounts.Review, error) {

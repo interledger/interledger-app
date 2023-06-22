@@ -1,6 +1,10 @@
 package linkedaccounts
 
-import "context"
+import (
+	"context"
+
+	"gitlab.com/fynbos/backend/db"
+)
 
 type Client interface {
 	Create(ctx context.Context, args *CreateArgs) (*LinkedAccount, error)
@@ -16,6 +20,8 @@ type Client interface {
 
 	CreateReviews(ctx context.Context, args []CreateReviewArgs) ([]Review, error)
 	GetReview(ctx context.Context, id string) (*Review, error)
+	ListReviews(ctx context.Context, pagination db.Pagination) ([]Review, error)
+	ListIncompleteReviews(ctx context.Context, pagination db.Pagination) ([]Review, error)
 	UpdateReviewState(ctx context.Context, reviewID string, newState State) (*Review, error)
 	UpdateReviewReason(ctx context.Context, reviewID, reason string) (*Review, error)
 	CompleteReview(ctx context.Context, reviewID, reviewedBy string) (*Review, error)
