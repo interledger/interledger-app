@@ -3,6 +3,7 @@ package grpc
 import (
 	"errors"
 	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identities"
 
@@ -161,4 +162,8 @@ func NotFoundError(message string) error {
 
 func AlreadyExistsError(message string) error {
 	return status.Error(codes.AlreadyExists, "Already exists: "+message)
+}
+
+func FailedPreconditionError(message string) error {
+	return status.Error(codes.FailedPrecondition, "Failed precondition: "+message)
 }

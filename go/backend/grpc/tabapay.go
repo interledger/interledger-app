@@ -39,6 +39,9 @@ func (s *rpcService) CreateCard(
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrDuplicateCard" {
 		return nil, AlreadyExistsError("Invalid card.")
 	}
+	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCard" {
+		return nil, FailedPreconditionError("Unsupported card.")
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

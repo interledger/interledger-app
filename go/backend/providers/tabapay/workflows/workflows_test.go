@@ -35,6 +35,7 @@ func TestCreateCardWorkflow(t *testing.T) {
 				Last4: last4,
 				Push: external.PushObject{
 					Network: "VISA",
+					Enabled: true,
 				},
 			},
 			AVS: external.AVSResponse{
@@ -81,6 +82,7 @@ func TestCreateCardWorkflow(t *testing.T) {
 				Mask:       "1234",
 				Name:       "VISA 1234",
 				Nickname:   "VISA 1234",
+				CanReceive: true,
 			}, nil
 		},
 	)
@@ -113,6 +115,7 @@ func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 				Last4: last4,
 				Push: external.PushObject{
 					Network: "VISA",
+					Enabled: true,
 				},
 			},
 			AVS: external.AVSResponse{
@@ -140,6 +143,7 @@ func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 				Provider:   tabapay.ProviderName,
 				ProviderID: providerID,
 				Mask:       last4,
+				CanReceive: true,
 			}, nil
 		},
 	)
@@ -156,4 +160,45 @@ func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 	assert.Equal(t, basisTheoryCardID, result.ID)
 	assert.Equal(t, providerID, result.ProviderID)
 	assert.Equal(t, tabapay.ProviderName, result.Provider)
+}
+
+func TestCreateUnsupportedCard(t *testing.T) {
+	t.Setenv("TABAPAY_CLIENT_ID", "test")
+	t.Setenv("TABAPAY_BEARER_TOKEN", "test")
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	b := workflows.NewTestBackends()
+	a := workflows.NewActivity(b)
+
+	walletID, basisTheoryCardID := uuid.NewString(), uuid.NewString()
+	last4 := "1234"
+	env.OnActivity(a.QueryCard, mock.Anything, mock.Anything).Return(
+		&external.QueryCardResponse{
+			SC: 200,
+			Card: external.CardResponse{
+				Last4: last4,
+				Push: external.PushObject{
+					Enabled: false,
+				},
+				Pull: external.PullObject{
+					Enabled: false,
+				},
+			},
+			AVS: external.AVSResponse{
+				CodeAVS: external.AVSResponseCodeY,
+			},
+		},
+		nil,
+	)
+
+	env.ExecuteWorkflow(workflows.CreateTabapayCardWorkflow, tabapay.CreateCardArgs{
+		WalletID:           walletID,
+		BasisTheoryTokenID: basisTheoryCardID,
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	workflowError := env.GetWorkflowError()
+	var applicationError *temporal.ApplicationError
+	require.ErrorAs(t, workflowError, &applicationError)
+	require.Equal(t, "ErrUnsupportedCard", applicationError.Type())
 }

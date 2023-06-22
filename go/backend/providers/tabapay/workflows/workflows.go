@@ -40,6 +40,11 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return nil, err
 	}
 
+	if !cardInfo.Card.Push.Enabled && !cardInfo.Card.Pull.Enabled {
+		logger.Info("Unsupported card. Push and pull not enabled.")
+		return nil, temporal.NewNonRetryableApplicationError("Unsupported card. Push and pull not enabled.", "ErrUnsupportedCard", fmt.Errorf("%w Unsupported card.", tabapay.ErrInternal))
+	}
+
 	// https://developers.tabapay.com/reference/avs-response-codes
 	linkedAccountState := linkedaccounts.Verified
 	if cardInfo.AVS.CodeAVS != external.AVSResponseCodeY && cardInfo.AVS.CodeAVS != external.AVSResponseCodeA {
