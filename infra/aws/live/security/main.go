@@ -8,6 +8,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
 	secure_baseline "gitlab.com/fynbos/infra/aws/modules/secure-baseline"
+	"gitlab.com/fynbos/infra/aws/modules/utils"
 )
 
 func main() {
@@ -233,6 +234,29 @@ func createTabapayUser(ctx *pulumi.Context, provider *aws.Provider) error {
 		return err
 	}
 
+	// add inline user policy
+	policy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+
+		Statements: []iam.GetPolicyDocumentStatement{
+			{
+				Actions: []string{
+					"s3:GetObject",
+					"s3:ListBucket",
+					"s3:PutObject",
+				},
+				Effect: utils.StringPtr("Allow"),
+				Resources: []string{
+					"arn:aws:s3:::fynbos-tabapay",
+					"arn:aws:s3:::fynbos-tabapay/*",
+				},
+			},
+		},
+	})
+	_, err = iam.NewUserPolicy(ctx, "tabapayUserPolicy", &iam.UserPolicyArgs{
+		User:   user.Name,
+		Policy: pulumi.String(policy.Json),
+	})
+
 	ctx.Export(fmt.Sprintf("tabapayUser"), pulumi.Map{
 		"arn":       user.Arn,
 		"user":      accessKey.User,
@@ -259,6 +283,29 @@ func createGMTUser(ctx *pulumi.Context, provider *aws.Provider) error {
 	if err != nil {
 		return err
 	}
+
+	// add inline user policy
+	policy, err := iam.GetPolicyDocument(ctx, &iam.GetPolicyDocumentArgs{
+
+		Statements: []iam.GetPolicyDocumentStatement{
+			{
+				Actions: []string{
+					"s3:GetObject",
+					"s3:ListBucket",
+					"s3:PutObject",
+				},
+				Effect: utils.StringPtr("Allow"),
+				Resources: []string{
+					"arn:aws:s3:::fynbos-gmt",
+					"arn:aws:s3:::fynbos-gmt/*",
+				},
+			},
+		},
+	})
+	_, err = iam.NewUserPolicy(ctx, "gmtUserPolicy", &iam.UserPolicyArgs{
+		User:   user.Name,
+		Policy: pulumi.String(policy.Json),
+	})
 
 	ctx.Export(fmt.Sprintf("gmtUser"), pulumi.Map{
 		"arn":       user.Arn,
