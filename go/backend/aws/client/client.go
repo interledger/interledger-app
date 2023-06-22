@@ -27,9 +27,15 @@ func New(ctx context.Context) (aws.Client, error) {
 
 var _ aws.Client = client{}
 
-func (c client) S3ListObjects(bucket string) *s3.ListObjectsV2Paginator {
+func (c client) S3ListObjects(bucket, fromFile string) *s3.ListObjectsV2Paginator {
+	var after *string
+	if fromFile != "" {
+		after = &fromFile
+	}
+
 	return s3.NewListObjectsV2Paginator(c.s3Client, &s3.ListObjectsV2Input{
-		Bucket: &bucket,
+		Bucket:     &bucket,
+		StartAfter: after,
 	})
 }
 

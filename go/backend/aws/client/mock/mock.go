@@ -52,15 +52,15 @@ func (mr *MockClientMockRecorder) S3GetObjectData(ctx, bucket, filename interfac
 }
 
 // S3ListObjects mocks base method.
-func (m *MockClient) S3ListObjects(bucket string) *s3.ListObjectsV2Paginator {
+func (m *MockClient) S3ListObjects(bucket, fromFile string) *s3.ListObjectsV2Paginator {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "S3ListObjects", bucket)
+	ret := m.ctrl.Call(m, "S3ListObjects", bucket, fromFile)
 	ret0, _ := ret[0].(*s3.ListObjectsV2Paginator)
 	return ret0
 }
 
 // S3ListObjects indicates an expected call of S3ListObjects.
-func (mr *MockClientMockRecorder) S3ListObjects(bucket interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) S3ListObjects(bucket, fromFile interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "S3ListObjects", reflect.TypeOf((*MockClient)(nil).S3ListObjects), bucket)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "S3ListObjects", reflect.TypeOf((*MockClient)(nil).S3ListObjects), bucket, fromFile)
 }

@@ -10,34 +10,6 @@ import (
 
 var tabapayBucketName = "fynbos-tabapay"
 
-/*
-func StartTabapayS3ReportProcessing(tc client.Client) {
-	scheduleID := "schedule_tabapay_s3_reports"
-	workflowID := "cron_tabapay_s3_reports"
-
-	schedule, err := tc.ScheduleClient().Create(context.Background(), client.ScheduleOptions{
-		ID: scheduleID,
-		Spec: client.ScheduleSpec{
-			Intervals: []client.ScheduleIntervalSpec{
-				{
-					Every: 4 * time.Hour,
-				},
-			},
-		},
-		Action: &client.ScheduleWorkflowAction{
-			ID:        workflowID,
-			TaskQueue: "backend",
-			Workflow:  ProcessReportsWorkflow,
-		},
-		Overlap: enums.SCHEDULE_OVERLAP_POLICY_CANCEL_OTHER,
-	})
-	if err != nil {
-		log.Fatalln("Unable to start tabapay report process schedule", err)
-	}
-
-	log.Println("Started schedule", "ScheduleID", schedule.GetID())
-}*/
-
 // ProcessReportsWorkflow reads files in the TabaPay S3 bucket. Processes each individual report
 func ProcessReportsWorkflow(ctx workflow.Context) error {
 	var a *Activity

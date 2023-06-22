@@ -153,11 +153,22 @@ func (a *Activity) ProcessDailyReport(ctx context.Context, filename string) erro
 }
 
 func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
-	// Get all files from S3
-	pl := a.b.AWS().S3ListObjects(gmtBucketName)
-
-	// Load all files and mark them as "unprocessed" i.e. false
+	// Get the last 100 files processed
 	s3Files := make(map[string]bool)
+	var processed []string
+
+	err := a.b.DB().SelectContext(ctx, &processed, "SELECT filename FROM gmt_report_files ORDER BY created_at DESC LIMIT 100 ")
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+
+	// Get all files from S3 from the last 100th file processed
+	var cursor string
+	if len(processed) > 0 {
+		cursor = processed[len(processed)-1]
+	}
+
+	pl := a.b.AWS().S3ListObjects(gmtBucketName, cursor)
 
 	for pl.HasMorePages() {
 		page, err := pl.NextPage(ctx)
@@ -165,21 +176,13 @@ func (a *Activity) GetNewReportNames(ctx context.Context) ([]string, error) {
 			return nil, err
 		}
 
+		// Load all files and mark them as "unprocessed" i.e. false
 		for _, obj := range page.Contents {
 			s3Files[*obj.Key] = false
 		}
 	}
 
-	// Now all files from
-	var processed []string
-	err := a.b.DB().SelectContext(ctx, &processed, "SELECT filename FROM gmt_report_files")
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
+	// Mark files in the DB as already processed
 	for _, p := range processed {
 		s3Files[p] = true
 	}

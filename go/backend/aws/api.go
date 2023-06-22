@@ -8,6 +8,6 @@ import (
 )
 
 type Client interface {
-	S3ListObjects(bucket string) *s3.ListObjectsV2Paginator
+	S3ListObjects(bucket, fromFile string) *s3.ListObjectsV2Paginator
 	S3GetObjectData(ctx context.Context, bucket, filename string) (io.ReadCloser, error)
 }
