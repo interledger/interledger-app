@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, Chip, ChipColor, Layouts } from '~/components'
+import { Card, CardContent, Chip, ChipColor, Layouts } from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import {
   StatusError,
@@ -91,60 +91,66 @@ export default function Page() {
   return (
     <>
       <Card>
-        <Card.Item variant='col'>
-          <span className='text-sm'>From</span>
-          <span className='text-sm text-strong'>{paymentPointer}</span>
-        </Card.Item>
-        {beneficiaryName != '' && (
-          <Card.Item className='mt-6' variant='col'>
-            <span className='text-sm'>Sender name</span>
-            <span className='text-sm text-strong'>{beneficiaryName}</span>
-          </Card.Item>
-        )}
-        <Card.Item className='mt-6'>
-          <span className='text-sm'>They sent</span>
-          <span className='text-sm font-medium text-strong'>
-            {transaction.subTotal || '$ 0.00'}
-          </span>
-        </Card.Item>
-        <Card.Item className='mt-2'>
-          <span className='text-sm'>Total fees</span>
-          <span className='text-sm font-medium text-strong'>
-            {transaction.fees || '$ 0.00'}
-          </span>
-        </Card.Item>
-        <Card.Item className='mt-2'>
-          <span className='text-sm'>You received</span>
-          <span className='text-2xl text-sm font-medium text-strong'>
-            {transaction.total || '$ 0.00'}
-          </span>
-        </Card.Item>
+        <CardContent>
+          <div className='flex w-full flex-col space-y-1'>
+            <span className='text-sm'>From</span>
+            <span className='text-sm text-strong'>{paymentPointer}</span>
+          </div>
+          {beneficiaryName != '' && (
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-sm'>Sender name</span>
+              <span className='text-sm text-strong'>{beneficiaryName}</span>
+            </div>
+          )}
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-sm'>They sent</span>
+            <span className='text-sm font-medium text-strong'>
+              {transaction.subTotal || '$ 0.00'}
+            </span>
+          </div>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-sm'>Total fees</span>
+            <span className='text-sm font-medium text-strong'>
+              {transaction.fees || '$ 0.00'}
+            </span>
+          </div>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-sm'>You received</span>
+            <span className='text-2xl text-sm font-medium text-strong'>
+              {transaction.total || '$ 0.00'}
+            </span>
+          </div>
+        </CardContent>
       </Card>
       <Card>
-        <Card.Item>
-          <span className='text-sm text-medium'>Payment date</span>
-          <span className='text-sm text-strong'>
-            {transaction.date || 'Pending'}
-          </span>
-        </Card.Item>
-        <Card.Item className='mt-4 items-center'>
-          <span className='text-sm text-medium'>Status</span>
-          {transaction.status == 'Completed' && (
-            <Chip color={ChipColor.green}>Complete</Chip>
-          )}
-          {transaction.status == 'Pending' && (
-            <Chip color={ChipColor.yellow}>Pending</Chip>
-          )}
-          {transaction.status == 'Failed' && (
-            <Chip color={ChipColor.orange}>Failed</Chip>
-          )}
-        </Card.Item>
+        <CardContent>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-sm text-medium'>Payment date</span>
+            <span className='text-sm text-strong'>
+              {transaction.date || 'Pending'}
+            </span>
+          </div>
+          <div className='mt-4 items-center'>
+            <span className='text-sm text-medium'>Status</span>
+            {transaction.status == 'Completed' && (
+              <Chip color={ChipColor.green}>Complete</Chip>
+            )}
+            {transaction.status == 'Pending' && (
+              <Chip color={ChipColor.yellow}>Pending</Chip>
+            )}
+            {transaction.status == 'Failed' && (
+              <Chip color={ChipColor.orange}>Failed</Chip>
+            )}
+          </div>
+        </CardContent>
       </Card>
       <Card>
-        <Card.Item variant='col'>
-          <span className='text-sm text-medium'>Transaction ID</span>
-          <span className='text-sm text-strong'>{transaction.id}</span>
-        </Card.Item>
+        <CardContent>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <span className='text-sm text-medium'>Transaction ID</span>
+            <span className='text-sm text-strong'>{transaction.id}</span>
+          </div>
+        </CardContent>
       </Card>
     </>
   )
