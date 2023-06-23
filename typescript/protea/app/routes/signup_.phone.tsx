@@ -154,21 +154,27 @@ export default function Page() {
         </Button>
       )}
 
+      <Form
+        id='signup-phone-otp-validation'
+        action='/signup/phone'
+        method='post'
+        className='hidden'
+      />
       <Dialog open={showDialog} setOpen={setShowDialog}>
-        <Form
-          id='signup-phone-otp-validation'
-          action='/signup/phone'
-          method='post'
-          className='hidden'
-        />
-        <h1 className='text-2xl'>Two-step verification</h1>
+        <h1 className='text-xl font-medium'>Two-step verification</h1>
         <span className='text-medium'>
-          Enter the six digit verification code sent to your mobile number.
+          Enter the six digit code sent to your mobile number.
         </span>
-        <div className='flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-          <Icon>call</Icon>
-          <span>{otpFetcher?.data?.phone}</span>
+        <div className='flex flex-col space-y-2 pt-2'>
+          <span className='ml-2 text-sm font-medium text-medium'>
+            Your mobile phone number
+          </span>
+          <div className='flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+            <Icon>phone_android</Icon>
+            <span>{otpFetcher?.data?.phone}</span>
+          </div>
         </div>
+
         <input
           form='signup-phone-otp-validation'
           value={otpFetcher?.data?.phone}
