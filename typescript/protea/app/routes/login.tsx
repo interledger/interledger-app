@@ -12,6 +12,9 @@ import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Layouts,
   Router,
   Snackbar,
@@ -69,10 +72,7 @@ export async function loader({ request }: LoaderArgs) {
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
-    header: {
-      back: route('/'),
-      title: 'Log in'
-    }
+    header: {}
   }
 }
 
@@ -108,33 +108,41 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <TextField
-          id='email'
-          label='Email'
-          name='email'
-          type='email'
-          form='login'
-          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-          aria-describedby={
-            actionData?.errors?.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.email}
-        />
-        <TextField
-          id='password'
-          label='Password'
-          name='password'
-          type='password'
-          form='login'
-          className='mt-1'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
+        <CardHeader>
+          <CardTitle>Log in</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TextField
+            id='email'
+            label='Email'
+            name='email'
+            type='email'
+            form='login'
+            className='mt-4'
+            aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+            aria-describedby={
+              actionData?.errors?.email ? 'email-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.email}
+          />
+          <TextField
+            id='password'
+            label='Password'
+            labelLink='Forgot password?'
+            labelLinkTo={route('/recovery')}
+            name='password'
+            type='password'
+            form='login'
+            className='mt-1'
+            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+            aria-describedby={
+              actionData?.errors?.password ? 'password-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.password}
+          />
+        </CardContent>
 
         <input
           form='login'
@@ -142,13 +150,6 @@ export default function Page() {
           name='csrf_token'
           type='hidden'
         />
-        <div className='mt-4'>
-          <Router to={route('/recovery')} aria-label='Forgot password?'>
-            <span className='text-sm font-medium text-primary'>
-              Forgot password
-            </span>
-          </Router>
-        </div>
       </Card>
       <Button form='login' type='submit'>
         Log in
