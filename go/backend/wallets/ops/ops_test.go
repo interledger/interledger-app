@@ -4,15 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/wallets"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	user_client "gitlab.com/fynbos/backend/user/client"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/backend/wallets/ops"
 	"gotest.tools/assert"
 )
@@ -22,38 +21,39 @@ func TestCreateWallet(t *testing.T) {
 
 	dbc := db.MigrateTestDB(t, ctx)
 
+	userID := "c6874020-9d33-4678-a9ac-f623dc363cfb"
+	walletID := uuid.NewString()
+
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	b := user_client.NewTestBackends(t, dbc, nil, km)
-
-	userID := "c6874020-9d33-4678-a9ac-f623dc363cfb"
+	um := users_mock.NewMock()
+	um.WalletUser[walletID] = userID
+	b := ops.NewTestBackends(t, dbc, km, um)
 
 	w, err := ops.Create(ctx, b, wallets.CreateArgs{
+		ID:     walletID,
 		UserID: userID,
 		Name:   "test1",
-		Addresses: []wallets.Address{
-			wallets.Address{},
-		},
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "test1", w.Name)
 
 	// Duplicate name should fail
-	_, err = ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+	_, err = ops.Create(ctx, b, wallets.CreateArgs{
 		UserID: userID,
 		Name:   "test1",
 	})
-	require.ErrorIs(t, err, user.ErrDuplicateWallet)
+	require.ErrorIs(t, err, wallets.ErrDuplicateWallet)
 }
 
 func TestWalletForContext(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := ops.WalletForContext(ctx)
-	require.ErrorIs(t, err, user.ErrNoWalletFound)
+	require.ErrorIs(t, err, wallets.ErrNoWalletFound)
 
-	ctx = context.WithValue(ctx, user.WalletCtxKey("wallet"), &user.Wallet{
+	ctx = context.WithValue(ctx, wallets.CtxKey, &wallets.Wallet{
 		ID:   "1235",
 		Name: "Default name",
 	})
@@ -72,25 +72,25 @@ func TestListWallets(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	b := user_client.NewTestBackends(t, dbc, nil, km)
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
 
 	userID := "80629e7b-276b-4e38-82d5-8f73ef8c3806"
 
-	w, err := ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+	w, err := ops.Create(ctx, b, wallets.CreateArgs{
 		UserID: userID,
 		Name:   "test1",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "test1", w.Name)
 
-	w, err = ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+	w, err = ops.Create(ctx, b, wallets.CreateArgs{
 		UserID: userID,
 		Name:   "",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "default", w.Name)
 
-	wallets, err := ops.ListWallets(ctx, b, userID)
+	wallets, err := ops.List(ctx, b, userID)
 	require.NoError(t, err)
 	require.Len(t, wallets, 2)
 }
@@ -102,15 +102,18 @@ func TestGetWallet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	b := user_client.NewTestBackends(t, dbc, nil, km)
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
+	wa, err := wallets.ParseAddress("https://fynbos.me/ladidaplah")
+	require.NoError(t, err)
 	userID := uuid.NewString()
-	w, err := ops.CreateWallet(ctx, b, user.CreateWalletArgs{
-		UserID: userID,
-		Name:   "default",
+	w, err := ops.Create(ctx, b, wallets.CreateArgs{
+		UserID:    userID,
+		Name:      "default",
+		Addresses: []wallets.Address{wa},
 	})
 	require.NoError(t, err)
 
-	wallet, err := ops.GetWallet(ctx, b, w.ID)
+	wallet, err := ops.Get(ctx, b, w.ID)
 
 	require.NoError(t, err)
 	require.Equal(t, w.ID, wallet.ID)
@@ -123,19 +126,19 @@ func TestSetWalletName(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	km := keys_mock.NewMockClient(ctrl)
 	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	b := user_client.NewTestBackends(t, dbc, nil, km)
+	b := ops.NewTestBackends(t, dbc, km, users_mock.NewMock())
 	userID := uuid.NewString()
-	w, err := ops.CreateWallet(ctx, b, user.CreateWalletArgs{
+	w, err := ops.Create(ctx, b, wallets.CreateArgs{
 		UserID: userID,
 		Name:   "default",
 	})
 	require.NoError(t, err)
 	require.Equal(t, "default", w.Name)
 
-	err = ops.SetWalletName(ctx, b, w.ID, "Harry Potter")
+	_, err = ops.SetWalletName(ctx, b, w.ID, "Harry Potter")
 	require.NoError(t, err)
 
-	w, err = ops.GetWallet(ctx, b, w.ID)
+	w, err = ops.Get(ctx, b, w.ID)
 	require.NoError(t, err)
 	require.Equal(t, w.ID, w.ID)
 	require.Equal(t, w.Name, "Harry Potter")
