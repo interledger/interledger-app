@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/identities"
 	"io"
 	"net"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/identities"
 
 	"gitlab.com/fynbos/httpmessagesignatures"
 
@@ -268,6 +269,14 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			log.Error("failed to start outgoing payment, values not found", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
+		}
+		if errors.Is(err, openpayments.ErrPaymentPointerCannotSend) {
+			log.Info("payment pointer cannot send", zap.String("fromLinkedAccount", q.FromLinkedAccount))
+			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+		}
+		if errors.Is(err, openpayments.ErrPaymentPointerCannotRecv) {
+			log.Info("payment pointer cannot receive", zap.String("payment pointer", q.PaymentPointer))
+			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 		}
 		if err != nil {
 			log.Error("failed to start outgoing payment", zap.Error(err))
