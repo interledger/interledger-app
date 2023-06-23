@@ -19,7 +19,6 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: route('/'),
       title: 'Sign up'
     }
   }
@@ -36,61 +35,61 @@ export default function Page() {
     <>
       <Form id='signup' action='/signup' method='post' className='hidden' />
       <Card>
-        <span>Here's what we will need to create your account:</span>
+        <span>Sign up for an account by completing these steps:</span>
         <div className='mt-6 flex items-start'>
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-tl-full'}
-            color={'bg-yellow-300'}
+            width='w-8'
+            radius='rounded-full rounded-bl-none'
+            color='bg-yellow-300'
           />
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-bl-full'}
-            color={'bg-slate-500'}
+            width='w-8'
+            radius='rounded-full rounded-tr-none'
+            color='bg-indigo-400'
           />
           <div className='ml-5'>
             <h3 className='mb-1 font-medium text-strong'>Profile details</h3>
             <p className='text-xs text-medium'>
-              Your legal name, email address and country of residence.
+              Submit your legal name, email, and country of residence.
             </p>
           </div>
         </div>
         <div className='mt-10 flex items-start'>
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-bl-full'}
-            color={'bg-rose-400'}
+            width='w-8'
+            radius='rounded-tr-full rounded-bl-full'
+            color='bg-rose-400'
           />
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-full'}
-            color={'bg-lime-500'}
+            width='w-8'
+            radius='rounded-full'
+            color='bg-lime-400'
           />
           <div className='ml-5'>
             <h3 className='mb-1 font-medium text-strong'>
               Mobile phone number
             </h3>
             <p className='text-xs text-medium'>
-              A mobile phone number we can verify.
+              Provide a mobile phone number we can verify.
             </p>
           </div>
         </div>
         <div className='mt-10 flex items-start'>
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-tl-full'}
-            color={'bg-yellow-300'}
+            width='w-8'
+            radius='rounded-r-full'
+            color='bg-sky-300'
           />
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-bl-full'}
-            color={'bg-slate-300'}
+            width='w-8'
+            radius='rounded-bl-full'
+            color='bg-slate-300'
           />
           <div className='ml-5'>
             <h3 className='mb-1 font-medium text-strong'>Password</h3>
@@ -102,20 +101,20 @@ export default function Page() {
         <div className='mt-10 flex items-start'>
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-full'}
-            color={'bg-rose-500'}
+            width='w-8'
+            radius='rounded-full'
+            color='bg-rose-500'
           />
           <Shape
             flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-tr-full'}
-            color={'bg-lime-300'}
+            width='w-8'
+            radius='rounded-full rounded-bl-none'
+            color='bg-lime-300'
           />
           <div className='ml-5'>
-            <h3 className='mb-1 font-medium text-strong'>Payment pointer</h3>
+            <h3 className='mb-1 font-medium text-strong'>Wallet address</h3>
             <p className='text-xs text-medium'>
-              Create a unique payment pointer.
+              Create a unique wallet address.
             </p>
           </div>
         </div>
@@ -124,9 +123,9 @@ export default function Page() {
         Let's get started
       </Button>
       <div className='flex justify-center'>
-        <p className='text-sm'>
+        <p className='text-sm font-medium'>
           Have an account?{' '}
-          <Router className='text-primary' to={route('/login')}>
+          <Router className='font-medium text-primary' to={route('/login')}>
             Log in
           </Router>
         </p>

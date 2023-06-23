@@ -77,14 +77,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      title: 'Wallet address'
+      title: 'Wallet'
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Wallet address'
+    title: 'Wallet'
   }
 }
 
@@ -112,23 +112,14 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <input
+        form='wallet-address'
+        value='true'
+        name='canSubmit'
+        type='hidden'
+      />
       <Card>
-        <p>Create your unique, memorable wallet address.</p>
-
-        <TextField
-          id='publicName'
-          form='wallet-address'
-          label='Public name'
-          name='publicName'
-          defaultValue={publicName}
-          type='text'
-          className='mt-6'
-          aria-invalid={Boolean(fetcher.data?.errors.publicName) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.publicName ? 'public-name-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.publicName || undefined}
-        />
+        <p className='text-medium'>Create your unique wallet address below.</p>
         <TextField
           id='username'
           form='wallet-address'
@@ -147,7 +138,7 @@ export default function Page() {
           defaultValue={username}
           onChange={_onChangeInput}
           type='text'
-          className='mt-2'
+          className='mt-4'
           aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
           aria-describedby={
             fetcher.data?.errors.username ? 'username-error' : undefined
@@ -164,6 +155,26 @@ export default function Page() {
           value='true'
           name='canSubmit'
           type='hidden'
+        />
+      </Card>
+      <Card>
+        <p className='text-medium'>
+          Add a name as you would like it to appear on your public Fynbos.me
+          page.
+        </p>
+        <TextField
+          id='publicName'
+          form='wallet-address'
+          label='Public name'
+          name='publicName'
+          defaultValue={publicName}
+          type='text'
+          className='mt-4'
+          aria-invalid={Boolean(fetcher.data?.errors.publicName) || undefined}
+          aria-describedby={
+            fetcher.data?.errors.publicName ? 'public-name-error' : undefined
+          }
+          errorMessage={fetcher.data?.errors.publicName || undefined}
         />
       </Card>
       <Button form='wallet-address' type='submit'>
@@ -269,7 +280,7 @@ export async function action({ request }: ActionArgs) {
     return redirect(route('/'), {
       headers: {
         'Set-Cookie': await flashSnackbar(request, {
-          message: 'Wallet address reserved.',
+          message: 'Your wallet is reserved.',
           icon: 'close'
         })
       }
