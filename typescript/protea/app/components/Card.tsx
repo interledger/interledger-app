@@ -20,6 +20,17 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
 )
 Card.displayName = 'Card'
 
+const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={clsx('flex w-full justify-between', className)}
+      {...props}
+    />
+  )
+)
+CardHeader.displayName = 'CardHeader'
+
 const CardTitle = forwardRef<
   HTMLParagraphElement,
   HTMLAttributes<HTMLHeadingElement>
