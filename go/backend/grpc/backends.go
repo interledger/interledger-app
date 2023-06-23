@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/linkedin"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
@@ -60,4 +61,5 @@ type Backends interface {
 	Keys() keys.Client
 	BasisTheory() basistheory.Client
 	Features() features.Client
+	Linkedin() linkedin.Client
 }

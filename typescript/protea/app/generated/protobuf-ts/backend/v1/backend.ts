@@ -1833,6 +1833,46 @@ export interface GetIdentityBySignatureHashRequest {
      */
     signatureHash: string;
 }
+/**
+ * @generated from protobuf message backend.v1.CreateLinkedinAuthURLResponse
+ */
+export interface CreateLinkedinAuthURLResponse {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+}
+/**
+ * @generated from protobuf message backend.v1.LinkedinCallbackRequest
+ */
+export interface LinkedinCallbackRequest {
+    /**
+     * @generated from protobuf field: string state = 1;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: string code = 2;
+     */
+    code: string;
+}
+/**
+ * @generated from protobuf message backend.v1.LinkedinCallbackResponse
+ */
+export interface LinkedinCallbackResponse {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.VerifyLinkedinRequest
+ */
+export interface VerifyLinkedinRequest {
+    /**
+     * @generated from protobuf field: string identity_id = 1;
+     */
+    identityId: string;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -8476,6 +8516,201 @@ class GetIdentityBySignatureHashRequest$Type extends MessageType<GetIdentityBySi
  * @generated MessageType for protobuf message backend.v1.GetIdentityBySignatureHashRequest
  */
 export const GetIdentityBySignatureHashRequest = new GetIdentityBySignatureHashRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateLinkedinAuthURLResponse$Type extends MessageType<CreateLinkedinAuthURLResponse> {
+    constructor() {
+        super("backend.v1.CreateLinkedinAuthURLResponse", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateLinkedinAuthURLResponse>): CreateLinkedinAuthURLResponse {
+        const message = { url: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateLinkedinAuthURLResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateLinkedinAuthURLResponse): CreateLinkedinAuthURLResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateLinkedinAuthURLResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateLinkedinAuthURLResponse
+ */
+export const CreateLinkedinAuthURLResponse = new CreateLinkedinAuthURLResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LinkedinCallbackRequest$Type extends MessageType<LinkedinCallbackRequest> {
+    constructor() {
+        super("backend.v1.LinkedinCallbackRequest", [
+            { no: 1, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LinkedinCallbackRequest>): LinkedinCallbackRequest {
+        const message = { state: "", code: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LinkedinCallbackRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkedinCallbackRequest): LinkedinCallbackRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string state */ 1:
+                    message.state = reader.string();
+                    break;
+                case /* string code */ 2:
+                    message.code = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LinkedinCallbackRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string state = 1; */
+        if (message.state !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.state);
+        /* string code = 2; */
+        if (message.code !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.code);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.LinkedinCallbackRequest
+ */
+export const LinkedinCallbackRequest = new LinkedinCallbackRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LinkedinCallbackResponse$Type extends MessageType<LinkedinCallbackResponse> {
+    constructor() {
+        super("backend.v1.LinkedinCallbackResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LinkedinCallbackResponse>): LinkedinCallbackResponse {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LinkedinCallbackResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkedinCallbackResponse): LinkedinCallbackResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LinkedinCallbackResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.LinkedinCallbackResponse
+ */
+export const LinkedinCallbackResponse = new LinkedinCallbackResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VerifyLinkedinRequest$Type extends MessageType<VerifyLinkedinRequest> {
+    constructor() {
+        super("backend.v1.VerifyLinkedinRequest", [
+            { no: 1, name: "identity_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<VerifyLinkedinRequest>): VerifyLinkedinRequest {
+        const message = { identityId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VerifyLinkedinRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VerifyLinkedinRequest): VerifyLinkedinRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string identity_id */ 1:
+                    message.identityId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VerifyLinkedinRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string identity_id = 1; */
+        if (message.identityId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.VerifyLinkedinRequest
+ */
+export const VerifyLinkedinRequest = new VerifyLinkedinRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -8555,5 +8790,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
     { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },
-    { name: "VerifyTwitter", options: {}, I: VerifyTwitterRequest, O: Empty }
+    { name: "VerifyTwitter", options: {}, I: VerifyTwitterRequest, O: Empty },
+    { name: "CreateLinkedinAuthURL", options: {}, I: Empty, O: CreateLinkedinAuthURLResponse },
+    { name: "LinkedinCallback", options: {}, I: LinkedinCallbackRequest, O: LinkedinCallbackResponse },
+    { name: "VerifyLinkedin", options: {}, I: VerifyLinkedinRequest, O: Empty }
 ]);

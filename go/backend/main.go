@@ -688,3 +688,7 @@ func (b backends) Vault() vault.Client {
 func (b backends) Images() images.Client {
 	return b.img
 }
+
+func (b backends) Linkedin() linkedin.Client {
+	return b.linkedin
+}

@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"gitlab.com/fynbos/backend/linkedin"
 	"net"
 	"testing"
 
@@ -47,6 +48,7 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	linkedin_mock "gitlab.com/fynbos/backend/linkedin/client/mock"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_mock "gitlab.com/fynbos/backend/providers/mx/client/mock"
 	"gitlab.com/fynbos/backend/signup"
@@ -92,6 +94,7 @@ type TestContainer struct {
 	keys               *keys_mock.MockClient
 	basistheory        *bt_mock.MockClient
 	TwitterClient      *twitter_mock.MockClient
+	LinkedinClient     *linkedin_mock.MockClient
 }
 
 func (t TestContainer) Features() features.Client {
@@ -206,6 +209,10 @@ func (t TestContainer) Twitter() twitter.Client {
 	return t.TwitterClient
 }
 
+func (t TestContainer) Linkedin() linkedin.Client {
+	return t.LinkedinClient
+}
+
 type TestContainerOption func(*TestContainer)
 
 func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContainerOption) *TestContainer {
@@ -237,6 +244,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		mx:                 mx_mock.NewMockClient(ctrl),
 		keys:               keys_mock.NewMockClient(ctrl),
 		TwitterClient:      twitter_mock.NewMockClient(ctrl),
+		LinkedinClient:     linkedin_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

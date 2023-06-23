@@ -2,6 +2,10 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { VerifyLinkedinRequest } from "./backend";
+import type { LinkedinCallbackResponse } from "./backend";
+import type { LinkedinCallbackRequest } from "./backend";
+import type { CreateLinkedinAuthURLResponse } from "./backend";
 import type { VerifyTwitterRequest } from "./backend";
 import type { TwitterCallbackResponse } from "./backend";
 import type { TwitterCallbackRequest } from "./backend";
@@ -531,6 +535,20 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: VerifyTwitter(backend.v1.VerifyTwitterRequest) returns (backend.v1.Empty);
      */
     verifyTwitter(input: VerifyTwitterRequest, options?: RpcOptions): UnaryCall<VerifyTwitterRequest, Empty>;
+    /**
+     * Linkedin
+     *
+     * @generated from protobuf rpc: CreateLinkedinAuthURL(backend.v1.Empty) returns (backend.v1.CreateLinkedinAuthURLResponse);
+     */
+    createLinkedinAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateLinkedinAuthURLResponse>;
+    /**
+     * @generated from protobuf rpc: LinkedinCallback(backend.v1.LinkedinCallbackRequest) returns (backend.v1.LinkedinCallbackResponse);
+     */
+    linkedinCallback(input: LinkedinCallbackRequest, options?: RpcOptions): UnaryCall<LinkedinCallbackRequest, LinkedinCallbackResponse>;
+    /**
+     * @generated from protobuf rpc: VerifyLinkedin(backend.v1.VerifyLinkedinRequest) returns (backend.v1.Empty);
+     */
+    verifyLinkedin(input: VerifyLinkedinRequest, options?: RpcOptions): UnaryCall<VerifyLinkedinRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -991,5 +1009,28 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     verifyTwitter(input: VerifyTwitterRequest, options?: RpcOptions): UnaryCall<VerifyTwitterRequest, Empty> {
         const method = this.methods[58], opt = this._transport.mergeOptions(options);
         return stackIntercept<VerifyTwitterRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Linkedin
+     *
+     * @generated from protobuf rpc: CreateLinkedinAuthURL(backend.v1.Empty) returns (backend.v1.CreateLinkedinAuthURLResponse);
+     */
+    createLinkedinAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateLinkedinAuthURLResponse> {
+        const method = this.methods[59], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, CreateLinkedinAuthURLResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: LinkedinCallback(backend.v1.LinkedinCallbackRequest) returns (backend.v1.LinkedinCallbackResponse);
+     */
+    linkedinCallback(input: LinkedinCallbackRequest, options?: RpcOptions): UnaryCall<LinkedinCallbackRequest, LinkedinCallbackResponse> {
+        const method = this.methods[60], opt = this._transport.mergeOptions(options);
+        return stackIntercept<LinkedinCallbackRequest, LinkedinCallbackResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: VerifyLinkedin(backend.v1.VerifyLinkedinRequest) returns (backend.v1.Empty);
+     */
+    verifyLinkedin(input: VerifyLinkedinRequest, options?: RpcOptions): UnaryCall<VerifyLinkedinRequest, Empty> {
+        const method = this.methods[61], opt = this._transport.mergeOptions(options);
+        return stackIntercept<VerifyLinkedinRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

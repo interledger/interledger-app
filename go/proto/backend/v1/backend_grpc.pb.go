@@ -580,6 +580,10 @@ type BackendServiceClient interface {
 	CreateTwitterAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateTwitterAuthURLResponse, error)
 	TwitterCallback(ctx context.Context, in *TwitterCallbackRequest, opts ...grpc.CallOption) (*TwitterCallbackResponse, error)
 	VerifyTwitter(ctx context.Context, in *VerifyTwitterRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Linkedin
+	CreateLinkedinAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateLinkedinAuthURLResponse, error)
+	LinkedinCallback(ctx context.Context, in *LinkedinCallbackRequest, opts ...grpc.CallOption) (*LinkedinCallbackResponse, error)
+	VerifyLinkedin(ctx context.Context, in *VerifyLinkedinRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1121,6 +1125,33 @@ func (c *backendServiceClient) VerifyTwitter(ctx context.Context, in *VerifyTwit
 	return out, nil
 }
 
+func (c *backendServiceClient) CreateLinkedinAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateLinkedinAuthURLResponse, error) {
+	out := new(CreateLinkedinAuthURLResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateLinkedinAuthURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) LinkedinCallback(ctx context.Context, in *LinkedinCallbackRequest, opts ...grpc.CallOption) (*LinkedinCallbackResponse, error) {
+	out := new(LinkedinCallbackResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/LinkedinCallback", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) VerifyLinkedin(ctx context.Context, in *VerifyLinkedinRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/VerifyLinkedin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1203,6 +1234,10 @@ type BackendServiceServer interface {
 	CreateTwitterAuthURL(context.Context, *Empty) (*CreateTwitterAuthURLResponse, error)
 	TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error)
 	VerifyTwitter(context.Context, *VerifyTwitterRequest) (*Empty, error)
+	// Linkedin
+	CreateLinkedinAuthURL(context.Context, *Empty) (*CreateLinkedinAuthURLResponse, error)
+	LinkedinCallback(context.Context, *LinkedinCallbackRequest) (*LinkedinCallbackResponse, error)
+	VerifyLinkedin(context.Context, *VerifyLinkedinRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1385,6 +1420,15 @@ func (UnimplementedBackendServiceServer) TwitterCallback(context.Context, *Twitt
 }
 func (UnimplementedBackendServiceServer) VerifyTwitter(context.Context, *VerifyTwitterRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyTwitter not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateLinkedinAuthURL(context.Context, *Empty) (*CreateLinkedinAuthURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateLinkedinAuthURL not implemented")
+}
+func (UnimplementedBackendServiceServer) LinkedinCallback(context.Context, *LinkedinCallbackRequest) (*LinkedinCallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LinkedinCallback not implemented")
+}
+func (UnimplementedBackendServiceServer) VerifyLinkedin(context.Context, *VerifyLinkedinRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyLinkedin not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2460,6 +2504,60 @@ func _BackendService_VerifyTwitter_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreateLinkedinAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateLinkedinAuthURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreateLinkedinAuthURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateLinkedinAuthURL(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_LinkedinCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LinkedinCallbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).LinkedinCallback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/LinkedinCallback",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).LinkedinCallback(ctx, req.(*LinkedinCallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_VerifyLinkedin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyLinkedinRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).VerifyLinkedin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/VerifyLinkedin",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).VerifyLinkedin(ctx, req.(*VerifyLinkedinRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2702,6 +2800,18 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VerifyTwitter",
 			Handler:    _BackendService_VerifyTwitter_Handler,
+		},
+		{
+			MethodName: "CreateLinkedinAuthURL",
+			Handler:    _BackendService_CreateLinkedinAuthURL_Handler,
+		},
+		{
+			MethodName: "LinkedinCallback",
+			Handler:    _BackendService_LinkedinCallback_Handler,
+		},
+		{
+			MethodName: "VerifyLinkedin",
+			Handler:    _BackendService_VerifyLinkedin_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

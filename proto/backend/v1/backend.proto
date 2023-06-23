@@ -279,6 +279,11 @@ service BackendService {
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
   rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
   rpc VerifyTwitter(VerifyTwitterRequest) returns (Empty);
+
+  // Linkedin
+  rpc CreateLinkedinAuthURL(Empty) returns (CreateLinkedinAuthURLResponse);
+  rpc LinkedinCallback(LinkedinCallbackRequest) returns (LinkedinCallbackResponse);
+  rpc VerifyLinkedin(VerifyLinkedinRequest) returns (Empty);
 }
 
 message Features {
@@ -765,4 +770,21 @@ message VerifyTwitterRequest {
 
 message GetIdentityBySignatureHashRequest{
   string signature_hash = 1;
+}
+
+message CreateLinkedinAuthURLResponse {
+  string url = 1;
+}
+
+message LinkedinCallbackRequest {
+  string state = 1;
+  string code = 2;
+}
+
+message LinkedinCallbackResponse {
+  string id = 1;
+}
+
+message VerifyLinkedinRequest {
+  string identity_id = 1;
 }
