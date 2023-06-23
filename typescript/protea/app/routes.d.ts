@@ -6,7 +6,6 @@ declare module "routes-gen" {
     "/me/identities/:identityId": { "identityId": string };
     "/settings/keys/add-public": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
-    "/identities/:identityId": { "identityId": string };
     "/settings/keys/:keyId": { "keyId": string };
     "/temp-cloudflare-error": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
@@ -33,6 +32,7 @@ declare module "routes-gen" {
     "/blog/:slug": { "slug": string };
     "/pay/amount": Record<string, never>;
     "/identities": Record<string, never>;
+    "/identities/:identityId": { "identityId": string };
     "/accounts": Record<string, never>;
     "/contacts": Record<string, never>;
     "/pay/3ds": Record<string, never>;
@@ -66,7 +66,6 @@ declare module "routes-gen" {
       | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
       | ["/settings/keys/add-public"]
       | ["/what-is-a-payment-pointer"]
-      | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
       | ["/settings/keys/:keyId", RouteParams["/settings/keys/:keyId"]]
       | ["/temp-cloudflare-error"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
@@ -93,6 +92,7 @@ declare module "routes-gen" {
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/pay/amount"]
       | ["/identities"]
+      | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
       | ["/accounts"]
       | ["/contacts"]
       | ["/pay/3ds"]
