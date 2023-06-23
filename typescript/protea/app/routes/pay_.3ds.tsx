@@ -42,7 +42,7 @@ export async function loader({ request }: LoaderArgs) {
   if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
 
   return json({
-    jwt: threeDSInit.response.jwt,
+    initJWT: threeDSInit.response.jwt,
     threeDsId: threeDSInit.response.id,
     songbirdURL: threeDSInit.response.songbirdURL
   })
@@ -64,11 +64,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const {
-    jwt: initJWT,
-    threeDsId,
-    songbirdURL
-  } = useLoaderData<typeof loader>()
+  const { initJWT, threeDsId, songbirdURL } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
   const state = useScript(songbirdURL)
