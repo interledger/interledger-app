@@ -127,9 +127,14 @@ func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transa
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
 
-	floatAmount, err := strconv.ParseFloat(trxResp.AmountUSD, 64)
+	var floatAmount float64
+	// try read amountUSD first. Fallback to amount
+	floatAmount, err = strconv.ParseFloat(trxResp.AmountUSD, 64)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+		floatAmount, err = strconv.ParseFloat(trxResp.Amount, 64)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+		}
 	}
 
 	return &tabapay.Transaction{
