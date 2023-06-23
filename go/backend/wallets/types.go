@@ -8,6 +8,7 @@ import (
 )
 
 type CreateArgs struct {
+	ID        string `validate:"omitempty,uuid4"`
 	UserID    string `validate:"uuid4"`
 	Name      string
 	Addresses []Address

@@ -27,7 +27,10 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		name = "default"
 	}
 
-	walletID := uuid.NewString()
+	walletID := args.ID
+	if walletID == "" {
+		walletID = uuid.NewString()
+	}
 
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, name)
