@@ -8,6 +8,7 @@ import {
   Card,
   Chip,
   ChipColor,
+  Fab,
   FaceBookIcon,
   GithubIcon,
   Icon,
@@ -40,8 +41,10 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Identities'
-    }
+      title: 'Identities',
+      actions: [{ type: 'shapes' }]
+    },
+    fab: Fab.Pay
   }
 }
 

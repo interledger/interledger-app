@@ -4,7 +4,15 @@ import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
+import {
+  Card,
+  Fab,
+  Icon,
+  Layouts,
+  Router,
+  Snackbar,
+  WalletGrid
+} from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
@@ -32,8 +40,10 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Accounts'
-    }
+      title: 'Accounts',
+      actions: [{ type: 'shapes' }]
+    },
+    fab: Fab.Pay
   }
 }
 

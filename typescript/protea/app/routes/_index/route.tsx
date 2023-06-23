@@ -109,10 +109,10 @@ export async function loader({ request }: LoaderArgs) {
       data.nextStep = {
         title:
           'Your payment pointer is reserved, we just need a few more details to activate it.',
-        icon: 'attach_money',
+        icon: 'account_balance_wallet',
         action: {
           to: route('/personal-details'),
-          text: 'Activate payment pointer'
+          text: 'Activate wallet'
         },
         show: true
       }
@@ -158,7 +158,10 @@ export async function loader({ request }: LoaderArgs) {
 export const handle: ApplicationProps = {
   layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
   scaffold: {
-    header: {},
+    header: {
+      title: 'Home',
+      actions: [{ type: 'shapes' }]
+    },
     fab: Fab.Pay,
     footer: (match) => match.data.footer
   }
