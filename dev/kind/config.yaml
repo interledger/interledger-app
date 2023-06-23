@@ -11,7 +11,7 @@ kindV1Alpha4Cluster:
   name: fynbos-dev
   nodes:
     - role: control-plane
-      image: kindest/node:v1.26.4@sha256:a539833d26264444ab3b8f5e56e23fa3361436445fa23c864e6dec622458858f
+      image: kindest/node:v1.26.4
       kubeadmConfigPatches:
         - |
           kind: InitConfiguration
