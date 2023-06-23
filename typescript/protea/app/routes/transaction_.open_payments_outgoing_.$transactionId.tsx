@@ -144,55 +144,55 @@ export default function Page() {
   return (
     <>
       <Card>
-        <Card.Item className='mt-6'>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
           <span className='text-sm text-medium'>Payment from</span>
           <span className='text-sm text-strong'>
             {transfers ? transfers[0]?.from : 'Your Fynbos wallet'}
           </span>
-        </Card.Item>
-        <Card.Item className='mt-2'>
+        </div>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
           <span className='text-sm text-medium'>To</span>
           <span className='text-sm text-strong'>{paymentPointer}</span>
-        </Card.Item>
+        </div>
         {beneficiaryName != '' && (
-          <Card.Item className='mt-2'>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
             <span className='text-sm text-medium'>Beneficiary name</span>
             <span className='text-sm text-strong'>{beneficiaryName}</span>
-          </Card.Item>
+          </div>
         )}
-        <Card.Item className='mt-6'>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
           <span className='text-sm text-medium'>You pay</span>
           <span className='text-sm font-medium text-strong'>
             {transaction.subTotal || '$ 0.00'}
           </span>
-        </Card.Item>
-        <Card.Item className='mt-2'>
+        </div>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
           <span className='text-sm text-medium'>Total fees</span>
           <span className='text-sm font-medium text-strong'>
             {transaction.fees || '$ 0.00'}
           </span>
-        </Card.Item>
-        <Card.Item className='mt-2'>
+        </div>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
           <span className='text-sm text-medium'>They receive</span>
-          <span className='text-2xl text-sm font-medium text-strong'>
+          <span className='text-sm font-medium text-strong'>
             {transaction.total || '$ 0.00'}
           </span>
-        </Card.Item>
+        </div>
         {note != '' && (
-          <Card.Item className='mt-6' variant='col'>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
             <span className='text-sm text-medium'>Note</span>
             <span className='text-sm text-strong'>{note}</span>
-          </Card.Item>
+          </div>
         )}
       </Card>
       <Card>
-        <Card.Item>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
           <span className='text-sm text-medium'>Payment date</span>
           <span className='text-sm text-strong'>
             {transaction.date || 'Pending'}
           </span>
-        </Card.Item>
-        <Card.Item className='mt-4 items-center'>
+        </div>
+        <div className='mt-4 items-center'>
           <span className='text-sm text-medium'>Status</span>
           {transaction.status == 'Completed' && (
             <Chip color={ChipColor.green}>Complete</Chip>
@@ -203,49 +203,47 @@ export default function Page() {
           {transaction.status == 'Failed' && (
             <Chip color={ChipColor.orange}>Failed</Chip>
           )}
-        </Card.Item>
+        </div>
       </Card>
       {transfers &&
         transfers.map((transfer) => (
           <Card key={transfer?.title} className='mt-6'>
-            <h2 className='font-display text-sm font-medium'>
-              {transfer?.title}
-            </h2>
-            <Card.Item className='mt-3'>
+            <h2 className='text-sm font-medium'>{transfer?.title}</h2>
+            <div className='mt-3'>
               <span className='text-sm text-medium'>Payment from</span>
               <span className='text-sm text-strong'>{transfer?.from}</span>
-            </Card.Item>
-            <Card.Item className='mt-2'>
+            </div>
+            <div className='mt-2'>
               <span className='text-sm text-medium'>Payment to</span>
               <span className='text-sm text-strong'>{transfer?.to}</span>
-            </Card.Item>
+            </div>
             {transfer?.beneficiary != '' && (
-              <Card.Item className='mt-2'>
+              <div className='mt-2'>
                 <span className='text-sm text-medium'>Beneficiary name</span>
                 <span className='text-sm text-strong'>
                   {transfer?.beneficiary}
                 </span>
-              </Card.Item>
+              </div>
             )}
-            <Card.Item className='mt-2'>
+            <div className='mt-2'>
               <span className='text-sm text-medium'>Payment amount</span>
               <span className='text-sm text-strong'>
                 {transaction.subTotal || '$ 0.00'}
               </span>
-            </Card.Item>
-            <Card.Item className='mt-2'>
+            </div>
+            <div className='mt-2'>
               <span className='text-sm text-medium'>Fees</span>
               <span className='text-sm text-strong'>
                 {transaction.fees || '$ 0.00'}
               </span>
-            </Card.Item>
-            <Card.Item className='mt-2'>
+            </div>
+            <div className='mt-2'>
               <span className='text-sm text-medium'>Total amount</span>
               <span className='text-sm text-strong'>
                 {transaction.total || '$ 0.00'}
               </span>
-            </Card.Item>
-            <Card.Item className='mt-2'>
+            </div>
+            <div className='mt-2'>
               <span className='text-sm text-medium'>Status</span>
               {transaction.status == 'Completed' && (
                 // TODO token text colours
@@ -257,14 +255,14 @@ export default function Page() {
               {transaction.status == 'Failed' && (
                 <span className='text-sm text-orange-800'>Failed</span>
               )}
-            </Card.Item>
+            </div>
           </Card>
         ))}
       <Card>
-        <Card.Item variant='col'>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
           <span className='text-sm text-medium'>Transaction ID</span>
           <span className='text-sm text-strong'>{transaction.id}</span>
-        </Card.Item>
+        </div>
       </Card>
     </>
   )

@@ -94,9 +94,7 @@ function GenericPage() {
 function CardPage() {
   return (
     <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>
-        Top up cash balance
-      </h1>
+      <h1 className='mb-6 text-2xl font-medium'>Top up cash balance</h1>
       <span>
         Add a debit card in order to top up your cash balance and transact.
       </span>
@@ -131,7 +129,7 @@ function CardPage() {
 function BankPage() {
   return (
     <Card>
-      <h1 className='mb-6 font-display text-2xl font-medium'>Withdraw</h1>
+      <h1 className='mb-6 text-2xl font-medium'>Withdraw</h1>
       <span>You first need to add a bank account to make withdrawals.</span>
       <div className='mt-10 flex items-start'>
         <Shape

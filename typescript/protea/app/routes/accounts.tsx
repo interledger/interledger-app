@@ -4,7 +4,15 @@ import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, Icon, Layouts, Router, Snackbar, WalletGrid } from '~/components'
+import {
+  Card,
+  Fab,
+  Icon,
+  Layouts,
+  Router,
+  Snackbar,
+  WalletGrid
+} from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
@@ -32,8 +40,10 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Accounts'
-    }
+      title: 'Accounts',
+      actions: [{ type: 'shapes' }]
+    },
+    fab: Fab.Pay
   }
 }
 
@@ -85,7 +95,7 @@ export default function Page() {
       )}
       {kycStatus == KycStatus.Unknown && (
         <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h1 className='font-display text-lg font-medium'>Next step</h1>
+          <h1 className='text-lg font-medium'>Next step</h1>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <Icon>attach_money</Icon>
