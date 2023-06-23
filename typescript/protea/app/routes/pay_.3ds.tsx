@@ -13,7 +13,6 @@ import {
 } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { getClientIP } from '~/lib/ip.server'
-import { getUserSession } from '~/lib/kratos.server'
 import {
   StatusError,
   grpcClient,
@@ -24,7 +23,6 @@ import {
 import { useScript } from '~/lib/useScript'
 
 export async function loader({ request }: LoaderArgs) {
-  await getUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
 
   let threeDSInit = await grpcClient
@@ -44,7 +42,6 @@ export async function loader({ request }: LoaderArgs) {
   if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
 
   return json({
-    flow,
     jwt: threeDSInit.response.jwt,
     threeDsId: threeDSInit.response.id,
     songbirdURL: threeDSInit.response.songbirdURL
@@ -68,7 +65,6 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const {
-    flow,
     jwt: initJWT,
     threeDsId,
     songbirdURL
@@ -100,7 +96,6 @@ export default function Page() {
         let formData = new FormData()
         formData.append('name', 'lookup')
         formData.append('threeDsId', threeDsId)
-        formData.append('idempotencyKey', flow?.data?.idempotencyKey)
         formData.append(
           'colorDepth',
           window.screen && String(window.screen.colorDepth)
@@ -130,7 +125,6 @@ export default function Page() {
               let formData = new FormData()
               formData.append('name', 'authenticate')
               formData.append('threeDsId', threeDsId)
-              formData.append('idempotencyKey', flow?.data?.idempotencyKey)
               formData.append('jwt', jwt)
 
               submit(formData, {
@@ -145,7 +139,15 @@ export default function Page() {
         }
       )
     }
-  }, [initJWT, state, threeDsId, flow?.data?.idempotencyKey, submit])
+
+    return () => {
+      if (typeof window !== 'undefined' && cardinalRef.current !== null) {
+        cardinalRef.current.off('payments.validated')
+        cardinalRef.current.off('payments.setupComplete')
+        cardinalRef.current = null
+      }
+    }
+  }, [initJWT, state, threeDsId, submit])
 
   const showIssuerChallenge = () => {
     setShowingIssuerChallenge(true)
@@ -199,14 +201,15 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = await form.get('name')
-  const idempotencyKey = await form.get('idempotencyKey')
   const threeDsId = await form.get('threeDsId')
+  const flow = await requireFlow(request, flowType.Pay)
+  const idempotencyKey = flow?.data?.idempotencyKey as string
 
   if (formName === 'lookup') {
     let lookup3DS = await grpcClient
       .lookup3DS(
         {
-          idempotencyKey: String(idempotencyKey),
+          idempotencyKey,
           threeDSID: String(threeDsId),
           colorDepth: String(form.get('colorDepth')) || '',
           header: String(request.headers.get('Accept')),
@@ -250,7 +253,7 @@ export async function action({ request }: ActionArgs) {
     let auth3DS = await grpcClient
       .authenticate3DS(
         {
-          idempotencyKey: String(idempotencyKey),
+          idempotencyKey,
           threeDSID: String(threeDsId),
           jwt: String(jwt)
         },
@@ -269,12 +272,11 @@ export async function action({ request }: ActionArgs) {
     }
   }
 
-  const flow = await requireFlow(request, flowType.Pay)
   const clientIpAddress = getClientIP(request)
   let payment = await openPaymentsClient
     .createOutgoingPayment(
       {
-        idempotencyKey: flow.data.idempotencyKey || '',
+        idempotencyKey,
         quoteID: flow.data.quoteID,
         description: flow.data.note,
         externalRef: '',
