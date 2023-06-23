@@ -34,7 +34,7 @@ export const Dialog: FC<DialogProps> = ({ children, open, setOpen }) => {
             leaveFrom='opacity-100 scale-100'
             leaveTo='opacity-0 scale-75'
           >
-            <HeadlessDialog.Panel className='pointer-events-auto mx-8 flex w-full flex-col space-y-2 rounded-3xl bg-container-strong p-6 shadow-lg sm:max-w-xs'>
+            <HeadlessDialog.Panel className='pointer-events-auto mx-6 flex w-full flex-col space-y-4 rounded-3xl bg-container-strong p-6 shadow-lg sm:max-w-xs'>
               {children}
             </HeadlessDialog.Panel>
           </Transition.Child>
