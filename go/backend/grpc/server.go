@@ -3,6 +3,7 @@ package grpc
 import (
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	user_middleware "gitlab.com/fynbos/backend/user/middleware"
+	wallets_middleware "gitlab.com/fynbos/backend/wallets/middleware"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -18,6 +19,7 @@ func NewServer(b Backends) (*grpc.Server, error) {
 	server := grpc.NewServer(
 		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
 		user_middleware.MakeUnaryInterceptor(b.Users()),
+		wallets_middleware.MakeUnaryInterceptor(b.Users(), b.Wallets()),
 	)
 	backendv1.RegisterBackendServiceServer(server, &rpcService{
 		b: b,

@@ -5,10 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	"go.uber.org/zap"
-
-	"gitlab.com/fynbos/log"
-
 	"gitlab.com/fynbos/backend/user"
 
 	"google.golang.org/grpc"
@@ -19,8 +15,6 @@ import (
 
 const (
 	cookieMetadataKey = "cookies"
-	userCtxKey        = user.UserCtxKey("user")
-	walletCtxKey      = user.WalletCtxKey("wallet")
 )
 
 // Our front-end will forward the raw http cookies in the metadata.
@@ -68,34 +62,7 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 			return handler(ctx, req)
 		}
 
-		newCtx := context.WithValue(ctx, userCtxKey, u)
-
-		wallets, err := client.ListWallets(newCtx, u.ID)
-		if err != nil {
-			// Do nothing for now.
-			return handler(newCtx, req)
-		}
-
-		// Create a default wallet for the user if they don't already have one
-		if len(wallets) == 0 {
-			_, err = client.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: u.ID,
-			})
-			if err != nil && !errors.Is(err, user.ErrDuplicateWallet) {
-				log.Warn("failed to create default wallet for user", zap.Error(err), zap.String("user_id", u.ID))
-			}
-			wallets, err = client.ListWallets(newCtx, u.ID)
-			if err != nil || len(wallets) <= 0 {
-				// Do nothing for now. We tried and the next request will try again
-				return handler(newCtx, req)
-			}
-		}
-
-		if len(wallets) > 1 {
-			log.Warn("user has multiple wallets, using a default", zap.String("user_id", u.ID))
-		}
-
-		newCtx = context.WithValue(newCtx, walletCtxKey, &wallets[0])
+		newCtx := context.WithValue(ctx, user.CtxKey, u)
 
 		return handler(newCtx, req)
 	})

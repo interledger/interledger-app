@@ -15,8 +15,6 @@ import (
 	"gitlab.com/fynbos/log"
 )
 
-var walletCtxKey = wallets.WalletCtxKey("wallet_key")
-
 func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.Wallet, error) {
 	err := b.Validator().StructCtx(ctx, args)
 	if err != nil {
@@ -153,7 +151,7 @@ func SetWalletName(ctx context.Context, b Backends, id, name string) (*wallets.W
 }
 
 func WalletForContext(ctx context.Context) (*wallets.Wallet, error) {
-	w, ok := ctx.Value(walletCtxKey).(*wallets.Wallet)
+	w, ok := ctx.Value(wallets.CtxKey).(*wallets.Wallet)
 	if !ok || w == nil {
 		return nil, wallets.ErrNoWalletFound
 	}
