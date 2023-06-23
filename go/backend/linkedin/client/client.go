@@ -93,10 +93,14 @@ func (c *Client) GetWalletConnections(ctx context.Context, id string) ([]linkedi
 	return ops.GetWalletConnections(ctx, c.b, id)
 }
 
-func (c *Client) Share(ctx context.Context, connectionID string, text string) (string, error) {
-	return ops.Share(ctx, c.b, connectionID, text)
+func (c *Client) Post(ctx context.Context, connectionID string, text string) (string, error) {
+	return ops.Post(ctx, c.b, connectionID, text)
 }
 
 func (c *Client) PublishPublicProof(ctx context.Context, identityID string) error {
 	return ops.PublishPublicProof(ctx, c.b, identityID)
+}
+
+func (c *Client) GetPost(ctx context.Context, url string) (*linkedin.Post, error) {
+	return ops.GetPost(ctx, c.b, url)
 }

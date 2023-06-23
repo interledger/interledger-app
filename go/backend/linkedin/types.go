@@ -36,4 +36,10 @@ type (
 		ID       string `json:"id"`
 		Username string `json:"vanityName"`
 	}
+
+	Post struct {
+		Author string
+		Text   string
+		URLs   []string
+	}
 )

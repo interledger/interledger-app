@@ -93,13 +93,13 @@ func GetWalletConnections(ctx context.Context, b Backends, walletID string) ([]l
 	return connections, nil
 }
 
-func Share(ctx context.Context, b Backends, connectionID, text string) (string, error) {
+func Post(ctx context.Context, b Backends, connectionID, text string) (string, error) {
 	conntection, err := getConnection(ctx, b, connectionID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", linkedin.ErrInternal, err)
 	}
 
-	return b.External().Share(ctx, conntection, text)
+	return b.External().Post(ctx, conntection, text)
 }
 
 func PublishPublicProof(ctx context.Context, b Backends, identityID string) error {
@@ -116,6 +116,10 @@ func PublishPublicProof(ctx context.Context, b Backends, identityID string) erro
 	}
 
 	return nil
+}
+
+func GetPost(ctx context.Context, b Backends, url string) (*linkedin.Post, error) {
+	return b.External().GetPost(ctx, url)
 }
 
 func getConnection(ctx context.Context, b Backends, id string) (*linkedin.Connection, error) {

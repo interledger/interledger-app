@@ -66,17 +66,32 @@ func (mr *MockClientMockRecorder) GetAuthorizedUser(ctx, token interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizedUser", reflect.TypeOf((*MockClient)(nil).GetAuthorizedUser), ctx, token)
 }
 
-// Share mocks base method.
-func (m *MockClient) Share(ctx context.Context, connection *linkedin.Connection, text string) (string, error) {
+// GetPost mocks base method.
+func (m *MockClient) GetPost(ctx context.Context, url string) (*linkedin.Post, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Share", ctx, connection, text)
+	ret := m.ctrl.Call(m, "GetPost", ctx, url)
+	ret0, _ := ret[0].(*linkedin.Post)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPost indicates an expected call of GetPost.
+func (mr *MockClientMockRecorder) GetPost(ctx, url interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost", reflect.TypeOf((*MockClient)(nil).GetPost), ctx, url)
+}
+
+// Post mocks base method.
+func (m *MockClient) Post(ctx context.Context, connection *linkedin.Connection, text string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Post", ctx, connection, text)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Share indicates an expected call of Share.
-func (mr *MockClientMockRecorder) Share(ctx, connection, text interface{}) *gomock.Call {
+// Post indicates an expected call of Post.
+func (mr *MockClientMockRecorder) Post(ctx, connection, text interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Share", reflect.TypeOf((*MockClient)(nil).Share), ctx, connection, text)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockClient)(nil).Post), ctx, connection, text)
 }

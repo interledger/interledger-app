@@ -62,7 +62,7 @@ func (a *Activity) SharePublicProof(ctx context.Context, identityID string) (str
 
 	text := "Just connected my @fynbosdev wallet with my @Linkedin account! Now it's easier than ever to send and receive payments using @" + connection.Username + ". \n\n#ConnectedWallet " + pp.URL + "/identities/" + base64SigHas
 
-	postID, err := a.b.Linkedin().Share(ctx, connection.ID, text)
+	postID, err := a.b.Linkedin().Post(ctx, connection.ID, text)
 	if err != nil {
 		return "", err
 	}

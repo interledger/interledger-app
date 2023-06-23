@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"gitlab.com/fynbos/backend/linkedin"
 	"gitlab.com/fynbos/backend/linkedin/external"
 	"golang.org/x/oauth2"
@@ -73,7 +74,7 @@ func (c *client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*l
 }
 
 // https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin?context=linkedin%2Fconsumer%2Fcontext
-func (c *client) Share(ctx context.Context, connection *linkedin.Connection, text string) (string, error) {
+func (c *client) Post(ctx context.Context, connection *linkedin.Connection, text string) (string, error) {
 	token := &oauth2.Token{
 		AccessToken:  connection.AccessToken,
 		RefreshToken: connection.RefreshToken,
@@ -136,4 +137,31 @@ func (c *client) Share(ctx context.Context, connection *linkedin.Connection, tex
 	}
 
 	return id, nil
+}
+
+func (c *client) GetPost(ctx context.Context, url string) (*linkedin.Post, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("could not get post: %v", err)
+	}
+	defer res.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse post: %v", err)
+	}
+
+	post := doc.Find("script[type='application/ld+json']").First().Text()
+	var jsonBody map[string]interface{}
+	err = json.Unmarshal([]byte(post), &jsonBody)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode post: %v", err)
+	}
+
+	// TODO: handle multiple URLs and check if the post exist
+	return &linkedin.Post{
+		URLs:   []string{jsonBody["sharedContent"].(map[string]interface{})["url"].(string)},
+		Text:   jsonBody["articleBody"].(string),
+		Author: jsonBody["author"].(map[string]interface{})["url"].(string),
+	}, nil
 }

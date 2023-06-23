@@ -44,7 +44,8 @@ const (
 type Platform string
 
 const (
-	PlatformTwitter Platform = "twitter"
+	PlatformTwitter  Platform = "twitter"
+	PlatformLinkedin Platform = "linkedin"
 )
 
 /*
