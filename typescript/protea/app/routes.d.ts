@@ -1,7 +1,5 @@
 declare module "routes-gen" {
   export type RouteParams = {
-    "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
-    "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
     "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
@@ -30,6 +28,8 @@ declare module "routes-gen" {
     "/link-account": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/transactions": Record<string, never>;
+    "/transactions/open_payments_incoming/:transactionId": { "transactionId": string };
+    "/transactions/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/blog/:slug": { "slug": string };
     "/pay/amount": Record<string, never>;
     "/identities": Record<string, never>;
@@ -60,8 +60,6 @@ declare module "routes-gen" {
 
   export function route<
     T extends
-      | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
-      | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
       | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
@@ -90,6 +88,8 @@ declare module "routes-gen" {
       | ["/link-account"]
       | ["/pay/confirm"]
       | ["/transactions"]
+      | ["/transactions/open_payments_incoming/:transactionId", RouteParams["/transactions/open_payments_incoming/:transactionId"]]
+      | ["/transactions/open_payments_outgoing/:transactionId", RouteParams["/transactions/open_payments_outgoing/:transactionId"]]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/pay/amount"]
       | ["/identities"]
