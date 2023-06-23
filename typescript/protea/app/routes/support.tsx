@@ -1,11 +1,16 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Button,
   Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  GridColumn,
   Icon,
   Layouts,
   TextArea,
@@ -46,77 +51,87 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   return (
     <WalletGrid>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <span className='text-medium'>
-          Get in touch and let us know how we can help.
-        </span>
-        <Form
-          id='support-form'
-          action='/support'
-          method='post'
-          className='hidden'
-        />
-        <input
-          defaultValue={traits.firstName}
-          name='firstName'
-          form='support-form'
-          type='hidden'
-        />
-        <input
-          defaultValue={traits.lastName}
-          name='lastName'
-          form='support-form'
-          type='hidden'
-        />
-        <input
-          defaultValue={traits.email}
-          name='email'
-          form='support-form'
-          type='hidden'
-        />
-
-        <TextArea
-          id='description'
-          form='support-form'
-          label='Your message'
-          name='description'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.description) || undefined}
-          aria-describedby={
-            actionData?.errors.description ? 'description-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.description}
-        />
-        <Button className='mt-12' form='support-form' type='submit'>
+      <Form
+        id='support-form'
+        action={route('/support')}
+        method='post'
+        className='hidden'
+      />
+      <input
+        defaultValue={traits.firstName}
+        name='firstName'
+        form='support-form'
+        type='hidden'
+      />
+      <input
+        defaultValue={traits.lastName}
+        name='lastName'
+        form='support-form'
+        type='hidden'
+      />
+      <input
+        defaultValue={traits.email}
+        name='email'
+        form='support-form'
+        type='hidden'
+      />
+      <GridColumn className='col-span-full lg:col-span-5'>
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact support</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Get in touch and let us know how we can help.</p>
+            <TextArea
+              id='description'
+              form='support-form'
+              label='Your message'
+              name='description'
+              className='mt-4'
+              aria-invalid={
+                Boolean(actionData?.errors.description) || undefined
+              }
+              aria-describedby={
+                actionData?.errors.description ? 'description-error' : undefined
+              }
+              required
+              errorMessage={actionData?.errors.description}
+            />
+          </CardContent>
+        </Card>
+        <Button form='support-form' type='submit'>
           Submit
         </Button>
-      </Card>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <h2 className='font-medium text-strong'>Support</h2>
-        <span className='mt-4 text-sm'>
-          Our telephone support lines are open Monday to Friday between 9am and
-          5pm EST.
-        </span>
-        <div className='mt-3 flex items-center space-x-2 text-medium'>
-          <Icon>call</Icon>
-          <AnchorRouter
-            to='tel:+1 (856) 249-3067'
-            className='text-sm text-primary'
-          >
-            +1 (856) 249-3067
-          </AnchorRouter>
-        </div>
-        <div className='mt-2 flex items-center space-x-2 text-medium'>
-          <Icon>mail</Icon>
-          <AnchorRouter
-            to='mailto:support@fynbos.app'
-            className='text-sm text-primary'
-          >
-            support@fynbos.app
-          </AnchorRouter>
-        </div>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Support details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              Our telephone support lines are open Monday to Friday between 9am
+              and 5pm EST.
+            </p>
+            <div className='mt-4 flex items-center space-x-2 text-medium'>
+              <Icon>call</Icon>
+              <AnchorRouter
+                to='tel:+1 (856) 249-3067'
+                className='text-sm text-primary'
+              >
+                +1 (856) 249-3067
+              </AnchorRouter>
+            </div>
+            <div className='mt-4 flex items-center space-x-2 text-medium'>
+              <Icon>mail</Icon>
+              <AnchorRouter
+                to='mailto:support@fynbos.app'
+                className='text-sm text-primary'
+              >
+                support@fynbos.app
+              </AnchorRouter>
+            </div>
+          </CardContent>
+        </Card>
+      </GridColumn>
     </WalletGrid>
   )
 }
