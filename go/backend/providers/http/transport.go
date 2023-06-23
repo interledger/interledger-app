@@ -52,7 +52,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 func (t *Transport) Log(b Backends, req *http.Request, resp *http.Response) {
 	ctx := req.Context()
 	meta, ok := MetaForContext(ctx)
-	if b.DB() == nil || !ok {
+	if b.DB() == nil || !ok || req == nil || resp == nil {
 		return
 	}
 
