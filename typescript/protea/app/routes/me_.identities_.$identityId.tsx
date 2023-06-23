@@ -8,6 +8,7 @@ import {
   AnchorRouter,
   Button,
   Card,
+  CardRow,
   Chip,
   ChipColor,
   Layouts,
@@ -112,11 +113,11 @@ export default function Page() {
             alt='Identity card'
             src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
           />
-          <Card.Item variant='col' className='mt-4'>
+          <CardRow className='mt-4'>
             <span className='text-medium'>Verification date</span>
             <span className='font-medium'>{identity.verifiedAt}</span>
-          </Card.Item>
-          <Card.Item variant='col' className='mt-4'>
+          </CardRow>
+          <CardRow className='mt-4'>
             <span className='text-medium'>Public proof</span>
             <AnchorRouter
               to={identity.proof}
@@ -124,7 +125,7 @@ export default function Page() {
             >
               {identity.proof}
             </AnchorRouter>
-          </Card.Item>
+          </CardRow>
         </Card>
       )}
       <Form
@@ -146,7 +147,7 @@ export default function Page() {
       )}
       {!isUser && (
         <Card className='space-y-4'>
-          <h1 className='font-display text-lg font-medium'>What is Fynbos?</h1>
+          <h1 className='text-lg font-medium'>What is Fynbos?</h1>
           <p className='text-sm text-medium'>
             Fynbos is a digital wallet for verifying identities, paying
             contacts, and building trust.

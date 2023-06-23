@@ -60,7 +60,7 @@ export default function Page() {
     <WalletGrid>
       {linkedIdentities.twitter && (
         <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h1 className='font-display text-lg font-medium'>Twitter</h1>
+          <h1 className='text-lg font-medium'>Twitter</h1>
           {linkedIdentities.twitter.map((identity) => (
             <Router
               key={identity.id}

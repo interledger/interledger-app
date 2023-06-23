@@ -69,10 +69,7 @@ export async function loader({ request }: LoaderArgs) {
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
-    header: {
-      back: route('/'),
-      title: 'Log in'
-    }
+    header: {}
   }
 }
 
@@ -108,12 +105,14 @@ export default function Page() {
         className='hidden'
       />
       <Card>
+        <h2 className='text-xl font-medium text-strong'>Log in</h2>
         <TextField
           id='email'
           label='Email'
           name='email'
           type='email'
           form='login'
+          className='mt-4'
           aria-invalid={Boolean(actionData?.errors?.email) || undefined}
           aria-describedby={
             actionData?.errors?.email ? 'email-error' : undefined
@@ -124,6 +123,8 @@ export default function Page() {
         <TextField
           id='password'
           label='Password'
+          labelLink='Forgot password?'
+          labelLinkTo={route('/recovery')}
           name='password'
           type='password'
           form='login'
@@ -142,13 +143,6 @@ export default function Page() {
           name='csrf_token'
           type='hidden'
         />
-        <div className='mt-4'>
-          <Router to={route('/recovery')} aria-label='Forgot password?'>
-            <span className='text-sm font-medium text-primary'>
-              Forgot password
-            </span>
-          </Router>
-        </div>
       </Card>
       <Button form='login' type='submit'>
         Log in
