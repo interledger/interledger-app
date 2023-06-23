@@ -21,6 +21,8 @@ type Wallet struct {
 
 type WalletCtxKey string
 
+var CtxKey = WalletCtxKey("wallet_key")
+
 type Address struct {
 	url *url.URL
 }

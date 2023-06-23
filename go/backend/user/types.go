@@ -12,3 +12,5 @@ type Wallet struct {
 }
 
 type UserCtxKey string
+
+var CtxKey = UserCtxKey("user")

@@ -2,10 +2,14 @@ package ops
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
+	client "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/user"
 )
 
@@ -63,4 +67,54 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 		return nil, user.ErrNoUserFound
 	}
 	return u, nil
+}
+
+func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
+	defer cancel()
+
+	var userIDs []string
+	err := b.DB().SelectContext(ctx, &userIDs, "SELECT user_id FROM user_wallets WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, user.ErrNoUserFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var wg sync.WaitGroup
+	var mx sync.Mutex
+
+	// Required for kratos to use admin server
+	ctx = context.WithValue(ctx, client.ContextServerIndex, 1)
+
+	var resp []user.User
+	var anyErr error
+
+	// Required to check so test can pass due to kratos not being mocked.
+	if b.Kratos() != nil {
+		for _, userID := range userIDs {
+			wg.Add(1)
+			go func(uID string) {
+				defer wg.Done()
+				id, _, err := b.Kratos().V0alpha2Api.AdminGetIdentity(ctx, uID).Execute()
+				if err != nil {
+					anyErr = err
+					return
+				}
+
+				// lock
+				mx.Lock()
+				defer mx.Unlock()
+				resp = append(resp, convertTraits(id.Id, id.Traits))
+			}(userID)
+		}
+	}
+
+	wg.Wait()
+	if anyErr != nil {
+		return nil, anyErr
+	}
+
+	return resp, nil
 }

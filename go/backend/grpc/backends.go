@@ -28,6 +28,7 @@ import (
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
+	"gitlab.com/fynbos/backend/wallets"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -60,4 +61,5 @@ type Backends interface {
 	Keys() keys.Client
 	BasisTheory() basistheory.Client
 	Features() features.Client
+	Wallets() wallets.Client
 }
