@@ -82,6 +82,7 @@ declare module "routes-gen" {
       | ["/settings/password"]
       | ["/waitlist/success"]
       | ["/connect/twitter"]
+      | ["/connect/linkedin"]
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/personal-details"]

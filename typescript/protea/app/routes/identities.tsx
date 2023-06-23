@@ -129,18 +129,63 @@ export default function Page() {
           </div>
         </Card>
       )}
-      {!linkedIdentities.linkedIn && (
-        <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <div className='flex items-center space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-              <LinkedInIcon />
+      {linkedIdentities.linkedin && (
+          <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <h1 className='font-display text-lg font-medium'>Linkedin</h1>
+            {linkedIdentities.linkedin.map((identity) => (
+                <Router
+                    key={identity.id}
+                    className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium first-of-type:mt-6 hover:bg-nav-hover'
+                    to={route('/identities/:identityId', {
+                      identityId: identity.id
+                    })}
+                >
+                  <div className='flex space-x-3'>
+                    <LinkedInIcon className='text-medium' />
+                    <span>@{identity.identifier}</span>
+                  </div>
+                  <div className='flex space-x-3'>
+                    {identity.state == 'verified' && (
+                        <Chip color={ChipColor.green}>Verified</Chip>
+                    )}
+                    {identity.state == 'unverified' && (
+                        <Chip color={ChipColor.yellow}>Unverified</Chip>
+                    )}
+                    {identity.state == 'failed' && (
+                        <Chip color={ChipColor.red}>Failed</Chip>
+                    )}
+                    {identity.state == 'pending' && (
+                        <Chip color={ChipColor.orange}>Pending</Chip>
+                    )}
+                    <Icon>navigate_next</Icon>
+                  </div>
+                </Router>
+            ))}
+            <Router
+                className='mt-4 rounded text-sm font-medium text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
+                to={route('/connect/linkedin')}
+            >
+              Connect another Linkedin identity
+            </Router>
+          </Card>
+      )}
+      {!linkedIdentities.linkedin && (
+          <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+            <div className='flex items-center space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <LinkedInIcon />
+              </div>
+              <div className='flex flex-col space-y-1'>
+                <h1 className='font-medium text-medium'>Linkedin</h1>
+                <Router
+                    className='text-sm font-medium text-primary'
+                    to={route('/connect/linkedin')}
+                >
+                  Connect a Linkedin identity
+                </Router>
+              </div>
             </div>
-            <div className='flex flex-col space-y-1'>
-              <h1 className='font-medium text-medium'>LinkedIn</h1>
-              <p className='text-sm font-medium text-disabled'>Coming soon</p>
-            </div>
-          </div>
-        </Card>
+          </Card>
       )}
       {!linkedIdentities.facebook && (
         <Card className='col-span-full space-y-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
