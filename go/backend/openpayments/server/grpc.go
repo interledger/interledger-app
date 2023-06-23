@@ -10,7 +10,9 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/openpayments/workflows"
+	"gitlab.com/fynbos/log"
 	pb "gitlab.com/fynbos/proto/backend/v1"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -356,11 +358,13 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 
 	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
+		log.Error(err.Error(), zap.Error(err))
 		return nil, UnauthenticatedError("no login found")
 	}
 
 	wallet, err := g.b.Users().WalletForContext(ctx)
 	if err != nil {
+		log.Error(err.Error(), zap.Error(err))
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
@@ -375,23 +379,28 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 
 	err = g.b.Validator().Struct(args)
 	if err != nil {
+		log.Error(err.Error(), zap.Error(err))
 		return nil, toGRPCError(err)
 	}
 
 	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)
 	if err != nil {
+		log.Error(err.Error(), zap.Error(err))
 		return nil, toGRPCError(err)
 	}
 
+	log.Info("checking 3ds session", zap.String("3ds sessionID", args.ThreeDSID), zap.String("idempotencyKey", args.IdempotencyKey))
 	if args.ThreeDSID != "" {
 		session3DS, err := g.b.Tabapay().Get3DSSession(ctx, args.ThreeDSID)
 		if err != nil {
+			log.Error(err.Error(), zap.Error(err))
 			return nil, toGRPCError(err)
 		}
 
 		// the 3ds session is initialized with orderID=idempotency key
 		if session3DS.OrderID != args.IdempotencyKey {
 			err = fmt.Errorf("%w 3DS session invalid.", openpayments.ErrInternal)
+			log.Error(err.Error(), zap.Error(err))
 			return nil, toGRPCError(err)
 		}
 	}
@@ -401,6 +410,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 
 	op, err := workflows.StartOutgoingPayment(ctx, g.b, args)
 	if err != nil {
+		log.Error(err.Error(), zap.Error(err))
 		return nil, toGRPCError(err)
 	}
 

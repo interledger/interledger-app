@@ -9,8 +9,10 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	http_log "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/log"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 func (s *rpcService) CreateCard(
@@ -89,6 +91,7 @@ func (s *rpcService) Init3DS(
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+	log.Info("init 3ds", zap.String("3ds session", init3DS.ID), zap.String("IdempotencyKey", req.GetIdempotencyKey()))
 
 	return &backendv1.Init3DSResponse{
 		Id:                  init3DS.ID,
@@ -101,6 +104,7 @@ func (s *rpcService) Init3DS(
 func (s *rpcService) Lookup3DS(
 	ctx context.Context, req *backendv1.Lookup3DSRequest,
 ) (*backendv1.Lookup3DSResponse, error) {
+	log.Info("lookup 3ds", zap.String("3ds session", req.GetThreeDSID()), zap.String("IdempotencyKey", req.GetIdempotencyKey()))
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
