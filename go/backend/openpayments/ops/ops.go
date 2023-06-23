@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 )
 
@@ -469,8 +470,34 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 		}
 	}
 
-	// Target Payment Pointer exists, Machnet wallet exists, it's not sending to itself, authenticated request
-	return true, nil
+	// check recv pp has a linked account that is verified and receive enabled.
+	receiveLAs, err := b.LinkedAccounts().ListByWalletId(ctx, pp.WalletID)
+	if err != nil {
+		return false, err
+	}
+	var canReceive bool
+	for _, la := range receiveLAs {
+		if la.CanReceive && la.State == linkedaccounts.Verified {
+			canReceive = true
+			break
+		}
+	}
+
+	// check sending wallet has a linked account that is verified and send enabled.
+	sendLAs, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return false, err
+	}
+	var canSend bool
+	for _, la := range sendLAs {
+		if la.CanSend && la.State == linkedaccounts.Verified {
+			canSend = true
+			break
+		}
+	}
+
+	// Target Payment Pointer exists and can receive, sending wallet can send, it's not sending to itself, authenticated request
+	return canReceive && canSend, nil
 }
 
 func GetWalletPaymentPointer(ctx context.Context, b Backends, walletID string) (*openpayments.PaymentPointer, error) {

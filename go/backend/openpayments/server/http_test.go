@@ -403,18 +403,21 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 			Type:       gmt.TypeBankAccount,
 			CanSend:    true,
 			CanReceive: true,
+			State:      linkedaccounts.Verified,
 		}, {
 			ID:         uuid.NewString(),
 			Provider:   gmt.ProviderName,
 			Type:       gmt.TypeBankAccount,
 			CanSend:    true,
 			CanReceive: true,
+			State:      linkedaccounts.Verified,
 		}, {
 			ID:         uuid.NewString(),
 			Provider:   gmt.ProviderName,
 			Type:       gmt.TypeBankAccount,
 			CanSend:    true,
 			CanReceive: true,
+			State:      linkedaccounts.Verified,
 		},
 		}, nil).Times(2)
 

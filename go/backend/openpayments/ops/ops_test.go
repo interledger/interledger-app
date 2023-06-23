@@ -814,6 +814,17 @@ func TestValidateCanSend(t *testing.T) {
 				require.NoError(t, err)
 			}
 
+			laClient.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
+				{
+					ID:         uuid.NewString(),
+					Provider:   gmt.ProviderName,
+					Type:       gmt.TypeBankAccount,
+					CanSend:    true,
+					CanReceive: true,
+					State:      linkedaccounts.Verified,
+				},
+			}, nil).AnyTimes()
+
 			walletID := sendWallet.ID
 			if tc.unauthed {
 				walletID = ""

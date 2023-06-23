@@ -43,8 +43,13 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 	recvPPURL := ip.PaymentPointer
 
 	// Check that the recv payment pointer can receive
-	_, err = getDefaultRecvAcc(ctx, b, recvPPURL)
+	receiveLA, err := getDefaultRecvAcc(ctx, b, recvPPURL)
 	if err != nil {
+		span.RecordError(err)
+		return nil, err
+	}
+	if !receiveLA.CanReceive || receiveLA.State != linkedaccounts.Verified {
+		err = fmt.Errorf("%w receive linked account (%s) not receive enabled", openpayments.ErrPaymentPointerCannotRecv, receiveLA.ID)
 		span.RecordError(err)
 		return nil, err
 	}
@@ -61,8 +66,10 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		span.RecordError(err)
 		return nil, err
 	}
-	if !sendLA.CanSend {
-		return nil, fmt.Errorf("%w send linked account (%s) not send enabled", openpayments.ErrInternal, q.FromLinkedAccount)
+	if !sendLA.CanSend || sendLA.State != linkedaccounts.Verified {
+		err = fmt.Errorf("%w send linked account (%s) not send enabled", openpayments.ErrPaymentPointerCannotSend, q.FromLinkedAccount)
+		span.RecordError(err)
+		return nil, err
 	}
 
 	// Check if we have already created this outgoing transaction and just return it.
