@@ -11,6 +11,7 @@ import {
   AnchorRouter,
   Button,
   Card,
+  CardContent,
   Chip,
   ChipColor,
   FynbosIcon,
@@ -21,6 +22,7 @@ import {
   Snackbar,
   TwitterIcon
 } from '~/components'
+import { Label } from '~/components/Label'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
@@ -136,132 +138,132 @@ export default function Page() {
   return (
     <>
       <Card>
-        <div className='flex w-full items-center justify-center'>
-          {profilePicture && (
-            <Image
-              pictureClassName='m-0'
-              className='aspect-square'
-              data={
-                profilePicture?.person?.avatar
-                  ?.responsiveImage as ResponsiveImageType
-              }
-            />
-          )}
-        </div>
-
-        <h1
-          className={clsx(
-            profilePicture && 'mt-6',
-            'text-center font-display text-2xl font-medium'
-          )}
-        >
-          {wallet.publicName}
-          {/*TODO Possibly put this edit button in the header*/}
-          {/*{editable && (*/}
-          {/*  <Router to={route('/settings/profile-public')}>*/}
-          {/*    <Icon>edit</Icon>*/}
-          {/*  </Router>*/}
-          {/*)}*/}
-        </h1>
-        <p className='ml-2 mt-6 text-sm font-medium text-medium'>
-          Wallet address
-        </p>
-        <button
-          type='button'
-          onClick={async () => {
-            if (typeof navigator.clipboard == 'undefined') {
-              setSnackbar({
-                message: "Couldn't copy to clipboard.",
-                icon: 'close',
-                show: true
-              })
-              setShowSnackbar(true)
-            } else
-              navigator.clipboard.writeText(walletAddress).then(
-                () => {
-                  setSnackbar({
-                    message: 'Payment pointer copied to clipboard.',
-                    icon: 'close',
-                    show: true
-                  })
-                  setShowSnackbar(true)
-                },
-                () => {
-                  setSnackbar({
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    show: true
-                  })
-                  setShowSnackbar(true)
+        <CardContent>
+          <div className='flex w-full items-center justify-center'>
+            {profilePicture && (
+              <Image
+                pictureClassName='m-0'
+                className='aspect-square'
+                data={
+                  profilePicture?.person?.avatar
+                    ?.responsiveImage as ResponsiveImageType
                 }
-              )
-          }}
-          className='mt-2 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
-        >
-          <span className='text-medium'>{walletAddress}</span>
-          <Icon className='text-medium'>content_copy</Icon>
-        </button>
-        {identities.length > 0 && (
-          <p className='ml-2 mt-6 text-sm font-medium text-medium'>Twitter</p>
-        )}
-        {identities.map((identity) => (
-          <Router
-            key={identity.id}
-            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-            to={route('/me/identities/:identityId', {
-              identityId: identity.signatureHash
-            })}
+              />
+            )}
+          </div>
+
+          <h1
+            className={clsx(
+              profilePicture && 'mt-6',
+              'text-center text-2xl font-medium'
+            )}
           >
-            <div className='flex space-x-3'>
-              <TwitterIcon />
-              <span>@{identity.identifier}</span>
-            </div>
-            <div className='flex space-x-3'>
-              {identity.state == 'verified' && (
-                <Chip color={ChipColor.green}>Verified</Chip>
-              )}
-              <Icon>navigate_next</Icon>
-            </div>
-          </Router>
-        ))}
-        {paymentPointerParam.includes('fynbos.me/adrian') && (
-          <>
-            <p className='ml-2 mt-6 text-sm font-medium text-medium'>
-              LinkedIn
-            </p>
-            <AnchorRouter
+            {wallet.publicName}
+            {/*TODO Possibly put this edit button in the header*/}
+            {/*{editable && (*/}
+            {/*  <Router to={route('/settings/profile-public')}>*/}
+            {/*    <Icon>edit</Icon>*/}
+            {/*  </Router>*/}
+            {/*)}*/}
+          </h1>
+          <Label className='mt-6'>Wallet address</Label>
+          <button
+            type='button'
+            onClick={async () => {
+              if (typeof navigator.clipboard == 'undefined') {
+                setSnackbar({
+                  message: "Couldn't copy to clipboard.",
+                  icon: 'close',
+                  show: true
+                })
+                setShowSnackbar(true)
+              } else
+                navigator.clipboard.writeText(walletAddress).then(
+                  () => {
+                    setSnackbar({
+                      message: 'Payment pointer copied to clipboard.',
+                      icon: 'close',
+                      show: true
+                    })
+                    setShowSnackbar(true)
+                  },
+                  () => {
+                    setSnackbar({
+                      message: "Couldn't copy to clipboard.",
+                      icon: 'close',
+                      show: true
+                    })
+                    setShowSnackbar(true)
+                  }
+                )
+            }}
+            className='mt-2 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
+          >
+            <span className='text-medium'>{walletAddress}</span>
+            <Icon className='text-medium'>content_copy</Icon>
+          </button>
+          {identities.length > 0 && (
+            <p className='ml-2 mt-6 text-sm font-medium text-medium'>Twitter</p>
+          )}
+          {identities.map((identity) => (
+            <Router
+              key={identity.id}
               className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-              to='https://www.linkedin.com/in/adrianhopebailie/'
+              to={route('/me/identities/:identityId', {
+                identityId: identity.signatureHash
+              })}
             >
               <div className='flex space-x-3'>
-                <LinkedInIcon />
-                <span>Adrian Hope-Bailie</span>
+                <TwitterIcon />
+                <span>@{identity.identifier}</span>
               </div>
               <div className='flex space-x-3'>
+                {identity.state == 'verified' && (
+                  <Chip color={ChipColor.green}>Verified</Chip>
+                )}
                 <Icon>navigate_next</Icon>
               </div>
-            </AnchorRouter>
-          </>
-        )}
-        {paymentPointerParam.includes('fynbos.me/matt') && (
-          <>
-            <p className='ml-2 mt-6 text-sm font-medium text-medium'>
-              LinkedIn
-            </p>
-            <AnchorRouter
-              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-              to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
-            >
-              <div className='flex space-x-3'>
-                <LinkedInIcon />
-                <span>Matthew de Haast</span>
-              </div>
-              <div className='flex space-x-3'>
-                <Icon>navigate_next</Icon>
-              </div>
-            </AnchorRouter>
-          </>
-        )}
+            </Router>
+          ))}
+          {paymentPointerParam.includes('fynbos.me/adrian') && (
+            <>
+              <p className='ml-2 mt-6 text-sm font-medium text-medium'>
+                LinkedIn
+              </p>
+              <AnchorRouter
+                className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+                to='https://www.linkedin.com/in/adrianhopebailie/'
+              >
+                <div className='flex space-x-3'>
+                  <LinkedInIcon />
+                  <span>Adrian Hope-Bailie</span>
+                </div>
+                <div className='flex space-x-3'>
+                  <Icon>navigate_next</Icon>
+                </div>
+              </AnchorRouter>
+            </>
+          )}
+          {paymentPointerParam.includes('fynbos.me/matt') && (
+            <>
+              <p className='ml-2 mt-6 text-sm font-medium text-medium'>
+                LinkedIn
+              </p>
+              <AnchorRouter
+                className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+                to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
+              >
+                <div className='flex space-x-3'>
+                  <LinkedInIcon />
+                  <span>Matthew de Haast</span>
+                </div>
+                <div className='flex space-x-3'>
+                  <Icon>navigate_next</Icon>
+                </div>
+              </AnchorRouter>
+            </>
+          )}
+        </CardContent>
       </Card>
       <Form
         id='me'
@@ -285,9 +287,7 @@ export default function Page() {
       )}
       {!isUser && (
         <Card className='space-y-4'>
-          <h1 className='font-display text-lg font-medium'>
-            Join the waitlist
-          </h1>
+          <h1 className='text-lg font-medium'>Join the waitlist</h1>
           <div className='flex items-start space-x-4'>
             <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
               <FynbosIcon />

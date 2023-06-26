@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import type {
   Amount,
+  Features,
   GetPublicWalletDetailsResponse,
   Transaction as GrpcTransaction,
   Identity,
@@ -37,6 +38,25 @@ export async function getKycStatus(
 ): Promise<KYCStatusResponse> {
   const response = await grpcClient
     .kYCStatus(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function getFeatures(request: Request): Promise<Features> {
+  const response = await grpcClient
+    .listFeatures(
       {},
       {
         meta: {
