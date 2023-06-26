@@ -4,7 +4,14 @@ import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts, LoadingShapes, Shape } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  LoadingShapes,
+  Shape
+} from '~/components'
 import {
   StatusError,
   grpcClient,
@@ -72,77 +79,80 @@ export default function Page() {
       />
       {id && (
         <Card>
-          <LoadingShapes />
+          <CardContent>
+            <LoadingShapes />
+          </CardContent>
         </Card>
       )}
       {!id && (
         <>
           <Card>
-            <span>
-              We will guide you through the following steps in order to link
-              your Twitter account:
-            </span>
-            <div className='mt-10 flex items-start'>
-              <Shape
-                width='w-8'
-                flex='flex-none'
-                radius='rounded-tl-full'
-                color='bg-yellow-400'
-              />
-              <Shape
-                width='w-8'
-                flex='flex-none'
-                radius='rounded-tl-full'
-                color='bg-rose-300'
-              />
-              <div className='ml-5'>
-                <h3 className='mb-1 font-medium text-strong'>Log in</h3>
-                <p className='text-sm text-medium'>
-                  Open and log in to Twitter.
-                </p>
+            <CardContent>
+              <span>
+                We will guide you through the following steps in order to link
+                your Twitter account:
+              </span>
+              <div className='mt-10 flex items-start'>
+                <Shape
+                  width='w-8'
+                  flex='flex-none'
+                  radius='rounded-tl-full'
+                  color='bg-yellow-400'
+                />
+                <Shape
+                  width='w-8'
+                  flex='flex-none'
+                  radius='rounded-l-full'
+                  color='bg-rose-300'
+                />
+                <div className='ml-5'>
+                  <h3 className='mb-1 font-medium text-strong'>Log in</h3>
+                  <p className='text-medium'>Open and log in to Twitter.</p>
+                </div>
               </div>
-            </div>
-            <div className='mt-10 flex items-start'>
-              <Shape
-                width='w-8'
-                flex='flex-none'
-                radius='rounded-full'
-                color='bg-lime-400'
-              />
-              <Shape
-                width='w-8'
-                flex='flex-none'
-                radius='rounded-tl-full'
-                color='bg-slate-300'
-              />
-              <div className='ml-5'>
-                <h3 className='mb-1 font-medium text-strong'>Authorize</h3>
-                <p className='text-sm text-medium'>
-                  Grant Fynbos permission to connect to your Twitter account.
-                </p>
+              <div className='mt-10 flex items-start'>
+                <Shape
+                  width='w-8'
+                  flex='flex-none'
+                  radius='rounded-full'
+                  color='bg-lime-400'
+                />
+                <Shape
+                  width='w-8'
+                  flex='flex-none'
+                  radius='rounded-tl-full rounded-br-full'
+                  color='bg-indigo-400'
+                />
+                <div className='ml-5'>
+                  <h3 className='mb-1 font-medium text-strong'>Authorize</h3>
+                  <p className='text-medium'>
+                    Grant Fynbos permission to connect to your Twitter account.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className='mt-10 flex items-start'>
-              <Shape
-                width='w-8'
-                flex='flex-none'
-                radius='rounded-full'
-                color='bg-yellow-300'
-              />
-              <Shape
-                width='w-8'
-                flex='flex-none'
-                radius='rounded-r-full'
-                color='bg-sky-300'
-              />
-              <div className='ml-5'>
-                <h3 className='mb-1 font-medium text-strong'>Tweet</h3>
-                <p className='text-sm text-medium'>
-                  Keep the generated Tweet on your timeline which contains a
-                  signature that proves you are the owner of your Fynbos wallet.
-                </p>
+              <div className='mt-10 flex items-start'>
+                <Shape
+                  width='w-8'
+                  flex='flex-none'
+                  radius='rounded-full rounded-bl-none'
+                  color='bg-yellow-300'
+                />
+                <Shape
+                  width='w-8'
+                  flex='flex-none'
+                  radius='rounded-r-full'
+                  color='bg-sky-300'
+                />
+                <div className='ml-5'>
+                  <h3 className='mb-1 font-medium text-strong'>Tweet</h3>
+                  <p className='text-medium'>
+                    Keep the generated Tweet on your timeline which contains a
+                    signature that proves you are the owner of your Fynbos
+                    wallet.
+                  </p>
+                </div>
               </div>
-            </div>
+            </CardContent>
           </Card>
           <Button form='connect-twitter' type='submit'>
             Continue
