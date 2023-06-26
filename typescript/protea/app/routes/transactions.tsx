@@ -8,6 +8,7 @@ import type { ApplicationProps } from '~/components'
 import {
   AnimatedSchedule,
   Card,
+  Fab,
   Icon,
   Layouts,
   Router,
@@ -75,8 +76,10 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Transactions'
-    }
+      title: 'Transactions',
+      actions: [{ type: 'shapes' }]
+    },
+    fab: Fab.Pay
   }
 }
 
