@@ -45,6 +45,7 @@ const CardTitle = forwardRef<
 })
 CardTitle.displayName = 'CardTitle'
 
+// TODO: Add icon prop to insert icon left of title
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={clsx('p-4', className)} {...props} />
