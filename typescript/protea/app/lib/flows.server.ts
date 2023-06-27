@@ -134,13 +134,13 @@ const flowTemplate = (type: flowType): Flow => {
       }
     case flowType.LinkCardAccount:
       return {
-        startRoute: route('/link-account/card'),
+        startRoute: route('/connect/card'),
         data: {},
         returnTo: route('/accounts')
       }
     case flowType.LinkBankAccount:
       return {
-        startRoute: route('/link-account/bank'),
+        startRoute: route('/connect/bank'),
         data: {},
         returnTo: route('/accounts')
       }

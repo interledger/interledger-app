@@ -12,6 +12,9 @@ import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Layouts,
   Router,
   Snackbar,
@@ -105,37 +108,41 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <h2 className='text-xl font-medium text-strong'>Log in</h2>
-        <TextField
-          id='email'
-          label='Email'
-          name='email'
-          type='email'
-          form='login'
-          className='mt-4'
-          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-          aria-describedby={
-            actionData?.errors?.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.email}
-        />
-        <TextField
-          id='password'
-          label='Password'
-          labelLink='Forgot password?'
-          labelLinkTo={route('/recovery')}
-          name='password'
-          type='password'
-          form='login'
-          className='mt-1'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
+        <CardHeader>
+          <CardTitle>Log in</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TextField
+            id='email'
+            label='Email'
+            name='email'
+            type='email'
+            form='login'
+            className='mt-4'
+            aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+            aria-describedby={
+              actionData?.errors?.email ? 'email-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.email}
+          />
+          <TextField
+            id='password'
+            label='Password'
+            labelLink='Forgot password?'
+            labelLinkTo={route('/recovery')}
+            name='password'
+            type='password'
+            form='login'
+            className='mt-1'
+            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+            aria-describedby={
+              actionData?.errors?.password ? 'password-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.password}
+          />
+        </CardContent>
 
         <input
           form='login'
