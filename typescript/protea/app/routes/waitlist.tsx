@@ -8,6 +8,7 @@ import {
   Autocomplete,
   Button,
   Card,
+  CardContent,
   Checkbox,
   Layouts,
   TextField
@@ -126,113 +127,117 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        {!mug.available && (
-          <span className='text-medium'>
-            Leave your details below and we will notify you as soon as
-            enrollment opens.
-          </span>
-        )}
-        {mug.available && (
-          <>
-            <span className='text-2xl font-medium'>Congratulations!</span>
-            <div className='mt-4 flex flex-col space-y-4 sm:flex-row-reverse sm:items-center sm:space-x-6 sm:space-y-0 sm:space-x-reverse'>
-              <span className='text-medium'>
-                You got your hands on a limited edition Fynbos mug.
+        <CardContent>
+          {!mug.available && (
+            <span className='text-medium'>
+              Leave your details below and we will notify you as soon as
+              enrollment opens.
+            </span>
+          )}
+          {mug.available && (
+            <>
+              <span className='text-2xl font-medium'>Congratulations!</span>
+              <div className='mt-4 flex flex-col space-y-4 sm:flex-row-reverse sm:items-center sm:space-x-6 sm:space-y-0 sm:space-x-reverse'>
+                <span className='text-medium'>
+                  You got your hands on a limited edition Fynbos mug.
+                </span>
+                <img
+                  className='w-full sm:w-2/5'
+                  alt='Fynbos mug'
+                  src='https://cdn.fynbos.app/marketing/enamel-mug-waitlist.webp'
+                />
+              </div>
+              <span className='mt-6 text-medium'>
+                Each mug has a unique payment pointer - now this one could be
+                yours.
               </span>
-              <img
-                className='w-full sm:w-2/5'
-                alt='Fynbos mug'
-                src='https://cdn.fynbos.app/marketing/enamel-mug-waitlist.webp'
+              <span className='mt-4 text-medium'>
+                Sign up to the waitlist and we'll link this mug's payment
+                pointer to your Fynbos wallet.
+              </span>
+              <span className='mt-4 text-medium'>
+                If you’re already on the waitlist, submit your details again and
+                we’ll link your mug to your existing details.
+              </span>
+              <span className='mt-6 font-medium'>Join the waitlist</span>
+              <input
+                type='hidden'
+                form='join-waitlist'
+                name='mugId'
+                value={mug.id as string}
               />
-            </div>
-            <span className='mt-6 text-medium'>
-              Each mug has a unique payment pointer - now this one could be
-              yours.
-            </span>
-            <span className='mt-4 text-medium'>
-              Sign up to the waitlist and we'll link this mug's payment pointer
-              to your Fynbos wallet.
-            </span>
-            <span className='mt-4 text-medium'>
-              If you’re already on the waitlist, submit your details again and
-              we’ll link your mug to your existing details.
-            </span>
-            <span className='mt-6 font-medium'>Join the waitlist</span>
-            <input
-              type='hidden'
-              form='join-waitlist'
-              name='mugId'
-              value={mug.id as string}
-            />
-          </>
-        )}
+            </>
+          )}
 
-        <TextField
-          id='fullName'
-          form='join-waitlist'
-          label='Full name'
-          name='fullName'
-          type='text'
-          defaultValue={fullName as string}
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
-          aria-describedby={
-            actionData?.errors.fullName ? 'lastName-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.fullName}
-        />
-        <TextField
-          id='email'
-          form='join-waitlist'
-          label='Email address'
-          name='email'
-          defaultValue={email as string}
-          type='text'
-          className='mt-1'
-          aria-invalid={Boolean(actionData?.errors.email) || undefined}
-          aria-describedby={
-            actionData?.errors.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.email}
-        />
-        <Autocomplete
-          id='country'
-          value={country}
-          onChange={setCountry}
-          onQuery={setQuery}
-          options={filteredCountries}
-          label='Country of residence'
-          className='mt-1'
-          aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
-          aria-describedby={
-            actionData?.errors.countryCode ? 'country-error' : undefined
-          }
-          errorMessage={actionData?.errors.countryCode}
-        />
-        <input
-          id='country'
-          form='join-waitlist'
-          value={String(country?.id)}
-          name='country'
-          type='hidden'
-        />
-        <span className='mt-4 font-medium text-strong'>Beta testing</span>
-        <span className='mt-4 text-sm text-medium'>
-          We are looking for users to help us test new features before we make
-          them generally available. Beta testers will get access to pre-release
-          features and in exchange will need to complete some tests to help us
-          ensure they're ready for release.
-        </span>
-        <Checkbox
-          id='beta'
-          name='beta'
-          form='join-waitlist'
-          className='mt-6 flex'
-        >
-          <span className='text-medium'>Yes, sign me up for beta testing</span>
-        </Checkbox>
+          <TextField
+            id='fullName'
+            form='join-waitlist'
+            label='Full name'
+            name='fullName'
+            type='text'
+            defaultValue={fullName as string}
+            className='mt-6'
+            aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
+            aria-describedby={
+              actionData?.errors.fullName ? 'lastName-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors.fullName}
+          />
+          <TextField
+            id='email'
+            form='join-waitlist'
+            label='Email address'
+            name='email'
+            defaultValue={email as string}
+            type='text'
+            className='mt-1'
+            aria-invalid={Boolean(actionData?.errors.email) || undefined}
+            aria-describedby={
+              actionData?.errors.email ? 'email-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors.email}
+          />
+          <Autocomplete
+            id='country'
+            value={country}
+            onChange={setCountry}
+            onQuery={setQuery}
+            options={filteredCountries}
+            label='Country of residence'
+            className='mt-1'
+            aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
+            aria-describedby={
+              actionData?.errors.countryCode ? 'country-error' : undefined
+            }
+            errorMessage={actionData?.errors.countryCode}
+          />
+          <input
+            id='country'
+            form='join-waitlist'
+            value={String(country?.id)}
+            name='country'
+            type='hidden'
+          />
+          <span className='mt-4 font-medium text-strong'>Beta testing</span>
+          <span className='mt-4 text-sm text-medium'>
+            We are looking for users to help us test new features before we make
+            them generally available. Beta testers will get access to
+            pre-release features and in exchange will need to complete some
+            tests to help us ensure they're ready for release.
+          </span>
+          <Checkbox
+            id='beta'
+            name='beta'
+            form='join-waitlist'
+            className='mt-6 flex'
+          >
+            <span className='text-medium'>
+              Yes, sign me up for beta testing
+            </span>
+          </Checkbox>
+        </CardContent>
       </Card>
       <Button form='join-waitlist' type='submit'>
         Join now

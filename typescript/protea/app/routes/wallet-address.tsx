@@ -5,7 +5,15 @@ import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Icon, Layouts, Snackbar, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Icon,
+  Layouts,
+  Snackbar,
+  TextField
+} from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -119,62 +127,46 @@ export default function Page() {
         type='hidden'
       />
       <Card>
-        <p className='text-medium'>Create your unique wallet address below.</p>
-        <TextField
-          id='username'
-          form='wallet-address'
-          label='Wallet address'
-          name='username'
-          prefix={`${paymentPointerBase}/`}
-          appendIcon={
-            username == '' &&
-            typeof fetcher.data == 'undefined' ? undefined : fetcher.data
-                ?.errors.username ? (
-              <Icon className='text-error'>error</Icon>
-            ) : (
-              <Icon className='text-success'>check</Icon>
-            )
-          }
-          defaultValue={username}
-          onChange={_onChangeInput}
-          type='text'
-          className='mt-4'
-          aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.username ? 'username-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.username || undefined}
-          successMessage={
-            fetcher.data?.errors.username || username == ''
-              ? undefined
-              : 'This wallet address is available.'
-          }
-        />
+        <CardContent>
+          <p className='text-medium'>
+            Create your unique wallet address below.
+          </p>
+          <TextField
+            id='username'
+            form='wallet-address'
+            label='Wallet address'
+            name='username'
+            prefix={`${paymentPointerBase}/`}
+            appendIcon={
+              username == '' &&
+              typeof fetcher.data == 'undefined' ? undefined : fetcher.data
+                  ?.errors.username ? (
+                <Icon className='text-error'>error</Icon>
+              ) : (
+                <Icon className='text-success'>check</Icon>
+              )
+            }
+            defaultValue={username}
+            onChange={_onChangeInput}
+            type='text'
+            className='mt-4'
+            aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
+            aria-describedby={
+              fetcher.data?.errors.username ? 'username-error' : undefined
+            }
+            errorMessage={fetcher.data?.errors.username || undefined}
+            successMessage={
+              fetcher.data?.errors.username || username == ''
+                ? undefined
+                : 'This wallet address is available.'
+            }
+          />
+        </CardContent>
         <input
           form='wallet-address'
           value='true'
           name='canSubmit'
           type='hidden'
-        />
-      </Card>
-      <Card>
-        <p className='text-medium'>
-          Add a name as you would like it to appear on your public Fynbos.me
-          page.
-        </p>
-        <TextField
-          id='publicName'
-          form='wallet-address'
-          label='Public name'
-          name='publicName'
-          defaultValue={publicName}
-          type='text'
-          className='mt-4'
-          aria-invalid={Boolean(fetcher.data?.errors.publicName) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.publicName ? 'public-name-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.publicName || undefined}
         />
       </Card>
       <Button form='wallet-address' type='submit'>
@@ -194,14 +186,12 @@ export default function Page() {
 }
 
 // The field names given by the backend for field violations
-type fieldErrorsMap = 'url' | 'Alias'
+type fieldErrorsMap = 'url'
 
-function mapper(field: fieldErrorsMap): 'username' | 'publicName' | null {
+function mapper(field: fieldErrorsMap): 'username' | null {
   switch (field) {
     case 'url':
       return 'username'
-    case 'Alias':
-      return 'publicName'
     default:
       return null
   }
@@ -211,14 +201,14 @@ export async function action({ request }: ActionArgs) {
   const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
   const username = form.get('username') as string
-  const publicName = form.get('publicName')?.toString() ?? ''
   const canSubmit = Boolean(form.get('canSubmit') as string)
 
   const fieldErrors = {
     form: '',
-    username: '',
-    publicName: ''
+    username: ''
   }
+
+  const publicName = username
 
   let response = await openPaymentsClient
     .paymentPointerExists({

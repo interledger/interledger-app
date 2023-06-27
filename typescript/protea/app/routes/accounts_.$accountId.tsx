@@ -28,8 +28,9 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/accounts'),
-      title: 'Account name'
-    }
+      title: (match) => match.data.name
+    },
+    isNested: true
   }
 }
 
