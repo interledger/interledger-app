@@ -8,6 +8,7 @@ import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
+  CardContent,
   Checkbox,
   Layouts,
   Router,
@@ -109,53 +110,57 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <p>Create a password to log in to your account securely.</p>
+        <CardContent>
+          <p>Create a password to log in to your account securely.</p>
 
-        <TextField
-          id='password'
-          label='Password'
-          name='password'
-          form='signup-password'
-          type='password'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.password) || undefined}
-          aria-describedby={
-            actionData?.errors.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.password}
-        />
+          <TextField
+            id='password'
+            label='Password'
+            name='password'
+            form='signup-password'
+            type='password'
+            className='mt-6'
+            aria-invalid={Boolean(actionData?.errors.password) || undefined}
+            aria-describedby={
+              actionData?.errors.password ? 'password-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors.password}
+          />
+        </CardContent>
       </Card>
       <Card>
-        <Checkbox
-          id='service-agreement'
-          name='service-agreement'
-          form='signup-password'
-          className='flex'
-          aria-invalid={
-            Boolean(actionData?.errors.serviceAgreement) || undefined
-          }
-          aria-describedby={
-            actionData?.errors.serviceAgreement
-              ? 'serviceAgreement-error'
-              : undefined
-          }
-          errorMessage={actionData?.errors.serviceAgreement}
-        >
-          I agree to the Fynbos&nbsp;
-          <Router className='text-primary' to='/legal/privacy-policy'>
-            Privacy Policy
-          </Router>
-          ,&nbsp;
-          <Router className='text-primary' to='/legal/terms-of-service'>
-            Terms of Use
-          </Router>
-          , and&nbsp;
-          <Router className='text-primary' to='/legal/us/e-sign-agreement'>
-            E-sign Agreement
-          </Router>
-          .
-        </Checkbox>
+        <CardContent>
+          <Checkbox
+            id='service-agreement'
+            name='service-agreement'
+            form='signup-password'
+            className='flex'
+            aria-invalid={
+              Boolean(actionData?.errors.serviceAgreement) || undefined
+            }
+            aria-describedby={
+              actionData?.errors.serviceAgreement
+                ? 'serviceAgreement-error'
+                : undefined
+            }
+            errorMessage={actionData?.errors.serviceAgreement}
+          >
+            I agree to the Fynbos&nbsp;
+            <Router className='text-primary' to='/legal/privacy-policy'>
+              Privacy Policy
+            </Router>
+            ,&nbsp;
+            <Router className='text-primary' to='/legal/terms-of-service'>
+              Terms of Use
+            </Router>
+            , and&nbsp;
+            <Router className='text-primary' to='/legal/us/e-sign-agreement'>
+              E-sign Agreement
+            </Router>
+            .
+          </Checkbox>
+        </CardContent>
 
         <input
           defaultValue={csrfToken}

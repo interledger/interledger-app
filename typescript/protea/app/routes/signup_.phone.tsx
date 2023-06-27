@@ -13,6 +13,7 @@ import {
   Button,
   ButtonRouter,
   Card,
+  CardContent,
   Dialog,
   Icon,
   Layouts,
@@ -108,40 +109,44 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        {hasVerified && <p>Your mobile phone number is verified.</p>}
-        {!hasVerified && <p>We require you to verify a mobile phone number.</p>}
+        <CardContent>
+          {hasVerified && <p>Your mobile phone number is verified.</p>}
+          {!hasVerified && (
+            <p>We require you to verify a mobile phone number.</p>
+          )}
 
-        {hasVerified && (
-          <div className='mt-6 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-            <Icon>call</Icon>
-            <span>{flow?.data?.phone}</span>
-          </div>
-        )}
+          {hasVerified && (
+            <div className='mt-6 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+              <Icon>call</Icon>
+              <span>{flow?.data?.phone}</span>
+            </div>
+          )}
 
-        {!hasVerified && (
-          <PhoneTextField
-            id='phone'
-            form='signup-phone-otp'
-            name='phone'
-            defaultCountry={flow?.data.country}
-            options={countries as PhoneAutocompleteOptions[]}
-            label='Mobile number'
-            className='mt-6'
-            aria-invalid={
-              Boolean(
+          {!hasVerified && (
+            <PhoneTextField
+              id='phone'
+              form='signup-phone-otp'
+              name='phone'
+              defaultCountry={flow?.data.country}
+              options={countries as PhoneAutocompleteOptions[]}
+              label='Mobile number'
+              className='mt-6'
+              aria-invalid={
+                Boolean(
+                  otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+                ) || undefined
+              }
+              aria-describedby={
                 otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-              ) || undefined
-            }
-            aria-describedby={
-              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-                ? 'phone-error'
-                : undefined
-            }
-            errorMessage={
-              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-            }
-          />
-        )}
+                  ? 'phone-error'
+                  : undefined
+              }
+              errorMessage={
+                otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+              }
+            />
+          )}
+        </CardContent>
       </Card>
       {hasVerified && (
         <ButtonRouter to={route('/signup/password')}>

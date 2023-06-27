@@ -8,6 +8,9 @@ import {
   AnchorRouter,
   Button,
   Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Chip,
   ChipColor,
   Layouts,
@@ -81,50 +84,52 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  // const { editable, wallet, paymentPointer, paymentPointerParam } =
-  //   useLoaderData<typeof loader>()
   const { identity, wallet, isUser } = useLoaderData<typeof loader>()
 
   return (
     <>
       {identity.state == 'verified' && (
         <Card>
-          <p>{wallet.publicName} has linked their Fynbos wallet to Twitter.</p>
-          <p className='mt-4'>
-            This identity card shows that
-            <AnchorRouter
-              to={`https://twitter.com/${identity.identifier}`}
-              className='text-primary'
-            >
-              {' '}
-              {identity.identifierWithPrefix}{' '}
-            </AnchorRouter>
-            is the same person as
-            <AnchorRouter to={identity.wallet} className='text-primary'>
-              {' '}
-              {identity.walletUrlWithoutProtocol}{' '}
-            </AnchorRouter>
-            who Fynbos have verified is a real person.
-          </p>
-          <img
-            className='mt-4 max-w-[310px]'
-            loading='lazy'
-            alt='Identity card'
-            src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
-          />
-          <div className='mt-4 flex w-full flex-col space-y-1'>
-            <span className='text-medium'>Verification date</span>
-            <span className='font-medium'>{identity.verifiedAt}</span>
-          </div>
-          <div className='mt-4 flex w-full flex-col space-y-1'>
-            <span className='text-medium'>Public proof</span>
-            <AnchorRouter
-              to={identity.proof}
-              className='break-all font-medium text-primary'
-            >
-              {identity.proof}
-            </AnchorRouter>
-          </div>
+          <CardContent>
+            <p>
+              {wallet.publicName} has linked their Fynbos wallet to Twitter.
+            </p>
+            <p className='mt-4'>
+              This identity card shows that
+              <AnchorRouter
+                to={`https://twitter.com/${identity.identifier}`}
+                className='text-primary'
+              >
+                {' '}
+                {identity.identifierWithPrefix}{' '}
+              </AnchorRouter>
+              is the same person as
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              who Fynbos have verified is a real person.
+            </p>
+            <img
+              className='mt-4 max-w-[310px]'
+              loading='lazy'
+              alt='Identity card'
+              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
+            />
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-medium'>Verification date</span>
+              <span className='font-medium'>{identity.verifiedAt}</span>
+            </div>
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-medium'>Public proof</span>
+              <AnchorRouter
+                to={identity.proof}
+                className='break-all font-medium text-primary'
+              >
+                {identity.proof}
+              </AnchorRouter>
+            </div>
+          </CardContent>
         </Card>
       )}
       <Form
@@ -145,18 +150,22 @@ export default function Page() {
         </Button>
       )}
       {!isUser && (
-        <Card className='space-y-4'>
-          <h1 className='text-lg font-medium'>What is Fynbos?</h1>
-          <p className='text-sm text-medium'>
-            Fynbos is a digital wallet for verifying identities, paying
-            contacts, and building trust.
-          </p>
-          <Router
-            className='text-sm font-medium text-primary'
-            to={route('/signup')}
-          >
-            Get your own identity card
-          </Router>
+        <Card>
+          <CardHeader>
+            <CardTitle>What is Fynbos?</CardTitle>
+          </CardHeader>
+          <CardContent className='flex flex-col space-y-4'>
+            <p className='text-medium'>
+              Fynbos is a digital wallet for verifying identities, paying
+              contacts, and building trust.
+            </p>
+            <Router
+              className='text-sm font-medium text-primary'
+              to={route('/signup')}
+            >
+              Get your own identity card
+            </Router>
+          </CardContent>
         </Card>
       )}
     </>
