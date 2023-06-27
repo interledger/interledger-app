@@ -39,6 +39,7 @@ type CreateArgs struct {
 type GetByProviderIDArgs struct {
 	Provider   string
 	ProviderID string
+	WalletID   string
 }
 
 func Requires3DS(la *LinkedAccount) bool {
