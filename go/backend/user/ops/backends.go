@@ -6,7 +6,6 @@ import (
 	kratos "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/keys"
-	"gitlab.com/fynbos/backend/user"
 )
 
 type Backends interface {
@@ -15,5 +14,4 @@ type Backends interface {
 	Kratos() *kratos.APIClient
 	Analytics() analytics.Client
 	Keys() keys.Client
-	Users() user.Client
 }

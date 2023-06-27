@@ -23,6 +23,7 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/sdk/client"
 )
 
@@ -48,6 +49,7 @@ type Backends interface {
 	OpenPayments() openpayments.Client
 	Identities() identities.Client
 	Images() images.Client
+	Wallets() wallets.Client
 	Features() features.Client
 	Twilio() twilio.Service
 }

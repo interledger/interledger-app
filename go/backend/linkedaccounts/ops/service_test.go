@@ -4,11 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
-	"gitlab.com/fynbos/backend/user"
-
-	"github.com/stretchr/testify/require"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
@@ -24,18 +22,10 @@ func TestLinkedAccounts(s *testing.T) {
 	}
 
 	s.Run("can create a linked account", func(t *testing.T) {
-		userId := uuid.NewString()
-		// Create Wallet
-		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: userId,
-			Name:   "",
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
+		walletID := uuid.NewString()
 
 		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-			WalletID:   wallet.ID,
+			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
 			Provider:   "mx",
@@ -50,24 +40,16 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.Equal(t, linkedAccount.Provider, "mx")
 		assert.Equal(t, linkedAccount.ProviderID, "")
 		assert.Equal(t, linkedAccount.Type, "bank")
-		assert.Equal(t, linkedAccount.WalletID, wallet.ID)
+		assert.Equal(t, linkedAccount.WalletID, walletID)
 		assert.True(t, linkedAccount.CanSend)
 		assert.True(t, linkedAccount.CanReceive)
 		assert.Equal(t, linkedAccount.State, linkedaccounts.OwnershipReviewRequired)
 	})
 
 	s.Run("can get a linked account", func(t *testing.T) {
-		userId := uuid.NewString()
-		// Create Wallet
-		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: userId,
-			Name:   "",
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
+		walletID := uuid.NewString()
 		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-			WalletID:   wallet.ID,
+			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
 			Provider:   "mx",
@@ -83,7 +65,7 @@ func TestLinkedAccounts(s *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, fs)
 		assert.Equal(t, fs.ID, linkedAccount.ID)
-		assert.Equal(t, fs.WalletID, wallet.ID)
+		assert.Equal(t, fs.WalletID, walletID)
 		assert.Equal(t, "123", fs.ProviderID)
 
 		laByProviderID, err := c.LinkedAccounts.GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
@@ -93,24 +75,17 @@ func TestLinkedAccounts(s *testing.T) {
 		})
 		require.NoError(t, err)
 		assert.Equal(t, linkedAccount.ID, laByProviderID.ID)
-		assert.Equal(t, wallet.ID, laByProviderID.WalletID)
+		assert.Equal(t, walletID, laByProviderID.WalletID)
 		assert.True(t, laByProviderID.CanSend)
 		assert.True(t, laByProviderID.CanReceive)
 		assert.Equal(t, linkedAccount.State, linkedaccounts.Verified)
 	})
 
 	s.Run("can get a list of wallet linked accounts", func(t *testing.T) {
-		userId := uuid.NewString()
-		// Create Wallet
-		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: userId,
-			Name:   "",
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
+		walletID := uuid.NewString()
+
 		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-			WalletID:   wallet.ID,
+			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
 			Provider:   "mx",
@@ -120,7 +95,7 @@ func TestLinkedAccounts(s *testing.T) {
 		})
 		require.NoError(t, err)
 
-		linkedAccounts, err := c.LinkedAccounts.ListByWalletId(ctx, wallet.ID)
+		linkedAccounts, err := c.LinkedAccounts.ListByWalletId(ctx, walletID)
 		require.NoError(t, err)
 
 		assert.NotNil(t, linkedAccounts)
@@ -128,7 +103,7 @@ func TestLinkedAccounts(s *testing.T) {
 		la := linkedAccounts[0]
 		assert.NotNil(t, la)
 		assert.Equal(t, la.ID, linkedAccount.ID)
-		assert.Equal(t, la.WalletID, wallet.ID)
+		assert.Equal(t, la.WalletID, walletID)
 		assert.True(t, la.CanSend)
 		assert.True(t, la.CanReceive)
 	})
@@ -139,17 +114,9 @@ func TestDelete(t *testing.T) {
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
 
-	userId := uuid.NewString()
-	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userId,
-		Name:   "",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	walletID := uuid.NewString()
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID: wallet.ID,
+		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
 		Provider: "mx",
@@ -182,19 +149,11 @@ func TestListMXBankAccounts(t *testing.T) {
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
 
-	userId := uuid.NewString()
-	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userId,
-		Name:   "",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	walletID := uuid.NewString()
 
 	linkedAccounts, err := c.LinkedAccounts.CreateBatch(ctx, []linkedaccounts.CreateArgs{
 		{
-			WalletID:   wallet.ID,
+			WalletID:   walletID,
 			Name:       "Test",
 			Nickname:   "TestNickname",
 			Mask:       "1234",
@@ -205,7 +164,7 @@ func TestListMXBankAccounts(t *testing.T) {
 			CanReceive: true,
 		},
 		{
-			WalletID:   wallet.ID,
+			WalletID:   walletID,
 			Name:       "Test2",
 			Nickname:   "Test2Nickname",
 			Mask:       "4321",
@@ -242,17 +201,10 @@ func TestSetNickname(s *testing.T) {
 	c, err := NewTestContainer(ctx, s)
 	require.NoError(s, err)
 
-	userId := uuid.NewString()
-	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userId,
-		Name:   "",
-	})
-	if err != nil {
-		s.Fatal(err)
-	}
+	walletID := uuid.NewString()
+
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID: wallet.ID,
+		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
 		Provider: "mx",
@@ -280,17 +232,9 @@ func TestReviews(t *testing.T) {
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
 
-	userId := uuid.NewString()
-	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userId,
-		Name:   "",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	walletID := uuid.NewString()
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID: wallet.ID,
+		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
 		Provider: "mx",
@@ -334,17 +278,9 @@ func TestListReviews(t *testing.T) {
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
 
-	userId := uuid.NewString()
-	// Create Wallet
-	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userId,
-		Name:   "",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	walletID := uuid.NewString()
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID: wallet.ID,
+		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
 		Provider: "mx",

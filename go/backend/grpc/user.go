@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -18,7 +20,7 @@ func (s *rpcService) CreateUserDefaultWallet(ctx context.Context, req *pb.Create
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	_, err = s.b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+	_, err = s.b.Wallets().Create(ctx, wallets.CreateArgs{
 		UserID: req.UserID,
 	})
 

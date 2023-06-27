@@ -31,7 +31,7 @@ func AddWalletPrivateKeysWorkflow(ctx workflow.Context) error {
 func (a *Activity) RegisterWalletsPrivateKeyActivity(ctx context.Context) error {
 	logger := activity.GetLogger(ctx)
 
-	wallets, err := a.b.Users().ListAllWallets(ctx, db.Pagination{
+	wallets, err := a.b.Wallets().ListAll(ctx, db.Pagination{
 		PageToken: "",
 		PageSize:  50,
 	})

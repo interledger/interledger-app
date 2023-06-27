@@ -22,7 +22,7 @@ func (s *rpcService) GetCurrentWallet(ctx context.Context, req *pb.Empty) (*pb.G
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 
 	if w == nil {
 		return nil, NotFoundError("wallet not found")
@@ -39,18 +39,18 @@ func (s *rpcService) SetWalletName(ctx context.Context, req *pb.SetWalletNameReq
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	err = s.b.Users().SetWalletName(ctx, w.ID, req.Name)
+	_, err = s.b.Wallets().SetWalletName(ctx, w.ID, req.Name)
 
 	return &pb.Empty{}, toGRPCError(err)
 }
 
 func (s *rpcService) GetPublicWalletDetails(ctx context.Context, req *pb.GetPublicWalletDetailsRequest) (*pb.GetPublicWalletDetailsResponse, error) {
-	w, err := s.b.Users().GetWallet(ctx, req.GetId())
+	w, err := s.b.Wallets().Get(ctx, req.GetId())
 
 	return &pb.GetPublicWalletDetailsResponse{
 		Id:         w.ID,

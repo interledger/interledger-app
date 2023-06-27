@@ -18,7 +18,7 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -39,7 +39,7 @@ func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.Pagi
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -60,7 +60,7 @@ func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.Pa
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -168,7 +168,7 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}

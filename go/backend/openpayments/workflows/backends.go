@@ -11,6 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
@@ -44,6 +45,7 @@ type Backends interface {
 	Contacts() contacts.Client
 	Tabapay() tabapay.Client
 	Keys() keys.Client
+	Wallets() wallets.Client
 	Features() features.Client
 	Twilio() twilio.Service
 }
@@ -62,10 +64,15 @@ type testBackends struct {
 	kc  keys.Client
 	fc  features.Client
 	ts  twilio.Service
+	wc  wallets.Client
 }
 
 func (t testBackends) Twilio() twilio.Service {
 	return t.ts
+}
+
+func (t testBackends) Wallets() wallets.Client {
+	return t.wc
 }
 
 func (t testBackends) Transactions() transactions.Client {

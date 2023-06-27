@@ -32,7 +32,7 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -58,7 +58,7 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 		return nil, toGRPCError(err)
 	}
 
-	err = g.b.Users().SetWalletName(ctx, wallet.ID, req.GetAlias())
+	_, err = g.b.Wallets().SetWalletName(ctx, wallet.ID, req.GetAlias())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -100,7 +100,7 @@ func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty)
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -157,7 +157,7 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -229,7 +229,7 @@ func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -315,7 +315,7 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -379,7 +379,7 @@ func (g *grpcServer) LookupIncomingPayment(ctx context.Context, req *pb.LookupIn
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	_, err = g.b.Users().WalletForContext(ctx)
+	_, err = g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -409,7 +409,7 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -439,7 +439,7 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -528,7 +528,7 @@ func (g *grpcServer) LookupOutgoingPayment(ctx context.Context, req *pb.LookupOu
 func (g *grpcServer) CanSendToPaymentPointer(ctx context.Context, req *pb.CanSendToPaymentPointerRequest) (*pb.CanSendToPaymentPointerResponse, error) {
 	var walletID string
 
-	wallet, err := g.b.Users().WalletForContext(ctx)
+	wallet, err := g.b.Wallets().ForContext(ctx)
 	if err == nil {
 		// Ignore the error. If the request is unauthenticated we just don't check the users PP
 		walletID = wallet.ID

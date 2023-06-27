@@ -6,6 +6,10 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/db"
+
+	"gitlab.com/fynbos/backend/user"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -44,16 +48,27 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		}
 
 		for _, wa := range args.Addresses {
-			_, err = tx.ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, address) VALUES ($1, $2)", walletID, wa)
+			_, err = tx.ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, url) VALUES ($1, $2)", walletID, wa)
 			if err != nil {
 				return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 			}
 		}
+
+		// Check that only 1 wallet exists for the user with that name.
+		var exists wallets.Wallet
+		err = tx.GetContext(ctx, &exists, "SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1 and w.name=$2 AND w.id <> $3", userID, name, walletID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w %s", user.ErrInternal, err)
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%w duplicate wallet name (%s) for user (%s)", wallets.ErrDuplicateWallet, name, userID)
+		}
+
 		return nil
 	})
 
 	b.Analytics().TrackWalletCreated(walletID, userID)
-	for _, _ = range args.Addresses {
+	for range args.Addresses {
 		b.Analytics().TrackWalletPaymentPointerCreated(walletID)
 	}
 
@@ -83,7 +98,7 @@ func AddAddresses(ctx context.Context, b Backends, id string, args []wallets.Add
 		return nil, err
 	}
 
-	for _, _ = range args {
+	for range args {
 		b.Analytics().TrackWalletPaymentPointerCreated(id)
 	}
 
@@ -124,6 +139,29 @@ func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, error) {
 	var wl []wallets.Wallet
 	err := b.DB().SelectContext(ctx, &wl, "SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1", userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	for i, w := range wl {
+		var wa []wallets.Address
+		err = b.DB().SelectContext(ctx, &wa, "SELECT url FROM wallet_addresses WHERE wallet_id=$1", w.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		wl[i].Addresses = wa
+	}
+
+	return wl, nil
+}
+
+func ListAll(ctx context.Context, b Backends, _ db.Pagination) ([]wallets.Wallet, error) {
+	var wl []wallets.Wallet
+	err := b.DB().SelectContext(ctx, &wl, "SELECT id, name FROM wallets ")
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}

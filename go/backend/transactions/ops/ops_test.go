@@ -14,8 +14,6 @@ import (
 	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
-	"gitlab.com/fynbos/backend/user"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 func TestCreateTransaction(t *testing.T) {
@@ -24,7 +22,6 @@ func TestCreateTransaction(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -140,15 +137,10 @@ func TestCreateTransaction(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create Wallets
-			userID := uuid.NewString()
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
 			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
+				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
 				Provider:   "gmt",
@@ -157,7 +149,7 @@ func TestCreateTransaction(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			for i := range tc.args.Transfers {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
@@ -177,7 +169,6 @@ func TestListWithPendingTransaction(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -296,17 +287,11 @@ func TestListWithPendingTransaction(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Wallets
-			userID := uuid.NewString()
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
+				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
 				Provider:   "gmt",
@@ -315,7 +300,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			for i := range tc.args.Transfers {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
@@ -323,7 +308,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 			_, err = ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
-			txs, err := ops.ListWithPending(ctx, b, wallet.ID, db.Pagination{})
+			txs, err := ops.ListWithPending(ctx, b, walletID, db.Pagination{})
 			require.NoError(t, err)
 			require.Len(t, txs, tc.len)
 
@@ -362,7 +347,6 @@ func TestListWithPendingPagination(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_mock.NewMock()
 
 	pendingTxs := make([]transactions.CreateTransactionArgs, 20)
 	for i := range pendingTxs {
@@ -425,17 +409,11 @@ func TestListWithPendingPagination(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+
+			walletID := uuid.NewString()
 
 			for i, tx := range pendingTxs {
-				tx.WalletID = wallet.ID
+				tx.WalletID = walletID
 				txId, err := ops.CreateTransaction(ctx, b, tx)
 				require.NoError(t, err)
 				if tc.start != 0 && tc.start == len(pendingTxs)-i-1 {
@@ -443,7 +421,7 @@ func TestListWithPendingPagination(t *testing.T) {
 				}
 			}
 
-			txs, err := ops.ListWithPending(ctx, b, wallet.ID, tc.args)
+			txs, err := ops.ListWithPending(ctx, b, walletID, tc.args)
 			require.NoError(t, err)
 			require.Len(t, txs, tc.len)
 
@@ -462,7 +440,6 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -491,18 +468,11 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
+				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
 				Provider:   "gmt",
@@ -511,7 +481,7 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			for i := range tc.args.Transfers {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
@@ -519,14 +489,14 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
-			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err := ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 			require.Empty(t, tx.ForeignID)
 
 			err = ops.SetTransactionForeignID(ctx, b, trxID, tc.foreignID)
 			require.NoError(t, err)
 
-			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err = ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 
 			assert.Equal(t, tx.ForeignID, tc.foreignID)
@@ -540,7 +510,6 @@ func TestSetTransferForeignID(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -580,18 +549,11 @@ func TestSetTransferForeignID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
+				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
 				Provider:   "gmt",
@@ -600,7 +562,7 @@ func TestSetTransferForeignID(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			for i := range tc.args.Transfers {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
@@ -608,7 +570,7 @@ func TestSetTransferForeignID(t *testing.T) {
 			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
-			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err := ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 			require.Empty(t, tx.ForeignID)
 
@@ -619,7 +581,7 @@ func TestSetTransferForeignID(t *testing.T) {
 			err = ops.SetTransferForeignID(ctx, b, tfr.ID, tc.foreignID)
 			require.NoError(t, err)
 
-			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err = ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 
 			assert.Equal(t, tx.Transfers[0].ForeignID, tc.foreignID)
@@ -633,7 +595,6 @@ func TestSetTransactionState(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -663,18 +624,11 @@ func TestSetTransactionState(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
+				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
 				Provider:   "gmt",
@@ -683,7 +637,7 @@ func TestSetTransactionState(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			for i := range tc.args.Transfers {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
@@ -691,14 +645,14 @@ func TestSetTransactionState(t *testing.T) {
 			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
-			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err := ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 			require.Equal(t, tx.State, tc.args.State)
 
 			err = ops.SetTransactionState(ctx, b, trxID, tc.state)
 			require.NoError(t, err)
 
-			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err = ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 
 			assert.Equal(t, tx.State, tc.state)
@@ -712,7 +666,6 @@ func TestSetTransferState(t *testing.T) {
 	dbc := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, dbc)
-	userClient := users_mock.NewMock()
 	laClient := linkedaccounts_client.New(b)
 
 	cases := []struct {
@@ -752,18 +705,11 @@ func TestSetTransferState(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create Signups
-			userID := uuid.NewString()
-			// Create Wallets
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			la, err := laClient.Create(ctx, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
+				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
 				Provider:   "gmt",
@@ -772,7 +718,7 @@ func TestSetTransferState(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			tc.args.WalletID = wallet.ID
+			tc.args.WalletID = walletID
 			for i := range tc.args.Transfers {
 				tc.args.Transfers[i].LinkedAccountID = la.ID
 			}
@@ -780,7 +726,7 @@ func TestSetTransferState(t *testing.T) {
 			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
-			tx, err := ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err := ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 			tfr := tx.Transfers[0]
 			require.Equal(t, tfr.State, tc.args.Transfers[0].State)
@@ -788,7 +734,7 @@ func TestSetTransferState(t *testing.T) {
 			err = ops.SetTransferState(ctx, b, tfr.ID, tc.state)
 			require.NoError(t, err)
 
-			tx, err = ops.GetTransaction(ctx, b, wallet.ID, trxID)
+			tx, err = ops.GetTransaction(ctx, b, walletID, trxID)
 			require.NoError(t, err)
 
 			assert.Equal(t, tx.Transfers[0].State, tc.state)

@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/paymentpointers"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/wallets"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -25,28 +25,27 @@ func TestCreateContact(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	_, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: u.ID,
-		Name:   "Marko Polo",
-	})
-	require.NoError(t, err)
+	w := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
+	}
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{w}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&w, nil).AnyTimes()
 
 	// Create contact
-	uc := &user.User{
-		ID: uuid.NewString(),
+	cw := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
 	}
-	contactWallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: uc.ID,
-		Name:   "Alice bob",
-	})
-	require.NoError(t, err)
+	c.walletImpl.EXPECT().Get(gomock.Any(), cw.ID).Return(&cw, nil).AnyTimes()
+
 	pp, err := paymentpointers.Parse("$fynbos.me/alice")
 	require.NoError(t, err)
 
 	c.OPClient.EXPECT().GetPaymentPointer(gomock.Any(), pp.String()).Return(&openpayments.PaymentPointer{
 		ID:         uuid.NewString(),
 		URL:        pp.String(),
-		WalletID:   contactWallet.ID,
+		WalletID:   cw.ID,
 		Alias:      "Test",
 		Asset:      "USD",
 		AssetScale: 2,
@@ -55,9 +54,9 @@ func TestCreateContact(t *testing.T) {
 	c.ContactsClient.EXPECT().Create(gomock.Any(), gomock.Any()).Return(
 		&contacts.Contact{
 			ID:             uuid.NewString(),
-			Name:           contactWallet.Name,
+			Name:           cw.Name,
 			PaymentPointer: pp,
-			WalletID:       contactWallet.ID,
+			WalletID:       cw.ID,
 		},
 		nil,
 	).AnyTimes()
@@ -67,7 +66,7 @@ func TestCreateContact(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, contactWallet.ID, rpc.WalletId)
+	assert.Equal(t, cw.ID, rpc.WalletId)
 }
 
 func TestListContacts(t *testing.T) {
@@ -78,30 +77,29 @@ func TestListContacts(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	wallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: u.ID,
-		Name:   "Marko Polo",
-	})
-	require.NoError(t, err)
+	w := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
+	}
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{w}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&w, nil).AnyTimes()
 
 	// Create contact
-	uc := &user.User{
-		ID: uuid.NewString(),
+	cw := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
 	}
-	contactWallet, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: uc.ID,
-		Name:   "Alice bob",
-	})
-	require.NoError(t, err)
+	c.walletImpl.EXPECT().Get(gomock.Any(), cw.ID).Return(&cw, nil).AnyTimes()
+
 	pp, err := paymentpointers.Parse("$fynbos.me/alice")
 	require.NoError(t, err)
 
-	c.ContactsClient.EXPECT().List(gomock.Any(), wallet.ID, gomock.Any(), gomock.Any()).Return([]contacts.Contact{
+	c.ContactsClient.EXPECT().List(gomock.Any(), w.ID, gomock.Any(), gomock.Any()).Return([]contacts.Contact{
 		{
 			ID:             uuid.NewString(),
-			Name:           contactWallet.Name,
+			Name:           cw.Name,
 			PaymentPointer: pp,
-			WalletID:       contactWallet.ID,
+			WalletID:       cw.ID,
 		},
 	},
 		nil,

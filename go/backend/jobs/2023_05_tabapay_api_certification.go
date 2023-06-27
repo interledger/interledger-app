@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
@@ -15,7 +17,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	tabapay_external "gitlab.com/fynbos/backend/providers/tabapay/external"
 	tabapay_workflow "gitlab.com/fynbos/backend/providers/tabapay/workflows"
-	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -34,15 +35,15 @@ type TabapayTestCase struct {
 
 func (a *Activity) SeedTabapayWallets(ctx context.Context, tcs []TabapayTestCase) error {
 	for _, tc := range tcs {
-		w, err := a.b.Users().GetWallet(ctx, tc.WalletID)
-		if err != nil && !errors.Is(err, user.ErrNoWalletFound) {
+		w, err := a.b.Wallets().Get(ctx, tc.WalletID)
+		if err != nil && !errors.Is(err, wallets.ErrNoWalletFound) {
 			return err
 		}
 		if w != nil {
 			continue
 		}
 
-		w, err = a.b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
+		w, err = a.b.Wallets().Create(ctx, wallets.CreateArgs{
 			ID:     tc.WalletID,
 			UserID: uuid.NewString(),
 		})

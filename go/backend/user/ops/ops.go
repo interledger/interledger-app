@@ -14,8 +14,6 @@ import (
 )
 
 const (
-	userCtxKey = user.UserCtxKey("user")
-
 	kratosTimeout    = 500 * time.Millisecond
 	kratosCookieName = "ory_kratos_session"
 )
@@ -62,7 +60,7 @@ func convertTraits(userID string, traits interface{}) user.User {
 }
 
 func UserForContext(ctx context.Context) (*user.User, error) {
-	u, ok := ctx.Value(userCtxKey).(*user.User)
+	u, ok := ctx.Value(user.CtxKey).(*user.User)
 	if !ok || u == nil {
 		return nil, user.ErrNoUserFound
 	}

@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/user"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,55 +15,46 @@ func TestActivity_UpdateSendRecvUser(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	b := NewTestBackends(t, db.MigrateTestDB(t, ctx))
-	uc := users_mock.NewMock()
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	a := NewActivity(b)
 	env.RegisterActivity(a.UpdateSendRecvUser)
 
-	sWallet, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: uuid.NewString(),
-		Name:   "test_sender",
-	})
-	require.NoError(t, err)
+	sWalletID := uuid.NewString()
 
-	rWallet, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: uuid.NewString(),
-		Name:   "test_receiver",
-	})
-	require.NoError(t, err)
+	rWalletID := uuid.NewString()
 
-	sid, err := getSenderID(ctx, b, sWallet.ID)
+	sid, err := getSenderID(ctx, b, sWalletID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), sid)
 
-	rid, err := getReceiverID(ctx, b, rWallet.ID)
+	rid, err := getReceiverID(ctx, b, rWalletID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), rid)
 
 	cr := ComplianceResp{
 		SenderID:         23,
-		SenderWalletID:   sWallet.ID,
+		SenderWalletID:   sWalletID,
 		ReceiverID:       43,
-		ReceiverWalletID: rWallet.ID,
+		ReceiverWalletID: rWalletID,
 	}
 	_, err = env.ExecuteActivity(a.UpdateSendRecvUser, cr)
 	require.NoError(t, err)
 
-	sid, err = getSenderID(ctx, b, sWallet.ID)
+	sid, err = getSenderID(ctx, b, sWalletID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(23), sid)
 
-	sid, err = getSenderID(ctx, b, rWallet.ID)
+	sid, err = getSenderID(ctx, b, rWalletID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), sid)
 
-	rid, err = getReceiverID(ctx, b, rWallet.ID)
+	rid, err = getReceiverID(ctx, b, rWalletID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(43), rid)
 
-	rid, err = getReceiverID(ctx, b, sWallet.ID)
+	rid, err = getReceiverID(ctx, b, sWalletID)
 	require.NoError(t, err)
 	assert.Equal(t, int64(0), rid)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+
 	"gitlab.com/fynbos/backend/identities"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -16,7 +17,7 @@ func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListI
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -64,7 +65,7 @@ func (s *rpcService) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityR
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -80,7 +81,7 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -104,7 +105,7 @@ func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

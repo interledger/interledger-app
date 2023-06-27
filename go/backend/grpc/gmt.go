@@ -12,7 +12,7 @@ func (s *rpcService) OnboardGMTUser(ctx context.Context, _ *pb.Empty) (*pb.Empty
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

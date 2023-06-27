@@ -24,8 +24,11 @@ func TestGetPersonaInquiry(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	uc := user_mock.NewMock()
-
+	walletID := uuid.NewString()
 	userID := uuid.NewString()
+	uc.WalletUser[walletID] = userID
+
+
 	sc := signup_mock.NewMockClient(ctrl)
 	w, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
 		UserID: userID,
@@ -45,8 +48,8 @@ func TestGetPersonaInquiry(t *testing.T) {
 			Attributes: persona.InquiryAttributes{Status: "pending"},
 		}, nil)
 
-		inq, err := ops.GetPersonaInquiry(ctx, b, pc, w.ID, "")
-		require.NoError(t, err)
+	inq, err := ops.GetPersonaInquiry(ctx, b, pc, walletID, "")
+	require.NoError(t, err)
 
 		assert.Equal(st, inq.SessionToken, "")
 		assert.Equal(st, inq.ID, inqID)
@@ -54,20 +57,19 @@ func TestGetPersonaInquiry(t *testing.T) {
 		// Now lets get an update
 		pc.EXPECT().ResumeInquiry(ctx, inqID, gomock.Any()).Return(&persona.InquiryData{ID: inqID, Meta: persona.InquiryMeta{SessionToken: "token"}}, nil)
 
-		inq, err = ops.GetPersonaInquiry(ctx, b, pc, w.ID, "")
-		require.NoError(st, err)
+	inq, err = ops.GetPersonaInquiry(ctx, b, pc, walletID, "")
+	require.NoError(t, err)
 
-		assert.Equal(st, inq.SessionToken, "token")
-		assert.Equal(st, inq.ID, inqID)
-	})
+	assert.Equal(t, inq.SessionToken, "token")
+	assert.Equal(t, inq.ID, inqID)
 
-	t.Run("returns existing one if it is in needs_review state", func(st *testing.T) {
-		inqID, walletID := uuid.NewString(), uuid.NewString()
-		b.DB().MustExec("INSERT INTO kyc_persona_inquiries (external_id, state, wallet_id) VALUES ($1, $2, $3)", inqID, persona.InquiryNeedsReview, walletID)
+		t.Run("returns existing one if it is in needs_review state", func(st *testing.T) {
+			inqID, walletID := uuid.NewString(), uuid.NewString()
+			b.DB().MustExec("INSERT INTO kyc_persona_inquiries (external_id, state, wallet_id) VALUES ($1, $2, $3)", inqID, persona.InquiryNeedsReview, walletID)
 
-		inq, err := ops.GetPersonaInquiry(ctx, b, pc, walletID, "")
-		require.NoError(t, err)
-		assert.Equal(st, inqID, inq.ID)
-		assert.Equal(st, persona.InquiryNeedsReview, inq.Status)
-	})
+			inq, err := ops.GetPersonaInquiry(ctx, b, pc, walletID, "")
+			require.NoError(t, err)
+			assert.Equal(st, inqID, inq.ID)
+			assert.Equal(st, persona.InquiryNeedsReview, inq.Status)
+		})
 }

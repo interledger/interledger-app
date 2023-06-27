@@ -491,7 +491,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	wallet, err := b.Users().GetWallet(ctx, pp.WalletID)
+	wallet, err := b.Wallets().Get(ctx, pp.WalletID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return

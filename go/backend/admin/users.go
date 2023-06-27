@@ -17,7 +17,7 @@ import (
 
 func (s *AdminRpcService) ListWallets(ctx context.Context, req *adminv1.PaginationRequest) (*adminv1.ListWalletsResponse, error) {
 	page := db.FromAdminPB(req)
-	wallets, err := s.b.Users().ListAllWallets(ctx, page)
+	wallets, err := s.b.Wallets().ListAll(ctx, page)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -69,7 +69,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 		usersPB[i] = convertUser(u)
 	}
 
-	wallet, err := s.b.Users().GetWallet(ctx, req.WalletID)
+	wallet, err := s.b.Wallets().Get(ctx, req.WalletID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

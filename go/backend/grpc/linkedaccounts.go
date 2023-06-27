@@ -34,7 +34,7 @@ func (s *rpcService) GetLinkedAccounts(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -60,7 +60,7 @@ func (s *rpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinkedAcco
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -84,7 +84,7 @@ func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLink
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -109,7 +109,7 @@ func (s *rpcService) SetNicknameLinkedAccount(ctx context.Context, req *pb.SetNi
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

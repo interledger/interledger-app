@@ -22,7 +22,7 @@ func (s *rpcService) CreateCard(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -74,7 +74,7 @@ func (s *rpcService) Init3DS(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -128,7 +128,7 @@ func (s *rpcService) Lookup3DS(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -197,7 +197,7 @@ func (s *rpcService) Authenticate3DS(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
