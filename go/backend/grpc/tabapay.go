@@ -119,6 +119,7 @@ func (s *rpcService) Lookup3DS(
 	la, err := s.b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
 		Provider:   tabapay.ProviderName,
 		ProviderID: session.CardID,
+		WalletID:   w.ID,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -187,6 +188,7 @@ func (s *rpcService) Authenticate3DS(
 	la, err := s.b.LinkedAccounts().GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
 		Provider:   tabapay.ProviderName,
 		ProviderID: session.CardID,
+		WalletID:   w.ID,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)

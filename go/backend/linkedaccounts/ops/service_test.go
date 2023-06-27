@@ -89,6 +89,7 @@ func TestLinkedAccounts(s *testing.T) {
 		laByProviderID, err := c.LinkedAccounts.GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
 			Provider:   "mx",
 			ProviderID: "123",
+			WalletID:   wallet.ID,
 		})
 		require.NoError(t, err)
 		assert.Equal(t, linkedAccount.ID, laByProviderID.ID)

@@ -192,9 +192,10 @@ func GetByProviderID(ctx context.Context, b Backends, args linkedaccounts.GetByP
 	err := b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE provider=$1 AND provider_id=$2;", allFields),
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE provider=$1 AND provider_id=$2 AND wallet_id=$3;", allFields),
 		args.Provider,
 		args.ProviderID,
+		args.WalletID,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
