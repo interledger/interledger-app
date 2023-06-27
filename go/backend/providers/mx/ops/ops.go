@@ -194,14 +194,31 @@ func GetAccount(ctx context.Context, b Backends, walletID, guid string) (*mx.Acc
 		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
 	}
 
+	// Get account number
+	accountNumbers, err := b.External().ListAccountNumbersByMember(ctx, user.Guid, externalAccount.MemberGUID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", mx.ErrInternal, err)
+	}
+
+	// filter by guid
+	var accountNumber string
+	var routingNumber string
+	for _, accountNumberResponse := range accountNumbers.AccountNumbers {
+		if accountNumberResponse.AccountGuid == guid {
+			accountNumber = accountNumberResponse.AccountNumber
+			routingNumber = accountNumberResponse.RoutingNumber
+			break
+		}
+	}
+
 	return &mx.Account{
 		Guid:             externalAccount.GUID,
 		MemberGuid:       externalAccount.MemberGUID,
 		UserGuid:         externalAccount.UserGUID,
 		Name:             externalAccount.Name,
 		Nickname:         externalAccount.Nickname,
-		AccountNumber:    externalAccount.AccountNumber,
-		RoutingNumber:    externalAccount.RoutingNumber,
+		AccountNumber:    accountNumber,
+		RoutingNumber:    routingNumber,
 		InstitutionCode:  externalAccount.InstitutionCode,
 		IsHidden:         externalAccount.IsHidden,
 		Type:             externalAccount.Type,
