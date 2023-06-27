@@ -134,6 +134,8 @@ func (a *Activity) GetProviderWorkflowArgs(ctx context.Context, outgoingID strin
 		key = providers.GMTACH2CARD
 	} else if sendAcc.Provider == mx.ProviderName && recvAcc.Provider == mx.ProviderName {
 		key = providers.GMTACH2ACH
+	} else if sendAcc.Provider == tabapay.ProviderName && recvAcc.Provider == tabapay.ProviderName {
+		key = providers.GMTCARD2CARD
 	} else {
 		key = providers.GMTUNSUPPORTED
 	}
