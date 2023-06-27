@@ -1,11 +1,14 @@
 import { useLoaderData } from '@remix-run/react'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
   AnimatedSchedule,
   Card,
+  CardButton,
   CardContent,
   CardHeader,
+  CardIcon,
+  CardLink,
   CardTitle,
   Chip,
   ChipColor,
@@ -33,49 +36,17 @@ export function AppPage() {
   return (
     <WalletGrid>
       <GridColumn className='col-span-full lg:col-span-6'>
-        <Card>
-          <CardHeader>
-            <CardTitle>Wallet</CardTitle>
-            {kycStatus == KycStatus.InProgress && (
-              <Chip color={ChipColor.orange}>Pending</Chip>
-            )}
-            {kycStatus == KycStatus.Unknown && (
+        {kycStatus == KycStatus.Unknown && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
               <Chip color={ChipColor.orange}>Reserved</Chip>
-            )}
-          </CardHeader>
-          <CardContent>
-            {kycStatus == KycStatus.InProgress && (
-              <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-                <h2 className='font-display text-lg font-medium'>
-                  Activation pending
-                </h2>
-                <p className='mt-4'>
-                  Just a moment, we are verifying your details.
-                </p>
-              </Card>
-            )}
-            {kycStatus == KycStatus.Suspended && (
-              <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-                <h2 className='font-display text-lg font-medium'>
-                  Activation failed
-                </h2>
-                <p className='mt-4'>
-                  We could not verify your identity, please contact support to
-                  continue.
-                </p>
-                <Router
-                  className='mt-4 text-sm font-medium text-primary'
-                  to={route('/support')}
-                >
-                  Contact support
-                </Router>
-              </Card>
-            )}
-            {kycStatus == KycStatus.Unknown && (
+            </CardHeader>
+            <CardContent>
               <div className='flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <CardIcon>
                   <Icon>account_balance_wallet</Icon>
-                </div>
+                </CardIcon>
                 <div className='flex flex-col space-y-4'>
                   <p className='text-sm text-medium'>
                     Your wallet is reserved, we just need a few more details to
@@ -89,9 +60,44 @@ export function AppPage() {
                   </Router>
                 </div>
               </div>
-            )}
-            {kycStatus == KycStatus.Verified && (
-              <button
+            </CardContent>
+          </Card>
+        )}
+        {kycStatus == KycStatus.InProgress && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation</CardTitle>
+              <Chip color={ChipColor.orange}>Pending</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                Just a moment, we are verifying your details.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+        {kycStatus == KycStatus.Suspended && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation error</CardTitle>
+              <Chip color={ChipColor.red}>Error</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                We could not verify your identity. Please contact support.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+        {kycStatus == KycStatus.Verified && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
+
+              <Chip color={ChipColor.orange}>Pending</Chip>
+            </CardHeader>
+            <CardContent>
+              <CardButton
                 type='button'
                 onClick={async () => {
                   if (typeof navigator.clipboard == 'undefined') {
@@ -129,10 +135,10 @@ export function AppPage() {
                   {paymentPointer.formatted}
                 </span>
                 <Icon className='text-medium'>content_copy</Icon>
-              </button>
-            )}
-          </CardContent>
-        </Card>
+              </CardButton>
+            </CardContent>
+          </Card>
+        )}
         {kycStatus == KycStatus.Verified && (
           <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <CardHeader>
@@ -156,43 +162,42 @@ export function AppPage() {
               </div>
             )}
             {transactions.map((transaction, index) => (
-              <Fragment key={transaction.id}>
+              <CardLink
+                key={transaction.id}
+                to={`/transaction/${transaction.type}/${transaction.id}`}
+                className='justify-between'
+              >
                 {(index == 0 ||
                   transaction.date != transactions[index - 1].date) && (
                   <span className='mt-6 text-xs text-medium'>
                     {transaction.date}
                   </span>
                 )}
-                <Router
-                  to={`/transaction/${transaction.type}/${transaction.id}`}
-                  className='mt-2 flex w-full justify-between'
-                >
-                  <div className='flex space-x-1'>
-                    {transaction.icon == 'schedule' && (
-                      <div className='mt-0.5'>
-                        <AnimatedSchedule />
-                      </div>
-                    )}
-                    {transaction.icon != 'schedule' && (
-                      <Icon className='mt-0.5 text-medium'>
-                        {transaction.icon}
-                      </Icon>
-                    )}
-                    <div className='flex flex-col space-y-2'>
-                      <span className='text-medium'>{transaction.title}</span>
-                      <span className='text-xs text-medium'>
-                        {transaction.time}
-                      </span>
+                <div className='flex space-x-1'>
+                  {transaction.icon == 'schedule' && (
+                    <div className='mt-0.5'>
+                      <AnimatedSchedule />
                     </div>
+                  )}
+                  {transaction.icon != 'schedule' && (
+                    <Icon className='mt-0.5 text-medium'>
+                      {transaction.icon}
+                    </Icon>
+                  )}
+                  <div className='flex flex-col space-y-2'>
+                    <span className='text-medium'>{transaction.title}</span>
+                    <span className='text-xs text-medium'>
+                      {transaction.time}
+                    </span>
                   </div>
-                  <span className='font-medium'>{transaction.total}</span>
-                </Router>
-              </Fragment>
+                </div>
+                <span className='font-medium'>{transaction.total}</span>
+              </CardLink>
             ))}
           </Card>
         )}
       </GridColumn>
-      <GridColumn className='col-span-full lg:col-span-6'>
+      <GridColumn className='hidden lg:col-span-6 lg:flex'>
         <Card>
           <CardContent>
             <div className='flex items-start space-x-4'>
@@ -203,7 +208,7 @@ export function AppPage() {
                 <p className='text-sm text-medium'>Add card?</p>
                 <Router
                   className='text-sm font-medium text-primary'
-                  to={route('/link-account/card')}
+                  to={route('/connect/card')}
                 >
                   Something
                 </Router>

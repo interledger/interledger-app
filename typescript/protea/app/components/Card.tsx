@@ -1,7 +1,7 @@
 import { NavLink } from '@remix-run/react'
 import type { RemixNavLinkProps } from '@remix-run/react/dist/components'
 import clsx from 'clsx'
-import type { HTMLAttributes, RefAttributes } from 'react'
+import type { ButtonHTMLAttributes, HTMLAttributes, RefAttributes } from 'react'
 import { forwardRef } from 'react'
 
 const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
@@ -45,7 +45,20 @@ const CardTitle = forwardRef<
 })
 CardTitle.displayName = 'CardTitle'
 
-// TODO: Add icon prop to insert icon left of title
+const CardIcon = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={clsx(
+        'flex items-center justify-between rounded-full bg-nav p-5 text-medium',
+        className
+      )}
+      {...props}
+    />
+  )
+)
+CardIcon.displayName = 'CardIcon'
+
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={clsx('p-4', className)} {...props} />
@@ -75,4 +88,66 @@ const CardLink = forwardRef<
 })
 CardLink.displayName = 'CardLink'
 
-export { Card, CardContent, CardHeader, CardTitle, CardLink }
+const CardButton = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, ...props }, ref) => {
+  return (
+    <button
+      ref={ref}
+      className={clsx(
+        // className='mt-2 flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
+        'mx-2 my-1 flex rounded-xl p-3 first-of-type:mt-2 last-of-type:mb-2 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
+        className
+      )}
+      {...props}
+    />
+  )
+})
+CardButton.displayName = 'CardButton'
+
+//   <button
+// type='button'
+// onClick={async () => {
+//   if (typeof navigator.clipboard == 'undefined') {
+//     setSnackbar({
+//       message: "Couldn't copy to clipboard.",
+//       icon: 'close',
+//       show: true
+//     })
+//     setShowSnackbar(true)
+//   } else
+//     navigator.clipboard.writeText(walletAddress).then(
+//       () => {
+//         setSnackbar({
+//           message: 'Payment pointer copied to clipboard.',
+//           icon: 'close',
+//           show: true
+//         })
+//         setShowSnackbar(true)
+//       },
+//       () => {
+//         setSnackbar({
+//           message: "Couldn't copy to clipboard.",
+//           icon: 'close',
+//           show: true
+//         })
+//         setShowSnackbar(true)
+//       }
+//     )
+// }}
+// className='mt-2 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
+//   >
+//   <span className='text-medium'>{walletAddress}</span>
+// <Icon className='text-medium'>content_copy</Icon>
+// </button>
+
+export {
+  Card,
+  CardIcon,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardLink,
+  CardButton
+}

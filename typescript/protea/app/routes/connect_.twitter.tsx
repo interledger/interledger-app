@@ -88,11 +88,11 @@ export default function Page() {
         <>
           <Card>
             <CardContent>
-              <span>
+              <p>
                 We will guide you through the following steps in order to link
                 your Twitter account:
-              </span>
-              <div className='mt-10 flex items-start'>
+              </p>
+              <div className='mt-6 flex items-start'>
                 <Shape
                   width='w-8'
                   flex='flex-none'
@@ -110,7 +110,7 @@ export default function Page() {
                   <p className='text-medium'>Open and log in to Twitter.</p>
                 </div>
               </div>
-              <div className='mt-10 flex items-start'>
+              <div className='mt-6 flex items-start'>
                 <Shape
                   width='w-8'
                   flex='flex-none'
@@ -130,7 +130,7 @@ export default function Page() {
                   </p>
                 </div>
               </div>
-              <div className='mt-10 flex items-start'>
+              <div className='mt-6 flex items-start'>
                 <Shape
                   width='w-8'
                   flex='flex-none'

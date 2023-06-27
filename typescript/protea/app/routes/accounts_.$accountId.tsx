@@ -24,12 +24,13 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
       back: route('/accounts'),
-      title: 'Account name'
-    }
+      title: (match) => match.data.name
+    },
+    isNested: true
   }
 }
 

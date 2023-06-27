@@ -16,6 +16,7 @@ import {
   Button,
   Card,
   CardContent,
+  CardIcon,
   CardLink,
   Dialog,
   Icon,
@@ -147,17 +148,17 @@ export default function Page() {
           </Card>
           <Card>
             <CardContent>
-              <div className='-m-2 mb-0 flex items-start space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-error p-5 text-medium'>
+              <div className='flex items-start space-x-4'>
+                <CardIcon className='!bg-error'>
                   <Icon className='text-error'>exclamation</Icon>
-                </div>
+                </CardIcon>
                 <div className='flex flex-col space-y-1'>
-                  <h1 className='font-medium text-medium'>Please note</h1>
-                  <span className='text-sm text-medium'>
+                  <h3 className='font-medium text-medium'>Please note</h3>
+                  <p className='text-sm text-medium'>
                     Do not delete the public proof from your Twitter timeline.
                     Doing so will result in your identity no longer being
                     verified by Fynbos.
-                  </span>
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -178,7 +179,7 @@ export default function Page() {
             </CardContent>
             <CardLink
               to={`/me/${paymentPointer.formatted}`}
-              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+              className='items-center justify-between'
             >
               <div className='flex space-x-3'>
                 <Icon>contact_page</Icon>
@@ -295,7 +296,7 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
       />
       <Dialog open={showDialog} setOpen={setShowDialog}>
-        <h1 className='text-2xl'>Remove Twitter ID card</h1>
+        <h1 className='text-xl font-medium'>Remove Twitter ID card</h1>
         <span className='text-medium'>
           Are you sure you want to remove the Twitter identity card? This action
           cannot be undone.
@@ -318,12 +319,6 @@ export default function Page() {
           >
             Remove card
           </TextButton>
-          <Form
-            id='signup-phone-otp-validation'
-            action='/signup/phone'
-            method='post'
-            className='hidden'
-          />
         </div>
       </Dialog>
     </>

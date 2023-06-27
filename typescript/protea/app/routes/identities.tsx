@@ -8,6 +8,8 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CardIcon,
+  CardLink,
   CardTitle,
   Chip,
   ChipColor,
@@ -26,6 +28,7 @@ import {
 } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
+import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {
   const identities = await getLinkedIdentities(request)
@@ -59,7 +62,8 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { snackbar, linkedIdentities } = useLoaderData<typeof loader>()
+  const { snackbar, linkedIdentities, kycStatus } =
+    useLoaderData<typeof loader>()
 
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   const location = useLocation()
@@ -70,43 +74,71 @@ export default function Page() {
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'identities'}
         className='col-span-full lg:col-span-6'
       >
+        {kycStatus == KycStatus.Unknown && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
+              <Chip color={ChipColor.orange}>Reserved</Chip>
+            </CardHeader>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <CardIcon>
+                  <Icon>account_balance_wallet</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Your wallet is reserved, we just need a few more details to
+                    activate it.
+                  </p>
+                  <Router
+                    prefetch='render'
+                    className='text-sm font-medium text-primary'
+                    to={route('/personal-details')}
+                  >
+                    Activate wallet
+                  </Router>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {linkedIdentities.twitter && (
           <Card>
             <CardHeader>
               <CardTitle>Twitter</CardTitle>
             </CardHeader>
+            {linkedIdentities.twitter.map((identity) => (
+              <CardLink
+                key={identity.id}
+                className='mt-2 flex items-center justify-between first-of-type:mt-4'
+                to={route('/identities/:identityId', {
+                  identityId: identity.id
+                })}
+              >
+                <div className='flex space-x-3'>
+                  <TwitterIcon className='text-medium' />
+                  <span>@{identity.identifier}</span>
+                </div>
+                <div className='flex items-center space-x-3'>
+                  {identity.state == 'verified' && (
+                    <Chip color={ChipColor.green}>Verified</Chip>
+                  )}
+                  {identity.state == 'unverified' && (
+                    <Chip color={ChipColor.yellow}>Unverified</Chip>
+                  )}
+                  {identity.state == 'failed' && (
+                    <Chip color={ChipColor.red}>Failed</Chip>
+                  )}
+                  {identity.state == 'pending' && (
+                    <Chip color={ChipColor.orange}>Pending</Chip>
+                  )}
+                  <Icon>navigate_next</Icon>
+                </div>
+              </CardLink>
+            ))}
             <CardContent>
-              {linkedIdentities.twitter.map((identity) => (
-                <Router
-                  key={identity.id}
-                  className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium first-of-type:mt-6 hover:bg-nav-hover'
-                  to={route('/identities/:identityId', {
-                    identityId: identity.id
-                  })}
-                >
-                  <div className='flex space-x-3'>
-                    <TwitterIcon className='text-medium' />
-                    <span>@{identity.identifier}</span>
-                  </div>
-                  <div className='flex space-x-3'>
-                    {identity.state == 'verified' && (
-                      <Chip color={ChipColor.green}>Verified</Chip>
-                    )}
-                    {identity.state == 'unverified' && (
-                      <Chip color={ChipColor.yellow}>Unverified</Chip>
-                    )}
-                    {identity.state == 'failed' && (
-                      <Chip color={ChipColor.red}>Failed</Chip>
-                    )}
-                    {identity.state == 'pending' && (
-                      <Chip color={ChipColor.orange}>Pending</Chip>
-                    )}
-                    <Icon>navigate_next</Icon>
-                  </div>
-                </Router>
-              ))}
               <Router
-                className='mt-4 rounded text-sm font-medium text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
+                className='rounded text-sm font-medium text-primary'
                 to={route('/connect/twitter')}
               >
                 Connect another twitter identity
@@ -114,15 +146,15 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {!linkedIdentities.twitter && (
-          <Card className='space-y-4'>
+        {!linkedIdentities.twitter && kycStatus == KycStatus.Verified && (
+          <Card>
             <CardContent>
-              <div className='-m-2 flex items-center space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <div className='flex items-start space-x-4'>
+                <CardIcon>
                   <TwitterIcon />
-                </div>
+                </CardIcon>
                 <div className='flex flex-col space-y-1'>
-                  <h1 className='font-medium text-medium'>Twitter</h1>
+                  <h3 className='font-medium text-medium'>Twitter</h3>
                   <Router
                     className='text-sm font-medium text-primary'
                     to={route('/connect/twitter')}
@@ -134,69 +166,61 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {!linkedIdentities.github && (
-          <Card className='space-y-4'>
+        {!linkedIdentities.github && kycStatus == KycStatus.Verified && (
+          <Card>
             <CardContent>
-              <div className='-m-2 flex items-center space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <div className='flex items-start space-x-4'>
+                <CardIcon className='-my-2 -ml-2'>
                   <GithubIcon />
-                </div>
+                </CardIcon>
                 <div className='flex flex-col space-y-1'>
                   <h3 className='font-medium text-medium'>Github</h3>
-                  <p className='text-sm font-medium text-disabled'>
-                    Coming soon
-                  </p>
+                  <p className='text-sm text-disabled'>Coming soon</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
-        {!linkedIdentities.linkedIn && (
-          <Card className='space-y-4'>
+        {!linkedIdentities.linkedIn && kycStatus == KycStatus.Verified && (
+          <Card>
             <CardContent>
-              <div className='-m-2 flex items-center space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <div className='flex items-start space-x-4'>
+                <CardIcon className='-my-2 -ml-2'>
                   <LinkedInIcon />
-                </div>
+                </CardIcon>
                 <div className='flex flex-col space-y-1'>
                   <h3 className='font-medium text-medium'>LinkedIn</h3>
-                  <p className='text-sm font-medium text-disabled'>
-                    Coming soon
-                  </p>
+                  <p className='text-sm text-disabled'>Coming soon</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
-        {!linkedIdentities.facebook && (
-          <Card className='space-y-4'>
+        {!linkedIdentities.facebook && kycStatus == KycStatus.Verified && (
+          <Card>
             <CardContent>
-              <div className='-m-2 flex items-center space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <div className='flex items-start space-x-4'>
+                <CardIcon className='-my-2 -ml-2'>
                   <FaceBookIcon />
-                </div>
+                </CardIcon>
                 <div className='flex flex-col space-y-1'>
                   <h3 className='font-medium text-medium'>Facebook</h3>
-                  <p className='text-sm font-medium text-disabled'>
-                    Coming soon
-                  </p>
+                  <p className='text-sm text-disabled'>Coming soon</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
-        {!linkedIdentities.instagram && (
-          <Card className='space-y-4'>
+        {!linkedIdentities.instagram && kycStatus == KycStatus.Verified && (
+          <Card>
             <CardContent>
-              <div className='-m-2 flex items-center space-x-4'>
-                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+              <div className='flex items-start space-x-4'>
+                <CardIcon className='-my-2 -ml-2'>
                   <InstagramIcon />
-                </div>
+                </CardIcon>
                 <div className='flex flex-col space-y-1'>
                   <h3 className='font-medium text-medium'>Instagram</h3>
-                  <p className='text-sm font-medium text-disabled'>
-                    Coming soon
-                  </p>
+                  <p className='text-sm text-disabled'>Coming soon</p>
                 </div>
               </div>
             </CardContent>

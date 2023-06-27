@@ -18,7 +18,6 @@ import type { PusherArgs } from '~/lib/usePusher'
 import type { Transaction } from '~/lib/wallet.server'
 import {
   getKycStatus,
-  getLinkedAccounts,
   getTransactionsWithPending,
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
@@ -54,8 +53,6 @@ export async function loader({ request }: LoaderArgs) {
     balance: '' as unknown as Promise<string>,
     transactions: [] as Transaction[],
     kycStatus: KycStatus.Unknown,
-    canTopUp: false,
-    canWithdraw: false,
     snackbar: {
       message: ''
     } as SnackbarType
@@ -67,7 +64,6 @@ export async function loader({ request }: LoaderArgs) {
       paymentPointer,
       transactions,
       kycStatus,
-      linkedAccounts,
       snackbar,
       pusherArgs
     ] = await Promise.all([
@@ -75,7 +71,6 @@ export async function loader({ request }: LoaderArgs) {
       getWalletPaymentPointer(request),
       getTransactionsWithPending(request, { pageSize: 3 }),
       getKycStatus(request),
-      getLinkedAccounts(request),
       getSnackbar(request),
       getPusherArgs(request)
     ])
@@ -86,8 +81,6 @@ export async function loader({ request }: LoaderArgs) {
       paymentPointer,
       transactions: transactions.transactions,
       kycStatus: kycStatus.kycStatus,
-      canTopUp: linkedAccounts.canTopUp,
-      canWithdraw: linkedAccounts.canWithdraw,
       snackbar,
       pusherArgs
     }

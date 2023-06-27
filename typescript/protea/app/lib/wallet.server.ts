@@ -172,9 +172,8 @@ type FormattedLinkedAccount = {
 }
 
 type LinkedAccountsResponse = {
-  linkedAccounts: Array<FormattedLinkedAccount>
-  canTopUp: boolean
-  canWithdraw: boolean
+  bankAccounts: Array<FormattedLinkedAccount>
+  cardAccounts: Array<FormattedLinkedAccount>
 }
 
 export async function getLinkedAccount(
@@ -225,9 +224,8 @@ export async function getLinkedAccounts(
     response.response.linkedAccounts.map(formatLinkedAccount)
 
   return {
-    linkedAccounts,
-    canTopUp: linkedAccounts.filter(({ type }) => type == 'card').length > 0,
-    canWithdraw: linkedAccounts.filter(({ type }) => type == 'bank').length > 0
+    bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
+    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card')
   }
 }
 
