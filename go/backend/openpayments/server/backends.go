@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/identities"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/keys"
@@ -33,6 +34,7 @@ type Backends interface {
 	DB() *sqlx.DB
 	Validator() *validator.Validate
 	Users() user.Client
+	Wallets() wallets.Client
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Email() email.Client
@@ -65,6 +67,11 @@ type testBackends struct {
 	ids  identities.Client
 	us   user.Client
 	fc   features.Client
+	wc   wallets.Client
+}
+
+func (t *testBackends) Wallets() wallets.Client {
+	return t.wc
 }
 
 func (t *testBackends) Twilio() twilio.Service {

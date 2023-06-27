@@ -876,14 +876,6 @@ table "wallet_addresses" {
     null = false
     type = uuid
   }
-  column "asset" {
-    null = false
-    type = text
-  }
-  column "scale" {
-    null = false
-    type = bigint
-  }
   column "created_at" {
     null    = false
     type    = timestamp

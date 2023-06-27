@@ -1,13 +1,16 @@
 package main
 
 import (
+	wallets_client "gitlab.com/fynbos/backend/wallets/client"
+	"log"
+	"os"
+
 	"gitlab.com/fynbos/backend/images"
 	images_client "gitlab.com/fynbos/backend/images/client"
 	"gitlab.com/fynbos/backend/keys"
 	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/vault"
-	"log"
-	"os"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
@@ -116,6 +119,7 @@ type backends struct {
 	keys           keys.Client
 	vault          vault.Client
 	img            images.Client
+	walletImpl     wallets.Client
 }
 
 func (b *backends) Transactions() transactions.Client {
@@ -167,6 +171,13 @@ func (b *backends) Users() user.Client {
 		b.user = user_client.New(b, "http://localhost:4433", "http://localhost:4434")
 	}
 	return b.user
+}
+
+func (b *backends) Wallets() wallets.Client {
+	if b.walletImpl == nil {
+		b.walletImpl = wallets_client.New(b)
+	}
+	return b.walletImpl
 }
 
 func (b *backends) Signup() signup.Client {

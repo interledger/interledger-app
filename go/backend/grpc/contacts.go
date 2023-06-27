@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/paymentpointers"
@@ -17,7 +18,7 @@ func (s *rpcService) CreateContact(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -32,7 +33,7 @@ func (s *rpcService) CreateContact(
 		return nil, toGRPCError(err)
 	}
 
-	w, err := s.b.Users().GetWallet(ctx, pPP.WalletID)
+	w, err := s.b.Wallets().Get(ctx, pPP.WalletID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -63,7 +64,7 @@ func (s *rpcService) ListContacts(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}

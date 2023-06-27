@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
@@ -18,7 +19,7 @@ func (s *rpcService) CreateTwitterAuthURL(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -72,7 +73,7 @@ func (s *rpcService) VerifyTwitter(ctx context.Context, request *backendv1.Verif
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}

@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 type Backends interface {
@@ -26,4 +27,5 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Transactions() transactions.Client
 	Features() features.Client
+	Wallets() wallets.Client
 }

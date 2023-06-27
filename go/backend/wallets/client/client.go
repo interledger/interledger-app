@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/backend/wallets/ops"
 )
@@ -37,4 +38,8 @@ func (c client) List(ctx context.Context, userID string) ([]wallets.Wallet, erro
 
 func (c client) SetWalletName(ctx context.Context, id, name string) (*wallets.Wallet, error) {
 	return ops.SetWalletName(ctx, c.b, id, name)
+}
+
+func (c client) ListAll(ctx context.Context, page db.Pagination) ([]wallets.Wallet, error) {
+	return ops.ListAll(ctx, c.b, page)
 }

@@ -7,6 +7,8 @@ import (
 
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/twitter"
+	"gitlab.com/fynbos/backend/wallets"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
@@ -92,6 +94,11 @@ type TestContainer struct {
 	keys               *keys_mock.MockClient
 	basistheory        *bt_mock.MockClient
 	TwitterClient      *twitter_mock.MockClient
+	walletImpl         *wallets_mock.MockClient
+}
+
+func (t TestContainer) Wallets() wallets.Client {
+	return t.walletImpl
 }
 
 func (t TestContainer) Features() features.Client {
@@ -237,6 +244,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		mx:                 mx_mock.NewMockClient(ctrl),
 		keys:               keys_mock.NewMockClient(ctrl),
 		TwitterClient:      twitter_mock.NewMockClient(ctrl),
+		walletImpl:         wallets_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

@@ -66,11 +66,7 @@ func TestExceeds(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: uuid.NewString(),
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
 			client, err := auth_ops.CreateClient(ctx, b, tc.tx.Source)
 			require.NoError(t, err)
@@ -80,13 +76,13 @@ func TestExceeds(t *testing.T) {
 				gid, client.ID, authorisation.GrantStateApproved, uuid.NewString(), 0)
 			require.NoError(t, err)
 
-			tc.tx.WalletID = wallet.ID
+			tc.tx.WalletID = walletID
 			tc.tx.GrantID = gid
 
 			_, err = txClient.CreateTransaction(ctx, tc.tx)
 			require.NoError(t, err)
 
-			exceeds, err := ops.Exceeds(ctx, b, wallet.ID, client.ID, tc.amnt)
+			exceeds, err := ops.Exceeds(ctx, b, walletID, client.ID, tc.amnt)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expect, exceeds)
 		})
@@ -99,13 +95,9 @@ func TestUpdateClientLimits(t *testing.T) {
 
 	b := NewTestBackends(t, dbc, users_mock.NewMock())
 
-	wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: uuid.NewString(),
-		Name:   "test",
-	})
-	require.NoError(t, err)
+	walletID := uuid.NewString()
 
-	_, err = auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
+	_, err := auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
 	require.NoError(t, err)
 
 	cases := []struct {
@@ -132,7 +124,7 @@ func TestUpdateClientLimits(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := ops.UpdateClientLimits(ctx, b, wallet.ID, "https://fynbos.me/bobby", tc.wl)
+			err := ops.UpdateClientLimits(ctx, b, walletID, "https://fynbos.me/bobby", tc.wl)
 			require.NoError(t, err)
 		})
 	}
@@ -144,13 +136,9 @@ func TestListLimits(t *testing.T) {
 
 	b := NewTestBackends(t, dbc, users_mock.NewMock())
 
-	wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: uuid.NewString(),
-		Name:   "test",
-	})
-	require.NoError(t, err)
+	walletID := uuid.NewString()
 
-	_, err = auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
+	_, err := auth_ops.CreateClient(ctx, b, "https://fynbos.me/bobby")
 	require.NoError(t, err)
 
 	cases := []struct {
@@ -169,10 +157,10 @@ func TestListLimits(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err = ops.UpdateClientLimits(ctx, b, wallet.ID, "https://fynbos.me/bobby", tc.wl)
+			err = ops.UpdateClientLimits(ctx, b, walletID, "https://fynbos.me/bobby", tc.wl)
 			require.NoError(t, err)
 
-			l, err := ops.ListLimits(ctx, b, wallet.ID)
+			l, err := ops.ListLimits(ctx, b, walletID)
 			require.NoError(t, err)
 
 			assert.Len(t, l, 1)
@@ -252,20 +240,16 @@ func TestExceedsGMTLimits(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: uuid.NewString(),
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
 			if tc.tx != nil {
-				tc.tx.WalletID = wallet.ID
+				tc.tx.WalletID = walletID
 
-				_, err = txClient.CreateTransaction(ctx, *tc.tx)
+				_, err := txClient.CreateTransaction(ctx, *tc.tx)
 				require.NoError(t, err)
 			}
 
-			exceeds, err := ops.ExceedsGMTLimits(ctx, b, wallet.ID, tc.amnt)
+			exceeds, err := ops.ExceedsGMTLimits(ctx, b, walletID, tc.amnt)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expect, exceeds)
 		})

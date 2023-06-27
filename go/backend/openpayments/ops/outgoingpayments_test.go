@@ -14,8 +14,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/currency"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -54,8 +52,6 @@ func TestCreateOutgoingPayment(t *testing.T) {
 	}, nil).AnyTimes()
 	b := ops.NewTestBackends(t, db, laClient, txClient)
 
-	userClient := users_mock.NewMock()
-
 	cases := []struct {
 		name      string
 		quoteArgs openpayments.CreateQuoteArgs
@@ -84,23 +80,12 @@ func TestCreateOutgoingPayment(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			sendUserID := uuid.NewString()
-			recvUserID := uuid.NewString()
-			// Create Wallets
-			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: sendUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
-			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: recvUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			sendWalletID := uuid.NewString()
+			recvWalletID := uuid.NewString()
 
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.quoteArgs.SendPaymentPointer,
-				WalletID:   sendWallet.ID,
+				WalletID:   sendWalletID,
 				Alias:      "Alias",
 				Asset:      tc.quoteArgs.SendAmount.Currency,
 				AssetScale: tc.quoteArgs.SendAmount.Scale,
@@ -109,7 +94,7 @@ func TestCreateOutgoingPayment(t *testing.T) {
 
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.quoteArgs.ReceivePaymentPointer,
-				WalletID:   recvWallet.ID,
+				WalletID:   recvWalletID,
 				Alias:      "Alias",
 				Asset:      tc.quoteArgs.SendAmount.Currency,
 				AssetScale: tc.quoteArgs.SendAmount.Scale,

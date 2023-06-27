@@ -2,6 +2,8 @@ package wallets
 
 import (
 	"context"
+
+	"gitlab.com/fynbos/backend/db"
 )
 
 type Client interface {
@@ -9,5 +11,6 @@ type Client interface {
 	ForContext(ctx context.Context) (*Wallet, error)
 	Get(ctx context.Context, id string) (*Wallet, error)
 	List(ctx context.Context, userID string) ([]Wallet, error)
+	ListAll(ctx context.Context, page db.Pagination) ([]Wallet, error)
 	SetWalletName(ctx context.Context, id, name string) (*Wallet, error)
 }

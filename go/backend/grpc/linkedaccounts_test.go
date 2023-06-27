@@ -10,15 +10,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/user"
 	_user "gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
 func TestGetLinkedAccounts(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
@@ -41,13 +40,12 @@ func TestGetLinkedAccounts(t *testing.T) {
 	})
 
 	t.Run("returns linked accounts", func(st *testing.T) {
-		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: u.ID,
-			Name:   "default",
-		})
-		if err != nil {
-			t.Fatal(err)
+		wallet := wallets.Wallet{
+			ID:   uuid.NewString(),
+			Name: "testing",
 		}
+		c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+		c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
 		walletID := wallet.ID
 		expectedLinkedAccounts := []linkedaccounts.LinkedAccount{
 			{
@@ -90,7 +88,6 @@ func TestGetLinkedAccounts(t *testing.T) {
 
 func TestGetLinkedAccount(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
 		ctrl.Finish()
@@ -103,21 +100,19 @@ func TestGetLinkedAccount(t *testing.T) {
 
 	t.Run("returns linked account", func(st *testing.T) {
 		accID := uuid.NewString()
-		wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: u.ID,
-			Name:   "default",
-		})
-		if err != nil {
-			t.Fatal(err)
+		wallet := wallets.Wallet{
+			ID:   uuid.NewString(),
+			Name: "test",
 		}
-		walletID := wallet.ID
 		expectedLinkedAccount := &linkedaccounts.LinkedAccount{
 			ID:       accID,
-			WalletID: walletID,
+			WalletID: wallet.ID,
 			Name:     "test1",
 			Mask:     "abc",
 		}
 		c.linkedaccounts.EXPECT().Get(gomock.Any(), accID).Return(expectedLinkedAccount, nil).Times(1)
+		c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil)
+		c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil)
 
 		response, err := client.GetLinkedAccount(
 			user_mock.ActingAsContext(t, context.Background(), u),

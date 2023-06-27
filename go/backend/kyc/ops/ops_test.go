@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/user"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,16 +19,7 @@ func TestUpdateUserDetails(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, nil, nil)
 
-	userID := uuid.NewString()
-
-	users := user_mock.NewMock()
-	wallet, err := users.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userID,
-		Name:   "testing",
-	})
-	require.NoError(t, err)
-
-	walletID := wallet.ID
+	walletID := uuid.NewString()
 
 	ud, err := ops.UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
 		WalletID:    walletID,
@@ -181,16 +169,7 @@ func TestKYCStatus(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, nil, nil)
 
-	userID := uuid.NewString()
-
-	users := user_mock.NewMock()
-	wallet, err := users.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userID,
-		Name:   "testing",
-	})
-	require.NoError(t, err)
-
-	walletID := wallet.ID
+	walletID := uuid.NewString()
 
 	// Defaults to unknown if not set
 	s, err := ops.GetKYCStatus(ctx, b, walletID)

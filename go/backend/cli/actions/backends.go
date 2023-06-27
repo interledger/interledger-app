@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 type Backends interface {
@@ -18,4 +19,5 @@ type Backends interface {
 	Signup() signup.Client
 	Users() user.Client
 	Validator() *validator.Validate
+	Wallets() wallets.Client
 }

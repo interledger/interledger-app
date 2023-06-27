@@ -9,12 +9,13 @@ import (
 	"net/http"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"github.com/bxcodec/faker/v3"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/urfave/cli/v2"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/signup"
-	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -109,7 +110,7 @@ func MakeUser(b Backends) cli.ActionFunc {
 			return err
 		}
 
-		wallet, err := b.Users().CreateNewWallet(cCtx.Context, user.CreateWalletArgs{
+		wallet, err := b.Wallets().Create(cCtx.Context, wallets.CreateArgs{
 			UserID: userID,
 		})
 		if err != nil {

@@ -28,7 +28,7 @@ func (s *rpcService) UpdateIndividualKYC(ctx context.Context, req *pb.UpdateIndi
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -130,7 +130,7 @@ func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.I
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -175,7 +175,7 @@ func (s *rpcService) KYCStatus(ctx context.Context, req *pb.Empty) (*pb.KYCStatu
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -200,7 +200,7 @@ func (s *rpcService) StartKYC(ctx context.Context, _ *pb.Empty) (*pb.Empty, erro
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -220,7 +220,7 @@ func (s *rpcService) GetPersonaInquiry(ctx context.Context, req *pb.KYCPersonaIn
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}

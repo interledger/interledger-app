@@ -10,6 +10,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/backend/wallets"
+
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
 	"gitlab.com/fynbos/backend/features"
 	features_mock "gitlab.com/fynbos/backend/features/client/mock"
 
@@ -35,7 +39,6 @@ import (
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/mocks"
@@ -48,10 +51,12 @@ func TestGetHandler(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	idc := identities_mock.NewMockClient(ctrl)
 	userClient := users_mock.NewMock()
+	wc := wallets_mock.NewMockClient(ctrl)
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.ids = idc
 		tb.us = userClient
+		tb.wc = wc
 	})
 
 	cases := []struct {
@@ -92,18 +97,12 @@ func TestGetHandler(t *testing.T) {
 
 			// Setup the payment pointer
 			if tc.pointer != nil {
-				userID := uuid.NewString()
-				// Create Wallets
-				wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-					UserID: userID,
-					Name:   tc.pointer.Alias,
-				})
-				require.NoError(t, err)
-
-				tc.pointer.WalletID = wallet.ID
+				tc.pointer.WalletID = uuid.NewString()
 
 				err = ops.CreatePaymentPointer(ctx, b, *tc.pointer)
 				require.NoError(t, err)
+
+				wc.EXPECT().Get(gomock.Any(), tc.pointer.WalletID).Return(&wallets.Wallet{ID: tc.pointer.WalletID, Name: tc.pointer.Alias}, nil)
 			}
 
 			idc.EXPECT().ListPublic(gomock.Any(), gomock.Any()).Return(tc.identities, nil).AnyTimes()
@@ -143,7 +142,6 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		tb.auth = auth
 		tb.tr = tc
 	})
-	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name          string
@@ -198,19 +196,8 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 				},
 			},
 		}, nil).AnyTimes()
-		sendUserID := uuid.NewString()
-		recvUserID := uuid.NewString()
-		// Create Wallets
-		recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: recvUserID,
-			Name:   "test",
-		})
-		require.NoError(t, err)
-		sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: sendUserID,
-			Name:   "test",
-		})
-		require.NoError(t, err)
+		sendWalletID := uuid.NewString()
+		recvWalletID := uuid.NewString()
 
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
@@ -226,7 +213,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.args.ToPP,
 			Alias:      "alias",
-			WalletID:   recvWallet.ID,
+			WalletID:   recvWalletID,
 			Asset:      asset,
 			AssetScale: assetScale,
 		})
@@ -234,7 +221,7 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.args.FromPP,
 			Alias:      "alias",
-			WalletID:   sendWallet.ID,
+			WalletID:   sendWalletID,
 			Asset:      asset,
 			AssetScale: assetScale,
 		})
@@ -329,8 +316,6 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	})
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-	userClient := users_mock.NewMock()
-
 	cases := []struct {
 		name          string
 		args          OutgoingPaymentArgs
@@ -375,25 +360,14 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 				},
 			},
 		}, nil).AnyTimes()
-		sendUserID := uuid.NewString()
-		recvUserID := uuid.NewString()
-		// Create Wallets
-		sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: sendUserID,
-			Name:   "test",
-		})
-		require.NoError(t, err)
-		recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-			UserID: recvUserID,
-			Name:   "test",
-		})
-		require.NoError(t, err)
+		sendWalletID := uuid.NewString()
+		recvWalletID := uuid.NewString()
 
 		// Setup the payment pointers
-		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+		err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.args.FromPP,
 			Alias:      "alias",
-			WalletID:   sendWallet.ID,
+			WalletID:   sendWalletID,
 			Asset:      currency.ParseCurrency(tc.args.SendAmount.Currency),
 			AssetScale: 2,
 		})
@@ -401,7 +375,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 			URL:        tc.args.ToPP,
 			Alias:      "alias",
-			WalletID:   recvWallet.ID,
+			WalletID:   recvWalletID,
 			Asset:      currency.ParseCurrency(tc.args.SendAmount.Currency),
 			AssetScale: 2,
 		})
@@ -470,27 +444,20 @@ func TestListKeys(t *testing.T) {
 		tb.db = db.MigrateTestDB(t, ctx)
 		tb.keys = keyClient
 	})
-	userClient := users_mock.NewMock()
 
-	userID := uuid.NewString()
-	// Create Wallets
-	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userID,
-		Name:   "test",
-	})
-	require.NoError(t, err)
+	walletID := uuid.NewString()
 	asset := currency.USD
 	assetScale := 2
-	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+	err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 		URL:        "https://fynbos.local.me/found_me",
 		Alias:      "alias",
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 		Asset:      asset,
 		AssetScale: assetScale,
 	})
 	require.NoError(t, err)
 
-	keyClient.EXPECT().List(gomock.Any(), wallet.ID).Return([]keys.Key{
+	keyClient.EXPECT().List(gomock.Any(), walletID).Return([]keys.Key{
 		{
 			ID:        uuid.NewString(),
 			Type:      keys.NonCustodial,
@@ -659,20 +626,13 @@ func TestGetIdentitiesHandler(t *testing.T) {
 
 			// Setup the payment pointer
 			if tc.pointer != nil {
-				userID := uuid.NewString()
-				// Create Wallets
-				wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-					UserID: userID,
-					Name:   tc.pointer.Alias,
-				})
-				require.NoError(t, err)
-
-				tc.pointer.WalletID = wallet.ID
+				walletID := uuid.NewString()
+				tc.pointer.WalletID = walletID
 
 				// set wallet id on identity on empty ones
 				for i := range tc.identities {
 					if tc.identities[i].WalletID == "" {
-						tc.identities[i].WalletID = wallet.ID
+						tc.identities[i].WalletID = walletID
 					}
 				}
 

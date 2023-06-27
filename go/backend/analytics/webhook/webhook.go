@@ -3,11 +3,12 @@ package webhook
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
 )
 
 type kratosEvent struct {
@@ -71,7 +72,7 @@ func NewHandleLogin(backends Backends) http.HandlerFunc {
 		})
 		backends.Analytics().TrackUserLogin(event.UserId)
 
-		wallets, err := backends.Users().ListWallets(context.Background(), event.UserId)
+		wallets, err := backends.Wallets().List(context.Background(), event.UserId)
 		if err != nil {
 			log.Error("error get user wallets", zap.Error(err))
 		}

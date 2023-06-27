@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	_user "gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/wallets"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -22,14 +25,15 @@ func TestCreatePublicKey(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	c := NewTestContainer(t, ctrl)
 	_, _, client := startTestServer(t, c)
-	u := &user.User{
+	u := &_user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: u.ID,
-		Name:   "Marko Polo",
-	})
-	require.NoError(t, err)
+	wallet := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
+	}
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
 
 	pemEncodedPublicKey := `-----BEGIN PUBLIC KEY-----
 MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
@@ -37,18 +41,18 @@ MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 
 	keyID := uuid.NewString()
-	c.keys.EXPECT().AddPublicKey(gomock.Any(), w.ID, base64PublicKey, "FynTest").Return(
+	c.keys.EXPECT().AddPublicKey(gomock.Any(), wallet.ID, base64PublicKey, "FynTest").Return(
 		&keys.Key{
 			ID:        keyID,
 			Name:      "FynTest",
-			WalletID:  w.ID,
+			WalletID:  wallet.ID,
 			Reference: "",
 			PublicKey: "base64PublicKey",
 		},
 		nil,
 	).AnyTimes()
 
-	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), w.ID, keyID, limits.Limit{
+	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), wallet.ID, keyID, limits.Limit{
 		Daily: currency.Amount{
 			Value:    10,
 			Currency: currency.Currency("USD"),
@@ -66,7 +70,7 @@ MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
 		},
 	}).AnyTimes()
 
-	_, err = client.CreateConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateConnectionRequest{
+	_, err := client.CreateConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateConnectionRequest{
 		ApplicationName: "FynTest",
 		PublicKey:       pemEncodedPublicKey,
 		DailyLimit: &backendv1.Amount{
@@ -96,16 +100,17 @@ func TestGetAndListPublicKeys(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: u.ID,
-		Name:   "Marko Polo",
-	})
-	require.NoError(t, err)
+	wallet := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
+	}
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
 
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 	keyFingerprint := "SHA256:22ce02aa18eb1ee5f39482d0f57a6ba56f4d549f81db547f3bea2863207c8a01"
 	keyUuid := uuid.NewString()
-	c.keys.EXPECT().List(gomock.Any(), w.ID).Return(
+	c.keys.EXPECT().List(gomock.Any(), wallet.ID).Return(
 		[]keys.Key{
 			{
 				ID:        keyUuid,
@@ -143,21 +148,22 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: u.ID,
-		Name:   "Marko Polo",
-	})
-	require.NoError(t, err)
+	wallet := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
+	}
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
 
 	ppURL := "https://local.fynbos.me/test"
-	c.OPClient.EXPECT().GetWalletPaymentPointer(gomock.Any(), w.ID).Return(&openpayments.PaymentPointer{
+	c.OPClient.EXPECT().GetWalletPaymentPointer(gomock.Any(), wallet.ID).Return(&openpayments.PaymentPointer{
 		ID:       uuid.NewString(),
-		WalletID: w.ID,
+		WalletID: wallet.ID,
 		URL:      ppURL,
 	}, nil).AnyTimes()
 
 	publicKeyUuid := uuid.NewString()
-	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), w.ID, publicKeyUuid, limits.Limit{
+	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), wallet.ID, publicKeyUuid, limits.Limit{
 		Daily: currency.Amount{
 			Value:    10,
 			Currency: "USD",
@@ -175,7 +181,7 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 		},
 	}).Return(nil).AnyTimes()
 
-	_, err = client.UpdateConnectionLimits(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdateConnectionLimitsRequest{
+	_, err := client.UpdateConnectionLimits(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdateConnectionLimitsRequest{
 		Id: publicKeyUuid,
 		Daily: &backendv1.Amount{
 			Asset:      "USD",
@@ -204,11 +210,12 @@ func TestDeletePublicKey(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
-	w, err := c.Users().CreateNewWallet(context.Background(), user.CreateWalletArgs{
-		UserID: u.ID,
-		Name:   "Marko Polo",
-	})
-	require.NoError(t, err)
+	w := wallets.Wallet{
+		ID:   uuid.NewString(),
+		Name: "testing",
+	}
+	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{w}, nil).AnyTimes()
+	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&w, nil).AnyTimes()
 
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 	keyID := uuid.NewString()
@@ -227,7 +234,7 @@ func TestDeletePublicKey(t *testing.T) {
 
 	c.keys.EXPECT().DeletePublicKey(gomock.Any(), keyID).Return(nil).AnyTimes()
 
-	_, err = client.DeleteConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.DeleteConnectionRequest{
+	_, err := client.DeleteConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.DeleteConnectionRequest{
 		Id: keyID,
 	})
 	require.NoError(t, err)

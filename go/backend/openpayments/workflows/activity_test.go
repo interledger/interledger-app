@@ -19,8 +19,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-	"gitlab.com/fynbos/backend/user"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -41,8 +39,6 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 	a := Activity{b: b}
-
-	userClient := users_mock.NewMock()
 
 	env.RegisterActivity(a.GetProviderWorkflowArgs)
 
@@ -72,23 +68,12 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			sendUserID := uuid.NewString()
-			recvUserID := uuid.NewString()
-			// Create Wallets
-			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: sendUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
-			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: recvUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			sendWalletID := uuid.NewString()
+			recvWalletID := uuid.NewString()
 
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.quoteArgs.SendPaymentPointer,
-				WalletID:   sendWallet.ID,
+				WalletID:   sendWalletID,
 				Alias:      "Alias",
 				Asset:      tc.quoteArgs.SendAmount.Currency,
 				AssetScale: tc.quoteArgs.SendAmount.Scale,
@@ -97,7 +82,7 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.quoteArgs.ReceivePaymentPointer,
-				WalletID:   recvWallet.ID,
+				WalletID:   recvWalletID,
 				Alias:      "Alias",
 				Asset:      tc.quoteArgs.SendAmount.Currency,
 				AssetScale: tc.quoteArgs.SendAmount.Scale,

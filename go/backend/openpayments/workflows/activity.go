@@ -339,7 +339,7 @@ func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPayment
 		return nil
 	}
 
-	toWallet, err := a.b.Users().GetWallet(ctx, issuedToPaymentPointer.WalletID)
+	toWallet, err := a.b.Wallets().Get(ctx, issuedToPaymentPointer.WalletID)
 	if err != nil {
 		return err
 	}

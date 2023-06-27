@@ -5,22 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.com/fynbos/backend/user"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
-
-	"gitlab.com/fynbos/backend/currency"
-
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-
 	"github.com/golang/mock/gomock"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 )
 
 func TestCreateIncomingPayment(t *testing.T) {
@@ -33,8 +26,6 @@ func TestCreateIncomingPayment(t *testing.T) {
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
 	b := ops.NewTestBackends(t, db, nil, tc)
-
-	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name    string
@@ -117,19 +108,8 @@ func TestCreateIncomingPayment(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			recvUserID := uuid.NewString()
-			sendUserID := uuid.NewString()
-			// Create Wallets
-			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: recvUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
-			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: sendUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			recvWalletID := uuid.NewString()
+			sendWalletID := uuid.NewString()
 
 			asset := currency.USD
 			assetScale := 2
@@ -140,9 +120,9 @@ func TestCreateIncomingPayment(t *testing.T) {
 			if tc.ppAsset != "" {
 				asset = currency.ParseCurrency(tc.ppAsset)
 			}
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.args.PaymentPointer,
-				WalletID:   recvWallet.ID,
+				WalletID:   recvWalletID,
 				Alias:      "Alias",
 				Asset:      asset,
 				AssetScale: assetScale,
@@ -150,7 +130,7 @@ func TestCreateIncomingPayment(t *testing.T) {
 			require.NoError(t, err)
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.args.FromPaymentPointer,
-				WalletID:   sendWallet.ID,
+				WalletID:   sendWalletID,
 				Alias:      "Alias",
 				Asset:      asset,
 				AssetScale: assetScale,

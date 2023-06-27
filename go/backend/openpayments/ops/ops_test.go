@@ -9,7 +9,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 
 	"gitlab.com/fynbos/backend/providers/gmt"
-	"gitlab.com/fynbos/backend/user"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -27,7 +26,6 @@ import (
 
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 func TestCreatePaymentPointer(t *testing.T) {
@@ -36,8 +34,6 @@ func TestCreatePaymentPointer(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
-
-	userClient := users_mock.NewMock()
 
 	cases := []struct {
 		name      string
@@ -123,17 +119,11 @@ func TestCreatePaymentPointer(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			userID := uuid.NewString()
-			// Create Wallet
-			wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: userID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			walletID := uuid.NewString()
 
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.url,
-				WalletID:   wallet.ID,
+				WalletID:   walletID,
 				Alias:      tc.alias,
 				Asset:      currency.ParseCurrency(tc.assetCode),
 				AssetScale: tc.scale,
@@ -142,7 +132,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 				require.NoError(t, err)
 				err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 					URL:        tc.url,
-					WalletID:   wallet.ID,
+					WalletID:   walletID,
 					Alias:      tc.alias,
 					Asset:      currency.ParseCurrency(tc.assetCode),
 					AssetScale: tc.scale,
@@ -162,7 +152,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 			pp, err := ops.GetPaymentPointer(ctx, b, tc.url)
 			require.NoError(t, err)
 			assert.Equal(t, tc.alias, pp.Alias)
-			assert.Equal(t, wallet.ID, pp.WalletID)
+			assert.Equal(t, walletID, pp.WalletID)
 			assert.Equal(t, tc.url, pp.URL)
 			assert.Equal(t, tc.assetCode, pp.Asset.String())
 			assert.Equal(t, tc.scale, pp.AssetScale)
@@ -177,25 +167,18 @@ func TestGetWalletPaymentPointer(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
-	userClient := users_mock.NewMock()
-	userID := uuid.NewString()
-	// Create Wallet
-	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userID,
-		Name:   "test",
-	})
-	require.NoError(t, err)
+	walletID := uuid.NewString()
 
-	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+	err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 		URL:        "https://fynbos.me/abcd1",
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 		Alias:      "Alias",
 		Asset:      currency.ParseCurrency("USD"),
 		AssetScale: 2,
 	})
 	require.NoError(t, err)
 
-	pp, err := ops.GetWalletPaymentPointer(ctx, b, wallet.ID)
+	pp, err := ops.GetWalletPaymentPointer(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, "https://fynbos.me/abcd1", pp.URL)
 	assert.Equal(t, "Alias", pp.Alias)
@@ -272,19 +255,11 @@ func TestListWalletPaymentPointers(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, nil, nil)
 
-	userClient := users_mock.NewMock()
+	walletID := uuid.NewString()
 
-	userID := uuid.NewString()
-
-	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userID,
-		Name:   "test",
-	})
-	require.NoError(t, err)
-
-	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+	err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 		URL:        "https://fynbos.me/payp1",
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 		Alias:      "Alias1",
 		Asset:      "USD",
 		AssetScale: 2,
@@ -292,7 +267,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	require.NoError(t, err)
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 		URL:        "https://fynbos.me/payp2",
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 		Alias:      "Alias2",
 		Asset:      "ZAR",
 		AssetScale: 2,
@@ -300,7 +275,7 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	require.NoError(t, err)
 
 	// List and validate
-	pp, err := ops.ListWalletPaymentPointers(ctx, b, wallet.ID)
+	pp, err := ops.ListWalletPaymentPointers(ctx, b, walletID)
 	require.NoError(t, err)
 	require.Len(t, pp, 2)
 	for _, p := range pp {
@@ -430,15 +405,8 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 
 	b := ops.NewTestBackends(t, db, nil, nil)
-	userClient := users_mock.NewMock()
 
-	userID := uuid.NewString()
-	// Create Wallet
-	wallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: userID,
-		Name:   "test",
-	})
-	require.NoError(t, err)
+	walletID := uuid.NewString()
 
 	exists, err := ops.PaymentPointerExists(ctx, b, "https://fynbos.me/ValidPaymentPointer")
 	require.NoError(t, err)
@@ -447,7 +415,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	// Create payment pointer
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 		URL:        "https://fynbos.me/ValidPaymentPointer",
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 		Asset:      "ZAR",
 		Alias:      "test",
 		AssetScale: 2,
@@ -467,7 +435,7 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	// Create with different casing
 	err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 		URL:        "https://fynbos.me/VaLidPaymenTPoinTer",
-		WalletID:   wallet.ID,
+		WalletID:   walletID,
 		Asset:      "ZAR",
 		Alias:      "test",
 		AssetScale: 2,
@@ -558,8 +526,6 @@ func TestCreateQuote(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, laClient, txClient)
 
-	userClient := users_mock.NewMock()
-
 	cases := []struct {
 		name      string
 		args      openpayments.CreateQuoteArgs
@@ -630,23 +596,12 @@ func TestCreateQuote(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			sendUserID := uuid.NewString()
-			recvUserID := uuid.NewString()
-			// Create Wallets
-			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: sendUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
-			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: recvUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			sendWalletID := uuid.NewString()
+			recvWalletID := uuid.NewString()
 
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.args.SendPaymentPointer,
-				WalletID:   sendWallet.ID,
+				WalletID:   sendWalletID,
 				Alias:      "Alias",
 				Asset:      tc.args.SendAmount.Currency,
 				AssetScale: tc.args.SendAmount.Scale,
@@ -658,7 +613,7 @@ func TestCreateQuote(t *testing.T) {
 			}
 			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.args.ReceivePaymentPointer,
-				WalletID:   recvWallet.ID,
+				WalletID:   recvWalletID,
 				Alias:      "Alias",
 				Asset:      recvAsset,
 				AssetScale: tc.args.SendAmount.Scale,
@@ -668,11 +623,11 @@ func TestCreateQuote(t *testing.T) {
 			if tc.args.LinkedAccID != "" {
 				providerID := uuid.NewString()
 				_, err = db.ExecContext(ctx, "insert into linked_accounts (id, wallet_id, name, mask, provider, provider_id, type, can_send, can_receive) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-					tc.args.LinkedAccID, sendWallet.ID, "testing", "mask", gmt.ProviderName, providerID, gmt.TypeBankAccount, true, true)
+					tc.args.LinkedAccID, sendWalletID, "testing", "mask", gmt.ProviderName, providerID, gmt.TypeBankAccount, true, true)
 				require.NoError(t, err)
 				laClient.EXPECT().Get(ctx, tc.args.LinkedAccID).Return(&linkedaccounts.LinkedAccount{
 					ID:         tc.args.LinkedAccID,
-					WalletID:   sendWallet.ID,
+					WalletID:   sendWalletID,
 					ProviderID: providerID,
 					Type:       gmt.TypeBankAccount,
 				}, nil)
@@ -766,8 +721,6 @@ func TestValidateCanSend(t *testing.T) {
 
 	b := ops.NewTestBackends(t, db, laClient, txClient)
 
-	userClient := users_mock.NewMock()
-
 	cases := []struct {
 		name      string
 		sendPP    string
@@ -832,23 +785,12 @@ func TestValidateCanSend(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			sendUserID := uuid.NewString()
-			recvUserID := uuid.NewString()
-			// Create Wallets
-			sendWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: sendUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
-			recvWallet, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: recvUserID,
-				Name:   "test",
-			})
-			require.NoError(t, err)
+			sendWalletID := uuid.NewString()
+			recvWalletID := uuid.NewString()
 
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
+			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 				URL:        tc.sendPP,
-				WalletID:   sendWallet.ID,
+				WalletID:   sendWalletID,
 				Alias:      "Alias",
 				Asset:      currency.USD,
 				AssetScale: 2,
@@ -857,7 +799,7 @@ func TestValidateCanSend(t *testing.T) {
 			if tc.sendPP != tc.recvPP && tc.hasPP {
 				err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
 					URL:        tc.recvPP,
-					WalletID:   recvWallet.ID,
+					WalletID:   recvWalletID,
 					Alias:      "Alias",
 					Asset:      currency.USD,
 					AssetScale: 2,
@@ -876,7 +818,7 @@ func TestValidateCanSend(t *testing.T) {
 				},
 			}, nil).AnyTimes()
 
-			walletID := sendWallet.ID
+			walletID := sendWalletID
 			if tc.unauthed {
 				walletID = ""
 			}

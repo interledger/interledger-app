@@ -2,10 +2,11 @@ package jobs
 
 import (
 	"context"
+	"time"
+
 	"gitlab.com/fynbos/backend/db"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/workflow"
-	"time"
 )
 
 func FixWalletPublicKeysWorkflow(ctx workflow.Context) error {
@@ -31,7 +32,7 @@ func FixWalletPublicKeysWorkflow(ctx workflow.Context) error {
 func (a *Activity) FixWalletsPrivateKeyActivity(ctx context.Context) error {
 	logger := activity.GetLogger(ctx)
 
-	wallets, err := a.b.Users().ListAllWallets(ctx, db.Pagination{
+	wallets, err := a.b.Wallets().ListAll(ctx, db.Pagination{
 		PageToken: "",
 		PageSize:  50,
 	})
