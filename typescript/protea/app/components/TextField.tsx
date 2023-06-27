@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes } from 'react'
 import { forwardRef } from 'react'
+import { Router } from '~/components/Router'
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
@@ -8,6 +9,10 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   // Appended text to the label (Footer notes)
   labelSuffix?: string
+  // Text right aligned to the label.
+  labelLink?: string
+  // Where the labelLink should go.
+  labelLinkTo?: string
   // The message from errors produced by form validation.
   errorMessage?: string
   // Any success messages produced by form validation.
@@ -25,6 +30,8 @@ export const TextField = forwardRef<any, TextFieldProps>(
       className,
       label,
       labelSuffix,
+      labelLink,
+      labelLinkTo,
       errorMessage,
       successMessage,
       prefix,
@@ -36,12 +43,22 @@ export const TextField = forwardRef<any, TextFieldProps>(
   ) => {
     return (
       <div className={className || 'min-w-full'}>
-        <label
-          htmlFor={inputProps.id}
-          className='ml-2 block text-sm font-medium text-medium'
-        >
-          {label} {labelSuffix && <sup>{labelSuffix}</sup>}
-        </label>
+        <div className='flex justify-between'>
+          <label
+            htmlFor={inputProps.id}
+            className='ml-2 block text-sm font-medium text-medium'
+          >
+            {label} {labelSuffix && <sup>{labelSuffix}</sup>}
+          </label>
+          {labelLink && labelLinkTo && (
+            <Router
+              to={labelLinkTo}
+              className='mr-2 text-sm font-medium text-primary'
+            >
+              {labelLink}
+            </Router>
+          )}
+        </div>
         <div className='mt-1 block h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
           <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
             {prefixIcon && (
