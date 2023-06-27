@@ -26,7 +26,7 @@ type Provider string
 
 const (
 	ProviderOpenPayments Provider = "open_payments"
-	ProviderGMT          Provider = "machnet"
+	ProviderGMT          Provider = "gmt"
 )
 
 type TransferType string
