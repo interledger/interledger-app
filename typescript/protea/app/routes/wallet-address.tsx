@@ -5,7 +5,15 @@ import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Icon, Layouts, Snackbar, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Icon,
+  Layouts,
+  Snackbar,
+  TextField
+} from '~/components'
 import { getUserSession } from '~/lib/kratos.server'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -77,14 +85,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      title: 'Wallet address'
+      title: 'Wallet'
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Wallet address'
+    title: 'Wallet'
   }
 }
 
@@ -112,59 +120,76 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <input
+        form='wallet-address'
+        value='true'
+        name='canSubmit'
+        type='hidden'
+      />
       <Card>
-        <p>Create your unique, memorable wallet address.</p>
-
-        <TextField
-          id='publicName'
-          form='wallet-address'
-          label='Public name'
-          name='publicName'
-          defaultValue={publicName}
-          type='text'
-          className='mt-6'
-          aria-invalid={Boolean(fetcher.data?.errors.publicName) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.publicName ? 'public-name-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.publicName || undefined}
-        />
-        <TextField
-          id='username'
-          form='wallet-address'
-          label='Wallet address'
-          name='username'
-          prefix={`${paymentPointerBase}/`}
-          appendIcon={
-            username == '' &&
-            typeof fetcher.data == 'undefined' ? undefined : fetcher.data
-                ?.errors.username ? (
-              <Icon className='text-error'>error</Icon>
-            ) : (
-              <Icon className='text-success'>check</Icon>
-            )
-          }
-          defaultValue={username}
-          onChange={_onChangeInput}
-          type='text'
-          className='mt-2'
-          aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.username ? 'username-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.username || undefined}
-          successMessage={
-            fetcher.data?.errors.username || username == ''
-              ? undefined
-              : 'This wallet address is available.'
-          }
-        />
+        <CardContent>
+          <p className='text-medium'>
+            Create your unique wallet address below.
+          </p>
+          <TextField
+            id='username'
+            form='wallet-address'
+            label='Wallet address'
+            name='username'
+            prefix={`${paymentPointerBase}/`}
+            appendIcon={
+              username == '' &&
+              typeof fetcher.data == 'undefined' ? undefined : fetcher.data
+                  ?.errors.username ? (
+                <Icon className='text-error'>error</Icon>
+              ) : (
+                <Icon className='text-success'>check</Icon>
+              )
+            }
+            defaultValue={username}
+            onChange={_onChangeInput}
+            type='text'
+            className='mt-4'
+            aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
+            aria-describedby={
+              fetcher.data?.errors.username ? 'username-error' : undefined
+            }
+            errorMessage={fetcher.data?.errors.username || undefined}
+            successMessage={
+              fetcher.data?.errors.username || username == ''
+                ? undefined
+                : 'This wallet address is available.'
+            }
+          />
+        </CardContent>
         <input
           form='wallet-address'
           value='true'
           name='canSubmit'
           type='hidden'
         />
+      </Card>
+      <Card>
+        <CardContent>
+          <p className='text-medium'>
+            Add a name as you would like it to appear on your public Fynbos.me
+            page.
+          </p>
+          <TextField
+            id='publicName'
+            form='wallet-address'
+            label='Public name'
+            name='publicName'
+            defaultValue={publicName}
+            type='text'
+            className='mt-4'
+            aria-invalid={Boolean(fetcher.data?.errors.publicName) || undefined}
+            aria-describedby={
+              fetcher.data?.errors.publicName ? 'public-name-error' : undefined
+            }
+            errorMessage={fetcher.data?.errors.publicName || undefined}
+          />
+        </CardContent>
       </Card>
       <Button form='wallet-address' type='submit'>
         Save
@@ -269,7 +294,7 @@ export async function action({ request }: ActionArgs) {
     return redirect(route('/'), {
       headers: {
         'Set-Cookie': await flashSnackbar(request, {
-          message: 'Wallet address reserved.',
+          message: 'Your wallet is reserved.',
           icon: 'close'
         })
       }

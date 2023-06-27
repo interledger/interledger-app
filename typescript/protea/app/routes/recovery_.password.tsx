@@ -4,7 +4,14 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  Snackbar,
+  TextField
+} from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -89,25 +96,26 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <span>
-          You've successfully recovered your account. Set a new password to
-          continue.
-        </span>
-        <TextField
-          id='new-password'
-          form='recovery-password'
-          label='New password'
-          name='new-password'
-          type='password'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
-
+        <CardContent>
+          <span>
+            You've successfully recovered your account. Set a new password to
+            continue.
+          </span>
+          <TextField
+            id='new-password'
+            form='recovery-password'
+            label='New password'
+            name='new-password'
+            type='password'
+            className='mt-6'
+            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+            aria-describedby={
+              actionData?.errors?.password ? 'password-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.password}
+          />
+        </CardContent>
         <input
           form='recovery-password'
           defaultValue={csrfToken}
