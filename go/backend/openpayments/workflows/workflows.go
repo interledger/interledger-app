@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.temporal.io/sdk/temporal"
 	"strings"
 	"time"
 
@@ -165,7 +166,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	case providers.GMTCARD2CARD:
 		err = workflow.ExecuteChildWorkflow(ctx, gmt_workflows.Card2CardTransferWorkflow, tArgs).Get(ctx, &resp)
 	default:
-		return "", fmt.Errorf("unknown transfer worklfow (%s)", wfArgs.Key)
+		err = temporal.NewNonRetryableApplicationError(fmt.Sprintf("unknown transfer worklfow (%s)", wfArgs.Key), "UNKNOWN_TRANSFER_WORKFLOW", nil)
 	}
 	if err != nil {
 		logger.Error("OutgoingTransactionWorkflow child workflow failed.", "Error", err)
