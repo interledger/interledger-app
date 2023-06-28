@@ -1063,6 +1063,7 @@ func (a *Activity) InsertCard2Card(ctx context.Context, args providers.Transfers
 		Transfer: &external.WsTransferInfo{
 			AmountToReceive:       args.Amount.Float64(),
 			CorrespondentCode:     "USCD",
+			BankAccount:           "1234123412341234",
 			DestinationCurrency:   args.Amount.Currency.String(),
 			ExchangeRate:          1,
 			Fee:                   0,
