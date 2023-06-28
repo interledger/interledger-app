@@ -2,13 +2,13 @@ import type { LoaderArgs } from '@remix-run/node'
 import { defer } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
-import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
 import type {
   FooterRecord,
   HomeRouteRecord
 } from '~/generated/dato-cms-graphql'
+import type { Identity } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { getHomeRoute } from '~/lib/marketing.server'
 import { getPusherArgs } from '~/lib/pusher.server'
@@ -20,6 +20,7 @@ import type { Transaction } from '~/lib/wallet.server'
 import {
   getKycStatus,
   getLinkedAccounts,
+  getLinkedIdentities,
   getTransactionsWithPending,
   getWalletPaymentPointer
 } from '~/lib/wallet.server'
@@ -52,17 +53,11 @@ export async function loader({ request }: LoaderArgs) {
       walletID: '',
       formatted: ''
     },
-    balance: '' as unknown as Promise<string>,
+    hasCard: false,
+    hasBank: false,
     transactions: [] as Transaction[],
+    identities: {} as Record<string, Identity[]>,
     kycStatus: KycStatus.Unknown,
-    canTopUp: false,
-    canWithdraw: false,
-    nextStep: {
-      title: '',
-      icon: '',
-      action: { to: '', text: '' },
-      show: false
-    },
     snackbar: {
       message: ''
     } as SnackbarType
@@ -74,17 +69,19 @@ export async function loader({ request }: LoaderArgs) {
       paymentPointer,
       transactions,
       kycStatus,
-      linkedAccounts,
       snackbar,
-      pusherArgs
+      pusherArgs,
+      { bankAccounts, cardAccounts },
+      identities
     ] = await Promise.all([
       getUserSession(request),
       getWalletPaymentPointer(request),
       getTransactionsWithPending(request, { pageSize: 3 }),
       getKycStatus(request),
-      getLinkedAccounts(request),
       getSnackbar(request),
-      getPusherArgs(request)
+      getPusherArgs(request),
+      getLinkedAccounts(request),
+      getLinkedIdentities(request)
     ])
 
     data = {
@@ -93,59 +90,11 @@ export async function loader({ request }: LoaderArgs) {
       paymentPointer,
       transactions: transactions.transactions,
       kycStatus: kycStatus.kycStatus,
-      canTopUp: linkedAccounts.canTopUp,
-      canWithdraw: linkedAccounts.canWithdraw,
       snackbar,
-      pusherArgs
-    }
-
-    /**
-     * Next Step state machine
-     * 1. Activate PP - KYCStatus.Unknown
-     * 2. Add debit - KYCStatus.Verified + !hasTransactions + !canTopUp
-     * 3. Add bank - KYCStatus.Verified + hasTransactions + !canWithdraw
-     */
-    if (data.kycStatus == KycStatus.Unknown) {
-      data.nextStep = {
-        title:
-          'Your payment pointer is reserved, we just need a few more details to activate it.',
-        icon: 'attach_money',
-        action: {
-          to: route('/personal-details'),
-          text: 'Activate payment pointer'
-        },
-        show: true
-      }
-    } else if (
-      data.kycStatus == KycStatus.Verified &&
-      transactions.transactions.length == 0 &&
-      !data.canTopUp
-    ) {
-      data.nextStep = {
-        title:
-          'Add a debit card to easily send payments or top up your cash balance.',
-        icon: 'add_card',
-        action: {
-          to: route('/link-account/card'),
-          text: 'Add a debit card'
-        },
-        show: true
-      }
-    } else if (
-      data.kycStatus == KycStatus.Verified &&
-      transactions.transactions.length > 0 &&
-      !data.canWithdraw
-    ) {
-      data.nextStep = {
-        title:
-          'Add a bank account to securely withdraw from your cash balance at any time.',
-        icon: 'account_balance',
-        action: {
-          to: route('/link-account/bank'),
-          text: 'Add bank account'
-        },
-        show: true
-      }
+      pusherArgs,
+      hasCard: cardAccounts.length > 0,
+      hasBank: bankAccounts.length > 0,
+      identities
     }
   } else {
     const { homeRoute, footer } = await getHomeRoute()
@@ -158,7 +107,10 @@ export async function loader({ request }: LoaderArgs) {
 export const handle: ApplicationProps = {
   layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
   scaffold: {
-    header: {},
+    header: {
+      title: 'Home',
+      actions: [{ type: 'shapes' }]
+    },
     fab: Fab.Pay,
     footer: (match) => match.data.footer
   }
