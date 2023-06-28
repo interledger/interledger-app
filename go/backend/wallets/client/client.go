@@ -43,3 +43,11 @@ func (c client) SetWalletName(ctx context.Context, id, name string) (*wallets.Wa
 func (c client) ListAll(ctx context.Context, page db.Pagination) ([]wallets.Wallet, error) {
 	return ops.ListAll(ctx, c.b, page)
 }
+
+func (c client) GetFromAddress(ctx context.Context, address string) (*wallets.Wallet, error) {
+	return ops.GetFromAddress(ctx, c.b, address)
+}
+
+func (c client) AddAddress(ctx context.Context, id, address string) (*wallets.Wallet, error) {
+	return ops.AddAddress(ctx, c.b, id, address)
+}

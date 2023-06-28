@@ -175,9 +175,18 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
+	_, err = db.ExecContext(ctx, waExpIndex)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return db
 }
 
 const ppExpIndex = `
 CREATE UNIQUE INDEX IF NOT EXISTS "payment_pointers_url_lower" ON "public"."payment_pointers" (lower(url));
+`
+
+const waExpIndex = `
+CREATE UNIQUE INDEX IF NOT EXISTS "wallet_address_url_lower" ON "public"."wallet_addresses" (lower(url));
 `

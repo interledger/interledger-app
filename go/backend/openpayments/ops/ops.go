@@ -61,6 +61,9 @@ func PaymentPointerExists(ctx context.Context, b Backends, pointerURLRaw string)
 	if !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
 		return false, err
 	}
+	if pp != nil {
+		return true, nil
+	}
 
 	wa, err := b.Wallets().GetFromAddress(ctx, ppURL)
 	if !errors.Is(err, wallets.ErrNoWalletFound) {

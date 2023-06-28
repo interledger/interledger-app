@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/basistheory"
@@ -9,6 +10,7 @@ import (
 )
 
 type Backends interface {
+	DB() *sqlx.DB
 	Users() user.Client
 	Keys() keys.Client
 	KYC() kyc.Client
