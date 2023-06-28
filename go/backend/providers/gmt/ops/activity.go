@@ -1204,6 +1204,10 @@ func (a *Activity) UpdateCardTransactionStatus(ctx context.Context, externalID s
 		return err
 	}
 
+	if resp.Error == 4 {
+		return fmt.Errorf("transaction not in correct state yet. trying again later")
+	}
+
 	if resp.Error != 0 {
 		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", resp.Error, resp.Message), "external", nil)
 	}
