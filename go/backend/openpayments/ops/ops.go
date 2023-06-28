@@ -189,7 +189,7 @@ func FormattedPaymentPointer(rawURL string) (string, error) {
 		return "", err
 	}
 
-	formatted := fmt.Sprintf("$%s", path.Join(parsedUrl.Host, parsedUrl.Path))
+	formatted := path.Join(parsedUrl.Host, parsedUrl.Path)
 
 	return formatted, nil
 }
