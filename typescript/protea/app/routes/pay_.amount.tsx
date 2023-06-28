@@ -25,10 +25,10 @@ export async function loader({ request }: LoaderArgs) {
     return redirect('/login?return_to=/pay/amount')
   }
   const flow = await requireFlow(request, flowType.Pay)
-  const { linkedAccounts } = await getLinkedAccounts(request)
+  const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
   return json({
     flow,
-    linkedAccounts
+    linkedAccounts: [...cardAccounts, ...bankAccounts]
   })
 }
 

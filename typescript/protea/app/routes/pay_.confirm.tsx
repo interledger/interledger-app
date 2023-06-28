@@ -18,11 +18,12 @@ import { getLinkedAccounts } from '~/lib/wallet.server'
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
-  const { linkedAccounts } = await getLinkedAccounts(request)
+  const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
   return json({
     flow,
     traits: session.identity.traits,
-    linkedAccount: linkedAccounts.find(
+    // TODO use a lookup for this account rather?
+    linkedAccount: [...cardAccounts, ...bankAccounts].find(
       (account) => account.id == flow.data.toLinkedAccountId
     )
   })

@@ -6,6 +6,10 @@ import {
   Avatar,
   Button,
   Card,
+  CardButton,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Icon,
   Layouts,
   Router,
@@ -73,54 +77,54 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <span>Enter the recipient’s payment pointer.</span>
-        <TextField
-          id='paymentPointer'
-          label='Payment pointer'
-          name='paymentPointer'
-          form='pay-payment-pointer'
-          type='text'
-          className='mt-6'
-          defaultValue={flow.data?.paymentPointer?.formatted}
-          aria-invalid={Boolean(actionData?.errors.paymentPointer) || undefined}
-          aria-describedby={
-            actionData?.errors.paymentPointer
-              ? 'paymentPointer-error'
-              : undefined
-          }
-          errorMessage={actionData?.errors.paymentPointer}
-        />
+        <CardContent>
+          <span>Enter the recipient’s payment pointer.</span>
+          <TextField
+            id='paymentPointer'
+            label='Payment pointer'
+            name='paymentPointer'
+            form='pay-payment-pointer'
+            type='text'
+            className='mt-6'
+            defaultValue={flow.data?.paymentPointer?.formatted}
+            aria-invalid={
+              Boolean(actionData?.errors.paymentPointer) || undefined
+            }
+            aria-describedby={
+              actionData?.errors.paymentPointer
+                ? 'paymentPointer-error'
+                : undefined
+            }
+            errorMessage={actionData?.errors.paymentPointer}
+          />
+        </CardContent>
       </Card>
       <Button form='pay-payment-pointer' type='submit'>
         Pay
       </Button>
       <Card>
-        <div className='flex items-center justify-between'>
-          <h1 className='font-display text-lg font-medium'>
-            Last transacted with
-          </h1>
+        <CardHeader>
+          <CardTitle>Last transacted with</CardTitle>
           <Router className='flex max-h-fit' to={route('/contacts')}>
             <Icon className='text-medium'>read_more</Icon>
           </Router>
-        </div>
+        </CardHeader>
         {contacts.length == 0 && (
-          <div className='mt-4 flex flex-col space-y-4'>
-            <span className='text-sm text-medium'>
-              You haven't paid anyone yet.
-            </span>
-          </div>
+          <CardContent>
+            <p className='text-sm text-medium'>You haven't paid anyone yet.</p>
+          </CardContent>
         )}
         {contacts.map((contact, index) => (
-          <button
+          <CardButton
             key={contact.id}
             name='paymentPointer'
             form='pay-payment-pointer'
             value={contact.paymentPointer}
-            className='mt-6 flex flex w-full items-center space-x-3 rounded-xl'
+            className='items-center space-x-3'
           >
             <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
             <span className='text-medium'>{contact.name}</span>
-          </button>
+          </CardButton>
         ))}
       </Card>
     </>

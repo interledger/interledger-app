@@ -1,7 +1,13 @@
 import type { MetaFunction } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
+import {
+  ButtonRouter,
+  Card,
+  CardContent,
+  Layouts,
+  SuccessShapes
+} from '~/components'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -23,13 +29,15 @@ export default function Page() {
   return (
     <>
       <Card>
-        <SuccessShapes />
-        <span className='mt-6 text-medium'>
-          You have successfully joined the waitlist.
-        </span>
-        <span className='mt-2 text-medium'>
-          We will let you know via email once you are able to transact.
-        </span>
+        <CardContent>
+          <SuccessShapes />
+          <span className='mt-6 text-medium'>
+            You have successfully joined the waitlist.
+          </span>
+          <span className='mt-2 text-medium'>
+            We will let you know via email once you are able to transact.
+          </span>
+        </CardContent>
       </Card>
       <ButtonRouter to={route('/')}>Close</ButtonRouter>
     </>

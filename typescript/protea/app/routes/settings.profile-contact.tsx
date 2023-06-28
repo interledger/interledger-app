@@ -4,7 +4,8 @@ import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, Icon, Layouts, Snackbar } from '~/components'
+import { Card, CardContent, Icon, Layouts, Snackbar } from '~/components'
+import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 
@@ -20,18 +21,19 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
       back: route('/settings'),
       title: 'Contact information'
-    }
+    },
+    isNested: true
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Settings | Personal details'
+    title: 'Contact information'
   }
 }
 
@@ -41,20 +43,26 @@ export default function Page() {
   return (
     <>
       <Card>
-        <h2 className='text-sm font-medium'>Email address</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
-          <div className='flex space-x-3'>
-            <Icon>mail</Icon>
-            <span>{traits.email}</span>
+        <CardContent>
+          <div className='flex w-full flex-col space-y-1'>
+            <Label>Email address</Label>
+            <div className='mt-1 flex w-full justify-between p-3'>
+              <div className='flex space-x-3'>
+                <Icon>mail</Icon>
+                <span>{traits.email}</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <h2 className='mt-6 text-sm font-medium'>Mobile phone number</h2>
-        <div className='mt-2 flex items-center justify-start rounded-xl bg-nav p-3 text-medium'>
-          <div className='flex space-x-3'>
-            <Icon>call</Icon>
-            <span>{traits.phone}</span>
+          <div className='mt-4 flex w-full flex-col space-y-1'>
+            <Label>Mobile phone number</Label>
+            <div className='mt-1 flex w-full justify-between p-3'>
+              <div className='flex space-x-3'>
+                <Icon>call</Icon>
+                <span>{traits.phone}</span>
+              </div>
+            </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
       <Snackbar
         message={snackbar.message}
