@@ -4,7 +4,15 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, Icon, Layouts, Router, Snackbar } from '~/components'
+import {
+  ButtonRouter,
+  Card,
+  CardContent,
+  CardLink,
+  Icon,
+  Layouts,
+  Snackbar
+} from '~/components'
 import {
   StatusError,
   grpcClient,
@@ -32,27 +40,28 @@ export async function loader({ request }: LoaderArgs) {
 
   let snackbar = await getSnackbar(request)
 
-  return json({ connections, snackbar })
+  return json({ keys: connections, snackbar })
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
-      back: route('/'),
-      title: 'Connections'
-    }
+      back: route('/settings'),
+      title: 'Keys'
+    },
+    isNested: true
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Connections'
+    title: 'Keys'
   }
 }
 
 export default function Page() {
-  const { connections, snackbar } = useLoaderData<typeof loader>()
+  const { keys, snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     snackbar.show ?? false
   )
@@ -64,56 +73,37 @@ export default function Page() {
   return (
     <>
       <Card>
-        <p className='text-medium'>Add and manage your connections.</p>
-      </Card>
-
-      {connections.length > 0 && (
-        <Card>
-          <h1 className='font-display text-2xl font-medium'>Public keys</h1>
-          {connections.map((conn) => (
-            <Router
-              to={route('/connections/:connectionId', {
-                connectionId: conn.id
+        <CardContent>
+          <p>
+            Connect external applications to your wallet by uploading their
+            keys.
+          </p>
+        </CardContent>
+        {keys.length > 0 &&
+          keys.map((k) => (
+            <CardLink
+              to={route('/settings/keys/:keyId', {
+                keyId: k.id
               })}
-              className='mt-6 flex justify-between rounded-xl bg-nav p-3'
-              key={conn.id}
+              className='flex justify-between'
+              key={k.id}
             >
               <div className='flex-col'>
-                <p className='font-medium text-medium'>
-                  {conn.applicationName}
-                </p>
-                <p className='mt-2 text-sm text-medium'>
-                  Added {conn.createdAt}
-                </p>
+                <p className='font-medium text-medium'>{k.applicationName}</p>
+                <p className='mt-2 text-sm text-medium'>Added {k.createdAt}</p>
                 {/*TODO: implement last used*/}
                 {/*<p className='mt-1 text-sm text-purple-500'>
                                       Last used {conn.lastUsedAt}
                                     </p>*/}
               </div>
               <Icon>navigate_next</Icon>
-            </Router>
+            </CardLink>
           ))}
-        </Card>
-      )}
-
-      <Card>
-        <div className='flex items-start space-x-4'>
-          <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-            <Icon>key</Icon>
-          </div>
-          <div className='flex flex-col space-y-2'>
-            <p className='text-sm text-medium'>
-              Add a public key for access and integration to your wallet.
-            </p>
-            <Router
-              className='text-sm font-medium text-primary'
-              to={route('/connections/add-a-public-key')}
-            >
-              Add a public key
-            </Router>
-          </div>
-        </div>
       </Card>
+
+      <ButtonRouter to={route('/settings/keys/add-public')}>
+        Add a public key
+      </ButtonRouter>
 
       <Snackbar
         message={snackbar.message}

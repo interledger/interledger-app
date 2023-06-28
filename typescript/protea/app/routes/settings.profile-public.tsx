@@ -1,4 +1,4 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
@@ -7,11 +7,13 @@ import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Card,
+  CardContent,
+  CardLink,
   Icon,
   Layouts,
-  Router,
   Snackbar
 } from '~/components'
+import { Label } from '~/components/Label'
 import { getSnackbar } from '~/lib/snackbar.server'
 import {
   getPublicWalletDetails,
@@ -32,12 +34,19 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
       back: route('/settings'),
       title: 'Public information'
-    }
+    },
+    isNested: true
+  }
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Public information'
   }
 }
 
@@ -48,24 +57,31 @@ export default function Page() {
   return (
     <>
       <Card>
-        <p>
-          The information below will appear on your{' '}
-          <AnchorRouter className='text-primary' to={paymentPointer.url}>
-            public payment pointer
-          </AnchorRouter>{' '}
-          page.
-        </p>
-        <h2 className='mt-6 text-sm font-medium'>Public name</h2>
-        <Router
+        <CardContent>
+          <p>
+            The following information will appear on your public{' '}
+            <AnchorRouter className='text-primary' to={paymentPointer.url}>
+              Fynbos.me
+            </AnchorRouter>{' '}
+            page.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <Label className='-mb-5'>Public name</Label>
+        </CardContent>
+        <CardLink
+          prefetch='intent'
+          className='items-center justify-between'
           to={route('/settings/profile-public/name')}
-          className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
         >
           <div className='flex space-x-3'>
             <Icon>flag</Icon>
             <span>{name}</span>
           </div>
           <Icon>navigate_next</Icon>
-        </Router>
+        </CardLink>
       </Card>
       <Snackbar
         message={snackbar.message}

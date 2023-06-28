@@ -8,7 +8,14 @@ import {
 } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  Snackbar,
+  TextField
+} from '~/components'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -86,32 +93,33 @@ export default function Page() {
 
   return (
     <>
+      <Form
+        id='recovery'
+        action={`/recovery?flow=${flow.id}`}
+        method='post'
+        className='hidden'
+      />
       <Card>
-        <span>
-          Enter your email address and we will email you a link to change your
-          password.
-        </span>
-        <Form
-          id='recovery'
-          action={`/recovery?flow=${flow.id}`}
-          method='post'
-          className='hidden'
-        />
-        <TextField
-          id='email'
-          form='recovery'
-          label='Email'
-          name='email'
-          type='email'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-          aria-describedby={
-            actionData?.errors?.email ? 'email-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.email}
-        />
-
+        <CardContent>
+          <span>
+            Enter your email address and we will email you a link to change your
+            password.
+          </span>
+          <TextField
+            id='email'
+            form='recovery'
+            label='Email'
+            name='email'
+            type='email'
+            className='mt-6'
+            aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+            aria-describedby={
+              actionData?.errors?.email ? 'email-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.email}
+          />
+        </CardContent>
         <input
           form='recovery'
           defaultValue={csrfToken}

@@ -519,13 +519,13 @@ func TestFormattedPaymentPointer(t *testing.T) {
 		{
 			name:              "http",
 			url:               "https://fynbos.me/asdf",
-			expectedFormatted: "$fynbos.me/asdf",
+			expectedFormatted: "fynbos.me/asdf",
 			err:               nil,
 		},
 		{
 			name:              "https",
 			url:               "https://fynbos.me/asdf",
-			expectedFormatted: "$fynbos.me/asdf",
+			expectedFormatted: "fynbos.me/asdf",
 			err:               nil,
 		},
 	}

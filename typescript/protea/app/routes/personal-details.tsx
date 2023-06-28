@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
-import { Button, Card, Layouts, Shape } from '~/components'
+import { Button, Card, CardContent, Layouts, Shape } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import {
   StatusError,
@@ -86,73 +86,75 @@ export default function Page() {
   return (
     <>
       <Card>
-        <span>
-          Here’s what we will need in order to activate your payment pointer and
-          confirm your identity:
-        </span>
-        <div className='mt-6 flex items-start'>
-          <Shape
-            flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-full'}
-            color={'bg-yellow-300'}
-          />
-          <Shape
-            flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-tl-full'}
-            color={'bg-rose-400'}
-          />
-          <div className='ml-5'>
-            <h3 className='mb-1 font-medium text-strong'>Photo ID</h3>
-            <p className='text-xs text-medium'>
-              We require a photo of a government ID to verify your identity.
-            </p>
+        <CardContent>
+          <span>
+            Here’s what we will need in order to activate your payment pointer
+            and confirm your identity:
+          </span>
+          <div className='mt-6 flex items-start'>
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-full'
+              color='bg-yellow-300'
+            />
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-tl-full'
+              color='bg-rose-400'
+            />
+            <div className='ml-5'>
+              <h3 className='mb-1 font-medium text-strong'>Photo ID</h3>
+              <p className='text-xs text-medium'>
+                We require a photo of a government ID to verify your identity.
+              </p>
+            </div>
           </div>
-        </div>
-        <div className='mt-10 flex items-start'>
-          <Shape
-            flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-t-full'}
-            color={'bg-purple-200'}
-          />
-          <Shape
-            flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-tr-full'}
-            color={'bg-purple-400'}
-          />
-          <div className='ml-5'>
-            <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
-            <p className='text-xs text-medium'>
-              Confirmation of your personal details and your address.
-            </p>
+          <div className='mt-10 flex items-start'>
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-t-full'
+              color='bg-purple-200'
+            />
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-tr-full'
+              color='bg-purple-400'
+            />
+            <div className='ml-5'>
+              <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
+              <p className='text-xs text-medium'>
+                Confirmation of your personal details and your address.
+              </p>
+            </div>
           </div>
-        </div>
-        <div className='mt-10 flex items-start'>
-          <Shape
-            flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-br-full'}
-            color={'bg-slate-300'}
-          />
-          <Shape
-            flex='flex-none'
-            width={'w-8'}
-            radius={'rounded-l-full'}
-            color={'bg-lime-400'}
-          />
-          <div className='ml-5'>
-            <h3 className='mb-1 font-medium text-strong'>
-              Selfie verification
-            </h3>
-            <p className='text-xs text-medium'>
-              A picture of yourself taken using your smartphone, webcam or
-              tablet.
-            </p>
+          <div className='mt-10 flex items-start'>
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-br-full'
+              color='bg-slate-300'
+            />
+            <Shape
+              flex='flex-none'
+              width='w-8'
+              radius='rounded-l-full'
+              color='bg-lime-400'
+            />
+            <div className='ml-5'>
+              <h3 className='mb-1 font-medium text-strong'>
+                Selfie verification
+              </h3>
+              <p className='text-xs text-medium'>
+                A picture of yourself taken using your smartphone, webcam or
+                tablet.
+              </p>
+            </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
       <Button
         disabled={!ready}
