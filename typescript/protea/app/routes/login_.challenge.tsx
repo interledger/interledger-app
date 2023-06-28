@@ -4,7 +4,14 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts, Snackbar, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  Snackbar,
+  TextField
+} from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -94,35 +101,36 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <input
+        form='login-challenge'
+        defaultValue={email}
+        name='email'
+        type='hidden'
+      />
+      <input
+        form='login-challenge'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
       <Card>
-        <span>To continue, type your password.</span>
-        <TextField
-          id='password'
-          form='login-challenge'
-          label='Password'
-          name='password'
-          type='password'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-          aria-describedby={
-            actionData?.errors?.password ? 'password-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.password}
-        />
-
-        <input
-          form='login-challenge'
-          defaultValue={email}
-          name='email'
-          type='hidden'
-        />
-        <input
-          form='login-challenge'
-          defaultValue={csrfToken}
-          name='csrf_token'
-          type='hidden'
-        />
+        <CardContent>
+          <p>To continue, type your password.</p>
+          <TextField
+            id='password'
+            form='login-challenge'
+            label='Password'
+            name='password'
+            type='password'
+            className='mt-6'
+            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+            aria-describedby={
+              actionData?.errors?.password ? 'password-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors?.password}
+          />
+        </CardContent>
       </Card>
       <Button form='login-challenge' type='submit'>
         Continue

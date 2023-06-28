@@ -10,6 +10,7 @@ import {
   ScrollRestoration,
   isRouteErrorResponse,
   useLocation,
+  useNavigation,
   useRouteError
 } from '@remix-run/react'
 import clsx from 'clsx'
@@ -61,6 +62,7 @@ type DocumentProps = {
 }
 
 function Document({ children, theme = 'theme-system' }: DocumentProps) {
+  const navigation = useNavigation()
   return (
     <html lang='en'>
       <head>
@@ -70,7 +72,8 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
       <body
         className={clsx(
           theme,
-          'bg-page font-sans text-base font-normal text-strong antialiased selection:bg-brand/50'
+          'bg-page font-sans text-base font-normal text-strong antialiased selection:bg-brand/50',
+          navigation.state == 'submitting' && 'cursor-progress'
         )}
       >
         {children}
