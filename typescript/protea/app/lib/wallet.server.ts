@@ -316,7 +316,9 @@ export async function getTransactionsWithPending(
         type: trx.type,
         icon: trx.state == 'Pending' ? 'schedule' : transactionIcon(trx.type),
         title: transactionTitle(trx),
-        total: formatAmount(trx.amount),
+        total: `${trx.type.includes('outgoing') && '- '}${formatAmount(
+          trx.amount
+        )}`,
         time: DateTime.fromSeconds(
           parseInt(trx.timestamp?.seconds ?? '')
         ).toFormat('HH:mm'),
