@@ -1,4 +1,5 @@
 import { useLoaderData } from '@remix-run/react'
+import clsx from 'clsx'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
@@ -174,12 +175,6 @@ export function AppPage() {
                 to={`/transaction/${transaction.type}/${transaction.id}`}
                 className='justify-between'
               >
-                {(index == 0 ||
-                  transaction.date != transactions[index - 1].date) && (
-                  <Label className='mt-6 text-xs text-medium'>
-                    {transaction.date}
-                  </Label>
-                )}
                 <div className='flex space-x-1'>
                   {transaction.icon == 'schedule' && (
                     <div className='mt-0.5'>
@@ -194,11 +189,23 @@ export function AppPage() {
                   <div className='flex flex-col space-y-1'>
                     <span className='text-medium'>{transaction.title}</span>
                     <span className='text-xs text-weak'>
-                      {transaction.time}
+                      {transaction.date} - {transaction.time}
                     </span>
                   </div>
                 </div>
-                <span className='font-medium'>{transaction.total}</span>
+                <div className='flex items-center space-x-2'>
+                  <span
+                    className={clsx(
+                      'font-medium',
+                      transaction.type.includes('outgoing')
+                        ? 'text-error'
+                        : 'text-medium'
+                    )}
+                  >
+                    {transaction.total}
+                  </span>
+                  <Icon>navigate_next</Icon>
+                </div>
               </CardLink>
             ))}
           </Card>
