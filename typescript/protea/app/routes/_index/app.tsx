@@ -26,8 +26,14 @@ import type { loader } from './route'
 import { KycStatus } from './route'
 
 export function AppPage() {
-  const { paymentPointer, snackbar, transactions, kycStatus, pusherArgs } =
-    useLoaderData<typeof loader>()
+  const {
+    paymentPointer,
+    features,
+    snackbar,
+    transactions,
+    kycStatus,
+    pusherArgs
+  } = useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
@@ -233,78 +239,86 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { hasBank, hasCard, identities } = useLoaderData<typeof loader>()
+  const { features, hasBank, hasCard, identities } =
+    useLoaderData<typeof loader>()
 
   return (
     <>
-      {!hasCard && !hasBank && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <Icon>account_balance</Icon>
+      {features.banksEnabled &&
+        features.cardsEnabled &&
+        !hasCard &&
+        !hasBank && (
+          <Card>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                  <Icon>account_balance</Icon>
+                </div>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Connect bank accounts and cards to easily send and receive
+                    payments.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={route('/accounts')}
+                  >
+                    Connect a bank or card
+                  </Router>
+                </div>
               </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect bank accounts and cards to easily send and receive
-                  payments.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={route('/accounts')}
-                >
-                  Connect a bank or card
-                </Router>
+            </CardContent>
+          </Card>
+        )}
+      {features.cardsEnabled &&
+        !hasCard &&
+        (hasBank || !features.banksEnabled) && (
+          <Card>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                  <Icon>credit_card</Icon>
+                </div>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Connect cards to easily send and receive payments.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={route('/connect/card')}
+                  >
+                    Connect a card
+                  </Router>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {!hasCard && hasBank && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <Icon>credit_card</Icon>
+            </CardContent>
+          </Card>
+        )}
+      {features.banksEnabled &&
+        !hasBank &&
+        (hasCard || !features.cardsEnabled) && (
+          <Card>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                  <Icon>account_balance</Icon>
+                </div>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Connect bank accounts to easily send and receive payments.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={route('/connect/bank')}
+                  >
+                    Connect a bank account
+                  </Router>
+                </div>
               </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect cards to easily send and receive payments.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={route('/connect/card')}
-                >
-                  Connect a card
-                </Router>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {hasCard && !hasBank && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-                <Icon>account_balance</Icon>
-              </div>
-              <div className='flex flex-col space-y-4'>
-                <p className='text-sm text-medium'>
-                  Connect bank accounts to easily send and receive payments.
-                </p>
-                <Router
-                  className='text-sm font-medium text-primary'
-                  to={route('/connect/bank')}
-                >
-                  Connect a bank account
-                </Router>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {!identities.twitter && (
+            </CardContent>
+          </Card>
+        )}
+      {features.twitterEnabled && !identities.twitter && (
         <Card>
           <CardContent>
             <div className='flex items-start space-x-4'>
