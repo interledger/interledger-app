@@ -8,6 +8,7 @@ import {
   Button,
   ButtonRouter,
   Card,
+  CardContent,
   Layouts,
   LoadingShapes
 } from '~/components'
@@ -170,7 +171,11 @@ export default function Page() {
       <LoadingShapes />
       {actionData?.challengeURL && !threeDSError && (
         <>
-          <Card>Your card issuer has requested an extra security check.</Card>
+          <Card>
+            <CardContent>
+              Your card issuer has requested an extra security check.
+            </CardContent>
+          </Card>
 
           <Button
             disabled={showingIssuerChallenge}
@@ -184,9 +189,12 @@ export default function Page() {
       )}
       {threeDSError && (
         <>
+          {/* TODO Put this in an error boundary rather */}
           <Card>
-            There has been an error processing your transaction, please try
-            again.
+            <CardContent>
+              There has been an error processing your transaction, please try
+              again.
+            </CardContent>
           </Card>
 
           <ButtonRouter to={route('/pay')}>Retry</ButtonRouter>

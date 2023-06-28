@@ -4,7 +4,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts } from '~/components'
+import { Button, Card, CardContent, Layouts } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -104,15 +104,17 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <span>
-          We've sent a verification link to your email: <br /> {email}
-        </span>
-        <input
-          form='verify'
-          defaultValue={csrfToken}
-          name='csrf_token'
-          type='hidden'
-        />
+        <CardContent>
+          <span>
+            We've sent a verification link to your email: <br /> {email}
+          </span>
+          <input
+            form='verify'
+            defaultValue={csrfToken}
+            name='csrf_token'
+            type='hidden'
+          />
+        </CardContent>
         <input form='verify' defaultValue={email} name='email' type='hidden' />
       </Card>
       <Button form='verify' type='submit'>
