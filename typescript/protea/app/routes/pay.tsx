@@ -78,10 +78,10 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <span>Enter the recipient’s payment pointer.</span>
+          <span>Enter the recipient’s wallet address.</span>
           <TextField
             id='paymentPointer'
-            label='Payment pointer'
+            label='Wallet address'
             name='paymentPointer'
             form='pay-payment-pointer'
             type='text'
@@ -100,7 +100,7 @@ export default function Page() {
         </CardContent>
       </Card>
       <Button form='pay-payment-pointer' type='submit'>
-        Pay
+        Continue
       </Button>
       <Card>
         <CardHeader>

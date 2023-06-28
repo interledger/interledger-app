@@ -263,7 +263,7 @@ export default function Page() {
               className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
             >
               <CardContent>
-                <Label>{transactionGroup[0].date}</Label>
+                <Label className='-mb-5'>{transactionGroup[0].date}</Label>
               </CardContent>
               {transactionGroup.map((transaction) => (
                 <CardLink

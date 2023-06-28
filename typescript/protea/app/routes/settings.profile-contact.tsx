@@ -43,7 +43,7 @@ export default function Page() {
   return (
     <>
       <Card>
-        <CardContent>
+        <CardContent className='flex flex-col space-y-4'>
           <div className='flex w-full flex-col space-y-1'>
             <Label>Email address</Label>
             <div className='mt-1 flex w-full justify-between p-3'>
