@@ -94,49 +94,44 @@ export function AppPage() {
           <Card>
             <CardHeader>
               <CardTitle>Wallet</CardTitle>
-              <Chip color={ChipColor.orange}>Pending</Chip>
             </CardHeader>
-            <CardContent>
-              <CardButton
-                type='button'
-                onClick={async () => {
-                  if (typeof navigator.clipboard == 'undefined') {
-                    setSnackbar({
-                      message: "Couldn't copy to clipboard.",
-                      icon: 'close',
-                      show: true
-                    })
-                    setShowSnackbar(true)
-                  } else
-                    navigator.clipboard
-                      .writeText(paymentPointer.formatted)
-                      .then(
-                        () => {
-                          setSnackbar({
-                            message: 'Payment pointer copied to clipboard.',
-                            icon: 'close',
-                            show: true
-                          })
-                          setShowSnackbar(true)
-                        },
-                        () => {
-                          setSnackbar({
-                            message: "Couldn't copy to clipboard.",
-                            icon: 'close',
-                            show: true
-                          })
-                          setShowSnackbar(true)
-                        }
-                      )
-                }}
-                className='mt-4 flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
-              >
-                <span className='font-medium text-medium'>
-                  {paymentPointer.formatted}
-                </span>
-                <Icon className='text-medium'>content_copy</Icon>
-              </CardButton>
-            </CardContent>
+            <CardButton
+              type='button'
+              onClick={async () => {
+                if (typeof navigator.clipboard == 'undefined') {
+                  setSnackbar({
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    show: true
+                  })
+                  setShowSnackbar(true)
+                } else
+                  navigator.clipboard.writeText(paymentPointer.formatted).then(
+                    () => {
+                      setSnackbar({
+                        message: 'Payment pointer copied to clipboard.',
+                        icon: 'close',
+                        show: true
+                      })
+                      setShowSnackbar(true)
+                    },
+                    () => {
+                      setSnackbar({
+                        message: "Couldn't copy to clipboard.",
+                        icon: 'close',
+                        show: true
+                      })
+                      setShowSnackbar(true)
+                    }
+                  )
+              }}
+              className='items-center justify-between'
+            >
+              <span className='font-medium text-medium'>
+                {paymentPointer.formatted}
+              </span>
+              <Icon className='text-medium'>content_copy</Icon>
+            </CardButton>
           </Card>
         )}
         {kycStatus == KycStatus.Verified && (

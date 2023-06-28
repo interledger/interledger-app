@@ -8,6 +8,7 @@ import {
   useLocation,
   useSearchParams
 } from '@remix-run/react'
+import clsx from 'clsx'
 import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -28,6 +29,7 @@ import {
   Router,
   WalletGrid
 } from '~/components'
+import { Label } from '~/components/Label'
 import type { Transaction } from '~/lib/wallet.server'
 import { getKycStatus, getTransactionsWithPending } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
@@ -260,9 +262,9 @@ export default function Page() {
               key={`group-${index}`}
               className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'
             >
-              <span className='text-xs text-medium'>
-                {transactionGroup[0].date}
-              </span>
+              <CardContent>
+                <Label>{transactionGroup[0].date}</Label>
+              </CardContent>
               {transactionGroup.map((transaction) => (
                 <CardLink
                   key={transaction.id}
@@ -282,13 +284,22 @@ export default function Page() {
                     )}
                     <div className='flex flex-col space-y-1'>
                       <span className='text-medium'>{transaction.title}</span>
-                      <span className='text-xs text-medium'>
+                      <span className='text-xs text-weak'>
                         {transaction.time}
                       </span>
                     </div>
                   </div>
-                  <div className='flex space-x-2'>
-                    <span className='font-medium'>{transaction.total}</span>
+                  <div className='flex items-center space-x-2'>
+                    <span
+                      className={clsx(
+                        'font-medium',
+                        transaction.type.includes('outgoing')
+                          ? 'text-error'
+                          : 'text-medium'
+                      )}
+                    >
+                      {transaction.total}
+                    </span>
                     <Icon>navigate_next</Icon>
                   </div>
                 </CardLink>
