@@ -19,6 +19,7 @@ import {
   TwitterIcon,
   WalletGrid
 } from '~/components'
+import { Label } from '~/components/Label'
 import { usePusher } from '~/lib/usePusher'
 import type { loader } from './route'
 import { KycStatus } from './route'
@@ -134,6 +135,10 @@ export function AppPage() {
             </CardButton>
           </Card>
         )}
+
+        <div className='contents lg:hidden'>
+          <CTACards />
+        </div>
         {kycStatus == KycStatus.Verified && (
           <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
             <CardHeader>
@@ -142,9 +147,6 @@ export function AppPage() {
                 <Icon className='text-medium'>read_more</Icon>
               </Router>
             </CardHeader>
-            <div className='contents lg:hidden'>
-              <CTACards />
-            </div>
             {transactions.length == 0 && (
               <div className='mt-4 flex flex-col space-y-4'>
                 <span className='text-sm text-medium'>
@@ -167,9 +169,9 @@ export function AppPage() {
               >
                 {(index == 0 ||
                   transaction.date != transactions[index - 1].date) && (
-                  <span className='mt-6 text-xs text-medium'>
+                  <Label className='mt-6 text-xs text-medium'>
                     {transaction.date}
-                  </span>
+                  </Label>
                 )}
                 <div className='flex space-x-1'>
                   {transaction.icon == 'schedule' && (
@@ -182,9 +184,9 @@ export function AppPage() {
                       {transaction.icon}
                     </Icon>
                   )}
-                  <div className='flex flex-col space-y-2'>
+                  <div className='flex flex-col space-y-1'>
                     <span className='text-medium'>{transaction.title}</span>
-                    <span className='text-xs text-medium'>
+                    <span className='text-xs text-weak'>
                       {transaction.time}
                     </span>
                   </div>
