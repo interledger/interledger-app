@@ -14,7 +14,6 @@ import {
   IconButton,
   MarketingRouter,
   Router,
-  WalletGrid,
   WalletShapes
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
@@ -76,25 +75,44 @@ const NavDrawerRoot = ({ children }: { children?: ReactNode }) => {
 export function Scaffold() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const matches = useMatches()
-  const isUser = matches[0]?.data.isUser
-  const isSignupGated = matches[0]?.data.isSignupGated
-  // TODO should use second last match for scaffold if current match is nested (Only on desktop)
-  const scaffold: ScaffoldProps = matches[matches.length - 1].handle?.scaffold
-  const footer = scaffold.footer && scaffold.footer(matches[matches.length - 1])
-  const titleHandle = scaffold.header?.title
   const navigate = useNavigate()
 
-  const layoutHandle = matches[matches.length - 1]?.handle?.layout
+  const isUser = matches[0]?.data.isUser
+  const isSignupGated = matches[0]?.data.isSignupGated
+
+  // TODO should use second last match for scaffold if current match is nested (Only on desktop)
+  let currentMatch = matches[matches.length - 1]
+
+  const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
+
+  const footer = scaffold.footer && scaffold.footer(currentMatch)
+
+  const layoutHandle = currentMatch?.handle?.layout
 
   let layout: Layouts
-  if (typeof layoutHandle === 'function')
-    layout = layoutHandle(matches[matches.length - 1])
+  if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch)
   else layout = layoutHandle
 
+  let actions: ScaffoldHeaderActions[]
+
+  actions = scaffold.header?.actions ?? []
+
+  const titleHandle = scaffold.header?.title
+
   let title: string
-  if (typeof titleHandle === 'function')
-    title = titleHandle(matches[matches.length - 1])
+  if (typeof titleHandle === 'function') title = titleHandle(currentMatch)
   else title = titleHandle ?? ''
+
+  const parentTitleHandle =
+    matches[matches.length - 2].handle?.scaffold.header?.title
+
+  let parentTitle = ''
+  if (scaffold.isNested) {
+    if (typeof parentTitleHandle === 'function')
+      parentTitle = parentTitleHandle(matches[matches.length - 2])
+    else parentTitle = parentTitleHandle ?? ''
+    actions = matches[matches.length - 2].handle?.scaffold.header?.actions ?? []
+  }
 
   return (
     <div
@@ -116,7 +134,7 @@ export function Scaffold() {
               className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
             >
               <Icon>attach_money</Icon>
-              <span className='font-display font-medium'>Pay</span>
+              <span className='font-medium'>Pay</span>
             </Router>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/accounts')}>
@@ -151,13 +169,14 @@ export function Scaffold() {
       >
         {layout === Layouts.Marketing && (
           <div className='mx-auto flex w-full max-w-[59rem] items-center'>
-            <IconButton
-              className='lg:hidden'
-              onClick={() => setOpenNavModal(true)}
-              aria-label='Open menu'
-            >
-              menu
-            </IconButton>
+            <div className='lg:hidden'>
+              <IconButton
+                onClick={() => setOpenNavModal(true)}
+                aria-label='Open menu'
+              >
+                menu
+              </IconButton>
+            </div>
             <div className='ml-4 lg:ml-0'>
               <Router to={route('/')} aria-label='Fynbos logo'>
                 <FynbosLogo className='h-8' />
@@ -205,20 +224,21 @@ export function Scaffold() {
         )}
         {layout !== Layouts.Marketing && (
           <div className='mx-auto flex w-full items-center sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
-            <IconButton
-              className={clsx(
-                layout === Layouts.Focus && 'hidden',
-                'mr-4 lg:hidden'
-              )}
-              onClick={() => setOpenNavModal(true)}
-              aria-label='Open menu'
-            >
-              menu
-            </IconButton>
-            {/* TODO Make this smarter. */}
+            {!scaffold.header.back && (
+              <div className='lg:hidden'>
+                <IconButton
+                  className={clsx(layout === Layouts.Focus && 'hidden', 'mr-4')}
+                  onClick={() => setOpenNavModal(true)}
+                  aria-label='Open menu'
+                >
+                  menu
+                </IconButton>
+              </div>
+            )}
+            {/* TODO Make back routing smarter. */}
             {scaffold.header.back && (
               <IconButton
-                className='mr-4'
+                className={clsx('mr-4', scaffold.isNested && 'lg:hidden')}
                 onClick={() => {
                   navigate(-1)
                 }}
@@ -227,7 +247,14 @@ export function Scaffold() {
                 arrow_back
               </IconButton>
             )}
-            {title && <h1 className='text-xl font-medium'>{title}</h1>}
+            {title && (
+              <h1 className='text-xl font-medium lg:hidden'>{title}</h1>
+            )}
+            {(title || parentTitle) && (
+              <h1 className='hidden text-xl font-medium lg:block'>
+                {parentTitle || title}
+              </h1>
+            )}
             <Router
               className={clsx(
                 !title && layout !== Layouts.Focus && 'lg:hidden',
@@ -238,14 +265,18 @@ export function Scaffold() {
             >
               <FynbosLogo className='h-8' />
             </Router>
-            {scaffold.header?.actions && (
+            {actions && (
               <div className='ml-auto flex items-center space-x-4'>
-                {scaffold.header.actions.map((action, index) => {
+                {actions.map((action, index) => {
                   return (
                     <div key={'header-action' + index} className='ml-auto'>
                       {action.type === 'chip' &&
                         action?.content &&
-                        action?.content(matches[matches.length - 1])}
+                        action?.content(
+                          scaffold.isNested
+                            ? matches[matches.length - 2]
+                            : matches[matches.length - 1]
+                        )}
                       {action.type === 'search' && (
                         <IconButton>light_mode</IconButton>
                       )}
@@ -263,7 +294,7 @@ export function Scaffold() {
           'relative flex w-full grow flex-col',
           layout === Layouts.Marketing && 'mx-auto xl:max-w-[80rem]',
           layout === Layouts.Focus &&
-            'mx-auto w-full gap-y-6 px-4 sm:max-w-[29rem] sm:px-0',
+            'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
           layout === Layouts.Docs && 'w-full px-4 lg:pl-[16.25rem]'
         )}
@@ -278,7 +309,7 @@ export function Scaffold() {
           layout === Layouts.Focus &&
             'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet &&
-            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 lg:flex',
+            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex',
           layout === Layouts.Docs && 'z-50 flex w-56 items-center gap-x-3 px-4'
         )}
       >
@@ -452,9 +483,7 @@ export function Scaffold() {
                       className='flex h-11 w-full items-center justify-center'
                       to={route('/login')}
                     >
-                      <span className='font-display font-medium text-medium'>
-                        Log in
-                      </span>
+                      <span className='font-medium text-medium'>Log in</span>
                     </Router>
                     {isSignupGated && (
                       <ButtonRouter className='h-11' to={route('/waitlist')}>
@@ -512,162 +541,6 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
         </>
       )}
     </NavLink>
-  )
-}
-export function Scaffold2() {
-  // TODO: try global snackbar
-  const [openNavModal, setOpenNavModal] = useState<boolean>(false)
-  const matches = useMatches()
-  const title = matches[matches.length - 1].handle?.title
-  // TODO adjust the content stage based on layout
-  // TODO should use second last match for scaffold if current match is nested (Only on desktop)
-  const scaffold = matches[matches.length - 1].handle?.scaffold
-
-  const layout = matches[matches.length - 1]?.handle?.layout
-
-  return (
-    <div className='relative inset-0 flex min-h-screen flex-col lg:flex-row'>
-      <div className='fixed top-0 hidden lg:flex'>
-        {scaffold.hasNavDrawer && (
-          <NavDrawer>
-            <NavDrawer.List>
-              <div className='ml-4'>
-                <Router to={route('/')} aria-label='Fynbos logo'>
-                  <FynbosLogo className='h-8' />
-                </Router>
-              </div>
-              <Router
-                to={route('/pay')}
-                className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
-              >
-                <Icon>attach_money</Icon>
-                <span className='font-display font-medium'>Pay</span>
-              </Router>
-              <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-              <NavDrawer.ListItem to={route('/transactions')}>
-                Transactions
-              </NavDrawer.ListItem>
-              <NavDrawer.ListItem to={route('/settings')}>
-                Settings
-              </NavDrawer.ListItem>
-              <NavDrawer.ListItem to={route('/support')}>
-                Support
-              </NavDrawer.ListItem>
-            </NavDrawer.List>
-            <footer className='flex w-full space-x-3 pb-2 pl-4'>
-              <span className='text-xs font-medium text-medium'>
-                &copy;&nbsp;Fynbos
-              </span>
-              <Router
-                className='text-xs font-medium text-primary'
-                to={route('/legal')}
-              >
-                Privacy &amp; Terms
-              </Router>
-            </footer>
-          </NavDrawer>
-        )}
-      </div>
-      <div className='w-full'>
-        <header className='fixed top-0 z-50 flex h-16 w-full select-none items-center justify-start space-x-4 bg-page p-4 sm:min-w-full lg:hidden'>
-          <IconButton
-            className='lg:hidden'
-            onClick={() => setOpenNavModal(true)}
-            aria-label='Open menu'
-          >
-            menu
-          </IconButton>
-          {title && <h1 className='text-xl font-medium'>{title}</h1>}
-          {!title && <FynbosLogo className='h-8' />}
-        </header>
-        {/* TODO adjust the conntent stage based on layout:*/}
-        {layout === Layouts.Marketing && (
-          <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
-            <Outlet />
-          </div>
-        )}
-        {layout === Layouts.Wallet && (
-          <div className='mb-32 mt-16 overflow-hidden lg:my-[5.5rem] lg:ml-64'>
-            <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
-              {title && (
-                <WalletGrid>
-                  <div className='col-span-full hidden justify-between px-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4 lg:flex'>
-                    <h1 className='text-2xl font-medium'>{title}</h1>
-                    <WalletShapes />
-                  </div>
-                </WalletGrid>
-              )}
-
-              <Outlet />
-            </div>
-          </div>
-        )}
-        {layout === Layouts.Focus && (
-          <div className='col-span-full mt-16 grid grid-cols-1 gap-y-6 px-4 sm:px-0 lg:col-span-6 lg:col-start-4 lg:mt-36'>
-            <Outlet />
-          </div>
-        )}
-        {layout === Layouts.Docs && (
-          <div className='mb-32 mt-16 overflow-hidden lg:my-[5.5rem] lg:ml-64'>
-            <div className='relative mx-auto w-full sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
-              {title && (
-                <WalletGrid>
-                  <div className='col-span-full hidden justify-between px-4 pb-6 sm:col-span-6 sm:col-start-2 lg:col-start-4 lg:flex'>
-                    <h1 className='text-2xl font-medium'>{title}</h1>
-                    <WalletShapes />
-                  </div>
-                </WalletGrid>
-              )}
-
-              <Outlet />
-            </div>
-          </div>
-        )}
-      </div>
-      {scaffold.hasNavDrawer && (
-        <NavDrawer.Modal open={openNavModal} setOpen={setOpenNavModal}>
-          <NavDrawer>
-            <NavDrawer.List>
-              <div className='relative mb-8 ml-1 flex items-center space-x-4'>
-                <IconButton
-                  onClick={() => setOpenNavModal(!openNavModal)}
-                  aria-label='Close menu'
-                >
-                  menu_open
-                </IconButton>
-                <Router to={route('/')} aria-label='Fynbos logo'>
-                  <FynbosLogo className='h-8' />
-                </Router>
-              </div>
-              <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
-              <NavDrawer.ListItem to={route('/transactions')}>
-                Transactions
-              </NavDrawer.ListItem>
-              <NavDrawer.ListItem to={route('/settings')}>
-                Settings
-              </NavDrawer.ListItem>
-              <NavDrawer.ListItem to={route('/support')}>
-                Support
-              </NavDrawer.ListItem>
-            </NavDrawer.List>
-            <footer className='flex w-full space-x-3 pb-2 pl-4'>
-              <span className='text-xs font-medium text-medium'>
-                &copy;&nbsp;Fynbos
-              </span>
-              <Router
-                className='text-xs font-medium text-primary'
-                to={route('/legal')}
-              >
-                Privacy &amp; Terms
-              </Router>
-            </footer>
-          </NavDrawer>
-        </NavDrawer.Modal>
-      )}
-      <AnimatePresence>
-        {scaffold.hasFab && <FAB to={route('/pay')} />}
-      </AnimatePresence>
-    </div>
   )
 }
 
