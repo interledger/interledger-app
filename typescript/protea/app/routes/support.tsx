@@ -81,7 +81,10 @@ export default function Page() {
             <CardTitle>Contact support</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Get in touch and let us know how we can help.</p>
+            <p>
+              Please share all relevant details so we can assist you effectively
+              and efficiently.
+            </p>
             <TextArea
               id='description'
               form='support-form'

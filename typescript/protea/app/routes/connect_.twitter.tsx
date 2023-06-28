@@ -88,10 +88,7 @@ export default function Page() {
         <>
           <Card>
             <CardContent>
-              <p>
-                We will guide you through the following steps in order to link
-                your Twitter account:
-              </p>
+              <p>To link your Twitter account, simply follow these steps:</p>
               <div className='mt-6 flex items-start'>
                 <Shape
                   width='w-8'
