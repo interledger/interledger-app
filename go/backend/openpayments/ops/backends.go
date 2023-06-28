@@ -6,6 +6,8 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"github.com/golang/mock/gomock"
 
 	"gitlab.com/fynbos/backend/features"
@@ -30,6 +32,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Tabapay() tabapay.Client
 	Analytics() analytics.Client
+	Wallets() wallets.Client
 	Features() features.Client
 	Twilio() twilio.Service
 	Users() user.Client
@@ -43,6 +46,11 @@ type testBackends struct {
 	tbc tabapay.Client
 	ac  analytics.Client
 	fc  features.Client
+	wc  wallets.Client
+}
+
+func (t testBackends) Wallets() wallets.Client {
+	return t.wc
 }
 
 func (t testBackends) Twilio() twilio.Service {

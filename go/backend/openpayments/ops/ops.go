@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -39,6 +41,11 @@ func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
+	_, err = b.Wallets().AddAddress(ctx, pointer.WalletID, ppURL)
+	if err != nil {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
 	b.Analytics().TrackWalletPaymentPointerCreated(pointer.WalletID)
 	return nil
 }
@@ -50,11 +57,17 @@ func PaymentPointerExists(ctx context.Context, b Backends, pointerURLRaw string)
 		return false, err
 	}
 
-	_, err = GetPaymentPointer(ctx, b, ppURL)
-	if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
-		return false, nil
+	pp, err := GetPaymentPointer(ctx, b, ppURL)
+	if !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+		return false, err
 	}
-	return true, err
+
+	wa, err := b.Wallets().GetFromAddress(ctx, ppURL)
+	if !errors.Is(err, wallets.ErrNoWalletFound) {
+		return false, err
+	}
+
+	return pp != nil || wa != nil, err
 }
 
 func getPaymentPointerByID(ctx context.Context, b Backends, id string) (*openpayments.PaymentPointer, error) {
