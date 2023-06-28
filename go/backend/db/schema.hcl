@@ -892,6 +892,9 @@ table "wallet_addresses" {
   index "wallet_id_ind" {
     columns = [column.wallet_id]
   }
+  index "wallet_address_url_ind" {
+    columns = [column.url]
+  }
 }
 table "transactions" {
   schema = schema.public

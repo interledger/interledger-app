@@ -84,25 +84,40 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	return Get(ctx, b, walletID)
 }
 
-func AddAddresses(ctx context.Context, b Backends, id string, args []wallets.Address) (*wallets.Wallet, error) {
-	err := crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		for _, wa := range args {
-			_, err := tx.ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, address) VALUES ($1, $2)", id, wa)
-			if err != nil {
-				return fmt.Errorf("%w %s", wallets.ErrInternal, err)
-			}
-		}
-		return nil
-	})
+func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Wallet, error) {
+	address, err := wallets.ParseAddress(url)
+	if err != nil {
+		return nil, err
+	}
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, address) VALUES ($1, $2)", id, address)
+	if db.IsErrorCode(err, db.UniqueViolationError) {
+		return nil, fmt.Errorf("%w %s", wallets.ErrAddressExists, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", wallets.ErrInternal, err)
+	}
+
+	b.Analytics().TrackWalletPaymentPointerCreated(id)
+
+	return Get(ctx, b, id)
+}
+
+func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Wallet, error) {
+	address, err := wallets.ParseAddress(url)
 	if err != nil {
 		return nil, err
 	}
 
-	for range args {
-		b.Analytics().TrackWalletPaymentPointerCreated(id)
+	var wid string
+	err = b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM wallet_addresses WHERE url=$1", address)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w address(%s) not found", wallets.ErrNoWalletFound, address)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", wallets.ErrInternal, err)
 	}
 
-	return Get(ctx, b, id)
+	return Get(ctx, b, wid)
 }
 
 func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
