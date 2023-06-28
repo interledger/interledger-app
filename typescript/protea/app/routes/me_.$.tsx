@@ -1,6 +1,12 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  isRouteErrorResponse,
+  useLoaderData,
+  useParams,
+  useRouteError
+} from '@remix-run/react'
 import clsx from 'clsx'
 import { useState } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
@@ -10,7 +16,14 @@ import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
   Button,
+  ButtonRouter,
   Card,
+  CardButton,
+  CardContent,
+  CardHeader,
+  CardIcon,
+  CardLink,
+  CardTitle,
   Chip,
   ChipColor,
   FynbosIcon,
@@ -21,6 +34,7 @@ import {
   Snackbar,
   TwitterIcon
 } from '~/components'
+import { Label } from '~/components/Label'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
@@ -127,7 +141,7 @@ export default function Page() {
   } = useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>({
-    message: 'Payment pointer copied to clipboard.',
+    message: 'Wallet address copied to clipboard.',
     icon: 'close',
     show: false
   })
@@ -136,37 +150,37 @@ export default function Page() {
   return (
     <>
       <Card>
-        <div className='flex w-full items-center justify-center'>
-          {profilePicture && (
-            <Image
-              pictureClassName='m-0'
-              className='aspect-square'
-              data={
-                profilePicture?.person?.avatar
-                  ?.responsiveImage as ResponsiveImageType
-              }
-            />
-          )}
-        </div>
+        <CardContent>
+          <div className='flex w-full items-center justify-center'>
+            {profilePicture && (
+              <Image
+                pictureClassName='m-0'
+                className='aspect-square'
+                data={
+                  profilePicture?.person?.avatar
+                    ?.responsiveImage as ResponsiveImageType
+                }
+              />
+            )}
+          </div>
 
-        <h1
-          className={clsx(
-            profilePicture && 'mt-6',
-            'text-center text-2xl font-medium'
-          )}
-        >
-          {wallet.publicName}
-          {/*TODO Possibly put this edit button in the header*/}
-          {/*{editable && (*/}
-          {/*  <Router to={route('/settings/profile-public')}>*/}
-          {/*    <Icon>edit</Icon>*/}
-          {/*  </Router>*/}
-          {/*)}*/}
-        </h1>
-        <p className='ml-2 mt-6 text-sm font-medium text-medium'>
-          Wallet address
-        </p>
-        <button
+          <h1
+            className={clsx(
+              profilePicture && 'mt-6',
+              'text-center text-2xl font-medium'
+            )}
+          >
+            {wallet.publicName}
+            {/*TODO Possibly put this edit button in the header*/}
+            {/*{editable && (*/}
+            {/*  <Router to={route('/settings/profile-public')}>*/}
+            {/*    <Icon>edit</Icon>*/}
+            {/*  </Router>*/}
+            {/*)}*/}
+          </h1>
+          <Label className='-mb-5 mt-6'>Wallet address</Label>
+        </CardContent>
+        <CardButton
           type='button'
           onClick={async () => {
             if (typeof navigator.clipboard == 'undefined') {
@@ -180,7 +194,7 @@ export default function Page() {
               navigator.clipboard.writeText(walletAddress).then(
                 () => {
                   setSnackbar({
-                    message: 'Payment pointer copied to clipboard.',
+                    message: 'Wallet address copied to clipboard.',
                     icon: 'close',
                     show: true
                   })
@@ -196,18 +210,20 @@ export default function Page() {
                 }
               )
           }}
-          className='mt-2 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
+          className='items-center justify-between'
         >
           <span className='text-medium'>{walletAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
-        </button>
+        </CardButton>
         {identities.length > 0 && (
-          <p className='ml-2 mt-6 text-sm font-medium text-medium'>Twitter</p>
+          <CardContent>
+            <Label className='-mb-5'>Twitter</Label>
+          </CardContent>
         )}
         {identities.map((identity) => (
-          <Router
+          <CardLink
             key={identity.id}
-            className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
+            className='items-center justify-between'
             to={route('/me/identities/:identityId', {
               identityId: identity.signatureHash
             })}
@@ -222,7 +238,7 @@ export default function Page() {
               )}
               <Icon>navigate_next</Icon>
             </div>
-          </Router>
+          </CardLink>
         ))}
         {paymentPointerParam.includes('fynbos.me/adrian') && (
           <>
@@ -284,25 +300,29 @@ export default function Page() {
         </p>
       )}
       {!isUser && (
-        <Card className='space-y-4'>
-          <h1 className='text-lg font-medium'>Join the waitlist</h1>
-          <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-              <FynbosIcon />
+        <Card>
+          <CardHeader>
+            <CardTitle>Join the waitlist</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <CardIcon>
+                <FynbosIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  For a secure, programmable digital wallet that connects all
+                  your accounts, join the waitlist now.
+                </p>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={route('/waitlist')}
+                >
+                  Join the waitlist
+                </Router>
+              </div>
             </div>
-            <div className='flex flex-col space-y-4'>
-              <p className='text-sm text-medium'>
-                For a secure, programmable digital wallet that connects all your
-                accounts, join the waitlist now.
-              </p>
-              <Router
-                className='text-sm font-medium text-primary'
-                to={route('/waitlist')}
-              >
-                Joint the waitlist
-              </Router>
-            </div>
-          </div>
+          </CardContent>
         </Card>
       )}
       <Snackbar
@@ -316,6 +336,38 @@ export default function Page() {
       />
     </>
   )
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError()
+  const params = useParams()
+
+  if (isRouteErrorResponse(error)) {
+    if (error.status == 404)
+      return (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Available wallet address</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className='text-medium'>
+                This is not yet a registered wallet address.
+              </p>
+            </CardContent>
+            <div className='m-2 mt-0 flex items-center justify-between rounded-xl bg-nav p-3'>
+              {params['*'] && (params['*'] as string)}
+              <Chip color={ChipColor.green}>Available</Chip>
+            </div>
+          </Card>
+          <ButtonRouter to={route('/signup')}>
+            Claim wallet address
+          </ButtonRouter>
+        </>
+      )
+  }
+
+  throw error
 }
 
 export async function action({ request, params }: ActionArgs) {
