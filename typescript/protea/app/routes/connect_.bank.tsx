@@ -1,5 +1,5 @@
 import * as widgetSdk from '@mxenabled/web-widget-sdk'
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useRevalidator, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
@@ -36,8 +36,14 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/accounts'),
-      title: 'Add a bank account'
+      title: 'Connect bank account'
     }
+  }
+}
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Connect bank account'
   }
 }
 
@@ -79,7 +85,7 @@ export default function Page() {
     <>
       <Card>
         <CardContent>
-          <p>Add a bank account to easily send and receive payments.</p>
+          <p>Connect a bank account to easily send and receive payments.</p>
           <div className='mt-6 flex items-start'>
             <Shape
               width='w-8'

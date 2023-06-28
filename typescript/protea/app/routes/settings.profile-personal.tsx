@@ -82,13 +82,15 @@ export default function Page() {
     useLoaderData<typeof loader>()
   return (
     <Card>
-      <CardContent>
+      <CardContent className='flex flex-col space-y-4'>
         <div className='flex w-full flex-col space-y-1'>
           <Label>Legal name</Label>
           <div className='mt-1 flex w-full justify-between p-3'>
             <div className='flex space-x-3'>
-              <Icon>face</Icon>
-              {kycDetails.firstName} {kycDetails.lastName}
+              <Icon>account_circle</Icon>
+              <span>
+                {kycDetails.firstName} {kycDetails.lastName}
+              </span>
             </div>
           </div>
         </div>

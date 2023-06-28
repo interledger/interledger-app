@@ -43,7 +43,7 @@ export const handle: ApplicationProps = {
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Add debit card'
+    title: 'Connect card'
   }
 }
 
@@ -161,9 +161,7 @@ export default function Page() {
       <BasisTheoryProvider bt={bt}>
         <Card>
           <CardContent>
-            <p className='text-medium'>
-              Please provide your debit card details.
-            </p>
+            <p className='text-medium'>Please provide your card details.</p>
             <label className='mt-6 block'>
               <span className='ml-2 block text-sm font-medium text-medium'>
                 Card number
