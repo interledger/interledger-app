@@ -7,6 +7,9 @@ import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Layouts,
   OutlineButton,
   Snackbar,
@@ -27,7 +30,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: '/connections',
+      back: '/settings/keys',
       title: (match) => match.data.connection.applicationName
     }
   }
@@ -35,14 +38,14 @@ export const handle: ApplicationProps = {
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Connections'
+    title: 'Key'
   }
 }
 
 export async function loader({ request, params }: LoaderArgs) {
   let data = await Promise.all([
-    getConnection(request, params.connectionId as string),
-    getConnectionLimits(request, params.connectionId as string),
+    getConnection(request, params.keyId as string),
+    getConnectionLimits(request, params.keyId as string),
     getSnackbar(request)
   ])
 
@@ -63,102 +66,92 @@ export default function Page() {
   return (
     <>
       <Form
-        id='update-key-limit'
-        action={`/connections/${connection.id}`}
+        id='key-id'
+        action={`/settings/keys/${connection.id}`}
         method='post'
         className='hidden'
-      />
-      <input
-        form='update-key-limit'
-        defaultValue='update'
-        name='name'
-        type='hidden'
-      />
-      <Form
-        id='delete-key'
-        action={`/connections/${connection.id}`}
-        method='post'
-        className='hidden'
-      />
-      <input
-        form='delete-key'
-        defaultValue='delete'
-        name='name'
-        type='hidden'
       />
 
       <Card>
-        <code className='flex items-center justify-between break-all rounded-xl bg-nav p-2 font-mono text-medium'>
-          {connection.publicKeyFingerprint}
-        </code>
+        <CardContent>
+          <code className='flex items-center justify-between break-all rounded-xl bg-nav p-2 font-mono text-medium'>
+            {connection.publicKeyFingerprint}
+          </code>
 
-        <p className='mt-4 text-sm text-medium'>Added {connection.createdAt}</p>
-        {/*TODO: implement last used*/}
-        {/*<p className='mt-1 text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>*/}
+          <p className='mt-4 text-sm text-medium'>
+            Added {connection.createdAt}
+          </p>
+          {/*TODO: implement last used*/}
+          {/*<p className='mt-1 text-sm text-purple-500'>Last used {connection.lastUsedAt}</p>*/}
+        </CardContent>
       </Card>
 
       <Card>
-        <h1 className='font-display text-lg font-medium'>Limits</h1>
-        <p className='mt-6'>
-          Providing access to your Fynbos wallet allows the external application
-          to make payments. Set the limits below.
-        </p>
-        <TextField
-          id='dailyLimit'
-          label='Daily'
-          name='dailyLimit'
-          form='update-key-limit'
-          type='number'
-          min='0'
-          step='0.01'
-          defaultValue={limits.daily}
-          prefix='$'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
-          aria-describedby={
-            actionData?.errors.dailyLimit ? 'dailyLimit-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.dailyLimit}
-        />
+        <CardHeader>
+          <CardTitle>Limits</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>
+            Providing access to your Fynbos wallet allows the external
+            application to make payments. Set the limits below.
+          </p>
+          <TextField
+            id='dailyLimit'
+            label='Daily'
+            name='dailyLimit'
+            form='key-id'
+            type='number'
+            min='0'
+            step='0.01'
+            defaultValue={limits.daily}
+            prefix='$'
+            className='mt-4'
+            aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
+            aria-describedby={
+              actionData?.errors.dailyLimit ? 'dailyLimit-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors.dailyLimit}
+          />
 
-        <TextField
-          id='monthlyLimit'
-          label='Monthly'
-          name='monthlyLimit'
-          form='update-key-limit'
-          type='number'
-          min='0'
-          step='0.01'
-          defaultValue={limits.monthly}
-          prefix='$'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
-          aria-describedby={
-            actionData?.errors.monthlyLimit ? 'monthlyLimit-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.monthlyLimit}
-        />
+          <TextField
+            id='monthlyLimit'
+            label='Monthly'
+            name='monthlyLimit'
+            form='key-id'
+            type='number'
+            min='0'
+            step='0.01'
+            defaultValue={limits.monthly}
+            prefix='$'
+            className='mt-4'
+            aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
+            aria-describedby={
+              actionData?.errors.monthlyLimit ? 'monthlyLimit-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors.monthlyLimit}
+          />
 
-        <TextField
-          id='overallLimit'
-          label='Overall'
-          name='overallLimit'
-          form='update-key-limit'
-          type='number'
-          min='0'
-          step='0.01'
-          defaultValue={limits.overall}
-          prefix='$'
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
-          aria-describedby={
-            actionData?.errors.overallLimit ? 'overallLimit-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.overallLimit}
-        />
+          <TextField
+            id='overallLimit'
+            label='Overall'
+            name='overallLimit'
+            form='key-id'
+            type='number'
+            min='0'
+            step='0.01'
+            defaultValue={limits.overall}
+            prefix='$'
+            className='mt-4'
+            aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
+            aria-describedby={
+              actionData?.errors.overallLimit ? 'overallLimit-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors.overallLimit}
+          />
+        </CardContent>
       </Card>
 
       <div className='flex w-full space-x-2'>
@@ -166,12 +159,20 @@ export default function Page() {
           shrink
           // TODO error token colors
           className='text-red-700 outline-red-700 focus-visible:outline-red-800'
-          form='delete-key'
+          form='key-id'
+          name='formName'
+          value='delete'
           type='submit'
         >
           Delete
         </OutlineButton>
-        <Button className='col-span-2' form='update-key-limit' type='submit'>
+        <Button
+          className='col-span-2'
+          form='key-id'
+          name='formName'
+          value='update'
+          type='submit'
+        >
           Save
         </Button>
       </div>
@@ -209,12 +210,12 @@ function mapper(
 
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
-  const formName = await form.get('name')
+  const formName = await form.get('formName')
 
   if (formName === 'delete') {
     const response = await grpcClient
       .deleteConnection(
-        { id: params.connectionId as string },
+        { id: params.keyId as string },
         {
           meta: {
             cookies: String(request.headers.get('cookie')) || ''
@@ -235,7 +236,7 @@ export async function action({ request, params }: ActionArgs) {
       icon: 'close'
     })
 
-    return redirect(route('/connections'))
+    return redirect(route('/settings/keys'))
   }
 
   const fieldErrors = {
@@ -247,7 +248,7 @@ export async function action({ request, params }: ActionArgs) {
   const response = await grpcClient
     .updateConnectionLimits(
       {
-        id: params.connectionId as string,
+        id: params.keyId as string,
         daily: {
           amount: String(
             Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)

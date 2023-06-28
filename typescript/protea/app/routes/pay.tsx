@@ -6,6 +6,10 @@ import {
   Avatar,
   Button,
   Card,
+  CardButton,
+  CardContent,
+  CardHeader,
+  CardTitle,
   Icon,
   Layouts,
   Router,
@@ -50,7 +54,7 @@ export async function loader({ request }: LoaderArgs) {
 export const handle = {
   layout: Layouts.Focus,
   scaffold: {
-    header: { title: 'Pay' }
+    header: { title: 'Pay', back: route('/') }
   }
 }
 
@@ -73,54 +77,54 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <span>Enter the recipient’s payment pointer.</span>
-        <TextField
-          id='paymentPointer'
-          label='Payment pointer'
-          name='paymentPointer'
-          form='pay-payment-pointer'
-          type='text'
-          className='mt-6'
-          defaultValue={flow.data?.paymentPointer?.formatted}
-          aria-invalid={Boolean(actionData?.errors.paymentPointer) || undefined}
-          aria-describedby={
-            actionData?.errors.paymentPointer
-              ? 'paymentPointer-error'
-              : undefined
-          }
-          errorMessage={actionData?.errors.paymentPointer}
-        />
+        <CardContent>
+          <span>Enter the recipient’s wallet address.</span>
+          <TextField
+            id='paymentPointer'
+            label='Wallet address'
+            name='paymentPointer'
+            form='pay-payment-pointer'
+            type='text'
+            className='mt-6'
+            defaultValue={flow.data?.paymentPointer?.formatted}
+            aria-invalid={
+              Boolean(actionData?.errors.paymentPointer) || undefined
+            }
+            aria-describedby={
+              actionData?.errors.paymentPointer
+                ? 'paymentPointer-error'
+                : undefined
+            }
+            errorMessage={actionData?.errors.paymentPointer}
+          />
+        </CardContent>
       </Card>
       <Button form='pay-payment-pointer' type='submit'>
-        Pay
+        Continue
       </Button>
       <Card>
-        <div className='flex items-center justify-between'>
-          <h1 className='font-display text-lg font-medium'>
-            Last transacted with
-          </h1>
+        <CardHeader>
+          <CardTitle>Last transacted with</CardTitle>
           <Router className='flex max-h-fit' to={route('/contacts')}>
             <Icon className='text-medium'>read_more</Icon>
           </Router>
-        </div>
+        </CardHeader>
         {contacts.length == 0 && (
-          <div className='mt-4 flex flex-col space-y-4'>
-            <span className='text-sm text-medium'>
-              You haven't paid anyone yet.
-            </span>
-          </div>
+          <CardContent>
+            <p className='text-sm text-medium'>You haven't paid anyone yet.</p>
+          </CardContent>
         )}
         {contacts.map((contact, index) => (
-          <button
+          <CardButton
             key={contact.id}
             name='paymentPointer'
             form='pay-payment-pointer'
             value={contact.paymentPointer}
-            className='mt-6 flex flex w-full items-center space-x-3 rounded-xl'
+            className='items-center space-x-3'
           >
             <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
             <span className='text-medium'>{contact.name}</span>
-          </button>
+          </CardButton>
         ))}
       </Card>
     </>
@@ -163,7 +167,7 @@ export async function action({ request }: ActionArgs) {
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else if (response.code == 5) {
-      fieldErrors.paymentPointer = 'Payment pointer not found.'
+      fieldErrors.paymentPointer = 'Wallet address not found.'
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(response.code))
   }
@@ -190,7 +194,7 @@ export async function action({ request }: ActionArgs) {
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(canSendResponse.code))
   } else if (!canSendResponse.response.canSend) {
-    fieldErrors.paymentPointer = "Payment pointer can't receive payments."
+    fieldErrors.paymentPointer = "Wallet address can't receive payments."
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
