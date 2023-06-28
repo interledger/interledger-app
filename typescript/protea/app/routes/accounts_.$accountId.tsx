@@ -28,8 +28,9 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/accounts'),
-      title: 'Account name'
-    }
+      title: (match) => match.data.name
+    },
+    isNested: true
   }
 }
 
@@ -54,9 +55,7 @@ export default function Page() {
       />
       <Card>
         <div className='flex flex-col space-y-6'>
-          <h1 className='font-display text-2xl font-medium'>
-            Account nickname
-          </h1>
+          <h1 className='text-2xl font-medium'>Account nickname</h1>
         </div>
 
         <TextField

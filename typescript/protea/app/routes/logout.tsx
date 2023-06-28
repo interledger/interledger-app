@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts } from '~/components'
+import { Button, Card, CardContent, Layouts } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 import { destroySession, getSession } from '~/session.server'
@@ -45,7 +45,9 @@ export default function Page() {
     <>
       <Form id='logout' action='/logout' method='post' className='hidden' />
       <Card>
-        <span>Are you sure you want to log out?</span>
+        <CardContent>
+          <p>Are you sure you want to log out?</p>
+        </CardContent>
       </Card>
       <Button
         type='submit'

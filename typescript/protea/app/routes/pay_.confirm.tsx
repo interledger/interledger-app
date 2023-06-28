@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Checkbox, Layouts } from '~/components'
+import { Button, Card, CardContent, Checkbox, Layouts } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
@@ -18,11 +18,12 @@ import { getLinkedAccounts } from '~/lib/wallet.server'
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
   const flow = await requireFlow(request, flowType.Pay)
-  const { linkedAccounts } = await getLinkedAccounts(request)
+  const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
   return json({
     flow,
     traits: session.identity.traits,
-    linkedAccount: linkedAccounts.find(
+    // TODO use a lookup for this account rather?
+    linkedAccount: [...cardAccounts, ...bankAccounts].find(
       (account) => account.id == flow.data.toLinkedAccountId
     )
   })
@@ -51,86 +52,88 @@ export default function Page() {
   return (
     <>
       <Card>
-        <span>Please check the details and confirm the payment.</span>
-        <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
-          <span className='text-sm'>To</span>
-          <span className='text-sm font-medium text-strong'>
-            {flow?.data.paymentPointer.formatted}
-          </span>
-        </div>
-        <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
-          <span className='text-sm'>Beneficiary Name</span>
-          <span className='text-sm font-medium text-strong'>
-            {flow?.data.paymentPointer.legalName}
-          </span>
-        </div>
-
-        <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
-          <span className='text-sm'>From</span>
-          <span className='text-sm font-medium text-strong'>
-            {linkedAccount?.name}
-          </span>
-        </div>
-        <div className='mt-6 flex w-full justify-between'>
-          <span className='text-sm'>You pay</span>
-          <span className='text-sm font-medium text-strong'>
-            {flow?.data.displaySendAmount || '$ 0.00'}
-          </span>
-        </div>
-        <div className='mt-2 flex w-full justify-between'>
-          <span className='text-sm'>Total fees</span>
-          <span className='text-sm font-medium text-strong'>
-            Free<sup>*</sup>
-          </span>
-        </div>
-        <div className='mt-2 flex w-full justify-between'>
-          <span className='text-sm'>They receive</span>
-          <span className='text-2xl text-sm font-medium text-strong'>
-            {flow?.data.displayReceiveAmount || '$ 0.00'}
-          </span>
-        </div>
-        {flow?.data.note && (
-          <div className='mt-8 flex w-full flex-col space-y-2'>
-            <span className='text-sm'>Note</span>
-            <span className='text-sm text-strong'>{flow?.data.note}</span>
+        <CardContent>
+          <span>Please check the details and confirm the payment.</span>
+          <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-sm'>To</span>
+            <span className='text-sm font-medium text-strong'>
+              {flow?.data.paymentPointer.formatted}
+            </span>
           </div>
-        )}
+          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-sm'>Beneficiary Name</span>
+            <span className='text-sm font-medium text-strong'>
+              {flow?.data.paymentPointer.legalName}
+            </span>
+          </div>
 
-        <Form
-          id='pay-confirm'
-          action='/pay/confirm'
-          method='post'
-          className='hidden'
-        />
-        <Checkbox
-          id='service-agreement'
-          name='service-agreement'
-          form='pay-confirm'
-          className='mt-8 flex'
-          aria-invalid={
-            Boolean(actionData?.errors.serviceAgreement) || undefined
-          }
-          aria-describedby={
-            actionData?.errors.serviceAgreement
-              ? 'serviceAgreement-error'
-              : undefined
-          }
-          errorMessage={actionData?.errors.serviceAgreement}
-        >
-          I authorize Fynbos to debit
-          {linkedAccount?.type == 'card'
-            ? ' the card indicated '
-            : ' my account '}
-          for the amount noted on today’s date. I will not dispute Fynbos
-          debiting my account, so long as the transaction corresponds to the
-          terms in this online form and my agreement with Fynbos.
-        </Checkbox>
-        <input
-          form='pay-confirm'
-          defaultValue={linkedAccount?.type}
-          name='linked-account-type'
-          type='hidden'
-        />
+          <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-sm'>From</span>
+            <span className='text-sm font-medium text-strong'>
+              {linkedAccount?.name}
+            </span>
+          </div>
+          <div className='mt-6 flex w-full justify-between'>
+            <span className='text-sm'>You pay</span>
+            <span className='text-sm font-medium text-strong'>
+              {flow?.data.displaySendAmount || '$ 0.00'}
+            </span>
+          </div>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-sm'>Total fees</span>
+            <span className='text-sm font-medium text-strong'>
+              Free<sup>*</sup>
+            </span>
+          </div>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-sm'>They receive</span>
+            <span className='text-2xl text-sm font-medium text-strong'>
+              {flow?.data.displayReceiveAmount || '$ 0.00'}
+            </span>
+          </div>
+          {flow?.data.note && (
+            <div className='mt-8 flex w-full flex-col space-y-2'>
+              <span className='text-sm'>Note</span>
+              <span className='text-sm text-strong'>{flow?.data.note}</span>
+            </div>
+          )}
+
+          <Form
+            id='pay-confirm'
+            action='/pay/confirm'
+            method='post'
+            className='hidden'
+          />
+          <Checkbox
+            id='service-agreement'
+            name='service-agreement'
+            form='pay-confirm'
+            className='mt-8 flex'
+            aria-invalid={
+              Boolean(actionData?.errors.serviceAgreement) || undefined
+            }
+            aria-describedby={
+              actionData?.errors.serviceAgreement
+                ? 'serviceAgreement-error'
+                : undefined
+            }
+            errorMessage={actionData?.errors.serviceAgreement}
+          >
+            I authorize Fynbos to debit
+            {linkedAccount?.type == 'card'
+              ? ' the card indicated '
+              : ' my account '}
+            for the amount noted on today’s date. I will not dispute Fynbos
+            debiting my account, so long as the transaction corresponds to the
+            terms in this online form and my agreement with Fynbos.
+          </Checkbox>
+          <input
+            form='pay-confirm'
+            defaultValue={linkedAccount?.type}
+            name='linked-account-type'
+            type='hidden'
+          />
+        </CardContent>
       </Card>
       <Button form='pay-confirm' type='submit'>
         Confirm payment

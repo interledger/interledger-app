@@ -1,6 +1,7 @@
 import { Link } from '@remix-run/react'
+import type { RemixLinkProps } from '@remix-run/react/dist/components'
 import clsx from 'clsx'
-import type { ReactNode } from 'react'
+import type { ReactNode, RefAttributes } from 'react'
 import { forwardRef } from 'react'
 
 /**
@@ -22,8 +23,6 @@ type RouterProps = {
   className?: string
   to: string
   children?: ReactNode
-  //Can only disable Router.Button
-  disabled?: boolean
 }
 
 /**
@@ -33,23 +32,23 @@ type RouterProps = {
  * @param href - Routes or Routes object with params
  * @param rest The props passed through to the anchor tag.
  */
-export const Router = forwardRef<any, RouterProps>(
-  ({ className, children, to, ...rest }, ref) => {
-    return (
-      <Link
-        ref={ref}
-        to={to}
-        className={clsx(
-          'rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus',
-          className
-        )}
-        {...rest}
-      >
-        {children}
-      </Link>
-    )
-  }
-)
+export const Router = forwardRef<
+  any,
+  RemixLinkProps & RefAttributes<HTMLAnchorElement>
+>(({ className, children, ...props }, ref) => {
+  return (
+    <Link
+      ref={ref}
+      className={clsx(
+        'rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Link>
+  )
+})
 
 Router.displayName = 'Router'
 
@@ -75,7 +74,7 @@ export const ButtonRouter = forwardRef<any, ButtonRouterProps>(
         ref={ref}
         to={to}
         className={clsx(
-          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-10 font-display font-medium text-white hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500',
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent bg-primary px-10 font-medium text-white hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500',
           shrink ? 'sm:max-w-fit' : '',
           className
         )}
