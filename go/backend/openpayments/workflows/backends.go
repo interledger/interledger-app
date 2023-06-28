@@ -127,7 +127,8 @@ func (t testBackends) Features() features.Client {
 	return t.fc
 }
 
-func NewTestBackends(t *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, kyc kyc.Client, cc contacts.Client) Backends {
+
+func NewTestBackends(t *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, kyc kyc.Client, cc contacts.Client, opts ...func(*testBackends)) Backends {
 	ac := analytics_client.New(nil, "")
 	ctrl := gomock.NewController(t)
 	kc := keys_mock.NewMockClient(ctrl)
@@ -142,6 +143,11 @@ func NewTestBackends(t *testing.T, db *sqlx.DB, temp temporal.Client, la linkeda
 		IdentitiesEnabled: true,
 		TwitterEnabled:    true,
 	}, nil).AnyTimes()
+	b := &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, kyc: kyc, ac: ac, cc: cc, kc: kc, fc: fc}
 
-	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, kyc: kyc, ac: ac, cc: cc, kc: kc, fc: fc}
+	for _, opt := range opts {
+		opt(b)
+	}
+
+	return b
 }

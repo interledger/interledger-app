@@ -8,6 +8,10 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/mx"
 
+	"gitlab.com/fynbos/backend/wallets"
+
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
 	"gitlab.com/fynbos/backend/providers/gmt"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -32,8 +36,12 @@ func TestCreatePaymentPointer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
-
-	b := ops.NewTestBackends(t, db, nil, nil)
+	ctrl := gomock.NewController(t)
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+	b := ops.NewTestBackends(t, db, nil, nil, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	cases := []struct {
 		name      string
@@ -164,8 +172,13 @@ func TestGetWalletPaymentPointer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	walletID := uuid.NewString()
 
@@ -252,8 +265,13 @@ func TestListWalletPaymentPointers(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	walletID := uuid.NewString()
 
@@ -295,8 +313,12 @@ func TestValidatePaymentPointer(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
-
-	b := ops.NewTestBackends(t, db, nil, nil)
+	ctrl := gomock.NewController(t)
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().GetFromAddress(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+	b := ops.NewTestBackends(t, db, nil, nil, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	cases := []struct {
 		name   string
@@ -404,7 +426,14 @@ func TestPaymentPointerCaseSensitive(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	ctrl := gomock.NewController(t)
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().GetFromAddress(gomock.Any(), gomock.Any()).Return(nil, wallets.ErrNoWalletFound).AnyTimes()
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+
+	b := ops.NewTestBackends(t, db, nil, nil, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	walletID := uuid.NewString()
 
@@ -523,8 +552,12 @@ func TestCreateQuote(t *testing.T) {
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	txClient.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, laClient, txClient)
+	b := ops.NewTestBackends(t, db, laClient, txClient, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	cases := []struct {
 		name      string
@@ -718,8 +751,12 @@ func TestValidateCanSend(t *testing.T) {
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 
-	b := ops.NewTestBackends(t, db, laClient, txClient)
+	b := ops.NewTestBackends(t, db, laClient, txClient, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	cases := []struct {
 		name      string

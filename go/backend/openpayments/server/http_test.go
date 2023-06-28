@@ -52,6 +52,7 @@ func TestGetHandler(t *testing.T) {
 	idc := identities_mock.NewMockClient(ctrl)
 	userClient := users_mock.NewMock()
 	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.ids = idc
@@ -135,12 +136,15 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 	tc := transactions_mock.NewMockClient(ctrl)
 	auth := mock_auth.NewMockInternalClient(ctrl)
 	txID := uuid.NewString()
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.auth = auth
 		tb.tr = tc
+		tb.wc = wc
 	})
 
 	cases := []struct {
@@ -305,6 +309,8 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	lmt_mock := limits_mock.NewMockClient(ctrl)
 	lmt_mock.EXPECT().Exceeds(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes()
 	lmt_mock.EXPECT().ExceedsKYCLimits(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, limits.LimitType(""), nil).AnyTimes()
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.auth = auth
@@ -313,6 +319,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		tb.lmt = lmt_mock
 		tb.temp = tmp_mock
 		tb.fc = ft_mock
+		tb.wc = wc
 	})
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
@@ -440,9 +447,12 @@ func TestListKeys(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	keyClient := mock_keys.NewMockClient(ctrl)
 	keyClient.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db.MigrateTestDB(t, ctx)
 		tb.keys = keyClient
+		tb.wc = wc
 	})
 
 	walletID := uuid.NewString()
@@ -494,10 +504,13 @@ func TestGetIdentitiesHandler(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	idc := identities_mock.NewMockClient(ctrl)
 	userClient := users_mock.NewMock()
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.ids = idc
 		tb.us = userClient
+		tb.wc = wc
 	})
 
 	cases := []struct {

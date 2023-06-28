@@ -38,7 +38,7 @@ type Backends interface {
 	Users() user.Client
 }
 
-type testBackends struct {
+type TestBackends struct {
 	db  *sqlx.DB
 	val *validator.Validate
 	la  linkedaccounts.Client
@@ -46,52 +46,52 @@ type testBackends struct {
 	tbc tabapay.Client
 	ac  analytics.Client
 	fc  features.Client
-	wc  wallets.Client
+	Wc  wallets.Client
 }
 
-func (t testBackends) Wallets() wallets.Client {
-	return t.wc
+func (t TestBackends) Wallets() wallets.Client {
+	return t.Wc
 }
 
-func (t testBackends) Twilio() twilio.Service {
+func (t TestBackends) Twilio() twilio.Service {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (t testBackends) Users() user.Client {
+func (t TestBackends) Users() user.Client {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (t testBackends) Transactions() transactions.Client {
+func (t TestBackends) Transactions() transactions.Client {
 	return t.tc
 }
 
-func (t testBackends) LinkedAccounts() linkedaccounts.Client {
+func (t TestBackends) LinkedAccounts() linkedaccounts.Client {
 	return t.la
 }
 
-func (t testBackends) Validator() *validator.Validate {
+func (t TestBackends) Validator() *validator.Validate {
 	return t.val
 }
 
-func (t testBackends) DB() *sqlx.DB {
+func (t TestBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func (t testBackends) Tabapay() tabapay.Client {
+func (t TestBackends) Tabapay() tabapay.Client {
 	return t.tbc
 }
 
-func (t testBackends) Analytics() analytics.Client {
+func (t TestBackends) Analytics() analytics.Client {
 	return t.ac
 }
 
-func (t testBackends) Features() features.Client {
+func (t TestBackends) Features() features.Client {
 	return t.fc
 }
 
-func NewTestBackends(t *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc transactions.Client) Backends {
+func NewTestBackends(t *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc transactions.Client, opts ...func(b *TestBackends)) Backends {
 	ac := analytics_client.New(nil, "")
 	ctrl := gomock.NewController(t)
 	fc := features_mock.NewMockClient(ctrl)
@@ -105,5 +105,11 @@ func NewTestBackends(t *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc tra
 		TwitterEnabled:    true,
 	}, nil).AnyTimes()
 
-	return &testBackends{db: db, val: validator.New(), la: la, tc: tc, ac: ac, fc: fc}
+	b := &TestBackends{db: db, val: validator.New(), la: la, tc: tc, ac: ac, fc: fc}
+
+	for _, opt := range opts {
+		opt(b)
+	}
+
+	return b
 }

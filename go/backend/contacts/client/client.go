@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/contacts/ops"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/paymentpointers"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 var _ contacts.Client = client{}
@@ -28,10 +29,10 @@ func (s client) List(ctx context.Context, walletID string, page db.Pagination, o
 	return ops.List(ctx, s.b, walletID, page, orderBy)
 }
 
-func (s client) Get(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) (*contacts.Contact, error) {
-	return ops.Get(ctx, s.b, walletID, pp)
+func (s client) Get(ctx context.Context, walletID string, wa wallets.Address) (*contacts.Contact, error) {
+	return ops.Get(ctx, s.b, walletID, wa)
 }
 
-func (s client) SetLastPaidAtNow(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) error {
-	return ops.SetLastPaidAtNow(ctx, s.b, walletID, pp)
+func (s client) SetLastPaidAtNow(ctx context.Context, walletID string, wa wallets.Address) error {
+	return ops.SetLastPaidAtNow(ctx, s.b, walletID, wa)
 }

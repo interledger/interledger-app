@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/paymentpointers"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 const contactCols = ` id, name, payment_pointer, wallet_id, last_paid_at `
@@ -56,11 +57,11 @@ func List(ctx context.Context, b Backends, walletID string, page db.Pagination, 
 	return cl, nil
 }
 
-func Get(ctx context.Context, b Backends, walletID string, pp paymentpointers.PaymentPointer) (*contacts.Contact, error) {
+func Get(ctx context.Context, b Backends, walletID string, wa wallets.Address) (*contacts.Contact, error) {
 	var c contacts.Contact
 	err := b.DB().GetContext(ctx, &c,
 		fmt.Sprintf("SELECT %s from contacts where wallet_id = $1 and payment_pointer = $2", contactCols),
-		walletID, pp.String())
+		walletID, wa.String())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%w %s", contacts.ErrNotFound, err)
@@ -71,10 +72,10 @@ func Get(ctx context.Context, b Backends, walletID string, pp paymentpointers.Pa
 	return &c, nil
 }
 
-func SetLastPaidAtNow(ctx context.Context, b Backends, walletID string, pp paymentpointers.PaymentPointer) error {
+func SetLastPaidAtNow(ctx context.Context, b Backends, walletID string, wa wallets.Address) error {
 	_, err := b.DB().ExecContext(ctx,
 		"UPDATE contacts set last_paid_at = now() where wallet_id = $1 and payment_pointer = $2",
-		walletID, pp.String())
+		walletID, wa.String())
 	if err != nil {
 		return fmt.Errorf("%w %s", contacts.ErrInternal, err)
 	}

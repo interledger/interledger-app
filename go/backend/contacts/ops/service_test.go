@@ -2,18 +2,18 @@ package ops_test
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/contacts/ops"
-	"gitlab.com/fynbos/backend/paymentpointers"
 	"strings"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/contacts"
+	"gitlab.com/fynbos/backend/contacts/ops"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 type backends struct {
@@ -37,7 +37,7 @@ func TestCreateAContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := paymentpointers.Parse("$fynbos.me/marko")
+	pp, err := wallets.ParseAddress("$fynbos.me/marko")
 	require.NoError(t, err)
 
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
@@ -73,7 +73,7 @@ func TestListContacts(t *testing.T) {
 		"John Jacob",
 	}
 	for _, name := range contactNames {
-		pp, err := paymentpointers.Parse("$fynbos.me/" + strings.TrimSpace(name))
+		pp, err := wallets.ParseAddress("$fynbos.me/" + strings.TrimSpace(name))
 		require.NoError(t, err)
 		_, err = ops.Create(ctx, b, contacts.CreateContactArgs{
 			Name:           name,
@@ -120,7 +120,7 @@ func TestGetContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := paymentpointers.Parse("$fynbos.me/marko")
+	pp, err := wallets.ParseAddress("$fynbos.me/marko")
 	require.NoError(t, err)
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
 		Name:           "Marko polo",
@@ -136,7 +136,7 @@ func TestGetContact(t *testing.T) {
 	assert.Equal(t, c.PaymentPointer, gc.PaymentPointer)
 
 	// Unknown error
-	randomPP, err := paymentpointers.Parse("$fynbos.me/test")
+	randomPP, err := wallets.ParseAddress("$fynbos.me/test")
 	require.NoError(t, err)
 
 	_, err = ops.Get(ctx, b, wid, randomPP)
@@ -151,7 +151,7 @@ func TestSetLastPaidAtContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := paymentpointers.Parse("$fynbos.me/marko")
+	pp, err := wallets.ParseAddress("$fynbos.me/marko")
 	require.NoError(t, err)
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
 		Name:           "Marko polo",

@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/paymentpointers"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
@@ -39,7 +38,7 @@ func TestCreateContact(t *testing.T) {
 	}
 	c.walletImpl.EXPECT().Get(gomock.Any(), cw.ID).Return(&cw, nil).AnyTimes()
 
-	pp, err := paymentpointers.Parse("$fynbos.me/alice")
+	pp, err := wallets.ParseAddress("$fynbos.me/alice")
 	require.NoError(t, err)
 
 	c.OPClient.EXPECT().GetPaymentPointer(gomock.Any(), pp.String()).Return(&openpayments.PaymentPointer{
@@ -91,7 +90,7 @@ func TestListContacts(t *testing.T) {
 	}
 	c.walletImpl.EXPECT().Get(gomock.Any(), cw.ID).Return(&cw, nil).AnyTimes()
 
-	pp, err := paymentpointers.Parse("$fynbos.me/alice")
+	pp, err := wallets.ParseAddress("$fynbos.me/alice")
 	require.NoError(t, err)
 
 	c.ContactsClient.EXPECT().List(gomock.Any(), w.ID, gomock.Any(), gomock.Any()).Return([]contacts.Contact{

@@ -14,6 +14,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/currency"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +51,11 @@ func TestCreateOutgoingPayment(t *testing.T) {
 			State:      linkedaccounts.Verified,
 		},
 	}, nil).AnyTimes()
-	b := ops.NewTestBackends(t, db, laClient, txClient)
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+	b := ops.NewTestBackends(t, db, laClient, txClient, func(b *ops.TestBackends) {
+		b.Wc = wc
+	})
 
 	cases := []struct {
 		name      string

@@ -10,16 +10,15 @@ import (
 
 	"gitlab.com/fynbos/backend/transactions"
 
-	"gitlab.com/fynbos/backend/providers"
-
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	"gitlab.com/fynbos/backend/paymentpointers"
+	"gitlab.com/fynbos/backend/providers"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )
@@ -324,7 +323,7 @@ func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPayment
 		return err
 	}
 
-	tpp, err := paymentpointers.Parse(toPaymentPointer)
+	tpp, err := wallets.ParseAddress(toPaymentPointer)
 	if err != nil {
 		return err
 	}
@@ -363,7 +362,7 @@ func (a *Activity) MarkContactLastPaid(ctx context.Context, fromPaymentPointer, 
 		return err
 	}
 
-	tpp, err := paymentpointers.Parse(toPaymentPointer)
+	tpp, err := wallets.ParseAddress(toPaymentPointer)
 	if err != nil {
 		return err
 	}
