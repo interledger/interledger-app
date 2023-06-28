@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, Layouts, TextField } from '~/components'
+import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -19,7 +19,8 @@ export async function loader({ request, params }: LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
 
   return json({
-    name: account.nickname
+    name: account.nickname,
+    type: account.type
   })
 }
 
@@ -28,7 +29,8 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/accounts'),
-      title: 'Account name'
+      title: (match) =>
+        match.data.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
     }
   }
 }
@@ -53,24 +55,22 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <div className='flex flex-col space-y-6'>
-          <h1 className='text-2xl font-medium'>Account nickname</h1>
-        </div>
-
-        <TextField
-          id='name'
-          label='Nickname'
-          name='name'
-          form='edit-linked-account-name'
-          type='text'
-          defaultValue={name}
-          className='mt-6'
-          aria-invalid={Boolean(actionData?.errors.name) || undefined}
-          aria-describedby={
-            actionData?.errors.name ? 'password-error' : undefined
-          }
-          errorMessage={actionData?.errors.name}
-        />
+        <CardContent>
+          <TextField
+            id='name'
+            label='Nickname'
+            name='name'
+            form='edit-linked-account-name'
+            type='text'
+            defaultValue={name}
+            className='mt-4'
+            aria-invalid={Boolean(actionData?.errors.name) || undefined}
+            aria-describedby={
+              actionData?.errors.name ? 'password-error' : undefined
+            }
+            errorMessage={actionData?.errors.name}
+          />
+        </CardContent>
       </Card>
       <Button form='edit-linked-account-name' type='submit'>
         Save
