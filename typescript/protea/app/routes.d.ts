@@ -10,8 +10,6 @@ declare module "routes-gen" {
     "/temp-cloudflare-error": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
     "/api/maps/geocode": Record<string, never>;
-    "/link-account/bank": Record<string, never>;
-    "/link-account/card": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
@@ -21,10 +19,11 @@ declare module "routes-gen" {
     "/personal-details": Record<string, never>;
     "/signup/password": Record<string, never>;
     "/wallet-address": Record<string, never>;
+    "/connect/bank": Record<string, never>;
+    "/connect/card": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
-    "/link-account": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/transactions": Record<string, never>;
     "/transactions/open_payments_incoming/:transactionId": { "transactionId": string };
@@ -70,8 +69,6 @@ declare module "routes-gen" {
       | ["/temp-cloudflare-error"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/api/maps/geocode"]
-      | ["/link-account/bank"]
-      | ["/link-account/card"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/waitlist/success"]
@@ -81,10 +78,11 @@ declare module "routes-gen" {
       | ["/personal-details"]
       | ["/signup/password"]
       | ["/wallet-address"]
+      | ["/connect/bank"]
+      | ["/connect/card"]
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/api/sendOtp"]
-      | ["/link-account"]
       | ["/pay/confirm"]
       | ["/transactions"]
       | ["/transactions/open_payments_incoming/:transactionId", RouteParams["/transactions/open_payments_incoming/:transactionId"]]
