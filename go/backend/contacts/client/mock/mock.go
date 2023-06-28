@@ -11,7 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	contacts "gitlab.com/fynbos/backend/contacts"
 	db "gitlab.com/fynbos/backend/db"
-	paymentpointers "gitlab.com/fynbos/backend/paymentpointers"
+	wallets "gitlab.com/fynbos/backend/wallets"
 )
 
 // MockClient is a mock of Client interface.
@@ -53,18 +53,18 @@ func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockClient) Get(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) (*contacts.Contact, error) {
+func (m *MockClient) Get(ctx context.Context, walletID string, wa wallets.Address) (*contacts.Contact, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, walletID, pp)
+	ret := m.ctrl.Call(m, "Get", ctx, walletID, wa)
 	ret0, _ := ret[0].(*contacts.Contact)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockClientMockRecorder) Get(ctx, walletID, pp interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) Get(ctx, walletID, wa interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, walletID, pp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, walletID, wa)
 }
 
 // List mocks base method.
@@ -83,15 +83,15 @@ func (mr *MockClientMockRecorder) List(ctx, walletID, page, orderBy interface{})
 }
 
 // SetLastPaidAtNow mocks base method.
-func (m *MockClient) SetLastPaidAtNow(ctx context.Context, walletID string, pp paymentpointers.PaymentPointer) error {
+func (m *MockClient) SetLastPaidAtNow(ctx context.Context, walletID string, wa wallets.Address) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetLastPaidAtNow", ctx, walletID, pp)
+	ret := m.ctrl.Call(m, "SetLastPaidAtNow", ctx, walletID, wa)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SetLastPaidAtNow indicates an expected call of SetLastPaidAtNow.
-func (mr *MockClientMockRecorder) SetLastPaidAtNow(ctx, walletID, pp interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) SetLastPaidAtNow(ctx, walletID, wa interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLastPaidAtNow", reflect.TypeOf((*MockClient)(nil).SetLastPaidAtNow), ctx, walletID, pp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLastPaidAtNow", reflect.TypeOf((*MockClient)(nil).SetLastPaidAtNow), ctx, walletID, wa)
 }

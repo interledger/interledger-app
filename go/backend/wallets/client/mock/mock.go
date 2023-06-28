@@ -36,6 +36,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// AddAddress mocks base method.
+func (m *MockClient) AddAddress(ctx context.Context, id, address string) (*wallets.Wallet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddAddress", ctx, id, address)
+	ret0, _ := ret[0].(*wallets.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddAddress indicates an expected call of AddAddress.
+func (mr *MockClientMockRecorder) AddAddress(ctx, id, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAddress", reflect.TypeOf((*MockClient)(nil).AddAddress), ctx, id, address)
+}
+
 // Create mocks base method.
 func (m *MockClient) Create(ctx context.Context, args wallets.CreateArgs) (*wallets.Wallet, error) {
 	m.ctrl.T.Helper()
@@ -79,6 +94,21 @@ func (m *MockClient) Get(ctx context.Context, id string) (*wallets.Wallet, error
 func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id)
+}
+
+// GetFromAddress mocks base method.
+func (m *MockClient) GetFromAddress(ctx context.Context, address string) (*wallets.Wallet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFromAddress", ctx, address)
+	ret0, _ := ret[0].(*wallets.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFromAddress indicates an expected call of GetFromAddress.
+func (mr *MockClientMockRecorder) GetFromAddress(ctx, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFromAddress", reflect.TypeOf((*MockClient)(nil).GetFromAddress), ctx, address)
 }
 
 // List mocks base method.

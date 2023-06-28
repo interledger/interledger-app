@@ -111,7 +111,7 @@ func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Walle
 	var wid string
 	err = b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM wallet_addresses WHERE url=$1", address)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w address(%s) not found", wallets.ErrNoWalletFound, address)
+		return nil, fmt.Errorf("%w address(%s) not found", wallets.ErrNoWalletFound, address.String())
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", wallets.ErrInternal, err)

@@ -3,9 +3,10 @@ package grpc
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/paymentpointers"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -23,7 +24,7 @@ func (s *rpcService) CreateContact(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	pp, err := paymentpointers.Parse(req.GetPaymentPointer())
+	pp, err := wallets.ParseAddress(req.GetPaymentPointer())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

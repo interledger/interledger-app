@@ -58,7 +58,7 @@ func PaymentPointerExists(ctx context.Context, b Backends, pointerURLRaw string)
 	}
 
 	pp, err := GetPaymentPointer(ctx, b, ppURL)
-	if !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+	if err != nil && !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
 		return false, err
 	}
 	if pp != nil {
@@ -70,7 +70,7 @@ func PaymentPointerExists(ctx context.Context, b Backends, pointerURLRaw string)
 		return false, err
 	}
 
-	return pp != nil || wa != nil, err
+	return pp != nil || wa != nil, nil
 }
 
 func getPaymentPointerByID(ctx context.Context, b Backends, id string) (*openpayments.PaymentPointer, error) {

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -28,13 +30,17 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	ctrl := gomock.NewController(t)
 
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	txClient.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 
-	b := NewTestBackends(t, db, nil, la_mock, txClient, nil, nil)
+	b := NewTestBackends(t, db, nil, la_mock, txClient, nil, nil, func(b *testBackends) {
+		b.wc = wc
+	})
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
