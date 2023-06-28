@@ -98,7 +98,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const fetcher = useFetcher()
-  const { paymentPointerBase, username, snackbar, publicName } =
+  const { paymentPointerBase, username, snackbar } =
     useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
