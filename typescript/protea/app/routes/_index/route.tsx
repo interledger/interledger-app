@@ -8,7 +8,10 @@ import type {
   FooterRecord,
   HomeRouteRecord
 } from '~/generated/dato-cms-graphql'
-import type { Identity } from '~/generated/protobuf-ts/backend/v1/backend'
+import type {
+  Features,
+  Identity
+} from '~/generated/protobuf-ts/backend/v1/backend'
 import { getUserSession, hasUserSession } from '~/lib/kratos.server'
 import { getHomeRoute } from '~/lib/marketing.server'
 import { getPusherArgs } from '~/lib/pusher.server'
@@ -18,6 +21,7 @@ import { getSnackbar } from '~/lib/snackbar.server'
 import type { PusherArgs } from '~/lib/usePusher'
 import type { Transaction } from '~/lib/wallet.server'
 import {
+  getFeatures,
   getKycStatus,
   getLinkedAccounts,
   getLinkedIdentities,
@@ -58,6 +62,7 @@ export async function loader({ request }: LoaderArgs) {
     transactions: [] as Transaction[],
     identities: {} as Record<string, Identity[]>,
     kycStatus: KycStatus.Unknown,
+    features: {} as Features,
     snackbar: {
       message: ''
     } as SnackbarType
@@ -72,7 +77,8 @@ export async function loader({ request }: LoaderArgs) {
       snackbar,
       pusherArgs,
       { bankAccounts, cardAccounts },
-      identities
+      identities,
+      features
     ] = await Promise.all([
       getUserSession(request),
       getWalletPaymentPointer(request),
@@ -81,7 +87,8 @@ export async function loader({ request }: LoaderArgs) {
       getSnackbar(request),
       getPusherArgs(request),
       getLinkedAccounts(request),
-      getLinkedIdentities(request)
+      getLinkedIdentities(request),
+      getFeatures(request)
     ])
 
     data = {
@@ -94,7 +101,8 @@ export async function loader({ request }: LoaderArgs) {
       pusherArgs,
       hasCard: cardAccounts.length > 0,
       hasBank: bankAccounts.length > 0,
-      identities
+      identities,
+      features
     }
   } else {
     const { homeRoute, footer } = await getHomeRoute()
