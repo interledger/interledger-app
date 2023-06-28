@@ -310,7 +310,6 @@ func (a *Activity) Card2CardCompliance(ctx context.Context, args providers.Trans
 			ReceiverCity:          toID.Address.City,
 			ReceiverState:         toID.Address.State,
 			SenderID:              sender.SenderId,
-			TipoCuentaCodigo:      "CDN",
 			ServicioCodigo:        "BD",
 		},
 	})
@@ -405,7 +404,6 @@ func (a *Activity) ACH2CardCompliance(ctx context.Context, args providers.Transf
 			ReceiverCity:          toID.Address.City,
 			ReceiverState:         toID.Address.State,
 			SenderID:              sender.SenderId,
-			TipoCuentaCodigo:      "CDN",
 			ServicioCodigo:        "BD",
 		},
 	})
@@ -1008,7 +1006,6 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 			ReceiverCity:          toID.Address.City,
 			ReceiverState:         toID.Address.State,
 			SenderID:              sender.SenderId,
-			TipoCuentaCodigo:      "CDN",
 			ServicioCodigo:        "BD",
 		},
 	})
@@ -1077,7 +1074,6 @@ func (a *Activity) InsertCard2Card(ctx context.Context, args providers.Transfers
 			ReceiverCity:          toID.Address.City,
 			ReceiverState:         toID.Address.State,
 			SenderID:              sender.SenderId,
-			TipoCuentaCodigo:      "CDN",
 			ServicioCodigo:        "BD",
 		},
 	})
