@@ -1,30 +1,33 @@
 import { useLoaderData } from '@remix-run/react'
-import { Fragment, useState } from 'react'
+import clsx from 'clsx'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
   AnimatedSchedule,
   Card,
-  HomeShapes,
+  CardButton,
+  CardContent,
+  CardHeader,
+  CardIcon,
+  CardLink,
+  CardTitle,
+  Chip,
+  ChipColor,
+  GridColumn,
   Icon,
   Router,
   Snackbar,
+  TwitterIcon,
   WalletGrid
 } from '~/components'
+import { Label } from '~/components/Label'
 import { usePusher } from '~/lib/usePusher'
 import type { loader } from './route'
 import { KycStatus } from './route'
 
 export function AppPage() {
-  const {
-    firstName,
-    paymentPointer,
-    snackbar,
-    transactions,
-    kycStatus,
-    canTopUp,
-    nextStep,
-    pusherArgs
-  } = useLoaderData<typeof loader>()
+  const { paymentPointer, snackbar, transactions, kycStatus, pusherArgs } =
+    useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
@@ -35,204 +38,186 @@ export function AppPage() {
 
   return (
     <WalletGrid>
-      <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-        <div className='mt-2'>
-          <HomeShapes />
-        </div>
-        <h1 className='mt-6 text-center font-display text-2xl font-medium'>
-          Welcome {firstName}
-        </h1>
-        {kycStatus != KycStatus.Verified && (
-          <p className='mb-2 mt-4 text-center'>
-            Thank you for signing up to Fynbos.
-          </p>
+      <GridColumn className='col-span-full lg:col-span-6'>
+        {kycStatus == KycStatus.Unknown && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
+              <Chip color={ChipColor.orange}>Reserved</Chip>
+            </CardHeader>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <CardIcon>
+                  <Icon>account_balance_wallet</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Your wallet is reserved, we just need a few more details to
+                    activate it.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={route('/personal-details')}
+                  >
+                    Activate wallet
+                  </Router>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
-        {kycStatus == KycStatus.Verified && !canTopUp && (
-          <p className='mb-2 mt-4 text-center'>
-            Your payment pointer is activated. You are now able to send and
-            receive payments.
-          </p>
+        {kycStatus == KycStatus.InProgress && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation</CardTitle>
+              <Chip color={ChipColor.orange}>Pending</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                Just a moment, we are verifying your details.
+              </p>
+            </CardContent>
+          </Card>
         )}
-        {kycStatus == KycStatus.Verified && canTopUp && (
-          <p className='mb-2 mt-4 text-center'>
-            Send and receive payments with your payment pointer.
-          </p>
+        {kycStatus == KycStatus.Suspended && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Activation error</CardTitle>
+              <Chip color={ChipColor.red}>Error</Chip>
+            </CardHeader>
+            <CardContent>
+              <p className='text-sm text-medium'>
+                We could not verify your identity. Please contact support.
+              </p>
+            </CardContent>
+          </Card>
         )}
         {kycStatus == KycStatus.Verified && (
-          <button
-            type='button'
-            onClick={async () => {
-              if (typeof navigator.clipboard == 'undefined') {
-                setSnackbar({
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close',
-                  show: true
-                })
-                setShowSnackbar(true)
-              } else
-                navigator.clipboard.writeText(paymentPointer.formatted).then(
-                  () => {
-                    setSnackbar({
-                      message: 'Payment pointer copied to clipboard.',
-                      icon: 'close',
-                      show: true
-                    })
-                    setShowSnackbar(true)
-                  },
-                  () => {
-                    setSnackbar({
-                      message: "Couldn't copy to clipboard.",
-                      icon: 'close',
-                      show: true
-                    })
-                    setShowSnackbar(true)
-                  }
-                )
-            }}
-            className='mt-4 flex flex items-center justify-between rounded-xl bg-nav p-4 hover:bg-nav-hover'
-          >
-            <span className='font-medium text-medium'>
-              {paymentPointer.formatted}
-            </span>
-            <Icon className='text-medium'>content_copy</Icon>
-          </button>
-        )}
-      </Card>
-
-      {kycStatus == KycStatus.InProgress && (
-        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h2 className='font-display text-lg font-medium'>
-            Activation pending
-          </h2>
-          <p className='mt-4'>Just a moment, we are verifying your details.</p>
-        </Card>
-      )}
-      {/*{kycStatus == KycStatus.Retry && (*/}
-      {/*  <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>*/}
-      {/*    <h2 className='font-display text-lg font-medium'>*/}
-      {/*      Activation failed*/}
-      {/*    </h2>*/}
-      {/*    <p className='mt-4'>*/}
-      {/*      Some of the details you provided were not correct. Please fix them*/}
-      {/*      and submit again.*/}
-      {/*    </p>*/}
-      {/*    <Router*/}
-      {/*      className='mt-4 text-sm font-medium text-primary'*/}
-      {/*      to={route('/personal-details')}*/}
-      {/*    >*/}
-      {/*      Fix personal details*/}
-      {/*    </Router>*/}
-      {/*  </Card>*/}
-      {/*)}*/}
-      {kycStatus == KycStatus.Suspended && (
-        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h2 className='font-display text-lg font-medium'>
-            Activation failed
-          </h2>
-          <p className='mt-4'>
-            We could not verify your identity, please contact support to
-            continue.
-          </p>
-          <Router
-            className='mt-4 text-sm font-medium text-primary'
-            to={route('/support')}
-          >
-            Contact support
-          </Router>
-        </Card>
-      )}
-      {/*{kycStatus == KycStatus.ReviewPending && (*/}
-      {/*  <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>*/}
-      {/*    <h2 className='font-display text-lg font-medium'>*/}
-      {/*      Reviewing activation*/}
-      {/*    </h2>*/}
-      {/*    <p className='mt-4'>*/}
-      {/*      We need to manually review your verification details. We will notify*/}
-      {/*      you when this process completes.*/}
-      {/*    </p>*/}
-      {/*  </Card>*/}
-      {/*)}*/}
-
-      {nextStep.show && (
-        <Card className='col-span-full space-y-6 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <h1 className='font-display text-lg font-medium'>Next step</h1>
-          <div className='flex items-start space-x-4'>
-            <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
-              <Icon>{nextStep.icon}</Icon>
-            </div>
-            <div className='flex flex-col space-y-4'>
-              <p className='text-sm text-medium'>{nextStep.title}</p>
-              <Router
-                className='text-sm font-medium text-primary'
-                to={nextStep.action.to}
-              >
-                {nextStep.action.text}
-              </Router>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {kycStatus == KycStatus.Verified && (
-        <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
-          <div className='flex items-center justify-between'>
-            <h1 className='font-display text-lg font-medium'>
-              Latest transactions
-            </h1>
-            <Router className='flex max-h-fit' to={route('/transactions')}>
-              <Icon className='text-medium'>read_more</Icon>
-            </Router>
-          </div>
-          {transactions.length == 0 && (
-            <div className='mt-4 flex flex-col space-y-4'>
-              <span className='text-sm text-medium'>
-                Your payment activity will appear here once you start using your
-                payment pointer.
+          <Card>
+            <CardHeader>
+              <CardTitle>Wallet</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>
+                Share your wallet address to get paid, or click the pay button
+                to transact.
+              </p>
+              <Label className='-mb-5 mt-4'>Wallet address</Label>
+            </CardContent>
+            <CardButton
+              type='button'
+              onClick={async () => {
+                if (typeof navigator.clipboard == 'undefined') {
+                  setSnackbar({
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    show: true
+                  })
+                  setShowSnackbar(true)
+                } else
+                  navigator.clipboard.writeText(paymentPointer.formatted).then(
+                    () => {
+                      setSnackbar({
+                        message: 'Wallet address copied to clipboard.',
+                        icon: 'close',
+                        show: true
+                      })
+                      setShowSnackbar(true)
+                    },
+                    () => {
+                      setSnackbar({
+                        message: "Couldn't copy to clipboard.",
+                        icon: 'close',
+                        show: true
+                      })
+                      setShowSnackbar(true)
+                    }
+                  )
+              }}
+              className='items-center justify-between'
+            >
+              <span className='font-medium text-medium'>
+                {paymentPointer.formatted}
               </span>
-              <Router
-                to={route('/pay')}
-                className='text-sm font-medium text-primary'
-              >
-                Send or receive payments now
-              </Router>
+              <Icon className='text-medium'>content_copy</Icon>
+            </CardButton>
+          </Card>
+        )}
+        {kycStatus == KycStatus.Verified && (
+          <>
+            <div className='contents lg:hidden'>
+              <CTACards />
             </div>
-          )}
-          {transactions.map((transaction, index) => (
-            <Fragment key={transaction.id}>
-              {(index == 0 ||
-                transaction.date != transactions[index - 1].date) && (
-                <span className='mt-6 text-xs text-medium'>
-                  {transaction.date}
-                </span>
-              )}
-              <Router
-                to={`/transaction/${transaction.type}/${transaction.id}`}
-                className='mt-2 flex w-full justify-between'
-              >
-                <div className='flex space-x-1'>
-                  {transaction.icon == 'schedule' && (
-                    <div className='mt-0.5'>
-                      <AnimatedSchedule />
-                    </div>
-                  )}
-                  {transaction.icon != 'schedule' && (
-                    <Icon className='mt-0.5 text-medium'>
-                      {transaction.icon}
-                    </Icon>
-                  )}
-                  <div className='flex flex-col space-y-2'>
-                    <span className='text-medium'>{transaction.title}</span>
-                    <span className='text-xs text-medium'>
-                      {transaction.time}
+            <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
+              <CardHeader>
+                <CardTitle>Latest transactions</CardTitle>
+                <Router className='flex max-h-fit' to={route('/transactions')}>
+                  <Icon className='text-medium'>read_more</Icon>
+                </Router>
+              </CardHeader>
+              {transactions.length == 0 && (
+                <CardContent>
+                  <div className='mt-4 flex flex-col space-y-4'>
+                    <span className='text-sm text-medium'>
+                      Your payment activity will appear here once you start
+                      transacting.
                     </span>
+                    <Router
+                      to={route('/pay')}
+                      className='text-sm font-medium text-primary'
+                    >
+                      Send or receive payments now
+                    </Router>
                   </div>
-                </div>
-                <span className='font-medium'>{transaction.total}</span>
-              </Router>
-            </Fragment>
-          ))}
-        </Card>
-      )}
+                </CardContent>
+              )}
+              {transactions.map((transaction, index) => (
+                <CardLink
+                  key={transaction.id}
+                  to={`/transaction/${transaction.type}/${transaction.id}`}
+                  className='justify-between'
+                >
+                  <div className='flex space-x-1'>
+                    {transaction.icon == 'schedule' && (
+                      <div className='mt-0.5'>
+                        <AnimatedSchedule />
+                      </div>
+                    )}
+                    {transaction.icon != 'schedule' && (
+                      <Icon className='mt-0.5 text-medium'>
+                        {transaction.icon}
+                      </Icon>
+                    )}
+                    <div className='flex flex-col space-y-1'>
+                      <span className='text-medium'>{transaction.title}</span>
+                      <span className='text-xs text-weak'>
+                        {transaction.date} - {transaction.time}
+                      </span>
+                    </div>
+                  </div>
+                  <div className='flex items-center space-x-2'>
+                    <span
+                      className={clsx(
+                        'font-medium',
+                        transaction.type.includes('outgoing')
+                          ? 'text-error'
+                          : 'text-medium'
+                      )}
+                    >
+                      {transaction.total}
+                    </span>
+                    <Icon>navigate_next</Icon>
+                  </div>
+                </CardLink>
+              ))}
+            </Card>
+          </>
+        )}
+      </GridColumn>
+      <GridColumn className='hidden lg:col-span-6 lg:flex'>
+        {kycStatus == KycStatus.Verified && <CTACards />}
+      </GridColumn>
+
       <Snackbar
         message={snackbarState.message}
         action={snackbarState.action}
@@ -244,5 +229,103 @@ export function AppPage() {
         onClose={() => setShowSnackbar(false)}
       />
     </WalletGrid>
+  )
+}
+
+function CTACards() {
+  const { hasBank, hasCard, identities } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      {!hasCard && !hasBank && (
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <Icon>account_balance</Icon>
+              </div>
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  Connect bank accounts and cards to easily send and receive
+                  payments.
+                </p>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={route('/accounts')}
+                >
+                  Connect a bank or card
+                </Router>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {!hasCard && hasBank && (
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <Icon>credit_card</Icon>
+              </div>
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  Connect cards to easily send and receive payments.
+                </p>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={route('/connect/card')}
+                >
+                  Connect a card
+                </Router>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {hasCard && !hasBank && (
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <Icon>account_balance</Icon>
+              </div>
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  Connect bank accounts to easily send and receive payments.
+                </p>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={route('/connect/bank')}
+                >
+                  Connect a bank account
+                </Router>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {!identities.twitter && (
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <div className='flex items-center justify-between rounded-full bg-nav p-5 text-medium'>
+                <TwitterIcon className='text-medium' />
+              </div>
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  Connect a Twitter identity to transact with your audience.
+                </p>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={route('/connect/twitter')}
+                >
+                  Connect Twitter identity
+                </Router>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </>
   )
 }
