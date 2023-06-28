@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import type {
   Amount,
+  Features,
   GetPublicWalletDetailsResponse,
   Transaction as GrpcTransaction,
   Identity,
@@ -37,6 +38,25 @@ export async function getKycStatus(
 ): Promise<KYCStatusResponse> {
   const response = await grpcClient
     .kYCStatus(
+      {},
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function getFeatures(request: Request): Promise<Features> {
+  const response = await grpcClient
+    .listFeatures(
       {},
       {
         meta: {
@@ -152,9 +172,8 @@ type FormattedLinkedAccount = {
 }
 
 type LinkedAccountsResponse = {
-  linkedAccounts: Array<FormattedLinkedAccount>
-  canTopUp: boolean
-  canWithdraw: boolean
+  bankAccounts: Array<FormattedLinkedAccount>
+  cardAccounts: Array<FormattedLinkedAccount>
 }
 
 export async function getLinkedAccount(
@@ -205,9 +224,8 @@ export async function getLinkedAccounts(
     response.response.linkedAccounts.map(formatLinkedAccount)
 
   return {
-    linkedAccounts,
-    canTopUp: linkedAccounts.filter(({ type }) => type == 'card').length > 0,
-    canWithdraw: linkedAccounts.filter(({ type }) => type == 'bank').length > 0
+    bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
+    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card')
   }
 }
 
@@ -298,7 +316,9 @@ export async function getTransactionsWithPending(
         type: trx.type,
         icon: trx.state == 'Pending' ? 'schedule' : transactionIcon(trx.type),
         title: transactionTitle(trx),
-        total: formatAmount(trx.amount),
+        total: `${trx.type.includes('outgoing') && '- '}${formatAmount(
+          trx.amount
+        )}`,
         time: DateTime.fromSeconds(
           parseInt(trx.timestamp?.seconds ?? '')
         ).toFormat('HH:mm'),

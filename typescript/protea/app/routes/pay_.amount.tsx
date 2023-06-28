@@ -7,7 +7,14 @@ import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
 import { v4 } from 'uuid'
 import type { ApplicationProps, SelectOptions } from '~/components'
-import { Button, Card, Layouts, Select, TextField } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  Select,
+  TextField
+} from '~/components'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -25,10 +32,10 @@ export async function loader({ request }: LoaderArgs) {
     return redirect('/login?return_to=/pay/amount')
   }
   const flow = await requireFlow(request, flowType.Pay)
-  const { linkedAccounts } = await getLinkedAccounts(request)
+  const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
   return json({
     flow,
-    linkedAccounts
+    linkedAccounts: [...cardAccounts, ...bankAccounts]
   })
 }
 
@@ -75,87 +82,89 @@ export default function Page() {
   return (
     <>
       <Card>
-        <span>You are about to pay:</span>
-        <span className='mt-4'>{flow.data.paymentPointer.legalName}</span>
-        <div className='mt-2 flex items-center justify-between rounded-xl bg-nav p-4 text-medium'>
-          <span>{flow.data.paymentPointer.formatted}</span>
-        </div>
-        {/*TODO Add a submit form*/}
-        <fetcher.Form
-          id='amount-form'
-          action='/pay/amount'
-          method='post'
-          className='hidden'
-        />
-        <TextField
-          id='amount'
-          form='amount-form'
-          label='You pay'
-          name='amount'
-          defaultValue={flow?.data.amount}
-          onChange={_onChangeInput}
-          prefix='$'
-          type='number'
-          min='0'
-          step='0.01'
-          className='mt-6'
-          aria-invalid={Boolean(fetcher.data?.errors.amount) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.amount ? 'amount-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.amount || undefined}
-          required
-        />
+        <CardContent>
+          <span>You are about to pay:</span>
+          <span className='mt-4'>{flow.data.paymentPointer.legalName}</span>
+          <div className='mt-2 flex items-center justify-between rounded-xl bg-nav p-4 text-medium'>
+            <span>{flow.data.paymentPointer.formatted}</span>
+          </div>
+          {/*TODO Add a submit form*/}
+          <fetcher.Form
+            id='amount-form'
+            action='/pay/amount'
+            method='post'
+            className='hidden'
+          />
+          <TextField
+            id='amount'
+            form='amount-form'
+            label='You pay'
+            name='amount'
+            defaultValue={flow?.data.amount}
+            onChange={_onChangeInput}
+            prefix='$'
+            type='number'
+            min='0'
+            step='0.01'
+            className='mt-6'
+            aria-invalid={Boolean(fetcher.data?.errors.amount) || undefined}
+            aria-describedby={
+              fetcher.data?.errors.amount ? 'amount-error' : undefined
+            }
+            errorMessage={fetcher.data?.errors.amount || undefined}
+            required
+          />
 
-        <div className='mt-4 flex w-full justify-between'>
-          <span className='text-sm'>Total fees</span>
-          <span className='text-sm font-medium text-strong'>
-            Free<sup>*</sup>
-          </span>
-        </div>
-        <div className='mt-4 flex w-full justify-between'>
-          <span className='text-sm'>They receive</span>
-          <span className='text-2xl text-sm font-medium text-strong'>
-            {flow?.data.displayReceiveAmount || '$ 0.00'}
-          </span>
-        </div>
-        <Select
-          id='linkedAccount'
-          label='Pay from'
-          className='mt-12'
-          value={linkedAccount}
-          options={linkedAccounts}
-          onChange={_onChangeLinkedAccount}
-          aria-invalid={
-            Boolean(fetcher.data?.errors.linkedAccount) || undefined
-          }
-          aria-describedby={
-            fetcher.data?.errors.linkedAccount
-              ? 'linkedAccount-error'
-              : undefined
-          }
-          errorMessage={fetcher.data?.errors.linkedAccount}
-        />
-        <input
-          form='amount-form'
-          value={linkedAccount.id}
-          name='toLinkedAccountId'
-          type='hidden'
-        />
-        <TextField
-          id='note'
-          label='Note'
-          name='note'
-          form='amount-form'
-          type='text'
-          defaultValue={flow.data.note || ''}
-          className='mt-12'
-          aria-invalid={Boolean(fetcher.data?.errors.note) || undefined}
-          aria-describedby={
-            fetcher.data?.errors.note ? 'paymentPointer-error' : undefined
-          }
-          errorMessage={fetcher.data?.errors.note}
-        />
+          <div className='mt-4 flex w-full justify-between'>
+            <span className='text-sm'>Total fees</span>
+            <span className='text-sm font-medium text-strong'>
+              Free<sup>*</sup>
+            </span>
+          </div>
+          <div className='mt-4 flex w-full justify-between'>
+            <span className='text-sm'>They receive</span>
+            <span className='text-2xl text-sm font-medium text-strong'>
+              {flow?.data.displayReceiveAmount || '$ 0.00'}
+            </span>
+          </div>
+          <Select
+            id='linkedAccount'
+            label='Pay from'
+            className='mt-12'
+            value={linkedAccount}
+            options={linkedAccounts}
+            onChange={_onChangeLinkedAccount}
+            aria-invalid={
+              Boolean(fetcher.data?.errors.linkedAccount) || undefined
+            }
+            aria-describedby={
+              fetcher.data?.errors.linkedAccount
+                ? 'linkedAccount-error'
+                : undefined
+            }
+            errorMessage={fetcher.data?.errors.linkedAccount}
+          />
+          <input
+            form='amount-form'
+            value={linkedAccount.id}
+            name='toLinkedAccountId'
+            type='hidden'
+          />
+          <TextField
+            id='note'
+            label='Note'
+            name='note'
+            form='amount-form'
+            type='text'
+            defaultValue={flow.data.note || ''}
+            className='mt-12'
+            aria-invalid={Boolean(fetcher.data?.errors.note) || undefined}
+            aria-describedby={
+              fetcher.data?.errors.note ? 'paymentPointer-error' : undefined
+            }
+            errorMessage={fetcher.data?.errors.note}
+          />
+        </CardContent>
       </Card>
       <Button form='amount-form' type='submit' name='route-to' value='next'>
         Continue

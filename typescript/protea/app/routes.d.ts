@@ -1,23 +1,15 @@
 declare module "routes-gen" {
   export type RouteParams = {
-    "/transaction/open_payments_incoming/:transactionId": { "transactionId": string };
-    "/transaction/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/settings/profile-public/name": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
-    "/connections/add-a-public-key": Record<string, never>;
     "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
     "/me/identities/:identityId": { "identityId": string };
-    "/connections/:connectionId": { "connectionId": string };
-    "/settings/profile-personal": Record<string, never>;
-    "/settings/profile-contact": Record<string, never>;
+    "/settings/keys/add-public": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
-    "/settings/profile-public": Record<string, never>;
-    "/identities/:identityId": { "identityId": string };
+    "/settings/keys/:keyId": { "keyId": string };
     "/temp-cloudflare-error": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
     "/api/maps/geocode": Record<string, never>;
-    "/link-account/bank": Record<string, never>;
-    "/link-account/card": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
@@ -27,21 +19,28 @@ declare module "routes-gen" {
     "/personal-details": Record<string, never>;
     "/signup/password": Record<string, never>;
     "/wallet-address": Record<string, never>;
+    "/connect/bank": Record<string, never>;
+    "/connect/card": Record<string, never>;
     "/signup/about": Record<string, never>;
     "/signup/phone": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
-    "/link-account": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/transactions": Record<string, never>;
+    "/transactions/open_payments_incoming/:transactionId": { "transactionId": string };
+    "/transactions/open_payments_outgoing/:transactionId": { "transactionId": string };
     "/blog/:slug": { "slug": string };
-    "/connections": Record<string, never>;
     "/pay/amount": Record<string, never>;
     "/identities": Record<string, never>;
+    "/identities/:identityId": { "identityId": string };
     "/accounts": Record<string, never>;
     "/contacts": Record<string, never>;
     "/pay/3ds": Record<string, never>;
     "/recovery": Record<string, never>;
     "/settings": Record<string, never>;
+    "/settings/profile-personal": Record<string, never>;
+    "/settings/profile-contact": Record<string, never>;
+    "/settings/profile-public": Record<string, never>;
+    "/settings/keys": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/contact": Record<string, never>;
     "/support": Record<string, never>;
@@ -60,24 +59,16 @@ declare module "routes-gen" {
 
   export function route<
     T extends
-      | ["/transaction/open_payments_incoming/:transactionId", RouteParams["/transaction/open_payments_incoming/:transactionId"]]
-      | ["/transaction/open_payments_outgoing/:transactionId", RouteParams["/transaction/open_payments_outgoing/:transactionId"]]
       | ["/settings/profile-public/name"]
       | ["/api/maps/placesAutocomplete"]
-      | ["/connections/add-a-public-key"]
       | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
       | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
-      | ["/connections/:connectionId", RouteParams["/connections/:connectionId"]]
-      | ["/settings/profile-personal"]
-      | ["/settings/profile-contact"]
+      | ["/settings/keys/add-public"]
       | ["/what-is-a-payment-pointer"]
-      | ["/settings/profile-public"]
-      | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
+      | ["/settings/keys/:keyId", RouteParams["/settings/keys/:keyId"]]
       | ["/temp-cloudflare-error"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/api/maps/geocode"]
-      | ["/link-account/bank"]
-      | ["/link-account/card"]
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/waitlist/success"]
@@ -87,21 +78,28 @@ declare module "routes-gen" {
       | ["/personal-details"]
       | ["/signup/password"]
       | ["/wallet-address"]
+      | ["/connect/bank"]
+      | ["/connect/card"]
       | ["/signup/about"]
       | ["/signup/phone"]
       | ["/api/sendOtp"]
-      | ["/link-account"]
       | ["/pay/confirm"]
       | ["/transactions"]
+      | ["/transactions/open_payments_incoming/:transactionId", RouteParams["/transactions/open_payments_incoming/:transactionId"]]
+      | ["/transactions/open_payments_outgoing/:transactionId", RouteParams["/transactions/open_payments_outgoing/:transactionId"]]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
-      | ["/connections"]
       | ["/pay/amount"]
       | ["/identities"]
+      | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
       | ["/accounts"]
       | ["/contacts"]
       | ["/pay/3ds"]
       | ["/recovery"]
       | ["/settings"]
+      | ["/settings/profile-personal"]
+      | ["/settings/profile-contact"]
+      | ["/settings/profile-public"]
+      | ["/settings/keys"]
       | ["/waitlist"]
       | ["/contact"]
       | ["/support"]

@@ -13,6 +13,7 @@ import {
   Button,
   ButtonRouter,
   Card,
+  CardContent,
   Dialog,
   Icon,
   Layouts,
@@ -108,44 +109,48 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        {hasVerified && <p>Your mobile phone number is verified.</p>}
-        {!hasVerified && <p>We require you to verify a mobile phone number.</p>}
+        <CardContent>
+          {hasVerified && <p>Your mobile phone number is verified.</p>}
+          {!hasVerified && (
+            <p>We require you to verify a mobile phone number.</p>
+          )}
 
-        {hasVerified && (
-          <div className='mt-6 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-            <Icon>call</Icon>
-            <span>{flow?.data?.phone}</span>
-          </div>
-        )}
+          {hasVerified && (
+            <div className='mt-6 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+              <Icon>call</Icon>
+              <span>{flow?.data?.phone}</span>
+            </div>
+          )}
 
-        {!hasVerified && (
-          <PhoneTextField
-            id='phone'
-            form='signup-phone-otp'
-            name='phone'
-            defaultCountry={flow?.data.country}
-            options={countries as PhoneAutocompleteOptions[]}
-            label='Mobile number'
-            className='mt-6'
-            aria-invalid={
-              Boolean(
+          {!hasVerified && (
+            <PhoneTextField
+              id='phone'
+              form='signup-phone-otp'
+              name='phone'
+              defaultCountry={flow?.data.country}
+              options={countries as PhoneAutocompleteOptions[]}
+              label='Mobile number'
+              className='mt-6'
+              aria-invalid={
+                Boolean(
+                  otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+                ) || undefined
+              }
+              aria-describedby={
                 otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-              ) || undefined
-            }
-            aria-describedby={
-              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-                ? 'phone-error'
-                : undefined
-            }
-            errorMessage={
-              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-            }
-          />
-        )}
+                  ? 'phone-error'
+                  : undefined
+              }
+              errorMessage={
+                otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+              }
+            />
+          )}
+        </CardContent>
       </Card>
       {hasVerified && (
         <ButtonRouter to={route('/signup/password')}>
-          <span className='font-display font-medium text-white'>Continue</span>
+          <span className='font-medium text-white'>Continue</span>
         </ButtonRouter>
       )}
       {!hasVerified && (
@@ -154,21 +159,27 @@ export default function Page() {
         </Button>
       )}
 
+      <Form
+        id='signup-phone-otp-validation'
+        action='/signup/phone'
+        method='post'
+        className='hidden'
+      />
       <Dialog open={showDialog} setOpen={setShowDialog}>
-        <Form
-          id='signup-phone-otp-validation'
-          action='/signup/phone'
-          method='post'
-          className='hidden'
-        />
-        <h1 className='font-display text-2xl'>Two-step verification</h1>
+        <h1 className='text-xl font-medium'>Two-step verification</h1>
         <span className='text-medium'>
-          Enter the six digit verification code sent to your mobile number.
+          Enter the six digit code sent to your mobile number.
         </span>
-        <div className='flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-          <Icon>call</Icon>
-          <span>{otpFetcher?.data?.phone}</span>
+        <div className='flex flex-col space-y-2 pt-2'>
+          <span className='ml-2 text-sm font-medium text-medium'>
+            Your mobile phone number
+          </span>
+          <div className='flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+            <Icon>phone_android</Icon>
+            <span>{otpFetcher?.data?.phone}</span>
+          </div>
         </div>
+
         <input
           form='signup-phone-otp-validation'
           value={otpFetcher?.data?.phone}

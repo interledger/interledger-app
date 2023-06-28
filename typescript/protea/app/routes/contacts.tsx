@@ -10,7 +10,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Avatar, Card, Layouts } from '~/components'
+import { Avatar, Card, CardButton, CardContent, Layouts } from '~/components'
 import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getWalletContacts } from '~/lib/wallet.server'
 
@@ -155,29 +155,27 @@ export default function Page() {
       <Card>
         <Form
           id='pay-payment-pointer'
-          action='/pay'
+          action={route('/pay')}
           method='post'
           className='hidden'
         />
         {contacts.length == 0 && (
-          <div className='flex flex-col space-y-4'>
-            <span className='text-sm text-medium'>
-              You haven't paid anyone yet.
-            </span>
-          </div>
+          <CardContent>
+            <p className='text-sm text-medium'>You haven't paid anyone yet.</p>
+          </CardContent>
         )}
         {contacts &&
           contacts.map((contact, index) => (
-            <button
+            <CardButton
               key={contact.id}
               name='paymentPointer'
               form='pay-payment-pointer'
               value={contact.paymentPointer}
-              className='mt-6 flex flex w-full items-center space-x-3 rounded-xl first:mt-0'
+              className='items-center space-x-3'
             >
               <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
               <span className='text-medium'>{contact.name}</span>
-            </button>
+            </CardButton>
           ))}
       </Card>
     </div>
