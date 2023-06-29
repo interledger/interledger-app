@@ -68,6 +68,7 @@ import type { SignAgreementsRequest } from "./backend";
 import type { Agreement } from "./backend";
 import type { GetAgreementRequest } from "./backend";
 import type { SendPhoneVerificationRequest } from "./backend";
+import type { WalletInfo } from "./backend";
 import type { SetWalletNameRequest } from "./backend";
 import type { CreateUserDefaultWalletRequest } from "./backend";
 import type { CompleteSignupRequest } from "./backend";
@@ -299,6 +300,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: SetWalletName(backend.v1.SetWalletNameRequest) returns (backend.v1.Empty);
      */
     setWalletName(input: SetWalletNameRequest, options?: RpcOptions): UnaryCall<SetWalletNameRequest, Empty>;
+    /**
+     * @generated from protobuf rpc: GetWalletInfo(backend.v1.Empty) returns (backend.v1.WalletInfo);
+     */
+    getWalletInfo(input: Empty, options?: RpcOptions): UnaryCall<Empty, WalletInfo>;
     /**
      * Allows sending and checking an sms verification.
      *
@@ -611,19 +616,26 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<SetWalletNameRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: GetWalletInfo(backend.v1.Empty) returns (backend.v1.WalletInfo);
+     */
+    getWalletInfo(input: Empty, options?: RpcOptions): UnaryCall<Empty, WalletInfo> {
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, WalletInfo>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Allows sending and checking an sms verification.
      *
      * @generated from protobuf rpc: SendPhoneVerification(backend.v1.SendPhoneVerificationRequest) returns (backend.v1.Empty);
      */
     sendPhoneVerification(input: SendPhoneVerificationRequest, options?: RpcOptions): UnaryCall<SendPhoneVerificationRequest, Empty> {
-        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
         return stackIntercept<SendPhoneVerificationRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SendOTP(backend.v1.Empty) returns (backend.v1.Empty);
      */
     sendOTP(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
-        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        const method = this.methods[11], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -632,63 +644,63 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetAgreement(backend.v1.GetAgreementRequest) returns (backend.v1.Agreement);
      */
     getAgreement(input: GetAgreementRequest, options?: RpcOptions): UnaryCall<GetAgreementRequest, Agreement> {
-        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetAgreementRequest, Agreement>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SignAgreements(backend.v1.SignAgreementsRequest) returns (backend.v1.SignAgreementsResponse);
      */
     signAgreements(input: SignAgreementsRequest, options?: RpcOptions): UnaryCall<SignAgreementsRequest, SignAgreementsResponse> {
-        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        const method = this.methods[13], opt = this._transport.mergeOptions(options);
         return stackIntercept<SignAgreementsRequest, SignAgreementsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetLinkedAccounts(backend.v1.Empty) returns (backend.v1.GetLinkedAccountsResponse);
      */
     getLinkedAccounts(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetLinkedAccountsResponse> {
-        const method = this.methods[13], opt = this._transport.mergeOptions(options);
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetLinkedAccountsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetLinkedAccount(backend.v1.GetLinkedAccountRequest) returns (backend.v1.LinkedAccount);
      */
     getLinkedAccount(input: GetLinkedAccountRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountRequest, LinkedAccount> {
-        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        const method = this.methods[15], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetNicknameLinkedAccount(backend.v1.SetNicknameLinkedAccountRequest) returns (backend.v1.LinkedAccount);
      */
     setNicknameLinkedAccount(input: SetNicknameLinkedAccountRequest, options?: RpcOptions): UnaryCall<SetNicknameLinkedAccountRequest, LinkedAccount> {
-        const method = this.methods[15], opt = this._transport.mergeOptions(options);
+        const method = this.methods[16], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetNicknameLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: DeleteLinkedAccount(backend.v1.DeleteLinkedAccountRequest) returns (backend.v1.Empty);
      */
     deleteLinkedAccount(input: DeleteLinkedAccountRequest, options?: RpcOptions): UnaryCall<DeleteLinkedAccountRequest, Empty> {
-        const method = this.methods[16], opt = this._transport.mergeOptions(options);
+        const method = this.methods[17], opt = this._transport.mergeOptions(options);
         return stackIntercept<DeleteLinkedAccountRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateSupportTicket(backend.v1.CreateSupportTicketRequest) returns (backend.v1.Empty);
      */
     createSupportTicket(input: CreateSupportTicketRequest, options?: RpcOptions): UnaryCall<CreateSupportTicketRequest, Empty> {
-        const method = this.methods[17], opt = this._transport.mergeOptions(options);
+        const method = this.methods[18], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateSupportTicketRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetCountries(backend.v1.Empty) returns (backend.v1.GetCountriesResponse);
      */
     getCountries(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCountriesResponse> {
-        const method = this.methods[18], opt = this._transport.mergeOptions(options);
+        const method = this.methods[19], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetCountriesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetCurrentWallet(backend.v1.Empty) returns (backend.v1.GetCurrentWalletResponse);
      */
     getCurrentWallet(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetCurrentWalletResponse> {
-        const method = this.methods[19], opt = this._transport.mergeOptions(options);
+        const method = this.methods[20], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetCurrentWalletResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -697,28 +709,28 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: JoinWaitlist(backend.v1.JoinWaitlistRequest) returns (backend.v1.JoinWaitlistResponse);
      */
     joinWaitlist(input: JoinWaitlistRequest, options?: RpcOptions): UnaryCall<JoinWaitlistRequest, JoinWaitlistResponse> {
-        const method = this.methods[20], opt = this._transport.mergeOptions(options);
+        const method = this.methods[21], opt = this._transport.mergeOptions(options);
         return stackIntercept<JoinWaitlistRequest, JoinWaitlistResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CanSignup(backend.v1.CanSignupRequest) returns (backend.v1.CanSignupResponse);
      */
     canSignup(input: CanSignupRequest, options?: RpcOptions): UnaryCall<CanSignupRequest, CanSignupResponse> {
-        const method = this.methods[21], opt = this._transport.mergeOptions(options);
+        const method = this.methods[22], opt = this._transport.mergeOptions(options);
         return stackIntercept<CanSignupRequest, CanSignupResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetSignupComplete(backend.v1.SetSignupCompleteRequest) returns (backend.v1.Empty);
      */
     setSignupComplete(input: SetSignupCompleteRequest, options?: RpcOptions): UnaryCall<SetSignupCompleteRequest, Empty> {
-        const method = this.methods[22], opt = this._transport.mergeOptions(options);
+        const method = this.methods[23], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetSignupCompleteRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: IsMugAvailable(backend.v1.IsMugAvailableRequest) returns (backend.v1.IsMugAvailableResponse);
      */
     isMugAvailable(input: IsMugAvailableRequest, options?: RpcOptions): UnaryCall<IsMugAvailableRequest, IsMugAvailableResponse> {
-        const method = this.methods[23], opt = this._transport.mergeOptions(options);
+        const method = this.methods[24], opt = this._transport.mergeOptions(options);
         return stackIntercept<IsMugAvailableRequest, IsMugAvailableResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -727,28 +739,28 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListTransactions(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
     listTransactions(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
-        const method = this.methods[24], opt = this._transport.mergeOptions(options);
+        const method = this.methods[25], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListTransactionsCompleted(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
     listTransactionsCompleted(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
-        const method = this.methods[25], opt = this._transport.mergeOptions(options);
+        const method = this.methods[26], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListTransactionsWithPending(backend.v1.PaginationRequest) returns (backend.v1.ListTransactionsResponse);
      */
     listTransactionsWithPending(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListTransactionsResponse> {
-        const method = this.methods[26], opt = this._transport.mergeOptions(options);
+        const method = this.methods[27], opt = this._transport.mergeOptions(options);
         return stackIntercept<PaginationRequest, ListTransactionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: LookupTransaction(backend.v1.LookupTransactionRequest) returns (backend.v1.Transaction);
      */
     lookupTransaction(input: LookupTransactionRequest, options?: RpcOptions): UnaryCall<LookupTransactionRequest, Transaction> {
-        const method = this.methods[27], opt = this._transport.mergeOptions(options);
+        const method = this.methods[28], opt = this._transport.mergeOptions(options);
         return stackIntercept<LookupTransactionRequest, Transaction>("unary", this._transport, method, opt, input);
     }
     /**
@@ -757,14 +769,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListLimits(backend.v1.Empty) returns (backend.v1.ListLimitsResponse);
      */
     listLimits(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListLimitsResponse> {
-        const method = this.methods[28], opt = this._transport.mergeOptions(options);
+        const method = this.methods[29], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListLimitsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: UpdateClientLimits(backend.v1.UpdateClientLimitsRequest) returns (backend.v1.Empty);
      */
     updateClientLimits(input: UpdateClientLimitsRequest, options?: RpcOptions): UnaryCall<UpdateClientLimitsRequest, Empty> {
-        const method = this.methods[29], opt = this._transport.mergeOptions(options);
+        const method = this.methods[30], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateClientLimitsRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -773,42 +785,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateConnection(backend.v1.CreateConnectionRequest) returns (backend.v1.Empty);
      */
     createConnection(input: CreateConnectionRequest, options?: RpcOptions): UnaryCall<CreateConnectionRequest, Empty> {
-        const method = this.methods[30], opt = this._transport.mergeOptions(options);
+        const method = this.methods[31], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateConnectionRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListConnections(backend.v1.Empty) returns (backend.v1.ListConnectionsResponse);
      */
     listConnections(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListConnectionsResponse> {
-        const method = this.methods[31], opt = this._transport.mergeOptions(options);
+        const method = this.methods[32], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListConnectionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetConnection(backend.v1.GetConnectionRequest) returns (backend.v1.Connection);
      */
     getConnection(input: GetConnectionRequest, options?: RpcOptions): UnaryCall<GetConnectionRequest, Connection> {
-        const method = this.methods[32], opt = this._transport.mergeOptions(options);
+        const method = this.methods[33], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetConnectionRequest, Connection>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetConnectionLimits(backend.v1.GetConnectionLimitsRequest) returns (backend.v1.ConnectionLimits);
      */
     getConnectionLimits(input: GetConnectionLimitsRequest, options?: RpcOptions): UnaryCall<GetConnectionLimitsRequest, ConnectionLimits> {
-        const method = this.methods[33], opt = this._transport.mergeOptions(options);
+        const method = this.methods[34], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetConnectionLimitsRequest, ConnectionLimits>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: UpdateConnectionLimits(backend.v1.UpdateConnectionLimitsRequest) returns (backend.v1.Empty);
      */
     updateConnectionLimits(input: UpdateConnectionLimitsRequest, options?: RpcOptions): UnaryCall<UpdateConnectionLimitsRequest, Empty> {
-        const method = this.methods[34], opt = this._transport.mergeOptions(options);
+        const method = this.methods[35], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateConnectionLimitsRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: DeleteConnection(backend.v1.DeleteConnectionRequest) returns (backend.v1.Empty);
      */
     deleteConnection(input: DeleteConnectionRequest, options?: RpcOptions): UnaryCall<DeleteConnectionRequest, Empty> {
-        const method = this.methods[35], opt = this._transport.mergeOptions(options);
+        const method = this.methods[36], opt = this._transport.mergeOptions(options);
         return stackIntercept<DeleteConnectionRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -817,7 +829,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetPublicWalletDetails(backend.v1.GetPublicWalletDetailsRequest) returns (backend.v1.GetPublicWalletDetailsResponse);
      */
     getPublicWalletDetails(input: GetPublicWalletDetailsRequest, options?: RpcOptions): UnaryCall<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse> {
-        const method = this.methods[36], opt = this._transport.mergeOptions(options);
+        const method = this.methods[37], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -826,14 +838,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateContact(backend.v1.CreateContactRequest) returns (backend.v1.Contact);
      */
     createContact(input: CreateContactRequest, options?: RpcOptions): UnaryCall<CreateContactRequest, Contact> {
-        const method = this.methods[37], opt = this._transport.mergeOptions(options);
+        const method = this.methods[38], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateContactRequest, Contact>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListContacts(backend.v1.ListContactsRequest) returns (backend.v1.ListContactsResponse);
      */
     listContacts(input: ListContactsRequest, options?: RpcOptions): UnaryCall<ListContactsRequest, ListContactsResponse> {
-        const method = this.methods[38], opt = this._transport.mergeOptions(options);
+        const method = this.methods[39], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListContactsRequest, ListContactsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -842,42 +854,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListIdentities(backend.v1.Empty) returns (backend.v1.ListIdentitiesResponse);
      */
     listIdentities(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListIdentitiesResponse> {
-        const method = this.methods[39], opt = this._transport.mergeOptions(options);
+        const method = this.methods[40], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListIdentitiesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListPublicIdentities(backend.v1.ListPublicIdentitiesRequest) returns (backend.v1.ListIdentitiesResponse);
      */
     listPublicIdentities(input: ListPublicIdentitiesRequest, options?: RpcOptions): UnaryCall<ListPublicIdentitiesRequest, ListIdentitiesResponse> {
-        const method = this.methods[40], opt = this._transport.mergeOptions(options);
+        const method = this.methods[41], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListPublicIdentitiesRequest, ListIdentitiesResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: DeleteIdentity(backend.v1.DeleteIdentityRequest) returns (backend.v1.Empty);
      */
     deleteIdentity(input: DeleteIdentityRequest, options?: RpcOptions): UnaryCall<DeleteIdentityRequest, Empty> {
-        const method = this.methods[41], opt = this._transport.mergeOptions(options);
+        const method = this.methods[42], opt = this._transport.mergeOptions(options);
         return stackIntercept<DeleteIdentityRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: SetIdentityPublic(backend.v1.SetIdentityPublicRequest) returns (backend.v1.Identity);
      */
     setIdentityPublic(input: SetIdentityPublicRequest, options?: RpcOptions): UnaryCall<SetIdentityPublicRequest, Identity> {
-        const method = this.methods[42], opt = this._transport.mergeOptions(options);
+        const method = this.methods[43], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetIdentityPublicRequest, Identity>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetIdentity(backend.v1.GetIdentityRequest) returns (backend.v1.GetIdentityResponse);
      */
     getIdentity(input: GetIdentityRequest, options?: RpcOptions): UnaryCall<GetIdentityRequest, GetIdentityResponse> {
-        const method = this.methods[43], opt = this._transport.mergeOptions(options);
+        const method = this.methods[44], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetIdentityRequest, GetIdentityResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetIdentityBySignatureHash(backend.v1.GetIdentityBySignatureHashRequest) returns (backend.v1.GetIdentityResponse);
      */
     getIdentityBySignatureHash(input: GetIdentityBySignatureHashRequest, options?: RpcOptions): UnaryCall<GetIdentityBySignatureHashRequest, GetIdentityResponse> {
-        const method = this.methods[44], opt = this._transport.mergeOptions(options);
+        const method = this.methods[45], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetIdentityBySignatureHashRequest, GetIdentityResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -886,21 +898,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: KYCStatus(backend.v1.Empty) returns (backend.v1.KYCStatusResponse);
      */
     kYCStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, KYCStatusResponse> {
-        const method = this.methods[45], opt = this._transport.mergeOptions(options);
+        const method = this.methods[46], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, KYCStatusResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: StartKYC(backend.v1.Empty) returns (backend.v1.Empty);
      */
     startKYC(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
-        const method = this.methods[46], opt = this._transport.mergeOptions(options);
+        const method = this.methods[47], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetPersonaInquiry(backend.v1.KYCPersonaInquiryRequest) returns (backend.v1.KYCPersonaInquiryResponse);
      */
     getPersonaInquiry(input: KYCPersonaInquiryRequest, options?: RpcOptions): UnaryCall<KYCPersonaInquiryRequest, KYCPersonaInquiryResponse> {
-        const method = this.methods[47], opt = this._transport.mergeOptions(options);
+        const method = this.methods[48], opt = this._transport.mergeOptions(options);
         return stackIntercept<KYCPersonaInquiryRequest, KYCPersonaInquiryResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -909,14 +921,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: GetMXWidget(backend.v1.Empty) returns (backend.v1.MXWidgetResponse);
      */
     getMXWidget(input: Empty, options?: RpcOptions): UnaryCall<Empty, MXWidgetResponse> {
-        const method = this.methods[48], opt = this._transport.mergeOptions(options);
+        const method = this.methods[49], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, MXWidgetResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreateMXBankAccounts(backend.v1.CreateMXBankAccountsRequest) returns (backend.v1.CreateMXBankAccountsResponse);
      */
     createMXBankAccounts(input: CreateMXBankAccountsRequest, options?: RpcOptions): UnaryCall<CreateMXBankAccountsRequest, CreateMXBankAccountsResponse> {
-        const method = this.methods[49], opt = this._transport.mergeOptions(options);
+        const method = this.methods[50], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateMXBankAccountsRequest, CreateMXBankAccountsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -925,7 +937,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: OnboardGMTUser(backend.v1.Empty) returns (backend.v1.Empty);
      */
     onboardGMTUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty> {
-        const method = this.methods[50], opt = this._transport.mergeOptions(options);
+        const method = this.methods[51], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -934,21 +946,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: Init3DS(backend.v1.Init3DSRequest) returns (backend.v1.Init3DSResponse);
      */
     init3DS(input: Init3DSRequest, options?: RpcOptions): UnaryCall<Init3DSRequest, Init3DSResponse> {
-        const method = this.methods[51], opt = this._transport.mergeOptions(options);
+        const method = this.methods[52], opt = this._transport.mergeOptions(options);
         return stackIntercept<Init3DSRequest, Init3DSResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: Lookup3DS(backend.v1.Lookup3DSRequest) returns (backend.v1.Lookup3DSResponse);
      */
     lookup3DS(input: Lookup3DSRequest, options?: RpcOptions): UnaryCall<Lookup3DSRequest, Lookup3DSResponse> {
-        const method = this.methods[52], opt = this._transport.mergeOptions(options);
+        const method = this.methods[53], opt = this._transport.mergeOptions(options);
         return stackIntercept<Lookup3DSRequest, Lookup3DSResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: Authenticate3DS(backend.v1.Authenticate3DSRequest) returns (backend.v1.Authenticate3DSResponse);
      */
     authenticate3DS(input: Authenticate3DSRequest, options?: RpcOptions): UnaryCall<Authenticate3DSRequest, Authenticate3DSResponse> {
-        const method = this.methods[53], opt = this._transport.mergeOptions(options);
+        const method = this.methods[54], opt = this._transport.mergeOptions(options);
         return stackIntercept<Authenticate3DSRequest, Authenticate3DSResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -957,7 +969,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.Empty);
      */
     createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, Empty> {
-        const method = this.methods[54], opt = this._transport.mergeOptions(options);
+        const method = this.methods[55], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateCardRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
@@ -966,7 +978,7 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: ListFeatures(backend.v1.Empty) returns (backend.v1.Features);
      */
     listFeatures(input: Empty, options?: RpcOptions): UnaryCall<Empty, Features> {
-        const method = this.methods[55], opt = this._transport.mergeOptions(options);
+        const method = this.methods[56], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, Features>("unary", this._transport, method, opt, input);
     }
     /**
@@ -975,21 +987,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
      * @generated from protobuf rpc: CreateTwitterAuthURL(backend.v1.Empty) returns (backend.v1.CreateTwitterAuthURLResponse);
      */
     createTwitterAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateTwitterAuthURLResponse> {
-        const method = this.methods[56], opt = this._transport.mergeOptions(options);
+        const method = this.methods[57], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, CreateTwitterAuthURLResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: TwitterCallback(backend.v1.TwitterCallbackRequest) returns (backend.v1.TwitterCallbackResponse);
      */
     twitterCallback(input: TwitterCallbackRequest, options?: RpcOptions): UnaryCall<TwitterCallbackRequest, TwitterCallbackResponse> {
-        const method = this.methods[57], opt = this._transport.mergeOptions(options);
+        const method = this.methods[58], opt = this._transport.mergeOptions(options);
         return stackIntercept<TwitterCallbackRequest, TwitterCallbackResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: VerifyTwitter(backend.v1.VerifyTwitterRequest) returns (backend.v1.Empty);
      */
     verifyTwitter(input: VerifyTwitterRequest, options?: RpcOptions): UnaryCall<VerifyTwitterRequest, Empty> {
-        const method = this.methods[58], opt = this._transport.mergeOptions(options);
+        const method = this.methods[59], opt = this._transport.mergeOptions(options);
         return stackIntercept<VerifyTwitterRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }

@@ -26,10 +26,16 @@ func Parse(rawPaymentPointer string) (PaymentPointer, error) {
 }
 
 func (p *PaymentPointer) String() string {
+	if p == nil || p.url == nil {
+		return ""
+	}
 	return p.url.String()
 }
 
 func (p *PaymentPointer) ShortString() string {
+	if p == nil || p.url == nil {
+		return ""
+	}
 	s := p.url.String()
 	return strings.Replace(s, "https://", "$", 1)
 }

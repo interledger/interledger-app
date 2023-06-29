@@ -514,6 +514,7 @@ type BackendServiceClient interface {
 	CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Wallet
 	SetWalletName(ctx context.Context, in *SetWalletNameRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetWalletInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletInfo, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -665,6 +666,15 @@ func (c *backendServiceClient) CreateUserDefaultWallet(ctx context.Context, in *
 func (c *backendServiceClient) SetWalletName(ctx context.Context, in *SetWalletNameRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SetWalletName", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetWalletInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletInfo, error) {
+	out := new(WalletInfo)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetWalletInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1137,6 +1147,7 @@ type BackendServiceServer interface {
 	CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error)
 	// Wallet
 	SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error)
+	GetWalletInfo(context.Context, *Empty) (*WalletInfo, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error)
 	SendOTP(context.Context, *Empty) (*Empty, error)
@@ -1235,6 +1246,9 @@ func (UnimplementedBackendServiceServer) CreateUserDefaultWallet(context.Context
 }
 func (UnimplementedBackendServiceServer) SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetWalletName not implemented")
+}
+func (UnimplementedBackendServiceServer) GetWalletInfo(context.Context, *Empty) (*WalletInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWalletInfo not implemented")
 }
 func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneVerification not implemented")
@@ -1556,6 +1570,24 @@ func _BackendService_SetWalletName_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).SetWalletName(ctx, req.(*SetWalletNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetWalletInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetWalletInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetWalletInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetWalletInfo(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2502,6 +2534,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetWalletName",
 			Handler:    _BackendService_SetWalletName_Handler,
+		},
+		{
+			MethodName: "GetWalletInfo",
+			Handler:    _BackendService_GetWalletInfo_Handler,
 		},
 		{
 			MethodName: "SendPhoneVerification",

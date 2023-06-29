@@ -491,6 +491,43 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.WalletInfo
+ */
+export interface WalletInfo {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string url = 2;
+     */
+    url: string;
+    /**
+     * @generated from protobuf field: string formattedURL = 3;
+     */
+    formattedURL: string;
+    /**
+     * @generated from protobuf field: bool hasCard = 4;
+     */
+    hasCard: boolean;
+    /**
+     * @generated from protobuf field: bool hasBank = 5;
+     */
+    hasBank: boolean;
+    /**
+     * @generated from protobuf field: bool hasIdentities = 6;
+     */
+    hasIdentities: boolean;
+    /**
+     * @generated from protobuf field: bool hasTransacted = 7;
+     */
+    hasTransacted: boolean;
+    /**
+     * @generated from protobuf field: bool hasWalletAddress = 8;
+     */
+    hasWalletAddress: boolean;
+}
+/**
  * @generated from protobuf message backend.v1.Features
  */
 export interface Features {
@@ -3435,6 +3472,102 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WalletInfo$Type extends MessageType<WalletInfo> {
+    constructor() {
+        super("backend.v1.WalletInfo", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "formattedURL", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "hasCard", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "hasBank", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "hasIdentities", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 7, name: "hasTransacted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<WalletInfo>): WalletInfo {
+        const message = { walletID: "", url: "", formattedURL: "", hasCard: false, hasBank: false, hasIdentities: false, hasTransacted: false, hasWalletAddress: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WalletInfo>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WalletInfo): WalletInfo {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* string url */ 2:
+                    message.url = reader.string();
+                    break;
+                case /* string formattedURL */ 3:
+                    message.formattedURL = reader.string();
+                    break;
+                case /* bool hasCard */ 4:
+                    message.hasCard = reader.bool();
+                    break;
+                case /* bool hasBank */ 5:
+                    message.hasBank = reader.bool();
+                    break;
+                case /* bool hasIdentities */ 6:
+                    message.hasIdentities = reader.bool();
+                    break;
+                case /* bool hasTransacted */ 7:
+                    message.hasTransacted = reader.bool();
+                    break;
+                case /* bool hasWalletAddress */ 8:
+                    message.hasWalletAddress = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WalletInfo, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* string url = 2; */
+        if (message.url !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.url);
+        /* string formattedURL = 3; */
+        if (message.formattedURL !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.formattedURL);
+        /* bool hasCard = 4; */
+        if (message.hasCard !== false)
+            writer.tag(4, WireType.Varint).bool(message.hasCard);
+        /* bool hasBank = 5; */
+        if (message.hasBank !== false)
+            writer.tag(5, WireType.Varint).bool(message.hasBank);
+        /* bool hasIdentities = 6; */
+        if (message.hasIdentities !== false)
+            writer.tag(6, WireType.Varint).bool(message.hasIdentities);
+        /* bool hasTransacted = 7; */
+        if (message.hasTransacted !== false)
+            writer.tag(7, WireType.Varint).bool(message.hasTransacted);
+        /* bool hasWalletAddress = 8; */
+        if (message.hasWalletAddress !== false)
+            writer.tag(8, WireType.Varint).bool(message.hasWalletAddress);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.WalletInfo
+ */
+export const WalletInfo = new WalletInfo$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Features$Type extends MessageType<Features> {
     constructor() {
@@ -8506,6 +8639,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CompleteSignup", options: {}, I: CompleteSignupRequest, O: Empty },
     { name: "CreateUserDefaultWallet", options: {}, I: CreateUserDefaultWalletRequest, O: Empty },
     { name: "SetWalletName", options: {}, I: SetWalletNameRequest, O: Empty },
+    { name: "GetWalletInfo", options: {}, I: Empty, O: WalletInfo },
     { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: Empty },
     { name: "SendOTP", options: {}, I: Empty, O: Empty },
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
