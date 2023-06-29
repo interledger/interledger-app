@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 
 export type Status = 'idle' | 'loading' | 'ready' | 'error'
 export type ScriptElt = HTMLScriptElement | null
-export function useScript(src: string): Status {
+export function useScript(
+  src: string,
+  destructor?: (script: ScriptElt) => void
+): Status {
   const [status, setStatus] = useState<Status>(src ? 'loading' : 'idle')
   useEffect(
     () => {
@@ -55,9 +58,13 @@ export function useScript(src: string): Status {
           script.removeEventListener('load', setStateFromEvent)
           script.removeEventListener('error', setStateFromEvent)
         }
+
+        if (destructor) {
+          destructor(script)
+        }
       }
     },
-    [src] // Only re-run effect if script src changes
+    [src, destructor] // Only re-run effect if script src changes
   )
   return status
 }
