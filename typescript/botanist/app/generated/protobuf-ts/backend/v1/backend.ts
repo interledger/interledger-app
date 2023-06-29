@@ -84,6 +84,24 @@ export interface Transaction {
      * @generated from protobuf field: string foreignId = 9;
      */
     foreignId: string;
+    /**
+     * Display
+     *
+     * @generated from protobuf field: string title = 10;
+     */
+    title: string;
+    /**
+     * @generated from protobuf field: string formattedAmount = 11;
+     */
+    formattedAmount: string;
+    /**
+     * @generated from protobuf field: string formattedTime = 12;
+     */
+    formattedTime: string;
+    /**
+     * @generated from protobuf field: string formattedDate = 13;
+     */
+    formattedDate: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -2030,11 +2048,15 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 6, name: "timestamp", kind: "message", T: () => Timestamp },
             { no: 7, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "transfers", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Transfer },
-            { no: 9, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 9, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "title", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "formattedAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "formattedTime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "formattedDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "" };
+        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -2071,6 +2093,18 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* string foreignId */ 9:
                     message.foreignId = reader.string();
+                    break;
+                case /* string title */ 10:
+                    message.title = reader.string();
+                    break;
+                case /* string formattedAmount */ 11:
+                    message.formattedAmount = reader.string();
+                    break;
+                case /* string formattedTime */ 12:
+                    message.formattedTime = reader.string();
+                    break;
+                case /* string formattedDate */ 13:
+                    message.formattedDate = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2111,6 +2145,18 @@ class Transaction$Type extends MessageType<Transaction> {
         /* string foreignId = 9; */
         if (message.foreignId !== "")
             writer.tag(9, WireType.LengthDelimited).string(message.foreignId);
+        /* string title = 10; */
+        if (message.title !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.title);
+        /* string formattedAmount = 11; */
+        if (message.formattedAmount !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.formattedAmount);
+        /* string formattedTime = 12; */
+        if (message.formattedTime !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.formattedTime);
+        /* string formattedDate = 13; */
+        if (message.formattedDate !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.formattedDate);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
