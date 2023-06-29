@@ -1,5 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
+import type { ShouldRevalidateFunction } from '@remix-run/react'
 import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
@@ -22,7 +23,22 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
+import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
+
+// The loader generates a new 3ds session. This must only be called on initial page load
+// and not after submitting actions.
+export const shouldRevalidate: ShouldRevalidateFunction = ({
+  defaultShouldRevalidate,
+  formAction,
+  formMethod
+}) => {
+  if (formAction === route('/pay/3ds') && formMethod === 'POST') {
+    return false
+  }
+
+  return defaultShouldRevalidate
+}
 
 export async function loader({ request }: LoaderArgs) {
   await getUserSession(request)
@@ -45,10 +61,10 @@ export async function loader({ request }: LoaderArgs) {
   if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
 
   return json({
-    flow,
-    jwt: threeDSInit.response.jwt,
+    initJWT: threeDSInit.response.jwt,
     threeDsId: threeDSInit.response.id,
-    songbirdURL: threeDSInit.response.songbirdURL
+    songbirdURL: threeDSInit.response.songbirdURL,
+    fynbosEnv: process.env.FYNBOS_ENV
   })
 }
 
@@ -67,16 +83,24 @@ export const meta: MetaFunction = () => {
   }
 }
 
+function cleanupSongbirdScript(script: ScriptElt) {
+  if (script) {
+    script.remove()
+  }
+
+  if (typeof window !== 'undefined' && (window as any).Cardinal) {
+    ;(window as any).Cardinal.off('payments.setupComplete')
+    ;(window as any).Cardinal.off('payments.validated')
+    delete (window as any).Cardinal
+  }
+}
+
 export default function Page() {
-  const {
-    flow,
-    jwt: initJWT,
-    threeDsId,
-    songbirdURL
-  } = useLoaderData<typeof loader>()
+  const { initJWT, threeDsId, songbirdURL, fynbosEnv } =
+    useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
-  const state = useScript(songbirdURL)
+  const state = useScript(songbirdURL, cleanupSongbirdScript)
   let cardinalRef = useRef<any>(null)
   const [showingIssuerChallenge, setShowingIssuerChallenge] =
     useState<boolean>(false)
@@ -85,23 +109,20 @@ export default function Page() {
   useEffect(() => {
     if (
       typeof window !== 'undefined' &&
-      state == 'ready' &&
+      state === 'ready' &&
       cardinalRef.current === null
     ) {
       cardinalRef.current = (window as any).Cardinal
       cardinalRef.current.configure({
         logging: {
-          level: 'on'
+          level: fynbosEnv === 'prod' ? 'off' : 'on'
         }
       })
-      cardinalRef.current.setup('init', {
-        jwt: initJWT
-      })
+      cardinalRef.current.off('payments.setupComplete')
       cardinalRef.current.on('payments.setupComplete', (data: any) => {
         let formData = new FormData()
         formData.append('name', 'lookup')
         formData.append('threeDsId', threeDsId)
-        formData.append('idempotencyKey', flow?.data?.idempotencyKey)
         formData.append(
           'colorDepth',
           window.screen && String(window.screen.colorDepth)
@@ -116,12 +137,13 @@ export default function Page() {
         formData.append('userAgent', navigator.userAgent)
 
         submit(formData, {
-          action: '/pay/3ds',
-          method: 'post'
+          action: route('/pay/3ds'),
+          method: 'POST'
         })
       })
 
       // List of action codes https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/557065/Songbird.js#Songbird.js-payments.validated
+      cardinalRef.current.off('payments.validated')
       cardinalRef.current.on(
         'payments.validated',
         (data: { ActionCode: any }, jwt: string) => {
@@ -131,12 +153,11 @@ export default function Page() {
               let formData = new FormData()
               formData.append('name', 'authenticate')
               formData.append('threeDsId', threeDsId)
-              formData.append('idempotencyKey', flow?.data?.idempotencyKey)
               formData.append('jwt', jwt)
 
               submit(formData, {
-                action: '/pay/3ds',
-                method: 'post'
+                action: route('/pay/3ds'),
+                method: 'POST'
               })
               break
 
@@ -145,8 +166,12 @@ export default function Page() {
           }
         }
       )
+
+      cardinalRef.current.setup('init', {
+        jwt: initJWT
+      })
     }
-  }, [initJWT, state, threeDsId, flow?.data?.idempotencyKey, submit])
+  }, [initJWT, state, threeDsId, submit, fynbosEnv])
 
   const showIssuerChallenge = () => {
     setShowingIssuerChallenge(true)
@@ -206,16 +231,17 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
-  const formName = await form.get('name')
-  const idempotencyKey = await form.get('idempotencyKey')
-  const threeDsId = await form.get('threeDsId')
+  const formName = form.get('name')
+  const threeDSID = form.get('threeDsId') as string
+  const flow = await requireFlow(request, flowType.Pay)
+  const idempotencyKey = flow.data.idempotencyKey as string
 
   if (formName === 'lookup') {
     let lookup3DS = await grpcClient
       .lookup3DS(
         {
-          idempotencyKey: String(idempotencyKey),
-          threeDSID: String(threeDsId),
+          idempotencyKey,
+          threeDSID,
           colorDepth: String(form.get('colorDepth')) || '',
           header: String(request.headers.get('Accept')),
           ipAddress: getClientIP(request),
@@ -254,13 +280,12 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (formName === 'authenticate') {
-    const jwt = await form.get('jwt')
     let auth3DS = await grpcClient
       .authenticate3DS(
         {
-          idempotencyKey: String(idempotencyKey),
-          threeDSID: String(threeDsId),
-          jwt: String(jwt)
+          idempotencyKey,
+          threeDSID,
+          jwt: form.get('jwt') as string
         },
         {
           meta: {
@@ -277,17 +302,16 @@ export async function action({ request }: ActionArgs) {
     }
   }
 
-  const flow = await requireFlow(request, flowType.Pay)
   const clientIpAddress = getClientIP(request)
   let payment = await openPaymentsClient
     .createOutgoingPayment(
       {
-        idempotencyKey: flow.data.idempotencyKey || '',
+        idempotencyKey,
+        threeDSID,
         quoteID: flow.data.quoteID,
         description: flow.data.note,
         externalRef: '',
-        ipAddress: clientIpAddress,
-        threeDSID: String(threeDsId)
+        ipAddress: clientIpAddress
       },
       {
         meta: {
