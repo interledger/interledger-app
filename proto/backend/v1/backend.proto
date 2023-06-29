@@ -47,6 +47,12 @@ message Transaction {
   string state = 7;
   repeated Transfer transfers = 8;
   string foreignId = 9;
+
+  // Display
+  string title = 10;
+  string formattedAmount = 11;
+  string formattedTime = 12;
+  string formattedDate = 13;
 }
 
 message ListTransactionsResponse {
