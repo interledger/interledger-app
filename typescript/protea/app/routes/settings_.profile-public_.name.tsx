@@ -13,14 +13,11 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import {
-  getPublicWalletDetails,
-  getWalletPaymentPointer
-} from '~/lib/wallet.server'
+import { getPublicWalletDetails, getWalletInfo } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const paymentPointer = await getWalletPaymentPointer(request)
-  const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
+  const walletInfo = await getWalletInfo(request)
+  const wallet = await getPublicWalletDetails(request, walletInfo.walletID)
 
   return json({
     name: wallet.publicName

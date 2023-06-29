@@ -24,7 +24,7 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
-import { getLinkedAccounts, getWalletPaymentPointer } from '~/lib/wallet.server'
+import { getLinkedAccounts, getWalletInfo } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   if (!hasUserSession(request)) {
@@ -218,14 +218,14 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
-  let sendPaymentPointer = await getWalletPaymentPointer(request)
+  let walletInfo = await getWalletInfo(request)
   let receivePaymentPointer = flow.data.paymentPointer.url
 
   // TODO: Submit note with quote
   const response = await openPaymentsClient
     .createQuote(
       {
-        sendPaymentPointer: sendPaymentPointer.url,
+        sendPaymentPointer: walletInfo.url,
         receivePaymentPointer,
         description: note,
         amount: {
@@ -276,7 +276,7 @@ export async function action({ request }: ActionArgs) {
       parseFloat(receiveAmount as string) / 100
     ),
     receivePaymentPointer,
-    sendPaymentPointer: sendPaymentPointer.url,
+    sendPaymentPointer: walletInfo.url,
     idempotencyKey: v4()
   }
 

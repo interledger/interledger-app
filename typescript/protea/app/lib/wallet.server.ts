@@ -13,14 +13,13 @@ import type {
   ListContactsRequest,
   ListContactsResponse,
   PaginationRequest,
-  PaymentPointer
+  WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import {
   StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  openPaymentsClient
+  isGrpcError
 } from '~/lib/proto.server'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
@@ -139,12 +138,10 @@ export async function getPublicWalletDetails(
   return response.response
 }
 
-export async function getWalletPaymentPointer(
-  request: Request
-): Promise<PaymentPointer> {
+export async function getWalletInfo(request: Request): Promise<WalletInfo> {
   const cookie = String(request.headers.get('cookie'))
-  let response = await openPaymentsClient
-    .listWalletPaymentPointers(
+  let response = await grpcClient
+    .getWalletInfo(
       {},
       {
         meta: {
@@ -156,11 +153,11 @@ export async function getWalletPaymentPointer(
     .catch(StatusError)
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
-  } else if (response.response.pointers.length == 0) {
+  } else if (!response.response.hasWalletAddress) {
     throw redirect(route('/wallet-address'))
   }
 
-  return response.response.pointers[0]
+  return response.response
 }
 
 type FormattedLinkedAccount = {
