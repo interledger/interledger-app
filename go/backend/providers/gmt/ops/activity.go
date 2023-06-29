@@ -1177,8 +1177,11 @@ func (a *Activity) ConfirmPaidNotification(ctx context.Context, externalID strin
 		return err
 	}
 
+	// Don't throw non retryable for now as we debug the system
 	if resp.Error != 0 {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", resp.Error, resp.Message), "external", nil)
+		err := fmt.Errorf("error code (%d) Message (%s)", resp.Error, resp.Message)
+		log.Error("error updating transaction status", zap.Error(err), zap.String("external_id", externalID), zap.String("function", "ConfirmPaidNotification"))
+		return err
 	}
 
 	return nil
@@ -1211,12 +1214,11 @@ func (a *Activity) UpdateCardTransactionStatus(ctx context.Context, externalID s
 		return err
 	}
 
-	if resp.Error == 4 {
-		return fmt.Errorf("transaction not in correct state yet. trying again later")
-	}
-
+	// Don't throw non retryable for now as we debug the system
 	if resp.Error != 0 {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", resp.Error, resp.Message), "external", nil)
+		err := fmt.Errorf("error code (%d) Message (%s)", resp.Error, resp.Message)
+		log.Error("error updating transaction status", zap.Error(err), zap.String("external_id", externalID), zap.String("function", "UpdateCardTransactionStatus"))
+		return err
 	}
 
 	return nil
