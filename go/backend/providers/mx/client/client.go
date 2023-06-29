@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -9,6 +10,8 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx/external"
 	external_client "gitlab.com/fynbos/backend/providers/mx/external/client"
 	"gitlab.com/fynbos/backend/providers/mx/ops"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 type Backends interface {
@@ -48,8 +51,24 @@ type Client struct {
 	b ops.Backends
 }
 
+// This will perform an initial call. If that fails, then it will retry up to four times.
 func (c *Client) GetWidget(ctx context.Context, walletID string) (string, error) {
-	return ops.GetWidget(ctx, c.b, walletID)
+	var widget string
+	var err error
+	backoff := []time.Duration{100 * time.Millisecond, 200 * time.Millisecond, 400 * time.Millisecond, time.Second}
+	var retry int
+	for {
+		widget, err = ops.GetWidget(ctx, c.b, walletID)
+		if err != nil && retry < 4 {
+			log.Warn("Failed getting mx widget.", zap.Int("retry", retry), zap.Duration("backoff", backoff[retry]), zap.Error(err))
+			time.Sleep(backoff[retry])
+			retry++
+		} else {
+			break
+		}
+	}
+
+	return widget, err
 }
 
 func (c *Client) CreateBankAccounts(ctx context.Context, args mx.CreateBankAccountsArgs) ([]linkedaccounts.LinkedAccount, error) {
