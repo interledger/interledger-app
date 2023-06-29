@@ -199,6 +199,7 @@ service BackendService {
   rpc CreateUserDefaultWallet(CreateUserDefaultWalletRequest) returns (Empty);
   // Wallet
   rpc SetWalletName(SetWalletNameRequest) returns (Empty);
+  rpc GetWalletInfo(Empty) returns (WalletInfo);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (Empty);
   rpc SendOTP(Empty) returns (Empty);
@@ -279,6 +280,17 @@ service BackendService {
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
   rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
   rpc VerifyTwitter(VerifyTwitterRequest) returns (Empty);
+}
+
+message WalletInfo {
+  string walletID = 1;
+  string url = 2;
+  string formattedURL = 3;
+  bool hasCard = 4;
+  bool hasBank = 5;
+  bool hasIdentities = 6;
+  bool hasTransacted = 7;
+  bool hasWalletAddress = 8;
 }
 
 message Features {
