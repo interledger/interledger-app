@@ -15,20 +15,17 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getSnackbar } from '~/lib/snackbar.server'
-import {
-  getPublicWalletDetails,
-  getWalletPaymentPointer
-} from '~/lib/wallet.server'
+import { getPublicWalletDetails, getWalletInfo } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const paymentPointer = await getWalletPaymentPointer(request)
-  const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
+  const walletInfo = await getWalletInfo(request)
+  const wallet = await getPublicWalletDetails(request, walletInfo.walletID)
 
   const snackbar = await getSnackbar(request)
 
   return json({
     name: wallet.publicName,
-    paymentPointer,
+    walletInfo,
     snackbar
   })
 }
@@ -51,7 +48,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { name, paymentPointer, snackbar } = useLoaderData<typeof loader>()
+  const { name, walletInfo, snackbar } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   return (
@@ -60,7 +57,7 @@ export default function Page() {
         <CardContent>
           <p>
             The following information will appear on your public{' '}
-            <AnchorRouter className='text-primary' to={paymentPointer.url}>
+            <AnchorRouter className='text-primary' to={walletInfo.url}>
               Fynbos.me
             </AnchorRouter>{' '}
             page.

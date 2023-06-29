@@ -33,22 +33,22 @@ import {
   deleteTwitterIdentity,
   getIdentity,
   getPublicWalletDetails,
-  getWalletPaymentPointer,
+  getWalletInfo,
   setTwitterIdentityPublic,
   verifyTwitterIdentity
 } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const paymentPointer = await getWalletPaymentPointer(request)
+  const walletInfo = await getWalletInfo(request)
   const { publicName } = await getPublicWalletDetails(
     request,
-    paymentPointer.walletID
+    walletInfo.walletID
   )
   const identity = await getIdentity(request, params.identityId as string)
   const snackbar = await getSnackbar(request)
   return json({
     snackbar,
-    paymentPointer,
+    walletInfo,
     publicName,
     identity: {
       ...identity,
@@ -77,7 +77,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { identity, publicName, paymentPointer, snackbar } =
+  const { identity, publicName, walletInfo, snackbar } =
     useLoaderData<typeof loader>()
   const response = useActionData<typeof action>()
 
@@ -178,7 +178,7 @@ export default function Page() {
               <Label className='-mb-5 mt-6'>Public profile</Label>
             </CardContent>
             <CardLink
-              to={`/me/${paymentPointer.formatted}`}
+              to={`/me/${walletInfo.formattedURL}`}
               className='items-center justify-between'
             >
               <div className='flex space-x-3'>

@@ -47,66 +47,48 @@ import {
 import {
   getPublicLinkedIdentities,
   getPublicWalletDetails,
-  getWalletPaymentPointer
+  getWalletInfo
 } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const paymentPointerParam = params['*'] as string
+  const walletAddressParam = params['*'] as string
   let profilePicture = null
 
-  if (paymentPointerParam.includes('fynbos.me/adrian')) {
+  if (walletAddressParam.includes('fynbos.me/adrian')) {
     profilePicture = await getPerson({
       filter: { name: { eq: 'Adrian' } }
     })
   }
-  if (paymentPointerParam.includes('fynbos.me/matt')) {
+  if (walletAddressParam.includes('fynbos.me/matt')) {
     profilePicture = await getPerson({
       filter: { name: { eq: 'Matt' } }
     })
   }
 
   const response = await openPaymentsClient
-    .getPaymentPointer({ url: paymentPointerParam })
+    .getPaymentPointer({ url: walletAddressParam })
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
 
-  // TODO once conditional auth implemented.
-  // const canSendResponse = await openPaymentsClient
-  //   .canSendToPaymentPointer(
-  //     { paymentPointer: response.response.url },
-  //     {
-  //       meta: {
-  //         cookies: String(request.headers.get('cookie')) || ''
-  //       }
-  //     }
-  //   )
-  //   .then((v) => v)
-  //   .catch(StatusError)
-  //
-  // console.log('canSendResponse', canSendResponse)
-  // if (isGrpcError(canSendResponse)) {
-  //   throw json({}, httpMapping(canSendResponse.code))
-  // }
-
-  const paymentPointer = response.response
+  const walletAddress = response.response
 
   if (request.headers.get('Content-type') == 'application/json')
-    return redirect(paymentPointer.url)
+    return redirect(walletAddress.url)
 
-  const wallet = await getPublicWalletDetails(request, paymentPointer.walletID)
+  const wallet = await getPublicWalletDetails(request, walletAddress.walletID)
   const identities = await getPublicLinkedIdentities(
     request,
-    paymentPointer.walletID
+    walletAddress.walletID
   )
 
   let editable = false
   const isUser = hasUserSession(request)
   if (isUser) {
-    const walletPaymentPointer = await getWalletPaymentPointer(request)
-    if (walletPaymentPointer.formatted == paymentPointer.formatted)
+    const walletPaymentPointer = await getWalletInfo(request)
+    if (walletPaymentPointer.formattedURL == walletAddress.formatted)
       editable = true
   }
 
@@ -116,9 +98,9 @@ export async function loader({ request, params }: LoaderArgs) {
     editable,
     wallet,
     identities,
-    walletAddress: paymentPointer.url.replace(/(http(s)?:\/\/)/i, ''),
-    paymentPointer,
-    paymentPointerParam
+    walletAddress: walletAddress.url.replace(/(http(s)?:\/\/)/i, ''),
+    paymentPointer: walletAddress,
+    paymentPointerParam: walletAddressParam
   })
 }
 

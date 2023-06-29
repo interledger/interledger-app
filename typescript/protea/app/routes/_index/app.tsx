@@ -26,7 +26,7 @@ import type { loader } from './route'
 import { KycStatus } from './route'
 
 export function AppPage() {
-  const { paymentPointer, snackbar, transactions, kycStatus, pusherArgs } =
+  const { walletInfo, snackbar, transactions, kycStatus, pusherArgs } =
     useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
@@ -115,7 +115,7 @@ export function AppPage() {
                   })
                   setShowSnackbar(true)
                 } else
-                  navigator.clipboard.writeText(paymentPointer.formatted).then(
+                  navigator.clipboard.writeText(walletInfo.url).then(
                     () => {
                       setSnackbar({
                         message: 'Wallet address copied to clipboard.',
@@ -137,7 +137,7 @@ export function AppPage() {
               className='items-center justify-between'
             >
               <span className='font-medium text-medium'>
-                {paymentPointer.formatted}
+                {walletInfo.formattedURL}
               </span>
               <Icon className='text-medium'>content_copy</Icon>
             </CardButton>
@@ -233,15 +233,14 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, hasBank, hasCard, identities } =
-    useLoaderData<typeof loader>()
+  const { features, walletInfo } = useLoaderData<typeof loader>()
 
   return (
     <>
       {features.banksEnabled &&
         features.cardsEnabled &&
-        !hasCard &&
-        !hasBank && (
+        !walletInfo.hasCard &&
+        !walletInfo.hasBank && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -265,8 +264,8 @@ function CTACards() {
           </Card>
         )}
       {features.cardsEnabled &&
-        !hasCard &&
-        (hasBank || !features.banksEnabled) && (
+        !walletInfo.hasCard &&
+        (walletInfo.hasBank || !features.banksEnabled) && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -289,8 +288,8 @@ function CTACards() {
           </Card>
         )}
       {features.banksEnabled &&
-        !hasBank &&
-        (hasCard || !features.cardsEnabled) && (
+        !walletInfo.hasBank &&
+        (walletInfo.hasCard || !features.cardsEnabled) && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -312,7 +311,7 @@ function CTACards() {
             </CardContent>
           </Card>
         )}
-      {features.twitterEnabled && !identities.twitter && (
+      {features.twitterEnabled && !walletInfo.hasIdentities && (
         <Card>
           <CardContent>
             <div className='flex items-start space-x-4'>

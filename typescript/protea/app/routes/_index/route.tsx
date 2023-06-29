@@ -10,9 +10,9 @@ import type {
 } from '~/generated/dato-cms-graphql'
 import type {
   Features,
-  Identity
+  WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
-import { getUserSession, hasUserSession } from '~/lib/kratos.server'
+import { hasUserSession } from '~/lib/kratos.server'
 import { getHomeRoute } from '~/lib/marketing.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
@@ -23,10 +23,8 @@ import type { Transaction } from '~/lib/wallet.server'
 import {
   getFeatures,
   getKycStatus,
-  getLinkedAccounts,
-  getLinkedIdentities,
   getTransactionsWithPending,
-  getWalletPaymentPointer
+  getWalletInfo
 } from '~/lib/wallet.server'
 import { AppPage } from './app'
 import { MarketingPage } from './marketing'
@@ -48,19 +46,8 @@ export async function loader({ request }: LoaderArgs) {
     footer: {} as FooterRecord,
     pusherArgs: {} as PusherArgs,
     isSignupGated: IS_SIGNUP_GATED,
-    firstName: '',
-    paymentPointer: {
-      url: '',
-      asset: 'USD',
-      assetScale: 2,
-      alias: 'default',
-      walletID: '',
-      formatted: ''
-    },
-    hasCard: false,
-    hasBank: false,
+    walletInfo: {} as WalletInfo,
     transactions: [] as Transaction[],
-    identities: {} as Record<string, Identity[]>,
     kycStatus: KycStatus.Unknown,
     features: {} as Features,
     snackbar: {
@@ -70,38 +57,28 @@ export async function loader({ request }: LoaderArgs) {
 
   if (isUser) {
     const [
-      session,
-      paymentPointer,
+      walletInfo,
       transactions,
       kycStatus,
       snackbar,
       pusherArgs,
-      { bankAccounts, cardAccounts },
-      identities,
       features
     ] = await Promise.all([
-      getUserSession(request),
-      getWalletPaymentPointer(request),
+      getWalletInfo(request),
       getTransactionsWithPending(request, { pageSize: 3 }),
       getKycStatus(request),
       getSnackbar(request),
       getPusherArgs(request),
-      getLinkedAccounts(request),
-      getLinkedIdentities(request),
       getFeatures(request)
     ])
 
     data = {
       ...data,
-      firstName: session.identity.traits.firstName,
-      paymentPointer,
+      walletInfo,
       transactions: transactions.transactions,
       kycStatus: kycStatus.kycStatus,
       snackbar,
       pusherArgs,
-      hasCard: cardAccounts.length > 0,
-      hasBank: bankAccounts.length > 0,
-      identities,
       features
     }
   } else {

@@ -27,19 +27,19 @@ import { generateQR, qrSvg } from '~/lib/qr.server'
 import {
   getKycStatus,
   getWalletContacts,
-  getWalletPaymentPointer
+  getWalletInfo
 } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Pay)
-  const paymentPointer = await getWalletPaymentPointer(request)
+  const walletInfo = await getWalletInfo(request)
   const { kycStatus } = await getKycStatus(request)
 
   if (kycStatus != KycStatus.Verified)
     return redirect(route('/personal-details'))
 
-  const paymentPointerQR = qrSvg(await generateQR(paymentPointer.url))
+  const paymentPointerQR = qrSvg(await generateQR(walletInfo.url))
 
   const contacts = (
     await getWalletContacts(request, {
@@ -48,7 +48,7 @@ export async function loader({ request }: LoaderArgs) {
     })
   ).contacts
 
-  return json({ contacts, flow, paymentPointer, paymentPointerQR })
+  return json({ contacts, flow, paymentPointerQR })
 }
 
 export const handle = {
