@@ -37,7 +37,7 @@ func (p *PaymentPointer) ShortString() string {
 		return ""
 	}
 	s := p.url.String()
-	return strings.Replace(s, "https://", "$", 1)
+	return strings.Replace(s, "https://", "", 1)
 }
 
 // StandardisePaymentPointer takes in a payment pointer in either the forms:

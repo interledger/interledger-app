@@ -18,25 +18,25 @@ func TestParsePaymentPointer(t *testing.T) {
 			name:                "http",
 			value:               "http://fynbos.me/asdf",
 			expectedString:      "https://fynbos.me/asdf",
-			expectedShortString: "$fynbos.me/asdf",
+			expectedShortString: "fynbos.me/asdf",
 		},
 		{
 			name:                "https",
 			value:               "https://fynbos.me/asdf",
 			expectedString:      "https://fynbos.me/asdf",
-			expectedShortString: "$fynbos.me/asdf",
+			expectedShortString: "fynbos.me/asdf",
 		},
 		{
 			name:                "dollar",
 			value:               "$fynbos.me/asdf",
 			expectedString:      "https://fynbos.me/asdf",
-			expectedShortString: "$fynbos.me/asdf",
+			expectedShortString: "fynbos.me/asdf",
 		},
 		{
 			name:                "noprefix",
 			value:               "fynbos.me/asdf",
 			expectedString:      "https://fynbos.me/asdf",
-			expectedShortString: "$fynbos.me/asdf",
+			expectedShortString: "fynbos.me/asdf",
 		},
 	}
 
