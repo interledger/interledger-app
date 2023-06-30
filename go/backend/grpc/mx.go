@@ -55,13 +55,7 @@ func (s *rpcService) CreateMXBankAccounts(
 
 	ret := make([]*backendv1.LinkedAccount, len(las))
 	for i, la := range las {
-		ret[i] = &backendv1.LinkedAccount{
-			Id:       la.ID,
-			Type:     la.Type,
-			Name:     la.Name,
-			Mask:     la.Mask,
-			Nickname: la.Nickname,
-		}
+		ret[i] = transformLinkedAccount(la)
 	}
 
 	return &backendv1.CreateMXBankAccountsResponse{
