@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
@@ -989,6 +991,12 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 		return nil, err
 	}
 
+	// We are paying out to a card, so use the last 4 digits as the bank account. The Mask for the linked account is the Last 4 digits in Tabapay
+	var bankAccNum string
+	if toLA.Provider == tabapay.ProviderName {
+		bankAccNum = strings.TrimSpace(strings.ReplaceAll(toLA.Mask, "*", ""))
+	}
+
 	res, err := a.ext.InsertTransaction(ctx, external.InsertTransaction{
 		Sender:   sender,
 		Receiver: receiver,
@@ -996,6 +1004,7 @@ func (a *Activity) InsertACH2Card(ctx context.Context, args providers.TransfersA
 			AmountToReceive:       args.Amount.Float64(),
 			CorrespondentCode:     "USCD",
 			DestinationCurrency:   args.Amount.Currency.String(),
+			BankAccount:           bankAccNum,
 			ExchangeRate:          1,
 			Fee:                   0,
 			OfficeCode:            "0",
@@ -1057,13 +1066,19 @@ func (a *Activity) InsertCard2Card(ctx context.Context, args providers.Transfers
 		return nil, err
 	}
 
+	// We are paying out to a card, so use the last 4 digits as the bank account. The Mask for the linked account is the Last 4 digits in Tabapay
+	var bankAccNum string
+	if toLA.Provider == tabapay.ProviderName {
+		bankAccNum = strings.TrimSpace(strings.ReplaceAll(toLA.Mask, "*", ""))
+	}
+
 	res, err := a.ext.InsertTransaction(ctx, external.InsertTransaction{
 		Sender:   sender,
 		Receiver: receiver,
 		Transfer: &external.WsTransferInfo{
 			AmountToReceive:       args.Amount.Float64(),
 			CorrespondentCode:     "USCD",
-			BankAccount:           "1234123412341234",
+			BankAccount:           bankAccNum,
 			DestinationCurrency:   args.Amount.Currency.String(),
 			ExchangeRate:          1,
 			Fee:                   0,
