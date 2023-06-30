@@ -67,13 +67,14 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
+  layout: Layouts.Wallet,
   scaffold: {
     header: {
       back: route('/transactions'),
       title: 'Received payment'
       // TODO: chip as action
-    }
+    },
+    isNested: true
   }
 }
 
