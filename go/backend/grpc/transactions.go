@@ -88,35 +88,50 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) (
 			break
 		}
 
-		trs := make([]*pb.Transfer, len(tx.Transfers))
-		for y, tr := range tx.Transfers {
-			trs[y] = &pb.Transfer{
-				ForeignId:       tr.ForeignID,
-				LinkedAccountId: tr.LinkedAccountID,
-				Type:            string(tr.Type),
-				State:           string(tr.State),
-				Timestamp:       timestamppb.New(tr.Timestamp),
-				Amount:          tr.Amount.ToPB(),
-			}
-		}
-
-		res = append(res, &pb.Transaction{
-			Id:          tx.ID,
-			ForeignId:   tx.ForeignID,
-			Type:        string(tx.Type),
-			Amount:      tx.Amount.ToPB(),
-			Source:      tx.Source,
-			Destination: tx.Destination,
-			Timestamp:   timestamppb.New(tx.Timestamp),
-			State:       string(tx.State),
-			Transfers:   trs,
-		})
+		res = append(res, transformTransaction(tx))
 	}
 
 	return &pb.ListTransactionsResponse{
 		Transactions:  res,
 		NextPageToken: nextPageToken,
 	}, nil
+}
+
+func transformTransaction(tx transactions.Transaction) *pb.Transaction {
+	trs := make([]*pb.Transfer, len(tx.Transfers))
+	for y, tr := range tx.Transfers {
+		trs[y] = &pb.Transfer{
+			ForeignId:       tr.ForeignID,
+			Type:            string(tr.Type),
+			State:           string(tr.State),
+			LinkedAccountId: tr.LinkedAccountID,
+			Timestamp:       timestamppb.New(tr.Timestamp),
+			Amount:          tr.Amount.ToPB(),
+		}
+	}
+
+	amt := tx.Amount.Format()
+	title := tx.Source
+	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment {
+		title = tx.Destination
+		amt = "- " + amt
+	}
+
+	return &pb.Transaction{
+		Id:              tx.ID,
+		Type:            string(tx.Type),
+		Amount:          tx.Amount.ToPB(),
+		Source:          tx.Source,
+		Destination:     tx.Destination,
+		Timestamp:       timestamppb.New(tx.Timestamp),
+		State:           string(tx.State),
+		Transfers:       trs,
+		ForeignId:       tx.ForeignID,
+		Title:           title,
+		FormattedAmount: amt,
+		FormattedTime:   tx.Timestamp.Format("15:04"),
+		FormattedDate:   tx.Timestamp.Format("02 Jan 2006"),
+	}
 }
 
 func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransactionRequest) (*pb.Transaction, error) {
@@ -135,27 +150,5 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, toGRPCError(err)
 	}
 
-	trs := make([]*pb.Transfer, len(tx.Transfers))
-	for y, tr := range tx.Transfers {
-		trs[y] = &pb.Transfer{
-			ForeignId:       tr.ForeignID,
-			Type:            string(tr.Type),
-			State:           string(tr.State),
-			LinkedAccountId: tr.LinkedAccountID,
-			Timestamp:       timestamppb.New(tr.Timestamp),
-			Amount:          tr.Amount.ToPB(),
-		}
-	}
-
-	return &pb.Transaction{
-		Id:          tx.ID,
-		ForeignId:   tx.ForeignID,
-		Type:        string(tx.Type),
-		Amount:      tx.Amount.ToPB(),
-		Source:      tx.Source,
-		Destination: tx.Destination,
-		Timestamp:   timestamppb.New(tx.Timestamp),
-		State:       string(tx.State),
-		Transfers:   trs,
-	}, nil
+	return transformTransaction(*tx), nil
 }
