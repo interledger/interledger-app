@@ -497,6 +497,11 @@ message LinkedAccount {
   string name = 3;
   string mask = 4;
   string nickname = 5;
+
+  // Display
+  bool canSend = 6;
+  bool canReceive = 7;
+  string title = 8;
 }
 
 message GetSignupRequest {

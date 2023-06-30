@@ -1131,6 +1131,20 @@ export interface LinkedAccount {
      * @generated from protobuf field: string nickname = 5;
      */
     nickname: string;
+    /**
+     * Display
+     *
+     * @generated from protobuf field: bool canSend = 6;
+     */
+    canSend: boolean;
+    /**
+     * @generated from protobuf field: bool canReceive = 7;
+     */
+    canReceive: boolean;
+    /**
+     * @generated from protobuf field: string title = 8;
+     */
+    title: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetSignupRequest
@@ -5529,11 +5543,14 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "canSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 7, name: "canReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 8, name: "title", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", type: "", name: "", mask: "", nickname: "" };
+        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -5558,6 +5575,15 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string nickname */ 5:
                     message.nickname = reader.string();
+                    break;
+                case /* bool canSend */ 6:
+                    message.canSend = reader.bool();
+                    break;
+                case /* bool canReceive */ 7:
+                    message.canReceive = reader.bool();
+                    break;
+                case /* string title */ 8:
+                    message.title = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5586,6 +5612,15 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string nickname = 5; */
         if (message.nickname !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.nickname);
+        /* bool canSend = 6; */
+        if (message.canSend !== false)
+            writer.tag(6, WireType.Varint).bool(message.canSend);
+        /* bool canReceive = 7; */
+        if (message.canReceive !== false)
+            writer.tag(7, WireType.Varint).bool(message.canReceive);
+        /* string title = 8; */
+        if (message.title !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.title);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
