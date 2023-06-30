@@ -265,7 +265,7 @@ export default function Page() {
               {transactionGroup.map((transaction) => (
                 <CardLink
                   key={transaction.id}
-                  to={`/transaction/${transaction.type}/${transaction.id}`}
+                  to={`/transactions/${transaction.type}/${transaction.id}`}
                   className='justify-between'
                 >
                   <div className='flex space-x-1'>
