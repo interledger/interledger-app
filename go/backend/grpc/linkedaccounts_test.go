@@ -55,6 +55,7 @@ func TestGetLinkedAccounts(t *testing.T) {
 				WalletID: walletID,
 				Name:     "test1",
 				Mask:     "abc",
+				Nickname: "nicky",
 			},
 			{
 				ID:       uuid.NewString(),
@@ -77,9 +78,13 @@ func TestGetLinkedAccounts(t *testing.T) {
 		assert.Equal(st, response.GetLinkedAccounts()[0].Id, expectedLinkedAccounts[0].ID)
 		assert.Equal(st, response.GetLinkedAccounts()[0].Name, expectedLinkedAccounts[0].Name)
 		assert.Equal(st, response.GetLinkedAccounts()[0].Mask, expectedLinkedAccounts[0].Mask)
+		assert.Equal(st, response.GetLinkedAccounts()[0].Nickname, expectedLinkedAccounts[0].Nickname)
+		assert.Equal(st, response.GetLinkedAccounts()[0].Title, expectedLinkedAccounts[0].Nickname)
 		assert.Equal(st, response.GetLinkedAccounts()[1].Id, expectedLinkedAccounts[1].ID)
 		assert.Equal(st, response.GetLinkedAccounts()[1].Name, expectedLinkedAccounts[1].Name)
 		assert.Equal(st, response.GetLinkedAccounts()[1].Mask, expectedLinkedAccounts[1].Mask)
+		assert.Equal(st, response.GetLinkedAccounts()[1].Nickname, expectedLinkedAccounts[1].Nickname)
+		assert.Equal(st, response.GetLinkedAccounts()[1].Title, expectedLinkedAccounts[1].Mask)
 	})
 }
 
