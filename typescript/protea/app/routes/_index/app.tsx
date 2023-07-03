@@ -174,7 +174,9 @@ export function AppPage() {
               {transactions.map((transaction, index) => (
                 <CardLink
                   key={transaction.id}
-                  to={`/transactions/${transaction.type}/${transaction.id}`}
+                  to={route('/transactions/:transactionId', {
+                    transactionId: transaction.id
+                  })}
                   className='justify-between'
                 >
                   <div className='flex space-x-1'>

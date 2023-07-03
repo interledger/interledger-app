@@ -111,7 +111,10 @@ export function Scaffold() {
     if (typeof parentTitleHandle === 'function')
       parentTitle = parentTitleHandle(matches[matches.length - 2])
     else parentTitle = parentTitleHandle ?? ''
-    actions = matches[matches.length - 2].handle?.scaffold.header?.actions ?? []
+    if (actions.length === 0) {
+      actions =
+        matches[matches.length - 2].handle?.scaffold.header?.actions ?? []
+    }
   }
 
   return (
@@ -272,11 +275,7 @@ export function Scaffold() {
                     <div key={'header-action' + index} className='ml-auto'>
                       {action.type === 'chip' &&
                         action?.content &&
-                        action?.content(
-                          scaffold.isNested
-                            ? matches[matches.length - 2]
-                            : matches[matches.length - 1]
-                        )}
+                        action?.content(matches[matches.length - 1])}
                       {action.type === 'search' && (
                         <IconButton>light_mode</IconButton>
                       )}

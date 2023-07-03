@@ -7,7 +7,7 @@ const WalletGrid = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
     return (
       <div
         ref={ref}
-        className='mx-auto grid w-full grid-flow-col auto-rows-min grid-cols-4 grid-rows-none content-start gap-4 sm:max-w-lg sm:grid-cols-8 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'
+        className='relative mx-auto grid w-full grid-cols-4 content-start gap-4 sm:max-w-lg sm:grid-cols-8 lg:max-w-3xl lg:grid-cols-12 xl:max-w-[59rem]'
       >
         {children}
       </div>
@@ -27,9 +27,9 @@ const GridColumn = forwardRef<HTMLDivElement, GridColumnProps>(
       <div
         ref={ref}
         className={clsx(
-          sticky ?? 'sticky top-4',
+          sticky && 'sticky top-16',
           hideOnMobile ? 'hidden lg:flex' : 'flex',
-          'flex-col gap-y-4',
+          'h-max max-h-max flex-col gap-y-4',
           className
         )}
         {...props}
