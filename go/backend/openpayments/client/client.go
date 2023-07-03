@@ -31,6 +31,10 @@ func (c client) GetOutgoingPayment(ctx context.Context, id string) (*openpayment
 	return ops.GetOutgoingPayment(ctx, c.b, id)
 }
 
+func (c client) GetIncomingPayment(ctx context.Context, id string) (*openpayments.IncomingPayment, error) {
+	return ops.GetIncomingPayment(ctx, c.b, id)
+}
+
 func (c client) GetQuote(ctx context.Context, id string) (*openpayments.Quote, error) {
 	return ops.GetQuote(ctx, c.b, id)
 }

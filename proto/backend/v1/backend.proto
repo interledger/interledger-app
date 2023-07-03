@@ -53,6 +53,10 @@ message Transaction {
   string formattedAmount = 11;
   string formattedTime = 12;
   string formattedDate = 13;
+  string subtotal = 14;
+  string fees = 15;
+  string accountTitle = 16;
+  string reference = 17;
 }
 
 message ListTransactionsResponse {
