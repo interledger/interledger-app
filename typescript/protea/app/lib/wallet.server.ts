@@ -1,11 +1,9 @@
 import { json, redirect } from '@remix-run/node'
-import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import type {
   Amount,
   Features,
   GetPublicWalletDetailsResponse,
-  Transaction as GrpcTransaction,
   Identity,
   IndividualKYCResponse,
   KYCStatusResponse,
@@ -279,17 +277,6 @@ function transactionIcon(type: string): string {
   }
 }
 
-function transactionTitle(trx: GrpcTransaction): string {
-  switch (trx.type) {
-    case 'open_payments_outgoing':
-      return trx.destination
-    case 'open_payments_incoming':
-      return trx.source
-    default:
-      return ''
-  }
-}
-
 type getTransactionsWithPendingResponse = {
   nextPageToken: string
   transactions: Transaction[]
@@ -308,21 +295,18 @@ export async function getTransactionsWithPending(
     })
     .then((response) => ({
       nextPageToken: response.response.nextPageToken,
-      transactions: response.response.transactions.map((trx) => ({
-        id: trx.id,
-        type: trx.type,
-        icon: trx.state == 'Pending' ? 'schedule' : transactionIcon(trx.type),
-        title: transactionTitle(trx),
-        total: `${trx.type.includes('outgoing') ? '- ' : ''}${formatAmount(
-          trx.amount
-        )}`,
-        time: DateTime.fromSeconds(
-          parseInt(trx.timestamp?.seconds ?? '')
-        ).toFormat('HH:mm'),
-        date: DateTime.fromSeconds(
-          parseInt(trx.timestamp?.seconds ?? '')
-        ).toFormat('dd MMM yyyy')
-      }))
+      transactions: response.response.transactions.map((trx) => {
+        console.log('trx', trx)
+        return {
+          id: trx.id,
+          type: trx.type,
+          icon: trx.state == 'Pending' ? 'schedule' : transactionIcon(trx.type),
+          title: trx.title,
+          total: trx.formattedAmount,
+          time: trx.formattedTime,
+          date: trx.formattedDate
+        }
+      })
     }))
     .catch((error) => {
       const status = StatusError(error)
@@ -365,12 +349,16 @@ export async function getWalletContacts(
 export type DetailedTransaction = {
   id: string
   type: string
-  foreignId: string
   status: string
+  icon: string
+  title: string
   subTotal: string
   fees: string
   total: string
   date: string
+  time: string
+  accountTitle: string
+  reference: string
   transfers: Array<DetailedTransfer>
 }
 
@@ -401,14 +389,19 @@ export async function getTransaction(
       return {
         id: resp.response.id,
         type: resp.response.type,
-        foreignId: resp.response.foreignId,
+        title: resp.response.title,
         status: resp.response.state,
-        subTotal: formatAmount(resp.response.amount),
-        fees: '$ 0.00',
-        total: formatAmount(resp.response.amount),
-        date: DateTime.fromSeconds(
-          parseInt(resp.response.timestamp?.seconds ?? '')
-        ).toLocaleString(DateTime.DATETIME_FULL),
+        reference: resp.response.reference,
+        accountTitle: resp.response.accountTitle,
+        icon:
+          resp.response.state == 'Pending'
+            ? 'schedule'
+            : transactionIcon(resp.response.type),
+        subTotal: resp.response.subtotal,
+        fees: resp.response.fees,
+        total: resp.response.formattedAmount,
+        date: resp.response.formattedDate,
+        time: resp.response.formattedTime,
         transfers: resp.response.transfers.map((transfer) => {
           return {
             linkedAccountId: transfer.linkedAccountId,
