@@ -121,8 +121,10 @@ export default function Page() {
                   </span>
                 </div>
                 <div className='flex items-center space-x-2'>
-                  <Chip color={ChipColor.green}>Send</Chip>
-                  <Chip color={ChipColor.purple}>Receive</Chip>
+                  {method.canSend && <Chip color={ChipColor.green}>Send</Chip>}
+                  {method.canReceive && (
+                    <Chip color={ChipColor.purple}>Receive</Chip>
+                  )}
                   <Icon>navigate_next</Icon>
                 </div>
               </CardLink>
