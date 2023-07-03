@@ -1934,6 +1934,32 @@ export interface GetIdentityBySignatureHashRequest {
      */
     signatureHash: string;
 }
+/**
+ * @generated from protobuf message backend.v1.GetPaymentAddressRequest
+ */
+export interface GetPaymentAddressRequest {
+    /**
+     * @generated from protobuf field: string address = 1;
+     */
+    address: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetPaymentAddressResponse
+ */
+export interface GetPaymentAddressResponse {
+    /**
+     * @generated from protobuf field: string wallet_url = 1;
+     */
+    walletUrl: string;
+    /**
+     * @generated from protobuf field: string type = 2;
+     */
+    type: string; // wallet, twitter
+    /**
+     * @generated from protobuf field: string handle = 3;
+     */
+    handle: string; // url or twitter handle
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
     constructor() {
@@ -8778,6 +8804,114 @@ class GetIdentityBySignatureHashRequest$Type extends MessageType<GetIdentityBySi
  * @generated MessageType for protobuf message backend.v1.GetIdentityBySignatureHashRequest
  */
 export const GetIdentityBySignatureHashRequest = new GetIdentityBySignatureHashRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPaymentAddressRequest$Type extends MessageType<GetPaymentAddressRequest> {
+    constructor() {
+        super("backend.v1.GetPaymentAddressRequest", [
+            { no: 1, name: "address", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetPaymentAddressRequest>): GetPaymentAddressRequest {
+        const message = { address: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPaymentAddressRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPaymentAddressRequest): GetPaymentAddressRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string address */ 1:
+                    message.address = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPaymentAddressRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string address = 1; */
+        if (message.address !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.address);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPaymentAddressRequest
+ */
+export const GetPaymentAddressRequest = new GetPaymentAddressRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPaymentAddressResponse$Type extends MessageType<GetPaymentAddressResponse> {
+    constructor() {
+        super("backend.v1.GetPaymentAddressResponse", [
+            { no: 1, name: "wallet_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "handle", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetPaymentAddressResponse>): GetPaymentAddressResponse {
+        const message = { walletUrl: "", type: "", handle: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPaymentAddressResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPaymentAddressResponse): GetPaymentAddressResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string wallet_url */ 1:
+                    message.walletUrl = reader.string();
+                    break;
+                case /* string type */ 2:
+                    message.type = reader.string();
+                    break;
+                case /* string handle */ 3:
+                    message.handle = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPaymentAddressResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string wallet_url = 1; */
+        if (message.walletUrl !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletUrl);
+        /* string type = 2; */
+        if (message.type !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.type);
+        /* string handle = 3; */
+        if (message.handle !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.handle);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPaymentAddressResponse
+ */
+export const GetPaymentAddressResponse = new GetPaymentAddressResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -8858,5 +8992,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
     { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },
-    { name: "VerifyTwitter", options: {}, I: VerifyTwitterRequest, O: Empty }
+    { name: "VerifyTwitter", options: {}, I: VerifyTwitterRequest, O: Empty },
+    { name: "GetPaymentAddress", options: {}, I: GetPaymentAddressRequest, O: GetPaymentAddressResponse }
 ]);
