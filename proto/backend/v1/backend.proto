@@ -294,6 +294,9 @@ service BackendService {
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
   rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
   rpc VerifyTwitter(VerifyTwitterRequest) returns (Empty);
+
+  // Payments
+  rpc GetPaymentAddress(GetPaymentAddressRequest) returns (GetPaymentAddressResponse);
 }
 
 message WalletInfo {
@@ -796,4 +799,14 @@ message VerifyTwitterRequest {
 
 message GetIdentityBySignatureHashRequest{
   string signature_hash = 1;
+}
+
+message GetPaymentAddressRequest {
+  string address = 1;
+}
+
+message GetPaymentAddressResponse {
+  string wallet_url = 1;
+  string type = 2; // wallet, twitter
+  string handle = 3; // url or twitter handle
 }

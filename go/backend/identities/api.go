@@ -15,4 +15,5 @@ type Client interface {
 	Get(ctx context.Context, id string) (*Identity, error)
 	UpdateState(ctx context.Context, id string, state State, proof string) error
 	GetBySignatureHash(ctx context.Context, sigHash []byte) (*Identity, error)
+	GetByIdentifier(ctx context.Context, identifier string) (*Identity, error)
 }

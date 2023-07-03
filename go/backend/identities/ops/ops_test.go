@@ -220,3 +220,35 @@ func TestGetBySignatureHash(t *testing.T) {
 	assert.True(t, id.Public)
 	assert.Equal(t, iv.ID, id.ID)
 }
+
+func TestGetByIdentifier(t *testing.T) {
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db)
+
+	userClient := users_mock.NewMock()
+
+	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
+		UserID: uuid.NewString(),
+		Name:   "test",
+	})
+	require.NoError(t, err)
+
+	env.SetEnv(t, "local")
+
+	// Publicly visible
+	iv, err := ops.Add(ctx, b, identities.AddArgs{
+		WalletID:   w.ID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "king_cold",
+	})
+	require.NoError(t, err)
+
+	id, err := ops.GetByIdentifier(ctx, b, iv.Identifier)
+	require.NoError(t, err)
+	assert.True(t, id.Public)
+	assert.Equal(t, iv.ID, id.ID)
+
+	_, err = ops.GetByIdentifier(ctx, b, "notfound")
+	require.ErrorIs(t, err, identities.ErrNotFound)
+}
