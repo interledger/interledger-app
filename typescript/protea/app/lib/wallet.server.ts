@@ -164,6 +164,8 @@ type FormattedLinkedAccount = {
   nickname: string
   type: string
   icon: string
+  canSend: boolean
+  canReceive: boolean
 }
 
 type LinkedAccountsResponse = {
@@ -234,12 +236,12 @@ const formatLinkedAccount = (
     case 'card':
     case 'sendCard':
       type = 'card'
-      name = `**** ${linkedAccount.mask}`
+      name = linkedAccount.title
       icon = 'credit_card'
       break
     case 'bankAccount':
       type = 'bank'
-      name = `**** ${linkedAccount.mask}`
+      name = linkedAccount.title
       icon = 'account_balance'
       break
     case 'wallet':

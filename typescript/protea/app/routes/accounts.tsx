@@ -115,14 +115,13 @@ export default function Page() {
               >
                 <div className='flex space-x-3'>
                   <Icon>credit_card</Icon>
-                  <span>
-                    {method.name}{' '}
-                    {method.nickname && '(' + method.nickname + ')'}
-                  </span>
+                  <span>{method.name}</span>
                 </div>
                 <div className='flex items-center space-x-2'>
-                  <Chip color={ChipColor.green}>Send</Chip>
-                  <Chip color={ChipColor.purple}>Receive</Chip>
+                  {method.canSend && <Chip color={ChipColor.green}>Send</Chip>}
+                  {method.canReceive && (
+                    <Chip color={ChipColor.purple}>Receive</Chip>
+                  )}
                   <Icon>navigate_next</Icon>
                 </div>
               </CardLink>
