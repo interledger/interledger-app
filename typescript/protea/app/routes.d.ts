@@ -26,8 +26,7 @@ declare module "routes-gen" {
     "/api/sendOtp": Record<string, never>;
     "/pay/confirm": Record<string, never>;
     "/transactions": Record<string, never>;
-    "/transactions/open_payments_incoming/:transactionId": { "transactionId": string };
-    "/transactions/open_payments_outgoing/:transactionId": { "transactionId": string };
+    "/transactions/:transactionId": { "transactionId": string };
     "/blog/:slug": { "slug": string };
     "/pay/amount": Record<string, never>;
     "/identities": Record<string, never>;
@@ -85,8 +84,7 @@ declare module "routes-gen" {
       | ["/api/sendOtp"]
       | ["/pay/confirm"]
       | ["/transactions"]
-      | ["/transactions/open_payments_incoming/:transactionId", RouteParams["/transactions/open_payments_incoming/:transactionId"]]
-      | ["/transactions/open_payments_outgoing/:transactionId", RouteParams["/transactions/open_payments_outgoing/:transactionId"]]
+      | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/pay/amount"]
       | ["/identities"]

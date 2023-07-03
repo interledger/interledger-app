@@ -258,14 +258,18 @@ export default function Page() {
           )}
         {transactions &&
           transactions.map((transactionGroup, index) => (
-            <Card key={`txgroup-${index}`}>
+            <Card key={`group-${index}`}>
               <CardContent>
                 <Label className='-mb-5'>{transactionGroup[0].date}</Label>
               </CardContent>
               {transactionGroup.map((transaction) => (
                 <CardLink
+                  preventScrollReset
+                  prefetch='none'
                   key={transaction.id}
-                  to={`/transactions/${transaction.type}/${transaction.id}`}
+                  to={route('/transactions/:transactionId', {
+                    transactionId: transaction.id
+                  })}
                   className='justify-between'
                 >
                   <div className='flex space-x-1'>
@@ -304,7 +308,7 @@ export default function Page() {
             </Card>
           ))}
       </GridColumn>
-      <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
+      <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>
     </WalletGrid>

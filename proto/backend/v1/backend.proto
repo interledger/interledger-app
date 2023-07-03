@@ -53,6 +53,10 @@ message Transaction {
   string formattedAmount = 11;
   string formattedTime = 12;
   string formattedDate = 13;
+  string subtotal = 14;
+  string fees = 15;
+  string accountTitle = 16;
+  string reference = 17;
 }
 
 message ListTransactionsResponse {
@@ -497,6 +501,11 @@ message LinkedAccount {
   string name = 3;
   string mask = 4;
   string nickname = 5;
+
+  // Display
+  bool canSend = 6;
+  bool canReceive = 7;
+  string title = 8;
 }
 
 message GetSignupRequest {

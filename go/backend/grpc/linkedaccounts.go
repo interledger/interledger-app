@@ -8,6 +8,22 @@ import (
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
+func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
+	title := la.Nickname
+	if la.Nickname == "" {
+		title = la.Mask
+	}
+	return &pb.LinkedAccount{
+		Id:         la.ID,
+		Type:       la.Type,
+		Name:       la.Name,
+		Mask:       la.Mask,
+		Nickname:   la.Nickname,
+		CanSend:    la.CanSend,
+		CanReceive: la.CanReceive,
+		Title:      title,
+	}
+}
 func (s *rpcService) GetLinkedAccounts(
 	ctx context.Context, _ *pb.Empty,
 ) (*pb.GetLinkedAccountsResponse, error) {
@@ -28,13 +44,7 @@ func (s *rpcService) GetLinkedAccounts(
 
 	ret := make([]*pb.LinkedAccount, len(linkedAccounts))
 	for i, fs := range linkedAccounts {
-		ret[i] = &pb.LinkedAccount{
-			Id:       fs.ID,
-			Name:     fs.Name,
-			Mask:     fs.Mask,
-			Type:     fs.Type,
-			Nickname: fs.Nickname,
-		}
+		ret[i] = transformLinkedAccount(fs)
 	}
 
 	return &pb.GetLinkedAccountsResponse{
@@ -62,13 +72,7 @@ func (s *rpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinkedAcco
 		return nil, toGRPCError(linkedaccounts.ErrNotFound)
 	}
 
-	return &pb.LinkedAccount{
-		Id:       la.ID,
-		Type:     la.Type,
-		Name:     la.Name,
-		Mask:     la.Mask,
-		Nickname: la.Nickname,
-	}, nil
+	return transformLinkedAccount(*la), nil
 
 }
 
@@ -122,11 +126,5 @@ func (s *rpcService) SetNicknameLinkedAccount(ctx context.Context, req *pb.SetNi
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.LinkedAccount{
-		Id:       la.ID,
-		Type:     la.Type,
-		Name:     la.Name,
-		Mask:     la.Mask,
-		Nickname: la.Nickname,
-	}, nil
+	return transformLinkedAccount(*la), nil
 }
