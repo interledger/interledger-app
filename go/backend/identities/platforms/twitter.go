@@ -151,6 +151,7 @@ func (tp *twitterPlatform) VerifyInstructions(ctx context.Context, args *VerifyI
 
 type TwitterActivityBackends interface {
 	Identities() identities.Client
+	Twitter() twitter.Client
 }
 
 type TwitterActivity struct {
@@ -213,8 +214,7 @@ func (a *TwitterActivity) FetchTweetProof(ctx context.Context, proofUrl string) 
 		return TweetProof{}, fmt.Errorf("%w %s", identities.ErrInternal, "couldn't parse proof tweet id")
 	}
 
-	scraper := twitterscraper.New()
-	tweet, err := scraper.GetTweet(tweetId)
+	tweet, err := a.b.Twitter().GetTweet(ctx, tweetId)
 	if err != nil {
 		return TweetProof{}, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -227,8 +227,8 @@ func (a *TwitterActivity) FetchTweetProof(ctx context.Context, proofUrl string) 
 
 	return TweetProof{
 		ClaimURL:        urls[0],
-		TwitterUsername: tweet.Username,
-		TwitterUserID:   tweet.UserID,
+		TwitterUsername: tweet.AuthorUsername,
+		TwitterUserID:   tweet.AuthorID,
 	}, nil
 }
 
@@ -256,7 +256,6 @@ func (a *TwitterActivity) VerifyProof(ctx context.Context, identity identities.I
 	base64SigHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
 
 	// TODO: check if the signature key is still exist before matching the signature
-	// instead of verifying signature cryptographically, we just check if the signature matches the one in the identity
 	if sigHash != base64SigHash {
 		return fmt.Errorf("%w %s", identities.ErrInternal, "proof sighash doesn't match identity sighash")
 	}

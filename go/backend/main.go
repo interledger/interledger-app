@@ -193,6 +193,7 @@ func start(args *cli.StartArgs) {
 		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
 		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
 		RedirectURL:   args.TwitterRedirectURL,
+		BearerToken:   args.TwitterBearerToken,
 	})
 
 	b.auth = authorisation_client.New(b)
@@ -462,6 +463,7 @@ func startWorker(args *cli.StartArgs) {
 		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
 		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
 		RedirectURL:   args.TwitterRedirectURL,
+		BearerToken:   args.TwitterBearerToken,
 	})
 
 	b.limits = limits_client.New(b)
