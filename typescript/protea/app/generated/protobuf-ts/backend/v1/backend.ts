@@ -102,6 +102,22 @@ export interface Transaction {
      * @generated from protobuf field: string formattedDate = 13;
      */
     formattedDate: string;
+    /**
+     * @generated from protobuf field: string subtotal = 14;
+     */
+    subtotal: string;
+    /**
+     * @generated from protobuf field: string fees = 15;
+     */
+    fees: string;
+    /**
+     * @generated from protobuf field: string accountTitle = 16;
+     */
+    accountTitle: string;
+    /**
+     * @generated from protobuf field: string reference = 17;
+     */
+    reference: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -2066,11 +2082,15 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 10, name: "title", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 11, name: "formattedAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 12, name: "formattedTime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 13, name: "formattedDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 13, name: "formattedDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "subtotal", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 15, name: "fees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "accountTitle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 17, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "" };
+        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -2119,6 +2139,18 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* string formattedDate */ 13:
                     message.formattedDate = reader.string();
+                    break;
+                case /* string subtotal */ 14:
+                    message.subtotal = reader.string();
+                    break;
+                case /* string fees */ 15:
+                    message.fees = reader.string();
+                    break;
+                case /* string accountTitle */ 16:
+                    message.accountTitle = reader.string();
+                    break;
+                case /* string reference */ 17:
+                    message.reference = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2171,6 +2203,18 @@ class Transaction$Type extends MessageType<Transaction> {
         /* string formattedDate = 13; */
         if (message.formattedDate !== "")
             writer.tag(13, WireType.LengthDelimited).string(message.formattedDate);
+        /* string subtotal = 14; */
+        if (message.subtotal !== "")
+            writer.tag(14, WireType.LengthDelimited).string(message.subtotal);
+        /* string fees = 15; */
+        if (message.fees !== "")
+            writer.tag(15, WireType.LengthDelimited).string(message.fees);
+        /* string accountTitle = 16; */
+        if (message.accountTitle !== "")
+            writer.tag(16, WireType.LengthDelimited).string(message.accountTitle);
+        /* string reference = 17; */
+        if (message.reference !== "")
+            writer.tag(17, WireType.LengthDelimited).string(message.reference);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
