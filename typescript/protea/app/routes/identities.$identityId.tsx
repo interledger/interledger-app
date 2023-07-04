@@ -271,20 +271,29 @@ export default function Page() {
         </>
       )}
       {identity.state == 'pending' && (
-        <Card>
-          <CardContent>
-            <p>
-              Your Twitter identity verification is pending. We will notify you
-              once verified.
-            </p>
-            <img
-              className='mt-4 max-w-[310px]'
-              loading='lazy'
-              alt='Identity card'
-              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
-            />
-          </CardContent>
-        </Card>
+        <>
+          <Card>
+            <CardContent>
+              <p>
+                Your Twitter identity verification is pending. We will notify
+                you once verified.
+              </p>
+              <img
+                className='mt-4 max-w-[310px]'
+                loading='lazy'
+                alt='Identity card'
+                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
+              />
+            </CardContent>
+          </Card>
+          <OutlineButton
+            className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
+            type='button'
+            onClick={() => setShowDialog(true)}
+          >
+            Delete
+          </OutlineButton>
+        </>
       )}
       <Snackbar
         message={snackbar.message}
