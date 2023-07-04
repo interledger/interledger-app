@@ -67,6 +67,21 @@ func (mr *MockClientMockRecorder) GetAuthorizedUser(ctx, token interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizedUser", reflect.TypeOf((*MockClient)(nil).GetAuthorizedUser), ctx, token)
 }
 
+// GetTweet mocks base method.
+func (m *MockClient) GetTweet(ctx context.Context, id string) (*twitter.Tweet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTweet", ctx, id)
+	ret0, _ := ret[0].(*twitter.Tweet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTweet indicates an expected call of GetTweet.
+func (mr *MockClientMockRecorder) GetTweet(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTweet", reflect.TypeOf((*MockClient)(nil).GetTweet), ctx, id)
+}
+
 // PostTweet mocks base method.
 func (m *MockClient) PostTweet(ctx context.Context, token *oauth2.Token, text string) (*twitter.Tweet, error) {
 	m.ctrl.T.Helper()

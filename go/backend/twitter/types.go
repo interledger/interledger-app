@@ -7,6 +7,14 @@ import (
 )
 
 type (
+	Tweet struct {
+		ID             string
+		Text           string
+		URLs           []string
+		AuthorID       string
+		AuthorUsername string
+	}
+
 	CreateAuthURLArgs struct {
 		State    string
 		Scopes   []string
@@ -42,10 +50,5 @@ type (
 		Scopes   []string
 		UserID   string
 		WalletID string
-	}
-
-	Tweet struct {
-		ID   string `json:"id"`
-		Text string `json:"text"`
 	}
 )
