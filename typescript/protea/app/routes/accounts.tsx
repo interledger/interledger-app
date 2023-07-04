@@ -195,28 +195,28 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {kycStatus == KycStatus.Verified && !hasBank && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <CardIcon>
-                  <Icon>account_balance</Icon>
-                </CardIcon>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect bank accounts to easily send and receive payments.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={route('/connect/bank')}
-                  >
-                    Connect a bank account
-                  </Router>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/*{kycStatus == KycStatus.Verified && !hasBank && (*/}
+        {/*  <Card>*/}
+        {/*    <CardContent>*/}
+        {/*      <div className='flex items-start space-x-4'>*/}
+        {/*        <CardIcon>*/}
+        {/*          <Icon>account_balance</Icon>*/}
+        {/*        </CardIcon>*/}
+        {/*        <div className='flex flex-col space-y-4'>*/}
+        {/*          <p className='text-sm text-medium'>*/}
+        {/*            Connect bank accounts to easily send and receive payments.*/}
+        {/*          </p>*/}
+        {/*          <Router*/}
+        {/*            className='text-sm font-medium text-primary'*/}
+        {/*            to={route('/connect/bank')}*/}
+        {/*          >*/}
+        {/*            Connect a bank account*/}
+        {/*          </Router>*/}
+        {/*        </div>*/}
+        {/*      </div>*/}
+        {/*    </CardContent>*/}
+        {/*  </Card>*/}
+        {/*)}*/}
       </GridColumn>
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />

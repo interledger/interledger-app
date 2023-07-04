@@ -12,9 +12,16 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
+import { getFeatures } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   // TODO Add colorScheme option once theme is in the users session
+  const features = await getFeatures(request)
+
+  if (!features.banksEnabled) {
+    throw redirect(route('/'))
+  }
+
   let rpc = await grpcClient
     .getMXWidget(
       {},
