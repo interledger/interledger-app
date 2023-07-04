@@ -93,7 +93,7 @@ function Outgoing() {
             <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
           )}
           <h3 className='text-3xl font-medium text-error'>
-            {transaction.total}
+            - {transaction.total}
           </h3>
           <p className='text-weak'>Payment to {transaction.title}</p>
           <p className='text-weak'>

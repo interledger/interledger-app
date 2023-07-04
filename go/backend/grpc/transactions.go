@@ -154,7 +154,6 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 	var reference string
 	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment {
 		title = tx.Destination
-		amt = "- " + amt
 
 		op, err := b.OpenPayments().GetOutgoingPayment(ctx, tx.ForeignID)
 		if err != nil && !errors.Is(err, openpayments.ErrNotFound) {

@@ -206,6 +206,7 @@ export function AppPage() {
                           : 'text-medium'
                       )}
                     >
+                      {transaction.type.includes('outgoing') && '- '}
                       {transaction.total}
                     </span>
                     <Icon>navigate_next</Icon>
