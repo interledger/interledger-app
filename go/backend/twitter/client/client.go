@@ -34,6 +34,7 @@ type (
 	NewClientArgs struct {
 		ClientID      string
 		ClientSecret  string
+		BearerToken   string
 		RedirectURL   string
 		AuthEndpoint  string
 		TokenEndpoint string
@@ -59,6 +60,7 @@ func New(b Backends, args *NewClientArgs) *Client {
 		AuthEndpoint:  args.AuthEndpoint,
 		TokenEndpoint: args.TokenEndpoint,
 		ClientSecret:  args.ClientSecret,
+		BearerToken:   args.BearerToken,
 	})
 
 	return &Client{
@@ -100,4 +102,8 @@ func (c *Client) PostTweet(ctx context.Context, id string, text string) (*twitte
 
 func (c *Client) PublishTweetProof(ctx context.Context, identityID string) error {
 	return ops.PublishTweetProof(ctx, c.b, identityID)
+}
+
+func (c *Client) GetTweet(ctx context.Context, id string) (*twitter.Tweet, error) {
+	return ops.GetTweet(ctx, c.b, id)
 }

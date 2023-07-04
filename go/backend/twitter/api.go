@@ -10,6 +10,6 @@ type Client interface {
 	GetWalletConnections(ctx context.Context, id string) ([]Connection, error)
 	PostTweet(ctx context.Context, id string, text string) (*Tweet, error)
 	PublishTweetProof(ctx context.Context, identityID string) error
-
+	GetTweet(ctx context.Context, id string) (*Tweet, error)
 	// TODO check connection status/refresh
 }

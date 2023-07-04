@@ -98,6 +98,7 @@ type StartArgs struct {
 	TwitterClientID            string
 	TwitterClientSecret        string
 	TwitterRedirectURL         string
+	TwitterBearerToken         string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -222,6 +223,11 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("TWITTER_CLIENT_SECRET is required")
 	}
 
+	twitterBearerToken := os.Getenv("TWITTER_BEARER_TOKEN")
+	if twitterBearerToken == "" && env.IsProd() {
+		return nil, errors.New("TWITTER_BEARER_TOKEN is required")
+	}
+
 	twitterRedirectURL := os.Getenv("TWITTER_REDIRECT_URL")
 	if twitterClientSecret == "" && env.IsProd() {
 		return nil, errors.New("TWITTER_REDIRECT_URL is required")
@@ -252,6 +258,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		TwitterClientID:            twitterClientId,
 		TwitterClientSecret:        twitterClientSecret,
 		TwitterRedirectURL:         twitterRedirectURL,
+		TwitterBearerToken:         twitterBearerToken,
 		AdminPolicyAud:             os.Getenv("ADMIN_POLICY_AUD"),
 		AdminTeamDomain:            os.Getenv("ADMIN_TEAM_DOMAIN"),
 		SendgridAPIKey:             os.Getenv("SENDGRID_API_KEY"),

@@ -165,6 +165,10 @@ func PublishTweetProof(ctx context.Context, b Backends, id string) error {
 	return nil
 }
 
+func GetTweet(ctx context.Context, b Backends, id string) (*twitter.Tweet, error) {
+	return b.External().GetTweet(ctx, id)
+}
+
 func getConnection(ctx context.Context, b Backends, id string) (*twitter.Connection, error) {
 	var connection twitter.Connection
 	err := b.DB().GetContext(ctx, &connection, "SELECT * FROM twitter_connections WHERE id = $1", id)

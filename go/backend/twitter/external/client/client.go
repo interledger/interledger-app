@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/twitter/external"
@@ -16,11 +18,13 @@ var _ external.Client = &client{}
 type (
 	client struct {
 		oauthConfig *oauth2.Config
+		bearerToken string
 	}
 
 	NewClientArgs struct {
 		ClientID      string
 		ClientSecret  string
+		BearerToken   string
 		AuthEndpoint  string
 		TokenEndpoint string
 		RedirectURL   string
@@ -40,6 +44,7 @@ func New(args *NewClientArgs) *client {
 
 	return &client{
 		oauthConfig: oauthConfig,
+		bearerToken: args.BearerToken,
 	}
 }
 
@@ -105,5 +110,57 @@ func (c *client) PostTweet(ctx context.Context, token *oauth2.Token, text string
 	return &twitter.Tweet{
 		ID:   jsonBody["data"].(map[string]interface{})["id"].(string),
 		Text: jsonBody["data"].(map[string]interface{})["text"].(string),
+	}, nil
+}
+
+func (c *client) GetTweet(ctx context.Context, tweetID string) (*twitter.Tweet, error) {
+	println("HERE IS THE TWEET ID help: ", tweetID)
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.twitter.com/2/tweets/%s", tweetID), nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not create request: %v", err)
+	}
+
+	queryParams := url.Values{
+		"expansions":   []string{"author_id"},
+		"tweet.fields": []string{"entities"},
+	}
+	req.URL.RawQuery = queryParams.Encode()
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.bearerToken))
+	res, err := http.DefaultClient.Do(req)
+	// do error handling with res.StatusCode
+	if err != nil {
+		return nil, fmt.Errorf("could not get tweet: %v", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		var jsonBody map[string]interface{}
+		err = json.NewDecoder(res.Body).Decode(&jsonBody)
+		if err != nil {
+			return nil, fmt.Errorf("could not decode error body: %v", err)
+		}
+
+		return nil, fmt.Errorf("could not get tweet: %v", jsonBody)
+	}
+
+	var tweet external.Tweet
+	err = json.NewDecoder(res.Body).Decode(&tweet)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode tweet: %v", err)
+	}
+
+	// create a list of expanded urls
+	var urls []string
+	for _, u := range tweet.Data.Entities.URLs {
+		urls = append(urls, u.ExpandedURL)
+	}
+
+	return &twitter.Tweet{
+		ID:             tweet.Data.ID,
+		Text:           tweet.Data.Text,
+		URLs:           urls,
+		AuthorID:       tweet.Includes.Users[0].ID,
+		AuthorUsername: tweet.Includes.Users[0].Username,
 	}, nil
 }
