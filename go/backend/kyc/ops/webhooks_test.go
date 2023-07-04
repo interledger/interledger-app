@@ -18,7 +18,7 @@ import (
 
 func TestNewHandlePersonaWebhook(t *testing.T) {
 	t.Parallel()
-	const jsonFmt = `{ "data": {
+	const inquiryJsonFmt = `{ "data": {
   "type": "event",
   "id": "evt_APAvuMVuwRQHqSrLSw1ExpJi",
   "attributes": {
@@ -116,7 +116,7 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			_ = b.DB().MustExec("INSERT INTO kyc_persona_inquiries (external_id, state, wallet_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING;", tc.inquiryID, persona.InquiryCreated, tc.walletID)
 
-			body := fmt.Sprintf(jsonFmt, tc.event, tc.inquiryID, tc.walletID)
+			body := fmt.Sprintf(inquiryJsonFmt, tc.event, tc.inquiryID, tc.walletID)
 			req, err := http.NewRequest(http.MethodPost, "/webhook", strings.NewReader(body))
 			require.NoError(t, err)
 			req.Header.Set("Persona-Signature", tc.sigHeader)
@@ -137,5 +137,55 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 				assert.Equal(t, tc.inquiryStatus, persona.InquiryStatus(inquiryStatus))
 			}
 		})
+	}
+
+	const accountJsonFmt = `{ "data": {
+  "type": "event",
+  "id": "evt_U8thNQcQUPBp35DgUDGbRtZK",
+  "attributes": {
+    "name": "%s",
+    "created-at": "2023-04-12T13:22:32.716Z",
+    "redacted-at": null,
+    "payload": {
+      "data": {
+        "type": "account",
+        "id": "%s",
+        "attributes": {
+          "reference-id": "%s"
+        }
+      }
+    }
+  }
+}}`
+
+	accountCases := []struct {
+		event            string
+		sigHeader        string
+		walletID         string
+		personaAccountID string
+	}{
+		{
+			event:            "account.created",
+			sigHeader:        "t=123,v1=80723ee09601ba6e9d849f1c0d02241f1b50b2300020f748f2b703ac272c1d62",
+			walletID:         "6c48c2af-382d-447b-82d4-f6f8739ff948",
+			personaAccountID: "act_1LtncnQbaLme9PgR5LQuga7k",
+		},
+	}
+	for _, tc := range accountCases {
+		body := fmt.Sprintf(accountJsonFmt, tc.event, tc.personaAccountID, tc.walletID)
+		req, err := http.NewRequest(http.MethodPost, "/webhook", strings.NewReader(body))
+		require.NoError(t, err)
+		req.Header.Set("Persona-Signature", tc.sigHeader)
+
+		rr := httptest.NewRecorder()
+		handler := ops.NewHandlePersonaWebhook(b)
+
+		handler.ServeHTTP(rr, req)
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		var walletID string
+		err = b.DB().Get(&walletID, "SELECT wallet_id FROM kyc_persona_accounts WHERE external_id=$1;", tc.personaAccountID)
+		require.NoError(t, err)
+		assert.Equal(t, tc.walletID, walletID)
 	}
 }
