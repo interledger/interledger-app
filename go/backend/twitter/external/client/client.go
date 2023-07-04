@@ -114,6 +114,7 @@ func (c *client) PostTweet(ctx context.Context, token *oauth2.Token, text string
 }
 
 func (c *client) GetTweet(ctx context.Context, tweetID string) (*twitter.Tweet, error) {
+	println("HERE IS THE TWEET ID help: ", tweetID)
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.twitter.com/2/tweets/%s", tweetID), nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %v", err)
