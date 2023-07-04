@@ -65,6 +65,21 @@ func (mr *MockClientMockRecorder) CreateConnection(ctx, args interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateConnection", reflect.TypeOf((*MockClient)(nil).CreateConnection), ctx, args)
 }
 
+// GetTweet mocks base method.
+func (m *MockClient) GetTweet(ctx context.Context, id string) (*twitter.Tweet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTweet", ctx, id)
+	ret0, _ := ret[0].(*twitter.Tweet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTweet indicates an expected call of GetTweet.
+func (mr *MockClientMockRecorder) GetTweet(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTweet", reflect.TypeOf((*MockClient)(nil).GetTweet), ctx, id)
+}
+
 // GetWalletConnections mocks base method.
 func (m *MockClient) GetWalletConnections(ctx context.Context, id string) ([]twitter.Connection, error) {
 	m.ctrl.T.Helper()
