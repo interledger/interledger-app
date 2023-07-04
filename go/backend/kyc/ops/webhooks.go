@@ -2,16 +2,12 @@ package ops
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/env"
@@ -58,7 +54,7 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 
 		switch wh.Data.Attributes.Name {
 		case "account.created":
-			err = accountCreatedWebhook(r.Context(), b, pc, wh.Data.Attributes.Payload)
+			err = accountCreatedWebhook(r.Context(), b, wh.Data.Attributes.Payload)
 		case "inquiry.created":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryCreated, timestamp)
 		case "inquiry.started":
@@ -119,101 +115,16 @@ func inquiryWebhook(ctx context.Context, b Backends, js json.RawMessage, state p
 	return err
 }
 
-func accountCreatedWebhook(ctx context.Context, b Backends, pc persona.Client, js json.RawMessage) error {
+func accountCreatedWebhook(ctx context.Context, b Backends, js json.RawMessage) error {
 	var whAcc persona.Account
 	err := json.Unmarshal(js, &whAcc)
 	if err != nil {
 		return err
 	}
 
-	// All information may not be included in the webhook, so we get the full info from the API
-	acc, err := pc.GetAccount(ctx, whAcc.Data.ID)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2);", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
 	if err != nil {
 		return err
 	}
-
-	details := acc.Attributes
-
-	fn := details.NameFirst
-	if details.NameMiddle != "" {
-		fn += " " + details.NameMiddle
-	}
-
-	dob, err := time.Parse("2006-01-02", details.Birthdate)
-	if err != nil {
-		return err
-	}
-
-	// Lookup the latest enquiry for the users IP Address
-	var inqID string
-	err = b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2 ORDER BY updated_at DESC",
-		details.ReferenceID, "approved")
-	if errors.Is(err, sql.ErrNoRows) {
-		// Lookup the latest inquiry as the webhook may not have fired to update it's status, We'll double check it
-		err = b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 ORDER BY updated_at DESC",
-			details.ReferenceID)
-	}
-	if err != nil {
-		return err
-	}
-
-	inq, err := pc.LookupInquiry(ctx, inqID)
-	if err != nil {
-		return err
-	}
-
-	if inq.Data.Attributes.Status != "approved" {
-		return fmt.Errorf("failed to find approved inquiry, latest enquiry (%s) status (%s)", inqID, inq.Data.Attributes.Status)
-	}
-
-	gender := kyc.GenderUnknown
-	var ipAddr, birthplace, nationality string
-	for _, ii := range inq.Included {
-		// These are in order so the last one in the list will always be the most up to date.
-		if ii.Type == "inquiry-session" && ii.Attributes.IPAddress != "" {
-			ipAddr = ii.Attributes.IPAddress
-		}
-
-		if ii.Attributes.Nationality != "" {
-			nationality = ii.Attributes.Nationality
-		}
-
-		if ii.Attributes.Birthplace != "" {
-			birthplace = ii.Attributes.Birthplace
-		}
-
-		if strings.EqualFold(ii.Attributes.Gender, "Male") {
-			gender = kyc.GenderMale
-		}
-		if strings.EqualFold(ii.Attributes.Gender, "Female") {
-			gender = kyc.GenderFemale
-		}
-	}
-
-	_, err = UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
-		WalletID:     details.ReferenceID,
-		FirstName:    fn,
-		LastName:     details.NameLast,
-		CountryCode:  details.CountryCode,
-		Gender:       gender,
-		DateOfBirth:  dob,
-		PlaceOfBirth: birthplace,
-		Nationality:  nationality,
-		IPAddress:    ipAddr,
-		Address: &kyc.Address{
-			Line1:       details.AddressStreet1,
-			Line2:       details.AddressStreet2,
-			City:        details.AddressCity,
-			State:       details.CountryCode + "-" + details.AddressSubdivision, // US-CA for example
-			ZipCode:     details.AddressPostalCode,
-			CountryCode: details.CountryCode,
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	err = SetKYCStatus(ctx, b, details.ReferenceID, kyc.StatusApproved)
-
 	return err
 }
