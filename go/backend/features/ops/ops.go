@@ -69,13 +69,13 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 	if id.CountryCode == "US" {
 		res.ReceiveEnabled = true
 		res.LinkedAccEnabled = true
-		res.BanksEnabled = true
+		res.BanksEnabled = false
 		res.CardsEnabled = true
 	}
 	if id.Address != nil && isGMTSendState(id.Address.State) {
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
-		res.BanksEnabled = true
+		res.BanksEnabled = false
 		res.CardsEnabled = true
 	}
 
