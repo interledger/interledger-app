@@ -72,14 +72,17 @@ type IncomingPayment struct {
 }
 
 type CreateOutgoingPaymentArgs struct {
-	IdempotencyKey string `json:"-" validate:"omitempty,uuid"`
-	QuoteID        string `json:"quoteId" validate:"required"`
-	Description    string `json:"description"`
-	ExternalRef    string `json:"externalRef"`
-	IPAddress      string `json:"-" validate:"ip_addr"`
-	CreatedBy      string // Either the payment pointer from gRPC or the client_id from Openapyments API, which is also a payment pointer
-	GrantID        string `json:"-"`
-	ThreeDSID      string `json:"-"`
+	IdempotencyKey          string `json:"-" validate:"omitempty,uuid"`
+	QuoteID                 string `json:"quoteId" validate:"required"`
+	Description             string `json:"description"`
+	ExternalRef             string `json:"externalRef"`
+	IPAddress               string `json:"-" validate:"ip_addr"`
+	CreatedBy               string // Either the payment pointer from gRPC or the client_id from Openapyments API, which is also a payment pointer
+	GrantID                 string `json:"-"`
+	ThreeDSID               string `json:"-"`
+	DestinationIdentity     string
+	DestinationIdentityType string `validate:"omitempty,oneof=twitter wallet"`
+	LinkedAccountTitle      string
 }
 
 type OutgoingPayment struct {

@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.temporal.io/sdk/temporal"
 	"strings"
 	"time"
+
+	"go.temporal.io/sdk/temporal"
 
 	"gitlab.com/fynbos/backend/providers"
 
@@ -72,6 +73,7 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		span.RecordError(err)
 		return nil, err
 	}
+	args.LinkedAccountTitle = sendLA.Title()
 
 	// Check if we have already created this outgoing transaction and just return it.
 	if args.IdempotencyKey != "" {

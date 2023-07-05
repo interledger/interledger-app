@@ -48,6 +48,9 @@ func TestCreateTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
+				DestinationIdentityType: "twitter",
+				DestinationIdentity:     "@elon",
+				LinkedAccountTitle:      "VISA XXX123",
 			},
 		},
 		{
@@ -222,13 +225,16 @@ func TestListWithPendingTransaction(t *testing.T) {
 			name: "with transfers",
 			len:  1,
 			args: transactions.CreateTransactionArgs{
-				WalletID:    uuid.NewString(),
-				ForeignID:   uuid.NewString(),
-				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
-				Provider:    transactions.ProviderGMT,
-				State:       transactions.StatePending,
-				Source:      "$fynbos.me/alice",
-				Destination: "$fynbos.me/bob",
+				WalletID:                uuid.NewString(),
+				ForeignID:               uuid.NewString(),
+				ForeignType:             transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:                transactions.ProviderGMT,
+				State:                   transactions.StatePending,
+				Source:                  "$fynbos.me/alice",
+				Destination:             "$fynbos.me/bob",
+				LinkedAccountTitle:      "VISA XXXX 1234",
+				DestinationIdentityType: "twitter",
+				DestinationIdentity:     "@elon",
 				Amount: currency.Amount{
 					Value:    1000,
 					Currency: currency.USD,
@@ -314,6 +320,9 @@ func TestListWithPendingTransaction(t *testing.T) {
 				assert.Equal(t, tc.args.Source, tx.Source)
 				assert.Equal(t, tc.args.Destination, tx.Destination)
 				assert.Equal(t, tc.args.Note, tx.Note)
+				assert.Equal(t, tc.args.DestinationIdentity, tx.DestinationIdentity)
+				assert.Equal(t, tc.args.DestinationIdentityType, tx.DestinationIdentityType)
+				assert.Equal(t, tc.args.LinkedAccountTitle, tx.LinkedAccountTitle)
 				for _, tr := range tx.Transfers {
 					var found bool
 					for _, etr := range tc.args.Transfers {

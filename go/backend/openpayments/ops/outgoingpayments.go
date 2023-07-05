@@ -95,6 +95,11 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		return "", "", err
 	}
 
+	if args.DestinationIdentity == "" {
+		args.DestinationIdentity = toPP.URL
+		args.DestinationIdentityType = "wallet"
+	}
+
 	var trxID string
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 		_, err := tx.ExecContext(ctx, stmt, qargs...)
@@ -115,8 +120,8 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 			ForeignID:   id,
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			Provider:    transactions.ProviderGMT,
-			Note:        args.Description,
 			State:       transactions.StatePending,
+			Note:        args.Description,
 			Source:      fromPP.URL,
 			Destination: toPP.URL,
 			Amount: currency.Amount{
@@ -124,7 +129,11 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 				Currency: currency.ParseCurrency(q.SendAsset),
 				Scale:    q.SendAssetScale,
 			},
-			GrantID: args.GrantID,
+			GrantID:                 args.GrantID,
+			LinkedAccountTitle:      args.LinkedAccountTitle,
+			DestinationIdentity:     args.DestinationIdentity,
+			DestinationIdentityType: args.DestinationIdentityType,
+			Reference:               args.Description,
 		})
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
