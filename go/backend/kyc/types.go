@@ -3,6 +3,8 @@ package kyc
 import (
 	"fmt"
 	"time"
+
+	"gitlab.com/fynbos/backend/kyc/persona"
 )
 
 type Gender int
@@ -64,6 +66,7 @@ func (a *Address) String() string {
 type PersonaInquiry struct {
 	ID           string
 	SessionToken string
+	Status       persona.InquiryStatus
 }
 
 type PersonaIDNumbers struct {
