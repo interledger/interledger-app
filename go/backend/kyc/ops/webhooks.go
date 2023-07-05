@@ -49,20 +49,33 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
+		timestamp, err := time.Parse(time.RFC3339, wh.Data.Attributes.CreatedAt)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Error("failed to process webhook, unmarhsalling created-at failed.", zap.Error(err))
+			return
+		}
+
 		switch wh.Data.Attributes.Name {
 		case "account.created":
 			err = accountCreatedWebhook(r.Context(), b, pc, wh.Data.Attributes.Payload)
+		case "inquiry.created":
+			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryCreated, timestamp)
+		case "inquiry.started":
+			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryPending, timestamp)
+		case "inquiry.expired":
+			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryExpired, timestamp)
 		case "inquiry.approved":
-			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusApproved)
+			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryApproved, timestamp)
+		case "inquiry.failed":
+			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryFailed, timestamp)
 		case "inquiry.marked-for-review":
-			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusInReview)
+			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryNeedsReview, timestamp)
 			if err == nil {
 				notifyPersonaReview(r.Context(), wh.Data.Attributes.Payload)
 			}
-		case "inquiry.expired":
-			err = inquiryExpiredWebhook(r.Context(), b, wh.Data.Attributes.Payload)
 		case "inquiry.declined":
-			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, kyc.StatusDenied)
+			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryDeclined, timestamp)
 		default:
 			log.Info("unknown persona webhook event", zap.String("name", wh.Data.Attributes.Name))
 		}
@@ -89,33 +102,19 @@ func notifyPersonaReview(ctx context.Context, js json.RawMessage) {
 		env.GetEnv(), inq.Data.ID))
 }
 
-func inquiryExpiredWebhook(ctx context.Context, b Backends, js json.RawMessage) error {
+func inquiryWebhook(ctx context.Context, b Backends, js json.RawMessage, state persona.InquiryStatus, timestamp time.Time) error {
 	var inq persona.Inquiry
 	err := json.Unmarshal(js, &inq)
 	if err != nil {
 		return err
 	}
 
-	_, err = b.DB().ExecContext(ctx, "UPDATE kyc_persona_inquiries SET state=$1, updated_at=now() WHERE wallet_id=$2 AND external_id=$3",
-		inq.Data.Attributes.Status, inq.Data.Attributes.ReferenceID, inq.Data.ID)
+	res, err := b.DB().ExecContext(ctx, "UPDATE kyc_persona_inquiries SET state=$1, updated_at=$4 WHERE wallet_id=$2 AND external_id=$3 AND (updated_at > $4 OR updated_at IS NULL);",
+		state, inq.Data.Attributes.ReferenceID, inq.Data.ID, timestamp)
 
-	return err
-}
-
-func inquiryWebhook(ctx context.Context, b Backends, js json.RawMessage, status kyc.Status) error {
-	var inq persona.Inquiry
-	err := json.Unmarshal(js, &inq)
-	if err != nil {
-		return err
+	if rows, _ := res.RowsAffected(); rows < 1 {
+		log.Info("not upating persona inquiry state", zap.Time("timestamp", timestamp), zap.String("inquiryID", inq.Data.ID), zap.String("webhook inquiry state", string(state)))
 	}
-
-	err = SetKYCStatus(ctx, b, inq.Data.Attributes.ReferenceID, status)
-	if err != nil {
-		return err
-	}
-
-	_, err = b.DB().ExecContext(ctx, "UPDATE kyc_persona_inquiries SET state=$1, updated_at=now() WHERE wallet_id=$2 AND external_id=$3",
-		inq.Data.Attributes.Status, inq.Data.Attributes.ReferenceID, inq.Data.ID)
 
 	return err
 }
