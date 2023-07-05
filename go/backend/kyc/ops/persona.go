@@ -25,7 +25,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 	// Check if there is an ongoing inquiry for this wallet that we can resume
 	var ongoingID string
 	err = b.DB().GetContext(ctx, &ongoingID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state IN ($2, $3, $4)",
-		walletID, "pending", "created", "started")
+		walletID, persona.InquiryPending, persona.InquiryCreated, persona.InquiryStarted)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
@@ -44,6 +44,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		return &kyc.PersonaInquiry{
 			ID:           inquiry.ID,
 			SessionToken: inquiry.Meta.SessionToken,
+			Status:       persona.InquiryStatus(inquiry.Attributes.Status),
 		}, nil
 	}
 
@@ -81,14 +82,15 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_inquiries(external_id, wallet_id, state) VALUES ($1, $2, $3)",
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_inquiries(external_id, wallet_id, state) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING;",
 		inquiry.ID, walletID, inquiry.Attributes.Status)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
 	return &kyc.PersonaInquiry{
-		ID: inquiry.ID,
+		ID:     inquiry.ID,
+		Status: persona.InquiryStatus(inquiry.Attributes.Status),
 	}, nil
 }
 

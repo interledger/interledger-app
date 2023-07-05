@@ -1521,12 +1521,15 @@ table "kyc_persona_inquiries" {
     default = sql("now():::TIMESTAMP")
   }
   column "updated_at" {
-    null    = false
+    null    = true
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
+  }
+  index "kyc_person_inquiries_external_id_ind" {
+    unique  = true
+    columns = [column.external_id]
   }
   index "wallet_id_ind" {
     unique  = false
