@@ -118,6 +118,14 @@ export interface Transaction {
      * @generated from protobuf field: string reference = 17;
      */
     reference: string;
+    /**
+     * @generated from protobuf field: string destinationIdentity = 18;
+     */
+    destinationIdentity: string;
+    /**
+     * @generated from protobuf field: string destinationIdentityType = 19;
+     */
+    destinationIdentityType: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -282,6 +290,14 @@ export interface CreateOutgoingPaymentRequest {
      * @generated from protobuf field: string threeDSID = 6;
      */
     threeDSID: string;
+    /**
+     * @generated from protobuf field: string identity = 7;
+     */
+    identity: string;
+    /**
+     * @generated from protobuf field: string identityType = 8;
+     */
+    identityType: string;
 }
 /**
  * @generated from protobuf message backend.v1.LookupIncomingPaymentRequest
@@ -2086,11 +2102,13 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 14, name: "subtotal", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 15, name: "fees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 16, name: "accountTitle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 17, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 17, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 18, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "" };
+        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -2151,6 +2169,12 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* string reference */ 17:
                     message.reference = reader.string();
+                    break;
+                case /* string destinationIdentity */ 18:
+                    message.destinationIdentity = reader.string();
+                    break;
+                case /* string destinationIdentityType */ 19:
+                    message.destinationIdentityType = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2215,6 +2239,12 @@ class Transaction$Type extends MessageType<Transaction> {
         /* string reference = 17; */
         if (message.reference !== "")
             writer.tag(17, WireType.LengthDelimited).string(message.reference);
+        /* string destinationIdentity = 18; */
+        if (message.destinationIdentity !== "")
+            writer.tag(18, WireType.LengthDelimited).string(message.destinationIdentity);
+        /* string destinationIdentityType = 19; */
+        if (message.destinationIdentityType !== "")
+            writer.tag(19, WireType.LengthDelimited).string(message.destinationIdentityType);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2689,11 +2719,13 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
             { no: 3, name: "externalRef", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 6, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "identity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateOutgoingPaymentRequest>): CreateOutgoingPaymentRequest {
-        const message = { quoteID: "", description: "", externalRef: "", ipAddress: "", idempotencyKey: "", threeDSID: "" };
+        const message = { quoteID: "", description: "", externalRef: "", ipAddress: "", idempotencyKey: "", threeDSID: "", identity: "", identityType: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateOutgoingPaymentRequest>(this, message, value);
@@ -2721,6 +2753,12 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
                     break;
                 case /* string threeDSID */ 6:
                     message.threeDSID = reader.string();
+                    break;
+                case /* string identity */ 7:
+                    message.identity = reader.string();
+                    break;
+                case /* string identityType */ 8:
+                    message.identityType = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2752,6 +2790,12 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         /* string threeDSID = 6; */
         if (message.threeDSID !== "")
             writer.tag(6, WireType.LengthDelimited).string(message.threeDSID);
+        /* string identity = 7; */
+        if (message.identity !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.identity);
+        /* string identityType = 8; */
+        if (message.identityType !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.identityType);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

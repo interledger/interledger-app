@@ -186,7 +186,9 @@ export async function action({ request }: ActionArgs) {
         description: flow.data.note,
         externalRef: '',
         ipAddress: clientIpAddress,
-        threeDSID: ''
+        threeDSID: '',
+        identityType: '',
+        identity:''
       },
       {
         meta: {

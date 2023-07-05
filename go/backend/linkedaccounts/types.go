@@ -22,6 +22,16 @@ type LinkedAccount struct {
 	UpdatedAt  string `db:"updated_at"`
 }
 
+func (la *LinkedAccount) Title() string {
+	if la == nil {
+		return ""
+	}
+	if la.Nickname != "" {
+		return la.Nickname
+	}
+	return la.Mask
+}
+
 type CreateArgs struct {
 	ID         string `validate:"omitempty,uuid4"`
 	WalletID   string `validate:"required,uuid4"`
