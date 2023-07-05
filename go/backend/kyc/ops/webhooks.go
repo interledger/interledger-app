@@ -2,12 +2,16 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/env"
@@ -48,13 +52,15 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 		timestamp, err := time.Parse(time.RFC3339, wh.Data.Attributes.CreatedAt)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Error("failed to process webhook, unmarhsalling created-at failed.", zap.Error(err))
+			log.Error("persona webhook: failed to process event, unmarhsalling created-at failed.", zap.Error(err), zap.String("event", wh.Data.Attributes.Name), zap.String("eventID", wh.Data.ID))
 			return
 		}
 
 		switch wh.Data.Attributes.Name {
 		case "account.created":
 			err = accountCreatedWebhook(r.Context(), b, wh.Data.Attributes.Payload)
+		case "account.tag-added":
+			err = accountTagAddedWebhook(r.Context(), b, pc, wh.Data.Attributes.Payload)
 		case "inquiry.created":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryCreated, timestamp)
 		case "inquiry.started":
@@ -73,12 +79,12 @@ func NewHandlePersonaWebhook(b Backends) http.HandlerFunc {
 		case "inquiry.declined":
 			err = inquiryWebhook(r.Context(), b, wh.Data.Attributes.Payload, persona.InquiryDeclined, timestamp)
 		default:
-			log.Info("unknown persona webhook event", zap.String("name", wh.Data.Attributes.Name))
+			log.Warn("persona webhook: unknown event.", zap.String("name", wh.Data.Attributes.Name), zap.String("eventID", wh.Data.ID))
 		}
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			log.Error("failed to process webhook for account creation", zap.Error(err), zap.String("event", wh.Data.Attributes.Name))
+			log.Error("persona webhook: failed to process event.", zap.Error(err), zap.String("event", wh.Data.Attributes.Name), zap.String("eventID", wh.Data.ID))
 			return
 		}
 
@@ -127,4 +133,148 @@ func accountCreatedWebhook(ctx context.Context, b Backends, js json.RawMessage) 
 		return err
 	}
 	return err
+}
+
+func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, js json.RawMessage) error {
+	var whAcc persona.Account
+	err := json.Unmarshal(js, &whAcc)
+	if err != nil {
+		return err
+	}
+
+	// All information may not be included in the webhook, so we get the full info from the API
+	externalAcc, err := pc.GetAccount(ctx, whAcc.Data.ID)
+	if err != nil {
+		return err
+	}
+
+	var isDirty bool
+	var kycState kyc.Status
+	var stateTags int
+	for _, tag := range externalAcc.Attributes.Tags {
+		switch persona.AccountTag(tag) {
+		case persona.AccountTagDirty:
+			isDirty = true
+		case persona.AccountTagPending:
+			kycState = kyc.StatusPending
+			stateTags++
+		case persona.AccountTagRejected:
+			kycState = kyc.StatusDenied
+			stateTags++
+		case persona.AccountTagVerified:
+			kycState = kyc.StatusApproved
+			stateTags++
+		case persona.AccountTagReview:
+			kycState = kyc.StatusInReview
+			stateTags++
+		}
+	}
+	// Too many state tags.
+	if stateTags > 1 {
+		slack.SendToChannel(ctx, slack.PersonaChannel, "FynBOT", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
+			env.GetEnv(), externalAcc.ID))
+	} else if kycState != 0 {
+		err = SetKYCStatus(ctx, b, externalAcc.Attributes.ReferenceID, kycState)
+		if err != nil {
+			return err
+		}
+	}
+
+	if isDirty { // then sync account state
+		details := externalAcc.Attributes
+
+		fn := details.NameFirst
+		if details.NameMiddle != "" {
+			fn += " " + details.NameMiddle
+		}
+
+		dob, err := time.Parse("2006-01-02", details.Birthdate)
+		if err != nil {
+			return err
+		}
+
+		// Lookup the latest enquiry for the users IP Address
+		var inqID string
+		err = b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2 ORDER BY updated_at DESC",
+			details.ReferenceID, "approved")
+		if errors.Is(err, sql.ErrNoRows) {
+			// Lookup the latest inquiry as the webhook may not have fired to update it's status, We'll double check it
+			err = b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 ORDER BY updated_at DESC",
+				details.ReferenceID)
+		}
+		if err != nil {
+			log.Error("persona webhook: no inquiry found in database.", zap.String("external accountID", externalAcc.ID), zap.String("walletID", externalAcc.Attributes.ReferenceID))
+			return nil
+		}
+
+		inq, err := pc.LookupInquiry(ctx, inqID)
+		if err != nil {
+			log.Error("persona webhook: inquiry not found on Persona.", zap.String("inquiryID", inqID), zap.String("external accountID", externalAcc.ID), zap.String("walletID", externalAcc.Attributes.ReferenceID))
+			return err
+		}
+
+		inquiryData := inq.Included
+		if inq.Data.Attributes.Status != "approved" {
+			log.Warn("persona webhook: failed to find approved inquiry.", zap.String("latest inquiryID", inqID), zap.String("status", inq.Data.Attributes.Status))
+			inquiryData = []persona.InquiryIncluded{}
+		}
+
+		gender := kyc.GenderUnknown
+		var ipAddr, birthplace, nationality string
+		for _, ii := range inquiryData {
+			// These are in order so the last one in the list will always be the most up to date.
+			if ii.Type == "inquiry-session" && ii.Attributes.IPAddress != "" {
+				ipAddr = ii.Attributes.IPAddress
+			}
+
+			if ii.Attributes.Nationality != "" {
+				nationality = ii.Attributes.Nationality
+			}
+
+			if ii.Attributes.Birthplace != "" {
+				birthplace = ii.Attributes.Birthplace
+			}
+
+			if strings.EqualFold(ii.Attributes.Gender, "Male") {
+				gender = kyc.GenderMale
+			}
+			if strings.EqualFold(ii.Attributes.Gender, "Female") {
+				gender = kyc.GenderFemale
+			}
+		}
+
+		var state string
+		if details.CountryCode != "" && details.AddressSubdivision != "" {
+			state = details.CountryCode + "-" + details.AddressSubdivision // US-CA for example
+		}
+		_, err = UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
+			WalletID:     details.ReferenceID,
+			FirstName:    fn,
+			LastName:     details.NameLast,
+			CountryCode:  details.CountryCode,
+			Gender:       gender,
+			DateOfBirth:  dob,
+			PlaceOfBirth: birthplace,
+			Nationality:  nationality,
+			IPAddress:    ipAddr,
+			Address: &kyc.Address{
+				Line1:       details.AddressStreet1,
+				Line2:       details.AddressStreet2,
+				City:        details.AddressCity,
+				State:       state,
+				ZipCode:     details.AddressPostalCode,
+				CountryCode: details.CountryCode,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = pc.RemoveTag(ctx, externalAcc.ID, string(persona.AccountTagDirty))
+		if err != nil && !errors.Is(err, persona.ErrNotFound) { // ignore if dirty tag is not there
+			return err
+		}
+	}
+
+	return nil
 }
