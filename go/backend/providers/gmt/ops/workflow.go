@@ -167,7 +167,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,
@@ -491,7 +491,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,
@@ -501,6 +501,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		Source:      args.FromPaymentPointer,
 		Destination: args.ToPaymentPointer,
 		Amount:      args.Amount,
+
 		Transfers: []transactions.TransferArgs{
 			{
 				ForeignID:       achTransaction.ID,
@@ -886,7 +887,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	// TODO: risk assessment
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,
@@ -1196,7 +1197,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 
 	// TODO: risk assessment
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,

@@ -3,10 +3,27 @@ package ops
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/providers"
+
 	"gitlab.com/fynbos/backend/transactions"
 )
 
-func (a *Activity) AddTransaction(ctx context.Context, args transactions.CreateTransactionArgs) (string, error) {
+func (a *Activity) AddIncomingTransaction(ctx context.Context, pArgs providers.TransfersArgs, args transactions.CreateTransactionArgs) (string, error) {
+	outgoing, err := a.b.Transactions().GetTransaction(ctx, pArgs.FromWalletID, pArgs.FromTransactionID)
+	if err != nil {
+		return "", err
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, pArgs.ToLinkedAccountID)
+	if err != nil {
+		return "", err
+	}
+
+	args.DestinationIdentityType = outgoing.DestinationIdentityType
+	args.DestinationIdentity = outgoing.Destination
+	args.LinkedAccountTitle = la.Title()
+	args.Reference = outgoing.Reference
+
 	return a.b.Transactions().CreateTransaction(ctx, args)
 }
 

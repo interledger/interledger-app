@@ -2,11 +2,7 @@ package grpc
 
 import (
 	"context"
-	"errors"
 	"math"
-	"sync"
-
-	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -33,7 +29,7 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(ctx, s.b, txs, page)
+	return transformTransactions(txs, page), nil
 }
 
 func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -54,7 +50,7 @@ func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.Pagi
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(ctx, s.b, txs, page)
+	return transformTransactions(txs, page), nil
 }
 
 func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -75,17 +71,14 @@ func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.Pa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(ctx, s.b, txs, page)
+	return transformTransactions(txs, page), nil
 }
 
-func transformTransactions(ctx context.Context, b Backends, txs []transactions.Transaction, page db.Pagination) (*pb.ListTransactionsResponse, error) {
+func transformTransactions(txs []transactions.Transaction, page db.Pagination) *pb.ListTransactionsResponse {
 	var nextPageToken string
 
 	resSize := int(math.Min(float64(len(txs)), float64(page.PageSize)))
 	res := make([]*pb.Transaction, resSize)
-
-	var wg sync.WaitGroup
-	var anyErr error
 
 	for i, tx := range txs {
 		// If we have more txs than PageSize, we have a next page.
@@ -95,33 +88,16 @@ func transformTransactions(ctx context.Context, b Backends, txs []transactions.T
 			break
 		}
 
-		wg.Add(1)
-
-		go func(index int, ttx transactions.Transaction) {
-			defer wg.Done()
-			tt, err := transformTransaction(ctx, b, ttx)
-			if err != nil {
-				anyErr = err
-			}
-			// This is thread safe, because we are writing to unique/specific indexes
-			res[index] = tt
-		}(i, tx)
-	}
-
-	wg.Wait()
-
-	if anyErr != nil {
-		return nil, toGRPCError(anyErr)
+		res[i] = transformTransaction(tx)
 	}
 
 	return &pb.ListTransactionsResponse{
 		Transactions:  res,
 		NextPageToken: nextPageToken,
-	}, nil
+	}
 }
 
-func transformTransaction(ctx context.Context, b Backends, tx transactions.Transaction) (*pb.Transaction, error) {
-	var laid string
+func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 	trs := make([]*pb.Transfer, len(tx.Transfers))
 	for y, tr := range tx.Transfers {
 		trs[y] = &pb.Transfer{
@@ -132,71 +108,37 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 			Timestamp:       timestamppb.New(tr.Timestamp),
 			Amount:          tr.Amount.ToPB(),
 		}
-		if tr.LinkedAccountID != "" {
-			laid = tr.LinkedAccountID
-		}
-	}
-
-	var laTitle string
-	if laid != "" {
-		la, err := b.LinkedAccounts().Get(ctx, laid)
-		if err != nil {
-			return nil, err
-		}
-		laTitle = la.Nickname
-		if la.Nickname == "" {
-			laTitle = la.Mask
-		}
 	}
 
 	amt := tx.Amount.Format()
 	title := tx.Source
-	var reference string
 	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment {
 		title = tx.Destination
-
-		op, err := b.OpenPayments().GetOutgoingPayment(ctx, tx.ForeignID)
-		if err != nil && !errors.Is(err, openpayments.ErrNotFound) {
-			return nil, err
-		}
-		if op != nil {
-			reference = op.Description
-		}
-
-	} else if tx.Type == transactions.TransactionTypeOpenPaymentIncoming {
-		ip, err := b.OpenPayments().GetIncomingPayment(ctx, tx.ForeignID)
-		if err != nil && !errors.Is(err, openpayments.ErrNotFound) {
-			return nil, err
-		}
-		if ip != nil {
-			reference = ip.ExternalRef
-			if reference == "" {
-				reference = ip.Description
-			}
-		}
 	}
 
 	fees := currency.FromFloat64(0, tx.Amount.Currency)
 
 	return &pb.Transaction{
-		Id:              tx.ID,
-		Type:            string(tx.Type),
-		Amount:          tx.Amount.ToPB(),
-		Source:          tx.Source,
-		Destination:     tx.Destination,
-		Timestamp:       timestamppb.New(tx.Timestamp),
-		State:           string(tx.State),
-		Transfers:       trs,
-		ForeignId:       tx.ForeignID,
-		Title:           title,
-		FormattedAmount: amt,
-		FormattedTime:   tx.Timestamp.Format("15:04"),
-		FormattedDate:   tx.Timestamp.Format("02 Jan 2006"),
-		AccountTitle:    laTitle,
-		Fees:            fees.Format(),
-		Reference:       reference,
-		Subtotal:        amt,
-	}, nil
+		Id:                      tx.ID,
+		Type:                    string(tx.Type),
+		Amount:                  tx.Amount.ToPB(),
+		Source:                  tx.Source,
+		Destination:             tx.Destination,
+		Timestamp:               timestamppb.New(tx.Timestamp),
+		State:                   string(tx.State),
+		Transfers:               trs,
+		ForeignId:               tx.ForeignID,
+		Title:                   title,
+		FormattedAmount:         amt,
+		FormattedTime:           tx.Timestamp.Format("15:04"),
+		FormattedDate:           tx.Timestamp.Format("02 Jan 2006"),
+		Subtotal:                amt,
+		Fees:                    fees.Format(),
+		AccountTitle:            tx.LinkedAccountTitle,
+		Reference:               tx.Reference,
+		DestinationIdentity:     tx.DestinationIdentity,
+		DestinationIdentityType: tx.DestinationIdentityType,
+	}
 }
 
 func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransactionRequest) (*pb.Transaction, error) {
@@ -215,5 +157,5 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransaction(ctx, s.b, *tx)
+	return transformTransaction(*tx), nil
 }

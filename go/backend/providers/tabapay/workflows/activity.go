@@ -151,6 +151,8 @@ func (a *Activity) CreateLinkedCard(ctx context.Context, args CreateLinkedCardAr
 		Nickname:   args.Name,
 		Type:       tabapay.TypeCard,
 		State:      args.State,
+		CanReceive: args.CanReceive,
+		CanSend:    args.CanSend,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)

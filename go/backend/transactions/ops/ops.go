@@ -36,6 +36,22 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		Value("grant_id", sql.NullString{
 			String: args.GrantID,
 			Valid:  args.GrantID != "",
+		}).
+		Value("linked_account_title", sql.NullString{
+			String: args.LinkedAccountTitle,
+			Valid:  args.LinkedAccountTitle != "",
+		}).
+		Value("destination_identity_type", sql.NullString{
+			String: args.DestinationIdentityType,
+			Valid:  args.DestinationIdentityType != "",
+		}).
+		Value("destination_identity", sql.NullString{
+			String: args.DestinationIdentity,
+			Valid:  args.DestinationIdentity != "",
+		}).
+		Value("reference", sql.NullString{
+			String: args.Reference,
+			Valid:  args.Reference != "",
 		})
 	if args.Source != "" {
 		is.Value("source", args.Source)
@@ -183,23 +199,27 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, foreign_id, type, state, provider, note, source, destination, amount, asset_scale, asset_code, updated_at `
+	transactionCols = ` id, foreign_id, type, state, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
 type dbTransaction struct {
-	ID          string                       `db:"id"`
-	ForeignID   sql.NullString               `db:"foreign_id"`
-	Type        transactions.TransactionType `db:"type"`
-	State       transactions.State           `db:"state"`
-	Provider    transactions.Provider        `db:"provider"`
-	Note        sql.NullString               `db:"note"`
-	Source      sql.NullString               `db:"source"`
-	Destination sql.NullString               `db:"destination"`
-	Amount      uint64                       `db:"amount"`
-	Scale       int                          `db:"asset_scale"`
-	Asset       string                       `db:"asset_code"`
-	Timestamp   time.Time                    `db:"updated_at"`
+	ID                      string                       `db:"id"`
+	ForeignID               sql.NullString               `db:"foreign_id"`
+	Type                    transactions.TransactionType `db:"type"`
+	State                   transactions.State           `db:"state"`
+	Provider                transactions.Provider        `db:"provider"`
+	Note                    sql.NullString               `db:"note"`
+	Source                  sql.NullString               `db:"source"`
+	Destination             sql.NullString               `db:"destination"`
+	Amount                  uint64                       `db:"amount"`
+	Scale                   int                          `db:"asset_scale"`
+	Asset                   string                       `db:"asset_code"`
+	Timestamp               time.Time                    `db:"updated_at"`
+	LinkedAccountTitle      sql.NullString               `db:"linked_account_title"`
+	DestinationIdentityType sql.NullString               `db:"destination_identity_type"`
+	DestinationIdentity     sql.NullString               `db:"destination_identity"`
+	Reference               sql.NullString               `db:"reference"`
 }
 
 func List(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
@@ -262,15 +282,19 @@ func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStm
 			return nil, err
 		}
 		resp[i] = transactions.Transaction{
-			ID:          t.ID,
-			ForeignID:   t.ForeignID.String,
-			Source:      t.Source.String,
-			Destination: t.Destination.String,
-			Type:        t.Type,
-			Timestamp:   t.Timestamp,
-			Note:        t.Note.String,
-			State:       t.State,
-			Provider:    t.Provider,
+			ID:                      t.ID,
+			ForeignID:               t.ForeignID.String,
+			Source:                  t.Source.String,
+			Destination:             t.Destination.String,
+			Type:                    t.Type,
+			Timestamp:               t.Timestamp,
+			Note:                    t.Note.String,
+			State:                   t.State,
+			Provider:                t.Provider,
+			LinkedAccountTitle:      t.LinkedAccountTitle.String,
+			DestinationIdentity:     t.DestinationIdentity.String,
+			DestinationIdentityType: t.DestinationIdentityType.String,
+			Reference:               t.Reference.String,
 			Amount: currency.Amount{
 				Value:    t.Amount,
 				Currency: currency.ParseCurrency(t.Asset),
@@ -313,17 +337,21 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 			ForeignID:   t.ForeignID.String,
 			Source:      t.Source.String,
 			Destination: t.Destination.String,
+			Note:        t.Note.String,
 			Type:        t.Type,
 			Timestamp:   t.Timestamp,
-			Note:        t.Note.String,
-			State:       t.State,
 			Provider:    t.Provider,
+			State:       t.State,
 			Amount: currency.Amount{
 				Value:    t.Amount,
 				Currency: currency.ParseCurrency(t.Asset),
 				Scale:    t.Scale,
 			},
-			Transfers: trs,
+			LinkedAccountTitle:      t.LinkedAccountTitle.String,
+			DestinationIdentity:     t.DestinationIdentity.String,
+			DestinationIdentityType: t.DestinationIdentityType.String,
+			Transfers:               trs,
+			Reference:               t.Reference.String,
 		}
 	}
 
@@ -345,15 +373,19 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 	}
 
 	return &transactions.Transaction{
-		ID:          tx.ID,
-		ForeignID:   tx.ForeignID.String,
-		Source:      tx.Source.String,
-		Destination: tx.Destination.String,
-		Type:        tx.Type,
-		Timestamp:   tx.Timestamp,
-		Note:        tx.Note.String,
-		State:       tx.State,
-		Provider:    tx.Provider,
+		ID:                      tx.ID,
+		ForeignID:               tx.ForeignID.String,
+		Source:                  tx.Source.String,
+		Destination:             tx.Destination.String,
+		Type:                    tx.Type,
+		Timestamp:               tx.Timestamp,
+		Note:                    tx.Note.String,
+		State:                   tx.State,
+		Provider:                tx.Provider,
+		LinkedAccountTitle:      tx.LinkedAccountTitle.String,
+		DestinationIdentity:     tx.DestinationIdentity.String,
+		DestinationIdentityType: tx.DestinationIdentityType.String,
+		Reference:               tx.Reference.String,
 		Amount: currency.Amount{
 			Value:    tx.Amount,
 			Currency: currency.ParseCurrency(tx.Asset),
@@ -384,15 +416,19 @@ func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string,
 	}
 
 	return &transactions.Transaction{
-		ID:          tx.ID,
-		ForeignID:   tx.ForeignID.String,
-		Source:      tx.Source.String,
-		Destination: tx.Destination.String,
-		Type:        tx.Type,
-		Timestamp:   tx.Timestamp,
-		Note:        tx.Note.String,
-		State:       tx.State,
-		Provider:    tx.Provider,
+		ID:                      tx.ID,
+		ForeignID:               tx.ForeignID.String,
+		Source:                  tx.Source.String,
+		Destination:             tx.Destination.String,
+		Type:                    tx.Type,
+		Timestamp:               tx.Timestamp,
+		Note:                    tx.Note.String,
+		State:                   tx.State,
+		Provider:                tx.Provider,
+		LinkedAccountTitle:      tx.LinkedAccountTitle.String,
+		DestinationIdentity:     tx.DestinationIdentity.String,
+		DestinationIdentityType: tx.DestinationIdentityType.String,
+		Reference:               tx.Reference.String,
 		Amount: currency.Amount{
 			Value:    tx.Amount,
 			Currency: currency.ParseCurrency(tx.Asset),

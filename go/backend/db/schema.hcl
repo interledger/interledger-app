@@ -834,6 +834,22 @@ table "transactions" {
     null = false
     type = bigint
   }
+  column "linked_account_title" {
+    null = true
+    type = text
+  }
+  column "destination_identity_type" {
+    null = true
+    type = text
+  }
+  column "destination_identity" {
+    null = true
+    type = text
+  }
+  column "reference" {
+    null = true
+    type = text
+  }
   column "created_at" {
     null    = false
     type    = timestamp
