@@ -117,3 +117,13 @@ type AccountData struct {
 	ID         string               `json:"id"`
 	Attributes IndividualAttributes `json:"attributes"`
 }
+
+type AccountTag string
+
+const (
+	AccountTagDirty    AccountTag = "DIRTY"
+	AccountTagPending  AccountTag = "PENDING"
+	AccountTagReview   AccountTag = "REVIEW"
+	AccountTagVerified AccountTag = "VERIFIED"
+	AccountTagRejected AccountTag = "REJECTED"
+)
