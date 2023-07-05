@@ -57,6 +57,8 @@ message Transaction {
   string fees = 15;
   string accountTitle = 16;
   string reference = 17;
+  string destinationIdentity = 18;
+  string destinationIdentityType = 19;
 }
 
 message ListTransactionsResponse {
@@ -112,6 +114,8 @@ message CreateOutgoingPaymentRequest {
   string ipAddress = 4;
   string idempotencyKey = 5;
   string threeDSID = 6;
+  string identity = 7;
+  string identityType = 8;
 }
 
 message LookupIncomingPaymentRequest {
