@@ -3,7 +3,19 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Checkbox, Layouts } from '~/components'
+import {
+  Button,
+  Card,
+  CardButton,
+  CardContent,
+  CardIcon,
+  Checkbox,
+  FynbosIcon,
+  Icon,
+  Layouts,
+  TwitterIcon
+} from '~/components'
+import { Label } from '~/components/Label'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
@@ -51,64 +63,76 @@ export default function Page() {
 
   return (
     <>
+      <Form
+        id='pay-confirm'
+        action={route('/pay/confirm')}
+        method='post'
+        className='hidden'
+      />
       <Card>
         <CardContent>
-          <span>Please check the details and confirm the payment.</span>
-          <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
-            <span className='text-sm'>To</span>
-            <span className='text-sm font-medium text-strong'>
-              {flow?.data.paymentPointer.formatted}
-            </span>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-4xl font-medium text-strong'>
+              {flow?.data.displayReceiveAmount || '$ 0.00'}
+            </h2>
+            <CardIcon>
+              {flow.data.address.type === 'wallet' && <FynbosIcon />}
+              {flow.data.address.type === 'twitter' && <TwitterIcon />}
+            </CardIcon>
           </div>
-          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
-            <span className='text-sm'>Beneficiary Name</span>
-            <span className='text-sm font-medium text-strong'>
-              {flow?.data.paymentPointer.legalName}
-            </span>
+          <Label className='-mb-5 mt-4'>Payment to</Label>
+        </CardContent>
+        <CardButton>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <span>{flow.data.address.handle}</span>
+            <Icon>navigate_next</Icon>
           </div>
-
-          <div className='mt-6 flex w-full flex-col justify-between space-y-1'>
-            <span className='text-sm'>From</span>
-            <span className='text-sm font-medium text-strong'>
-              {linkedAccount?.name}
-            </span>
-          </div>
-          <div className='mt-6 flex w-full justify-between'>
-            <span className='text-sm'>You pay</span>
-            <span className='text-sm font-medium text-strong'>
-              {flow?.data.displaySendAmount || '$ 0.00'}
-            </span>
-          </div>
-          <div className='mt-2 flex w-full justify-between'>
-            <span className='text-sm'>Total fees</span>
-            <span className='text-sm font-medium text-strong'>
-              Free<sup>*</sup>
+        </CardButton>
+      </Card>
+      <Card>
+        <CardContent>
+          <div className='flex w-full justify-between'>
+            <span className='text-weak'>Total fees</span>
+            <span className='text-medium'>
+              Free <sup>*</sup>
             </span>
           </div>
           <div className='mt-2 flex w-full justify-between'>
-            <span className='text-sm'>They receive</span>
-            <span className='text-2xl text-sm font-medium text-strong'>
+            <span className='text-weak'>They receive</span>
+            <span className='text-medium'>
               {flow?.data.displayReceiveAmount || '$ 0.00'}
             </span>
           </div>
+          <div className='mt-4 flex w-full space-x-2'>
+            <span className='text-xs text-medium'>*</span>
+            <span className='text-xs text-medium'>
+              For a limited time, Fynbos will absorb the fees associated with
+              making a payment.
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <div className='flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Source</span>
+            <span className='text-medium'>{linkedAccount?.name}</span>
+          </div>
           {flow?.data.note && (
-            <div className='mt-8 flex w-full flex-col space-y-2'>
-              <span className='text-sm'>Note</span>
-              <span className='text-sm text-strong'>{flow?.data.note}</span>
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Reference</span>
+              <span className='text-medium'>{flow?.data.note}</span>
             </div>
           )}
-
-          <Form
-            id='pay-confirm'
-            action='/pay/confirm'
-            method='post'
-            className='hidden'
-          />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
           <Checkbox
             id='service-agreement'
             name='service-agreement'
             form='pay-confirm'
-            className='mt-8 flex'
+            className='flex'
             aria-invalid={
               Boolean(actionData?.errors.serviceAgreement) || undefined
             }
@@ -138,13 +162,6 @@ export default function Page() {
       <Button form='pay-confirm' type='submit'>
         Confirm payment
       </Button>
-      <div className='mt-6 flex w-full space-x-2'>
-        <span className='text-xs text-medium'>*</span>
-        <span className='text-xs text-medium'>
-          For a limited time, Fynbos will absorb the fees associated with making
-          a payment.
-        </span>
-      </div>
     </>
   )
 }
