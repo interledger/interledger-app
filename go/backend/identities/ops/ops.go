@@ -216,3 +216,16 @@ func GetBySignatureHash(ctx context.Context, b Backends, sigHash []byte) (*ident
 
 	return &res, nil
 }
+
+func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*identities.Identity, error) {
+	var res identities.Identity
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM identities WHERE lower(identifier) = lower($1) and public=true", cols), identifier)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", identities.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return &res, nil
+}

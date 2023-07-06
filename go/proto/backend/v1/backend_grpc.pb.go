@@ -581,6 +581,8 @@ type BackendServiceClient interface {
 	CreateTwitterAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateTwitterAuthURLResponse, error)
 	TwitterCallback(ctx context.Context, in *TwitterCallbackRequest, opts ...grpc.CallOption) (*TwitterCallbackResponse, error)
 	VerifyTwitter(ctx context.Context, in *VerifyTwitterRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Payments
+	GetPaymentAddress(ctx context.Context, in *GetPaymentAddressRequest, opts ...grpc.CallOption) (*GetPaymentAddressResponse, error)
 }
 
 type backendServiceClient struct {
@@ -1131,6 +1133,15 @@ func (c *backendServiceClient) VerifyTwitter(ctx context.Context, in *VerifyTwit
 	return out, nil
 }
 
+func (c *backendServiceClient) GetPaymentAddress(ctx context.Context, in *GetPaymentAddressRequest, opts ...grpc.CallOption) (*GetPaymentAddressResponse, error) {
+	out := new(GetPaymentAddressResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetPaymentAddress", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1214,6 +1225,8 @@ type BackendServiceServer interface {
 	CreateTwitterAuthURL(context.Context, *Empty) (*CreateTwitterAuthURLResponse, error)
 	TwitterCallback(context.Context, *TwitterCallbackRequest) (*TwitterCallbackResponse, error)
 	VerifyTwitter(context.Context, *VerifyTwitterRequest) (*Empty, error)
+	// Payments
+	GetPaymentAddress(context.Context, *GetPaymentAddressRequest) (*GetPaymentAddressResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1399,6 +1412,9 @@ func (UnimplementedBackendServiceServer) TwitterCallback(context.Context, *Twitt
 }
 func (UnimplementedBackendServiceServer) VerifyTwitter(context.Context, *VerifyTwitterRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyTwitter not implemented")
+}
+func (UnimplementedBackendServiceServer) GetPaymentAddress(context.Context, *GetPaymentAddressRequest) (*GetPaymentAddressResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentAddress not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2492,6 +2508,24 @@ func _BackendService_VerifyTwitter_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetPaymentAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPaymentAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetPaymentAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetPaymentAddress",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetPaymentAddress(ctx, req.(*GetPaymentAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2738,6 +2772,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VerifyTwitter",
 			Handler:    _BackendService_VerifyTwitter_Handler,
+		},
+		{
+			MethodName: "GetPaymentAddress",
+			Handler:    _BackendService_GetPaymentAddress_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

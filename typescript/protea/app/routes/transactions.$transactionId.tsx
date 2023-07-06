@@ -6,12 +6,17 @@ import type { ApplicationProps } from '~/components'
 import {
   AnimatedSchedule,
   Card,
+  CardButton,
   CardContent,
+  CardIcon,
   Chip,
   ChipColor,
+  FynbosIcon,
   Icon,
-  Layouts
+  Layouts,
+  TwitterIcon
 } from '~/components'
+import { Label } from '~/components/Label'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 import { getTransaction } from '~/lib/wallet.server'
@@ -83,58 +88,71 @@ function Outgoing() {
   return (
     <>
       <Card>
-        <CardContent className='my-6 flex flex-col items-center justify-center space-y-4'>
-          {transaction.icon == 'schedule' && (
-            <div className='mt-0.5'>
-              <AnimatedSchedule />
-            </div>
-          )}
-          {transaction.icon != 'schedule' && (
-            <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
-          )}
-          <h3 className='text-3xl font-medium text-error'>
-            - {transaction.total}
-          </h3>
-          <p className='text-weak'>Payment to {transaction.title}</p>
-          <p className='text-weak'>
-            Sent on {transaction.date} at {transaction.time}
-          </p>
+        <CardContent>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-4xl font-medium text-error'>
+              - {transaction.total}
+            </h2>
+            {transaction.icon && (
+              <CardIcon>
+                {transaction.icon === 'schedule' && <AnimatedSchedule />}
+                {transaction.icon === 'wallet' && <FynbosIcon />}
+                {transaction.icon === 'twitter' && <TwitterIcon />}
+              </CardIcon>
+            )}
+          </div>
+          <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>
+        <CardButton>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <span>{transaction.title}</span>
+            <Icon>navigate_next</Icon>
+          </div>
+        </CardButton>
       </Card>
       <Card>
-        <CardContent className='flex flex-col space-y-1'>
-          <div className='flex w-full justify-between'>
-            <span className='text-weak'>They receive</span>
-            <span className='text-medium'>{transaction.subTotal}</span>
-          </div>
+        <CardContent>
           <div className='flex w-full justify-between'>
             <span className='text-weak'>Total fees</span>
-            <span className='text-medium'>{transaction.fees}</span>
+            <span className='text-medium'>
+              Free <sup>*</sup>
+            </span>
           </div>
-          <div className='flex w-full justify-between'>
-            <span className='text-weak'>You pay</span>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-weak'>They receive</span>
             <span className='text-medium'>{transaction.total}</span>
+          </div>
+          <div className='mt-4 flex w-full space-x-2'>
+            <span className='text-xs text-medium'>*</span>
+            <span className='text-xs text-medium'>
+              For a limited time, Fynbos will absorb the fees associated with
+              making a payment.
+            </span>
           </div>
         </CardContent>
       </Card>
       <Card>
-        <CardContent className='flex flex-col space-y-4'>
-          {transaction.accountTitle && (
-            <div className='flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Source</span>
-              <span className='text-medium'>{transaction.accountTitle}</span>
-            </div>
-          )}
-          <div className='flex w-full  flex-col space-y-1'>
-            <span className='text-weak'>Transaction ID</span>
-            <span className='text-medium'>{transaction.id}</span>
+        <CardContent>
+          <div className='flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Source</span>
+            <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
           {transaction.reference && (
-            <div className='flex w-full  flex-col space-y-1'>
+            <div className='mt-4 flex w-full flex-col space-y-1'>
               <span className='text-weak'>Reference</span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
           )}
+          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Date</span>
+            <span className='text-medium'>
+              {transaction.date} at {transaction.time}
+            </span>
+          </div>
+          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Transaction ID</span>
+            <span className='text-medium'>{transaction.id}</span>
+          </div>
         </CardContent>
       </Card>
     </>
@@ -146,58 +164,50 @@ function Incoming() {
   return (
     <>
       <Card>
-        <CardContent className='my-6 flex flex-col items-center justify-center space-y-4'>
-          {transaction.icon == 'schedule' && (
-            <div className='mt-0.5'>
-              <AnimatedSchedule />
-            </div>
-          )}
-          {transaction.icon != 'schedule' && (
-            <Icon className='mt-0.5 text-medium'>{transaction.icon}</Icon>
-          )}
-          <h3 className='text-3xl font-medium text-strong'>
-            {transaction.total}
-          </h3>
-          <p className='text-weak'>Payment from {transaction.title}</p>
-          <p className='text-weak'>
-            Received on {transaction.date} at {transaction.time}
-          </p>
+        <CardContent>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-4xl font-medium text-strong'>
+              {transaction.total}
+            </h2>
+            {transaction.icon && (
+              <CardIcon>
+                {transaction.icon === 'schedule' && <AnimatedSchedule />}
+                {transaction.icon === 'wallet' && <FynbosIcon />}
+                {transaction.icon === 'twitter' && <TwitterIcon />}
+              </CardIcon>
+            )}
+          </div>
+          <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>
+        <CardButton>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <span>{transaction.title}</span>
+            <Icon>navigate_next</Icon>
+          </div>
+        </CardButton>
       </Card>
       <Card>
-        <CardContent className='flex flex-col space-y-1'>
-          <div className='flex w-full justify-between'>
-            <span className='text-weak'>They sent</span>
-            <span className='text-medium'>{transaction.subTotal}</span>
-          </div>
-          <div className='flex w-full justify-between'>
-            <span className='text-weak'>Total fees</span>
-            <span className='text-medium'>{transaction.fees}</span>
-          </div>
-          <div className='flex w-full justify-between'>
-            <span className='text-weak'>You received</span>
-            <span className='text-medium'>{transaction.total}</span>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className='flex flex-col space-y-4'>
-          {transaction.accountTitle && (
-            <div className='flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Destination</span>
-              <span className='text-medium'>{transaction.accountTitle}</span>
-            </div>
-          )}
-          <div className='flex w-full  flex-col space-y-1'>
-            <span className='text-weak'>Transaction ID</span>
-            <span className='text-medium'>{transaction.id}</span>
+        <CardContent>
+          <div className='flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Paid to</span>
+            <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
           {transaction.reference && (
-            <div className='flex w-full  flex-col space-y-1'>
-              <span className='text-weak'>Reference</span>
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Their reference</span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
           )}
+          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Date</span>
+            <span className='text-medium'>
+              {transaction.date} at {transaction.time}
+            </span>
+          </div>
+          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Transaction ID</span>
+            <span className='text-medium'>{transaction.id}</span>
+          </div>
         </CardContent>
       </Card>
     </>

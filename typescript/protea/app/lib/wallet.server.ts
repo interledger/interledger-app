@@ -268,17 +268,6 @@ export type Transaction = {
   date: string
 }
 
-function transactionIcon(type: string): string {
-  switch (type) {
-    case 'open_payments_outgoing':
-      return 'north_east'
-    case 'open_payments_incoming':
-      return 'south_west'
-    default:
-      return ''
-  }
-}
-
 type getTransactionsWithPendingResponse = {
   nextPageToken: string
   transactions: Transaction[]
@@ -302,8 +291,9 @@ export async function getTransactionsWithPending(
         return {
           id: trx.id,
           type: trx.type,
-          icon: trx.state == 'Pending' ? 'schedule' : transactionIcon(trx.type),
-          title: trx.title,
+          icon:
+            trx.state == 'Pending' ? 'schedule' : trx.destinationIdentityType,
+          title: trx.destinationIdentity,
           total: trx.formattedAmount,
           time: trx.formattedTime,
           date: trx.formattedDate
@@ -391,14 +381,14 @@ export async function getTransaction(
       return {
         id: resp.response.id,
         type: resp.response.type,
-        title: resp.response.title,
+        title: resp.response.destinationIdentity,
         status: resp.response.state,
         reference: resp.response.reference,
         accountTitle: resp.response.accountTitle,
         icon:
           resp.response.state == 'Pending'
             ? 'schedule'
-            : transactionIcon(resp.response.type),
+            : resp.response.destinationIdentityType,
         subTotal: resp.response.subtotal,
         fees: resp.response.fees,
         total: resp.response.formattedAmount,

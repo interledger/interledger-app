@@ -79,6 +79,21 @@ func (mr *MockClientMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClient)(nil).Get), ctx, id)
 }
 
+// GetByIdentifier mocks base method.
+func (m *MockClient) GetByIdentifier(ctx context.Context, identifier string) (*identities.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByIdentifier", ctx, identifier)
+	ret0, _ := ret[0].(*identities.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIdentifier indicates an expected call of GetByIdentifier.
+func (mr *MockClientMockRecorder) GetByIdentifier(ctx, identifier interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIdentifier", reflect.TypeOf((*MockClient)(nil).GetByIdentifier), ctx, identifier)
+}
+
 // GetBySignatureHash mocks base method.
 func (m *MockClient) GetBySignatureHash(ctx context.Context, sigHash []byte) (*identities.Identity, error) {
 	m.ctrl.T.Helper()

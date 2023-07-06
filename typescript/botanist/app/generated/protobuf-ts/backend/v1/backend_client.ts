@@ -2,6 +2,8 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { GetPaymentAddressResponse } from "./backend";
+import type { GetPaymentAddressRequest } from "./backend";
 import type { VerifyTwitterRequest } from "./backend";
 import type { TwitterCallbackResponse } from "./backend";
 import type { TwitterCallbackRequest } from "./backend";
@@ -536,6 +538,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: VerifyTwitter(backend.v1.VerifyTwitterRequest) returns (backend.v1.Empty);
      */
     verifyTwitter(input: VerifyTwitterRequest, options?: RpcOptions): UnaryCall<VerifyTwitterRequest, Empty>;
+    /**
+     * Payments
+     *
+     * @generated from protobuf rpc: GetPaymentAddress(backend.v1.GetPaymentAddressRequest) returns (backend.v1.GetPaymentAddressResponse);
+     */
+    getPaymentAddress(input: GetPaymentAddressRequest, options?: RpcOptions): UnaryCall<GetPaymentAddressRequest, GetPaymentAddressResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1003,5 +1011,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     verifyTwitter(input: VerifyTwitterRequest, options?: RpcOptions): UnaryCall<VerifyTwitterRequest, Empty> {
         const method = this.methods[59], opt = this._transport.mergeOptions(options);
         return stackIntercept<VerifyTwitterRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Payments
+     *
+     * @generated from protobuf rpc: GetPaymentAddress(backend.v1.GetPaymentAddressRequest) returns (backend.v1.GetPaymentAddressResponse);
+     */
+    getPaymentAddress(input: GetPaymentAddressRequest, options?: RpcOptions): UnaryCall<GetPaymentAddressRequest, GetPaymentAddressResponse> {
+        const method = this.methods[60], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPaymentAddressRequest, GetPaymentAddressResponse>("unary", this._transport, method, opt, input);
     }
 }
