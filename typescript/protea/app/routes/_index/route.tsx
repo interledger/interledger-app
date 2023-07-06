@@ -10,6 +10,7 @@ import type {
 } from '~/generated/dato-cms-graphql'
 import type {
   Features,
+  Transaction,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { hasUserSession } from '~/lib/kratos.server'
@@ -19,7 +20,6 @@ import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import type { SnackbarType } from '~/lib/snackbar.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import type { PusherArgs } from '~/lib/usePusher'
-import type { Transaction } from '~/lib/wallet.server'
 import {
   getFeatures,
   getKycStatus,

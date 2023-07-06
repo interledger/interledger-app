@@ -51,7 +51,7 @@ export const FynbosIcon: FC<LogoProps> = ({ className }) => {
       width='24'
       height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6', className)}
+      className={clsx('h-6 flex-none', className)}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -81,7 +81,7 @@ export const GithubIcon: FC<LogoProps> = ({ className }) => {
       width='24'
       height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6', className ?? 'text-black')}
+      className={clsx('h-6 flex-none', className ?? 'text-black')}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -111,7 +111,7 @@ export const InstagramIcon: FC<LogoProps> = ({ className }) => {
       width='24'
       height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6', className)}
+      className={clsx('h-6 flex-none', className)}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -180,7 +180,7 @@ export const LinkedInIcon: FC<LogoProps> = ({ className }) => {
       width='24'
       height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6', className ?? 'text-[#0A66C2]')}
+      className={clsx('h-6 flex-none', className ?? 'text-[#0A66C2]')}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -198,7 +198,7 @@ export const TwitterIcon: FC<LogoProps> = ({ className }) => {
       width='24'
       height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6', className ?? 'text-[#1D9BF0]')}
+      className={clsx('h-6 flex-none', className ?? 'text-[#1D9BF0]')}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -216,7 +216,7 @@ export const YoutubeIcon: FC<LogoProps> = ({ className }) => {
       width='24'
       height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6', className ?? 'text-[#FF0000]')}
+      className={clsx('h-6 flex-none', className ?? 'text-[#FF0000]')}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -238,7 +238,7 @@ export const FaceBookIcon: FC<LogoProps> = ({ className }) => {
       width='24'
       height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6', className ?? 'text-[#1877F2]')}
+      className={clsx('h-6 flex-none', className ?? 'text-[#1877F2]')}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >

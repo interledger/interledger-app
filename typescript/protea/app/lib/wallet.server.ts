@@ -10,6 +10,7 @@ import type {
   LinkedAccount,
   ListContactsRequest,
   ListContactsResponse,
+  ListTransactionsResponse,
   PaginationRequest,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
@@ -268,15 +269,10 @@ export type Transaction = {
   date: string
 }
 
-type getTransactionsWithPendingResponse = {
-  nextPageToken: string
-  transactions: Transaction[]
-}
-
 export async function getTransactionsWithPending(
   request: Request,
   input: PaginationRequest
-): Promise<getTransactionsWithPendingResponse> {
+): Promise<ListTransactionsResponse> {
   const cookie = String(request.headers.get('cookie'))
   return grpcClient
     .listTransactionsWithPending(input, {
@@ -285,20 +281,7 @@ export async function getTransactionsWithPending(
       }
     })
     .then((response) => ({
-      nextPageToken: response.response.nextPageToken,
-      transactions: response.response.transactions.map((trx) => {
-        console.log('trx', trx)
-        return {
-          id: trx.id,
-          type: trx.type,
-          icon:
-            trx.state == 'Pending' ? 'schedule' : trx.destinationIdentityType,
-          title: trx.destinationIdentity,
-          total: trx.formattedAmount,
-          time: trx.formattedTime,
-          date: trx.formattedDate
-        }
-      })
+      ...response.response
     }))
     .catch((error) => {
       const status = StatusError(error)
@@ -385,10 +368,7 @@ export async function getTransaction(
         status: resp.response.state,
         reference: resp.response.reference,
         accountTitle: resp.response.accountTitle,
-        icon:
-          resp.response.state == 'Pending'
-            ? 'schedule'
-            : resp.response.destinationIdentityType,
+        icon: resp.response.destinationIdentityType,
         subTotal: resp.response.subtotal,
         fees: resp.response.fees,
         total: resp.response.formattedAmount,
