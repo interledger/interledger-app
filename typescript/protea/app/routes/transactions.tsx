@@ -32,7 +32,7 @@ import {
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { Transaction } from '~/lib/wallet.server'
+import type { Transaction } from '~/generated/protobuf-ts/backend/v1/backend'
 import { getKycStatus, getTransactionsWithPending } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 
@@ -80,8 +80,8 @@ export async function loader({ request }: LoaderArgs) {
     [...allTransactions].reduce<{
       [date: string]: Transaction[]
     }>((prev, current) => {
-      prev[current.date] = prev[current.date] || []
-      prev[current.date].push(current)
+      prev[current.formattedDate] = prev[current.formattedDate] || []
+      prev[current.formattedDate].push(current)
       return prev
     }, Object.create(null))
   )
@@ -182,8 +182,8 @@ export default function Page() {
         const newTransactions = fetcher.data.transactions
         // Verifies if current and new transaction sets have date group overlap
         if (
-          lastOfCurrent[lastOfCurrent.length - 1].date ==
-          newTransactions[0][0].date
+          lastOfCurrent[lastOfCurrent.length - 1].formattedDate ==
+          newTransactions[0][0].formattedDate
         ) {
           const last = currentTransactions.pop() ?? []
           const first = newTransactions.shift()
@@ -262,7 +262,9 @@ export default function Page() {
           transactions.map((transactionGroup, index) => (
             <Card key={`group-${index}`}>
               <CardContent>
-                <Label className='-mb-5'>{transactionGroup[0].date}</Label>
+                <Label className='-mb-5'>
+                  {transactionGroup[0].formattedDate}
+                </Label>
               </CardContent>
               {transactionGroup.map((transaction) => (
                 <CardLink
@@ -275,15 +277,21 @@ export default function Page() {
                   className='justify-between space-x-4'
                 >
                   <div className='flex w-7/12 items-center space-x-2'>
-                    {transaction.icon == 'schedule' && <AnimatedSchedule />}
-                    {transaction.icon == 'wallet' && <FynbosIcon />}
-                    {transaction.icon == 'twitter' && <TwitterIcon />}
+                    {transaction.state == 'Pending' && <AnimatedSchedule />}
+                    {transaction.state != 'Pending' &&
+                      transaction.destinationIdentityType == 'wallet' && (
+                        <FynbosIcon />
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.destinationIdentityType == 'twitter' && (
+                        <TwitterIcon />
+                      )}
                     <div className='flex w-full flex-col space-y-1'>
                       <span className='truncate text-medium'>
-                        {transaction.title}
+                        {transaction.destinationIdentity}
                       </span>
                       <span className='text-xs text-weak'>
-                        {transaction.time}
+                        {transaction.formattedTime}
                       </span>
                     </div>
                   </div>
@@ -297,7 +305,7 @@ export default function Page() {
                       )}
                     >
                       {transaction.type.includes('outgoing') && '- '}
-                      {transaction.total}
+                      {transaction.formattedAmount}
                     </span>
                     <Icon>navigate_next</Icon>
                   </div>

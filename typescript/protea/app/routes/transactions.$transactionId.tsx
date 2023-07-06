@@ -95,7 +95,6 @@ function Outgoing() {
             </h2>
             {transaction.icon && (
               <CardIcon>
-                {transaction.icon === 'schedule' && <AnimatedSchedule />}
                 {transaction.icon === 'wallet' && <FynbosIcon />}
                 {transaction.icon === 'twitter' && <TwitterIcon />}
               </CardIcon>
