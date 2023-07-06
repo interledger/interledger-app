@@ -204,8 +204,8 @@ export async function action({ request }: ActionArgs) {
         externalRef: '',
         ipAddress: clientIpAddress,
         threeDSID: '',
-        identityType: '',
-        identity:''
+        identityType: flow.data.address.type,
+        identity: flow.data.address.handle
       },
       {
         meta: {

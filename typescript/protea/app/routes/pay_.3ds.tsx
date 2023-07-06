@@ -312,8 +312,8 @@ export async function action({ request }: ActionArgs) {
         description: flow.data.note,
         externalRef: '',
         ipAddress: clientIpAddress,
-        identity:'',
-        identityType:''
+        identityType: flow.data.address.type,
+        identity: flow.data.address.handle
       },
       {
         meta: {
