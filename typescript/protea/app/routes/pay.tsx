@@ -19,6 +19,7 @@ import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
+  grpcClient,
   httpMapping,
   isGrpcError,
   openPaymentsClient
@@ -71,8 +72,8 @@ export default function Page() {
   return (
     <>
       <Form
-        id='pay-payment-pointer'
-        action='/pay'
+        id='pay-address'
+        action={route('/pay')}
         method='post'
         className='hidden'
       />
@@ -80,26 +81,22 @@ export default function Page() {
         <CardContent>
           <span>Enter the recipient’s wallet address.</span>
           <TextField
-            id='paymentPointer'
+            id='address'
             label='Wallet address'
-            name='paymentPointer'
-            form='pay-payment-pointer'
+            name='address'
+            form='pay-address'
             type='text'
             className='mt-6'
-            defaultValue={flow.data?.paymentPointer?.formatted}
-            aria-invalid={
-              Boolean(actionData?.errors.paymentPointer) || undefined
-            }
+            defaultValue={flow.data?.address?.walletUrl}
+            aria-invalid={Boolean(actionData?.errors.address) || undefined}
             aria-describedby={
-              actionData?.errors.paymentPointer
-                ? 'paymentPointer-error'
-                : undefined
+              actionData?.errors.address ? 'paymentPointer-error' : undefined
             }
-            errorMessage={actionData?.errors.paymentPointer}
+            errorMessage={actionData?.errors.address}
           />
         </CardContent>
       </Card>
-      <Button form='pay-payment-pointer' type='submit'>
+      <Button form='pay-address' type='submit'>
         Continue
       </Button>
       <Card>
@@ -117,8 +114,8 @@ export default function Page() {
         {contacts.map((contact, index) => (
           <CardButton
             key={contact.id}
-            name='paymentPointer'
-            form='pay-payment-pointer'
+            name='address'
+            form='pay-address'
             value={contact.paymentPointer}
             className='items-center space-x-3'
           >
@@ -134,10 +131,10 @@ export default function Page() {
 // The field names given by the backend for field violations
 type fieldErrorsMap = 'url'
 
-function mapper(field: fieldErrorsMap): 'paymentPointer' | null {
+function mapper(field: fieldErrorsMap): 'address' | null {
   switch (field) {
     case 'url':
-      return 'paymentPointer'
+      return 'address'
     default:
       return null
   }
@@ -146,15 +143,22 @@ function mapper(field: fieldErrorsMap): 'paymentPointer' | null {
 export async function action({ request }: ActionArgs) {
   await requireFlow(request, flowType.Pay)
   const form = await request.formData()
-  const paymentPointer = form.get('paymentPointer') as string
+  const address = form.get('address') as string
 
   const fieldErrors = {
     form: '',
-    paymentPointer: ''
+    address: ''
   }
 
-  const response = await openPaymentsClient
-    .getPaymentPointer({ url: paymentPointer })
+  const response = await grpcClient
+    .getPaymentAddress(
+      { address: address },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
     .then((v) => v)
     .catch(StatusError)
 
@@ -167,14 +171,14 @@ export async function action({ request }: ActionArgs) {
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else if (response.code == 5) {
-      fieldErrors.paymentPointer = 'Wallet address not found.'
+      fieldErrors.address = 'Wallet address not found.'
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(response.code))
   }
 
   const canSendResponse = await openPaymentsClient
     .canSendToPaymentPointer(
-      { paymentPointer: paymentPointer },
+      { paymentPointer: response.response.walletUrl },
       {
         meta: {
           cookies: String(request.headers.get('cookie')) || ''
@@ -194,12 +198,12 @@ export async function action({ request }: ActionArgs) {
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(canSendResponse.code))
   } else if (!canSendResponse.response.canSend) {
-    fieldErrors.paymentPointer = "Wallet address can't receive payments."
+    fieldErrors.address = "Wallet address can't receive payments."
     return json({ errors: { ...fieldErrors } }, { status: 400 })
   }
 
   await updateFlow(request, flowType.Pay, {
-    paymentPointer: { ...response.response }
+    address: { ...response.response }
   })
 
   return redirect(route('/pay/amount'))

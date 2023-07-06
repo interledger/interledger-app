@@ -10,11 +10,17 @@ import type { ApplicationProps, SelectOptions } from '~/components'
 import {
   Button,
   Card,
+  CardButton,
   CardContent,
+  CardIcon,
+  FynbosIcon,
+  Icon,
   Layouts,
   Select,
-  TextField
+  TextField,
+  TwitterIcon
 } from '~/components'
+import { Label } from '~/components/Label'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -81,24 +87,38 @@ export default function Page() {
 
   return (
     <>
+      <fetcher.Form
+        id='amount-form'
+        action='/pay/amount'
+        method='post'
+        className='hidden'
+      />
       <Card>
         <CardContent>
-          <span>You are about to pay:</span>
-          <span className='mt-4'>{flow.data.paymentPointer.legalName}</span>
-          <div className='mt-2 flex items-center justify-between rounded-xl bg-nav p-4 text-medium'>
-            <span>{flow.data.paymentPointer.formatted}</span>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-4xl font-medium text-strong'>
+              {flow?.data.displayReceiveAmount || '$ 0.00'}
+            </h2>
+            <CardIcon>
+              {flow.data.address.type === 'wallet' && <FynbosIcon />}
+              {flow.data.address.type === 'twitter' && <TwitterIcon />}
+            </CardIcon>
           </div>
-          {/*TODO Add a submit form*/}
-          <fetcher.Form
-            id='amount-form'
-            action='/pay/amount'
-            method='post'
-            className='hidden'
-          />
+          <Label className='-mb-5 mt-4'>Payment to</Label>
+        </CardContent>
+        <CardButton>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <span>{flow.data.address.handle}</span>
+            <Icon>navigate_next</Icon>
+          </div>
+        </CardButton>
+      </Card>
+      <Card>
+        <CardContent>
           <TextField
             id='amount'
             form='amount-form'
-            label='You pay'
+            label='Amount'
             name='amount'
             defaultValue={flow?.data.amount}
             onChange={_onChangeInput}
@@ -106,7 +126,6 @@ export default function Page() {
             type='number'
             min='0'
             step='0.01'
-            className='mt-6'
             aria-invalid={Boolean(fetcher.data?.errors.amount) || undefined}
             aria-describedby={
               fetcher.data?.errors.amount ? 'amount-error' : undefined
@@ -114,23 +133,15 @@ export default function Page() {
             errorMessage={fetcher.data?.errors.amount || undefined}
             required
           />
-
-          <div className='mt-4 flex w-full justify-between'>
-            <span className='text-sm'>Total fees</span>
-            <span className='text-sm font-medium text-strong'>
-              Free<sup>*</sup>
-            </span>
-          </div>
-          <div className='mt-4 flex w-full justify-between'>
-            <span className='text-sm'>They receive</span>
-            <span className='text-2xl text-sm font-medium text-strong'>
-              {flow?.data.displayReceiveAmount || '$ 0.00'}
-            </span>
-          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <span>Select an account to pay from:</span>
           <Select
             id='linkedAccount'
-            label='Pay from'
-            className='mt-12'
+            label='Connected accounts'
+            className='mt-4'
             value={linkedAccount}
             options={linkedAccounts}
             onChange={_onChangeLinkedAccount}
@@ -152,15 +163,15 @@ export default function Page() {
           />
           <TextField
             id='note'
-            label='Note'
+            label='Reference'
             name='note'
             form='amount-form'
             type='text'
             defaultValue={flow.data.note || ''}
-            className='mt-12'
+            className='mt-4'
             aria-invalid={Boolean(fetcher.data?.errors.note) || undefined}
             aria-describedby={
-              fetcher.data?.errors.note ? 'paymentPointer-error' : undefined
+              fetcher.data?.errors.note ? 'reference-error' : undefined
             }
             errorMessage={fetcher.data?.errors.note}
           />
@@ -169,13 +180,6 @@ export default function Page() {
       <Button form='amount-form' type='submit' name='route-to' value='next'>
         Continue
       </Button>
-      <div className='mt-6 flex w-full space-x-2'>
-        <span className='text-xs text-medium'>*</span>
-        <span className='text-xs text-medium'>
-          For a limited time, Fynbos will absorb the fees associated with making
-          a payment.
-        </span>
-      </div>
     </>
   )
 }
@@ -219,7 +223,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   let walletInfo = await getWalletInfo(request)
-  let receivePaymentPointer = flow.data.paymentPointer.url
+  let receivePaymentPointer = flow.data.address.walletUrl
 
   // TODO: Submit note with quote
   const response = await openPaymentsClient
@@ -230,8 +234,8 @@ export async function action({ request }: ActionArgs) {
         description: note,
         amount: {
           amount: amountToSubmit,
-          asset: flow.data.paymentPointer.asset,
-          assetScale: flow.data.paymentPointer.assetScale
+          asset: 'USD',
+          assetScale: 2
         },
         expiresAt,
         sendLinkedAccount: toLinkedAccountId
