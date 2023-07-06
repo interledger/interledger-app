@@ -96,7 +96,7 @@ const CardButton = forwardRef<
     <button
       ref={ref}
       className={clsx(
-        'mx-2 my-1 flex rounded-xl p-3 first-of-type:mt-2 last-of-type:mb-2 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
+        'mx-2 my-1 flex rounded-xl bg-nav p-3 first-of-type:mt-2 last-of-type:mb-2 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
         className
       )}
       {...props}
