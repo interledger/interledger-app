@@ -40,6 +40,7 @@ import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
 import {
   StatusError,
+  grpcClient,
   httpMapping,
   isGrpcError,
   openPaymentsClient
@@ -349,9 +350,16 @@ export function ErrorBoundary() {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const paymentPointerParam = params['*'] as string
-  const response = await openPaymentsClient
-    .getPaymentPointer({ url: paymentPointerParam })
+  const walletAddressParam = params['*'] as string
+  const response = await grpcClient
+    .getPaymentAddress(
+      { address: walletAddressParam },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
@@ -362,13 +370,13 @@ export async function action({ request, params }: ActionArgs) {
   await requireFlow(request, flowType.Pay, {
     startRoute: route('/pay/amount'),
     data: {
-      paymentPointer: { ...response.response }
+      address: { ...response.response }
     },
     returnTo: '/'
   })
 
   await updateFlow(request, flowType.Pay, {
-    paymentPointer: { ...response.response }
+    address: { ...response.response }
   })
   return redirect(route('/pay/amount'))
 }
