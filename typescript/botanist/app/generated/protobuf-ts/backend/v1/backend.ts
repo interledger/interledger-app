@@ -1959,6 +1959,10 @@ export interface GetPaymentAddressResponse {
      * @generated from protobuf field: string handle = 3;
      */
     handle: string; // url or twitter handle
+    /**
+     * @generated from protobuf field: bool canSendToAddress = 4;
+     */
+    canSendToAddress: boolean;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
@@ -8857,11 +8861,12 @@ class GetPaymentAddressResponse$Type extends MessageType<GetPaymentAddressRespon
         super("backend.v1.GetPaymentAddressResponse", [
             { no: 1, name: "wallet_url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "handle", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "handle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "canSendToAddress", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<GetPaymentAddressResponse>): GetPaymentAddressResponse {
-        const message = { walletUrl: "", type: "", handle: "" };
+        const message = { walletUrl: "", type: "", handle: "", canSendToAddress: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetPaymentAddressResponse>(this, message, value);
@@ -8880,6 +8885,9 @@ class GetPaymentAddressResponse$Type extends MessageType<GetPaymentAddressRespon
                     break;
                 case /* string handle */ 3:
                     message.handle = reader.string();
+                    break;
+                case /* bool canSendToAddress */ 4:
+                    message.canSendToAddress = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -8902,6 +8910,9 @@ class GetPaymentAddressResponse$Type extends MessageType<GetPaymentAddressRespon
         /* string handle = 3; */
         if (message.handle !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.handle);
+        /* bool canSendToAddress = 4; */
+        if (message.canSendToAddress !== false)
+            writer.tag(4, WireType.Varint).bool(message.canSendToAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

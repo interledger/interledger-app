@@ -3,11 +3,13 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
+
+	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/paymentpointers"
 	pb "gitlab.com/fynbos/proto/backend/v1"
-	"net/url"
-	"strings"
 )
 
 /*
@@ -21,6 +23,12 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 
 	source := identifySource(add)
 
+	var walletID string
+	w, err := s.b.Users().WalletForContext(ctx)
+	if err == nil {
+		walletID = w.ID
+	}
+
 	if source == "fynbos" {
 		pp, err := ops.GetPaymentPointer(ctx, s.b, ops.StandardisePaymentPointer(add))
 		if err != nil {
@@ -31,10 +39,16 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
+		canSendToAddress, err := canSendToPaymentPointer(ctx, s.b, walletID, pp)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
 		return &pb.GetPaymentAddressResponse{
-			WalletUrl: pp.URL,
-			Type:      "wallet",
-			Handle:    parsedPP.ShortString(),
+			WalletUrl:        pp.URL,
+			Type:             "wallet",
+			Handle:           parsedPP.ShortString(),
+			CanSendToAddress: canSendToAddress,
 		}, nil
 	}
 
@@ -53,10 +67,16 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
+		canSendToAddress, err := canSendToPaymentPointer(ctx, s.b, walletID, pp)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
 		return &pb.GetPaymentAddressResponse{
-			WalletUrl: pp.URL,
-			Type:      "twitter",
-			Handle:    "@" + twitterIdentitifer,
+			WalletUrl:        pp.URL,
+			Type:             "twitter",
+			Handle:           "@" + twitterIdentitifer,
+			CanSendToAddress: canSendToAddress,
 		}, nil
 	}
 
@@ -110,4 +130,35 @@ func getTwitterHandle(input string) (string, error) {
 	}
 
 	return pathParts[1], nil
+}
+
+// Returns false if
+// 1) sending to own wallet
+// 2) payment pointer doesn't have any linked accounts that can receive
+func canSendToPaymentPointer(ctx context.Context, b Backends, fromWalletID string, pp *openpayments.PaymentPointer) (bool, error) {
+	if pp == nil {
+		return false, nil
+	}
+
+	if pp.WalletID == fromWalletID {
+		return false, nil
+	}
+
+	las, err := b.LinkedAccounts().ListByWalletId(ctx, pp.WalletID)
+	if err != nil {
+		return false, err
+	}
+
+	var ppCanReceive bool
+	for _, la := range las {
+		if la.CanReceive {
+			ppCanReceive = true
+			break
+		}
+	}
+	if !ppCanReceive {
+		return false, nil
+	}
+
+	return true, nil
 }
