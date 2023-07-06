@@ -81,6 +81,21 @@ func (mr *MockClientMockRecorder) LookupInquiry(ctx, inquiryID interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupInquiry", reflect.TypeOf((*MockClient)(nil).LookupInquiry), ctx, inquiryID)
 }
 
+// RemoveTag mocks base method.
+func (m *MockClient) RemoveTag(ctx context.Context, accountID, tag string) (*persona.AccountData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveTag", ctx, accountID, tag)
+	ret0, _ := ret[0].(*persona.AccountData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveTag indicates an expected call of RemoveTag.
+func (mr *MockClientMockRecorder) RemoveTag(ctx, accountID, tag interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTag", reflect.TypeOf((*MockClient)(nil).RemoveTag), ctx, accountID, tag)
+}
+
 // ResumeInquiry mocks base method.
 func (m *MockClient) ResumeInquiry(ctx context.Context, inquiryID, idempotencyKey string) (*persona.InquiryData, error) {
 	m.ctrl.T.Helper()
