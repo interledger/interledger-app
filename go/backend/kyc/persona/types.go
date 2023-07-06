@@ -9,8 +9,9 @@ type Webhook struct {
 }
 
 type Attributes struct {
-	Name    string          `json:"name"`
-	Payload json.RawMessage `json:"payload"`
+	Name      string          `json:"name"`
+	Payload   json.RawMessage `json:"payload"`
+	CreatedAt string          `json:"created-at"`
 }
 
 type WebhookData struct {
@@ -93,6 +94,20 @@ type InquiryMeta struct {
 	SessionToken string `json:"session-token"`
 }
 
+type InquiryStatus string
+
+const (
+	InquiryStarted     InquiryStatus = "started"
+	InquiryCreated     InquiryStatus = "created"
+	InquiryPending     InquiryStatus = "pending"
+	InquiryExpired     InquiryStatus = "expired"
+	InquiryCompleted   InquiryStatus = "completed"
+	InquiryFailed      InquiryStatus = "failed"
+	InquiryNeedsReview InquiryStatus = "needs_review"
+	InquiryApproved    InquiryStatus = "approved"
+	InquiryDeclined    InquiryStatus = "declined"
+)
+
 type Account struct {
 	Data AccountData `json:"data"`
 }
@@ -102,3 +117,13 @@ type AccountData struct {
 	ID         string               `json:"id"`
 	Attributes IndividualAttributes `json:"attributes"`
 }
+
+type AccountTag string
+
+const (
+	AccountTagDirty    AccountTag = "DIRTY"
+	AccountTagPending  AccountTag = "PENDING"
+	AccountTagReview   AccountTag = "REVIEW"
+	AccountTagVerified AccountTag = "VERIFIED"
+	AccountTagRejected AccountTag = "REJECTED"
+)
