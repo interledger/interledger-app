@@ -23,10 +23,12 @@ import {
   Chip,
   ChipColor,
   Fab,
+  FynbosIcon,
   GridColumn,
   Icon,
   Layouts,
   Router,
+  TwitterIcon,
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -270,30 +272,25 @@ export default function Page() {
                   to={route('/transactions/:transactionId', {
                     transactionId: transaction.id
                   })}
-                  className='justify-between'
+                  className='justify-between space-x-4'
                 >
-                  <div className='flex space-x-1'>
-                    {transaction.icon == 'schedule' && (
-                      <div className='mt-0.5'>
-                        <AnimatedSchedule />
-                      </div>
-                    )}
-                    {transaction.icon != 'schedule' && (
-                      <Icon className='mt-0.5 text-medium'>
-                        {transaction.icon}
-                      </Icon>
-                    )}
-                    <div className='flex flex-col space-y-1'>
-                      <span className='text-medium'>{transaction.title}</span>
+                  <div className='flex w-7/12 items-center space-x-2'>
+                    {transaction.icon == 'schedule' && <AnimatedSchedule />}
+                    {transaction.icon == 'wallet' && <FynbosIcon />}
+                    {transaction.icon == 'twitter' && <TwitterIcon />}
+                    <div className='flex w-full flex-col space-y-1'>
+                      <span className='truncate text-medium'>
+                        {transaction.title}
+                      </span>
                       <span className='text-xs text-weak'>
                         {transaction.time}
                       </span>
                     </div>
                   </div>
-                  <div className='flex items-center space-x-2'>
+                  <div className='flex min-w-max flex-initial items-center space-x-2'>
                     <span
                       className={clsx(
-                        'font-medium',
+                        'min-w-max font-medium',
                         transaction.type.includes('outgoing')
                           ? 'text-error'
                           : 'text-medium'
