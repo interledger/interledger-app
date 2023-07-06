@@ -23,6 +23,7 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
 
@@ -326,5 +327,12 @@ export async function action({ request }: ActionArgs) {
   if (isGrpcError(payment)) throw json({}, httpMapping(payment.code))
 
   await exitFlow(request, flowType.Pay)
-  return redirect(route('/'))
+  return redirect(route('/'), {
+    headers: {
+      'Set-Cookie': await flashSnackbar(request, {
+        message: 'Payment created successfully.',
+        icon: 'close'
+      })
+    }
+  })
 }
