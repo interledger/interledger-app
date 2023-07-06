@@ -45,8 +45,8 @@ export const Snackbar: FC<SnackbarProps> = ({
       show={show}
       as={'div'}
       className={clsx(
-        'fixed left-0 top-2 z-[100] mx-auto w-full overflow-y-visible lg:top-4',
-        offset ? 'lg:pl-64' : ''
+        'fixed left-0 z-[100] mx-auto w-full overflow-y-visible lg:bottom-auto lg:top-4',
+        offset ? 'bottom-32 lg:pl-64' : 'bottom-4'
       )}
     >
       <div className='flex justify-center text-center'>

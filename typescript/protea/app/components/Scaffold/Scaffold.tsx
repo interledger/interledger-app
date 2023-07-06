@@ -17,6 +17,7 @@ import {
   WalletShapes
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import type { SnackbarType } from '~/lib/snackbar.server'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -61,6 +62,7 @@ export type ScaffoldProps = {
   }
   footer?: (match: RouteMatch) => FooterRecord
   fab?: Fab
+  snackbar?: (match: RouteMatch) => SnackbarType
   isNested?: boolean
 }
 
