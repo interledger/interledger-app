@@ -13,6 +13,7 @@ import {
   CardTitle,
   Chip,
   ChipColor,
+  FynbosIcon,
   GridColumn,
   Icon,
   Router,
@@ -180,20 +181,22 @@ export function AppPage() {
                   className='justify-between'
                 >
                   <div className='flex space-x-1'>
-                    {transaction.icon == 'schedule' && (
-                      <div className='mt-0.5'>
-                        <AnimatedSchedule />
-                      </div>
-                    )}
-                    {transaction.icon != 'schedule' && (
-                      <Icon className='mt-0.5 text-medium'>
-                        {transaction.icon}
-                      </Icon>
-                    )}
+                    {transaction.state == 'Pending' && <AnimatedSchedule />}
+                    {transaction.state != 'Pending' &&
+                      transaction.destinationIdentityType == 'wallet' && (
+                        <FynbosIcon />
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.destinationIdentityType == 'twitter' && (
+                        <TwitterIcon />
+                      )}
                     <div className='flex flex-col space-y-1'>
-                      <span className='text-medium'>{transaction.title}</span>
+                      <span className='text-medium'>
+                        {transaction.destinationIdentity}
+                      </span>
                       <span className='text-xs text-weak'>
-                        {transaction.date} - {transaction.time}
+                        {transaction.formattedDate} -{' '}
+                        {transaction.formattedTime}
                       </span>
                     </div>
                   </div>
@@ -207,7 +210,7 @@ export function AppPage() {
                       )}
                     >
                       {transaction.type.includes('outgoing') && '- '}
-                      {transaction.total}
+                      {transaction.formattedAmount}
                     </span>
                     <Icon>navigate_next</Icon>
                   </div>
