@@ -128,7 +128,7 @@ func accountCreatedWebhook(ctx context.Context, b Backends, js json.RawMessage) 
 		return err
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2);", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2) ON CONFLICT DO NOTHING;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
 	if err != nil {
 		return err
 	}
@@ -140,6 +140,16 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 	err := json.Unmarshal(js, &whAcc)
 	if err != nil {
 		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2) ON CONFLICT DO NOTHING;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
+	if err != nil {
+		log.Error(
+			"persona webhook: failed to map persona account to wallet.",
+			zap.Error(err),
+			zap.String("external accountID", whAcc.Data.ID),
+			zap.String("walletID", whAcc.Data.Attributes.ReferenceID),
+		)
 	}
 
 	// All information may not be included in the webhook, so we get the full info from the API
