@@ -30,6 +30,7 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
+import { flashSnackbar } from '~/lib/snackbar.server'
 import { getLinkedAccounts, getWalletInfo } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -39,9 +40,22 @@ export async function loader({ request }: LoaderArgs) {
   }
   const flow = await requireFlow(request, flowType.Pay)
   const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
+
+  const linkedAccounts = [...cardAccounts, ...bankAccounts].filter(
+    (acc) => acc.canSend
+  )
+
+  if (linkedAccounts.length === 0) {
+    await flashSnackbar(request, {
+      message: 'You need a connected account to make a payment.',
+      icon: 'close'
+    })
+    return redirect(route('/accounts'))
+  }
+
   return json({
     flow,
-    linkedAccounts: [...cardAccounts, ...bankAccounts]
+    linkedAccounts
   })
 }
 
