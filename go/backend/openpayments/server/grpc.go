@@ -365,12 +365,14 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 	}
 
 	args := openpayments.CreateOutgoingPaymentArgs{
-		IdempotencyKey: req.IdempotencyKey,
-		QuoteID:        req.QuoteID,
-		Description:    req.Description,
-		ExternalRef:    req.ExternalRef,
-		IPAddress:      req.IpAddress,
-		ThreeDSID:      req.GetThreeDSID(),
+		IdempotencyKey:          req.IdempotencyKey,
+		QuoteID:                 req.QuoteID,
+		Description:             req.Description,
+		ExternalRef:             req.ExternalRef,
+		IPAddress:               req.IpAddress,
+		ThreeDSID:               req.GetThreeDSID(),
+		DestinationIdentityType: req.IdentityType,
+		DestinationIdentity:     req.Identity,
 	}
 
 	err = g.b.Validator().Struct(args)

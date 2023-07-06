@@ -167,7 +167,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,
@@ -410,7 +410,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}).Get(ctx, &tabapayTransaction)
 	if err != nil {
 		logger.Error("failed to pull from card", "err", err)
-		if temporal_utils.IsNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
 				OutgoingTransferState:      transactions.StateFailed,
@@ -428,7 +428,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(tabapayTransaction) {
 		logger.Error("failed to pull from card", "err", err)
-		if temporal_utils.IsNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2ACH,
 				OutgoingTransferState:      transactions.StateFailed,
@@ -491,7 +491,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,
@@ -501,6 +501,7 @@ func Card2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 		Source:      args.FromPaymentPointer,
 		Destination: args.ToPaymentPointer,
 		Amount:      args.Amount,
+
 		Transfers: []transactions.TransferArgs{
 			{
 				ForeignID:       achTransaction.ID,
@@ -886,7 +887,7 @@ func ACH2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs
 
 	// TODO: risk assessment
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,
@@ -1019,7 +1020,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}).Get(ctx, &sendTransaction)
 	if err != nil {
 		logger.Error("failed to pull from card", "err", err)
-		if temporal_utils.IsNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2CARD,
 				OutgoingTransferState:      transactions.StateFailed,
@@ -1037,7 +1038,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(sendTransaction) {
 		logger.Error("failed to pull from card", "err", err)
-		if temporal_utils.IsNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2CARD,
 				OutgoingTransferState:      transactions.StateFailed,
@@ -1134,7 +1135,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}).Get(ctx, &recvTransaction)
 	if err != nil {
 		logger.Error("Failed to push to card.", "Error", err)
-		if temporal_utils.IsNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
 			if err != nil {
 				logger.Error("failed to rollback tabapay card transaction", "err", err)
@@ -1161,7 +1162,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	}
 	if err != nil || !tabapay.IsSuccessfulTransaction(recvTransaction) {
 		logger.Error("Failed to push to card.", "Error", err)
-		if temporal_utils.IsNonRetryableError(err) {
+		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
 			if err != nil {
 				logger.Error("failed to rollback tabapay card transaction", "err", err)
@@ -1196,7 +1197,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 
 	// TODO: risk assessment
 
-	err = workflow.ExecuteActivity(ctx, a.AddTransaction, transactions.CreateTransactionArgs{
+	err = workflow.ExecuteActivity(ctx, a.AddIncomingTransaction, transactions.CreateTransactionArgs{
 		ID:          recvTrxID,
 		WalletID:    args.ToWalletID,
 		ForeignID:   args.ToForeignID,
