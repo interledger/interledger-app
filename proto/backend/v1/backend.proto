@@ -809,4 +809,5 @@ message GetPaymentAddressResponse {
   string wallet_url = 1;
   string type = 2; // wallet, twitter
   string handle = 3; // url or twitter handle
+  bool canSendToAddress = 4;
 }
