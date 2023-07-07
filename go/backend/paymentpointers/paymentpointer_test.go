@@ -1,10 +1,11 @@
 package paymentpointers_test
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/paymentpointers"
-	"testing"
 )
 
 func TestParsePaymentPointer(t *testing.T) {
@@ -13,6 +14,7 @@ func TestParsePaymentPointer(t *testing.T) {
 		value               string
 		expectedString      string
 		expectedShortString string
+		err                 bool
 	}{
 		{
 			name:                "http",
@@ -38,11 +40,20 @@ func TestParsePaymentPointer(t *testing.T) {
 			expectedString:      "https://fynbos.me/asdf",
 			expectedShortString: "fynbos.me/asdf",
 		},
+		{
+			name:  "not_a_url",
+			value: "fluffy",
+			err:   true,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			pp, err := paymentpointers.Parse(tc.value)
+			if tc.err {
+				require.Error(t, err)
+				return
+			}
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedString, pp.String())
 			assert.Equal(t, tc.expectedShortString, pp.ShortString())
