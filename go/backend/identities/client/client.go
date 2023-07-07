@@ -63,6 +63,6 @@ func (c client) GetByIdentifier(ctx context.Context, identifier string) (*identi
 	return ops.GetByIdentifier(ctx, c.b, identifier)
 }
 
-func (c client) Search(ctx context.Context, term string) ([]identities.SearchResult, error) {
-	return ops.Search(ctx, c.b, term)
+func (c client) Search(ctx context.Context, walletID, term string) ([]identities.SearchResult, error) {
+	return ops.Search(ctx, c.b, walletID, term)
 }

@@ -233,7 +233,7 @@ func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*ident
 	return &res, nil
 }
 
-func Search(ctx context.Context, b Backends, term string) ([]identities.SearchResult, error) {
+func Search(ctx context.Context, b Backends, walletID, term string) ([]identities.SearchResult, error) {
 	var res []identities.SearchResult
 
 	if len(term) < 3 {
@@ -250,7 +250,7 @@ func Search(ctx context.Context, b Backends, term string) ([]identities.SearchRe
                UNION 
                SELECT wallet_id, alias, 'wallet_name' as identifier_type, similarity(alias, $1) as rank
                FROM payment_pointers
-               WHERE alias ILIKE $2) tmp ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+2)
+               WHERE alias ILIKE $2) tmp WHERE wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+2, walletID)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
