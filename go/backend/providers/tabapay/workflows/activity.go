@@ -109,8 +109,9 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 
 	referenceID := tabapay.NewReferenceID()
 	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
-		RejectDuplicateCard: args.RejectDuplicateCard,
-		ReferenceID:         referenceID,
+		RejectDuplicateCard:  args.RejectDuplicateCard,
+		OKToAddDuplicateCard: !args.RejectDuplicateCard,
+		ReferenceID:          referenceID,
 		Card: external.Card{
 			AccountNumber:  args.CardNumber,
 			ExpirationDate: args.ExpirationDate,
