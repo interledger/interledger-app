@@ -275,11 +275,16 @@ func TestSearch(t *testing.T) {
 	err = ops.UpdateState(ctx, b, id.ID, identities.StateVerified, "proof")
 	require.NoError(t, err)
 
-	res, err := ops.Search(ctx, b, "cold")
+	res, err := ops.Search(ctx, b, uuid.NewString(), "cold")
 	require.NoError(t, err)
 
 	assert.Len(t, res, 1)
 	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
 	assert.Equal(t, "@king_cold", res[0].Identifier)
 	assert.Equal(t, 0.5, res[0].Rank)
+
+	// Can't search for yourself
+	res, err = ops.Search(ctx, b, walletID, "cold")
+	require.NoError(t, err)
+	assert.Len(t, res, 0)
 }

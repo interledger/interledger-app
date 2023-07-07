@@ -567,6 +567,10 @@ export interface SearchResult {
      */
     walletID: string;
     /**
+     * @generated from protobuf field: bool canSend = 4;
+     */
+    canSend: boolean;
+    /**
      * @generated from protobuf field: string identifier = 2;
      */
     identifier: string;
@@ -3784,12 +3788,13 @@ class SearchResult$Type extends MessageType<SearchResult> {
     constructor() {
         super("backend.v1.SearchResult", [
             { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "canSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 2, name: "identifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "identifierType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SearchResult>): SearchResult {
-        const message = { walletID: "", identifier: "", identifierType: "" };
+        const message = { walletID: "", canSend: false, identifier: "", identifierType: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SearchResult>(this, message, value);
@@ -3802,6 +3807,9 @@ class SearchResult$Type extends MessageType<SearchResult> {
             switch (fieldNo) {
                 case /* string walletID */ 1:
                     message.walletID = reader.string();
+                    break;
+                case /* bool canSend */ 4:
+                    message.canSend = reader.bool();
                     break;
                 case /* string identifier */ 2:
                     message.identifier = reader.string();
@@ -3824,6 +3832,9 @@ class SearchResult$Type extends MessageType<SearchResult> {
         /* string walletID = 1; */
         if (message.walletID !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* bool canSend = 4; */
+        if (message.canSend !== false)
+            writer.tag(4, WireType.Varint).bool(message.canSend);
         /* string identifier = 2; */
         if (message.identifier !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.identifier);
