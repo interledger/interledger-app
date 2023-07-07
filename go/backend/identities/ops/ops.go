@@ -5,11 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
+	"gitlab.com/fynbos/env"
+
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/identities"
@@ -228,4 +231,30 @@ func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*ident
 	}
 
 	return &res, nil
+}
+
+func Search(ctx context.Context, b Backends, term string) ([]identities.SearchResult, error) {
+	var res []identities.SearchResult
+
+	if len(term) < 3 {
+		return res, nil
+	}
+
+	err := b.DB().SelectContext(ctx, &res, `SELECT * FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
+               FROM identities
+               WHERE public = true AND verified_at is not null AND identifier ILIKE $2
+               UNION
+               SELECT wallet_id, url as identifier, 'wallet_address' as identifier_type, similarity(substring(url, $3), $1) as rank
+               FROM payment_pointers
+               WHERE substring(url, $3) ILIKE $2
+               UNION 
+               SELECT wallet_id, alias, 'wallet_name' as identifier_type, similarity(alias, $1) as rank
+               FROM payment_pointers
+               WHERE alias ILIKE $2) tmp ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+2)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return res, nil
 }

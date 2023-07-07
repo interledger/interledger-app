@@ -148,3 +148,21 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		HasWalletAddress: hasWalletAddress,
 	}, nil
 }
+
+func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsRequest) (*pb.SearchWalletsResponse, error) {
+	results, err := s.b.Identities().Search(ctx, req.Term)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	res := make([]*pb.SearchResult, len(results))
+	for i, r := range results {
+		res[i] = &pb.SearchResult{
+			WalletID:       r.WalletID,
+			Identifier:     r.Identifier,
+			IdentifierType: r.IdentifierType,
+		}
+	}
+
+	return &pb.SearchWalletsResponse{Results: res}, nil
+}
