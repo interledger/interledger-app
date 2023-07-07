@@ -573,8 +573,12 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 		gender = "Female"
 	}
 
+	var address string
+	if recvID.Address != nil {
+		address = recvID.Address.String()
+	}
 	return &external.WsReceiver{
-		ReceiverAddress:             recvID.Address.FormattedAddress,
+		ReceiverAddress:             address,
 		ReceiverBirthDate:           external.GMTDate(recvID.DateOfBirth),
 		ReceiverCity:                recvID.Address.City,
 		ReceiverCountry:             recvID.Address.CountryCode,
@@ -627,11 +631,10 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		return nil, err
 	}
 
-	address := senderID.Address.FormattedAddress
-	if address == "" {
+	var address string
+	if senderID.Address != nil {
 		address = senderID.Address.String()
 	}
-
 	sender := &external.WsSender{
 		SenderAddress:               address,
 		SenderAddressStreet:         senderID.Address.Apartment,
