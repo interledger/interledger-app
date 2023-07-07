@@ -113,7 +113,7 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 	amt := tx.Amount.Format()
 	title := tx.Source
 	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment {
-		title = tx.Destination
+		title = tx.DestinationIdentity
 	}
 
 	fees := currency.FromFloat64(0, tx.Amount.Currency)
