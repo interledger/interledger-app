@@ -2,6 +2,8 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { SearchWalletsResponse } from "./backend";
+import type { SearchWalletsRequest } from "./backend";
 import type { GetPaymentAddressResponse } from "./backend";
 import type { GetPaymentAddressRequest } from "./backend";
 import type { VerifyTwitterRequest } from "./backend";
@@ -544,6 +546,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetPaymentAddress(backend.v1.GetPaymentAddressRequest) returns (backend.v1.GetPaymentAddressResponse);
      */
     getPaymentAddress(input: GetPaymentAddressRequest, options?: RpcOptions): UnaryCall<GetPaymentAddressRequest, GetPaymentAddressResponse>;
+    /**
+     * Search
+     *
+     * @generated from protobuf rpc: SearchWallets(backend.v1.SearchWalletsRequest) returns (backend.v1.SearchWalletsResponse);
+     */
+    searchWallets(input: SearchWalletsRequest, options?: RpcOptions): UnaryCall<SearchWalletsRequest, SearchWalletsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1020,5 +1028,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getPaymentAddress(input: GetPaymentAddressRequest, options?: RpcOptions): UnaryCall<GetPaymentAddressRequest, GetPaymentAddressResponse> {
         const method = this.methods[60], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetPaymentAddressRequest, GetPaymentAddressResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Search
+     *
+     * @generated from protobuf rpc: SearchWallets(backend.v1.SearchWalletsRequest) returns (backend.v1.SearchWalletsResponse);
+     */
+    searchWallets(input: SearchWalletsRequest, options?: RpcOptions): UnaryCall<SearchWalletsRequest, SearchWalletsResponse> {
+        const method = this.methods[61], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SearchWalletsRequest, SearchWalletsResponse>("unary", this._transport, method, opt, input);
     }
 }
