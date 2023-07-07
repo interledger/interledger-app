@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetStateCode(t *testing.T) {
-	lookup := []string{"california", "California", " caliFornia", " CaliforniA ", "california "}
+	lookup := []string{"california", "California", " caliFornia", " CaliforniA ", "california ", "CA", "CA "}
 
 	for _, l := range lookup {
 		code, err := country.GetStateCode(country.US, l)
