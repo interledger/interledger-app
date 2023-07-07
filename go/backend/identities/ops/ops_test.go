@@ -287,4 +287,13 @@ func TestSearch(t *testing.T) {
 	res, err = ops.Search(ctx, b, walletID, "cold")
 	require.NoError(t, err)
 	assert.Len(t, res, 0)
+
+	// Search with a full twitter URL
+	res, err = ops.Search(ctx, b, uuid.NewString(), "https://twitter.com/king_cold")
+	require.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
+	assert.Equal(t, "@king_cold", res[0].Identifier)
+	assert.Equal(t, float64(1), res[0].Rank)
+
 }
