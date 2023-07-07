@@ -364,7 +364,7 @@ export async function getTransaction(
       return {
         id: resp.response.id,
         type: resp.response.type,
-        title: resp.response.destinationIdentity,
+        title: resp.response.title,
         status: resp.response.state,
         reference: resp.response.reference,
         accountTitle: resp.response.accountTitle,

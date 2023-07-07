@@ -191,9 +191,7 @@ export function AppPage() {
                         <TwitterIcon />
                       )}
                     <div className='flex flex-col space-y-1'>
-                      <span className='text-medium'>
-                        {transaction.destinationIdentity}
-                      </span>
+                      <span className='text-medium'>{transaction.title}</span>
                       <span className='text-xs text-weak'>
                         {transaction.formattedDate} -{' '}
                         {transaction.formattedTime}

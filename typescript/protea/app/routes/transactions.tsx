@@ -288,7 +288,7 @@ export default function Page() {
                       )}
                     <div className='flex w-full flex-col space-y-1'>
                       <span className='truncate text-medium'>
-                        {transaction.destinationIdentity}
+                        {transaction.title}
                       </span>
                       <span className='text-xs text-weak'>
                         {transaction.formattedTime}
