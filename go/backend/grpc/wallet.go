@@ -59,6 +59,55 @@ func (s *rpcService) GetPublicWalletDetails(ctx context.Context, req *pb.GetPubl
 	}, toGRPCError(err)
 }
 
+func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicWalletInfoRequest) (*pb.PublicWalletInfo, error) {
+	opp, err := s.b.OpenPayments().GetPaymentPointer(ctx, req.WalletAddress)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	pp, err := paymentpointers.Parse(opp.URL)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	wallet, err := s.b.Users().GetWallet(ctx, opp.WalletID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	ids, err := s.b.Identities().ListPublic(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	idsResp := make([]*pb.Identity, len(ids))
+	for i, id := range ids {
+		idsResp[i] = identityToPB(&id, pp.String())
+	}
+
+	lal, err := s.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var canRecv bool
+	for _, la := range lal {
+		if la.CanReceive {
+			canRecv = true
+			break
+		}
+	}
+
+	return &pb.PublicWalletInfo{
+		WalletID:     wallet.ID,
+		Address:      pp.String(),
+		ShortAddress: pp.ShortString(),
+		Identities:   idsResp,
+		CanReceive:   canRecv,
+		PublicName:   opp.Alias,
+	}, nil
+}
+
 func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.WalletInfo, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil && !errors.Is(err, user.ErrNoUserFound) {

@@ -214,6 +214,7 @@ service BackendService {
   // Wallet
   rpc SetWalletName(SetWalletNameRequest) returns (Empty);
   rpc GetWalletInfo(Empty) returns (WalletInfo);
+  rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns(PublicWalletInfo);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (Empty);
   rpc SendOTP(Empty) returns (Empty);
@@ -316,6 +317,19 @@ message SearchResult {
   bool canSend = 4;
   string identifier = 2;
   string identifierType = 3;
+}
+
+message GetPublicWalletInfoRequest {
+  string walletAddress = 1;
+}
+
+message PublicWalletInfo {
+  string walletID = 1;
+  string address = 2;
+  string shortAddress = 3;
+  string publicName = 4;
+  repeated Identity identities = 5;
+  bool canReceive = 6;
 }
 
 message WalletInfo {
