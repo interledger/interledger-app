@@ -312,6 +312,7 @@ message SearchWalletsResponse {
 
 message SearchResult {
   string walletID = 1;
+  bool canSend = 4;
   string identifier = 2;
   string identifierType = 3;
 }
