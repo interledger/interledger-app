@@ -87,7 +87,7 @@ func TestCreatePaymentPointer(t *testing.T) {
 			assetCode: "ZAR",
 			scale:     2,
 			err:       openpayments.ErrInvalidPointerPath,
-			errMsg:    "Your first 4 characters must be letters",
+			errMsg:    "Your first 3 characters must be letters",
 		},
 		{
 			name:      "regex_contains_slash",
@@ -100,12 +100,12 @@ func TestCreatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:      "regex_too_short",
-			url:       "https://fynbos.me/Pay",
+			url:       "https://fynbos.me/Pa",
 			alias:     "Alias",
 			assetCode: "ZAR",
 			scale:     2,
 			err:       openpayments.ErrInvalidPointerPath,
-			errMsg:    "Your payment pointer must be longer than 4 characters",
+			errMsg:    "Your payment pointer must be longer than 3 characters",
 		},
 		{
 			name:      "regex_too_long",
@@ -342,7 +342,7 @@ func TestValidatePaymentPointer(t *testing.T) {
 			name:   "regex_first_4_not_alpha",
 			url:    "https://fynbos.me/1234PayMe",
 			err:    openpayments.ErrInvalidPointerPath,
-			errMsg: "Your first 4 characters must be letters",
+			errMsg: "Your first 3 characters must be letters",
 		},
 		{
 			name:   "regex_contains_slash",
@@ -352,9 +352,9 @@ func TestValidatePaymentPointer(t *testing.T) {
 		},
 		{
 			name:   "regex_too_short",
-			url:    "https://fynbos.me/Pay",
+			url:    "https://fynbos.me/Pa",
 			err:    openpayments.ErrInvalidPointerPath,
-			errMsg: "Your payment pointer must be longer than 4 characters",
+			errMsg: "Your payment pointer must be longer than 3 characters",
 		},
 		{
 			name:   "regex_too_long",
