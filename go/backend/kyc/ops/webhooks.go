@@ -244,8 +244,15 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 		}
 
 		var state string
-		if details.CountryCode != "" && details.AddressSubdivision != "" {
-			state = details.CountryCode + "-" + details.AddressSubdivision // US-CA for example
+		addressSubdivision := strings.ToUpper(strings.TrimSpace(details.AddressSubdivision))
+		_, ok := country.States[country.Country(details.CountryCode)][addressSubdivision]
+		if !ok {
+			state, err = country.GetStateCode(country.Country(details.CountryCode), addressSubdivision)
+			if err != nil {
+				log.Error("persona webhook: unknown state.", zap.Error(err), zap.String("walletID", whAcc.Data.Attributes.ReferenceID), zap.String("externalID", whAcc.Data.ID))
+			}
+		} else {
+			state = addressSubdivision
 		}
 		_, err = UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
 			WalletID:     details.ReferenceID,
