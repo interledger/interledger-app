@@ -176,7 +176,7 @@ function Incoming() {
               </CardIcon>
             )}
           </div>
-          <Label className='-mb-5 mt-4'>Payment to</Label>
+          <Label className='-mb-5 mt-4'>Payment from</Label>
         </CardContent>
         <CardButton>
           <div className='flex w-full items-center justify-between text-medium'>
