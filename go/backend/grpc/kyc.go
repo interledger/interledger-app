@@ -87,16 +87,15 @@ func addressFromPB(address *pb.Address) *kyc.Address {
 	}
 
 	return &kyc.Address{
-		Line1:            address.GetLine1(),
-		Line2:            address.GetLine2(),
-		Building:         address.GetBuilding(),
-		Apartment:        address.GetApartment(),
-		City:             address.GetCity(),
-		State:            address.GetState(),
-		ZipCode:          address.GetZipCode(),
-		CountryCode:      address.GetCountryCode(),
-		FormattedAddress: address.GetFormattedAddress(),
-		PlaceID:          address.GetPlaceID(),
+		Line1:       address.GetLine1(),
+		Line2:       address.GetLine2(),
+		Building:    address.GetBuilding(),
+		Apartment:   address.GetApartment(),
+		City:        address.GetCity(),
+		State:       address.GetState(),
+		ZipCode:     address.GetZipCode(),
+		CountryCode: address.GetCountryCode(),
+		PlaceID:     address.GetPlaceID(),
 	}
 }
 
@@ -152,6 +151,7 @@ func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.I
 	}
 
 	if details.Address != nil {
+		address := details.Address.String()
 		resp.Address = &pb.Address{
 			Line1:            &details.Address.Line1,
 			Line2:            &details.Address.Line2,
@@ -162,7 +162,7 @@ func (s *rpcService) GetIndividualKYC(ctx context.Context, req *pb.Empty) (*pb.I
 			ZipCode:          &details.Address.ZipCode,
 			CountryCode:      &details.Address.CountryCode,
 			PlaceID:          &details.Address.PlaceID,
-			FormattedAddress: &details.Address.FormattedAddress,
+			FormattedAddress: &address,
 		}
 	}
 

@@ -92,7 +92,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 
 	var address string
 	if id.Address != nil {
-		address = id.Address.FormattedAddress
+		address = id.Address.String()
 	}
 
 	return &adminv1.WalletDetails{

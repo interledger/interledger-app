@@ -1,7 +1,7 @@
 package kyc
 
 import (
-	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/kyc/persona"
@@ -30,16 +30,15 @@ type IndividualDetails struct {
 }
 
 type Address struct {
-	Line1            string `json:"line_1,omitempty"`
-	Line2            string `json:"line_2,omitempty"`
-	Building         string `json:"building,omitempty"`
-	Apartment        string `json:"apartment,omitempty"`
-	City             string `json:"city,omitempty"`
-	State            string `json:"state,omitempty" validate:"omitempty,iso3166_2"`
-	ZipCode          string `json:"zip_code,omitempty"`
-	CountryCode      string `json:"country_code,omitempty" validate:"omitempty,iso3166_1_alpha2"`
-	FormattedAddress string `json:"formatted_address,omitempty"`
-	PlaceID          string `json:"place_id,omitempty"`
+	Line1       string `json:"line_1,omitempty"`
+	Line2       string `json:"line_2,omitempty"`
+	Building    string `json:"building,omitempty"`
+	Apartment   string `json:"apartment,omitempty"`
+	City        string `json:"city,omitempty"`
+	State       string `json:"state,omitempty" validate:"omitempty,iso3166_2"`
+	ZipCode     string `json:"zip_code,omitempty"`
+	CountryCode string `json:"country_code,omitempty" validate:"omitempty,iso3166_1_alpha2"`
+	PlaceID     string `json:"place_id,omitempty"`
 }
 
 //go:generate stringer -type=Status -trimprefix=Status
@@ -60,7 +59,12 @@ func (s Status) ToInt32() int32 {
 }
 
 func (a *Address) String() string {
-	return fmt.Sprintf("%s %s %s %s %s %s %s", a.Line2, a.Line1, a.Building, a.Apartment, a.City, a.State, a.CountryCode)
+	if a == nil {
+		return ""
+	}
+
+	parts := []string{a.Line1, a.Line2, a.Apartment, a.Building, a.City, a.State, a.ZipCode, a.CountryCode}
+	return strings.Join(parts, ",")
 }
 
 type PersonaInquiry struct {
