@@ -121,7 +121,7 @@ func sanitizePaymentPointer(rawURL string) (string, error) {
 }
 
 var pointerRegex = regexp.MustCompile(`^[A-Za-z]{4}[a-zA-z0\d_]{0,26}$`)
-var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{4}$`)
+var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{3}$`)
 
 // validatePaymentPointer returns the sanitized url or an error if the payment pointer is not in the format https://{base}/{variable}
 // {variable} has the following conditions:
@@ -155,15 +155,15 @@ func validatePaymentPointer(rawURL string) (string, error) {
 
 	path := strings.TrimPrefix(pointerURL.Path, "/")
 
-	if len(path) < 4 {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer must be longer than 4 characters")
+	if len(path) < 3 {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer must be longer than 3 characters")
 	}
 	if len(path) > 30 {
 		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer must be shorter than 30 characters")
 	}
 
-	if !pointerPrefixRegex.MatchString(path[:4]) {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your first 4 characters must be letters")
+	if !pointerPrefixRegex.MatchString(path[:3]) {
+		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your first 3 characters must be letters")
 	}
 
 	if !pointerRegex.MatchString(path) {
