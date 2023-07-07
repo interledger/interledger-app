@@ -7,6 +7,11 @@ import (
 
 // This will return the ISO3166_2 code for the state. e.g. US-CA.
 func GetStateCode(country Country, state string) (string, error) {
+	_, ok := States[country][strings.TrimSpace(state)] // check for direct match
+	if ok {
+		return fmt.Sprintf("%s-%s", country, strings.TrimSpace(state)), nil
+	}
+
 	states, ok := States[country]
 	if !ok {
 		return "", fmt.Errorf("%w Unknown country=%s.", ErrNotFound, country)
