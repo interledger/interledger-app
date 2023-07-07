@@ -15,7 +15,7 @@ func Parse(rawPaymentPointer string) (PaymentPointer, error) {
 
 	pp := standardize(rawPaymentPointer)
 
-	ppURL, err := url.Parse(pp)
+	ppURL, err := url.ParseRequestURI(pp)
 	if err != nil {
 		return PaymentPointer{}, err
 	}
@@ -58,6 +58,11 @@ func standardize(pp string) string {
 	// We use https here
 	if strings.HasPrefix(pp, "http://") {
 		return strings.Replace(pp, "http://", "https://", 1)
+	}
+
+	// Payment pointer URLs have at least one slash after the prefix, let the chips fall and the URL parsing fail
+	if !strings.Contains(pp, "/") {
+		return pp
 	}
 
 	// The payment pointer has no prefix assume we need to add https://
