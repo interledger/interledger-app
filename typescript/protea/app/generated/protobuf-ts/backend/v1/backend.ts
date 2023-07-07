@@ -541,6 +541,41 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.SearchWalletsRequest
+ */
+export interface SearchWalletsRequest {
+    /**
+     * @generated from protobuf field: string term = 1;
+     */
+    term: string;
+}
+/**
+ * @generated from protobuf message backend.v1.SearchWalletsResponse
+ */
+export interface SearchWalletsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.SearchResult results = 1;
+     */
+    results: SearchResult[];
+}
+/**
+ * @generated from protobuf message backend.v1.SearchResult
+ */
+export interface SearchResult {
+    /**
+     * @generated from protobuf field: string walletID = 1;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string identifier = 2;
+     */
+    identifier: string;
+    /**
+     * @generated from protobuf field: string identifierType = 3;
+     */
+    identifierType: string;
+}
+/**
  * @generated from protobuf message backend.v1.WalletInfo
  */
 export interface WalletInfo {
@@ -3650,6 +3685,161 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SearchWalletsRequest$Type extends MessageType<SearchWalletsRequest> {
+    constructor() {
+        super("backend.v1.SearchWalletsRequest", [
+            { no: 1, name: "term", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SearchWalletsRequest>): SearchWalletsRequest {
+        const message = { term: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SearchWalletsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SearchWalletsRequest): SearchWalletsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string term */ 1:
+                    message.term = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SearchWalletsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string term = 1; */
+        if (message.term !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.term);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SearchWalletsRequest
+ */
+export const SearchWalletsRequest = new SearchWalletsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SearchWalletsResponse$Type extends MessageType<SearchWalletsResponse> {
+    constructor() {
+        super("backend.v1.SearchWalletsResponse", [
+            { no: 1, name: "results", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => SearchResult }
+        ]);
+    }
+    create(value?: PartialMessage<SearchWalletsResponse>): SearchWalletsResponse {
+        const message = { results: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SearchWalletsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SearchWalletsResponse): SearchWalletsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.SearchResult results */ 1:
+                    message.results.push(SearchResult.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SearchWalletsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.SearchResult results = 1; */
+        for (let i = 0; i < message.results.length; i++)
+            SearchResult.internalBinaryWrite(message.results[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SearchWalletsResponse
+ */
+export const SearchWalletsResponse = new SearchWalletsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SearchResult$Type extends MessageType<SearchResult> {
+    constructor() {
+        super("backend.v1.SearchResult", [
+            { no: 1, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "identifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "identifierType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SearchResult>): SearchResult {
+        const message = { walletID: "", identifier: "", identifierType: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SearchResult>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SearchResult): SearchResult {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletID */ 1:
+                    message.walletID = reader.string();
+                    break;
+                case /* string identifier */ 2:
+                    message.identifier = reader.string();
+                    break;
+                case /* string identifierType */ 3:
+                    message.identifierType = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SearchResult, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletID = 1; */
+        if (message.walletID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletID);
+        /* string identifier = 2; */
+        if (message.identifier !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.identifier);
+        /* string identifierType = 3; */
+        if (message.identifierType !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.identifierType);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SearchResult
+ */
+export const SearchResult = new SearchResult$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class WalletInfo$Type extends MessageType<WalletInfo> {
     constructor() {
@@ -9004,5 +9194,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
     { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },
     { name: "VerifyTwitter", options: {}, I: VerifyTwitterRequest, O: Empty },
-    { name: "GetPaymentAddress", options: {}, I: GetPaymentAddressRequest, O: GetPaymentAddressResponse }
+    { name: "GetPaymentAddress", options: {}, I: GetPaymentAddressRequest, O: GetPaymentAddressResponse },
+    { name: "SearchWallets", options: {}, I: SearchWalletsRequest, O: SearchWalletsResponse }
 ]);
