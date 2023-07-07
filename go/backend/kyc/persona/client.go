@@ -23,6 +23,7 @@ type Client interface {
 	ResumeInquiry(ctx context.Context, inquiryID, idempotencyKey string) (*InquiryData, error)
 	LookupInquiry(ctx context.Context, inquiryID string) (*Inquiry, error)
 	ValidateWebhook(req *http.Request, body []byte) bool
+	RemoveTag(ctx context.Context, accountID string, tag string) (*AccountData, error)
 }
 
 type client struct {
@@ -227,4 +228,55 @@ func (c *client) ValidateWebhook(req *http.Request, body []byte) bool {
 	expectedMac := hex.EncodeToString(mac.Sum(nil))
 
 	return strings.EqualFold(expectedMac, v1)
+}
+
+func (c *client) RemoveTag(ctx context.Context, accountID, tag string) (*AccountData, error) {
+	reqUrl, err := url.JoinPath(c.baseURL, "accounts", accountID, "remove-tag")
+	if err != nil {
+		return nil, err
+	}
+
+	reqBody := map[string]interface{}{
+		"meta": map[string]string{
+			"tag_name": tag,
+		},
+	}
+
+	reqJson, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqJson))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.bearerToken)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Persona-Version", "2023-01-05")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrNotFound
+	} else if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to remove tag on account. status=(%s) body=(%s)", resp.Status, string(respBody))
+	}
+
+	var respData Account
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData.Data, nil
 }
