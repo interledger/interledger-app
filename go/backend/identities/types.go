@@ -67,3 +67,10 @@ type Claim struct {
 	Kid        string `json:"kid"`
 	Ctime      int64  `json:"ctime"`
 }
+
+type SearchResult struct {
+	WalletID       string  `db:"wallet_id"`
+	Identifier     string  `db:"identifier"`
+	IdentifierType string  `db:"identifier_type"`
+	Rank           float64 `db:"rank"`
+}
