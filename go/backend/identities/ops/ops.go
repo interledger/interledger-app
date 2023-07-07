@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/paymentpointers"
+
 	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/log"
@@ -236,19 +238,27 @@ func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*ident
 func Search(ctx context.Context, b Backends, walletID, term string) ([]identities.SearchResult, error) {
 	var res []identities.SearchResult
 
+	// Strip the URL prefix if it is a wallet address or a twitter account URL
+	wa, err := paymentpointers.Parse(term)
+	if err == nil {
+		// Valid URL, possibly wallet address
+		term = strings.TrimPrefix(wa.String(), env.OpenPaymentsURL()+"/")
+		term = strings.TrimPrefix(term, "https://twitter.com/")
+	}
+
 	if len(term) < 3 {
 		return res, nil
 	}
 
-	err := b.DB().SelectContext(ctx, &res, `SELECT * FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
+	err = b.DB().SelectContext(ctx, &res, `SELECT * FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
                FROM identities
                WHERE public = true AND verified_at is not null AND identifier ILIKE $2
                UNION
-               SELECT wallet_id, url as identifier, 'wallet_address' as identifier_type, similarity(substring(url, $3), $1) as rank
+               SELECT wallet_id, url as identifier, 'wallet' as identifier_type, similarity(substring(url, $3), $1) as rank
                FROM payment_pointers
                WHERE substring(url, $3) ILIKE $2
-               UNION 
-               SELECT wallet_id, alias, 'wallet_name' as identifier_type, similarity(alias, $1) as rank
+               UNION DISTINCT 
+               SELECT wallet_id, alias, 'wallet' as identifier_type, similarity(alias, $1) as rank
                FROM payment_pointers
                WHERE alias ILIKE $2) tmp WHERE wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+2, walletID)
 
