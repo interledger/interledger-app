@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
 )
@@ -57,7 +58,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 
 	ul, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
 	args := persona.IndividualAttributes{
@@ -77,6 +78,21 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		}
 	}
 
+	// fallback to the country they used for signup
+	if args.CountryCode == "" {
+		su, err := b.Signup().GetForUser(ctx, ul[0].ID)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+		}
+
+		args.CountryCode = su.CountryCode
+	}
+
+	inquiryTemplateID, err := persona.GetTemplateIDForCountry(ctx, country.Country(args.CountryCode))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+	args.InquiryTemplateID = string(inquiryTemplateID)
 	inquiry, err = cl.CreateInquiry(ctx, args, idempotencyKey)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
