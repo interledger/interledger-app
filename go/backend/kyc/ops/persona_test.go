@@ -12,6 +12,9 @@ import (
 	"gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	persona_mock "gitlab.com/fynbos/backend/kyc/persona/mock"
+	"gitlab.com/fynbos/backend/signup"
+	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
+
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
@@ -20,16 +23,24 @@ func TestGetPersonaInquiry(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
+	ctrl := gomock.NewController(t)
 	uc := user_mock.NewMock()
+
+	userID := uuid.NewString()
+	sc := signup_mock.NewMockClient(ctrl)
+	sc.EXPECT().GetForUser(gomock.Any(), userID).Return(
+		&signup.Signup{
+			UserID:      userID,
+			CountryCode: "US",
+		}, nil,
+	)
 	w, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: uuid.NewString(),
+		UserID: userID,
 		Name:   "test",
 	})
 	require.NoError(t, err)
 
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc)
-
-	ctrl := gomock.NewController(t)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc)
 	pc := persona_mock.NewMockClient(ctrl)
 
 	// There is no existing inquiry or KYC data

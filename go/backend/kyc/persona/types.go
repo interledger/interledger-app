@@ -1,7 +1,10 @@
 package persona
 
 import (
+	"context"
 	"encoding/json"
+
+	"gitlab.com/fynbos/backend/country"
 )
 
 type Webhook struct {
@@ -127,3 +130,19 @@ const (
 	AccountTagVerified AccountTag = "STATUS:VERIFIED"
 	AccountTagRejected AccountTag = "STATUS:REJECTED"
 )
+
+type InquiryTemplateID string
+
+var inquiryTemplateIDs = map[country.Country]InquiryTemplateID{
+	country.US: "itmpl_4zn5ZN3yGGg9SgWPDRays7Cx",
+	country.GB: "itmpl_XJCdAPML9cxHxKmpEFhXnSDw",
+}
+
+func GetTemplateIDForCountry(ctx context.Context, ctry country.Country) InquiryTemplateID {
+	id, ok := inquiryTemplateIDs[ctry]
+	if !ok {
+		return inquiryTemplateIDs[country.US] // fallback to US
+	}
+
+	return id
+}
