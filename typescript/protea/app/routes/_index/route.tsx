@@ -34,7 +34,8 @@ export enum KycStatus {
   InProgress = 1,
   DocumentsRequired = 2,
   Verified = 3,
-  Suspended = 4
+  Suspended = 4,
+  InReview = 5
 }
 
 export async function loader({ request }: LoaderArgs) {
