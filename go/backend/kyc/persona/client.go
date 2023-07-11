@@ -85,8 +85,6 @@ func (c *client) CreateInquiry(ctx context.Context, args IndividualAttributes, i
 		return nil, err
 	}
 
-	args.InquiryTemplateID = "itmpl_4zn5ZN3yGGg9SgWPDRays7Cx"
-
 	reqBody := CreateInquiryReq{
 		Data: CreateInquiryReqData{Attributes: args},
 	}

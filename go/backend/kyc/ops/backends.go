@@ -3,6 +3,7 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/user"
 
 	temporal "go.temporal.io/sdk/client"
@@ -14,6 +15,7 @@ import (
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
+	Signup() signup.Client
 	Temporal() temporal.Client
 	Users() user.Client
 }
@@ -23,6 +25,7 @@ type testBackends struct {
 	val *validator.Validate
 	tp  temporal.Client
 	uc  user.Client
+	sc  signup.Client
 }
 
 func (t testBackends) Users() user.Client {
@@ -41,6 +44,10 @@ func (t testBackends) Temporal() temporal.Client {
 	return t.tp
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client, uc user.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc}
+func (t testBackends) Signup() signup.Client {
+	return t.sc
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client, uc user.Client, sc signup.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc, sc: sc}
 }
