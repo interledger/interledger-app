@@ -67,7 +67,8 @@ export function AppPage() {
             </CardContent>
           </Card>
         )}
-        {kycStatus == KycStatus.InProgress && (
+        {(kycStatus == KycStatus.InProgress ||
+          kycStatus == KycStatus.InReview) && (
           <Card>
             <CardHeader>
               <CardTitle>Activation</CardTitle>
