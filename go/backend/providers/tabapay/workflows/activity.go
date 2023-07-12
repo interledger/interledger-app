@@ -67,10 +67,20 @@ func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.Que
 		},
 	}
 	if args.AVS {
+		ctry, err := country.Country(kyc.Address.CountryCode).Numeric()
+		if err != nil {
+			err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, kyc.Address.CountryCode)
+			return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
+		}
+		if !country.Country(kyc.Address.CountryCode).IsSupported() {
+			err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, kyc.Address.CountryCode)
+			return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
+		}
 		queryArgs.AVSCheck = true
 		queryArgs.Owner.Address = &external.Address{
 			Line1:   kyc.Address.Line1,
 			ZipCode: kyc.Address.ZipCode,
+			Country: ctry,
 		}
 	}
 
@@ -96,10 +106,12 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 
 	ctry, err := country.Country(owner.Address.CountryCode).Numeric()
 	if err != nil {
-		return nil, fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+		err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
 	}
-	if ctry != "840" {
-		return nil, fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+	if !country.Country(owner.Address.CountryCode).IsSupported() {
+		err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
 	}
 	stateParts := strings.Split(owner.Address.State, "-")
 	state := stateParts[0]
@@ -127,7 +139,7 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 				City:    owner.Address.City,
 				State:   state,
 				ZipCode: owner.Address.ZipCode,
-				// Country: ctry, // enable when we rollout to more regions
+				Country: ctry,
 			},
 		},
 	})
