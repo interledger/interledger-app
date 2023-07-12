@@ -42,6 +42,9 @@ func (s *rpcService) CreateCard(
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCard" {
 		return nil, FailedPreconditionError("Unsupported card.")
 	}
+	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCountry" {
+		return nil, FailedPreconditionError("Unsupported country.")
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
