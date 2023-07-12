@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -215,7 +216,7 @@ func (c *client) CreateAccount(
 	defer resp.Body.Close()
 
 	err = checkResponseStatusCode(resp)
-	if err != nil {
+	if err != nil && !errors.Is(err, external.ErrConflict) {
 		return nil, err
 	}
 
@@ -518,6 +519,13 @@ func checkResponseStatusCode(r *http.Response) error {
 	if err != nil {
 		return fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
+	origRespBody := make([]byte, len(body))
+	copy(origRespBody, body)
+	defer func() {
+		if body != nil {
+			r.Body = io.NopCloser(bytes.NewBuffer(origRespBody))
+		}
+	}()
 
 	switch r.StatusCode {
 	case http.StatusBadRequest:

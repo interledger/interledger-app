@@ -15,6 +15,7 @@ type Client interface {
 	GetByProviderID(ctx context.Context, args GetByProviderIDArgs) (*LinkedAccount, error)
 	ListByWalletId(ctx context.Context, walletId string) ([]LinkedAccount, error)
 	ListMXBankAccounts(ctx context.Context) ([]LinkedAccount, error)
+	ListByProviderID(ctx context.Context, provider, providerID string) ([]LinkedAccount, error)
 	SetNickname(ctx context.Context, id, nickname string) (*LinkedAccount, error)
 	Requires3DS(ctx context.Context, id string) (bool, error)
 

@@ -142,9 +142,6 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 			},
 		},
 	})
-	if errors.Is(err, external.ErrConflict) {
-		return nil, temporal.NewNonRetryableApplicationError("tabapay: Duplicate card.", "ErrDuplicateCard", err)
-	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
@@ -204,4 +201,13 @@ func (a *Activity) CreateBasisTheoryCard(ctx context.Context, walletID, tokenID 
 	}
 
 	return card, nil
+}
+
+func (a *Activity) ListLinkedAccountsByProviderID(ctx context.Context, provider, providerID string) ([]linkedaccounts.LinkedAccount, error) {
+	las, err := a.b.LinkedAccounts().ListByProviderID(ctx, provider, providerID)
+	if err != nil {
+		return nil, err
+	}
+
+	return las, nil
 }
