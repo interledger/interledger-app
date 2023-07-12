@@ -9,6 +9,8 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
+  CardTitle,
   Checkbox,
   Layouts,
   TextField
@@ -220,8 +222,14 @@ export default function Page() {
             name='country'
             type='hidden'
           />
-          <span className='mt-4 font-medium text-strong'>Beta testing</span>
-          <span className='mt-4 text-sm text-medium'>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Beta testing</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <span className='text-sm text-medium'>
             We are looking for users to help us test new features before we make
             them generally available. Beta testers will get access to
             pre-release features and in exchange will need to complete some
