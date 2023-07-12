@@ -227,7 +227,7 @@ export async function action({ request }: ActionArgs) {
   const email = form.get('email') as string
 
   // TODO: Determine what countries to let through.
-  if (!(country == 'US' || country == "GB")) {
+  if (!(country == 'US' || country == 'GB')) {
     return redirect(
       `/waitlist?country=${country}&email=${email}&fullName=${firstName} ${lastName}`
     )
