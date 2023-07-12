@@ -1,20 +1,23 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
+import type { ChangeEventHandler } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
-  Avatar,
-  Button,
   Card,
   CardButton,
   CardContent,
   CardHeader,
   CardTitle,
+  FynbosIcon,
   Icon,
   Layouts,
-  Router,
-  TextField
+  TextField,
+  TwitterIcon
 } from '~/components'
+import type { SearchResult } from '~/generated/protobuf-ts/backend/v1/backend'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -48,10 +51,30 @@ export async function loader({ request }: LoaderArgs) {
     })
   ).contacts
 
-  return json({ contacts, flow, paymentPointerQR })
+  // Handle returning to the pay page after routing away
+  let results: SearchResult[] = []
+  if (flow.data.term) {
+    const response = await grpcClient
+      .searchWallets(
+        { term: flow.data.term },
+        {
+          meta: {
+            cookies: String(request.headers.get('cookie')) || ''
+          }
+        }
+      )
+      .then((v) => v)
+      .catch(StatusError)
+
+    if (!isGrpcError(response)) {
+      results = response.response.results.filter((v) => v.canSend)
+    }
+  }
+
+  return json({ results, contacts, flow, paymentPointerQR })
 }
 
-export const handle = {
+export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: { title: 'Pay', back: route('/') }
@@ -65,11 +88,56 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { contacts, flow } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
+  const { flow } = useLoaderData<typeof loader>()
+  const fetcher = useFetcher()
+  const [term, setTerm] = useState<string>(flow.data.term || '')
+  // const actionData = useActionData<typeof action>()
+
+  const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
+    (event) => {
+      let term = event.target.value
+      setTerm(term)
+      fetcher.submit({ term: term, formName: 'search' }, { method: 'post' })
+    },
+    [fetcher]
+  )
+
+  // TODO: should merge these into local state rather.
+  // This will also improve the UX when returning to the page
+  // and when the query is changed, and becomes shorter that the lower bound.
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data == null) {
+      fetcher.load('/pay')
+    }
+  }, [fetcher])
+
+  const _onClickResult = useCallback<{
+    (result: SearchResult): void
+  }>(
+    (result) => {
+      console.log('result', result)
+      fetcher.submit(
+        {
+          term: term,
+          walletUrl: result.walletUrl,
+          identifier: result.identifier,
+          identifierType: result.identifierType,
+          formName: 'submit'
+        },
+        { method: 'post' }
+      )
+    },
+    [fetcher, term]
+  )
 
   return (
     <>
+      <fetcher.Form
+        id='search-form'
+        action={route('/pay')}
+        method='post'
+        className='hidden'
+      />
       <Form
         id='pay-address'
         action={route('/pay')}
@@ -78,50 +146,41 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <span>Enter the recipient’s wallet address.</span>
           <TextField
-            id='address'
-            label='Wallet address'
-            name='address'
-            form='pay-address'
+            id='search'
+            form='search-form'
+            name='search'
+            defaultValue={term}
+            placeholder='Search for a user to pay'
+            onChange={_onChangeInput}
+            prefixIcon={<Icon>search</Icon>}
             type='text'
-            className='mt-6'
-            defaultValue={flow.data?.address?.walletUrl}
-            aria-invalid={Boolean(actionData?.errors.address) || undefined}
-            aria-describedby={
-              actionData?.errors.address ? 'paymentPointer-error' : undefined
-            }
-            errorMessage={actionData?.errors.address}
           />
         </CardContent>
       </Card>
-      <Button form='pay-address' type='submit'>
-        Continue
-      </Button>
       <Card>
         <CardHeader>
-          <CardTitle>Last transacted with</CardTitle>
-          <Router className='flex max-h-fit' to={route('/contacts')}>
-            <Icon className='text-medium'>read_more</Icon>
-          </Router>
+          <CardTitle>Results</CardTitle>
         </CardHeader>
-        {contacts.length == 0 && (
-          <CardContent>
-            <p className='text-sm text-medium'>You haven't paid anyone yet.</p>
-          </CardContent>
+        {(!fetcher.data || fetcher.data.results.length == 0) && (
+          <CardContent>Your search returned no results.</CardContent>
         )}
-        {contacts.map((contact, index) => (
-          <CardButton
-            key={contact.id}
-            name='address'
-            form='pay-address'
-            value={contact.paymentPointer}
-            className='items-center space-x-3'
-          >
-            <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
-            <span className='text-medium'>{contact.name}</span>
-          </CardButton>
-        ))}
+        {fetcher.data &&
+          fetcher.data.results.map((result: SearchResult) => {
+            return (
+              <CardButton
+                key={result.walletID}
+                onClick={() => _onClickResult(result)}
+                name='address'
+                type='button'
+                className='items-center space-x-3'
+              >
+                {result.identifierType == 'wallet' && <FynbosIcon />}
+                {result.identifierType == 'twitter' && <TwitterIcon />}
+                <span className='text-medium'>{result.identifier}</span>
+              </CardButton>
+            )
+          })}
       </Card>
     </>
   )
@@ -142,68 +201,74 @@ function mapper(field: fieldErrorsMap): 'address' | null {
 export async function action({ request }: ActionArgs) {
   await requireFlow(request, flowType.Pay)
   const form = await request.formData()
-  const address = form.get('address') as string
+  const formName = (await form.get('formName')) as string
+  const term = form.get('term') as string
+  const walletUrl = form.get('walletUrl') as string
+  const identifier = form.get('identifier') as string
+  const identifierType = form.get('identifierType') as string
 
   const fieldErrors = {
     form: '',
     address: ''
   }
 
-  const response = await grpcClient
-    .getPaymentAddress(
-      { address: address },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
+  switch (formName) {
+    case 'search':
+      const response = await grpcClient
+        .searchWallets(
+          { term },
+          {
+            meta: {
+              cookies: String(request.headers.get('cookie')) || ''
+            }
+          }
+        )
+        .then((v) => v)
+        .catch(StatusError)
+
+      if (isGrpcError(response)) {
+        if (response.code == 3) {
+          for (let violation of (response as GrpcError).details[0]
+            .fieldViolations) {
+            const field = mapper(violation.field as fieldErrorsMap)
+            if (field != null) fieldErrors[field] = violation.description
+          }
+          return json(
+            { results: [], errors: { ...fieldErrors } },
+            { status: 400 }
+          )
+        } else if (response.code == 5) {
+          fieldErrors.address = 'Wallet address not found.'
+          return json(
+            { results: [], errors: { ...fieldErrors } },
+            { status: 400 }
+          )
+        } else throw json({}, httpMapping(response.code))
+      }
+      return json({
+        results: response.response.results.filter((v) => v.canSend)
+      })
+
+    case 'submit':
+      console.log(
+        'submit',
+        formName,
+        term,
+        walletUrl,
+        identifier,
+        identifierType
+      )
+      await updateFlow(request, flowType.Pay, {
+        term,
+        address: { walletUrl, identifier, identifierType }
+      })
+      return redirect(route('/pay/amount'))
+    default:
+      throw json(
+        { title: "Submitted a form that doesn't exist" },
+        {
+          status: 400
         }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else if (response.code == 5) {
-      fieldErrors.address = 'Wallet address not found.'
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      )
   }
-
-  // const canSendResponse = await openPaymentsClient
-  //   .canSendToPaymentPointer(
-  //     { paymentPointer: response.response.walletUrl },
-  //     {
-  //       meta: {
-  //         cookies: String(request.headers.get('cookie')) || ''
-  //       }
-  //     }
-  //   )
-  //   .then((v) => v)
-  //   .catch(StatusError)
-  //
-  // if (isGrpcError(canSendResponse)) {
-  //   if (canSendResponse.code == 3) {
-  //     for (let violation of (canSendResponse as GrpcError).details[0]
-  //       .fieldViolations) {
-  //       const field = mapper(violation.field as fieldErrorsMap)
-  //       if (field != null) fieldErrors[field] = violation.description
-  //     }
-  //     return json({ errors: { ...fieldErrors } }, { status: 400 })
-  //   } else throw json({}, httpMapping(canSendResponse.code))
-  // } else if (!canSendResponse.response.canSend) {
-  //   fieldErrors.address = "Wallet address can't receive payments."
-  //   return json({ errors: { ...fieldErrors } }, { status: 400 })
-  // }
-
-  await updateFlow(request, flowType.Pay, {
-    address: { ...response.response }
-  })
-
-  return redirect(route('/pay/amount'))
 }
