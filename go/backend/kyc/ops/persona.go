@@ -24,20 +24,28 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 	}
 
 	// Check if there is an ongoing inquiry for this wallet that we can resume
-	var ongoingID string
-	err = b.DB().GetContext(ctx, &ongoingID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state IN ($2, $3, $4)",
-		walletID, persona.InquiryPending, persona.InquiryCreated, persona.InquiryStarted)
+	var ongoing struct {
+		ID     string                `db:"external_id"`
+		Status persona.InquiryStatus `db:"state"`
+	}
+	err = b.DB().GetContext(ctx, &ongoing, "SELECT external_id, state FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state IN ($2, $3, $4, $5)",
+		walletID, persona.InquiryPending, persona.InquiryCreated, persona.InquiryStarted, persona.InquiryNeedsReview)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
 	var inquiry *persona.InquiryData
-	if ongoingID != "" {
+	if ongoing.ID != "" && ongoing.Status == persona.InquiryNeedsReview {
+		return &kyc.PersonaInquiry{
+			ID:     ongoing.ID,
+			Status: ongoing.Status,
+		}, nil
+	} else if ongoing.ID != "" {
 		// The same idempotency key may have been used to create the initial Inquiry, so append the ID.
 		if idempotencyKey != "" {
-			idempotencyKey += "-" + ongoingID
+			idempotencyKey += "-" + ongoing.ID
 		}
-		inquiry, err = cl.ResumeInquiry(ctx, ongoingID, idempotencyKey)
+		inquiry, err = cl.ResumeInquiry(ctx, ongoing.ID, idempotencyKey)
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 		}
