@@ -274,7 +274,7 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 				Line2:       details.AddressStreet2,
 				City:        details.AddressCity,
 				State:       state,
-				ZipCode:     details.AddressPostalCode,
+				ZipCode:     strings.TrimSuffix(details.AddressPostalCode, "-0000"), // temp due to persona bug
 				CountryCode: details.CountryCode,
 			},
 		})
