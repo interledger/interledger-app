@@ -261,7 +261,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
                FROM payment_pointers
                WHERE substring(url, $3) ILIKE $2
                UNION 
-               SELECT wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
+               SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
                FROM wallets
                WHERE name ILIKE $2) tmp WHERE wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
 
