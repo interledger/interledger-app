@@ -18,7 +18,14 @@ import type {
 import clsx from 'clsx'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  Layouts,
+  LoadingShapes
+} from '~/components'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { createCard, getWalletId } from '~/lib/wallet.server'
 
@@ -250,6 +257,12 @@ export default function Page() {
         <Button type='submit' onClick={btSubmit} disabled={!bt && submitting}>
           Submit
         </Button>
+        <Dialog unmount={false} open={!submitting} setOpen={() => {}}>
+          <LoadingShapes />
+          <p className='mt-4 text-center text-medium'>
+            Just a moment, loading.
+          </p>
+        </Dialog>
       </BasisTheoryProvider>
     )
   }

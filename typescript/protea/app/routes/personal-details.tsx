@@ -3,7 +3,15 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
-import { Button, Card, CardContent, Layouts, Shape } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Dialog,
+  Layouts,
+  LoadingShapes,
+  Shape
+} from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import {
   StatusError,
@@ -163,6 +171,14 @@ export default function Page() {
       >
         Continue
       </Button>
+      <Dialog unmount={false} open={!ready} setOpen={() => {}}>
+        <div className='my-5'>
+          <LoadingShapes />
+          <p className='mt-4 text-center text-medium'>
+            Just a moment, loading.
+          </p>
+        </div>
+      </Dialog>
     </>
   )
 }
