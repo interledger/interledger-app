@@ -24,6 +24,7 @@ const (
 type CreateCardArgs struct {
 	WalletID           string
 	BasisTheoryTokenID string
+	TabapayReferenceID string
 }
 
 type PullFromCardArgs struct {

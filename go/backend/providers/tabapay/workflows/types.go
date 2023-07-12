@@ -21,6 +21,7 @@ type CreateExternalCardArgs struct {
 	CVV                 string
 	ExpirationDate      string
 	RejectDuplicateCard bool
+	ReferenceID         string
 }
 
 type QueryCard struct {

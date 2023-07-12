@@ -70,6 +70,18 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return &la, nil
 	}
 
+	var tabapayReferenceID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		if args.TabapayReferenceID != "" {
+			return args.TabapayReferenceID
+		}
+
+		return tabapay.NewReferenceID()
+	}).Get(&tabapayReferenceID)
+	if err != nil {
+		logger.Error("Failed to generate tabapay referenceID.")
+		return nil, err
+	}
 	newCtx := workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 		Context: fmt.Sprintf("walletID=%s", args.WalletID),
 	})
@@ -85,6 +97,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		RejectDuplicateCard: !env.IsDev(),
 		CardNumber:          fmt.Sprintf("{{ %s | json: '$.number' }}", tokenizedCard.TokenID),
 		ExpirationDate:      fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", tokenizedCard.TokenID, tokenizedCard.TokenID),
+		ReferenceID:         tabapayReferenceID,
 	}).Get(ctx, &externalAccount)
 	if err != nil {
 		logger.Error("Failed to create card on tabapay.")
