@@ -20,6 +20,15 @@ func (c Country) String() string {
 	return string(c)
 }
 
+func (c Country) IsSupported() bool {
+	details, ok := Details[c]
+	if !ok {
+		return false
+	}
+
+	return details.Supported
+}
+
 const (
 	AD Country = "AD"
 	AE Country = "AE"
@@ -274,8 +283,9 @@ const (
 )
 
 type Detail struct {
-	Name    string
-	Numeric string
+	Name      string
+	Numeric   string
+	Supported bool
 }
 
 var Details = map[Country]Detail{
@@ -355,7 +365,7 @@ var Details = map[Country]Detail{
 	FO: {Name: "Faroe Islands", Numeric: "234"},
 	FR: {Name: "France", Numeric: "250"},
 	GA: {Name: "Gabon", Numeric: "266"},
-	GB: {Name: "United Kingdom of Great Britain and Northern Ireland", Numeric: "826"},
+	GB: {Name: "United Kingdom of Great Britain and Northern Ireland", Numeric: "826", Supported: true},
 	GD: {Name: "Grenada", Numeric: "308"},
 	GE: {Name: "Georgia", Numeric: "268"},
 	GF: {Name: "French Guiana", Numeric: "254"},
@@ -511,7 +521,7 @@ var Details = map[Country]Detail{
 	UA: {Name: "Ukraine", Numeric: "804"},
 	UG: {Name: "Uganda", Numeric: "800"},
 	UM: {Name: "United States Minor Outlying Islands", Numeric: "581"},
-	US: {Name: "United States of America", Numeric: "840"},
+	US: {Name: "United States of America", Numeric: "840", Supported: true},
 	UY: {Name: "Uruguay", Numeric: "858"},
 	UZ: {Name: "Uzbekistan", Numeric: "860"},
 	VA: {Name: "Holy See", Numeric: "336"},
