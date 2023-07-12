@@ -12,7 +12,6 @@ import {
   Card,
   CardButton,
   CardContent,
-  CardIcon,
   FynbosIcon,
   Icon,
   Layouts,
@@ -109,14 +108,18 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <div className='flex items-center justify-between'>
+          <div className='-mt-2 flex items-center justify-between'>
             <h2 className='text-4xl font-medium text-strong'>
               {flow?.data.displayReceiveAmount || '$ 0.00'}
             </h2>
-            <CardIcon>
-              {flow.data.address.type === 'wallet' && <FynbosIcon />}
-              {flow.data.address.type === 'twitter' && <TwitterIcon />}
-            </CardIcon>
+            <div className='-mr-2 flex items-center justify-between p-2'>
+              {flow.data.address.type === 'wallet' && (
+                <FynbosIcon height='h-12' />
+              )}
+              {flow.data.address.type === 'twitter' && (
+                <TwitterIcon height='h-12' />
+              )}
+            </div>
           </div>
           <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>

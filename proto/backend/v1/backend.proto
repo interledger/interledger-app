@@ -297,6 +297,24 @@ service BackendService {
 
   // Payments
   rpc GetPaymentAddress(GetPaymentAddressRequest) returns (GetPaymentAddressResponse);
+
+  // Search
+  rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
+}
+
+message SearchWalletsRequest {
+  string term = 1;
+}
+
+message SearchWalletsResponse {
+  repeated SearchResult results = 1;
+}
+
+message SearchResult {
+  string walletID = 1;
+  bool canSend = 4;
+  string identifier = 2;
+  string identifierType = 3;
 }
 
 message WalletInfo {

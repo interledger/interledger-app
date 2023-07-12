@@ -252,3 +252,48 @@ func TestGetByIdentifier(t *testing.T) {
 	_, err = ops.GetByIdentifier(ctx, b, "notfound")
 	require.ErrorIs(t, err, identities.ErrNotFound)
 }
+
+func TestSearch(t *testing.T) {
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	b := ops.NewTestBackends(t, db)
+
+	env.SetEnv(t, "local")
+
+	walletID := uuid.NewString()
+	// Publicly visible
+	id, err := ops.Add(ctx, b, identities.AddArgs{
+		WalletID:   walletID,
+		Platform:   identities.PlatformTwitter,
+		Identifier: "@king_cold",
+	})
+	require.NoError(t, err)
+
+	_, err = ops.SetPublic(ctx, b, id.ID, walletID, true)
+	require.NoError(t, err)
+
+	err = ops.UpdateState(ctx, b, id.ID, identities.StateVerified, "proof")
+	require.NoError(t, err)
+
+	res, err := ops.Search(ctx, b, uuid.NewString(), "cold")
+	require.NoError(t, err)
+
+	assert.Len(t, res, 1)
+	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
+	assert.Equal(t, "@king_cold", res[0].Identifier)
+	assert.Equal(t, 0.5, res[0].Rank)
+
+	// Can't search for yourself
+	res, err = ops.Search(ctx, b, walletID, "cold")
+	require.NoError(t, err)
+	assert.Len(t, res, 0)
+
+	// Search with a full twitter URL
+	res, err = ops.Search(ctx, b, uuid.NewString(), "https://twitter.com/king_cold")
+	require.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
+	assert.Equal(t, "@king_cold", res[0].Identifier)
+	assert.Equal(t, float64(1), res[0].Rank)
+
+}

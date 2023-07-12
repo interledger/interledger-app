@@ -5,6 +5,8 @@ import (
 	"errors"
 	"sync"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/db"
@@ -147,4 +149,74 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		HasTransacted:    hasTxs,
 		HasWalletAddress: hasWalletAddress,
 	}, nil
+}
+
+func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsRequest) (*pb.SearchWalletsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	w, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	results, err := s.b.Identities().Search(ctx, w.ID, req.Term)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	walletCanRecv := make(map[string]bool)
+	// Deduplicate as we could have the same result more than once if multiple identities match for the same wallet
+	for _, r := range results {
+		walletCanRecv[r.WalletID] = false
+	}
+
+	var mutex sync.Mutex
+	var wg sync.WaitGroup
+	var anyErr error
+
+	for wid := range walletCanRecv {
+		// Can't send to yourself so don't bother checking, search results should exclude it but let us be paranoid.
+		if wid == w.ID {
+			continue
+		}
+		wg.Add(1)
+		go func(walletID string) {
+			defer wg.Done()
+			accounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, walletID)
+			if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
+				anyErr = err
+				return
+			}
+
+			for _, acc := range accounts {
+				if acc.CanReceive {
+					mutex.Lock()
+					defer mutex.Unlock()
+					walletCanRecv[walletID] = true
+					return
+				}
+			}
+		}(wid)
+	}
+
+	wg.Wait()
+
+	if anyErr != nil {
+		return nil, toGRPCError(err)
+	}
+
+	res := make([]*pb.SearchResult, len(results))
+	for i, r := range results {
+		res[i] = &pb.SearchResult{
+			WalletID:       r.WalletID,
+			Identifier:     r.Identifier,
+			IdentifierType: r.IdentifierType,
+			CanSend:        walletCanRecv[r.WalletID],
+		}
+	}
+
+	return &pb.SearchWalletsResponse{Results: res}, nil
 }
