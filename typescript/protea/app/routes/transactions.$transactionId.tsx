@@ -4,11 +4,9 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
-  AnimatedSchedule,
   Card,
   CardButton,
   CardContent,
-  CardIcon,
   Chip,
   ChipColor,
   FynbosIcon,
@@ -89,15 +87,17 @@ function Outgoing() {
     <>
       <Card>
         <CardContent>
-          <div className='flex items-center justify-between'>
+          <div className='-mt-2 flex items-center justify-between'>
             <h2 className='text-4xl font-medium text-error'>
               - {transaction.total}
             </h2>
             {transaction.icon && (
-              <CardIcon>
-                {transaction.icon === 'wallet' && <FynbosIcon />}
-                {transaction.icon === 'twitter' && <TwitterIcon />}
-              </CardIcon>
+              <div className='-mr-2 flex items-center justify-between p-2'>
+                {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
+                {transaction.icon === 'twitter' && (
+                  <TwitterIcon height='h-12' />
+                )}
+              </div>
             )}
           </div>
           <Label className='-mb-5 mt-4'>Payment to</Label>
@@ -164,16 +164,17 @@ function Incoming() {
     <>
       <Card>
         <CardContent>
-          <div className='flex items-center justify-between'>
+          <div className='-mt-2 flex items-center justify-between'>
             <h2 className='text-4xl font-medium text-strong'>
               {transaction.total}
             </h2>
             {transaction.icon && (
-              <CardIcon>
-                {transaction.icon === 'schedule' && <AnimatedSchedule />}
-                {transaction.icon === 'wallet' && <FynbosIcon />}
-                {transaction.icon === 'twitter' && <TwitterIcon />}
-              </CardIcon>
+              <div className='-mr-2 flex items-center justify-between p-2'>
+                {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
+                {transaction.icon === 'twitter' && (
+                  <TwitterIcon height='h-12' />
+                )}
+              </div>
             )}
           </div>
           <Label className='-mb-5 mt-4'>Payment from</Label>
