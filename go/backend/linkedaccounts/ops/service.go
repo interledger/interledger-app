@@ -439,3 +439,18 @@ func CompleteReview(ctx context.Context, b Backends, args linkedaccounts.Complet
 	review := toReview(dbReview)
 	return &review, nil
 }
+
+func ListByProviderID(ctx context.Context, b Backends, provider, providerID string) ([]linkedaccounts.LinkedAccount, error) {
+	var linkedAccounts []linkedaccounts.LinkedAccount
+	err := b.DB().SelectContext(
+		ctx,
+		&linkedAccounts,
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND provider_id=$2;", allFields),
+		provider, providerID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	return linkedAccounts, nil
+}

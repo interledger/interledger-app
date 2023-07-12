@@ -107,6 +107,10 @@ func (c client) ListMXBankAccounts(ctx context.Context) ([]linkedaccounts.Linked
 	return ops.ListMXBankAccounts(ctx, c.b)
 }
 
+func (c client) ListByProviderID(ctx context.Context, provider, providerID string) ([]linkedaccounts.LinkedAccount, error) {
+	return ops.ListByProviderID(ctx, c.b, provider, providerID)
+}
+
 func (c client) SetNickname(ctx context.Context, id, nickname string) (*linkedaccounts.LinkedAccount, error) {
 	err := ops.SetNickname(ctx, c.b, id, nickname)
 	if err != nil {
