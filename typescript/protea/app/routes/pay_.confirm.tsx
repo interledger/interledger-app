@@ -8,7 +8,6 @@ import {
   Card,
   CardButton,
   CardContent,
-  CardIcon,
   Checkbox,
   FynbosIcon,
   Icon,
@@ -71,20 +70,24 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <div className='flex items-center justify-between'>
+          <div className='-mt-2 flex items-center justify-between'>
             <h2 className='text-4xl font-medium text-strong'>
               {flow?.data.displayReceiveAmount || '$ 0.00'}
             </h2>
-            <CardIcon>
-              {flow.data.address.type === 'wallet' && <FynbosIcon />}
-              {flow.data.address.type === 'twitter' && <TwitterIcon />}
-            </CardIcon>
+            <div className='-mr-2 flex items-center justify-between p-2'>
+              {flow.data.address.identifierType === 'wallet' && (
+                <FynbosIcon height='h-12' />
+              )}
+              {flow.data.address.identifierType === 'twitter' && (
+                <TwitterIcon height='h-12' />
+              )}
+            </div>
           </div>
           <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>
         <CardButton>
           <div className='flex w-full items-center justify-between text-medium'>
-            <span>{flow.data.address.handle}</span>
+            <span>{flow.data.address.identifier}</span>
             <Icon>navigate_next</Icon>
           </div>
         </CardButton>
@@ -204,8 +207,8 @@ export async function action({ request }: ActionArgs) {
         externalRef: '',
         ipAddress: clientIpAddress,
         threeDSID: '',
-        identityType: flow.data.address.type,
-        identity: flow.data.address.handle
+        identityType: flow.data.address.identifierType,
+        identity: flow.data.address.identifier
       },
       {
         meta: {
