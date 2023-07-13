@@ -70,6 +70,7 @@ type Claim struct {
 
 type SearchResult struct {
 	WalletID       string  `db:"wallet_id"`
+	WalletUrl      string  `db:"url"`
 	Identifier     string  `db:"identifier"`
 	IdentifierType string  `db:"identifier_type"`
 	Rank           float64 `db:"rank"`
