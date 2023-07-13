@@ -14,6 +14,7 @@ import type {
   PaginationRequest,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import {
   StatusError,
   grpcClient,
@@ -389,7 +390,7 @@ export async function getTransaction(
 export async function createCard(
   request: Request,
   tokenID: string
-): Promise<void> {
+): Promise<{ error: string, code: number }> {
   const cookie = String(request.headers.get('cookie'))
   const response = await grpcClient
     .createCard(
@@ -404,8 +405,14 @@ export async function createCard(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    if (response.code == Code.FAILED_PRECONDITION) {
+      return { error: response.message, code: 422 }
+    } else if (response.code == Code.ALREADY_EXISTS) {
+      return { error: "Duplicate card", code: 409 }
+    } else throw json({}, httpMapping(response.code))
   }
+
+  return { error: "", code: 201 }
 }
 
 export async function getLinkedIdentities(

@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import { useActionData, useLoaderData, useNavigate, useSubmit } from '@remix-run/react'
 import { useRef, useState } from 'react'
 
 import {
@@ -17,14 +17,13 @@ import type {
 } from '@basis-theory/basis-theory-react/types'
 import clsx from 'clsx'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
 import {
-  Button,
+  ApplicationProps, Button,
   Card,
   CardContent,
   Dialog,
   Layouts,
-  LoadingShapes
+  LoadingShapes, TextButton
 } from '~/components'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { createCard, getWalletId } from '~/lib/wallet.server'
@@ -57,6 +56,8 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { walletId, token } = useLoaderData<typeof loader>()
   const submit = useSubmit()
+  const actionData = useActionData<typeof action>()
+  const navigate = useNavigate()
 
   const [fieldErrors, setFieldErrors] = useState({
     number: '',
@@ -265,6 +266,22 @@ export default function Page() {
             Just a moment, loading.
           </p>
         </Dialog>
+        <Dialog unmount={false} open={actionData !== undefined && actionData.error !== ""} setOpen={() => {}}>
+          <h1 className='text-xl font-medium'>{actionData?.error}</h1>
+          <span className='text-medium'>
+            {actionData?.error.includes("Duplicate card") && "This card is already connected to Fynbos."}
+            {actionData?.error.includes("Unsupported card") && "Your card is unsupported and cannot be connected to Fynbos."}
+            {actionData?.error.includes("Unsupported country") && "Your country is unsupported and your card cannot be connected to Fynbos."}
+          </span>
+
+          <TextButton
+            type='button'
+            className='!text-medium'
+            onClick={() => { navigate(route("/connect/card"), { replace: true }) }}
+          >
+            Close
+          </TextButton>
+        </Dialog>
       </BasisTheoryProvider>
     )
   }
@@ -274,7 +291,10 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
 
-  await createCard(request, cardToken)
+  let resp = await createCard(request, cardToken)
+  if (resp.code != 201) {
+    return json(resp, resp.code)
+  }
 
   // TODO Should try route directly to the created card
   return redirect(route('/accounts'), {
