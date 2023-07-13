@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
-import { useRef, useState } from 'react'
+import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   BasisTheoryProvider,
@@ -57,6 +57,7 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { walletId, token } = useLoaderData<typeof loader>()
   const submit = useSubmit()
+  const actionData = useActionData<typeof action>()
 
   const [fieldErrors, setFieldErrors] = useState({
     number: '',
@@ -77,6 +78,33 @@ export default function Page() {
   const cardVerificationCodeRef = useRef<CardVerificationCodeElementType>(null)
 
   const [loading, setLoading] = useState<boolean>(true)
+
+  useEffect(() => {
+    setLoading(false)
+    if (actionData && actionData.error) {
+      let errorMessage: string
+      switch (actionData.error) {
+        case 'Failed precondition: ErrUnsupportedCard':
+          errorMessage =
+            'Your card is unsupported and cannot be connected to Fynbos.'
+          break
+        case 'Failed precondition: ErrUnsupportedCountry':
+          errorMessage =
+            'Your country is unsupported and your card cannot be connected to Fynbos.'
+          break
+        case 'Already exists: ErrDuplicateCard':
+          errorMessage = 'Your card is already connected to Fynbos.'
+          break
+        default:
+          errorMessage = 'There was an error connecting your card.'
+      }
+      setFieldErrors({
+        number: errorMessage,
+        cvc: '',
+        date: ''
+      })
+    }
+  }, [actionData])
 
   const btSubmit = async () => {
     setLoading(true)
@@ -114,6 +142,7 @@ export default function Page() {
         }
       })
       .catch((error) => {
+        setLoading(false)
         setFieldErrors({
           number: error.details.data.number ? 'Card number is invalid.' : '',
           date: error.details.data.expiration_year
@@ -121,9 +150,6 @@ export default function Page() {
             : '',
           cvc: error.details.data.cvc ? 'Security code is invalid.' : ''
         })
-      })
-      .finally(() => {
-        setLoading(false)
       })
   }
 
@@ -274,15 +300,22 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
 
-  await createCard(request, cardToken)
+  let resp = await createCard(request, cardToken)
+  if (resp.httpMapping?.status == 409 || resp.httpMapping?.status == 400) {
+    return json(resp, resp.httpMapping?.status)
+  } else if (resp.httpMapping?.status != 200) {
+    throw json({}, resp.httpMapping)
+  }
 
-  // TODO Should try route directly to the created card
-  return redirect(route('/accounts'), {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'New card successfully saved.',
-        icon: 'close'
-      })
+  return redirect(
+    route('/accounts/:accountId', { accountId: resp.linkedAccountID }),
+    {
+      headers: {
+        'Set-Cookie': await flashSnackbar(request, {
+          message: 'New card successfully saved.',
+          icon: 'close'
+        })
+      }
     }
-  })
+  )
 }
