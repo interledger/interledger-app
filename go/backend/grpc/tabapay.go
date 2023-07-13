@@ -15,7 +15,7 @@ import (
 
 func (s *rpcService) CreateCard(
 	ctx context.Context, req *backendv1.CreateCardRequest,
-) (*backendv1.Empty, error) {
+) (*backendv1.LinkedAccount, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -34,22 +34,26 @@ func (s *rpcService) CreateCard(
 		return nil, toGRPCError(err)
 	}
 
-	err = await(ctx, nil)
+	var la linkedaccounts.LinkedAccount
+	err = await(ctx, &la)
 	var applicationError *temporal.ApplicationError
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrDuplicateCard" {
-		return nil, AlreadyExistsError("Invalid card.")
+		return nil, AlreadyExistsError("ErrDuplicateCard")
 	}
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCard" {
-		return nil, FailedPreconditionError("Unsupported card.")
+		return nil, FailedPreconditionError("ErrUnsupportedCard")
 	}
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCountry" {
-		return nil, FailedPreconditionError("Unsupported country.")
+		return nil, FailedPreconditionError("ErrUnsupportedCountry")
 	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+	if la.ID == "" {
+		return nil, toGRPCError(errors.New("Linked account not returned from create card workflow."))
+	}
 
-	return &backendv1.Empty{}, nil
+	return transformLinkedAccount(la), nil
 }
 
 func (s *rpcService) Init3DS(

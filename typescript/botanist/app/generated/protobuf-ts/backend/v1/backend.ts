@@ -9211,7 +9211,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "Init3DS", options: {}, I: Init3DSRequest, O: Init3DSResponse },
     { name: "Lookup3DS", options: {}, I: Lookup3DSRequest, O: Lookup3DSResponse },
     { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse },
-    { name: "CreateCard", options: {}, I: CreateCardRequest, O: Empty },
+    { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
     { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },

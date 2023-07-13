@@ -14,6 +14,7 @@ import type {
   PaginationRequest,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import {
   StatusError,
   grpcClient,
@@ -386,10 +387,19 @@ export async function getTransaction(
     })
 }
 
+export type createCardError =
+  | 'ErrUnsupportedCard'
+  | 'ErrUnsupportedCountry'
+  | 'ErrDuplicateCard'
+  | 'Internal server error'
 export async function createCard(
   request: Request,
   tokenID: string
-): Promise<void> {
+): Promise<{
+  error: createCardError | undefined
+  httpMapping: ResponseInit | undefined
+  linkedAccountID: string
+}> {
   const cookie = String(request.headers.get('cookie'))
   const response = await grpcClient
     .createCard(
@@ -404,7 +414,17 @@ export async function createCard(
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+    return {
+      error: response.message as createCardError,
+      httpMapping: httpMapping(response.code),
+      linkedAccountID: ''
+    }
+  }
+
+  return {
+    error: undefined,
+    httpMapping: httpMapping(Code.OK),
+    linkedAccountID: response.response.id
   }
 }
 

@@ -574,7 +574,7 @@ type BackendServiceClient interface {
 	Lookup3DS(ctx context.Context, in *Lookup3DSRequest, opts ...grpc.CallOption) (*Lookup3DSResponse, error)
 	Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error)
 	// Basistheory
-	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*Empty, error)
+	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	// Features
 	ListFeatures(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Features, error)
 	// Twitter
@@ -1090,8 +1090,8 @@ func (c *backendServiceClient) Authenticate3DS(ctx context.Context, in *Authenti
 	return out, nil
 }
 
-func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
+func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateCard", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1229,7 +1229,7 @@ type BackendServiceServer interface {
 	Lookup3DS(context.Context, *Lookup3DSRequest) (*Lookup3DSResponse, error)
 	Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error)
 	// Basistheory
-	CreateCard(context.Context, *CreateCardRequest) (*Empty, error)
+	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	// Features
 	ListFeatures(context.Context, *Empty) (*Features, error)
 	// Twitter
@@ -1411,7 +1411,7 @@ func (UnimplementedBackendServiceServer) Lookup3DS(context.Context, *Lookup3DSRe
 func (UnimplementedBackendServiceServer) Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate3DS not implemented")
 }
-func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*Empty, error) {
+func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
 }
 func (UnimplementedBackendServiceServer) ListFeatures(context.Context, *Empty) (*Features, error) {

@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import {
+  useActionData,
+  useLoaderData,
+  useNavigate,
+  useSubmit
+} from '@remix-run/react'
 import { useRef, useState } from 'react'
 
 import {
@@ -17,16 +22,19 @@ import type {
 } from '@basis-theory/basis-theory-react/types'
 import clsx from 'clsx'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
+import type {
+  ApplicationProps} from '~/components';
 import {
   Button,
   Card,
   CardContent,
   Dialog,
   Layouts,
-  LoadingShapes
+  LoadingShapes,
+  TextButton
 } from '~/components'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import type { createCardError} from '~/lib/wallet.server';
 import { createCard, getWalletId } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -54,9 +62,37 @@ export const meta: MetaFunction = () => {
   }
 }
 
+function getErrorDialogText(error: createCardError | undefined): string {
+  switch (error) {
+    case 'ErrUnsupportedCard':
+      return 'Your card is unsupported and cannot be connected to Fynbos.'
+    case 'ErrUnsupportedCountry':
+      return 'Your country is unsupported and your card cannot be connected to Fynbos.'
+    case 'ErrDuplicateCard':
+      return 'Your card is already connected to Fynbos.'
+    default:
+      return 'There was an error connecting your card.'
+  }
+}
+
+function getErrorDialogTitle(error: createCardError | undefined): string {
+  switch (error) {
+    case 'ErrUnsupportedCard':
+      return 'Unsupported card'
+    case 'ErrUnsupportedCountry':
+      return 'Unsupported country'
+    case 'ErrDuplicateCard':
+      return 'Duplicate card'
+    default:
+      return ''
+  }
+}
+
 export default function Page() {
   const { walletId, token } = useLoaderData<typeof loader>()
   const submit = useSubmit()
+  const actionData = useActionData<typeof action>()
+  const navigate = useNavigate()
 
   const [fieldErrors, setFieldErrors] = useState({
     number: '',
@@ -265,6 +301,27 @@ export default function Page() {
             Just a moment, loading.
           </p>
         </Dialog>
+        <Dialog
+          unmount={false}
+          open={actionData !== undefined}
+          setOpen={() => {}}
+        >
+          <h1 className='text-xl font-medium'>
+            {getErrorDialogTitle(actionData?.error)}
+          </h1>
+          <span className='text-medium'>
+            {getErrorDialogText(actionData?.error)}
+          </span>
+          <TextButton
+            type='button'
+            className='!text-medium'
+            onClick={() => {
+              navigate(route('/connect/card'), { replace: true })
+            }}
+          >
+            Close
+          </TextButton>
+        </Dialog>
       </BasisTheoryProvider>
     )
   }
@@ -274,15 +331,22 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
 
-  await createCard(request, cardToken)
+  let resp = await createCard(request, cardToken)
+  if (resp.httpMapping?.status == 409 || resp.httpMapping?.status == 400) {
+    return json(resp, resp.httpMapping?.status)
+  } else if (resp.httpMapping?.status != 200) {
+    throw json({}, resp.httpMapping)
+  }
 
-  // TODO Should try route directly to the created card
-  return redirect(route('/accounts'), {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'New card successfully saved.',
-        icon: 'close'
-      })
+  return redirect(
+    route('/accounts/:accountId', { accountId: resp.linkedAccountID }),
+    {
+      headers: {
+        'Set-Cookie': await flashSnackbar(request, {
+          message: 'New card successfully saved.',
+          icon: 'close'
+        })
+      }
     }
-  })
+  )
 }
