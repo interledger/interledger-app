@@ -76,9 +76,10 @@ export default function Page() {
   const cardExpirationDateRef = useRef<CardExpirationDateElementType>(null)
   const cardVerificationCodeRef = useRef<CardVerificationCodeElementType>(null)
 
-  const [submitting, setSubmitting] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
+
   const btSubmit = async () => {
-    setSubmitting(true)
+    setLoading(true)
     const cardNumber = cardNumberRef.current
     const cardExpirationDate = cardExpirationDateRef.current
     const cardVerificationCode = cardVerificationCodeRef.current
@@ -122,7 +123,7 @@ export default function Page() {
         })
       })
       .finally(() => {
-        setSubmitting(false)
+        setLoading(false)
       })
   }
 
@@ -182,6 +183,7 @@ export default function Page() {
                 <div className='block w-full'>
                   <CardNumberElement
                     ref={cardNumberRef}
+                    onReady={() => setLoading(false)}
                     onFocus={() => setCardNumberFocus(true)}
                     onBlur={() => setCardNumberFocus(false)}
                     style={btStyle}
@@ -254,10 +256,10 @@ export default function Page() {
             </div>
           </CardContent>
         </Card>
-        <Button type='submit' onClick={btSubmit} disabled={!bt && submitting}>
+        <Button type='submit' onClick={btSubmit} disabled={!bt && loading}>
           Submit
         </Button>
-        <Dialog unmount={false} open={!submitting} setOpen={() => {}}>
+        <Dialog unmount={false} open={loading} setOpen={() => {}}>
           <LoadingShapes />
           <p className='mt-4 text-center text-medium'>
             Just a moment, loading.
