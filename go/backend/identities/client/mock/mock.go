@@ -154,6 +154,20 @@ func (mr *MockClientMockRecorder) Search(ctx, walletID, term interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockClient)(nil).Search), ctx, walletID, term)
 }
 
+// SetProof mocks base method.
+func (m *MockClient) SetProof(ctx context.Context, id, proof string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetProof", ctx, id, proof)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetProof indicates an expected call of SetProof.
+func (mr *MockClientMockRecorder) SetProof(ctx, id, proof interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetProof", reflect.TypeOf((*MockClient)(nil).SetProof), ctx, id, proof)
+}
+
 // SetPublic mocks base method.
 func (m *MockClient) SetPublic(ctx context.Context, id, walletID string, public bool) (*identities.Identity, error) {
 	m.ctrl.T.Helper()
@@ -169,33 +183,33 @@ func (mr *MockClientMockRecorder) SetPublic(ctx, id, walletID, public interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetPublic", reflect.TypeOf((*MockClient)(nil).SetPublic), ctx, id, walletID, public)
 }
 
-// StartVerification mocks base method.
-func (m *MockClient) StartVerification(ctx context.Context, id, proof string) (*identities.Identity, error) {
+// SetState mocks base method.
+func (m *MockClient) SetState(ctx context.Context, id string, state identities.State) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartVerification", ctx, id, proof)
+	ret := m.ctrl.Call(m, "SetState", ctx, id, state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetState indicates an expected call of SetState.
+func (mr *MockClientMockRecorder) SetState(ctx, id, state interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetState", reflect.TypeOf((*MockClient)(nil).SetState), ctx, id, state)
+}
+
+// StartVerification mocks base method.
+func (m *MockClient) StartVerification(ctx context.Context, id string) (*identities.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartVerification", ctx, id)
 	ret0, _ := ret[0].(*identities.Identity)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StartVerification indicates an expected call of StartVerification.
-func (mr *MockClientMockRecorder) StartVerification(ctx, id, proof interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) StartVerification(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartVerification", reflect.TypeOf((*MockClient)(nil).StartVerification), ctx, id, proof)
-}
-
-// UpdateState mocks base method.
-func (m *MockClient) UpdateState(ctx context.Context, id string, state identities.State, proof string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateState", ctx, id, state, proof)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateState indicates an expected call of UpdateState.
-func (mr *MockClientMockRecorder) UpdateState(ctx, id, state, proof interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateState", reflect.TypeOf((*MockClient)(nil).UpdateState), ctx, id, state, proof)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartVerification", reflect.TypeOf((*MockClient)(nil).StartVerification), ctx, id)
 }
 
 // VerifyInstructions mocks base method.

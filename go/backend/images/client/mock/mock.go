@@ -123,3 +123,18 @@ func (mr *MockClientMockRecorder) GenerateTwitterIdentityOG(ctx, walletUrl, iden
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateTwitterIdentityOG", reflect.TypeOf((*MockClient)(nil).GenerateTwitterIdentityOG), ctx, walletUrl, identifier)
 }
+
+// GenerateWebsiteIdentity mocks base method.
+func (m *MockClient) GenerateWebsiteIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateWebsiteIdentity", ctx, walletUrl, identifier)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateWebsiteIdentity indicates an expected call of GenerateWebsiteIdentity.
+func (mr *MockClientMockRecorder) GenerateWebsiteIdentity(ctx, walletUrl, identifier interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateWebsiteIdentity", reflect.TypeOf((*MockClient)(nil).GenerateWebsiteIdentity), ctx, walletUrl, identifier)
+}

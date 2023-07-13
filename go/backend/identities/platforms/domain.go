@@ -122,7 +122,7 @@ func (dp *domainPlatform) GenerateSignedClaim(ctx context.Context, args *SignedC
 	}, nil
 }
 
-func DomainVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) {
+func DomainVerifyWorkflow(ctx workflow.Context, id string) (string, error) {
 	var a *DomainActivity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -135,9 +135,9 @@ func DomainVerifyWorkflow(ctx workflow.Context, id, domain string) (string, erro
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("DomainVerifyWorkflow started", "id", id, "proof", domain)
+	logger.Info("DomainVerifyWorkflow started", "id", id)
 
-	err := workflow.ExecuteActivity(ctx, a.UpdateDomainIdentityState, id, identities.StatePending, "").Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.SetDomainIdentityState, id, identities.StatePending).Get(ctx, nil)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -150,7 +150,7 @@ func DomainVerifyWorkflow(ctx workflow.Context, id, domain string) (string, erro
 
 	err = workflow.ExecuteActivity(ctx, a.CheckTXTRecords, identity.Identifier, identity.SignatureHash).Get(ctx, nil)
 	if err != nil && errors.Is(err, identities.ErrNotFound) {
-		err = workflow.ExecuteActivity(ctx, a.UpdateDomainIdentityState, id, identities.StateUnverified, domain).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.SetDomainIdentityState, id, identities.StateUnverified).Get(ctx, nil)
 		if err != nil {
 			return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 		}
@@ -161,7 +161,7 @@ func DomainVerifyWorkflow(ctx workflow.Context, id, domain string) (string, erro
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateDomainIdentityState, id, identities.StateVerified, domain).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetDomainIdentityState, id, identities.StateVerified).Get(ctx, nil)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -212,8 +212,17 @@ func (a *DomainActivity) CheckTXTRecords(ctx context.Context, domain string, pro
 	return fmt.Errorf("%w %s", identities.ErrNotFound, "no matching TXT record found")
 }
 
-func (a *DomainActivity) UpdateDomainIdentityState(ctx context.Context, id string, state identities.State, proof string) error {
-	err := a.b.Identities().UpdateState(ctx, id, state, proof)
+func (a *DomainActivity) SetDomainIdentityState(ctx context.Context, id string, state identities.State) error {
+	err := a.b.Identities().SetState(ctx, id, state)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func (a *DomainActivity) SetDomainIdentityProof(ctx context.Context, id string, proof string) error {
+	err := a.b.Identities().SetProof(ctx, id, proof)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

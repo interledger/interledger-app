@@ -35,8 +35,8 @@ func (c client) VerifyInstructions(ctx context.Context, id string) (*identities.
 	return ops.VerifyInstructions(ctx, c.b, id)
 }
 
-func (c client) StartVerification(ctx context.Context, id, proof string) (*identities.Identity, error) {
-	return ops.StartVerification(ctx, c.b, id, proof)
+func (c client) StartVerification(ctx context.Context, id string) (*identities.Identity, error) {
+	return ops.StartVerification(ctx, c.b, id)
 }
 
 func (c client) Delete(ctx context.Context, id, walletID string) error {
@@ -51,8 +51,12 @@ func (c client) Get(ctx context.Context, id string) (*identities.Identity, error
 	return ops.Get(ctx, c.b, id)
 }
 
-func (c client) UpdateState(ctx context.Context, id string, state identities.State, proof string) error {
-	return ops.UpdateState(ctx, c.b, id, state, proof)
+func (c client) SetState(ctx context.Context, id string, state identities.State) error {
+	return ops.SetState(ctx, c.b, id, state)
+}
+
+func (c client) SetProof(ctx context.Context, id string, proof string) error {
+	return ops.SetProof(ctx, c.b, id, proof)
 }
 
 func (c client) GetBySignatureHash(ctx context.Context, sigHash []byte) (*identities.Identity, error) {

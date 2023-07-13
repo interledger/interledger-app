@@ -1264,6 +1264,10 @@ table "identities" {
     null = false
     type = bytea
   }
+  column "last_verified_at" {
+    null    = true
+    type    = timestamp
+  }
   column "verified_at" {
     null    = true
     type    = timestamp

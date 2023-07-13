@@ -9,11 +9,12 @@ type Client interface {
 	ListPublic(ctx context.Context, walletID string) ([]Identity, error)
 	Add(ctx context.Context, args AddArgs) (*Identity, error)
 	VerifyInstructions(ctx context.Context, id string) (*VerifyInstructions, error)
-	StartVerification(ctx context.Context, id, proof string) (*Identity, error)
+	StartVerification(ctx context.Context, id string) (*Identity, error)
 	Delete(ctx context.Context, id, walletID string) error
 	SetPublic(ctx context.Context, id, walletID string, public bool) (*Identity, error)
 	Get(ctx context.Context, id string) (*Identity, error)
-	UpdateState(ctx context.Context, id string, state State, proof string) error
+	SetProof(ctx context.Context, id string, proof string) error
+	SetState(ctx context.Context, id string, state State) error
 	GetBySignatureHash(ctx context.Context, sigHash []byte) (*Identity, error)
 	GetByIdentifier(ctx context.Context, identifier string) (*Identity, error)
 	Search(ctx context.Context, walletID, term string) ([]SearchResult, error)

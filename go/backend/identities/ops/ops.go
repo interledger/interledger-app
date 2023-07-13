@@ -182,7 +182,7 @@ func SetPublic(ctx context.Context, b Backends, id, walletID string, public bool
 	return Get(ctx, b, id)
 }
 
-func StartVerification(ctx context.Context, b Backends, id, proof string) (*identities.Identity, error) {
+func StartVerification(ctx context.Context, b Backends, id string) (*identities.Identity, error) {
 	ident, err := Get(ctx, b, id)
 	if err != nil {
 		return nil, err
@@ -200,7 +200,7 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
-	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, p.VerifyWorkflow(), id, proof)
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, p.VerifyWorkflow(), id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -208,24 +208,32 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 	return ident, nil
 }
 
-func UpdateState(ctx context.Context, b Backends, id string, state identities.State, proof string) error {
+func SetState(ctx context.Context, b Backends, id string, state identities.State) error {
 	ident, err := Get(ctx, b, id)
 	if err != nil {
 		return err
 	}
 
 	// Only update the verified at if the state is verified
+	// If the identity is already have a verified_at, only update last_verified_at
 	var verifiedAt time.Time
+	var lastVerifiedAt time.Time
 	if state == identities.StateVerified {
-		verifiedAt = time.Now()
+		if !ident.VerifiedAt.Valid {
+			verifiedAt = time.Now()
+			lastVerifiedAt = time.Now()
+		} else {
+			verifiedAt = ident.VerifiedAt.Time
+			lastVerifiedAt = time.Now()
+		}
 	}
 
 	row := b.DB().QueryRowContext(ctx,
 		`UPDATE identities 
-    SET proof=$1, state=$2, updated_at=now(), verified_at=$3 
+    SET state=$1, verified_at=$2, last_verified_at=$3, updated_at=now()
     WHERE id=$4 
     RETURNING wallet_id`,
-		proof, state, verifiedAt, ident.ID)
+		state, verifiedAt, lastVerifiedAt, ident.ID)
 
 	var walletID string
 	err = row.Scan(&walletID)
@@ -236,6 +244,15 @@ func UpdateState(ctx context.Context, b Backends, id string, state identities.St
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeIdentity)
 	if err != nil {
 		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
+	}
+
+	return nil
+}
+
+func SetProof(ctx context.Context, b Backends, id string, proof string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, verified_at=$3, last_verified_at=$4, updated_at=now() WHERE id=$5", proof, identities.StateUnverified, nil, nil, id)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	return nil

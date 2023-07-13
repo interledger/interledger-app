@@ -55,7 +55,7 @@ func (r *rpcService) DiscordCallback(ctx context.Context, req *backend.DiscordCa
 		return nil, InternalError("Error adding identity.")
 	}
 
-	err = r.b.Identities().UpdateState(ctx, id.ID, identities.StateVerified, "")
+	err = r.b.Identities().SetState(ctx, id.ID, identities.StateVerified)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
