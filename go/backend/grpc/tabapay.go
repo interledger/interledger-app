@@ -37,13 +37,13 @@ func (s *rpcService) CreateCard(
 	err = await(ctx, nil)
 	var applicationError *temporal.ApplicationError
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrDuplicateCard" {
-		return nil, AlreadyExistsError("Invalid card.")
+		return nil, AlreadyExistsError("ErrDuplicateCard")
 	}
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCard" {
-		return nil, FailedPreconditionError("Unsupported card.")
+		return nil, FailedPreconditionError("ErrUnsupportedCard")
 	}
 	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCountry" {
-		return nil, FailedPreconditionError("Unsupported country.")
+		return nil, FailedPreconditionError("ErrUnsupportedCountry")
 	}
 	if err != nil {
 		return nil, toGRPCError(err)
