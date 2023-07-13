@@ -208,7 +208,7 @@ export default function Page() {
     <WalletGrid ref={divHeight}>
       <GridColumn
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'transactions'}
-        className='col-span-full lg:col-span-6'
+        className='col-span-full lg:col-span-5'
       >
         {initialPage.kycStatus == KycStatus.Unknown && (
           <Card>
@@ -314,7 +314,7 @@ export default function Page() {
             </Card>
           ))}
       </GridColumn>
-      <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
+      <GridColumn sticky className='col-span-full lg:col-span-7 lg:col-start-6'>
         <Outlet />
       </GridColumn>
     </WalletGrid>
