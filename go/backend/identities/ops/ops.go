@@ -253,7 +253,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	// If twitter @ is in
 	term = strings.TrimPrefix(term, "@")
 
-	err = b.DB().SelectContext(ctx, &res, `SELECT * FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
+	err = b.DB().SelectContext(ctx, &res, `SELECT tmp.*, url FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
                FROM identities
                WHERE public = true AND state = 'verified' AND identifier ILIKE $2
                UNION
@@ -263,7 +263,9 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
                UNION 
                SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
                FROM wallets
-               WHERE name ILIKE $2) tmp WHERE wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
+               WHERE name ILIKE $2) tmp 
+         INNER JOIN payment_pointers ON tmp.wallet_id = payment_pointers.wallet_id
+         WHERE tmp.wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
