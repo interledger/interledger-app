@@ -3,12 +3,13 @@ import type { FC } from 'react'
 
 type LogoProps = {
   className?: string
+  height?: string
 }
 
-export const FynbosLogo: FC<LogoProps> = ({ className }) => {
+export const FynbosLogo: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      className={typeof className == 'string' ? className : 'h-12'}
+      className={clsx('flex-none', height ? height : 'h-12', className)}
       viewBox='0 0 1432 400'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
@@ -45,13 +46,11 @@ export const FynbosLogo: FC<LogoProps> = ({ className }) => {
   )
 }
 
-export const FynbosIcon: FC<LogoProps> = ({ className }) => {
+export const FynbosIcon: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      width='24'
-      height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6 flex-none', className)}
+      className={clsx('flex-none', height ? height : 'h-6', className)}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -75,13 +74,15 @@ export const FynbosIcon: FC<LogoProps> = ({ className }) => {
   )
 }
 
-export const GithubIcon: FC<LogoProps> = ({ className }) => {
+export const GithubIcon: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      width='24'
-      height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6 flex-none', className ?? 'text-black')}
+      className={clsx(
+        'h-6 flex-none',
+        height ? height : 'h-6',
+        className ?? 'text-black'
+      )}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -105,13 +106,11 @@ export const GithubIcon: FC<LogoProps> = ({ className }) => {
   )
 }
 
-export const InstagramIcon: FC<LogoProps> = ({ className }) => {
+export const InstagramIcon: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      width='24'
-      height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6 flex-none', className)}
+      className={clsx('flex-none', height ? height : 'h-6', className)}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -174,13 +173,15 @@ export const InstagramIcon: FC<LogoProps> = ({ className }) => {
   )
 }
 
-export const LinkedInIcon: FC<LogoProps> = ({ className }) => {
+export const LinkedInIcon: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      width='24'
-      height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6 flex-none', className ?? 'text-[#0A66C2]')}
+      className={clsx(
+        'flex-none',
+        height ? height : 'h-6',
+        className ?? 'text-[#0A66C2]'
+      )}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -192,13 +193,15 @@ export const LinkedInIcon: FC<LogoProps> = ({ className }) => {
   )
 }
 
-export const TwitterIcon: FC<LogoProps> = ({ className }) => {
+export const TwitterIcon: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      width='24'
-      height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6 flex-none', className ?? 'text-[#1D9BF0]')}
+      className={clsx(
+        'flex-none',
+        height ? height : 'h-6',
+        className ?? 'text-[#1D9BF0]'
+      )}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -210,13 +213,15 @@ export const TwitterIcon: FC<LogoProps> = ({ className }) => {
   )
 }
 
-export const YoutubeIcon: FC<LogoProps> = ({ className }) => {
+export const YoutubeIcon: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      width='24'
-      height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6 flex-none', className ?? 'text-[#FF0000]')}
+      className={clsx(
+        'flex-none',
+        height ? height : 'h-6',
+        className ?? 'text-[#FF0000]'
+      )}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
@@ -232,13 +237,15 @@ export const YoutubeIcon: FC<LogoProps> = ({ className }) => {
   )
 }
 
-export const FaceBookIcon: FC<LogoProps> = ({ className }) => {
+export const FaceBookIcon: FC<LogoProps> = ({ className, height }) => {
   return (
     <svg
-      width='24'
-      height='24'
       viewBox='0 0 24 24'
-      className={clsx('h-6 flex-none', className ?? 'text-[#1877F2]')}
+      className={clsx(
+        'flex-none',
+        height ? height : 'h-6',
+        className ?? 'text-[#1877F2]'
+      )}
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >

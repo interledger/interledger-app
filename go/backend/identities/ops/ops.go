@@ -5,11 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
+	"gitlab.com/fynbos/backend/paymentpointers"
+
+	"gitlab.com/fynbos/env"
+
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/identities"
@@ -228,4 +233,43 @@ func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*ident
 	}
 
 	return &res, nil
+}
+
+func Search(ctx context.Context, b Backends, walletID, term string) ([]identities.SearchResult, error) {
+	var res []identities.SearchResult
+
+	// Strip the URL prefix if it is a wallet address or a twitter account URL
+	wa, err := paymentpointers.Parse(term)
+	if err == nil {
+		// Valid URL, possibly wallet address
+		term = strings.TrimPrefix(wa.String(), env.OpenPaymentsURL()+"/")
+		term = strings.TrimPrefix(term, "https://twitter.com/")
+	}
+
+	if len(term) < 3 {
+		return res, nil
+	}
+
+	// If twitter @ is in
+	term = strings.TrimPrefix(term, "@")
+
+	err = b.DB().SelectContext(ctx, &res, `SELECT tmp.*, url FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
+               FROM identities
+               WHERE public = true AND state = 'verified' AND identifier ILIKE $2
+               UNION
+               SELECT wallet_id, url as identifier, 'wallet' as identifier_type, similarity(substring(url, $3), $1) as rank
+               FROM payment_pointers
+               WHERE substring(url, $3) ILIKE $2
+               UNION 
+               SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
+               FROM wallets
+               WHERE name ILIKE $2) tmp 
+         INNER JOIN payment_pointers ON tmp.wallet_id = payment_pointers.wallet_id
+         WHERE tmp.wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return res, nil
 }

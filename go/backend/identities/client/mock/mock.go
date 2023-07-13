@@ -139,6 +139,21 @@ func (mr *MockClientMockRecorder) ListPublic(ctx, walletID interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPublic", reflect.TypeOf((*MockClient)(nil).ListPublic), ctx, walletID)
 }
 
+// Search mocks base method.
+func (m *MockClient) Search(ctx context.Context, walletID, term string) ([]identities.SearchResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", ctx, walletID, term)
+	ret0, _ := ret[0].([]identities.SearchResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search.
+func (mr *MockClientMockRecorder) Search(ctx, walletID, term interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockClient)(nil).Search), ctx, walletID, term)
+}
+
 // SetPublic mocks base method.
 func (m *MockClient) SetPublic(ctx context.Context, id, walletID string, public bool) (*identities.Identity, error) {
 	m.ctrl.T.Helper()

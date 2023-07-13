@@ -16,4 +16,5 @@ type Client interface {
 	UpdateState(ctx context.Context, id string, state State, proof string) error
 	GetBySignatureHash(ctx context.Context, sigHash []byte) (*Identity, error)
 	GetByIdentifier(ctx context.Context, identifier string) (*Identity, error)
+	Search(ctx context.Context, walletID, term string) ([]SearchResult, error)
 }
