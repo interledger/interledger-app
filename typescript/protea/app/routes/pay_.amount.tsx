@@ -113,10 +113,10 @@ export default function Page() {
               {flow?.data.displayReceiveAmount || '$ 0.00'}
             </h2>
             <div className='-mr-2 flex items-center justify-between p-2'>
-              {flow.data.address.type === 'wallet' && (
+              {flow.data.address.identifierType === 'wallet' && (
                 <FynbosIcon height='h-12' />
               )}
-              {flow.data.address.type === 'twitter' && (
+              {flow.data.address.identifierType === 'twitter' && (
                 <TwitterIcon height='h-12' />
               )}
             </div>
@@ -125,7 +125,7 @@ export default function Page() {
         </CardContent>
         <CardButton>
           <div className='flex w-full items-center justify-between text-medium'>
-            <span>{flow.data.address.handle}</span>
+            <span>{flow.data.address.identifier}</span>
             <Icon>navigate_next</Icon>
           </div>
         </CardButton>

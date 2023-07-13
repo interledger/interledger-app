@@ -1,17 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData
-} from '@remix-run/react'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
-  Avatar,
   Card,
   CardButton,
   CardContent,
@@ -23,6 +17,7 @@ import {
   TextField,
   TwitterIcon
 } from '~/components'
+import type { SearchResult } from '~/generated/protobuf-ts/backend/v1/backend'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -32,7 +27,6 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { generateQR, qrSvg } from '~/lib/qr.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
 import {
   getKycStatus,
   getWalletContacts,
@@ -57,7 +51,27 @@ export async function loader({ request }: LoaderArgs) {
     })
   ).contacts
 
-  return json({ contacts, flow, paymentPointerQR })
+  // Handle returning to the pay page after routing away
+  let results: SearchResult[] = []
+  if (flow.data.term) {
+    const response = await grpcClient
+      .searchWallets(
+        { term: flow.data.term },
+        {
+          meta: {
+            cookies: String(request.headers.get('cookie')) || ''
+          }
+        }
+      )
+      .then((v) => v)
+      .catch(StatusError)
+
+    if (!isGrpcError(response)) {
+      results = response.response.results.filter((v) => v.canSend)
+    }
+  }
+
+  return json({ results, contacts, flow, paymentPointerQR })
 }
 
 export const handle: ApplicationProps = {
@@ -74,17 +88,48 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { contacts, flow } = useLoaderData<typeof loader>()
+  const { flow } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
-  const actionData = useActionData<typeof action>()
+  const [term, setTerm] = useState<string>(flow.data.term || '')
+  // const actionData = useActionData<typeof action>()
+
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       let term = event.target.value
-      console.log(term)
+      setTerm(term)
       fetcher.submit({ term: term, formName: 'search' }, { method: 'post' })
     },
     [fetcher]
   )
+
+  // TODO: should merge these into local state rather.
+  // This will also improve the UX when returning to the page
+  // and when the query is changed, and becomes shorter that the lower bound.
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data == null) {
+      fetcher.load('/pay')
+    }
+  }, [fetcher])
+
+  const _onClickResult = useCallback<{
+    (result: SearchResult): void
+  }>(
+    (result) => {
+      console.log('result', result)
+      fetcher.submit(
+        {
+          term: term,
+          walletUrl: result.walletUrl,
+          identifier: result.identifier,
+          identifierType: result.identifierType,
+          formName: 'submit'
+        },
+        { method: 'post' }
+      )
+    },
+    [fetcher, term]
+  )
+
   return (
     <>
       <fetcher.Form
@@ -105,6 +150,7 @@ export default function Page() {
             id='search'
             form='search-form'
             name='search'
+            defaultValue={term}
             placeholder='Search for a user to pay'
             onChange={_onChangeInput}
             prefixIcon={<Icon>search</Icon>}
@@ -116,40 +162,25 @@ export default function Page() {
         <CardHeader>
           <CardTitle>Results</CardTitle>
         </CardHeader>
+        {(!fetcher.data || fetcher.data.results.length == 0) && (
+          <CardContent>Your search returned no results.</CardContent>
+        )}
         {fetcher.data &&
-          fetcher.data.results.map((result: any) => {
+          fetcher.data.results.map((result: SearchResult) => {
             return (
               <CardButton
                 key={result.walletID}
+                onClick={() => _onClickResult(result)}
                 name='address'
-                // form='pay-address'
-                // value={contact.paymentPointer}
+                type='button'
                 className='items-center space-x-3'
               >
-                {/*<Avatar index={index}>{contact.name.charAt(0)}</Avatar>*/}
                 {result.identifierType == 'wallet' && <FynbosIcon />}
                 {result.identifierType == 'twitter' && <TwitterIcon />}
                 <span className='text-medium'>{result.identifier}</span>
               </CardButton>
             )
           })}
-        {contacts.length == 0 && (
-          <CardContent>
-            <p className='text-sm text-medium'>You haven't paid anyone yet.</p>
-          </CardContent>
-        )}
-        {contacts.map((contact, index) => (
-          <CardButton
-            key={contact.id}
-            name='address'
-            form='pay-address'
-            value={contact.paymentPointer}
-            className='items-center space-x-3'
-          >
-            <Avatar index={index}>{contact.name.charAt(0)}</Avatar>
-            <span className='text-medium'>{contact.name}</span>
-          </CardButton>
-        ))}
       </Card>
     </>
   )
@@ -172,7 +203,7 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = (await form.get('formName')) as string
   const term = form.get('term') as string
-  const walletID = form.get('walletID') as string
+  const walletUrl = form.get('walletUrl') as string
   const identifier = form.get('identifier') as string
   const identifierType = form.get('identifierType') as string
 
@@ -214,22 +245,22 @@ export async function action({ request }: ActionArgs) {
           )
         } else throw json({}, httpMapping(response.code))
       }
-      console.log('search results', response.response.results)
-      return json(
-        { results: response.response.results.filter((v) => v.canSend) },
-        {
-          headers: {
-            'Set-Cookie': await flashSnackbar(request, {
-              message: 'Linked identity verification started.',
-              icon: 'close'
-            })
-          }
-        }
-      )
+      return json({
+        results: response.response.results.filter((v) => v.canSend)
+      })
 
     case 'submit':
+      console.log(
+        'submit',
+        formName,
+        term,
+        walletUrl,
+        identifier,
+        identifierType
+      )
       await updateFlow(request, flowType.Pay, {
-        address: { walletID, identifier, identifierType }
+        term,
+        address: { walletUrl, identifier, identifierType }
       })
       return redirect(route('/pay/amount'))
     default:
