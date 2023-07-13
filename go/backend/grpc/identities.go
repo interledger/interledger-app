@@ -156,6 +156,29 @@ func (s *rpcService) GetIdentityBySignatureHash(ctx context.Context, req *pb.Get
 	}, nil
 }
 
+func (s *rpcService) VerifyIdentity(
+	ctx context.Context,
+	request *pb.VerifyIdentityRequest,
+) (*pb.Empty, error) {
+
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, err = s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	_, err = s.b.Identities().StartVerification(ctx, request.Id, "")
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
 func identityToPB(identity *identities.Identity, walletURL string) *pb.Identity {
 	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)

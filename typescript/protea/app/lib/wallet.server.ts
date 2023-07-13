@@ -588,9 +588,8 @@ export async function verifyTwitterIdentity(
 ): Promise<void> {
   const cookie = String(request.headers.get('cookie'))
   const response = await grpcClient
-    .verifyTwitter(
-      {
-        identityId: id
+    .verifyIdentity({
+        id
       },
       {
         meta: {

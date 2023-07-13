@@ -65,35 +65,3 @@ func (s *rpcService) TwitterCallback(
 		Id: identity.ID,
 	}, nil
 }
-
-func (s *rpcService) VerifyTwitter(ctx context.Context, request *backendv1.VerifyTwitterRequest) (*backendv1.Empty, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	wallet, err := s.b.Users().WalletForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	id, err := s.b.Identities().Get(ctx, request.GetIdentityId())
-	if err != nil {
-		return nil, InternalError("error getting identity")
-	}
-
-	if id.WalletID != wallet.ID {
-		return nil, NotFoundError("unknown identity")
-	}
-
-	if id.State == identities.StateVerified {
-		return &backendv1.Empty{}, nil
-	}
-
-	err = s.b.Twitter().PublishTweetProof(ctx, id.ID)
-	if err != nil {
-		return nil, InternalError("error starting workflow")
-	}
-
-	return &backendv1.Empty{}, nil
-}
