@@ -2,6 +2,8 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/openpayments"
 	"testing"
 
 	"github.com/google/uuid"
@@ -10,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/ops"
+	op_ops "gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
@@ -259,13 +262,22 @@ func TestSearch(t *testing.T) {
 	b := ops.NewTestBackends(t, db)
 
 	env.SetEnv(t, "local")
-
 	walletID := uuid.NewString()
+	pp := openpayments.PaymentPointer{
+		URL:        op_ops.StandardisePaymentPointer(env.OpenPaymentsURL() + "/notking"),
+		WalletID:   walletID,
+		Alias:      "default",
+		Asset:      currency.USD,
+		AssetScale: 2,
+	}
+	err := op_ops.CreatePaymentPointer(ctx, b, pp)
+	require.NoError(t, err)
+
 	// Publicly visible
 	id, err := ops.Add(ctx, b, identities.AddArgs{
 		WalletID:   walletID,
 		Platform:   identities.PlatformTwitter,
-		Identifier: "@king_cold",
+		Identifier: "king_cold",
 	})
 	require.NoError(t, err)
 
@@ -280,7 +292,7 @@ func TestSearch(t *testing.T) {
 
 	assert.Len(t, res, 1)
 	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
-	assert.Equal(t, "@king_cold", res[0].Identifier)
+	assert.Equal(t, "king_cold", res[0].Identifier)
 	assert.Equal(t, 0.5, res[0].Rank)
 
 	// Can't search for yourself
@@ -293,7 +305,13 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, res, 1)
 	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
-	assert.Equal(t, "@king_cold", res[0].Identifier)
+	assert.Equal(t, "king_cold", res[0].Identifier)
 	assert.Equal(t, float64(1), res[0].Rank)
 
+	// Search payment pointer
+	res, err = ops.Search(ctx, b, uuid.NewString(), "notking")
+	require.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, string("wallet"), res[0].IdentifierType)
+	assert.Equal(t, pp.URL, res[0].Identifier)
 }
