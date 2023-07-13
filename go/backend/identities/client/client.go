@@ -62,3 +62,7 @@ func (c client) GetBySignatureHash(ctx context.Context, sigHash []byte) (*identi
 func (c client) GetByIdentifier(ctx context.Context, identifier string) (*identities.Identity, error) {
 	return ops.GetByIdentifier(ctx, c.b, identifier)
 }
+
+func (c client) Search(ctx context.Context, walletID, term string) ([]identities.SearchResult, error) {
+	return ops.Search(ctx, c.b, walletID, term)
+}
