@@ -285,7 +285,7 @@ service BackendService {
   rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
 
   // Basistheory
-  rpc CreateCard(CreateCardRequest) returns (Empty);
+  rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
 
   // Features
   rpc ListFeatures(Empty) returns (Features);

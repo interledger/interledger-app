@@ -517,9 +517,9 @@ export interface IBackendServiceClient {
     /**
      * Basistheory
      *
-     * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.LinkedAccount);
      */
-    createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, Empty>;
+    createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, LinkedAccount>;
     /**
      * Features
      *
@@ -982,11 +982,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     /**
      * Basistheory
      *
-     * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: CreateCard(backend.v1.CreateCardRequest) returns (backend.v1.LinkedAccount);
      */
-    createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, Empty> {
+    createCard(input: CreateCardRequest, options?: RpcOptions): UnaryCall<CreateCardRequest, LinkedAccount> {
         const method = this.methods[55], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CreateCardRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<CreateCardRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
      * Features
