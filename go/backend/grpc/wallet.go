@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -162,7 +163,10 @@ func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsReq
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	results, err := s.b.Identities().Search(ctx, w.ID, req.Term)
+	term := req.GetTerm()
+	term = strings.TrimSpace(term)
+
+	results, err := s.b.Identities().Search(ctx, w.ID, term)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
