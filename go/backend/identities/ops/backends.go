@@ -3,7 +3,10 @@ package ops
 import (
 	"gitlab.com/fynbos/backend/images"
 	images_mock "gitlab.com/fynbos/backend/images/client/mock"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
+	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/transactions"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -40,8 +43,19 @@ type testBackends struct {
 	img images.Client
 }
 
+func (t testBackends) LinkedAccounts() linkedaccounts.Client {
+	panic("implement me")
+}
+
+func (t testBackends) Transactions() transactions.Client {
+	panic("implement me")
+}
+
+func (t testBackends) Tabapay() tabapay.Client {
+	panic("implement me")
+}
+
 func (t testBackends) Temporal() temporal.Client {
-	//TODO implement me
 	panic("implement me")
 }
 

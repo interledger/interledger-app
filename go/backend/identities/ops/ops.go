@@ -257,9 +257,9 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
                FROM identities
                WHERE public = true AND state = 'verified' AND identifier ILIKE $2
                UNION
-               SELECT wallet_id, url as identifier, 'wallet' as identifier_type, similarity(substring(url, $3), $1) as rank
+               SELECT wallet_id, url as identifier, 'wallet' as identifier_type, coalesce(similarity(substring(url, $3), $1), 0) as rank
                FROM payment_pointers
-               WHERE substring(url, $3) ILIKE $2
+               WHERE url ILIKE $2
                UNION 
                SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
                FROM wallets
