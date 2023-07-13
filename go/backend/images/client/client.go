@@ -41,6 +41,10 @@ func (c client) GenerateTwitterIdentityOG(ctx context.Context, walletUrl, identi
 	return ops.GenerateTwitterOGImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
+func (c client) GenerateWebsiteIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	return ops.GenerateWebsiteImage(ctx, c.a, c.b, walletUrl, identifier)
+}
+
 func loadAssets() (*images.Assets, error) {
 	twitterImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/template.png")
 	if err != nil {
