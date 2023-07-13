@@ -8,11 +8,11 @@ plugins:
     opt:
       - paths=source_relative
       - require_unimplemented_servers=false
-  - remote: buf.build/timostamm/plugins/protobuf-ts
+  - plugin: buf.build/community/timostamm-protobuf-ts:v2.9.0
     out: ./../typescript/protea/app/generated/protobuf-ts
     # https://github.com/timostamm/protobuf-ts/blob/master/MANUAL.md#the-protoc-plugin
     opt: generate_dependencies,long_type_string
-  - remote: buf.build/timostamm/plugins/protobuf-ts
+  - plugin: buf.build/community/timostamm-protobuf-ts:v2.9.0
     out: ./../typescript/botanist/app/generated/protobuf-ts
     # https://github.com/timostamm/protobuf-ts/blob/master/MANUAL.md#the-protoc-plugin
     opt: generate_dependencies,long_type_string
