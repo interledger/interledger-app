@@ -103,8 +103,8 @@ export function AppPage() {
                 Share your wallet address to get paid, or click the pay button
                 to transact.
               </p>
-              <Label className='-mb-5 mt-4'>Wallet address</Label>
             </CardContent>
+            <Label className='mt-2'>Wallet address</Label>
             <CardButton
               type='button'
               onClick={async () => {

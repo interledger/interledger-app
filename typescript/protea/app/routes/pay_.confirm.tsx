@@ -83,8 +83,8 @@ export default function Page() {
               )}
             </div>
           </div>
-          <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>
+        <Label className='mt-2'>Payment to</Label>
         <CardButton>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{flow.data.address.identifier}</span>

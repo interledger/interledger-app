@@ -1,6 +1,7 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -9,27 +10,34 @@ import {
   CardContent,
   Chip,
   ChipColor,
+  Dialog,
   FynbosIcon,
   Icon,
   Layouts,
+  TextButton,
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
-import { getTransaction } from '~/lib/wallet.server'
+import { getPublicWalletInfo, getTransaction } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const transaction = await getTransaction(
     request,
-    params.type as string,
     params.transactionId as string
   )
+
   console.log('transaction', transaction)
+  const publicWalletInfo = await getPublicWalletInfo(
+    request,
+    transaction.walletUrl
+  )
 
   const pusherArgs = await getPusherArgs(request)
 
   return json({
+    publicWalletInfo,
     transaction,
     pusherArgs
   })
@@ -71,17 +79,61 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const { transaction, pusherArgs } = useLoaderData<typeof loader>()
-
+  const [showDialog, setShowDialog] = useState<boolean>(false)
   usePusher(pusherArgs, ['transaction', 'kyc'])
+
   return (
     <>
-      {transaction.type.includes('outgoing') && <Outgoing />}
+      {transaction.type.includes('outgoing') && (
+        <Outgoing openDialog={() => setShowDialog(true)} />
+      )}
       {transaction.type.includes('incoming') && <Incoming />}
+      <Dialog open={showDialog} setOpen={setShowDialog}>
+        <h1 className='text-xl font-medium'>User information</h1>
+        <span className='text-medium'>
+          You are viewing public information about the person you intend to pay.
+        </span>
+        <div className='flex flex-col items-center space-y-4'>
+          <h1 className='text-xl font-medium'>User information</h1>
+          <Chip color={ChipColor.green}>Verified user</Chip>
+        </div>
+
+        <div className='flex w-full justify-end space-x-6 pt-2'>
+          <TextButton type='button' onClick={() => setShowDialog(false)}>
+            Close
+          </TextButton>
+        </div>
+      </Dialog>
     </>
   )
 }
 
-function Outgoing() {
+// export function ErrorBoundary() {
+//   const error = useRouteError()
+//   console.log('ERR', error)
+//
+//   if (isRouteErrorResponse(error)) {
+//     if (error.status == 404)
+//       return (
+//         <>
+//           <Card>
+//             <CardHeader>
+//               <CardTitle>Available wallet address</CardTitle>
+//             </CardHeader>
+//             <CardContent>
+//               <p className='text-medium'>
+//                 This is not yet a registered wallet address.
+//               </p>
+//             </CardContent>
+//           </Card>
+//         </>
+//       )
+//   }
+//
+//   throw error
+// }
+
+function Outgoing({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
   return (
     <>
@@ -100,9 +152,9 @@ function Outgoing() {
               </div>
             )}
           </div>
-          <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>
-        <CardButton>
+        <Label className='mt-2'>Payment to</Label>
+        <CardButton onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{transaction.title}</span>
             <Icon>navigate_next</Icon>
@@ -177,8 +229,8 @@ function Incoming() {
               </div>
             )}
           </div>
-          <Label className='-mb-5 mt-4'>Payment from</Label>
         </CardContent>
+        <Label className='mt-2'>Payment from</Label>
         <CardButton>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{transaction.title}</span>

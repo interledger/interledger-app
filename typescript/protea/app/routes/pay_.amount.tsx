@@ -12,10 +12,13 @@ import {
   Card,
   CardButton,
   CardContent,
+  CardLink,
+  Dialog,
   FynbosIcon,
   Icon,
   Layouts,
   Select,
+  TextButton,
   TextField,
   TwitterIcon
 } from '~/components'
@@ -30,7 +33,11 @@ import {
   openPaymentsClient
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { getLinkedAccounts, getWalletInfo } from '~/lib/wallet.server'
+import {
+  getLinkedAccounts,
+  getPublicWalletInfo,
+  getWalletInfo
+} from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   if (!hasUserSession(request)) {
@@ -52,9 +59,16 @@ export async function loader({ request }: LoaderArgs) {
     return redirect(route('/accounts'))
   }
 
+  const publicWalletInfo = await getPublicWalletInfo(
+    request,
+    flow.data.address.walletUrl
+  )
+  console.log('publicWalletInfo', publicWalletInfo)
+
   return json({
     flow,
-    linkedAccounts
+    linkedAccounts,
+    publicWalletInfo
   })
 }
 
@@ -75,8 +89,10 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { flow, linkedAccounts } = useLoaderData<typeof loader>()
+  const { flow, linkedAccounts, publicWalletInfo } =
+    useLoaderData<typeof loader>()
   const fetcher = useFetcher()
+  const [showDialog, setShowDialog] = useState<boolean>(false)
 
   const [linkedAccount, setLinkedAccount] = useState<{
     id: string
@@ -121,9 +137,9 @@ export default function Page() {
               )}
             </div>
           </div>
-          <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>
-        <CardButton>
+        <Label className='mt-2'>Payment to</Label>
+        <CardButton onClick={() => setShowDialog(true)}>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{flow.data.address.identifier}</span>
             <Icon>navigate_next</Icon>
@@ -197,6 +213,29 @@ export default function Page() {
       <Button form='amount-form' type='submit' name='route-to' value='next'>
         Continue
       </Button>
+      <Dialog open={showDialog} setOpen={setShowDialog}>
+        <h1 className='text-xl font-medium'>User information</h1>
+        <span className='text-medium'>
+          You are viewing public information about this user.
+        </span>
+        {/*publicWalletInfo*/}
+        <div className='flex flex-col items-center space-y-4'>
+          <h1 className='text-xl font-medium'>{publicWalletInfo.publicName}</h1>
+        </div>
+        <CardLink className='flex w-full' to={publicWalletInfo.address}>
+          {/*{publicWalletInfo.address}*/}
+          <div className='flex w-full items-center justify-between text-medium'>
+            <span>{publicWalletInfo.shortAddress}</span>
+            <Icon>navigate_next</Icon>
+          </div>
+        </CardLink>
+
+        <div className='flex w-full justify-end space-x-6 pt-2'>
+          <TextButton type='button' onClick={() => setShowDialog(false)}>
+            Close
+          </TextButton>
+        </div>
+      </Dialog>
     </>
   )
 }

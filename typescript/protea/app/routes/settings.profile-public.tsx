@@ -65,9 +65,7 @@ export default function Page() {
         </CardContent>
       </Card>
       <Card>
-        <CardContent>
-          <Label className='-mb-5'>Public name</Label>
-        </CardContent>
+        <Label>Public name</Label>
         <CardLink
           prefetch='intent'
           className='items-center justify-between'

@@ -12,6 +12,7 @@ import type {
   ListContactsResponse,
   ListTransactionsResponse,
   PaginationRequest,
+  PublicWalletInfo,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import {
@@ -121,6 +122,31 @@ export async function getPublicWalletDetails(
     .getPublicWalletDetails(
       {
         id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
+}
+
+export async function getPublicWalletInfo(
+  request: Request,
+  walletAddress: string
+): Promise<PublicWalletInfo> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+    .getPublicWalletInfo(
+      {
+        walletAddress
       },
       {
         meta: {
@@ -323,6 +349,7 @@ export async function getWalletContacts(
 
 export type DetailedTransaction = {
   id: string
+  walletUrl: string
   type: string
   status: string
   icon: string
@@ -346,7 +373,6 @@ export type DetailedTransfer = {
 
 export async function getTransaction(
   request: Request,
-  type: string,
   id: string
 ): Promise<DetailedTransaction> {
   const cookie = String(request.headers.get('cookie'))
@@ -363,6 +389,9 @@ export async function getTransaction(
     .then((resp) => {
       return {
         id: resp.response.id,
+        walletUrl: resp.response.type.includes('outgoing')
+          ? resp.response.destination
+          : resp.response.source,
         type: resp.response.type,
         title: resp.response.title,
         status: resp.response.state,

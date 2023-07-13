@@ -175,8 +175,8 @@ export default function Page() {
                   onChange={() => _onChangeSwitch('publish', !identity.public)}
                 />
               </div>
-              <Label className='-mb-5 mt-6'>Public profile</Label>
             </CardContent>
+            <Label className='mt-2'>Public profile</Label>
             <CardLink
               to={`/me/${walletInfo.formattedURL}`}
               className='items-center justify-between'
