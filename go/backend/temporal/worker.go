@@ -23,6 +23,8 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	//Identities
 	w.RegisterActivity(platforms.NewTwitterActivity(b))
 	w.RegisterWorkflow(platforms.TwitterVerifyWorkflow)
+	w.RegisterActivity(platforms.NewDNSActivity(b))
+	w.RegisterWorkflow(platforms.DNSVerifyWorkflow)
 
 	//Twitter
 	w.RegisterActivity(twitter_workflows.NewActivity(b))
