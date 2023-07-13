@@ -4,15 +4,7 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  ButtonRouter,
-  Card,
-  CardContent,
-  CardLink,
-  Icon,
-  Layouts,
-  Snackbar
-} from '~/components'
+import { Card, CardContent, Layouts, Snackbar } from '~/components'
 import {
   StatusError,
   grpcClient,
@@ -78,17 +70,16 @@ export default function Page() {
             Connect external applications to your wallet by uploading their
             keys.
           </p>
-        </CardContent>
-        {keys.length > 0 &&
-          keys.map((k) => (
-            <CardLink
-              to={route('/settings/keys/:keyId', {
-                keyId: k.id
-              })}
-              className='flex justify-between'
-              key={k.id}
-            >
-              <div className='flex-col'>
+          {keys.length > 0 &&
+            keys.map((k) => (
+              // <CardLink
+              //   to={route('/settings/keys/:keyId', {
+              //     keyId: k.id
+              //   })}
+              //   className='flex justify-between'
+              //   key={k.id}
+              // >
+              <div key={k.id} className='mt-4 flex-col rounded-xl bg-nav p-4'>
                 <p className='font-medium text-medium'>{k.applicationName}</p>
                 <p className='mt-2 text-sm text-medium'>Added {k.createdAt}</p>
                 {/*TODO: implement last used*/}
@@ -96,14 +87,15 @@ export default function Page() {
                                       Last used {conn.lastUsedAt}
                                     </p>*/}
               </div>
-              <Icon>navigate_next</Icon>
-            </CardLink>
-          ))}
+              //   <Icon>navigate_next</Icon>
+              // </CardLink>
+            ))}
+        </CardContent>
       </Card>
 
-      <ButtonRouter to={route('/settings/keys/add-public')}>
-        Add a public key
-      </ButtonRouter>
+      {/*<ButtonRouter to={route('/settings/keys/add-public')}>*/}
+      {/*  Add a public key*/}
+      {/*</ButtonRouter>*/}
 
       <Snackbar
         message={snackbar.message}
