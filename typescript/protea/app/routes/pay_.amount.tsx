@@ -12,10 +12,17 @@ import {
   Card,
   CardButton,
   CardContent,
+  CardHeader,
+  CardLink,
+  Chip,
+  ChipColor,
+  Dialog,
   FynbosIcon,
   Icon,
   Layouts,
+  LinkedInIcon,
   Select,
+  TextButton,
   TextField,
   TwitterIcon
 } from '~/components'
@@ -30,7 +37,11 @@ import {
   openPaymentsClient
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { getLinkedAccounts, getWalletInfo } from '~/lib/wallet.server'
+import {
+  getLinkedAccounts,
+  getPublicWalletInfo,
+  getWalletInfo
+} from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   if (!hasUserSession(request)) {
@@ -52,9 +63,15 @@ export async function loader({ request }: LoaderArgs) {
     return redirect(route('/accounts'))
   }
 
+  const publicWalletInfo = await getPublicWalletInfo(
+    request,
+    flow.data.address.walletUrl
+  )
+
   return json({
     flow,
-    linkedAccounts
+    linkedAccounts,
+    publicWalletInfo
   })
 }
 
@@ -75,8 +92,10 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { flow, linkedAccounts } = useLoaderData<typeof loader>()
+  const { flow, linkedAccounts, publicWalletInfo } =
+    useLoaderData<typeof loader>()
   const fetcher = useFetcher()
+  const [showDialog, setShowDialog] = useState<boolean>(false)
 
   const [linkedAccount, setLinkedAccount] = useState<{
     id: string
@@ -108,22 +127,20 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <div className='-mt-2 flex items-center justify-between'>
+          <div className='flex items-center justify-between'>
             <h2 className='text-4xl font-medium text-strong'>
               {flow?.data.displayReceiveAmount || '$ 0.00'}
             </h2>
-            <div className='-mr-2 flex items-center justify-between p-2'>
-              {flow.data.address.identifierType === 'wallet' && (
-                <FynbosIcon height='h-12' />
-              )}
-              {flow.data.address.identifierType === 'twitter' && (
-                <TwitterIcon height='h-12' />
-              )}
-            </div>
+            {flow.data.address.identifierType === 'wallet' && (
+              <FynbosIcon height='h-12' />
+            )}
+            {flow.data.address.identifierType === 'twitter' && (
+              <TwitterIcon height='h-12' />
+            )}
           </div>
-          <Label className='-mb-5 mt-4'>Payment to</Label>
         </CardContent>
-        <CardButton>
+        <Label className='mt-2'>Payment to</Label>
+        <CardButton onClick={() => setShowDialog(true)}>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{flow.data.address.identifier}</span>
             <Icon>navigate_next</Icon>
@@ -197,6 +214,54 @@ export default function Page() {
       <Button form='amount-form' type='submit' name='route-to' value='next'>
         Continue
       </Button>
+      <Dialog open={showDialog} setOpen={setShowDialog}>
+        <CardHeader>
+          <h1 className='text-xl font-medium'>User information</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            You are viewing public information about the person you intend to
+            pay.
+          </span>
+        </CardContent>
+        <Label className='mt-4'>Public name</Label>
+        <div className='mt-1 flex rounded-xl bg-nav p-3 text-medium'>
+          <span className=''>{publicWalletInfo.publicName}</span>
+        </div>
+        <Label className='mt-2'>Wallet address</Label>
+        <CardLink className='flex w-full' to={publicWalletInfo.address}>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <FynbosIcon />
+              <span>{publicWalletInfo.shortAddress}</span>
+            </div>
+            <Icon>navigate_next</Icon>
+          </div>
+        </CardLink>
+        {publicWalletInfo.identities.map((identity) => (
+          <div key={identity.id} className='contents'>
+            <Label className='mt-2 capitalize'>{identity.platform}</Label>
+            <CardLink className='flex w-full' to={publicWalletInfo.address}>
+              <div className='flex w-full items-center justify-between text-medium'>
+                <div className='flex space-x-2'>
+                  {identity.platform == 'twitter' && <TwitterIcon />}
+                  {identity.platform == 'linkedin' && <LinkedInIcon />}
+                  <span>{identity.identifier}</span>
+                </div>
+                {identity.state == 'verified' && (
+                  <Chip color={ChipColor.green}>Verified</Chip>
+                )}
+              </div>
+            </CardLink>
+          </div>
+        ))}
+
+        <CardContent className='flex w-full justify-end space-x-6'>
+          <TextButton type='button' onClick={() => setShowDialog(false)}>
+            Close
+          </TextButton>
+        </CardContent>
+      </Dialog>
     </>
   )
 }

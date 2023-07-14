@@ -148,82 +148,72 @@ export default function Page() {
         )}
         {!linkedIdentities.twitter && kycStatus == KycStatus.Verified && (
           <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <CardIcon className='-my-2 -ml-2'>
-                  <TwitterIcon />
-                </CardIcon>
-                <div className='flex flex-col space-y-1'>
-                  <h3 className='font-medium text-medium'>Twitter</h3>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={route('/connect/twitter')}
-                  >
-                    Connect a Twitter identity
-                  </Router>
-                </div>
+            <div className='flex items-center space-x-4'>
+              <CardIcon>
+                <TwitterIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>Twitter</h3>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={route('/connect/twitter')}
+                >
+                  Connect a Twitter identity
+                </Router>
               </div>
-            </CardContent>
+            </div>
           </Card>
         )}
         {!linkedIdentities.github && kycStatus == KycStatus.Verified && (
           <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <CardIcon className='-my-2 -ml-2'>
-                  <GithubIcon />
-                </CardIcon>
-                <div className='flex flex-col space-y-1'>
-                  <h3 className='font-medium text-medium'>Github</h3>
-                  <p className='text-sm text-disabled'>Coming soon</p>
-                </div>
+            <div className='flex items-center space-x-4'>
+              <CardIcon>
+                <GithubIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>Github</h3>
+                <p className='text-sm text-disabled'>Coming soon</p>
               </div>
-            </CardContent>
+            </div>
           </Card>
         )}
         {!linkedIdentities.linkedIn && kycStatus == KycStatus.Verified && (
           <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <CardIcon className='-my-2 -ml-2'>
-                  <LinkedInIcon />
-                </CardIcon>
-                <div className='flex flex-col space-y-1'>
-                  <h3 className='font-medium text-medium'>LinkedIn</h3>
-                  <p className='text-sm text-disabled'>Coming soon</p>
-                </div>
+            <div className='flex items-center space-x-4'>
+              <CardIcon>
+                <LinkedInIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>LinkedIn</h3>
+                <p className='text-sm text-disabled'>Coming soon</p>
               </div>
-            </CardContent>
+            </div>
           </Card>
         )}
         {!linkedIdentities.facebook && kycStatus == KycStatus.Verified && (
           <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <CardIcon className='-my-2 -ml-2'>
-                  <FaceBookIcon />
-                </CardIcon>
-                <div className='flex flex-col space-y-1'>
-                  <h3 className='font-medium text-medium'>Facebook</h3>
-                  <p className='text-sm text-disabled'>Coming soon</p>
-                </div>
+            <div className='flex items-center space-x-4'>
+              <CardIcon>
+                <FaceBookIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>Facebook</h3>
+                <p className='text-sm text-disabled'>Coming soon</p>
               </div>
-            </CardContent>
+            </div>
           </Card>
         )}
         {!linkedIdentities.instagram && kycStatus == KycStatus.Verified && (
           <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <CardIcon className='-my-2 -ml-2'>
-                  <InstagramIcon />
-                </CardIcon>
-                <div className='flex flex-col space-y-1'>
-                  <h3 className='font-medium text-medium'>Instagram</h3>
-                  <p className='text-sm text-disabled'>Coming soon</p>
-                </div>
+            <div className='flex items-center space-x-4'>
+              <CardIcon>
+                <InstagramIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>Instagram</h3>
+                <p className='text-sm text-disabled'>Coming soon</p>
               </div>
-            </CardContent>
+            </div>
           </Card>
         )}
       </GridColumn>

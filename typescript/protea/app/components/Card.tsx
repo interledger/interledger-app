@@ -10,7 +10,7 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
       <div
         ref={ref}
         className={clsx(
-          'flex w-full flex-col rounded-[1.25rem] bg-container-strong',
+          'flex w-full flex-col rounded-[1.25rem] bg-container-strong p-2',
           className
         )}
         {...props}
@@ -24,7 +24,7 @@ const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={clsx('flex w-full justify-between p-4 pb-0', className)}
+      className={clsx('flex w-full justify-between px-2 pb-0 pt-2', className)}
       {...props}
     />
   )
@@ -61,7 +61,7 @@ CardIcon.displayName = 'CardIcon'
 
 const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={clsx('p-4', className)} {...props} />
+    <div ref={ref} className={clsx('p-2', className)} {...props} />
   )
 )
 CardContent.displayName = 'CardContent'
@@ -75,7 +75,7 @@ const CardLink = forwardRef<
       ref={ref}
       className={({ isActive }) =>
         clsx(
-          'mx-2 my-1 flex rounded-xl p-3 first-of-type:mt-2 last-of-type:mb-2 focus-visible:outline-2 focus-visible:outline-focus',
+          'my-1 flex rounded-xl p-3 first:mt-0 last-of-type:mb-0 focus-visible:outline-2 focus-visible:outline-focus',
           isActive ? 'bg-nav-hover' : 'hover:bg-nav',
           className
         )
@@ -96,7 +96,7 @@ const CardButton = forwardRef<
     <button
       ref={ref}
       className={clsx(
-        'mx-2 my-1 flex rounded-xl bg-nav p-3 first-of-type:mt-2 last-of-type:mb-2 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
+        'my-1 flex rounded-xl bg-nav p-3 first:mt-0 last-of-type:mb-0 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
         className
       )}
       {...props}

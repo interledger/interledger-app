@@ -14,6 +14,7 @@ import {
   ButtonRouter,
   Card,
   CardContent,
+  CardHeader,
   Dialog,
   Icon,
   Layouts,
@@ -21,6 +22,7 @@ import {
   TextButton,
   TextField
 } from '~/components'
+import { Label } from '~/components/Label'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
@@ -166,18 +168,18 @@ export default function Page() {
         className='hidden'
       />
       <Dialog open={showDialog} setOpen={setShowDialog}>
-        <h1 className='text-xl font-medium'>Two-step verification</h1>
-        <span className='text-medium'>
-          Enter the six digit code sent to your mobile number.
-        </span>
-        <div className='flex flex-col space-y-2 pt-2'>
-          <span className='ml-2 text-sm font-medium text-medium'>
-            Your mobile phone number
+        <CardHeader>
+          <h1 className='text-xl font-medium'>Two-step verification</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            Enter the six digit code sent to your mobile number.
           </span>
-          <div className='flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-            <Icon>phone_android</Icon>
-            <span>{otpFetcher?.data?.phone}</span>
-          </div>
+        </CardContent>
+        <Label className='mt-2'>Your mobile phone number</Label>
+        <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+          <Icon>phone_android</Icon>
+          <span>{otpFetcher?.data?.phone}</span>
         </div>
 
         <input
@@ -192,21 +194,20 @@ export default function Page() {
           label='Verification code'
           name='otp'
           type='number'
-          className='col-span-full flex flex-col pt-4 sm:col-span-6 sm:col-start-2'
+          className='mt-4'
           aria-invalid={Boolean(actionData?.errors.otp) || undefined}
           aria-describedby={actionData?.errors.otp ? 'email-error' : undefined}
           required
           errorMessage={actionData?.errors.otp}
         />
-
-        <div className='flex w-full justify-end space-x-6'>
+        <CardContent className='flex w-full justify-end space-x-6'>
           <TextButton type='submit' form='signup-phone-otp'>
             Resend code
           </TextButton>
           <TextButton type='submit' form='signup-phone-otp-validation'>
             Verify
           </TextButton>
-        </div>
+        </CardContent>
       </Dialog>
     </>
   )
