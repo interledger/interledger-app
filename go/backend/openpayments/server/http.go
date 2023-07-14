@@ -230,6 +230,17 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
+		exceedsKyc, _, err := b.Limits().ExceedsKYCLimits(req.Context(), fromPP.WalletID, argAmount)
+		if err != nil {
+			log.Error("failed to check limits of the grant client", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		if exceedsKyc {
+			http.Error(w, "kyc limits exceeded", http.StatusForbidden)
+			return
+		}
+
 		// Create quote transparently
 		q, err := ops.CreateQuote(req.Context(), b, openpayments.CreateQuoteArgs{
 			SendPaymentPointer:    httpArgs.FromPP,
