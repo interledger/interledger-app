@@ -9,7 +9,10 @@ const Label = forwardRef<
   return (
     <label
       ref={ref}
-      className={clsx('ml-2 block text-sm font-medium text-medium', className)}
+      className={clsx(
+        'ml-2 block text-sm font-medium text-medium first:mt-2',
+        className
+      )}
       {...props}
     />
   )

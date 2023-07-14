@@ -16,6 +16,7 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
   CardIcon,
   CardLink,
   Dialog,
@@ -175,8 +176,8 @@ export default function Page() {
                   onChange={() => _onChangeSwitch('publish', !identity.public)}
                 />
               </div>
-              <Label className='-mb-5 mt-6'>Public profile</Label>
             </CardContent>
+            <Label className='mt-2'>Public profile</Label>
             <CardLink
               to={`/me/${walletInfo.formattedURL}`}
               className='items-center justify-between'
@@ -305,30 +306,34 @@ export default function Page() {
         onClose={() => setSnackbar(false)}
       />
       <Dialog open={showDialog} setOpen={setShowDialog}>
-        <h1 className='text-xl font-medium'>Remove Twitter ID card</h1>
-        <span className='text-medium'>
-          Are you sure you want to remove the Twitter identity card? This action
-          cannot be undone.
-        </span>
+        <CardHeader>
+          <h1 className='text-xl font-medium'>Remove Twitter ID card</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            Are you sure you want to remove the Twitter identity card? This
+            action cannot be undone.
+          </span>
 
-        <div className='flex w-full justify-end space-x-6 pt-2'>
-          <TextButton
-            type='button'
-            className='!text-medium'
-            onClick={() => setShowDialog(false)}
-          >
-            Cancel
-          </TextButton>
-          <TextButton
-            name='formName'
-            className='!text-error'
-            value='delete'
-            form='identity'
-            type='submit'
-          >
-            Remove card
-          </TextButton>
-        </div>
+          <div className='flex w-full justify-end space-x-6 pt-2'>
+            <TextButton
+              type='button'
+              className='!text-medium'
+              onClick={() => setShowDialog(false)}
+            >
+              Cancel
+            </TextButton>
+            <TextButton
+              name='formName'
+              className='!text-error'
+              value='delete'
+              form='identity'
+              type='submit'
+            >
+              Remove card
+            </TextButton>
+          </div>
+        </CardContent>
       </Dialog>
     </>
   )

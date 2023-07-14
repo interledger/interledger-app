@@ -261,11 +261,7 @@ export default function Page() {
         {transactions &&
           transactions.map((transactionGroup, index) => (
             <Card key={`group-${index}`}>
-              <CardContent>
-                <Label className='-mb-5'>
-                  {transactionGroup[0].formattedDate}
-                </Label>
-              </CardContent>
+              <Label>{transactionGroup[0].formattedDate}</Label>
               {transactionGroup.map((transaction) => (
                 <CardLink
                   preventScrollReset
