@@ -340,14 +340,20 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	_, err = ops.GetWalletQuote(ctx, g.b, wallet.ID, req.QuoteID)
+	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, req.QuoteID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	// check that does not exceed kyc limits.
+	exceedsLimits, limitType, err := g.b.Limits().ExceedsKYCLimits(ctx, wallet.ID, q.SendAmount)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	return &pb.PreCheckOutgoingPaymentResponse{
-		ExceedsLimits:       false,
-		LimitType:           "",
+		ExceedsLimits:       exceedsLimits,
+		LimitType:           string(limitType),
 		InsufficientBalance: false,
 	}, nil
 }
