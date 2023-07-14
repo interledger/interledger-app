@@ -161,8 +161,8 @@ export default function Page() {
             {/*  </Router>*/}
             {/*)}*/}
           </h1>
-          <Label className='-mb-5 mt-6'>Wallet address</Label>
         </CardContent>
+        <Label className='mt-2'>Wallet address</Label>
         <CardButton
           type='button'
           onClick={async () => {
@@ -198,11 +198,7 @@ export default function Page() {
           <span className='text-medium'>{walletAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
         </CardButton>
-        {identities.length > 0 && (
-          <CardContent>
-            <Label className='-mb-5'>Twitter</Label>
-          </CardContent>
-        )}
+        {identities.length > 0 && <Label>Twitter</Label>}
         {identities.map((identity) => (
           <CardLink
             key={identity.id}

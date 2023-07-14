@@ -80,8 +80,8 @@ export default function Page() {
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    setLoading(false)
     if (actionData && actionData.error) {
+      setLoading(false)
       let errorMessage: string
       switch (actionData.error) {
         case 'Failed precondition: ErrUnsupportedCard':
@@ -286,10 +286,12 @@ export default function Page() {
           Submit
         </Button>
         <Dialog unmount={false} open={loading} setOpen={() => {}}>
-          <LoadingShapes />
-          <p className='mt-4 text-center text-medium'>
-            Just a moment, loading.
-          </p>
+          <CardContent className='my-5'>
+            <LoadingShapes />
+            <p className='mt-4 text-center text-medium'>
+              Just a moment, loading.
+            </p>
+          </CardContent>
         </Dialog>
       </BasisTheoryProvider>
     )

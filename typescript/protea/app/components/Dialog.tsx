@@ -52,7 +52,7 @@ export const Dialog: FC<DialogProps> = ({
           >
             <HeadlessDialog.Panel
               className={clsx(
-                'pointer-events-auto mx-6 flex w-full flex-col space-y-4 rounded-3xl bg-container-strong p-6 shadow-lg',
+                'pointer-events-auto mx-6 flex w-full flex-col rounded-3xl bg-container-strong p-2 shadow-lg',
                 grow ? 'sm:max-w-min' : 'sm:max-w-xs'
               )}
             >

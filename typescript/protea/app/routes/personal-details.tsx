@@ -172,12 +172,12 @@ export default function Page() {
         Continue
       </Button>
       <Dialog unmount={false} open={!ready} setOpen={() => {}}>
-        <div className='my-5'>
+        <CardContent className='my-5'>
           <LoadingShapes />
           <p className='mt-4 text-center text-medium'>
             Just a moment, loading.
           </p>
-        </div>
+        </CardContent>
       </Dialog>
     </>
   )
