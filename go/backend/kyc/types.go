@@ -49,9 +49,11 @@ const (
 	StatusUnknown           Status = 0
 	StatusPending           Status = 1
 	StatusDocumentsRequired Status = 2
-	StatusApproved          Status = 3
+	StatusApproved          Status = 3 // deprecated
 	StatusDenied            Status = 4
 	StatusInReview          Status = 5
+	StatusLevel1            Status = 6
+	StatusLevel2            Status = 7
 )
 
 func (s Status) ToInt32() int32 {

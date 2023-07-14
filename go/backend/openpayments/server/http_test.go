@@ -24,6 +24,7 @@ import (
 	identities_mock "gitlab.com/fynbos/backend/identities/client/mock"
 	"gitlab.com/fynbos/backend/keys"
 	mock_keys "gitlab.com/fynbos/backend/keys/client/mock"
+	"gitlab.com/fynbos/backend/limits"
 	limits_mock "gitlab.com/fynbos/backend/limits/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -307,6 +308,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	tmp_mock := &mocks.Client{}
 	lmt_mock := limits_mock.NewMockClient(ctrl)
 	lmt_mock.EXPECT().Exceeds(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes()
+	lmt_mock.EXPECT().ExceedsKYCLimits(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, limits.LimitType(""), nil).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.auth = auth
