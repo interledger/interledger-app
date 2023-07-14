@@ -105,7 +105,7 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 		ShortAddress: pp.ShortString(),
 		Identities:   idsResp,
 		CanReceive:   canRecv,
-		PublicName:   opp.Alias,
+		PublicName:   wallet.Name,
 	}, nil
 }
 
