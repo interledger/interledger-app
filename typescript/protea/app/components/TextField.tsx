@@ -1,4 +1,5 @@
-import type { InputHTMLAttributes } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import type { InputHTMLAttributes, ReactNode } from 'react'
 import { forwardRef } from 'react'
 import { Router } from '~/components/Router'
 
@@ -20,8 +21,8 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
 
   // Prefix text to show in front of the input.
   prefix?: string
-  prefixIcon?: JSX.Element
-  appendIcon?: JSX.Element
+  prefixIcon?: ReactNode
+  appendIcon?: ReactNode
 }
 
 export const TextField = forwardRef<any, TextFieldProps>(
@@ -43,23 +44,25 @@ export const TextField = forwardRef<any, TextFieldProps>(
   ) => {
     return (
       <div className={className || 'min-w-full'}>
-        <div className='flex justify-between'>
-          <label
-            htmlFor={inputProps.id}
-            className='ml-2 block text-sm font-medium text-medium'
-          >
-            {label} {labelSuffix && <sup>{labelSuffix}</sup>}
-          </label>
-          {labelLink && labelLinkTo && (
-            <Router
-              to={labelLinkTo}
-              className='mr-2 text-sm font-medium text-primary'
+        {label && (
+          <div className='mt-1 flex justify-between'>
+            <label
+              htmlFor={inputProps.id}
+              className='ml-2 block text-sm font-medium text-medium'
             >
-              {labelLink}
-            </Router>
-          )}
-        </div>
-        <div className='mt-1 block h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+              {label} {labelSuffix && <sup>{labelSuffix}</sup>}
+            </label>
+            {labelLink && labelLinkTo && (
+              <Router
+                to={labelLinkTo}
+                className='mr-2 text-sm font-medium text-primary'
+              >
+                {labelLink}
+              </Router>
+            )}
+          </div>
+        )}
+        <div className='block h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
           <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
             {prefixIcon && (
               <div className='-mr-4 flex h-full items-center px-3'>
@@ -83,12 +86,18 @@ export const TextField = forwardRef<any, TextFieldProps>(
             )}
           </div>
         </div>
-        <div className='h-7 pl-2 pt-2'>
-          {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
-          {successMessage && !errorMessage && (
-            <p className='text-sm text-success'>{successMessage}</p>
+        <AnimatePresence>
+          {(errorMessage || successMessage) && (
+            <motion.div className='h-7 pl-2 pt-2'>
+              {errorMessage && (
+                <p className='text-sm text-error'>{errorMessage}</p>
+              )}
+              {successMessage && !errorMessage && (
+                <p className='text-sm text-success'>{successMessage}</p>
+              )}
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </div>
     )
   }

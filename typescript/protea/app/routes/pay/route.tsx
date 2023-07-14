@@ -1,22 +1,9 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useFetcher, useLoaderData } from '@remix-run/react'
-import type { ChangeEventHandler } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { Form, useFetcher } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Card,
-  CardButton,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  FynbosIcon,
-  Icon,
-  Layouts,
-  TextField,
-  TwitterIcon
-} from '~/components'
+import { Layouts } from '~/components'
 import type { SearchResult } from '~/generated/protobuf-ts/backend/v1/backend'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -27,12 +14,14 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { generateQR, qrSvg } from '~/lib/qr.server'
+import { PayStep, useStore } from '~/lib/useStore'
 import {
   getKycStatus,
   getWalletContacts,
   getWalletInfo
 } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
+import { SearchPage } from '~/routes/pay/searchPage'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.Pay)
@@ -88,52 +77,14 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { flow } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
-  const [term, setTerm] = useState<string>(flow.data.term || '')
-  // const actionData = useActionData<typeof action>()
 
-  const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
-    (event) => {
-      let term = event.target.value
-      setTerm(term)
-      fetcher.submit({ term: term, formName: 'search' }, { method: 'post' })
-    },
-    [fetcher]
-  )
-
-  // TODO: should merge these into local state rather.
-  // This will also improve the UX when returning to the page
-  // and when the query is changed, and becomes shorter that the lower bound.
-  useEffect(() => {
-    if (fetcher.state === 'idle' && fetcher.data == null) {
-      fetcher.load('/pay')
-    }
-  }, [fetcher])
-
-  const _onClickResult = useCallback<{
-    (result: SearchResult): void
-  }>(
-    (result) => {
-      console.log('result', result)
-      fetcher.submit(
-        {
-          term: term,
-          walletUrl: result.walletUrl,
-          identifier: result.identifier,
-          identifierType: result.identifierType,
-          formName: 'submit'
-        },
-        { method: 'post' }
-      )
-    },
-    [fetcher, term]
-  )
+  const step = useStore((state) => state.step)
 
   return (
     <>
       <fetcher.Form
-        id='search-form'
+        id='pay-form'
         action={route('/pay')}
         method='post'
         className='hidden'
@@ -144,44 +95,7 @@ export default function Page() {
         method='post'
         className='hidden'
       />
-      <Card>
-        <CardContent>
-          <TextField
-            id='search'
-            form='search-form'
-            name='search'
-            defaultValue={term}
-            placeholder='Search for a user to pay'
-            onChange={_onChangeInput}
-            prefixIcon={<Icon>search</Icon>}
-            type='text'
-          />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Results</CardTitle>
-        </CardHeader>
-        {(!fetcher.data || fetcher.data.results.length == 0) && (
-          <CardContent>Your search returned no results.</CardContent>
-        )}
-        {fetcher.data &&
-          fetcher.data.results.map((result: SearchResult) => {
-            return (
-              <CardButton
-                key={result.walletID}
-                onClick={() => _onClickResult(result)}
-                name='address'
-                type='button'
-                className='items-center space-x-3'
-              >
-                {result.identifierType == 'wallet' && <FynbosIcon />}
-                {result.identifierType == 'twitter' && <TwitterIcon />}
-                <span className='text-medium'>{result.identifier}</span>
-              </CardButton>
-            )
-          })}
-      </Card>
+      {step === PayStep.SEARCH && <SearchPage />}
     </>
   )
 }
@@ -199,7 +113,6 @@ function mapper(field: fieldErrorsMap): 'address' | null {
 }
 
 export async function action({ request }: ActionArgs) {
-  await requireFlow(request, flowType.Pay)
   const form = await request.formData()
   const formName = (await form.get('formName')) as string
   const term = form.get('term') as string

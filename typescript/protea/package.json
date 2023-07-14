@@ -49,7 +49,8 @@
     "react-dom": "18.2.0",
     "rehype-slug": "^5.1.0",
     "routes-gen": "^0.6.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "zustand": "^4.3.9"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^3.3.1",
