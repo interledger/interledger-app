@@ -127,8 +127,10 @@ const (
 	AccountTagDirty    AccountTag = "DIRTY"
 	AccountTagPending  AccountTag = "STATUS:PENDING"
 	AccountTagReview   AccountTag = "STATUS:REVIEW"
-	AccountTagVerified AccountTag = "STATUS:VERIFIED"
+	AccountTagVerified AccountTag = "STATUS:VERIFIED" // deprecated
 	AccountTagRejected AccountTag = "STATUS:REJECTED"
+	AccountTagLevel1   AccountTag = "STATUS:KYC-LEVEL:1"
+	AccountTagLevel2   AccountTag = "STATUS:KYC-LEVEL:2"
 )
 
 type InquiryTemplateID string
