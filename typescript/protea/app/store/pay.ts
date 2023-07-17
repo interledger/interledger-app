@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 import type { StateCreator } from 'zustand'
 import type { SearchResult } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 
 export enum PayStep {
   SEARCH,
@@ -13,6 +14,8 @@ export interface PaySlice {
   searchTerm: string
   results: SearchResult[]
   address: SearchResult | null
+  toLinkedAccountId: string
+  linkedAccounts: FormattedLinkedAccount[]
   amount: number
   note: string
   idempotencyKey: string
@@ -29,6 +32,8 @@ const payInitialState = {
   searchTerm: '',
   address: null,
   results: [],
+  toLinkedAccountId: '',
+  linkedAccounts: [],
   amount: 0,
   note: '',
   idempotencyKey: v4()
