@@ -116,8 +116,14 @@ func inquiryWebhook(ctx context.Context, b Backends, js json.RawMessage, state p
 		return nil
 	}
 
-	res, err := b.DB().ExecContext(ctx, "UPDATE kyc_persona_inquiries SET state=$1, updated_at=$4 WHERE wallet_id=$2 AND external_id=$3 AND (updated_at < $4 OR updated_at IS NULL);",
-		state, inq.Data.Attributes.ReferenceID, inq.Data.ID, timestamp)
+	var res sql.Result
+	if state == persona.InquiryCreated {
+		res, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_inquiries(external_id, wallet_id, state) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING;",
+			inq.Data.ID, inq.Data.Attributes.ReferenceID, state)
+	} else {
+		res, err = b.DB().ExecContext(ctx, "UPDATE kyc_persona_inquiries SET state=$1, updated_at=$4 WHERE wallet_id=$2 AND external_id=$3 AND (updated_at < $4 OR updated_at IS NULL);",
+			state, inq.Data.Attributes.ReferenceID, inq.Data.ID, timestamp)
+	}
 	if err != nil {
 		return err
 	}
