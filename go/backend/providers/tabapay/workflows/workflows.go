@@ -104,8 +104,10 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return nil, err
 	}
 
+	var externalAccountID string
 	for _, providerID := range externalAccount.DuplicateAccountIDs {
 		var las []linkedaccounts.LinkedAccount
+		externalAccountID = providerID
 		err = workflow.ExecuteActivity(ctx, a.ListLinkedAccountsByProviderID, tabapay.ProviderName, providerID).Get(ctx, &las)
 		if err != nil {
 			logger.Error("Failed to check for duplicate linked cards.")
@@ -121,6 +123,9 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 			}
 		}
 	}
+	if externalAccountID == "" {
+		externalAccountID = externalAccount.AccountID
+	}
 
 	mask := cardInfo.Card.Last4
 	var network string
@@ -133,7 +138,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
 		ID:         tokenizedCard.ID,
 		WalletID:   args.WalletID,
-		ProviderID: externalAccount.AccountID,
+		ProviderID: externalAccountID,
 		Mask:       mask,
 		Name:       fmt.Sprintf("%s %s", network, mask),
 		Nickname:   fmt.Sprintf("%s %s", network, mask),
