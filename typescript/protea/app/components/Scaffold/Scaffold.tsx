@@ -268,8 +268,10 @@ export function Scaffold() {
             >
               <FynbosLogo className='h-8' />
             </Router>
+
             {actions && (
               <div className='ml-auto flex items-center space-x-4'>
+                {/* TODO: Put loading shapes here */}
                 {actions.map((action, index) => {
                   return (
                     <div key={'header-action' + index} className='ml-auto'>
