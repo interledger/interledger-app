@@ -33,18 +33,38 @@ func TestCreateCardWorkflow(t *testing.T) {
 			SC: 200,
 			Card: external.CardResponse{
 				Last4: last4,
+				Bin:   "5678",
 				Push: external.PushObject{
-					Network: "VISA",
-					Enabled: true,
+					Network:      "VISA",
+					Enabled:      true,
+					Type:         external.CardTypeCredit,
+					Availability: "Immediate",
+					Country:      "US",
 				},
-			},
-			AVS: external.AVSResponse{
-				CodeAVS: external.AVSResponseCodeY,
+				Pull: external.PullObject{
+					Enabled: true,
+					Network: "Mastercard",
+					Country: "US",
+					Type:    external.CardTypeDebit,
+				},
 			},
 		},
 		nil,
 	)
-	env.OnActivity(a.CreateBasisTheoryCard, mock.Anything, walletID, basisTheoryCardID).Return(
+	env.OnActivity(a.CreateBasisTheoryCard, mock.Anything, basistheory.CreateCardArgs{
+		WalletID:         walletID,
+		TokenID:          basisTheoryCardID,
+		Bin:              "5678",
+		PushNetwork:      "VISA",
+		PushEnabled:      true,
+		PushType:         "Credit",
+		PushAvailability: "Immediate",
+		PushCountry:      "US",
+		PullEnabled:      true,
+		PullNetwork:      "Mastercard",
+		PullType:         "Debit",
+		PullCountry:      "US",
+	}).Return(
 		&basistheory.Card{
 			ID:              basisTheoryCardID,
 			TokenizedNumber: "1234",
@@ -113,9 +133,19 @@ func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 			SC: 200,
 			Card: external.CardResponse{
 				Last4: last4,
+				Bin:   "5678",
 				Push: external.PushObject{
-					Network: "VISA",
+					Network:      "VISA",
+					Enabled:      true,
+					Type:         external.CardTypeCredit,
+					Availability: "Immediate",
+					Country:      "US",
+				},
+				Pull: external.PullObject{
 					Enabled: true,
+					Network: "Mastercard",
+					Country: "US",
+					Type:    external.CardTypeDebit,
 				},
 			},
 			AVS: external.AVSResponse{
@@ -124,10 +154,23 @@ func TestCreateCardWorkflowExistingLinkedAccount(t *testing.T) {
 		},
 		nil,
 	)
-	env.OnActivity(a.CreateBasisTheoryCard, mock.Anything, walletID, basisTheoryCardID).Return(
+	env.OnActivity(a.CreateBasisTheoryCard, mock.Anything, basistheory.CreateCardArgs{
+		WalletID:         walletID,
+		TokenID:          basisTheoryCardID,
+		Bin:              "5678",
+		PushNetwork:      "VISA",
+		PushEnabled:      true,
+		PushType:         "Credit",
+		PushAvailability: "Immediate",
+		PushCountry:      "US",
+		PullEnabled:      true,
+		PullNetwork:      "Mastercard",
+		PullType:         "Debit",
+		PullCountry:      "US",
+	}).Return(
 		&basistheory.Card{
 			ID:              basisTheoryCardID,
-			TokenizedNumber: "1234",
+			TokenizedNumber: "VISA 1234",
 			WalletID:        walletID,
 			Fingerprint:     fingerprint,
 		}, nil,

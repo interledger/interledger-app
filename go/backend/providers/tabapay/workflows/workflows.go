@@ -54,7 +54,20 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	}
 
 	var tokenizedCard basistheory.Card
-	err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, args.WalletID, args.BasisTheoryTokenID).Get(ctx, &tokenizedCard)
+	err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, basistheory.CreateCardArgs{
+		WalletID:         args.WalletID,
+		TokenID:          args.BasisTheoryTokenID,
+		Bin:              cardInfo.Card.Bin,
+		PullNetwork:      cardInfo.Card.Pull.Network,
+		PullEnabled:      cardInfo.Card.Pull.Enabled,
+		PullType:         string(cardInfo.Card.Pull.Type),
+		PullCountry:      cardInfo.Card.Pull.Country,
+		PushNetwork:      cardInfo.Card.Push.Network,
+		PushEnabled:      cardInfo.Card.Push.Enabled,
+		PushType:         string(cardInfo.Card.Push.Type),
+		PushAvailability: cardInfo.Card.Push.Availability,
+		PushCountry:      cardInfo.Card.Push.Country,
+	}).Get(ctx, &tokenizedCard)
 	if err != nil {
 		logger.Error("Failed to create basis theory card.")
 		return nil, err
@@ -126,8 +139,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	var network string
 	if cardInfo.Card.Push.Network != "" {
 		network = cardInfo.Card.Push.Network
-	}
-	if cardInfo.Card.Pull.Network != "" {
+	} else if cardInfo.Card.Pull.Network != "" {
 		network = cardInfo.Card.Pull.Network
 	}
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
