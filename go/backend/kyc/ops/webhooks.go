@@ -111,9 +111,16 @@ func inquiryWebhook(ctx context.Context, b Backends, js json.RawMessage, state p
 	if err != nil {
 		return err
 	}
+	if inq.Data.Attributes.ReferenceID == "" {
+		log.Error("persona inquiry does not have a referenceID.", zap.String("inquiryID", inq.Data.ID))
+		return nil
+	}
 
 	res, err := b.DB().ExecContext(ctx, "UPDATE kyc_persona_inquiries SET state=$1, updated_at=$4 WHERE wallet_id=$2 AND external_id=$3 AND (updated_at < $4 OR updated_at IS NULL);",
 		state, inq.Data.Attributes.ReferenceID, inq.Data.ID, timestamp)
+	if err != nil {
+		return err
+	}
 
 	if rows, _ := res.RowsAffected(); rows < 1 {
 		log.Info("not upating persona inquiry state", zap.Time("timestamp", timestamp), zap.String("inquiryID", inq.Data.ID), zap.String("webhook inquiry state", string(state)))
@@ -127,6 +134,11 @@ func accountCreatedWebhook(ctx context.Context, b Backends, js json.RawMessage) 
 	err := json.Unmarshal(js, &whAcc)
 	if err != nil {
 		return err
+	}
+
+	if whAcc.Data.Attributes.ReferenceID == "" {
+		log.Error("persona account does not have a referenceID.", zap.String("accountID", whAcc.Data.ID))
+		return nil
 	}
 
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO kyc_persona_accounts (external_id, wallet_id) VALUES ($1,$2) ON CONFLICT DO NOTHING;", whAcc.Data.ID, whAcc.Data.Attributes.ReferenceID)
