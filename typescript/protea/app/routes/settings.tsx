@@ -23,7 +23,7 @@ export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
-  if (flowId) return redirect(`${route('/recovery/password')}?flow=${flowId}`)
+  if (flowId) return redirect(`${route('/recovery/password')}`)
 
   const { kycStatus } = await getKycStatus(request)
 
