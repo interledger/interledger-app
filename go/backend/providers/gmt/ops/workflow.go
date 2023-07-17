@@ -1097,15 +1097,13 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 	if err != nil {
 		logger.Error("Failed to push to card.", "Error", err)
 		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
-			outgoingState := transactions.StateFailed
-			innerErr := workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
-			if innerErr != nil {
-				outgoingState = transactions.StateCompleted
-				logger.Error("failed to rollback tabapay card transaction", "orig_err", err, "err", innerErr)
+			err = startTabapayRollback(ctx, sendTransaction.ID)
+			if err != nil {
+				logger.Error("Failed to start tabapay rollback workflow", "err", err)
 			}
 			return &providers.TransferResponse{
 				Type:                       providers.GMTCARD2CARD,
-				OutgoingTransferState:      outgoingState,
+				OutgoingTransferState:      transactions.StateFailed,
 				OutgoingTransferExternalID: sendTransaction.ID,
 				IncomingTransferState:      transactions.StateFailed,
 			}, nil
@@ -1120,16 +1118,14 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 		if err != nil {
 			logger.Error("Failed to get tabapay transaction.", "Error", err)
 			if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
-				outgoingState := transactions.StateFailed
-				innerErr := workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
-				if innerErr != nil {
-					outgoingState = transactions.StateCompleted
-					logger.Error("failed to rollback tabapay card transaction", "err", innerErr, "orig_err", err)
+				err = startTabapayRollback(ctx, sendTransaction.ID)
+				if err != nil {
+					logger.Error("Failed to start tabapay rollback workflow", "err", err)
 				}
 
 				return &providers.TransferResponse{
 					Type:                       providers.GMTCARD2CARD,
-					OutgoingTransferState:      outgoingState,
+					OutgoingTransferState:      transactions.StateFailed,
 					OutgoingTransferExternalID: sendTransaction.ID,
 					IncomingTransferState:      transactions.StateFailed,
 				}, nil
@@ -1138,16 +1134,14 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 		}
 	}
 	if !tabapay.IsSuccessfulTransaction(recvTransaction) {
-		outgoingState := transactions.StateFailed
-		err = workflow.ExecuteActivity(tabapayCtx, a.ReverseTabapayTransaction, sendTransaction.ID).Get(tabapayCtx, nil)
+		err = startTabapayRollback(ctx, sendTransaction.ID)
 		if err != nil {
-			outgoingState = transactions.StateCompleted
-			logger.Error("failed to rollback tabapay card pull transaction for failed push transactions", "err", err, "recv_tx_status", recvTransaction.Status)
+			logger.Error("Failed to start tabapay rollback workflow", "err", err)
 		}
 
 		return &providers.TransferResponse{
 			Type:                       providers.GMTCARD2CARD,
-			OutgoingTransferState:      outgoingState,
+			OutgoingTransferState:      transactions.StateFailed,
 			OutgoingTransferExternalID: sendTransaction.ID,
 			IncomingTransferState:      transactions.StateFailed,
 		}, nil
@@ -1191,7 +1185,7 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 		logger.Error("ExecuteChildWorkflow failed to start", "Error", err)
 		return nil, err
 	}
-	// Child workflow execution has started. We can return
+	// Child workflow execution has started. We can return and GMT will carry-on on its own
 
 	return &providers.TransferResponse{
 		Type:                       providers.GMTCARD2CARD,
@@ -1200,6 +1194,54 @@ func Card2CardTransferWorkflow(ctx workflow.Context, args providers.TransfersArg
 		IncomingTransferState:      transactions.StateCompleted,
 		IncomingTransferExternalID: recvTransaction.ID,
 	}, nil
+}
+
+func startTabapayRollback(ctx workflow.Context, txID string) error {
+	rollbackWorkflowOptions := workflow.ChildWorkflowOptions{
+		WorkflowID:            "gmt_tabapay_rollback_pull_" + txID,
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON,
+	}
+	rollbaclCtx := workflow.WithChildOptions(ctx, rollbackWorkflowOptions)
+	var we workflow.Execution
+	err := workflow.ExecuteChildWorkflow(rollbaclCtx, RollbackTabapayPullWorkflow, txID).GetChildWorkflowExecution().Get(rollbaclCtx, &we)
+	if err != nil {
+		return err
+	}
+
+	// Successfully started rollback workflow, carry on
+
+	return nil
+}
+
+func RollbackTabapayPullWorkflow(ctx workflow.Context, txID string) error {
+	var a *Activity
+
+	logger := workflow.GetLogger(ctx)
+
+	ctx = workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("transactionID=%s", txID),
+	})
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 95 * time.Second, // May take up to 90 seconds.
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts:    10, // Tabapay will block us if we keep retrying, but we will try at least 10 times, with huge breaks in between so we don't hit rate limits
+			BackoffCoefficient: 2,
+			InitialInterval:    time.Minute * 10,
+			MaximumInterval:    time.Hour,
+		},
+	})
+
+	err := workflow.ExecuteActivity(ctx, a.ReverseTabapayTransaction, txID).Get(ctx, nil)
+	if err != nil {
+		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
+			logger.Error("Final failure to rollback tabapay card transaction", "err", err, "tx_id", txID)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func NotifyGMTCard2CardWorkflow(ctx workflow.Context, args providers.TransfersArgs) error {
