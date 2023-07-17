@@ -94,7 +94,7 @@ func TestFeatures(t *testing.T) {
 		},
 		{
 			name:      "KYC NON US only identities",
-			KycStatus: kyc.StatusApproved,
+			KycStatus: kyc.StatusLevel1,
 			id:        &kyc.IndividualDetails{CountryCode: "UG"},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
@@ -103,7 +103,7 @@ func TestFeatures(t *testing.T) {
 		},
 		{
 			name:      "KYC US non send state",
-			KycStatus: kyc.StatusApproved,
+			KycStatus: kyc.StatusLevel1,
 			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-XX"}},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
@@ -115,7 +115,7 @@ func TestFeatures(t *testing.T) {
 		},
 		{
 			name:      "KYC US send state",
-			KycStatus: kyc.StatusApproved,
+			KycStatus: kyc.StatusLevel1,
 			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-SD"}},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,

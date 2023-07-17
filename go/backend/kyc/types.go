@@ -52,6 +52,8 @@ const (
 	StatusApproved          Status = 3
 	StatusDenied            Status = 4
 	StatusInReview          Status = 5
+	StatusLevel1            Status = 6
+	StatusLevel2            Status = 7
 )
 
 func (s Status) ToInt32() int32 {

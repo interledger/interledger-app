@@ -127,15 +127,17 @@ const (
 	AccountTagDirty    AccountTag = "DIRTY"
 	AccountTagPending  AccountTag = "STATUS:PENDING"
 	AccountTagReview   AccountTag = "STATUS:REVIEW"
-	AccountTagVerified AccountTag = "STATUS:VERIFIED"
+	AccountTagVerified AccountTag = "STATUS:VERIFIED" // deprecated
 	AccountTagRejected AccountTag = "STATUS:REJECTED"
+	AccountTagLevel1   AccountTag = "STATUS:KYC-LEVEL:1"
+	AccountTagLevel2   AccountTag = "STATUS:KYC-LEVEL:2"
 )
 
 type InquiryTemplateID string
 
 var inquiryTemplateIDs = map[country.Country]InquiryTemplateID{
-	country.US: "itmpl_4zn5ZN3yGGg9SgWPDRays7Cx",
-	country.GB: "itmpl_XJCdAPML9cxHxKmpEFhXnSDw",
+	country.US: "itmpl_EJAHdJABX5xztmk7JbC9gNLH",
+	country.GB: "itmpl_EJAHdJABX5xztmk7JbC9gNLH",
 }
 
 func GetTemplateIDForCountry(ctx context.Context, ctry country.Country) InquiryTemplateID {

@@ -173,10 +173,16 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 			kycState = kyc.StatusDenied
 			stateTags++
 		case persona.AccountTagVerified:
-			kycState = kyc.StatusApproved
-			stateTags++
+			// deprecated
+			log.Error("persona webhook: received deprecated account tag=(STATUS:VERIFIED).", zap.String("external accountID", whAcc.Data.ID), zap.String("walletID", whAcc.Data.Attributes.ReferenceID))
 		case persona.AccountTagReview:
 			kycState = kyc.StatusInReview
+			stateTags++
+		case persona.AccountTagLevel1:
+			kycState = kyc.StatusLevel1
+			stateTags++
+		case persona.AccountTagLevel2:
+			kycState = kyc.StatusLevel2
 			stateTags++
 		}
 	}

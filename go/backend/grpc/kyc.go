@@ -185,6 +185,10 @@ func (s *rpcService) KYCStatus(ctx context.Context, req *pb.Empty) (*pb.KYCStatu
 		return nil, toGRPCError(err)
 	}
 
+	if status == kyc.StatusLevel1 || status == kyc.StatusLevel2 {
+		status = kyc.StatusApproved
+	}
+
 	return &pb.KYCStatusResponse{
 		KycStatus: status.ToInt32(),
 	}, nil

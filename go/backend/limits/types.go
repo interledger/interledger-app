@@ -21,3 +21,12 @@ const (
 	FKTypeClient          FKType = "client"
 	FKTypeClientPublicKey FKType = "clientPublicKey"
 )
+
+type LimitType string
+
+const (
+	LimitTypeTransaction LimitType = "LimitTransaction"
+	LimitTypeDaily       LimitType = "LimitDaily"
+	LimitTypeMonthly     LimitType = "LimitMonthly"
+	LimitType6Monthly    LimitType = "Limit6Monthly"
+)

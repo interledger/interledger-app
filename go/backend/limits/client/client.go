@@ -43,3 +43,7 @@ func (c client) GetPublicKeyLimit(ctx context.Context, walletID, publicKeyUUid s
 func (c client) ExceedsGMTLimits(ctx context.Context, walletID string, amount currency.Amount) (bool, error) {
 	return ops.ExceedsGMTLimits(ctx, c.b, walletID, amount)
 }
+
+func (c client) ExceedsKYCLimits(ctx context.Context, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
+	return ops.ExceedsKYCLimits(ctx, c.b, walletID, amount)
+}

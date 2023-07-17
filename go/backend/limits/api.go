@@ -20,4 +20,5 @@ type Client interface {
 	GetPublicKeyLimit(ctx context.Context, walletID, publicKeyUuid string) (*Limit, error)
 
 	ExceedsGMTLimits(ctx context.Context, walletID string, amount currency.Amount) (bool, error)
+	ExceedsKYCLimits(ctx context.Context, walletID string, amount currency.Amount) (bool, LimitType, error)
 }
