@@ -209,6 +209,7 @@ type (
 	CardResponse struct {
 		NameFI         string     `json:"nameFI,omitempty"`
 		Last4          string     `json:"last4"`
+		Bin            string     `json:"bin,omitempty"`
 		ExpirationDate string     `json:"expirationDate,omitempty"`
 		Push           PushObject `json:"push,omitempty"`
 		Pull           PullObject `json:"pull,omitempty"`

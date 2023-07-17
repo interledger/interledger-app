@@ -9,5 +9,5 @@ import (
 
 type Client interface {
 	GetToken(ctx context.Context, id string) (*basistheory.Token, error)
-	CreateCardToken(ctx context.Context, args bt.CreateCardArgs) (*basistheory.CreateTokenResponse, error)
+	CreateCardToken(ctx context.Context, args bt.CreateCardTokenArgs) (*basistheory.CreateTokenResponse, error)
 }
