@@ -166,6 +166,14 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 	}
 
 	amount := currency.FromPB(req.Amount)
+	exceedsLimit, limitType, err := g.b.Limits().ExceedsKYCLimits(ctx, wallet.ID, amount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if exceedsLimit {
+		return nil, FailedPreconditionError(string(limitType))
+	}
+
 	args := openpayments.CreateQuoteArgs{
 		SendPaymentPointer:    ops.StandardisePaymentPointer(req.SendPaymentPointer),
 		ReceivePaymentPointer: ops.StandardisePaymentPointer(req.ReceivePaymentPointer),

@@ -27,6 +27,7 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -278,6 +279,12 @@ function mapper(field: fieldErrorsMap): 'amount' | null {
   }
 }
 
+type quoteLimitError = 
+  | 'Failed precondition: LimitTransaction'
+  | 'Failed precondition: LimitDaily'
+  | 'Failed precondition: LimitMonthly'
+  | 'Failed precondition: Limit6Monthly'
+
 export async function action({ request }: ActionArgs) {
   const flow = await requireFlow(request, flowType.Pay)
   const form = await request.formData()
@@ -332,11 +339,29 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
 
   if (isGrpcError(response)) {
-    if (response.code == 3) {
+    if (response.code == Code.INVALID_ARGUMENT) {
       for (let violation of (response as GrpcError).details[0]
         .fieldViolations) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
+      }
+      return json({ errors: { ...fieldErrors } }, { status: 400 })
+    } else if (response.code == Code.FAILED_PRECONDITION) {
+      switch (response.message as quoteLimitError) {
+        case 'Failed precondition: LimitTransaction':
+          fieldErrors["amount"] = "Exceeds per transaction limit."
+          break
+        case 'Failed precondition: LimitDaily':
+          fieldErrors["amount"] = "Exceeds daily limit."
+          break
+        case 'Failed precondition: LimitMonthly':
+          fieldErrors["amount"] = "Exceeds monthly limit."
+          break
+        case 'Failed precondition: Limit6Monthly':
+          fieldErrors["amount"] = "Exceeds rolling 6 month limit."
+          break
+        default:
+          fieldErrors["amount"] = "Exceeds account limit."
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(response.code))

@@ -138,3 +138,7 @@ func ForbiddenError(message string) error {
 func UnauthenticatedError(message string) error {
 	return status.Error(codes.Unauthenticated, "Unauthenticated: "+message)
 }
+
+func FailedPreconditionError(message string) error {
+	return status.Error(codes.FailedPrecondition, "Failed precondition: "+message)
+}

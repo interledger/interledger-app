@@ -25,8 +25,8 @@ const (
 type LimitType string
 
 const (
-	LimitTypeTransaction LimitType = "Transaction"
-	LimitTypeDaily       LimitType = "Daily"
-	LimitTypeMonthly     LimitType = "Monthly"
-	LimitType6Monthly    LimitType = "6Monthly"
+	LimitTypeTransaction LimitType = "LimitTransaction"
+	LimitTypeDaily       LimitType = "LimitDaily"
+	LimitTypeMonthly     LimitType = "LimitMonthly"
+	LimitType6Monthly    LimitType = "Limit6Monthly"
 )

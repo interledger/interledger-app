@@ -51,7 +51,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 	// If you are not KYC approved you can do nothing
-	if kycStatus != kyc.StatusApproved {
+	if kycStatus != kyc.StatusLevel1 && kycStatus != kyc.StatusLevel2 {
 		return &features.WalletFeatures{}, nil
 	}
 
