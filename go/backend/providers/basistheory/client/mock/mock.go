@@ -36,22 +36,22 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // CreateCard mocks base method.
-func (m *MockClient) CreateCard(ctx context.Context, tokenID, walletID string) (*basistheory.Card, error) {
+func (m *MockClient) CreateCard(ctx context.Context, args basistheory.CreateCardArgs) (*basistheory.Card, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateCard", ctx, tokenID, walletID)
+	ret := m.ctrl.Call(m, "CreateCard", ctx, args)
 	ret0, _ := ret[0].(*basistheory.Card)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateCard indicates an expected call of CreateCard.
-func (mr *MockClientMockRecorder) CreateCard(ctx, tokenID, walletID interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) CreateCard(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCard", reflect.TypeOf((*MockClient)(nil).CreateCard), ctx, tokenID, walletID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCard", reflect.TypeOf((*MockClient)(nil).CreateCard), ctx, args)
 }
 
 // CreateCardToken mocks base method.
-func (m *MockClient) CreateCardToken(ctx context.Context, args basistheory.CreateCardArgs) (string, error) {
+func (m *MockClient) CreateCardToken(ctx context.Context, args basistheory.CreateCardTokenArgs) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateCardToken", ctx, args)
 	ret0, _ := ret[0].(string)

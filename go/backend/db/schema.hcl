@@ -283,6 +283,56 @@ table "basistheory_cards" {
     type = text
     default = ""
   }
+  column "bin" {
+    default = ""
+    null = false
+    type = text
+  }
+  column "pull_network" {
+    default = ""
+    null = false
+    type = text
+  }
+  column "pull_enabled" {
+    default = false
+    null = false
+    type = bool
+  }
+  column "pull_type" {
+    default = ""
+    null = false
+    type = text
+  }
+  column "pull_country" {
+    default = ""
+    null = false
+    type = text
+  }
+  column "push_network" {
+    default = ""
+    null = false
+    type = text
+  }
+  column "push_enabled" {
+    default = false
+    null = false
+    type = bool
+  }
+  column "push_type" {
+    default = ""
+    null = false
+    type = text
+  }
+  column "push_availability" {
+    default = ""
+    null = false
+    type = text
+  }
+  column "push_country" {
+    default = ""
+    null = false
+    type = text
+  }  
   column "created_at" {
     null    = false
     type    = timestamp
