@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/transactions"
 	"net/url"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/providers"
 
@@ -183,7 +184,7 @@ func (a *Activity) CompleteOutgoingPayment(ctx context.Context, outgoingID strin
 	return err
 }
 
-func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID string, extID string) error {
+func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID, txID string) error {
 	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
 	if errors.Is(err, openpayments.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
@@ -197,9 +198,14 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID st
 		return err
 	}
 
+	txURL, err := url.JoinPath(env.GetUrl(), "transactions", txID)
+	if err != nil {
+		return err
+	}
+
 	// TODO verify that these are formatted correctly.
 	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceiptTemplateID, map[string]interface{}{
-		"transactionID":      op.ID,
+		"transactionID":      txURL,
 		"paymentDate":        op.UpdatedAt.Format(time.RFC1123),
 		"sendAmount":         op.SentAmount.Format(),
 		"fees":               "$ 0.00",
@@ -212,7 +218,7 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID st
 	return err
 }
 
-func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID string) error {
+func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID, txFkID string) error {
 	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
 	if errors.Is(err, openpayments.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
@@ -234,10 +240,20 @@ func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID st
 		return err
 	}
 
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, pp.WalletID, txFkID)
+	if err != nil {
+		return err
+	}
+
+	txURL, err := url.JoinPath(env.GetUrl(), "transactions", tx.ID)
+	if err != nil {
+		return err
+	}
+
 	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceivedReceiptTemplateID, map[string]interface{}{
 		"fromPaymentPointer": ip.FromPaymentPointer,
 		"toPaymentPointer":   ip.PaymentPointer,
-		"transactionID":      ip.ID,
+		"transactionID":      txURL,
 		"paymentDate":        ip.UpdatedAt.Format(time.RFC1123),
 		"receiveAmount":      ip.ReceivedAmount.Format(),
 		"note":               ip.Description,

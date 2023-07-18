@@ -72,7 +72,7 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 	}, nil)
 	env.OnActivity(a.CompleteOutgoingPayment, mock.Anything, id, mock.Anything).Return(nil)
 	env.OnActivity(a.SendOutgoingPaymentReceipt, mock.Anything, id, mock.Anything).Return(nil)
-	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id).Return(nil)
+	env.OnActivity(a.SendIncomingPaymentReceipt, mock.Anything, id, mock.Anything).Return(nil)
 
 	env.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
 	env.ExecuteWorkflow(OutgoingTransactionWorkflow, id, trxID, "198.0.0.4", "")
