@@ -3,6 +3,8 @@ package ops
 import (
 	"context"
 	"errors"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -45,7 +47,7 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (*ta
 
 		// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
 		if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
-			return nil, temporal.NewNonRetryableApplicationError("3DS not fully authenticated.", "ErrInternal", err)
+			log.Info("3DS session not fully authenticated", zap.String("eci", session3DS.ECI), zap.String("linkedAccountID", linkedCard.ID))
 		}
 	}
 
