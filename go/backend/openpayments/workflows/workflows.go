@@ -192,12 +192,13 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 			logger.Error("SendFailedOutgoingPaymentMail Activity failed.", "Error", err)
 			return "", err
 		}
+
 		return "", nil
 	}
 
 	if resp.OutgoingTransferExternalID != "" {
 		// Update Outgoing payment
-		err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp.OutgoingTransferExternalID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp).Get(ctx, nil)
 		if err != nil {
 			logger.Error("GetProviderArgs Activity failed.", "Error", err)
 			return "", err
