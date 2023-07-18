@@ -6,6 +6,7 @@ declare module "routes-gen" {
     "/wallet/:id/profile": { "id": string };
     "/wallet/:id/audit": { "id": string };
     "/waitlist": Record<string, never>;
+    "/reviews": Record<string, never>;
     "/wallets": Record<string, never>;
     "/": Record<string, never>;
   };
@@ -18,6 +19,7 @@ declare module "routes-gen" {
       | ["/wallet/:id/profile", RouteParams["/wallet/:id/profile"]]
       | ["/wallet/:id/audit", RouteParams["/wallet/:id/audit"]]
       | ["/waitlist"]
+      | ["/reviews"]
       | ["/wallets"]
       | ["/"]
   >(...args: T): typeof args[0];
