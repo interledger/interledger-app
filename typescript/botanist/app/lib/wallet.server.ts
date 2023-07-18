@@ -1,21 +1,22 @@
-import {
-  grpcClient,
-  httpMapping,
-  isGrpcError,
-  StatusError
-} from '~/lib/proto.server'
 import { json } from '@remix-run/node'
+import { DateTime } from 'luxon'
 import type {
   Features,
   GetTransactionDetailsResponse,
+  LinkedAccountReviews,
   ListAuditResponse,
   ListWalletsResponse,
   PaginationRequest,
+  User,
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
-import { DateTime } from 'luxon'
 import type { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
-import type { User } from '~/generated/protobuf-ts/backend/admin/v1/backend'
+import {
+  StatusError,
+  grpcClient,
+  httpMapping,
+  isGrpcError
+} from '~/lib/proto.server'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -37,7 +38,7 @@ export async function ListWallets(
     })
     .then((v) => v)
     .catch(StatusError)
-  console.log('HELP')
+
   if (isGrpcError(response)) {
     throw json({}, httpMapping(response.code))
   }
@@ -339,4 +340,49 @@ export async function GetWalletAudits(
   }
 
   return response.response
+}
+
+export async function ListLinkedAccountReviews(
+  request: Request,
+  page: PaginationRequest
+): Promise<LinkedAccountReviews> {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .listIncompleteLinkedAccountReviews(page, {
+      meta: {
+        cookies: cookie || ''
+      }
+    })
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function SetLinkedAccountReviewToVerified(
+  request: Request,
+  reviewID: string
+) {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .completeLinkedAccountReview(
+      {
+        id: reviewID,
+        newState: 'Verified',
+        reason: 'Manually approved.'
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
 }
