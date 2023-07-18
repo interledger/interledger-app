@@ -35,6 +35,8 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(gmt_workflows.Card2ACHTransferWorkflow)
 	w.RegisterWorkflow(gmt_workflows.ACH2CardTransferWorkflow)
 	w.RegisterWorkflow(gmt_workflows.Card2CardTransferWorkflow)
+	w.RegisterWorkflow(gmt_workflows.NotifyGMTCard2CardWorkflow)
+	w.RegisterWorkflow(gmt_workflows.RollbackTabapayPullWorkflow)
 
 	w.RegisterActivity(tabapay_workflows.NewActivity(b))
 	w.RegisterWorkflow(tabapay_workflows.CreateTabapayCardWorkflow)

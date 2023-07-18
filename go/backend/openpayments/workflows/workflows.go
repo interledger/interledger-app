@@ -192,26 +192,31 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 			logger.Error("SendFailedOutgoingPaymentMail Activity failed.", "Error", err)
 			return "", err
 		}
+
 		return "", nil
 	}
 
-	// Update Outgoing payment
-	err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp.OutgoingTransferExternalID).Get(ctx, nil)
-	if err != nil {
-		logger.Error("GetProviderArgs Activity failed.", "Error", err)
-		return "", err
+	if resp.OutgoingTransferExternalID != "" {
+		// Update Outgoing payment
+		err = workflow.ExecuteActivity(ctx, a.CompleteOutgoingPayment, outgoingID, resp).Get(ctx, nil)
+		if err != nil {
+			logger.Error("GetProviderArgs Activity failed.", "Error", err)
+			return "", err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, resp.OutgoingTransferExternalID).Get(ctx, nil)
+		if err != nil {
+			logger.Error("SendOutgoingPaymentReceipt Activity failed.", "Error", err)
+			return "", err
+		}
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, resp.OutgoingTransferExternalID).Get(ctx, nil)
-	if err != nil {
-		logger.Error("SendOutgoingPaymentReceipt Activity failed.", "Error", err)
-		return "", err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SendIncomingPaymentReceipt, outgoingID).Get(ctx, nil)
-	if err != nil {
-		logger.Error("SendIncomingPaymentReceipt Activity failed.", "Error", err)
-		return "", err
+	if resp.IncomingTransferState == transactions.StateCompleted {
+		err = workflow.ExecuteActivity(ctx, a.SendIncomingPaymentReceipt, outgoingID).Get(ctx, nil)
+		if err != nil {
+			logger.Error("SendIncomingPaymentReceipt Activity failed.", "Error", err)
+			return "", err
+		}
 	}
 
 	return resp.OutgoingTransferExternalID, nil

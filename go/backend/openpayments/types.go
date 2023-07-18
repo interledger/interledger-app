@@ -102,8 +102,9 @@ type OutgoingPayment struct {
 }
 
 type CompleteOutgoingPaymentArgs struct {
-	ID         string
-	SentAmount currency.Amount
+	ID              string
+	SentAmount      currency.Amount
+	IncomingSuccess bool
 }
 
 type Jwk struct {
