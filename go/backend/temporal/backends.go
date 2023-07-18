@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/images"
 	"gitlab.com/fynbos/backend/keys"
@@ -46,4 +47,5 @@ type Backends interface {
 	OpenPayments() openpayments.Client
 	Identities() identities.Client
 	Images() images.Client
+	Features() features.Client
 }

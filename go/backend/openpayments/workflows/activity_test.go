@@ -104,13 +104,6 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			q, err := ops.CreateQuote(ctx, b, tc.quoteArgs)
-			require.NoError(t, err)
-
-			tc.opArgs.QuoteID = q.ID
-			opID, _, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
-			require.NoError(t, err)
-
 			la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
 				{
 					ID:         uuid.NewString(),
@@ -118,14 +111,23 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 					Type:       mx.TypeBankAccount,
 					CanSend:    true,
 					CanReceive: true,
+					State:      linkedaccounts.Verified,
 				}, {
 					ID:         uuid.NewString(),
 					Provider:   gmt.ProviderName,
 					Type:       mx.TypeBankAccount,
 					CanSend:    true,
 					CanReceive: true,
+					State:      linkedaccounts.Verified,
 				},
-			}, nil).Times(2)
+			}, nil).AnyTimes()
+
+			q, err := ops.CreateQuote(ctx, b, tc.quoteArgs)
+			require.NoError(t, err)
+
+			tc.opArgs.QuoteID = q.ID
+			opID, _, err := ops.CreateOutgoingPayment(ctx, b, tc.opArgs)
+			require.NoError(t, err)
 
 			argsEnc, err := env.ExecuteActivity(a.GetProviderWorkflowArgs, opID)
 			require.NoError(t, err)

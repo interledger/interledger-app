@@ -1,10 +1,12 @@
 package server
 
 import (
+	"testing"
+
 	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/identities"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"testing"
 
 	"gitlab.com/fynbos/backend/contacts"
 	"gitlab.com/fynbos/backend/keys"
@@ -41,6 +43,7 @@ type Backends interface {
 	Tabapay() tabapay.Client
 	Keys() keys.Client
 	Identities() identities.Client
+	Features() features.Client
 }
 
 type testBackends struct {
@@ -58,6 +61,7 @@ type testBackends struct {
 	keys keys.Client
 	ids  identities.Client
 	us   user.Client
+	fc   features.Client
 }
 
 func (t *testBackends) Keys() keys.Client {
@@ -118,6 +122,10 @@ func (t *testBackends) Tabapay() tabapay.Client {
 
 func (t *testBackends) Identities() identities.Client {
 	return t.ids
+}
+
+func (t *testBackends) Features() features.Client {
+	return t.fc
 }
 
 type TestBackendOpts func(*testBackends)

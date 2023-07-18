@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/mx"
+
 	"gitlab.com/fynbos/backend/providers"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"gitlab.com/fynbos/backend/transactions"
@@ -36,6 +39,22 @@ func TestOutgoingTransactionWorkflow(t *testing.T) {
 
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
+
+	la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
+		{
+			ID:         uuid.NewString(),
+			WalletID:   uuid.NewString(),
+			Name:       "NoName",
+			Nickname:   "NoName",
+			Mask:       "1234",
+			Provider:   mx.ProviderName,
+			ProviderID: uuid.NewString(),
+			Type:       "card",
+			CanSend:    true,
+			CanReceive: true,
+			State:      linkedaccounts.Verified,
+		},
+	}, nil).AnyTimes()
 
 	a := NewActivity(b)
 

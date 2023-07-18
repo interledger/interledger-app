@@ -10,6 +10,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gitlab.com/fynbos/backend/features"
+	features_mock "gitlab.com/fynbos/backend/features/client/mock"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -305,6 +308,11 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)
+	ft_mock := features_mock.NewMockClient(ctrl)
+	ft_mock.EXPECT().Features(gomock.Any(), gomock.Any()).Return(&features.WalletFeatures{
+		SendEnabled:    true,
+		ReceiveEnabled: true,
+	}, nil).AnyTimes()
 	tmp_mock := &mocks.Client{}
 	lmt_mock := limits_mock.NewMockClient(ctrl)
 	lmt_mock.EXPECT().Exceeds(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes()
@@ -316,6 +324,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		tb.la = la_mock
 		tb.lmt = lmt_mock
 		tb.temp = tmp_mock
+		tb.fc = ft_mock
 	})
 	auth.EXPECT().VerifyRequestSig(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
@@ -421,7 +430,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 			CanReceive: true,
 			State:      linkedaccounts.Verified,
 		},
-		}, nil).Times(2)
+		}, nil).AnyTimes()
 
 		ipAddress := "198.0.0.8"
 		tmp_mock.On("ExecuteWorkflow", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, ipAddress, mock.Anything).Return(nil, nil)
