@@ -64,7 +64,7 @@ export function GridCard({
     <dl
       className={clsx(
         className,
-        'flex flex-col space-y-4 max-h-max h-max rounded-2xl bg-page p-4'
+        'flex h-max max-h-max flex-col space-y-4 rounded-2xl bg-page p-4'
       )}
     >
       {title && <h2 className='font-display text-lg font-medium'>{title}</h2>}
@@ -84,7 +84,7 @@ export function GridCardError({
     <dl
       className={clsx(
         className,
-        'flex flex-col space-y-4 max-h-max h-max rounded-2xl bg-page p-4'
+        'flex h-max max-h-max flex-col space-y-4 rounded-2xl bg-page p-4'
       )}
     >
       {error.status && (
