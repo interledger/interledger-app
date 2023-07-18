@@ -43,12 +43,18 @@ func getDefaultSendAcc(ctx context.Context, b Backends, pointer string) (*linked
 		return nil, err
 	}
 
-	// Search all linked accounts and check for the first account that can send funds.
-	// TODO: Add default flags to linked accounts and add more providers
+	// Search all linked accounts and check for the first account that can send funds and is verified.
+	var la *linkedaccounts.LinkedAccount
 	for _, ra := range accs {
 		if ra.CanSend {
-			return &ra, nil
+			la = &ra
 		}
+		if la != nil && la.State == linkedaccounts.Verified {
+			return la, nil
+		}
+	}
+	if la != nil && la.State != linkedaccounts.Verified {
+		return nil, fmt.Errorf("%w Sending linked account is not verified (%s)", openpayments.ErrPaymentPointerCannotSend, la.ID)
 	}
 
 	return nil, fmt.Errorf("%w no account capable of receiving found for payment pointer (%s)", openpayments.ErrNotFound, pointer)
@@ -65,12 +71,18 @@ func getDefaultRecvAcc(ctx context.Context, b Backends, pointer string) (*linked
 		return nil, err
 	}
 
-	// Search all linked accounts and check for the first account that can receive funds.
-	// TODO: Add default flags to linked accounts and add more providers
+	// Search all linked accounts and check for the first account that can receive funds and is verified.
+	var la *linkedaccounts.LinkedAccount
 	for _, ra := range accs {
 		if ra.CanReceive {
+			la = &ra
+		}
+		if la != nil && la.State == linkedaccounts.Verified {
 			return &ra, nil
 		}
+	}
+	if la != nil && la.State != linkedaccounts.Verified {
+		return nil, fmt.Errorf("%w Receiving linked account is not verified (%s)", openpayments.ErrPaymentPointerCannotRecv, la.ID)
 	}
 
 	return nil, fmt.Errorf("%w no account capable of receiving found for payment pointer (%s)", openpayments.ErrNotFound, pointer)

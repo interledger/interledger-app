@@ -118,12 +118,14 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 					Type:       mx.TypeBankAccount,
 					CanSend:    true,
 					CanReceive: true,
+					State:      linkedaccounts.Verified,
 				}, {
 					ID:         uuid.NewString(),
 					Provider:   gmt.ProviderName,
 					Type:       mx.TypeBankAccount,
 					CanSend:    true,
 					CanReceive: true,
+					State:      linkedaccounts.Verified,
 				},
 			}, nil).Times(2)
 

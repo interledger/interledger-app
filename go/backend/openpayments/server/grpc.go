@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/openpayments/workflows"
@@ -351,6 +352,14 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, req.QuoteID)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	la, err := g.b.LinkedAccounts().Get(ctx, q.FromLinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if !(la.CanSend && la.State == linkedaccounts.Verified) {
+		return nil, toGRPCError(openpayments.ErrPaymentPointerCannotSend)
 	}
 
 	// check that does not exceed kyc limits.
