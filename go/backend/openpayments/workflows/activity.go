@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/transactions"
 	"net/url"
 	"strings"
 	"time"
@@ -160,7 +161,7 @@ func (a *Activity) FailOutgoingPayment(ctx context.Context, outgoingID string) e
 	return ops.FailOutgoingPayment(ctx, a.b, outgoingID)
 }
 
-func (a *Activity) CompleteOutgoingPayment(ctx context.Context, outgoingID, extID string) error {
+func (a *Activity) CompleteOutgoingPayment(ctx context.Context, outgoingID string, resp providers.TransferResponse) error {
 	// TODO: lookup the send amount from the provider, for now just assume the full amount was sent
 	op, err := ops.GetOutgoingPayment(ctx, a.b, outgoingID)
 	if errors.Is(err, openpayments.ErrNotFound) {
@@ -171,8 +172,9 @@ func (a *Activity) CompleteOutgoingPayment(ctx context.Context, outgoingID, extI
 	}
 
 	err = ops.CompleteOutgoingPayment(ctx, a.b, openpayments.CompleteOutgoingPaymentArgs{
-		ID:         outgoingID,
-		SentAmount: op.SendAmount,
+		ID:              outgoingID,
+		SentAmount:      op.SendAmount,
+		IncomingSuccess: resp.IncomingTransferState == transactions.StateCompleted,
 	})
 	if errors.Is(err, openpayments.ErrNotFound) {
 		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)

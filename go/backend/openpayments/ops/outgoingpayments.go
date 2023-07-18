@@ -281,13 +281,12 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	// TODO: Add the transaction status to the args, but that will break the in flight workflows
-	toTrx, err := b.Transactions().GetTransactionByForeignID(ctx, toPP.WalletID, ipID)
-	if errors.Is(err, transactions.ErrNotFound) {
-		return FailOutgoingPayment(ctx, b, opID)
-	}
-	if err != nil {
-		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	var toTrx *transactions.Transaction
+	if args.IncomingSuccess {
+		toTrx, err = b.Transactions().GetTransactionByForeignID(ctx, toPP.WalletID, ipID)
+		if err != nil {
+			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		}
 	}
 
 	return crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
@@ -313,26 +312,28 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 			return err
 		}
 
-		res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET updated_at=now(), received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4",
-			args.SentAmount.Value, args.SentAmount.Currency, args.SentAmount.Scale, ipID)
-		if err != nil {
-			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-		}
-		rowCnt, err = res.RowsAffected()
-		if err != nil {
-			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-		}
-		if rowCnt != 1 {
-			return fmt.Errorf("%w incoming payment (%s) not found", openpayments.ErrNotFound, ipID)
-		}
+		if args.IncomingSuccess {
+			res, err = tx.ExecContext(ctx, "UPDATE openpayments_incoming_payment SET updated_at=now(), received_amount=$1, asset_code=$2, asset_scale=$3, completed=true WHERE id=$4",
+				args.SentAmount.Value, args.SentAmount.Currency, args.SentAmount.Scale, ipID)
+			if err != nil {
+				return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+			}
+			rowCnt, err = res.RowsAffected()
+			if err != nil {
+				return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+			}
+			if rowCnt != 1 {
+				return fmt.Errorf("%w incoming payment (%s) not found", openpayments.ErrNotFound, ipID)
+			}
 
-		err = b.Transactions().SetTransactionStateTx(ctx, tx, toTrx.ID, transactions.StateCompleted)
-		if err != nil {
-			return err
-		}
-		err = b.Transactions().SetTransactionAmountTx(ctx, tx, toTrx.ID, args.SentAmount)
-		if err != nil {
-			return err
+			err = b.Transactions().SetTransactionStateTx(ctx, tx, toTrx.ID, transactions.StateCompleted)
+			if err != nil {
+				return err
+			}
+			err = b.Transactions().SetTransactionAmountTx(ctx, tx, toTrx.ID, args.SentAmount)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
