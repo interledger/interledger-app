@@ -46,13 +46,13 @@ export default function Page() {
         title='Profile'
         options={wallet}
       />
-      <div className='w-full flex flex-col space-y-4 max-h-max h-max rounded-2xl bg-page p-4 col-span-full lg:col-span-4'>
+      <div className='col-span-full flex h-max max-h-max w-full flex-col space-y-4 rounded-2xl bg-page p-4 lg:col-span-4'>
         <h2 className='font-display text-lg font-medium'>Features</h2>
 
         {Object.entries(features).map(([key, value]) => {
           if (key == 'walletID') return null
           return (
-            <div key={key} className='flex w-full justify-between items-center'>
+            <div key={key} className='flex w-full items-center justify-between'>
               <dt className='text-xs font-medium capitalize text-weak'>
                 {key}
               </dt>
