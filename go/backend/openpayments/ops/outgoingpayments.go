@@ -281,7 +281,11 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
+	// TODO: Add the transaction status to the args, but that will break the in flight workflows
 	toTrx, err := b.Transactions().GetTransactionByForeignID(ctx, toPP.WalletID, ipID)
+	if errors.Is(err, transactions.ErrNotFound) {
+		return FailOutgoingPayment(ctx, b, opID)
+	}
 	if err != nil {
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
