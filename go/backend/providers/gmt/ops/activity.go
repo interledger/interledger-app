@@ -1215,7 +1215,7 @@ func (a *Activity) UpdateCardTransactionStatus(ctx context.Context, externalID s
 	case transactions.StateCompleted:
 		status = "0"
 	case transactions.StateFailed:
-		status = "3"
+		status = "1"
 	}
 
 	if status == "" {

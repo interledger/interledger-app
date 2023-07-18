@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -363,6 +364,9 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 	err := b.DB().GetContext(ctx, &tx,
 		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and id=$2", transactionCols),
 		walletID, trxID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w transaction not found for wallet (%s) ID (%s)", transactions.ErrNotFound, walletID, trxID)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
@@ -406,6 +410,9 @@ func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string,
 	err := b.DB().GetContext(ctx, &tx,
 		fmt.Sprintf("SELECT %s FROM transactions WHERE wallet_id=$1 and foreign_id=$2", transactionCols),
 		walletID, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w transaction not found for wallet (%s) foreignID (%s)", transactions.ErrNotFound, walletID, foreignID)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
