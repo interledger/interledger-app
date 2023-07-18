@@ -88,7 +88,24 @@ export const TextField = forwardRef<any, TextFieldProps>(
         </div>
         <AnimatePresence>
           {(errorMessage || successMessage) && (
-            <motion.div className='h-7 pl-2 pt-2'>
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: -8 }}
+              exit={{
+                opacity: 0,
+                y: -8,
+                transition: {
+                  duration: 0.2
+                }
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 20,
+                duration: 0.3
+              }}
+              className='h-7 pl-2 pt-2'
+            >
               {errorMessage && (
                 <p className='text-sm text-error'>{errorMessage}</p>
               )}

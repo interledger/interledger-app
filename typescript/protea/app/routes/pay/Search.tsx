@@ -13,12 +13,12 @@ import {
   TwitterIcon
 } from '~/components'
 import type { SearchResult } from '~/generated/protobuf-ts/backend/v1/backend'
-import { PayStep, useStore } from '~/store'
+import { PayStep, usePayStore } from '~/store'
 
 export function Search() {
   const fetcher = useFetcher()
   const [setStep, searchTerm, setSearchTerm, setAddress, results, setResults] =
-    useStore((state) => [
+    usePayStore((state) => [
       state.setStep,
       state.searchTerm,
       state.setSearchTerm,
@@ -54,12 +54,6 @@ export function Search() {
 
   return (
     <>
-      {/*<fetcher.Form*/}
-      {/*  id='search-form'*/}
-      {/*  action={route('/pay')}*/}
-      {/*  method='post'*/}
-      {/*  className='hidden'*/}
-      {/*/>*/}
       <Card>
         <TextField
           id='search'

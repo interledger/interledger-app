@@ -1,6 +1,6 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { SelectOptions } from '~/components'
 import {
   Button,
@@ -22,16 +22,35 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { loader } from '~/routes/pay/route'
-import { useStore } from '~/store'
+import { PayStep, usePayStore } from '~/store'
 
 export function Amount() {
   const { linkedAccounts, publicWalletInfo } = useLoaderData<typeof loader>()
   const fetcher = useFetcher()
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
-  const [address, toLinkedAccountId] = useStore((state) => [
+  const [
+    amount,
+    address,
+    accountId,
+    displayAmount,
+    note,
+    setAmount,
+    setStep,
+    setNote,
+    setQuoteId,
+    setAccountId
+  ] = usePayStore((state) => [
+    state.amount,
     state.address,
-    state.toLinkedAccountId
+    state.accountId,
+    state.displayAmount,
+    state.note,
+    state.setAmount,
+    state.setStep,
+    state.setNote,
+    state.setQuoteId,
+    state.setAccountId
   ])
 
   const [linkedAccount, setLinkedAccount] = useState<{
@@ -39,17 +58,57 @@ export function Amount() {
     name: string
   }>(linkedAccounts[0])
 
-  const _onChangeLinkedAccount = useCallback((event: SelectOptions) => {
-    setLinkedAccount(event)
-  }, [])
+  const submitQuote = useCallback(() => {
+    fetcher.submit(
+      {
+        formName: 'quote',
+        amount,
+        accountId: linkedAccount.id,
+        walletUrl: address?.walletUrl as string,
+        note: note
+      },
+      { method: 'post' }
+    )
+  }, [address?.walletUrl, amount, fetcher, linkedAccount.id, note])
 
-  const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
+  const _onChangeAmount = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       let amount = event.target.value
-      fetcher.submit({ amount: amount, toLinkedAccountId }, { method: 'post' })
+      setAmount(amount)
+      submitQuote()
     },
-    [fetcher, toLinkedAccountId]
+    [setAmount, submitQuote]
   )
+
+  const _onChangeLinkedAccount = useCallback(
+    (event: SelectOptions) => {
+      setLinkedAccount(event)
+      // setAccountId(event.id)
+      submitQuote()
+    },
+    [submitQuote]
+  )
+
+  const _onChangeNote = useCallback<ChangeEventHandler<HTMLInputElement>>(
+    (event) => {
+      let note = event.target.value
+      setNote(note)
+      submitQuote()
+    },
+    [setNote, submitQuote]
+  )
+
+  useEffect(() => {
+    if (fetcher.data?.quoteId) {
+      setQuoteId(fetcher.data.quoteId)
+    }
+  }, [fetcher.data, setQuoteId])
+
+  const _onClick = useCallback<{
+    (): void
+  }>(() => {
+    setStep(PayStep.CONFIRM)
+  }, [setStep])
 
   return (
     <>
@@ -63,7 +122,7 @@ export function Amount() {
         <CardContent>
           <div className='flex items-center justify-between'>
             <h2 className='text-4xl font-medium text-strong'>
-              {flow?.data.displayReceiveAmount || '$ 0.00'}
+              {displayAmount}
             </h2>
             {address?.identifierType === 'wallet' && (
               <FynbosIcon height='h-12' />
@@ -82,26 +141,23 @@ export function Amount() {
         </CardButton>
       </Card>
       <Card>
-        <CardContent>
-          <TextField
-            id='amount'
-            form='amount-form'
-            label='Amount'
-            name='amount'
-            defaultValue={flow?.data.amount}
-            onChange={_onChangeInput}
-            prefix='$'
-            type='number'
-            min='0'
-            step='0.01'
-            aria-invalid={Boolean(fetcher.data?.errors.amount) || undefined}
-            aria-describedby={
-              fetcher.data?.errors.amount ? 'amount-error' : undefined
-            }
-            errorMessage={fetcher.data?.errors.amount || undefined}
-            required
-          />
-        </CardContent>
+        <TextField
+          id='amount'
+          label='Amount'
+          name='amount'
+          defaultValue={amount}
+          onChange={_onChangeAmount}
+          prefix='$'
+          type='number'
+          min='0'
+          step='0.01'
+          aria-invalid={Boolean(fetcher.data?.errors.amount) || undefined}
+          aria-describedby={
+            fetcher.data?.errors.amount ? 'amount-error' : undefined
+          }
+          errorMessage={fetcher.data?.errors.amount || undefined}
+          required
+        />
       </Card>
       <Card>
         <CardContent>
@@ -123,19 +179,13 @@ export function Amount() {
             }
             errorMessage={fetcher.data?.errors.linkedAccount}
           />
-          <input
-            form='amount-form'
-            value={linkedAccount.id}
-            name='toLinkedAccountId'
-            type='hidden'
-          />
           <TextField
             id='note'
             label='Reference'
             name='note'
-            form='amount-form'
             type='text'
-            defaultValue={flow.data.note || ''}
+            defaultValue={note}
+            onChange={_onChangeNote}
             className='mt-4'
             aria-invalid={Boolean(fetcher.data?.errors.note) || undefined}
             aria-describedby={
@@ -145,7 +195,7 @@ export function Amount() {
           />
         </CardContent>
       </Card>
-      <Button form='amount-form' type='submit' name='route-to' value='next'>
+      <Button type='button' onClick={() => _onClick}>
         Continue
       </Button>
       <Dialog open={showDialog} setOpen={setShowDialog}>

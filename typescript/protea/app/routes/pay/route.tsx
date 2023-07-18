@@ -1,9 +1,8 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useFetcher } from '@remix-run/react'
+import { Form } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
-import { v4 } from 'uuid'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import type {
@@ -30,7 +29,7 @@ import {
 import { KycStatus } from '~/routes/_index/route'
 import { Amount } from '~/routes/pay/Amount'
 import { Search } from '~/routes/pay/Search'
-import { PayStep, useStore } from '~/store'
+import { PayStep, usePayStore } from '~/store'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -129,18 +128,10 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const fetcher = useFetcher()
-
-  const step = useStore((state) => state.step)
+  const step = usePayStore((state) => state.step)
 
   return (
     <>
-      <fetcher.Form
-        id='pay-form'
-        action={route('/pay')}
-        method='post'
-        className='hidden'
-      />
       <Form
         id='pay-address'
         action={route('/pay')}
@@ -171,7 +162,6 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = (await form.get('formName')) as string
   const term = form.get('term') as string
-  const walletUrl = form.get('walletUrl') as string
   const identifier = form.get('identifier') as string
   const identifierType = form.get('identifierType') as string
 
@@ -184,7 +174,8 @@ export async function action({ request }: ActionArgs) {
   if (formName === 'quote') {
     const amount = form.get('amount') as string
     const note = form.get('note') as string
-    const toLinkedAccountId = form.get('toLinkedAccountId') as string
+    const walletUrl = form.get('walletUrl') as string
+    const accountId = form.get('accountId') as string
     const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
 
     const expiresAt = {
@@ -205,13 +196,12 @@ export async function action({ request }: ActionArgs) {
     }
 
     let walletInfo = await getWalletInfo(request)
-    let receivePaymentPointer = flow.data.address.walletUrl
 
     const response = await openPaymentsClient
       .createQuote(
         {
           sendPaymentPointer: walletInfo.url,
-          receivePaymentPointer,
+          receivePaymentPointer: walletUrl,
           description: note,
           amount: {
             amount: amountToSubmit,
@@ -219,7 +209,7 @@ export async function action({ request }: ActionArgs) {
             assetScale: 2
           },
           expiresAt,
-          sendLinkedAccount: toLinkedAccountId
+          sendLinkedAccount: accountId
         },
         {
           meta: {
@@ -241,92 +231,24 @@ export async function action({ request }: ActionArgs) {
       } else throw json({}, httpMapping(response.code))
     }
 
-    let sendAmount = response.response.sendAmount?.amount,
-      receiveAmount = response.response.receiveAmount?.amount,
-      fee = 0
-
-    // TODO: should fetch this information directly from the quote.
     const data = {
       errors: { ...fieldErrors },
-      quoteID: response.response.id,
-      note,
-      amount: amount,
-      fee: fee,
-      toLinkedAccountId,
-      displayFee: formatMoney(fee),
-      sendAmount,
-      displaySendAmount: formatMoney(parseFloat(sendAmount as string) / 100),
-      receiveAmount,
-      displayReceiveAmount: formatMoney(
-        parseFloat(receiveAmount as string) / 100
-      ),
-      receivePaymentPointer,
-      sendPaymentPointer: walletInfo.url,
-      idempotencyKey: v4()
+      quoteId: response.response.id
     }
 
     return json(data)
   }
 
-  switch (formName) {
-    case 'search':
-      const response = await grpcClient
-        .searchWallets(
-          { term },
-          {
-            meta: {
-              cookies: String(request.headers.get('cookie')) || ''
-            }
-          }
-        )
-        .then((v) => v)
-        .catch(StatusError)
-
-      if (isGrpcError(response)) {
-        if (response.code == 3) {
-          for (let violation of (response as GrpcError).details[0]
-            .fieldViolations) {
-            const field = mapper(violation.field as fieldErrorsMap)
-            if (field != null) fieldErrors[field] = violation.description
-          }
-          return json(
-            { results: [], errors: { ...fieldErrors } },
-            { status: 400 }
-          )
-        } else if (response.code == 5) {
-          fieldErrors.address = 'Wallet address not found.'
-          return json(
-            { results: [], errors: { ...fieldErrors } },
-            { status: 400 }
-          )
-        } else throw json({}, httpMapping(response.code))
-      }
-      return json({
-        results: response.response.results.filter((v) => v.canSend)
-      })
-
-    case 'submit':
-      console.log(
-        'submit',
-        formName,
-        term,
-        walletUrl,
-        identifier,
-        identifierType
-      )
-      // await updateFlow(request, flowType.Pay, {
-      //   term,
-      //   address: { walletUrl, identifier, identifierType }
-      // })
-      return redirect(route('/pay/amount'))
-    default:
-      throw json(
-        { title: "Submitted a form that doesn't exist" },
-        {
-          status: 400
-        }
-      )
+  if (formName === 'confirm') {
+    return json({})
   }
+
+  throw json(
+    { title: "Submitted a form that doesn't exist" },
+    {
+      status: 400
+    }
+  )
 }
 
 const formatMoney = (value: number): string => {

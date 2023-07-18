@@ -1,7 +1,18 @@
 import { create } from 'zustand'
-import type { PaySlice } from '~/store/pay'
-import { createPaySlice } from '~/store/pay'
+import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 
-export const useStore = create<PaySlice>()((...a) => ({
-  ...createPaySlice(...a)
+export interface State {
+  accounts: FormattedLinkedAccount[]
+  setAccounts: (accounts: FormattedLinkedAccount[]) => void
+  reset: () => void
+}
+
+const initialState = {
+  accounts: []
+}
+
+export const useStore = create<State>((set) => ({
+  ...initialState,
+  setAccounts: (accounts) => set((state) => ({ accounts })),
+  reset: () => set((state) => ({ ...initialState }))
 }))

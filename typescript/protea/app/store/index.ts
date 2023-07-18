@@ -1,2 +1,2 @@
-export * from './pay'
+export * from './usePayStore'
 export * from './useStore'
