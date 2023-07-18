@@ -204,7 +204,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 			return "", err
 		}
 
-		err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, resp.OutgoingTransferExternalID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.SendOutgoingPaymentReceipt, outgoingID, trxID).Get(ctx, nil)
 		if err != nil {
 			logger.Error("SendOutgoingPaymentReceipt Activity failed.", "Error", err)
 			return "", err
@@ -212,7 +212,7 @@ func OutgoingTransactionWorkflow(ctx workflow.Context, outgoingID, trxID, ipAddr
 	}
 
 	if resp.IncomingTransferState == transactions.StateCompleted {
-		err = workflow.ExecuteActivity(ctx, a.SendIncomingPaymentReceipt, outgoingID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.SendIncomingPaymentReceipt, outgoingID, tArgs.ToForeignID).Get(ctx, nil)
 		if err != nil {
 			logger.Error("SendIncomingPaymentReceipt Activity failed.", "Error", err)
 			return "", err
