@@ -47,7 +47,7 @@ func (a *Activity) PullFromCard(ctx context.Context, args PullFromCardArgs) (*ta
 
 		// Recommendations from Tabapay https://developers.tabapay.com/reference/3ds-eci-values
 		if !strings.Contains(tabapay.ThreeDSFullyAuthenticated, session3DS.ECI) {
-			log.Info("3DS session not fully authenticated", zap.String("eci", session3DS.ECI), zap.String("linkedAccountID", linkedCard.ID))
+			log.Info("3DS session not fully authenticated", zap.String("eci", session3DS.ECI), zap.String("threeDSID", args.ThreeDSID), zap.String("linkedAccountID", linkedCard.ID))
 		}
 	}
 
