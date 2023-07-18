@@ -17,7 +17,7 @@ const TabItem: FC<TabItemProps> = ({ children, to }) => {
             isActive ? 'bg-container-hover' : 'hover:bg-container'
           }`}
         >
-          <span className='text-xs lg:text-base text-medium font-display'>
+          <span className='font-display text-xs text-medium lg:text-base'>
             {children}
           </span>
         </li>
