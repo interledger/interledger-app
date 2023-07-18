@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/mx"
+
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/user"
 
@@ -673,7 +675,55 @@ func TestCreateQuote(t *testing.T) {
 					ProviderID: providerID,
 					Type:       gmt.TypeBankAccount,
 				}, nil)
+
+				laClient.EXPECT().ListByWalletId(ctx, sendWallet.ID).Return([]linkedaccounts.LinkedAccount{
+					{
+						ID:         tc.args.LinkedAccID,
+						WalletID:   sendWallet.ID,
+						Name:       "NoName",
+						Nickname:   "NoName",
+						Mask:       "1234",
+						Provider:   mx.ProviderName,
+						ProviderID: providerID,
+						Type:       "card",
+						CanSend:    true,
+						CanReceive: true,
+						State:      linkedaccounts.Verified,
+					},
+				}, nil).AnyTimes()
+			} else {
+				laClient.EXPECT().ListByWalletId(ctx, sendWallet.ID).Return([]linkedaccounts.LinkedAccount{
+					{
+						ID:         uuid.NewString(),
+						WalletID:   sendWallet.ID,
+						Name:       "NoName",
+						Nickname:   "NoName",
+						Mask:       "1234",
+						Provider:   mx.ProviderName,
+						ProviderID: uuid.NewString(),
+						Type:       "card",
+						CanSend:    true,
+						CanReceive: true,
+						State:      linkedaccounts.Verified,
+					},
+				}, nil).AnyTimes()
 			}
+
+			laClient.EXPECT().ListByWalletId(ctx, recvWallet.ID).Return([]linkedaccounts.LinkedAccount{
+				{
+					ID:         uuid.NewString(),
+					WalletID:   recvWallet.ID,
+					Name:       "NoName",
+					Nickname:   "NoName",
+					Mask:       "1234",
+					Provider:   mx.ProviderName,
+					ProviderID: uuid.NewString(),
+					Type:       "card",
+					CanSend:    true,
+					CanReceive: true,
+					State:      linkedaccounts.Verified,
+				},
+			}, nil).AnyTimes()
 
 			q, err := ops.CreateQuote(ctx, b, tc.args)
 			if tc.err != nil {

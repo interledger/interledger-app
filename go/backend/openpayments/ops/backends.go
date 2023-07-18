@@ -3,11 +3,15 @@ package ops
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
+	"gitlab.com/fynbos/backend/features"
+
 	"gitlab.com/fynbos/backend/analytics"
 
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	features_mock "gitlab.com/fynbos/backend/features/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay"
-
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -23,6 +27,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Tabapay() tabapay.Client
 	Analytics() analytics.Client
+	Features() features.Client
 }
 
 type testBackends struct {
@@ -32,6 +37,7 @@ type testBackends struct {
 	tc  transactions.Client
 	tbc tabapay.Client
 	ac  analytics.Client
+	fc  features.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -58,8 +64,23 @@ func (t testBackends) Analytics() analytics.Client {
 	return t.ac
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc transactions.Client) Backends {
-	ac := analytics_client.New(nil, "")
+func (t testBackends) Features() features.Client {
+	return t.fc
+}
 
-	return &testBackends{db: db, val: validator.New(), la: la, tc: tc, ac: ac}
+func NewTestBackends(t *testing.T, db *sqlx.DB, la linkedaccounts.Client, tc transactions.Client) Backends {
+	ac := analytics_client.New(nil, "")
+	ctrl := gomock.NewController(t)
+	fc := features_mock.NewMockClient(ctrl)
+	fc.EXPECT().Features(gomock.Any(), gomock.Any()).Return(&features.WalletFeatures{
+		SendEnabled:       true,
+		ReceiveEnabled:    true,
+		LinkedAccEnabled:  true,
+		CardsEnabled:      true,
+		BanksEnabled:      true,
+		IdentitiesEnabled: true,
+		TwitterEnabled:    true,
+	}, nil).AnyTimes()
+
+	return &testBackends{db: db, val: validator.New(), la: la, tc: tc, ac: ac, fc: fc}
 }
