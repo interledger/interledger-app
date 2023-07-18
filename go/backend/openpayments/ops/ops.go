@@ -250,6 +250,68 @@ func ListWalletPaymentPointers(ctx context.Context, b Backends, walletID string)
 	return pp, nil
 }
 
+func CheckWalletsCanSendRecv(ctx context.Context, b Backends, fromWalletID, fromLinkedAccID, toWalletID string) error {
+	sendFeat, err := b.Features().Features(ctx, fromWalletID)
+	if err != nil {
+		return err
+	}
+	if !sendFeat.SendEnabled {
+		return fmt.Errorf("%w walletID (%s)", openpayments.ErrPaymentPointerCannotSend, fromWalletID)
+	}
+
+	sendLa, err := b.LinkedAccounts().ListByWalletId(ctx, fromWalletID)
+	if err != nil {
+		return err
+	}
+	var canSend bool
+	var foundLa linkedaccounts.LinkedAccount
+	for _, sla := range sendLa {
+		if sla.ID == fromLinkedAccID {
+			foundLa = sla
+		}
+		if fromLinkedAccID != "" && sla.ID != fromLinkedAccID {
+			continue
+		}
+		if sla.CanSend && sla.State == linkedaccounts.Verified {
+			canSend = true
+			break
+		}
+
+	}
+	if !canSend {
+		if foundLa.ID != "" {
+			return fmt.Errorf("%w walletID (%s) accID (%s) acc state (%s) acc can send (%t)",
+				openpayments.ErrPaymentPointerCannotSend, fromWalletID, foundLa.ID, foundLa.State, foundLa.CanSend)
+		}
+		return fmt.Errorf("%w walletID (%s)", openpayments.ErrPaymentPointerCannotSend, fromWalletID)
+	}
+
+	recvFeat, err := b.Features().Features(ctx, toWalletID)
+	if err != nil {
+		return err
+	}
+	if !recvFeat.ReceiveEnabled {
+		return fmt.Errorf("%w walletID (%s)", openpayments.ErrPaymentPointerCannotRecv, toWalletID)
+	}
+
+	recvLa, err := b.LinkedAccounts().ListByWalletId(ctx, toWalletID)
+	if err != nil {
+		return err
+	}
+	var canRecv bool
+	for _, rla := range recvLa {
+		if rla.CanReceive && rla.State == linkedaccounts.Verified {
+			canRecv = true
+			break
+		}
+	}
+	if !canRecv {
+		return fmt.Errorf("%w walletID (%s)", openpayments.ErrPaymentPointerCannotRecv, toWalletID)
+	}
+
+	return nil
+}
+
 func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteArgs) (*openpayments.Quote, error) {
 	err := b.Validator().Struct(args)
 	if err != nil {
@@ -288,6 +350,11 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		if la.WalletID != sendPP.WalletID {
 			return nil, fmt.Errorf("%w specified linked account not associated with the send payment pointer", openpayments.ErrInvalidArgument)
 		}
+	}
+
+	err = CheckWalletsCanSendRecv(ctx, b, sendPP.WalletID, args.LinkedAccID, recvPP.WalletID)
+	if err != nil {
+		return nil, err
 	}
 
 	// Create Incoming Payment

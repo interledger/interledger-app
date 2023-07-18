@@ -1,13 +1,15 @@
 package ops
 
 import (
+	"testing"
+
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/images"
 	images_mock "gitlab.com/fynbos/backend/images/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
-	"testing"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -85,6 +87,10 @@ func (t testBackends) OpenPayments() openpayments.Client {
 
 func (t testBackends) Images() images.Client {
 	return t.img
+}
+
+func (t testBackends) Features() features.Client {
+	return nil
 }
 
 func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {

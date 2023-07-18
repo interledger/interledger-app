@@ -32,6 +32,20 @@ func NewActivity(b Backends) *Activity {
 	return &Activity{b: b}
 }
 
+func checkCanSendRecv(ctx context.Context, b Backends, sendPointer, fromLinkedAccID, recvPointer string) error {
+	sender, err := ops.GetPaymentPointer(ctx, b, sendPointer)
+	if err != nil {
+		return err
+	}
+
+	receiver, err := ops.GetPaymentPointer(ctx, b, recvPointer)
+	if err != nil {
+		return err
+	}
+
+	return ops.CheckWalletsCanSendRecv(ctx, b, sender.WalletID, fromLinkedAccID, receiver.WalletID)
+}
+
 func getDefaultSendAcc(ctx context.Context, b Backends, pointer string) (*linkedaccounts.LinkedAccount, error) {
 	pp, err := ops.GetPaymentPointer(ctx, b, pointer)
 	if err != nil {

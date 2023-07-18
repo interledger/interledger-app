@@ -6,6 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/mx"
+
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/currency"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
@@ -30,7 +35,23 @@ func TestCreateOutgoingPayment(t *testing.T) {
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
-	b := ops.NewTestBackends(t, db, nil, txClient)
+	laClient := linkedaccounts_mock.NewMockClient(ctrl)
+	laClient.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
+		{
+			ID:         uuid.NewString(),
+			WalletID:   uuid.NewString(),
+			Name:       "NoName",
+			Nickname:   "NoName",
+			Mask:       "1234",
+			Provider:   mx.ProviderName,
+			ProviderID: uuid.NewString(),
+			Type:       "card",
+			CanSend:    true,
+			CanReceive: true,
+			State:      linkedaccounts.Verified,
+		},
+	}, nil).AnyTimes()
+	b := ops.NewTestBackends(t, db, laClient, txClient)
 
 	userClient := users_mock.NewMock()
 

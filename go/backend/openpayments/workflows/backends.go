@@ -1,10 +1,14 @@
 package workflows
 
 import (
+	"testing"
+
+	features_mock "gitlab.com/fynbos/backend/features/client/mock"
+
 	"github.com/golang/mock/gomock"
+	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"testing"
 
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
@@ -38,6 +42,7 @@ type Backends interface {
 	Contacts() contacts.Client
 	Tabapay() tabapay.Client
 	Keys() keys.Client
+	Features() features.Client
 }
 
 type testBackends struct {
@@ -52,6 +57,7 @@ type testBackends struct {
 	cc  contacts.Client
 	tbc tabapay.Client
 	kc  keys.Client
+	fc  features.Client
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -102,10 +108,24 @@ func (t testBackends) Keys() keys.Client {
 	return t.kc
 }
 
+func (t testBackends) Features() features.Client {
+	return t.fc
+}
+
 func NewTestBackends(t *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, kyc kyc.Client, cc contacts.Client) Backends {
 	ac := analytics_client.New(nil, "")
 	ctrl := gomock.NewController(t)
 	kc := keys_mock.NewMockClient(ctrl)
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, kyc: kyc, ac: ac, cc: cc, kc: kc}
+	fc := features_mock.NewMockClient(ctrl)
+	fc.EXPECT().Features(gomock.Any(), gomock.Any()).Return(&features.WalletFeatures{
+		SendEnabled:       true,
+		ReceiveEnabled:    true,
+		LinkedAccEnabled:  true,
+		CardsEnabled:      true,
+		BanksEnabled:      true,
+		IdentitiesEnabled: true,
+		TwitterEnabled:    true,
+	}, nil).AnyTimes()
+	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, kyc: kyc, ac: ac, cc: cc, kc: kc, fc: fc}
 }
