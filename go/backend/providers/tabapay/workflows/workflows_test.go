@@ -34,7 +34,7 @@ func TestCreateCardWorkflow(t *testing.T) {
 			Card: external.CardResponse{
 				Last4: last4,
 				Push: external.PushObject{
-					Network: "VISA",
+					Network: "MasterCard",
 					Enabled: true,
 				},
 			},
@@ -72,16 +72,16 @@ func TestCreateCardWorkflow(t *testing.T) {
 		func(ctx context.Context, arg workflows.CreateLinkedCardArgs) (*linkedaccounts.LinkedAccount, error) {
 			require.Equal(t, basisTheoryCardID, arg.ID)
 			require.Equal(t, "1234", arg.Mask)
-			require.Equal(t, "VISA 1234", arg.Name)
-			require.Equal(t, "VISA 1234", arg.Nickname)
+			require.Equal(t, "Mastercard 1234", arg.Name)
+			require.Equal(t, "Mastercard 1234", arg.Nickname)
 			require.Equal(t, providerID, arg.ProviderID)
 			return &linkedaccounts.LinkedAccount{
 				ID:         basisTheoryCardID,
 				ProviderID: providerID,
 				WalletID:   walletID,
 				Mask:       "1234",
-				Name:       "VISA 1234",
-				Nickname:   "VISA 1234",
+				Name:       "Mastercard 1234",
+				Nickname:   "Mastercard 1234",
 				CanReceive: true,
 			}, nil
 		},
