@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
 	"gitlab.com/fynbos/backend/kyc"
 
 	"gitlab.com/fynbos/backend/features"
@@ -66,20 +69,45 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
+	canAddCard, err := canAddCards(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
 	if id.CountryCode == "US" {
 		res.ReceiveEnabled = true
 		res.LinkedAccEnabled = true
 		res.BanksEnabled = false
 		res.CardsEnabled = true
+		res.AddCardsEnabled = canAddCard
 	}
 	if id.Address != nil && isGMTSendState(id.Address.State) {
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
 		res.BanksEnabled = false
 		res.CardsEnabled = true
+		res.AddCardsEnabled = canAddCard
 	}
 
 	return &res, nil
+}
+
+func canAddCards(ctx context.Context, b Backends, walletID string) (bool, error) {
+	lal, err := b.LinkedAccounts().ListByWalletId(ctx, walletID)
+	if err != nil {
+		return false, err
+	}
+
+	var cnt int
+	for _, la := range lal {
+		if la.Provider == tabapay.ProviderName &&
+			la.State == linkedaccounts.Verified &&
+			la.Type == tabapay.TypeCard {
+			cnt++
+		}
+	}
+
+	return cnt < 3, nil
 }
 
 var gmtUSStates = []string{

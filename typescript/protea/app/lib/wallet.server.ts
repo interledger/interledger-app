@@ -419,6 +419,7 @@ export async function getTransaction(
 export type createCardError =
   | 'Failed precondition: ErrUnsupportedCard'
   | 'Failed precondition: ErrUnsupportedCountry'
+  | 'Failed precondition: ErrMaxCardsAdded'
   | 'Already exists: ErrDuplicateCard'
   | 'Internal server error'
 export async function createCard(
