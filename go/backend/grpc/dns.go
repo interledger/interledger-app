@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/backend/identities"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"net/url"
+	"strings"
 )
 
 func (s *rpcService) CreateDNSIdentity(
@@ -53,28 +54,25 @@ func (s *rpcService) CreateDNSIdentity(
 func getDomain(validator *validator.Validate, inputUrl string) (string, error) {
 	err := validator.Var(inputUrl, "required,fqdn")
 	if err == nil {
-		return inputUrl, nil
+		domain := strings.TrimPrefix(inputUrl, "www.")
+		return domain, nil
 	}
 
 	err = validator.Var(inputUrl, "required,url")
-	if err == nil {
-		websiteUrl, err := url.Parse(inputUrl)
-		if err != nil {
-			return "", err
-		}
-
-		hostname := websiteUrl.Hostname()
-		if len(hostname) > 4 && hostname[:4] == "www." {
-			hostname = hostname[4:]
-		}
-
-		return hostname, nil
-	}
-
-	err = validator.Var(inputUrl, "required,url|fqdn")
 	if err != nil {
-		return "", err
+		return "", NewValidationError("Domain", "Please enter a valid domain.")
 	}
 
-	return "", InternalError("Invalid domain.")
+	websiteUrl, err := url.Parse(inputUrl)
+	if err != nil {
+		return "", NewValidationError("Domain", "Please enter a valid domain.")
+	}
+
+	domain := strings.TrimPrefix(websiteUrl.Hostname(), "www.")
+
+	if domain == "" {
+		return "", NewValidationError("Domain", "Please enter a valid domain.")
+	}
+
+	return domain, nil
 }
