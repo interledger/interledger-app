@@ -1,7 +1,7 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import {useEffect, useState} from 'react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -23,6 +23,7 @@ export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
 
   const flowId = url.searchParams.get('flow')
+  if (flowId) return redirect(`${route('/recovery/password')}`)
 
   const { kycStatus } = await getKycStatus(request)
 
@@ -30,8 +31,7 @@ export async function loader({ request }: LoaderArgs) {
 
   return json({
     snackbar,
-    kycStatus,
-    flowId
+    kycStatus
   })
 }
 
@@ -52,18 +52,10 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { snackbar, kycStatus, flowId } = useLoaderData<typeof loader>()
+  const { snackbar, kycStatus } = useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
-
-  useEffect(() => {
-    // change location to password reset
-    if (flowId) {
-      window.location.href = route('/recovery/password')
-    }
-  }, [flowId])
-
   return (
     <WalletGrid>
       <GridColumn
