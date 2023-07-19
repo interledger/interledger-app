@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {Form, useActionData, useLoaderData, useRevalidator} from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -17,7 +17,7 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  kratosErrorMapping
+  kratosErrorMapping, hasUserSession
 } from '~/lib/kratos.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
@@ -40,6 +40,11 @@ export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
   const cookie = String(request.headers.get('cookie'))
+  const isUser = hasUserSession(request)
+
+  if (!isUser) {
+    return json({ flowId: '', csrfToken: '' })
+  }
 
   let flow
   if (flowId) {
@@ -68,17 +73,26 @@ export async function loader({ request }: LoaderArgs) {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
     })
   }
-  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
+  return json({ flowId: flow.id, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, csrfToken } = useLoaderData<typeof loader>()
+  const { flowId, csrfToken } = useLoaderData<typeof loader>()
+  const {revalidate, state} = useRevalidator()
 
+  const [revalidateCount, setRevalidateCount] = useState<number>(0)
   const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     Boolean(actionData?.errors.form) ?? false
   )
+
+  useEffect(() => {
+    if (flowId == '' && csrfToken == '' && state === 'idle' && revalidateCount < 1) {
+      revalidate()
+      setRevalidateCount(1)
+    }
+  }, [csrfToken, flowId, revalidate, revalidateCount, state])
 
   useEffect(() => {
     if (actionData?.errors.form) {
@@ -91,7 +105,7 @@ export default function Page() {
     <>
       <Form
         id='recovery-password'
-        action={`/recovery/password?flow=${flow.id}`}
+        action={`/recovery/password?flow=${flowId.id}`}
         method='post'
         className='hidden'
       />
