@@ -4,6 +4,7 @@ import type { ShouldRevalidateFunction } from '@remix-run/react'
 import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
+import { v4 } from 'uuid'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -13,7 +14,7 @@ import {
   Layouts,
   LoadingShapes
 } from '~/components'
-import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import {
@@ -43,13 +44,18 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export async function loader({ request }: LoaderArgs) {
   await getUserSession(request)
-  const flow = await requireFlow(request, flowType.Pay)
+  const url = new URL(request.url)
+
+  const idempotencyKey = v4()
+  const quote = url.searchParams.get('quote')
+
+  if (!quote) throw json({}, httpMapping(Code.INVALID_ARGUMENT))
 
   let threeDSInit = await grpcClient
     .init3DS(
       {
-        idempotencyKey: flow.data.idempotencyKey,
-        quoteID: flow.data.quoteID
+        idempotencyKey,
+        quoteID: quote
       },
       {
         meta: {
@@ -62,6 +68,7 @@ export async function loader({ request }: LoaderArgs) {
   if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
 
   return json({
+    idempotencyKey,
     initJWT: threeDSInit.response.jwt,
     threeDsId: threeDSInit.response.id,
     songbirdURL: threeDSInit.response.songbirdURL,
@@ -97,7 +104,7 @@ function cleanupSongbirdScript(script: ScriptElt) {
 }
 
 export default function Page() {
-  const { initJWT, threeDsId, songbirdURL, fynbosEnv } =
+  const { idempotencyKey, initJWT, threeDsId, songbirdURL, fynbosEnv } =
     useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
@@ -137,6 +144,8 @@ export default function Page() {
         formData.append('language', navigator.language)
         formData.append('userAgent', navigator.userAgent)
 
+        formData.append('idempotencyKey', idempotencyKey)
+
         submit(formData, {
           action: route('/pay/3ds'),
           method: 'POST'
@@ -155,6 +164,8 @@ export default function Page() {
               formData.append('name', 'authenticate')
               formData.append('threeDsId', threeDsId)
               formData.append('jwt', jwt)
+
+              formData.append('idempotencyKey', idempotencyKey)
 
               submit(formData, {
                 action: route('/pay/3ds'),
@@ -234,8 +245,7 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = form.get('name')
   const threeDSID = form.get('threeDsId') as string
-  const flow = await requireFlow(request, flowType.Pay)
-  const idempotencyKey = flow.data.idempotencyKey as string
+  const idempotencyKey = form.get('idempotencyKey') as string
 
   if (formName === 'lookup') {
     let lookup3DS = await grpcClient
@@ -310,11 +320,7 @@ export async function action({ request }: ActionArgs) {
         idempotencyKey,
         threeDSID,
         quoteID: flow.data.quoteID,
-        description: flow.data.note,
-        externalRef: '',
-        ipAddress: clientIpAddress,
-        identityType: flow.data.address.type,
-        identity: flow.data.address.handle
+        ipAddress: clientIpAddress
       },
       {
         meta: {
@@ -326,7 +332,6 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
   if (isGrpcError(payment)) throw json({}, httpMapping(payment.code))
 
-  await exitFlow(request, flowType.Pay)
   return redirect(route('/'), {
     headers: {
       'Set-Cookie': await flashSnackbar(request, {
