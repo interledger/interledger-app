@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
 	"go.temporal.io/sdk/temporal"
 )
@@ -19,8 +18,8 @@ func NewActivity(b Backends) *Activity {
 	}
 }
 
-func (a *Activity) StartVerification(ctx context.Context, identityID, proofURL string) error {
-	_, err := a.b.Identities().StartVerification(ctx, identityID, proofURL)
+func (a *Activity) StartVerification(ctx context.Context, identityID string) error {
+	_, err := a.b.Identities().StartVerification(ctx, identityID)
 
 	return err
 }
@@ -72,13 +71,8 @@ func (a *Activity) PostProofTweet(ctx context.Context, identityID string) (strin
 	return proofUrl, nil
 }
 
-type UpdateStateArgs struct {
-	IdentityID string `json:"identity_id"`
-	Proof      string `json:"proof"`
-}
-
-func (a *Activity) UpdateIdentityState(ctx context.Context, args UpdateStateArgs) error {
-	err := a.b.Identities().UpdateState(ctx, args.IdentityID, identities.StatePending, args.Proof)
+func (a *Activity) SetTwitterProof(ctx context.Context, identityID, proofUrl string) error {
+	err := a.b.Identities().SetProof(ctx, identityID, proofUrl)
 	if err != nil {
 		return err
 	}

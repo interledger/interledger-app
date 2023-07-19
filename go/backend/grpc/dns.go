@@ -42,6 +42,11 @@ func (s *rpcService) CreateDNSIdentity(
 		return nil, toGRPCError(err)
 	}
 
+	err = s.b.Identities().SetProof(ctx, identity.ID, domain)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	sighash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
 	txtRecordPrefix := "_fynbos"
 

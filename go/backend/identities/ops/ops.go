@@ -163,7 +163,7 @@ func SetPublic(ctx context.Context, b Backends, id, walletID string, public bool
 	return Get(ctx, b, id)
 }
 
-func StartVerification(ctx context.Context, b Backends, id, proof string) (*identities.Identity, error) {
+func StartVerification(ctx context.Context, b Backends, id string) (*identities.Identity, error) {
 	ident, err := Get(ctx, b, id)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
-	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, p.VerifyWorkflow(), id, proof)
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, p.VerifyWorkflow(), id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -189,7 +189,7 @@ func StartVerification(ctx context.Context, b Backends, id, proof string) (*iden
 	return ident, nil
 }
 
-func UpdateState(ctx context.Context, b Backends, id string, state identities.State, proof string) error {
+func SetState(ctx context.Context, b Backends, id string, state identities.State) error {
 	ident, err := Get(ctx, b, id)
 	if err != nil {
 		return err
@@ -201,7 +201,16 @@ func UpdateState(ctx context.Context, b Backends, id string, state identities.St
 		verifiedAt = time.Now()
 	}
 
-	_, err = b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, updated_at=now(), verified_at=$3 WHERE id=$4", proof, state, verifiedAt, ident.ID)
+	_, err = b.DB().ExecContext(ctx, "UPDATE identities SET state=$1, updated_at=now(), verified_at=$2 WHERE id=$3", state, verifiedAt, ident.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func SetProof(ctx context.Context, b Backends, id string, proof string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, updated_at=now() WHERE id=$3", proof, identities.StateUnverified, id)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

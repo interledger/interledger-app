@@ -109,7 +109,7 @@ func (dnsp *dnsPlatform) GenerateSignedClaim(ctx context.Context, args *SignedCl
 	}, nil
 }
 
-func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) {
+func DNSVerifyWorkflow(ctx workflow.Context, id string) (string, error) {
 	var a *DNSActivity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -122,9 +122,9 @@ func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("DNSVerifyWorkflow started", "id", id, "proof", domain)
+	logger.Info("DNSVerifyWorkflow started", "id", id)
 
-	err := workflow.ExecuteActivity(ctx, a.UpdateDNSIdentityState, id, identities.StatePending, "").Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.SetDNSIdentityState, id, identities.StatePending).Get(ctx, nil)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -137,7 +137,7 @@ func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) 
 
 	err = workflow.ExecuteActivity(ctx, a.CheckTXTRecords, identity.Identifier, identity.SignatureHash).Get(ctx, nil)
 	if err != nil && errors.Is(err, identities.ErrNotFound) {
-		err = workflow.ExecuteActivity(ctx, a.UpdateDNSIdentityState, id, identities.StateUnverified, domain).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.SetDNSIdentityState, id, identities.StateUnverified).Get(ctx, nil)
 		if err != nil {
 			return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 		}
@@ -148,7 +148,7 @@ func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) 
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateDNSIdentityState, id, identities.StateVerified, domain).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetDNSIdentityState, id, identities.StateVerified).Get(ctx, nil)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -180,7 +180,8 @@ func (a *DNSActivity) GetDNSIdentity(ctx context.Context, id string) (identities
 }
 
 func (a *DNSActivity) CheckTXTRecords(ctx context.Context, domain string, proof []byte) error {
-	txtRecords, err := net.LookupTXT(domain)
+	txtRecordPrefix := "fynbos."
+	txtRecords, err := net.LookupTXT(txtRecordPrefix + domain)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -199,8 +200,8 @@ func (a *DNSActivity) CheckTXTRecords(ctx context.Context, domain string, proof 
 	return fmt.Errorf("%w %s", identities.ErrNotFound, "no matching TXT record found")
 }
 
-func (a *DNSActivity) UpdateDNSIdentityState(ctx context.Context, id string, state identities.State, proof string) error {
-	err := a.b.Identities().UpdateState(ctx, id, state, proof)
+func (a *DNSActivity) SetDNSIdentityState(ctx context.Context, id string, state identities.State) error {
+	err := a.b.Identities().SetState(ctx, id, state)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

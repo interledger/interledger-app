@@ -164,7 +164,7 @@ func NewTwitterActivity(b TwitterActivityBackends) *TwitterActivity {
 
 // proof input doesn't matter because it's being redeclared in the workflow, it's just to make platform interface happy
 // this can be changed in the future
-func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, error) {
+func TwitterVerifyWorkflow(ctx workflow.Context, id string) (string, error) {
 	var a *TwitterActivity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -172,21 +172,16 @@ func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, erro
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("VerifyWorkflow for twitter platform started", "id", id, "proof", proof)
+	logger.Info("VerifyWorkflow for twitter platform started", "identity ID", id)
 
-	err := workflow.ExecuteActivity(ctx, a.PublishTweetProof, id).Get(ctx, &proof)
+	var identity identities.Identity
+	err := workflow.ExecuteActivity(ctx, a.GetTwitterIdentity, id).Get(ctx, &identity)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	var tweetProof TweetProof
-	err = workflow.ExecuteActivity(ctx, a.FetchTweetProof, proof).Get(ctx, &tweetProof)
-	if err != nil {
-		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-
-	var identity identities.Identity
-	err = workflow.ExecuteActivity(ctx, a.GetTwitterIdentity, id).Get(ctx, &identity)
+	err = workflow.ExecuteActivity(ctx, a.FetchTweetProof, identity.VerificationProof).Get(ctx, &tweetProof)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -201,7 +196,7 @@ func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, erro
 	}
 
 	// Set the identity as verified and set the proof url
-	err = workflow.ExecuteActivity(ctx, a.VerifyTwitter, id, proof).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetTwitterIdentityState, id, identities.StateVerified).Get(ctx, nil)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -275,8 +270,8 @@ func (a *TwitterActivity) VerifyProof(ctx context.Context, identity identities.I
 	return nil
 }
 
-func (a *TwitterActivity) VerifyTwitter(ctx context.Context, id, proof string) error {
-	err := a.b.Identities().UpdateState(ctx, id, identities.StateVerified, proof)
+func (a *TwitterActivity) SetTwitterIdentityState(ctx context.Context, id string) error {
+	err := a.b.Identities().SetState(ctx, id, identities.StateVerified)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

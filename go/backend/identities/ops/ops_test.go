@@ -186,7 +186,7 @@ func TestVerified(t *testing.T) {
 	assert.Equal(t, identities.StateUnverified, id.State)
 	assert.False(t, id.VerifiedAt.Valid)
 
-	err = ops.UpdateState(ctx, b, id.ID, identities.StateVerified, "")
+	err = ops.SetState(ctx, b, id.ID, identities.StateVerified)
 	require.NoError(t, err)
 
 	id, err = ops.Get(ctx, b, iv.ID)
@@ -284,7 +284,7 @@ func TestSearch(t *testing.T) {
 	_, err = ops.SetPublic(ctx, b, id.ID, walletID, true)
 	require.NoError(t, err)
 
-	err = ops.UpdateState(ctx, b, id.ID, identities.StateVerified, "proof")
+	err = ops.SetProof(ctx, b, id.ID, "proof")
 	require.NoError(t, err)
 
 	res, err := ops.Search(ctx, b, uuid.NewString(), "cold")

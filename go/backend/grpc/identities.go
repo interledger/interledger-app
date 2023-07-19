@@ -171,7 +171,21 @@ func (s *rpcService) VerifyIdentity(
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	_, err = s.b.Identities().StartVerification(ctx, request.Id, "")
+	identity, err := s.b.Identities().Get(ctx, request.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	// If the identity is a Twitter identity and is unverified, publish a proof tweet.
+	// This will be decoupled from identities in the future.
+	if identity.Platform == identities.PlatformTwitter && identity.State == identities.StateUnverified && identity.VerificationProof == "" {
+		_, err = s.b.Twitter().PublishTweetProof(ctx, identity.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+	}
+
+	_, err = s.b.Identities().StartVerification(ctx, request.Id)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
