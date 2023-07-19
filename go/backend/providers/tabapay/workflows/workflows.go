@@ -3,6 +3,7 @@ package workflows
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -134,6 +135,9 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	}
 	if cardInfo.Card.Pull.Network != "" {
 		network = cardInfo.Card.Pull.Network
+	}
+	if strings.EqualFold(strings.TrimSpace(network), "mastercard") {
+		network = "Mastercard"
 	}
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
 		ID:         tokenizedCard.ID,
