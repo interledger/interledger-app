@@ -26,6 +26,15 @@ func (s *rpcService) CreateCard(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
+	feats, err := s.b.Features().Features(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !feats.AddCardsEnabled {
+		return nil, FailedPreconditionError("ErrMaxCardsAdded")
+	}
+
 	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
 		WalletID:           w.ID,
 		BasisTheoryTokenID: req.GetTokenID(),
