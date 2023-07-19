@@ -4,6 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
+	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+
 	"gitlab.com/fynbos/backend/kyc"
 
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -23,7 +29,7 @@ func TestSetFeatures(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil)
+	b := ops.NewTestBackends(t, db, nil, nil)
 
 	cases := []struct {
 		name  string
@@ -78,14 +84,16 @@ func TestFeatures(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	kc := kyc_mock.NewMockClient(ctrl)
+	fc := linked_accounts_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db, kc)
+	b := ops.NewTestBackends(t, db, kc, fc)
 
 	cases := []struct {
 		name      string
 		KycStatus kyc.Status
 		id        *kyc.IndividualDetails
 		feats     *features.WalletFeatures
+		numCards  int
 	}{
 		{
 			name:      "KYC unapproved all false",
@@ -104,6 +112,7 @@ func TestFeatures(t *testing.T) {
 		{
 			name:      "KYC US non send state",
 			KycStatus: kyc.StatusLevel1,
+			numCards:  2,
 			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-XX"}},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
@@ -111,11 +120,13 @@ func TestFeatures(t *testing.T) {
 				ReceiveEnabled:    true,
 				LinkedAccEnabled:  true,
 				CardsEnabled:      true,
+				AddCardsEnabled:   true,
 			},
 		},
 		{
 			name:      "KYC US send state",
 			KycStatus: kyc.StatusLevel1,
+			numCards:  2,
 			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-SD"}},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
@@ -124,6 +135,22 @@ func TestFeatures(t *testing.T) {
 				LinkedAccEnabled:  true,
 				CardsEnabled:      true,
 				SendEnabled:       true,
+				AddCardsEnabled:   true,
+			},
+		},
+		{
+			name:      "KYC US send state, max cards added",
+			KycStatus: kyc.StatusLevel1,
+			numCards:  4,
+			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-SD"}},
+			feats: &features.WalletFeatures{
+				IdentitiesEnabled: true,
+				TwitterEnabled:    true,
+				ReceiveEnabled:    true,
+				LinkedAccEnabled:  true,
+				CardsEnabled:      true,
+				SendEnabled:       true,
+				AddCardsEnabled:   false,
 			},
 		},
 	}
@@ -135,6 +162,17 @@ func TestFeatures(t *testing.T) {
 			if tc.id != nil {
 				kc.EXPECT().GetIndividualDetails(ctx, wid).Return(tc.id, nil)
 			}
+
+			var lal []linkedaccounts.LinkedAccount
+			for i := 0; i < tc.numCards; i++ {
+				lal = append(lal, linkedaccounts.LinkedAccount{
+					State:    linkedaccounts.Verified,
+					Provider: tabapay.ProviderName,
+					Type:     tabapay.TypeCard,
+				})
+			}
+
+			fc.EXPECT().ListByWalletId(ctx, wid).Return(lal, nil).AnyTimes()
 
 			f, err := ops.Features(ctx, b, wid)
 			require.NoError(t, err)
