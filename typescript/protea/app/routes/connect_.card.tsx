@@ -97,7 +97,7 @@ export default function Page() {
           break
         case 'Failed precondition: ErrMaxCardsAdded':
           errorMessage =
-              'You have connected the maximum number of cards to Fynbos.'
+            'You have connected the maximum number of cards to Fynbos.'
           break
         default:
           errorMessage = 'There was an error connecting your card.'
