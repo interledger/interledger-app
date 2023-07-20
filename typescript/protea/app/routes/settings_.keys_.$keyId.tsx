@@ -95,63 +95,63 @@ export default function Page() {
             Providing access to your Fynbos wallet allows the external
             application to make payments. Set the limits below.
           </p>
-          <TextField
-            id='dailyLimit'
-            label='Daily'
-            name='dailyLimit'
-            form='key-id'
-            type='number'
-            min='0'
-            step='0.01'
-            defaultValue={limits.daily}
-            prefix='$'
-            className='mt-4'
-            aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
-            aria-describedby={
-              actionData?.errors.dailyLimit ? 'dailyLimit-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.dailyLimit}
-          />
-
-          <TextField
-            id='monthlyLimit'
-            label='Monthly'
-            name='monthlyLimit'
-            form='key-id'
-            type='number'
-            min='0'
-            step='0.01'
-            defaultValue={limits.monthly}
-            prefix='$'
-            className='mt-4'
-            aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
-            aria-describedby={
-              actionData?.errors.monthlyLimit ? 'monthlyLimit-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.monthlyLimit}
-          />
-
-          <TextField
-            id='overallLimit'
-            label='Overall'
-            name='overallLimit'
-            form='key-id'
-            type='number'
-            min='0'
-            step='0.01'
-            defaultValue={limits.overall}
-            prefix='$'
-            className='mt-4'
-            aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
-            aria-describedby={
-              actionData?.errors.overallLimit ? 'overallLimit-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.overallLimit}
-          />
         </CardContent>
+        <TextField
+          id='dailyLimit'
+          label='Daily'
+          name='dailyLimit'
+          form='key-id'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={limits.daily}
+          prefix='$'
+          className='mt-2'
+          aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
+          aria-describedby={
+            actionData?.errors.dailyLimit ? 'dailyLimit-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.dailyLimit}
+        />
+
+        <TextField
+          id='monthlyLimit'
+          label='Monthly'
+          name='monthlyLimit'
+          form='key-id'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={limits.monthly}
+          prefix='$'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
+          aria-describedby={
+            actionData?.errors.monthlyLimit ? 'monthlyLimit-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.monthlyLimit}
+        />
+
+        <TextField
+          id='overallLimit'
+          label='Overall'
+          name='overallLimit'
+          form='key-id'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={limits.overall}
+          prefix='$'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
+          aria-describedby={
+            actionData?.errors.overallLimit ? 'overallLimit-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.overallLimit}
+        />
       </Card>
 
       <div className='flex w-full space-x-2'>
