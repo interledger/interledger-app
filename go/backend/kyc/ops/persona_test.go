@@ -12,7 +12,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	persona_mock "gitlab.com/fynbos/backend/kyc/persona/mock"
-	"gitlab.com/fynbos/backend/signup"
 	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
 
 	"gitlab.com/fynbos/backend/user"
@@ -28,12 +27,6 @@ func TestGetPersonaInquiry(t *testing.T) {
 
 	userID := uuid.NewString()
 	sc := signup_mock.NewMockClient(ctrl)
-	sc.EXPECT().GetForUser(gomock.Any(), userID).Return(
-		&signup.Signup{
-			UserID:      userID,
-			CountryCode: "US",
-		}, nil,
-	)
 	w, err := uc.CreateNewWallet(ctx, user.CreateWalletArgs{
 		UserID: userID,
 		Name:   "test",

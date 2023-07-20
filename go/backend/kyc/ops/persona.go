@@ -86,14 +86,9 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		}
 	}
 
-	// fallback to the country they used for signup
+	// fallback to US
 	if args.CountryCode == "" {
-		su, err := b.Signup().GetForUser(ctx, ul[0].ID)
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
-		}
-
-		args.CountryCode = su.CountryCode
+		args.CountryCode = "US"
 	}
 
 	args.InquiryTemplateID = string(persona.GetTemplateIDForCountry(ctx, country.Country(args.CountryCode)))
