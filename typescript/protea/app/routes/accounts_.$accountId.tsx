@@ -3,7 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts, TextField } from '~/components'
+import { Button, Card, Layouts, TextField } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -55,22 +55,19 @@ export default function Page() {
         className='hidden'
       />
       <Card>
-        <CardContent>
-          <TextField
-            id='name'
-            label='Nickname'
-            name='name'
-            form='edit-linked-account-name'
-            type='text'
-            defaultValue={name}
-            className='mt-4'
-            aria-invalid={Boolean(actionData?.errors.name) || undefined}
-            aria-describedby={
-              actionData?.errors.name ? 'password-error' : undefined
-            }
-            errorMessage={actionData?.errors.name}
-          />
-        </CardContent>
+        <TextField
+          id='name'
+          label='Nickname'
+          name='name'
+          form='edit-linked-account-name'
+          type='text'
+          defaultValue={name}
+          aria-invalid={Boolean(actionData?.errors.name) || undefined}
+          aria-describedby={
+            actionData?.errors.name ? 'password-error' : undefined
+          }
+          errorMessage={actionData?.errors.name}
+        />
       </Card>
       <Button form='edit-linked-account-name' type='submit'>
         Save

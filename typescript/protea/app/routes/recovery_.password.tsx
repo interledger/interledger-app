@@ -126,21 +126,21 @@ export default function Page() {
             You've successfully recovered your account. Set a new password to
             continue.
           </span>
-          <TextField
-            id='new-password'
-            form='recovery-password'
-            label='New password'
-            name='new-password'
-            type='password'
-            className='mt-6'
-            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-            aria-describedby={
-              actionData?.errors?.password ? 'password-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors?.password}
-          />
         </CardContent>
+        <TextField
+          id='new-password'
+          form='recovery-password'
+          label='New password'
+          name='new-password'
+          type='password'
+          className='mt-2'
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-describedby={
+            actionData?.errors?.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.password}
+        />
         <input
           form='recovery-password'
           defaultValue={csrfToken}

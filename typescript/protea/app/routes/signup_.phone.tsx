@@ -116,39 +116,37 @@ export default function Page() {
           {!hasVerified && (
             <p>We require you to verify a mobile phone number.</p>
           )}
-
-          {hasVerified && (
-            <div className='mt-6 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
-              <Icon>call</Icon>
-              <span>{flow?.data?.phone}</span>
-            </div>
-          )}
-
-          {!hasVerified && (
-            <PhoneTextField
-              id='phone'
-              form='signup-phone-otp'
-              name='phone'
-              defaultCountry={flow?.data.country}
-              options={countries as PhoneAutocompleteOptions[]}
-              label='Mobile number'
-              className='mt-6'
-              aria-invalid={
-                Boolean(
-                  otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-                ) || undefined
-              }
-              aria-describedby={
-                otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-                  ? 'phone-error'
-                  : undefined
-              }
-              errorMessage={
-                otpFetcher.data?.errors?.phone || actionData?.errors?.phone
-              }
-            />
-          )}
         </CardContent>
+        {hasVerified && (
+          <div className='mt-2 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+            <Icon>call</Icon>
+            <span>{flow?.data?.phone}</span>
+          </div>
+        )}
+        {!hasVerified && (
+          <PhoneTextField
+            id='phone'
+            form='signup-phone-otp'
+            name='phone'
+            defaultCountry={flow?.data.country}
+            options={countries as PhoneAutocompleteOptions[]}
+            label='Mobile number'
+            className='mt-2'
+            aria-invalid={
+              Boolean(
+                otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+              ) || undefined
+            }
+            aria-describedby={
+              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+                ? 'phone-error'
+                : undefined
+            }
+            errorMessage={
+              otpFetcher.data?.errors?.phone || actionData?.errors?.phone
+            }
+          />
+        )}
       </Card>
       {hasVerified && (
         <ButtonRouter to={route('/signup/password')}>
@@ -200,7 +198,7 @@ export default function Page() {
           required
           errorMessage={actionData?.errors.otp}
         />
-        <CardContent className='flex w-full justify-end space-x-6'>
+        <CardContent className='mt-2 flex w-full justify-end space-x-6'>
           <TextButton type='submit' form='signup-phone-otp'>
             Resend code
           </TextButton>

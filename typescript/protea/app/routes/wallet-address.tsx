@@ -131,42 +131,36 @@ export default function Page() {
           <p className='text-medium'>
             Create your unique wallet address below.
           </p>
-          <TextField
-            id='username'
-            form='wallet-address'
-            label='Wallet address'
-            name='username'
-            prefix={`${paymentPointerBase}/`}
-            appendIcon={
-              username == '' &&
-              typeof fetcher.data == 'undefined' ? undefined : fetcher.data
-                  ?.errors.username ? (
-                <Icon className='text-error'>error</Icon>
-              ) : (
-                <Icon className='text-success'>check</Icon>
-              )
-            }
-            defaultValue={username}
-            onChange={_onChangeInput}
-            type='text'
-            className='mt-4'
-            aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
-            aria-describedby={
-              fetcher.data?.errors.username ? 'username-error' : undefined
-            }
-            errorMessage={fetcher.data?.errors.username || undefined}
-            successMessage={
-              fetcher.data?.errors.username || username == ''
-                ? undefined
-                : 'This wallet address is available.'
-            }
-          />
         </CardContent>
-        <input
+        <TextField
+          id='username'
           form='wallet-address'
-          value='true'
-          name='canSubmit'
-          type='hidden'
+          label='Wallet address'
+          name='username'
+          prefix={`${paymentPointerBase}/`}
+          appendIcon={
+            username == '' &&
+            typeof fetcher.data == 'undefined' ? undefined : fetcher.data
+                ?.errors.username ? (
+              <Icon className='text-error'>error</Icon>
+            ) : (
+              <Icon className='text-success'>check</Icon>
+            )
+          }
+          defaultValue={username}
+          onChange={_onChangeInput}
+          type='text'
+          className='mt-2'
+          aria-invalid={Boolean(fetcher.data?.errors.username) || undefined}
+          aria-describedby={
+            fetcher.data?.errors.username ? 'username-error' : undefined
+          }
+          errorMessage={fetcher.data?.errors.username || undefined}
+          successMessage={
+            fetcher.data?.errors.username || username == ''
+              ? undefined
+              : 'This wallet address is available.'
+          }
         />
       </Card>
       <Button form='wallet-address' type='submit'>
