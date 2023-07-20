@@ -99,32 +99,32 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <input
+        form='recovery'
+        defaultValue={csrfToken}
+        name='csrf_token'
+        type='hidden'
+      />
       <Card>
         <CardContent>
           <span>
             Enter your email address and we will email you a link to change your
             password.
           </span>
-          <TextField
-            id='email'
-            form='recovery'
-            label='Email'
-            name='email'
-            type='email'
-            className='mt-6'
-            aria-invalid={Boolean(actionData?.errors?.email) || undefined}
-            aria-describedby={
-              actionData?.errors?.email ? 'email-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors?.email}
-          />
         </CardContent>
-        <input
+        <TextField
+          id='email'
           form='recovery'
-          defaultValue={csrfToken}
-          name='csrf_token'
-          type='hidden'
+          label='Email'
+          name='email'
+          type='email'
+          className='mt-2'
+          aria-invalid={Boolean(actionData?.errors?.email) || undefined}
+          aria-describedby={
+            actionData?.errors?.email ? 'email-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.email}
         />
       </Card>
       <Button form='recovery' type='submit'>

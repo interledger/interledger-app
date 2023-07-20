@@ -12,12 +12,14 @@ import {
   FynbosLogo,
   Icon,
   IconButton,
+  LoadingShapes,
   MarketingRouter,
   Router,
   WalletShapes
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -90,6 +92,8 @@ export function Scaffold() {
   let currentMatch = matches[matches.length - 1]
 
   const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
+
+  const [loading] = useScaffoldStore((state) => [state.loading])
 
   const footer = scaffold.footer && scaffold.footer(currentMatch)
 
@@ -278,8 +282,12 @@ export function Scaffold() {
             >
               <FynbosLogo className='h-8' />
             </Router>
-
-            {actions && (
+            {loading && (
+              <div className='ml-auto flex items-center space-x-4'>
+                <LoadingShapes />
+              </div>
+            )}
+            {actions && !loading && (
               <div className='ml-auto flex items-center space-x-4'>
                 {/* TODO: Put loading shapes here */}
                 {actions.map((action, index) => {

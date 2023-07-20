@@ -109,72 +109,71 @@ export default function Page() {
           <p className='text-medium'>
             Please provide a few details about yourself.
           </p>
-
-          <TextField
-            id='firstName'
-            form='signup-about-details'
-            label='First name'
-            name='firstName'
-            labelSuffix='&dagger;'
-            defaultValue={flow?.data.firstName}
-            type='text'
-            className='mt-6'
-            aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
-            aria-describedby={
-              actionData?.errors.firstName ? 'firstName-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.firstName}
-          />
-
-          <TextField
-            id='lastName'
-            form='signup-about-details'
-            label='Last name'
-            name='lastName'
-            labelSuffix='&dagger;'
-            defaultValue={flow?.data.lastName}
-            type='text'
-            className='mt-1'
-            aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
-            aria-describedby={
-              actionData?.errors.lastName ? 'lastName-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.lastName}
-          />
-
-          <TextField
-            id='email'
-            form='signup-about-details'
-            label='Email address'
-            name='email'
-            defaultValue={flow?.data.email}
-            type='text'
-            className='mt-1'
-            aria-invalid={Boolean(actionData?.errors.email) || undefined}
-            aria-describedby={
-              actionData?.errors.email ? 'email-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.email}
-          />
-
-          <Autocomplete
-            id='country'
-            value={country}
-            onChange={setCountry}
-            onQuery={setQuery}
-            options={filteredCountries}
-            label='Country of residence'
-            className='mt-1'
-            aria-invalid={Boolean(actionData?.errors.country) || undefined}
-            aria-describedby={
-              actionData?.errors.country ? 'country-error' : undefined
-            }
-            errorMessage={actionData?.errors.country}
-          />
         </CardContent>
+        <TextField
+          id='firstName'
+          form='signup-about-details'
+          label='First name'
+          name='firstName'
+          labelSuffix='&dagger;'
+          defaultValue={flow?.data.firstName}
+          type='text'
+          className='mt-2'
+          aria-invalid={Boolean(actionData?.errors.firstName) || undefined}
+          aria-describedby={
+            actionData?.errors.firstName ? 'firstName-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.firstName}
+        />
+
+        <TextField
+          id='lastName'
+          form='signup-about-details'
+          label='Last name'
+          name='lastName'
+          labelSuffix='&dagger;'
+          defaultValue={flow?.data.lastName}
+          type='text'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.lastName) || undefined}
+          aria-describedby={
+            actionData?.errors.lastName ? 'lastName-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.lastName}
+        />
+
+        <TextField
+          id='email'
+          form='signup-about-details'
+          label='Email address'
+          name='email'
+          defaultValue={flow?.data.email}
+          type='text'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.email) || undefined}
+          aria-describedby={
+            actionData?.errors.email ? 'email-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.email}
+        />
+
+        <Autocomplete
+          id='country'
+          value={country}
+          onChange={setCountry}
+          onQuery={setQuery}
+          options={filteredCountries}
+          label='Country of residence'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.country) || undefined}
+          aria-describedby={
+            actionData?.errors.country ? 'country-error' : undefined
+          }
+          errorMessage={actionData?.errors.country}
+        />
         <input
           form='signup-about-details'
           value={String(country?.id)}
