@@ -22,6 +22,7 @@ func (s *AdminRpcService) GetWalletFeatures(ctx context.Context, req *pb.GetWall
 		BanksEnabled:          feat.BanksEnabled,
 		IdentitiesEnabled:     feat.IdentitiesEnabled,
 		TwitterEnabled:        feat.TwitterEnabled,
+		AddCardsEnabled:       feat.AddCardsEnabled,
 		WalletID:              req.WalletID,
 	}, nil
 }
@@ -35,6 +36,7 @@ func (s *AdminRpcService) SetWalletFeatures(ctx context.Context, req *pb.Feature
 		BanksEnabled:      req.BanksEnabled,
 		IdentitiesEnabled: req.IdentitiesEnabled,
 		TwitterEnabled:    req.TwitterEnabled,
+		AddCardsEnabled:   req.AddCardsEnabled,
 	})
 	if err != nil {
 		return nil, err
@@ -48,6 +50,7 @@ func (s *AdminRpcService) SetWalletFeatures(ctx context.Context, req *pb.Feature
 		BanksEnabled:          feat.BanksEnabled,
 		IdentitiesEnabled:     feat.IdentitiesEnabled,
 		TwitterEnabled:        feat.TwitterEnabled,
+		AddCardsEnabled:       feat.AddCardsEnabled,
 		WalletID:              req.WalletID,
 	}, nil
 }

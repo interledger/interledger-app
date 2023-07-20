@@ -30,5 +30,6 @@ func (s *rpcService) ListFeatures(ctx context.Context, _ *pb.Empty) (*pb.Feature
 		BanksEnabled:          feat.BanksEnabled,
 		IdentitiesEnabled:     feat.IdentitiesEnabled,
 		TwitterEnabled:        feat.TwitterEnabled,
+		AddCardsEnabled:       feat.AddCardsEnabled,
 	}, nil
 }
