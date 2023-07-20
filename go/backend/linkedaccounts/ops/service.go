@@ -369,7 +369,7 @@ func ListIncompleteReviews(ctx context.Context, b Backends, pagination db.Pagina
 		pageSize = 50
 	}
 
-	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE (created_at < (SELECT created_at FROM linked_account_reviews WHERE id=$1) OR (created_at = (SELECT created_at FROM linked_account_reviews WHERE id=$1) AND id < $1)) AND competed_at is null ORDER BY created_at desc LIMIT $2;", reviewAllFields)
+	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE (created_at < (SELECT created_at FROM linked_account_reviews WHERE id=$1) OR (created_at = (SELECT created_at FROM linked_account_reviews WHERE id=$1) AND id < $1)) AND completed_at is null ORDER BY created_at desc LIMIT $2;", reviewAllFields)
 	args := []interface{}{pagination.PageToken, pageSize}
 	if pagination.PageToken == "" {
 		query = fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE completed_at is NULL ORDER BY created_at desc LIMIT $1;", reviewAllFields)
