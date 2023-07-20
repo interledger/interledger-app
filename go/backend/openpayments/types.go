@@ -16,26 +16,30 @@ type PaymentPointer struct {
 }
 
 type CreateQuoteArgs struct {
-	SendPaymentPointer    string `validate:"url"`
-	ReceivePaymentPointer string `json:"receiver" validate:"url"`
-	ExpiresAt             time.Time
-	SendAmount            currency.Amount `json:"sendAmount"`
-	Reference             string
-	Description           string
-	LinkedAccID           string
-	CreatedBy             string // Either the payment pointer from gRPC or the client_id from Openapyments API, which is also a payment pointer
+	SendPaymentPointer      string `validate:"url"`
+	ReceivePaymentPointer   string `json:"receiver" validate:"url"`
+	ExpiresAt               time.Time
+	SendAmount              currency.Amount `json:"sendAmount"`
+	Reference               string
+	Description             string
+	LinkedAccID             string
+	CreatedBy               string // Either the payment pointer from gRPC or the client_id from Openapyments API, which is also a payment pointer
+	DestinationIdentity     string
+	DestinationIdentityType string `validate:"omitempty,oneof=twitter wallet"`
 }
 
 type Quote struct {
-	ID                string          `json:"id"`
-	PaymentPointer    string          `json:"paymentPointer"`
-	IncomingPayment   string          `json:"receiver"`
-	ReceiveAmount     currency.Amount `json:"receiveAmount"`
-	SendAmount        currency.Amount `json:"sendAmount"`
-	ExpiresAt         time.Time       `json:"expiresAt"`
-	CreatedAt         time.Time       `json:"createdAt"`
-	FromLinkedAccount string          `json:"-"`
-	CreatedBy         string          `json:"-"`
+	ID                      string          `json:"id"`
+	PaymentPointer          string          `json:"paymentPointer"`
+	IncomingPayment         string          `json:"receiver"`
+	ReceiveAmount           currency.Amount `json:"receiveAmount"`
+	SendAmount              currency.Amount `json:"sendAmount"`
+	ExpiresAt               time.Time       `json:"expiresAt"`
+	CreatedAt               time.Time       `json:"createdAt"`
+	FromLinkedAccount       string          `json:"-"`
+	CreatedBy               string          `json:"-"`
+	DestinationIdentity     string          `json:"-"`
+	DestinationIdentityType string          `json:"-"`
 }
 
 type ILPConnection struct {
@@ -72,10 +76,8 @@ type IncomingPayment struct {
 }
 
 type CreateOutgoingPaymentArgs struct {
-	IdempotencyKey          string `json:"-" validate:"omitempty,uuid"`
 	QuoteID                 string `json:"quoteId" validate:"required"`
 	Description             string `json:"description"`
-	ExternalRef             string `json:"externalRef"`
 	IPAddress               string `json:"-" validate:"ip_addr"`
 	CreatedBy               string // Either the payment pointer from gRPC or the client_id from Openapyments API, which is also a payment pointer
 	GrantID                 string `json:"-"`
