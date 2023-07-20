@@ -18,15 +18,9 @@ import type {
 import clsx from 'clsx'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  Layouts,
-  LoadingShapes
-} from '~/components'
+import { Button, Card, CardContent, Layouts } from '~/components'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { createCard, getWalletId } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -78,6 +72,11 @@ export default function Page() {
   const cardVerificationCodeRef = useRef<CardVerificationCodeElementType>(null)
 
   const [loading, setLoading] = useState<boolean>(true)
+  const setScaffoldLoading = useScaffoldStore((state) => state.setLoading)
+
+  useEffect(() => {
+    setScaffoldLoading(loading)
+  }, [loading, setScaffoldLoading])
 
   useEffect(() => {
     if (actionData && actionData.error) {
@@ -108,7 +107,7 @@ export default function Page() {
         date: ''
       })
     }
-  }, [actionData])
+  }, [actionData, setLoading])
 
   const btSubmit = async () => {
     setLoading(true)
@@ -200,103 +199,95 @@ export default function Page() {
         <Card>
           <CardContent>
             <p className='text-medium'>Please provide your card details.</p>
-            <label className='mt-6 block'>
+          </CardContent>
+          <label className='mt-2 block'>
+            <span className='ml-2 block text-sm font-medium text-medium'>
+              Card number
+            </span>
+            <div
+              className={clsx(
+                'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
+                cardNumberFocus && 'border-focus ring-0'
+              )}
+            >
+              <div className='block w-full'>
+                <CardNumberElement
+                  ref={cardNumberRef}
+                  onReady={() => setLoading(false)}
+                  onFocus={() => setCardNumberFocus(true)}
+                  onBlur={() => setCardNumberFocus(false)}
+                  style={btStyle}
+                  iconPosition={'right'}
+                  placeholder=''
+                  id='card-number'
+                />
+              </div>
+            </div>
+            <div className='h-7 pl-2 pt-2'>
+              {fieldErrors.number && (
+                <p className='text-sm text-error'>{fieldErrors.number}</p>
+              )}
+            </div>
+          </label>
+          <div className='mt-4 flex w-full space-x-4'>
+            <label className='block w-full'>
               <span className='ml-2 block text-sm font-medium text-medium'>
-                Card number
+                Expiry date
               </span>
               <div
                 className={clsx(
                   'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
-                  cardNumberFocus && 'border-focus ring-0'
+                  cardExpirationDateFocus && 'border-focus ring-0'
                 )}
               >
                 <div className='block w-full'>
-                  <CardNumberElement
-                    ref={cardNumberRef}
-                    onReady={() => setLoading(false)}
-                    onFocus={() => setCardNumberFocus(true)}
-                    onBlur={() => setCardNumberFocus(false)}
+                  <CardExpirationDateElement
+                    ref={cardExpirationDateRef}
+                    onFocus={() => setExpirationDateFocus(true)}
+                    onBlur={() => setExpirationDateFocus(false)}
                     style={btStyle}
-                    iconPosition={'right'}
-                    placeholder=''
-                    id='card-number'
+                    id='expirationn-date'
                   />
                 </div>
               </div>
               <div className='h-7 pl-2 pt-2'>
-                {fieldErrors.number && (
-                  <p className='text-sm text-error'>{fieldErrors.number}</p>
+                {fieldErrors.date && (
+                  <p className='text-sm text-error'>{fieldErrors.date}</p>
                 )}
               </div>
             </label>
-            <div className='mt-1 flex w-full space-x-4'>
-              <label className='block w-full'>
-                <span className='ml-2 block text-sm font-medium text-medium'>
-                  Expiry date
-                </span>
-                <div
-                  className={clsx(
-                    'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
-                    cardExpirationDateFocus && 'border-focus ring-0'
-                  )}
-                >
-                  <div className='block w-full'>
-                    <CardExpirationDateElement
-                      ref={cardExpirationDateRef}
-                      onFocus={() => setExpirationDateFocus(true)}
-                      onBlur={() => setExpirationDateFocus(false)}
-                      style={btStyle}
-                      id='expirationn-date'
-                    />
-                  </div>
+            <label className='block w-full'>
+              <span className='ml-2 block text-sm font-medium text-medium'>
+                Security code
+              </span>
+              <div
+                className={clsx(
+                  'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
+                  cardVerificationCodeFocus && 'border-focus ring-0'
+                )}
+              >
+                <div className='block w-full'>
+                  <CardVerificationCodeElement
+                    ref={cardVerificationCodeRef}
+                    onFocus={() => setVerificationCodeFocus(true)}
+                    onBlur={() => setVerificationCodeFocus(false)}
+                    style={btStyle}
+                    placeholder=''
+                    id='card-verification-code'
+                  />
                 </div>
-                <div className='h-7 pl-2 pt-2'>
-                  {fieldErrors.date && (
-                    <p className='text-sm text-error'>{fieldErrors.date}</p>
-                  )}
-                </div>
-              </label>
-              <label className='block w-full'>
-                <span className='ml-2 block text-sm font-medium text-medium'>
-                  Security code
-                </span>
-                <div
-                  className={clsx(
-                    'mt-1 flex h-12 w-full items-center justify-between overflow-hidden rounded-xl border-2 border-base pr-4 focus-within:border-focus focus-within:ring-0',
-                    cardVerificationCodeFocus && 'border-focus ring-0'
-                  )}
-                >
-                  <div className='block w-full'>
-                    <CardVerificationCodeElement
-                      ref={cardVerificationCodeRef}
-                      onFocus={() => setVerificationCodeFocus(true)}
-                      onBlur={() => setVerificationCodeFocus(false)}
-                      style={btStyle}
-                      placeholder=''
-                      id='card-verification-code'
-                    />
-                  </div>
-                </div>
-                <div className='h-7 pl-2 pt-2'>
-                  {fieldErrors.cvc && (
-                    <p className='text-sm text-error'>{fieldErrors.cvc}</p>
-                  )}
-                </div>
-              </label>
-            </div>
-          </CardContent>
+              </div>
+              <div className='h-7 pl-2 pt-2'>
+                {fieldErrors.cvc && (
+                  <p className='text-sm text-error'>{fieldErrors.cvc}</p>
+                )}
+              </div>
+            </label>
+          </div>
         </Card>
-        <Button type='submit' onClick={btSubmit} disabled={!bt && loading}>
+        <Button type='submit' onClick={btSubmit} disabled={!bt || loading}>
           Submit
         </Button>
-        <Dialog unmount={false} open={loading} setOpen={() => {}}>
-          <CardContent className='my-5'>
-            <LoadingShapes />
-            <p className='mt-4 text-center text-medium'>
-              Just a moment, loading.
-            </p>
-          </CardContent>
-        </Dialog>
       </BasisTheoryProvider>
     )
   }

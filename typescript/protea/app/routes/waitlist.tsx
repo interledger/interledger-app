@@ -128,6 +128,13 @@ export default function Page() {
         method='post'
         className='hidden'
       />
+      <input
+        id='country'
+        form='join-waitlist'
+        value={String(country?.id)}
+        name='country'
+        type='hidden'
+      />
       <Card>
         <CardContent>
           {!mug.available && (
@@ -170,59 +177,51 @@ export default function Page() {
               />
             </>
           )}
-
-          <TextField
-            id='fullName'
-            form='join-waitlist'
-            label='Full name'
-            name='fullName'
-            type='text'
-            defaultValue={fullName as string}
-            className='mt-6'
-            aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
-            aria-describedby={
-              actionData?.errors.fullName ? 'lastName-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.fullName}
-          />
-          <TextField
-            id='email'
-            form='join-waitlist'
-            label='Email address'
-            name='email'
-            defaultValue={email as string}
-            type='text'
-            className='mt-1'
-            aria-invalid={Boolean(actionData?.errors.email) || undefined}
-            aria-describedby={
-              actionData?.errors.email ? 'email-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.email}
-          />
-          <Autocomplete
-            id='country'
-            value={country}
-            onChange={setCountry}
-            onQuery={setQuery}
-            options={filteredCountries}
-            label='Country of residence'
-            className='mt-1'
-            aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
-            aria-describedby={
-              actionData?.errors.countryCode ? 'country-error' : undefined
-            }
-            errorMessage={actionData?.errors.countryCode}
-          />
-          <input
-            id='country'
-            form='join-waitlist'
-            value={String(country?.id)}
-            name='country'
-            type='hidden'
-          />
         </CardContent>
+        <TextField
+          id='fullName'
+          form='join-waitlist'
+          label='Full name'
+          name='fullName'
+          type='text'
+          defaultValue={fullName as string}
+          className='mt-2'
+          aria-invalid={Boolean(actionData?.errors.fullName) || undefined}
+          aria-describedby={
+            actionData?.errors.fullName ? 'lastName-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.fullName}
+        />
+        <TextField
+          id='email'
+          form='join-waitlist'
+          label='Email address'
+          name='email'
+          defaultValue={email as string}
+          type='text'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.email) || undefined}
+          aria-describedby={
+            actionData?.errors.email ? 'email-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.email}
+        />
+        <Autocomplete
+          id='country'
+          value={country}
+          onChange={setCountry}
+          onQuery={setQuery}
+          options={filteredCountries}
+          label='Country of residence'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.countryCode) || undefined}
+          aria-describedby={
+            actionData?.errors.countryCode ? 'country-error' : undefined
+          }
+          errorMessage={actionData?.errors.countryCode}
+        />
       </Card>
       <Card>
         <CardHeader>

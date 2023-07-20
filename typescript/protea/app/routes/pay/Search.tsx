@@ -14,6 +14,7 @@ import {
 } from '~/components'
 import type { SearchResult } from '~/generated/protobuf-ts/backend/v1/backend'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export function Search() {
   const search = useFetcher()
@@ -24,18 +25,22 @@ export function Search() {
     state.setAddress
   ])
 
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       let term = event.target.value
       setTerm(term)
+      setLoading(true)
       search.load(`/pay?term=${term}`)
     },
-    [search]
+    [search, setLoading]
   )
 
   useEffect(() => {
     if (term.length >= 3) {
       setResults(search.data?.results || [])
+      // setLoading(false)
     }
   }, [search.data, term.length, setResults])
 
