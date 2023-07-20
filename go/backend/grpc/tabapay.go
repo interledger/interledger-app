@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -82,6 +83,11 @@ func (s *rpcService) Init3DS(
 	if err != nil {
 		return nil, InternalError("Quote not found.")
 	}
+	orderID := quote.ID
+	idxSlash := strings.LastIndex(quote.ID, "/")
+	if idxSlash > 0 {
+		orderID = orderID[idxSlash+1:]
+	}
 
 	fromLinkedAcc, err := s.b.LinkedAccounts().Get(ctx, quote.FromLinkedAccount)
 	if err != nil {
@@ -98,9 +104,9 @@ func (s *rpcService) Init3DS(
 		Context: fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID),
 	})
 	init3DS, err := s.b.Tabapay().Init3DS(newCtx, tabapay.Init3DSArgs{
-		Amount:         quote.SendAmount,
-		IdempotencyKey: req.GetIdempotencyKey(),
-		CardID:         fromLinkedAcc.ProviderID,
+		Amount:  quote.SendAmount,
+		OrderID: orderID,
+		CardID:  fromLinkedAcc.ProviderID,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -148,8 +154,8 @@ func (s *rpcService) Lookup3DS(
 		Context: fmt.Sprintf("linkedAccountID=%s", la.ID),
 	})
 	lookupResp, err := s.b.Tabapay().Lookup3DS(newCtx, tabapay.Lookup3DSArgs{
-		ThreeDSID:               req.GetThreeDSID(),
-		IdempotencyKey:          req.GetIdempotencyKey(),
+		ThreeDSID:               session.ID,
+		OrderID:                 session.OrderID,
 		CardID:                  session.CardID,
 		AuthenticationIndicator: tabapay.AuthenticatorIndicatorPayment,
 		TransactionMode:         tabapay.TransactionModeComputer,
@@ -217,9 +223,8 @@ func (s *rpcService) Authenticate3DS(
 		Context: fmt.Sprintf("linkedAccountID=%s", la.ID),
 	})
 	authResp, err := s.b.Tabapay().Authenticate3DS(newCtx, tabapay.Authenticate3DSArgs{
-		IdempotencyKey: req.GetIdempotencyKey(),
-		ThreeDSID:      req.GetThreeDSID(),
-		JWT:            req.GetJwt(),
+		ThreeDSID: req.GetThreeDSID(),
+		JWT:       req.GetJwt(),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)

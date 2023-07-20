@@ -75,7 +75,7 @@ export default function Page() {
         form='support-form'
         type='hidden'
       />
-      <GridColumn className='col-span-full lg:col-span-5'>
+      <GridColumn className='col-span-full lg:col-span-7'>
         <Card>
           <CardHeader>
             <CardTitle>Contact support</CardTitle>
@@ -85,22 +85,20 @@ export default function Page() {
               Please share all relevant details so we can assist you effectively
               and efficiently.
             </p>
-            <TextArea
-              id='description'
-              form='support-form'
-              label='Your message'
-              name='description'
-              className='mt-4'
-              aria-invalid={
-                Boolean(actionData?.errors.description) || undefined
-              }
-              aria-describedby={
-                actionData?.errors.description ? 'description-error' : undefined
-              }
-              required
-              errorMessage={actionData?.errors.description}
-            />
           </CardContent>
+          <TextArea
+            id='description'
+            form='support-form'
+            label='Your message'
+            name='description'
+            className='mt-2'
+            aria-invalid={Boolean(actionData?.errors.description) || undefined}
+            aria-describedby={
+              actionData?.errors.description ? 'description-error' : undefined
+            }
+            required
+            errorMessage={actionData?.errors.description}
+          />
         </Card>
         <Button form='support-form' type='submit'>
           Submit

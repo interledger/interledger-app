@@ -108,21 +108,21 @@ export default function Page() {
       <Card>
         <CardContent>
           <p>Set a new password to continue.</p>
-          <TextField
-            id='new-password'
-            form='settings-password'
-            label='New password'
-            name='new-password'
-            type='password'
-            className='mt-4'
-            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-            aria-describedby={
-              actionData?.errors?.password ? 'password-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors?.password}
-          />
         </CardContent>
+        <TextField
+          id='new-password'
+          form='settings-password'
+          label='New password'
+          name='new-password'
+          type='password'
+          className='mt-2'
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-describedby={
+            actionData?.errors?.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.password}
+        />
       </Card>
       <Button form='settings-password' type='submit'>
         Continue

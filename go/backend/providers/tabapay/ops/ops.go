@@ -187,7 +187,7 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 			AccountID: args.CardID,
 		},
 		Order: external.Order{
-			OrderID:  args.IdempotencyKey,
+			OrderID:  args.OrderID,
 			Currency: args.Amount.Currency.ISO4217(),
 			Amount:   args.Amount.FormatAmount(),
 		},
@@ -202,7 +202,7 @@ func Init3DS(ctx context.Context, b Backends, args tabapay.Init3DSArgs) (*tabapa
 	_, err = update3DSSession(ctx, b, tabapay.ThreeDSSession{
 		ID:       resp.ID3DS,
 		CardID:   args.CardID,
-		OrderID:  args.IdempotencyKey,
+		OrderID:  args.OrderID,
 		Amount:   args.Amount.Value,
 		Currency: args.Amount.Currency.String(),
 		InitAt:   time.Now(),
@@ -229,7 +229,7 @@ func Lookup3DS(ctx context.Context, b Backends, args tabapay.Lookup3DSArgs) (*ta
 			AccountID: args.CardID,
 		},
 		Order: external.Order{
-			OrderID:  args.IdempotencyKey,
+			OrderID:  args.OrderID,
 			Currency: args.Amount.Currency.ISO4217(),
 			Amount:   args.Amount.FormatAmount(),
 		},
