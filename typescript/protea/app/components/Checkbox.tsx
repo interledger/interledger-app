@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import type { InputHTMLAttributes } from 'react'
 import { forwardRef } from 'react'
 
@@ -24,11 +25,32 @@ export const Checkbox = forwardRef<any, CheckboxProps>(
           <label htmlFor={inputProps.id} className='cursor-pointer text-xs'>
             {children}
           </label>
-          <div className='-ml-7 h-7 pt-2'>
+          <AnimatePresence>
             {errorMessage && (
-              <p className='text-xs text-error'>{errorMessage}</p>
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: -8 }}
+                exit={{
+                  opacity: 0,
+                  y: -8,
+                  transition: {
+                    duration: 0.2
+                  }
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 400,
+                  damping: 20,
+                  duration: 0.3
+                }}
+                className='-ml-7 h-7 pt-2'
+              >
+                {errorMessage && (
+                  <p className='text-xs text-error'>{errorMessage}</p>
+                )}
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
       </div>
     )
