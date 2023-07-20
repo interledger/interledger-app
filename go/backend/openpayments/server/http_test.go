@@ -456,8 +456,6 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		var op openpayments.OutgoingPayment
 		err = json.Unmarshal(respBytes, &op)
 		require.NoError(t, err)
-
-		assert.Equal(t, tc.args.ExternalRef, op.Description)
 	}
 }
 

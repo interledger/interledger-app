@@ -318,6 +318,8 @@ export async function action({ request }: ActionArgs) {
   const response = await openPaymentsClient
     .createQuote(
       {
+        identityType: flow.data.address.type,
+        identity: flow.data.address.handle,
         sendPaymentPointer: walletInfo.url,
         receivePaymentPointer,
         description: note,
