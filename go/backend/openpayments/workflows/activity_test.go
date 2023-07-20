@@ -65,7 +65,6 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 			},
 			opArgs: openpayments.CreateOutgoingPaymentArgs{
 				Description: "Description",
-				ExternalRef: "ExternalRef",
 			},
 		},
 	}

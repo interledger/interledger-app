@@ -109,13 +109,13 @@ message PreCheckOutgoingPaymentResponse {
 
 message CreateOutgoingPaymentRequest {
   string quoteID = 1;
-  string description = 2;
-  string externalRef = 3;
+  string description = 2 [deprecated=true];
+  string externalRef = 3 [deprecated=true];
   string ipAddress = 4;
-  string idempotencyKey = 5;
+  string idempotencyKey = 5 [deprecated=true];
   string threeDSID = 6;
-  string identity = 7;
-  string identityType = 8;
+  string identity = 7 [deprecated=true];
+  string identityType = 8 [deprecated=true];
 }
 
 message LookupIncomingPaymentRequest {
@@ -153,6 +153,8 @@ message CreateQuoteRequest {
   google.protobuf.Timestamp expiresAt = 4;
   string description = 5;
   optional string sendLinkedAccount = 6;
+  string identity = 7;
+  string identityType = 8;
 }
 
 message Quote {

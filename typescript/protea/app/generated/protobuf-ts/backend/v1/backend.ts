@@ -271,11 +271,13 @@ export interface CreateOutgoingPaymentRequest {
      */
     quoteID: string;
     /**
-     * @generated from protobuf field: string description = 2;
+     * @deprecated
+     * @generated from protobuf field: string description = 2 [deprecated = true];
      */
     description: string;
     /**
-     * @generated from protobuf field: string externalRef = 3;
+     * @deprecated
+     * @generated from protobuf field: string externalRef = 3 [deprecated = true];
      */
     externalRef: string;
     /**
@@ -283,7 +285,8 @@ export interface CreateOutgoingPaymentRequest {
      */
     ipAddress: string;
     /**
-     * @generated from protobuf field: string idempotencyKey = 5;
+     * @deprecated
+     * @generated from protobuf field: string idempotencyKey = 5 [deprecated = true];
      */
     idempotencyKey: string;
     /**
@@ -291,11 +294,13 @@ export interface CreateOutgoingPaymentRequest {
      */
     threeDSID: string;
     /**
-     * @generated from protobuf field: string identity = 7;
+     * @deprecated
+     * @generated from protobuf field: string identity = 7 [deprecated = true];
      */
     identity: string;
     /**
-     * @generated from protobuf field: string identityType = 8;
+     * @deprecated
+     * @generated from protobuf field: string identityType = 8 [deprecated = true];
      */
     identityType: string;
 }
@@ -411,6 +416,14 @@ export interface CreateQuoteRequest {
      * @generated from protobuf field: optional string sendLinkedAccount = 6;
      */
     sendLinkedAccount?: string;
+    /**
+     * @generated from protobuf field: string identity = 7;
+     */
+    identity: string;
+    /**
+     * @generated from protobuf field: string identityType = 8;
+     */
+    identityType: string;
 }
 /**
  * @generated from protobuf message backend.v1.Quote
@@ -2854,25 +2867,25 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
                 case /* string quoteID */ 1:
                     message.quoteID = reader.string();
                     break;
-                case /* string description */ 2:
+                case /* string description = 2 [deprecated = true];*/ 2:
                     message.description = reader.string();
                     break;
-                case /* string externalRef */ 3:
+                case /* string externalRef = 3 [deprecated = true];*/ 3:
                     message.externalRef = reader.string();
                     break;
                 case /* string ipAddress */ 4:
                     message.ipAddress = reader.string();
                     break;
-                case /* string idempotencyKey */ 5:
+                case /* string idempotencyKey = 5 [deprecated = true];*/ 5:
                     message.idempotencyKey = reader.string();
                     break;
                 case /* string threeDSID */ 6:
                     message.threeDSID = reader.string();
                     break;
-                case /* string identity */ 7:
+                case /* string identity = 7 [deprecated = true];*/ 7:
                     message.identity = reader.string();
                     break;
-                case /* string identityType */ 8:
+                case /* string identityType = 8 [deprecated = true];*/ 8:
                     message.identityType = reader.string();
                     break;
                 default:
@@ -2890,25 +2903,25 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         /* string quoteID = 1; */
         if (message.quoteID !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
-        /* string description = 2; */
+        /* string description = 2 [deprecated = true]; */
         if (message.description !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.description);
-        /* string externalRef = 3; */
+        /* string externalRef = 3 [deprecated = true]; */
         if (message.externalRef !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.externalRef);
         /* string ipAddress = 4; */
         if (message.ipAddress !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.ipAddress);
-        /* string idempotencyKey = 5; */
+        /* string idempotencyKey = 5 [deprecated = true]; */
         if (message.idempotencyKey !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.idempotencyKey);
         /* string threeDSID = 6; */
         if (message.threeDSID !== "")
             writer.tag(6, WireType.LengthDelimited).string(message.threeDSID);
-        /* string identity = 7; */
+        /* string identity = 7 [deprecated = true]; */
         if (message.identity !== "")
             writer.tag(7, WireType.LengthDelimited).string(message.identity);
-        /* string identityType = 8; */
+        /* string identityType = 8 [deprecated = true]; */
         if (message.identityType !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.identityType);
         let u = options.writeUnknownFields;
@@ -3202,11 +3215,13 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
             { no: 3, name: "amount", kind: "message", T: () => Amount },
             { no: 4, name: "expiresAt", kind: "message", T: () => Timestamp },
             { no: 5, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "sendLinkedAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 6, name: "sendLinkedAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "identity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateQuoteRequest>): CreateQuoteRequest {
-        const message = { sendPaymentPointer: "", receivePaymentPointer: "", description: "" };
+        const message = { sendPaymentPointer: "", receivePaymentPointer: "", description: "", identity: "", identityType: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateQuoteRequest>(this, message, value);
@@ -3234,6 +3249,12 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
                     break;
                 case /* optional string sendLinkedAccount */ 6:
                     message.sendLinkedAccount = reader.string();
+                    break;
+                case /* string identity */ 7:
+                    message.identity = reader.string();
+                    break;
+                case /* string identityType */ 8:
+                    message.identityType = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3265,6 +3286,12 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
         /* optional string sendLinkedAccount = 6; */
         if (message.sendLinkedAccount !== undefined)
             writer.tag(6, WireType.LengthDelimited).string(message.sendLinkedAccount);
+        /* string identity = 7; */
+        if (message.identity !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.identity);
+        /* string identityType = 8; */
+        if (message.identityType !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.identityType);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
