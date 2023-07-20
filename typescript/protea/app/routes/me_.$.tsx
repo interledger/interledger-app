@@ -35,7 +35,6 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
 import {
@@ -363,16 +362,16 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   // We can redirect immediately because /pay/amount will handle un-authed calls appropriately.
-  await requireFlow(request, flowType.Pay, {
-    startRoute: route('/pay/amount'),
-    data: {
-      address: { ...response.response }
-    },
-    returnTo: '/'
-  })
-
-  await updateFlow(request, flowType.Pay, {
-    address: { ...response.response }
-  })
-  return redirect(route('/pay/amount'))
+  // await requireFlow(request, flowType.Pay, {
+  //   startRoute: route('/pay/amount'),
+  //   data: {
+  //     address: { ...response.response }
+  //   },
+  //   returnTo: '/'
+  // })
+  //
+  // await updateFlow(request, flowType.Pay, {
+  //   address: { ...response.response }
+  // })
+  return redirect(route('/pay'))
 }
