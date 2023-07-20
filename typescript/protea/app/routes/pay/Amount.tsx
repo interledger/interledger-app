@@ -273,7 +273,7 @@ export function Amount() {
         <Select
           id='linkedAccount'
           label='Connected accounts'
-          className='mt-4'
+          className='mt-2'
           value={account as SelectOptions}
           options={accounts.data?.sendAccounts || []}
           onChange={_onChangeLinkedAccount}

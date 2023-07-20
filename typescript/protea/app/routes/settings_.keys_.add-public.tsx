@@ -57,40 +57,41 @@ export default function Page() {
             Add the public key of the external application that is connecting to
             your wallet.
           </p>
-          <TextField
-            id='applicationName'
-            label='Application Name'
-            name='applicationName'
-            form='add-public-key'
-            type='text'
-            defaultValue=''
-            className='mt-4'
-            aria-invalid={
-              Boolean(actionData?.errors.applicationName) || undefined
-            }
-            aria-describedby={
-              actionData?.errors.applicationName
-                ? 'applicationName-error'
-                : undefined
-            }
-            required
-            errorMessage={actionData?.errors.applicationName}
-          />
-
-          <TextArea
-            id='publicKey'
-            form='add-public-key'
-            label='Public key'
-            name='publicKey'
-            placeholder='-----BEGIN PUBLIC KEY-----'
-            aria-invalid={Boolean(actionData?.errors.publicKey) || undefined}
-            aria-describedby={
-              actionData?.errors.publicKey ? 'publicKey-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.publicKey}
-          />
         </CardContent>
+        <TextField
+          id='applicationName'
+          label='Application Name'
+          name='applicationName'
+          form='add-public-key'
+          type='text'
+          defaultValue=''
+          className='mt-2'
+          aria-invalid={
+            Boolean(actionData?.errors.applicationName) || undefined
+          }
+          aria-describedby={
+            actionData?.errors.applicationName
+              ? 'applicationName-error'
+              : undefined
+          }
+          required
+          errorMessage={actionData?.errors.applicationName}
+        />
+
+        <TextArea
+          id='publicKey'
+          form='add-public-key'
+          label='Public key'
+          name='publicKey'
+          className='mt-4'
+          placeholder='-----BEGIN PUBLIC KEY-----'
+          aria-invalid={Boolean(actionData?.errors.publicKey) || undefined}
+          aria-describedby={
+            actionData?.errors.publicKey ? 'publicKey-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.publicKey}
+        />
       </Card>
 
       <Card>
@@ -102,61 +103,63 @@ export default function Page() {
             Providing access to your Fynbos wallet allows the external
             application to make payments. Set the limits below.
           </p>
-          <TextField
-            id='dailyLimit'
-            label='Daily'
-            name='dailyLimit'
-            form='add-public-key'
-            type='number'
-            min='0'
-            step='0.01'
-            className='mt-4'
-            defaultValue={100}
-            prefix='$'
-            aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
-            aria-describedby={
-              actionData?.errors.dailyLimit ? 'dailyLimit-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.dailyLimit}
-          />
-
-          <TextField
-            id='monthlyLimit'
-            label='Monthly'
-            name='monthlyLimit'
-            form='add-public-key'
-            type='number'
-            min='0'
-            step='0.01'
-            defaultValue={1000}
-            prefix='$'
-            aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
-            aria-describedby={
-              actionData?.errors.monthlyLimit ? 'monthlyLimit-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.monthlyLimit}
-          />
-
-          <TextField
-            id='overallLimit'
-            label='Overall'
-            name='overallLimit'
-            form='add-public-key'
-            type='number'
-            min='0'
-            step='0.01'
-            defaultValue={10000}
-            prefix='$'
-            aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
-            aria-describedby={
-              actionData?.errors.overallLimit ? 'overallLimit-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors.overallLimit}
-          />
         </CardContent>
+        <TextField
+          id='dailyLimit'
+          label='Daily'
+          name='dailyLimit'
+          form='add-public-key'
+          type='number'
+          min='0'
+          step='0.01'
+          className='mt-2'
+          defaultValue={100}
+          prefix='$'
+          aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
+          aria-describedby={
+            actionData?.errors.dailyLimit ? 'dailyLimit-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.dailyLimit}
+        />
+
+        <TextField
+          id='monthlyLimit'
+          label='Monthly'
+          name='monthlyLimit'
+          form='add-public-key'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={1000}
+          prefix='$'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
+          aria-describedby={
+            actionData?.errors.monthlyLimit ? 'monthlyLimit-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.monthlyLimit}
+        />
+
+        <TextField
+          id='overallLimit'
+          label='Overall'
+          name='overallLimit'
+          form='add-public-key'
+          type='number'
+          min='0'
+          step='0.01'
+          defaultValue={10000}
+          prefix='$'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
+          aria-describedby={
+            actionData?.errors.overallLimit ? 'overallLimit-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors.overallLimit}
+        />
       </Card>
 
       <Button form='add-public-key' type='submit'>
