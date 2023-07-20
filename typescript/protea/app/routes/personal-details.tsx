@@ -3,15 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
-import {
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  Layouts,
-  LoadingShapes,
-  Shape
-} from '~/components'
+import { Button, Card, CardContent, Layouts, Shape } from '~/components'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import {
   StatusError,
@@ -20,6 +12,7 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 
 export async function loader({ request }: LoaderArgs) {
@@ -71,6 +64,12 @@ export default function Page() {
     'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
   )
   let personaRef = useRef<any>(null)
+
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
+  useEffect(() => {
+    setLoading(!ready)
+  }, [ready, setLoading])
 
   useEffect(() => {
     if (typeof window !== 'undefined' && status == 'ready') {
@@ -171,14 +170,6 @@ export default function Page() {
       >
         Continue
       </Button>
-      <Dialog unmount={false} open={!ready} setOpen={() => {}}>
-        <CardContent className='my-5'>
-          <LoadingShapes />
-          <p className='mt-4 text-center text-medium'>
-            Just a moment, loading.
-          </p>
-        </CardContent>
-      </Dialog>
     </>
   )
 }
