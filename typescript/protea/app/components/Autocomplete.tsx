@@ -1,4 +1,5 @@
 import { Combobox, Transition } from '@headlessui/react'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { FC } from 'react'
 import { Fragment } from 'react'
 import { Icon } from '.'
@@ -132,9 +133,32 @@ export const Autocomplete: FC<AutocompleteProps> = ({
           </Transition>
         </div>
       </Combobox>
-      <div className='h-7 pl-2 pt-2'>
-        {errorMessage && <p className='text-sm text-error'>{errorMessage}</p>}
-      </div>
+      <AnimatePresence>
+        {errorMessage && (
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -8 }}
+            exit={{
+              opacity: 0,
+              y: -8,
+              transition: {
+                duration: 0.2
+              }
+            }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 20,
+              duration: 0.3
+            }}
+            className='h-7 pl-2 pt-2'
+          >
+            {errorMessage && (
+              <p className='text-sm text-error'>{errorMessage}</p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
