@@ -4,7 +4,6 @@ import { v4 } from 'uuid'
 import { commitSession, getSession } from '~/session.server'
 
 export enum flowType {
-  Pay = 'pay',
   Signup = 'signup',
   LinkCardAccount = 'linkCard',
   LinkBankAccount = 'linkBank',
@@ -124,14 +123,6 @@ export async function exitFlow(
 
 const flowTemplate = (type: flowType): Flow => {
   switch (type) {
-    case flowType.Pay:
-      return {
-        startRoute: route('/pay'),
-        data: {
-          idempotencyKey: v4()
-        },
-        returnTo: '/'
-      }
     case flowType.LinkCardAccount:
       return {
         startRoute: route('/connect/card'),
