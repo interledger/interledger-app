@@ -17,6 +17,7 @@ import {
   WalletShapes
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -76,6 +77,11 @@ export function Scaffold() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const matches = useMatches()
   const navigate = useNavigate()
+
+  const [payStep, payStepBack] = usePayStore((state) => [
+    state.step,
+    state.stepBack
+  ])
 
   const isUser = matches[0]?.data.isUser
   const isSignupGated = matches[0]?.data.isSignupGated
@@ -238,12 +244,16 @@ export function Scaffold() {
                 </IconButton>
               </div>
             )}
-            {/* TODO Make back routing smarter. */}
             {scaffold.header.back && (
               <IconButton
                 className={clsx('mr-4', scaffold.isNested && 'lg:hidden')}
                 onClick={() => {
-                  navigate(-1)
+                  if (scaffold.header.back === 'pay') {
+                    if (payStep == PayStep.SEARCH) {
+                      payStepBack()
+                      navigate(-1)
+                    } else payStepBack()
+                  } else navigate(-1)
                 }}
                 aria-label='Back'
               >
@@ -268,8 +278,10 @@ export function Scaffold() {
             >
               <FynbosLogo className='h-8' />
             </Router>
+
             {actions && (
               <div className='ml-auto flex items-center space-x-4'>
+                {/* TODO: Put loading shapes here */}
                 {actions.map((action, index) => {
                   return (
                     <div key={'header-action' + index} className='ml-auto'>
