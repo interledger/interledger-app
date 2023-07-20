@@ -392,6 +392,14 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("created_by", sql.NullString{
 			String: args.CreatedBy,
 			Valid:  args.CreatedBy != "",
+		}).
+		Value("recv_identity_type", sql.NullString{
+			String: args.DestinationIdentityType,
+			Valid:  args.DestinationIdentityType != "",
+		}).
+		Value("recv_identity", sql.NullString{
+			String: args.DestinationIdentity,
+			Valid:  args.DestinationIdentity != "",
 		}).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w insert sql create failed (%s)", openpayments.ErrInternal, err)
@@ -420,6 +428,8 @@ type dbQuote struct {
 	UpdatedAt             time.Time      `db:"updated_at"`
 	SendLinkedAccountID   sql.NullString `db:"send_linked_acc_id"`
 	CreatedBy             sql.NullString `db:"created_by"`
+	RecvIdentity          sql.NullString `db:"recv_identity"`
+	RecvIdentityType      sql.NullString `db:"recv_identity_type"`
 }
 
 // getDBQuote returns a single quote in it's raw form from the DB without formatting.
@@ -427,7 +437,7 @@ type dbQuote struct {
 func getDBQuote(ctx context.Context, b Backends, where string, args ...interface{}) (*dbQuote, error) {
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by FROM openpayments_quotes WHERE "+where, args...)
+		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type FROM openpayments_quotes WHERE "+where, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}
@@ -455,15 +465,17 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		Scale:    dbq.SendAssetScale,
 	}
 	return &openpayments.Quote{
-		ID:                fmt.Sprintf("%s/quotes/%s", sendPP.URL, dbq.ID),
-		PaymentPointer:    sendPP.URL,
-		IncomingPayment:   fmt.Sprintf("%s/incoming-payments/%s", recvPP.URL, dbq.IncomingPaymentID),
-		ReceiveAmount:     amount,
-		SendAmount:        amount,
-		ExpiresAt:         dbq.ExpiresAt,
-		CreatedAt:         dbq.CreatedAt,
-		FromLinkedAccount: dbq.SendLinkedAccountID.String,
-		CreatedBy:         dbq.CreatedBy.String,
+		ID:                      fmt.Sprintf("%s/quotes/%s", sendPP.URL, dbq.ID),
+		PaymentPointer:          sendPP.URL,
+		IncomingPayment:         fmt.Sprintf("%s/incoming-payments/%s", recvPP.URL, dbq.IncomingPaymentID),
+		ReceiveAmount:           amount,
+		SendAmount:              amount,
+		ExpiresAt:               dbq.ExpiresAt,
+		CreatedAt:               dbq.CreatedAt,
+		FromLinkedAccount:       dbq.SendLinkedAccountID.String,
+		CreatedBy:               dbq.CreatedBy.String,
+		DestinationIdentity:     dbq.RecvIdentity.String,
+		DestinationIdentityType: dbq.RecvIdentityType.String,
 	}, nil
 }
 

@@ -453,6 +453,10 @@ table "openpayments_outgoing_payment" {
   primary_key {
     columns = [column.id]
   }
+  index "outgoing_quote_id" {
+    unique  = true
+    columns = [column.quote_id]
+  }
   foreign_key "fk_quote_id_ref_openpayments_quotes" {
     columns     = [column.quote_id]
     ref_columns = [table.openpayments_quotes.column.id]
@@ -528,6 +532,14 @@ table "openpayments_quotes" {
     type = uuid
   }
   column "created_by" {
+    null = true
+    type = text
+  }
+  column "recv_identity_type" {
+    null = true
+    type = text
+  }
+  column "recv_identity" {
     null = true
     type = text
   }
