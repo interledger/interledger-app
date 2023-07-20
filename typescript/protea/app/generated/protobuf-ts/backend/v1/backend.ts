@@ -718,11 +718,7 @@ export interface CreateCardRequest {
  */
 export interface Init3DSRequest {
     /**
-     * @generated from protobuf field: string idempotencyKey = 1;
-     */
-    idempotencyKey: string;
-    /**
-     * @generated from protobuf field: string quoteID = 2;
+     * @generated from protobuf field: string quoteID = 1;
      */
     quoteID: string;
 }
@@ -769,47 +765,43 @@ export interface Lookup3DSResponse {
  */
 export interface Lookup3DSRequest {
     /**
-     * @generated from protobuf field: string idempotencyKey = 1;
-     */
-    idempotencyKey: string;
-    /**
-     * @generated from protobuf field: string threeDSID = 2;
+     * @generated from protobuf field: string threeDSID = 1;
      */
     threeDSID: string;
     /**
-     * @generated from protobuf field: bool javascriptEnabled = 3;
+     * @generated from protobuf field: bool javascriptEnabled = 2;
      */
     javascriptEnabled: boolean;
     /**
-     * @generated from protobuf field: string userAgent = 4;
+     * @generated from protobuf field: string userAgent = 3;
      */
     userAgent: string;
     /**
-     * @generated from protobuf field: string header = 5;
+     * @generated from protobuf field: string header = 4;
      */
     header: string;
     /**
-     * @generated from protobuf field: bool javaEnabled = 6;
+     * @generated from protobuf field: bool javaEnabled = 5;
      */
     javaEnabled: boolean;
     /**
-     * @generated from protobuf field: string language = 7;
+     * @generated from protobuf field: string language = 6;
      */
     language: string;
     /**
-     * @generated from protobuf field: string colorDepth = 8;
+     * @generated from protobuf field: string colorDepth = 7;
      */
     colorDepth: string;
     /**
-     * @generated from protobuf field: string screenHeight = 9;
+     * @generated from protobuf field: string screenHeight = 8;
      */
     screenHeight: string;
     /**
-     * @generated from protobuf field: string screenWidth = 10;
+     * @generated from protobuf field: string screenWidth = 9;
      */
     screenWidth: string;
     /**
-     * @generated from protobuf field: string timezone = 11;
+     * @generated from protobuf field: string timezone = 10;
      */
     timezone: string;
     /**
@@ -822,15 +814,11 @@ export interface Lookup3DSRequest {
  */
 export interface Authenticate3DSRequest {
     /**
-     * @generated from protobuf field: string idempotencyKey = 1;
-     */
-    idempotencyKey: string;
-    /**
-     * @generated from protobuf field: string threeDSID = 2;
+     * @generated from protobuf field: string threeDSID = 1;
      */
     threeDSID: string;
     /**
-     * @generated from protobuf field: string jwt = 3;
+     * @generated from protobuf field: string jwt = 2;
      */
     jwt: string;
 }
@@ -4292,12 +4280,11 @@ export const CreateCardRequest = new CreateCardRequest$Type();
 class Init3DSRequest$Type extends MessageType<Init3DSRequest> {
     constructor() {
         super("backend.v1.Init3DSRequest", [
-            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Init3DSRequest>): Init3DSRequest {
-        const message = { idempotencyKey: "", quoteID: "" };
+        const message = { quoteID: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Init3DSRequest>(this, message, value);
@@ -4308,10 +4295,7 @@ class Init3DSRequest$Type extends MessageType<Init3DSRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string idempotencyKey */ 1:
-                    message.idempotencyKey = reader.string();
-                    break;
-                case /* string quoteID */ 2:
+                case /* string quoteID */ 1:
                     message.quoteID = reader.string();
                     break;
                 default:
@@ -4326,12 +4310,9 @@ class Init3DSRequest$Type extends MessageType<Init3DSRequest> {
         return message;
     }
     internalBinaryWrite(message: Init3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string idempotencyKey = 1; */
-        if (message.idempotencyKey !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
-        /* string quoteID = 2; */
+        /* string quoteID = 1; */
         if (message.quoteID !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.quoteID);
+            writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4475,22 +4456,21 @@ export const Lookup3DSResponse = new Lookup3DSResponse$Type();
 class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
     constructor() {
         super("backend.v1.Lookup3DSRequest", [
-            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "javascriptEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 4, name: "userAgent", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "header", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "javaEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 7, name: "language", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "colorDepth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "screenHeight", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "screenWidth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "timezone", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 1, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "javascriptEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 3, name: "userAgent", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "header", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "javaEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 6, name: "language", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "colorDepth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "screenHeight", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "screenWidth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "timezone", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 12, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Lookup3DSRequest>): Lookup3DSRequest {
-        const message = { idempotencyKey: "", threeDSID: "", javascriptEnabled: false, userAgent: "", header: "", javaEnabled: false, language: "", colorDepth: "", screenHeight: "", screenWidth: "", timezone: "", ipAddress: "" };
+        const message = { threeDSID: "", javascriptEnabled: false, userAgent: "", header: "", javaEnabled: false, language: "", colorDepth: "", screenHeight: "", screenWidth: "", timezone: "", ipAddress: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Lookup3DSRequest>(this, message, value);
@@ -4501,37 +4481,34 @@ class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string idempotencyKey */ 1:
-                    message.idempotencyKey = reader.string();
-                    break;
-                case /* string threeDSID */ 2:
+                case /* string threeDSID */ 1:
                     message.threeDSID = reader.string();
                     break;
-                case /* bool javascriptEnabled */ 3:
+                case /* bool javascriptEnabled */ 2:
                     message.javascriptEnabled = reader.bool();
                     break;
-                case /* string userAgent */ 4:
+                case /* string userAgent */ 3:
                     message.userAgent = reader.string();
                     break;
-                case /* string header */ 5:
+                case /* string header */ 4:
                     message.header = reader.string();
                     break;
-                case /* bool javaEnabled */ 6:
+                case /* bool javaEnabled */ 5:
                     message.javaEnabled = reader.bool();
                     break;
-                case /* string language */ 7:
+                case /* string language */ 6:
                     message.language = reader.string();
                     break;
-                case /* string colorDepth */ 8:
+                case /* string colorDepth */ 7:
                     message.colorDepth = reader.string();
                     break;
-                case /* string screenHeight */ 9:
+                case /* string screenHeight */ 8:
                     message.screenHeight = reader.string();
                     break;
-                case /* string screenWidth */ 10:
+                case /* string screenWidth */ 9:
                     message.screenWidth = reader.string();
                     break;
-                case /* string timezone */ 11:
+                case /* string timezone */ 10:
                     message.timezone = reader.string();
                     break;
                 case /* string ipAddress */ 12:
@@ -4549,39 +4526,36 @@ class Lookup3DSRequest$Type extends MessageType<Lookup3DSRequest> {
         return message;
     }
     internalBinaryWrite(message: Lookup3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string idempotencyKey = 1; */
-        if (message.idempotencyKey !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
-        /* string threeDSID = 2; */
+        /* string threeDSID = 1; */
         if (message.threeDSID !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.threeDSID);
-        /* bool javascriptEnabled = 3; */
+            writer.tag(1, WireType.LengthDelimited).string(message.threeDSID);
+        /* bool javascriptEnabled = 2; */
         if (message.javascriptEnabled !== false)
-            writer.tag(3, WireType.Varint).bool(message.javascriptEnabled);
-        /* string userAgent = 4; */
+            writer.tag(2, WireType.Varint).bool(message.javascriptEnabled);
+        /* string userAgent = 3; */
         if (message.userAgent !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.userAgent);
-        /* string header = 5; */
+            writer.tag(3, WireType.LengthDelimited).string(message.userAgent);
+        /* string header = 4; */
         if (message.header !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.header);
-        /* bool javaEnabled = 6; */
+            writer.tag(4, WireType.LengthDelimited).string(message.header);
+        /* bool javaEnabled = 5; */
         if (message.javaEnabled !== false)
-            writer.tag(6, WireType.Varint).bool(message.javaEnabled);
-        /* string language = 7; */
+            writer.tag(5, WireType.Varint).bool(message.javaEnabled);
+        /* string language = 6; */
         if (message.language !== "")
-            writer.tag(7, WireType.LengthDelimited).string(message.language);
-        /* string colorDepth = 8; */
+            writer.tag(6, WireType.LengthDelimited).string(message.language);
+        /* string colorDepth = 7; */
         if (message.colorDepth !== "")
-            writer.tag(8, WireType.LengthDelimited).string(message.colorDepth);
-        /* string screenHeight = 9; */
+            writer.tag(7, WireType.LengthDelimited).string(message.colorDepth);
+        /* string screenHeight = 8; */
         if (message.screenHeight !== "")
-            writer.tag(9, WireType.LengthDelimited).string(message.screenHeight);
-        /* string screenWidth = 10; */
+            writer.tag(8, WireType.LengthDelimited).string(message.screenHeight);
+        /* string screenWidth = 9; */
         if (message.screenWidth !== "")
-            writer.tag(10, WireType.LengthDelimited).string(message.screenWidth);
-        /* string timezone = 11; */
+            writer.tag(9, WireType.LengthDelimited).string(message.screenWidth);
+        /* string timezone = 10; */
         if (message.timezone !== "")
-            writer.tag(11, WireType.LengthDelimited).string(message.timezone);
+            writer.tag(10, WireType.LengthDelimited).string(message.timezone);
         /* string ipAddress = 12; */
         if (message.ipAddress !== "")
             writer.tag(12, WireType.LengthDelimited).string(message.ipAddress);
@@ -4599,13 +4573,12 @@ export const Lookup3DSRequest = new Lookup3DSRequest$Type();
 class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
     constructor() {
         super("backend.v1.Authenticate3DSRequest", [
-            { no: 1, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "jwt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Authenticate3DSRequest>): Authenticate3DSRequest {
-        const message = { idempotencyKey: "", threeDSID: "", jwt: "" };
+        const message = { threeDSID: "", jwt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Authenticate3DSRequest>(this, message, value);
@@ -4616,13 +4589,10 @@ class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string idempotencyKey */ 1:
-                    message.idempotencyKey = reader.string();
-                    break;
-                case /* string threeDSID */ 2:
+                case /* string threeDSID */ 1:
                     message.threeDSID = reader.string();
                     break;
-                case /* string jwt */ 3:
+                case /* string jwt */ 2:
                     message.jwt = reader.string();
                     break;
                 default:
@@ -4637,15 +4607,12 @@ class Authenticate3DSRequest$Type extends MessageType<Authenticate3DSRequest> {
         return message;
     }
     internalBinaryWrite(message: Authenticate3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string idempotencyKey = 1; */
-        if (message.idempotencyKey !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.idempotencyKey);
-        /* string threeDSID = 2; */
+        /* string threeDSID = 1; */
         if (message.threeDSID !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.threeDSID);
-        /* string jwt = 3; */
+            writer.tag(1, WireType.LengthDelimited).string(message.threeDSID);
+        /* string jwt = 2; */
         if (message.jwt !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.jwt);
+            writer.tag(2, WireType.LengthDelimited).string(message.jwt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
