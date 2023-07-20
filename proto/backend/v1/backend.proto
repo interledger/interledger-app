@@ -351,6 +351,7 @@ message Features {
   bool banksEnabled = 5;
   bool identitiesEnabled = 6;
   bool twitterEnabled = 7;
+  bool addCardsEnabled = 8;
 }
 
 message CreateCardRequest {
