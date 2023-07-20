@@ -361,8 +361,7 @@ message CreateCardRequest {
 }
 
 message Init3DSRequest {
-  string idempotencyKey = 1;
-  string quoteID = 2;
+  string quoteID = 1;
 }
 
 message Init3DSResponse {
@@ -379,24 +378,22 @@ message Lookup3DSResponse {
 }
 
 message Lookup3DSRequest {
-  string idempotencyKey = 1;
-  string threeDSID = 2;
-  bool  javascriptEnabled = 3;
-  string userAgent = 4;
-  string header = 5;
-  bool javaEnabled = 6;
-  string language = 7;
-  string colorDepth = 8;
-  string screenHeight =9;
-  string screenWidth = 10;
-  string timezone = 11;
+  string threeDSID = 1;
+  bool  javascriptEnabled = 2;
+  string userAgent = 3;
+  string header = 4;
+  bool javaEnabled = 5;
+  string language = 6;
+  string colorDepth = 7;
+  string screenHeight =8;
+  string screenWidth = 9;
+  string timezone = 10;
   string ipAddress = 12;
 }
 
 message Authenticate3DSRequest {
-  string idempotencyKey = 1;
-  string threeDSID = 2;
-  string jwt = 3;
+  string threeDSID = 1;
+  string jwt = 2;
 }
 
 message Authenticate3DSResponse {
