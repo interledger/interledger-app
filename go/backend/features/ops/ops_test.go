@@ -45,6 +45,7 @@ func TestSetFeatures(t *testing.T) {
 				BanksEnabled:      true,
 				IdentitiesEnabled: true,
 				TwitterEnabled:    true,
+				AddCardsEnabled:   true,
 			},
 		},
 		{
