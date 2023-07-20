@@ -1,6 +1,6 @@
-import type { Session } from '@ory/kratos-client'
+import type {SelfServiceVerificationFlow, Session} from '@ory/kratos-client'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import {json, redirect} from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -11,6 +11,12 @@ import {
   getCsrfTokenFromFlow,
   handleFlowError
 } from '~/lib/kratos.server'
+
+type loaderResponse = {
+  flow: SelfServiceVerificationFlow
+  email: string
+  csrfToken: string
+}
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -24,7 +30,7 @@ export async function loader({ request }: LoaderArgs) {
   switch (session.status) {
     case 401:
     case 500:
-      throw redirect(route('/login'))
+      throw redirect(route('/login') + '?return_to=' + request.url)
     case 403:
     case 422: // Need to complete 2FA.
       throw redirect(route('/login') + '?aal=aal2')
@@ -32,6 +38,8 @@ export async function loader({ request }: LoaderArgs) {
 
   const userSession: Session = await session.json()
   if (session.status >= 400) handleFlowError(session, 'verify')
+
+  console.log(userSession.identity.verifiable_addresses)
 
   // Check the user has at least one verifiable address.
   if (!userSession.identity.verifiable_addresses)
@@ -44,7 +52,7 @@ export async function loader({ request }: LoaderArgs) {
   // Ensure any redirects are thrown
   if (userSession instanceof Response) return session
 
-  let flow
+  let flow: SelfServiceVerificationFlow
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
@@ -65,6 +73,7 @@ export async function loader({ request }: LoaderArgs) {
       { headers: { cookie: cookie, Accept: 'application/json' } }
     )
     flow = await flowRes.json()
+    console.log(flow.state)
     if (flowRes.status >= 400) handleFlowError(flow, 'verify')
     return redirect(`/verify?flow=${flow.id}`, {
       headers: trimHeaders(flowRes.headers, ['set-cookie'])
@@ -93,7 +102,30 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { flow, email, csrfToken } = useLoaderData<typeof loader>()
+  const { flow, email, csrfToken } = useLoaderData<loaderResponse>()
+
+  // render different UI based on the flow state
+  // (see https://www.ory.sh/kratos/docs/self-service/flows#verification-flow
+  // for all possible states)
+  switch (flow.state) {
+    case 'choose_method':
+      return (
+        <>
+          Choose a verification method:
+        </>)
+    case 'sent_email':
+      return (
+        <>
+          Email sent
+        </>
+      )
+    case 'passed_challenge':
+      return (
+        <>
+          Great success
+        </>
+      )
+  }
 
   return (
     <>
