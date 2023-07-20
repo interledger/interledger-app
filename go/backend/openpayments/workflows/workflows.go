@@ -62,17 +62,19 @@ func StartOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cre
 		return nil, err
 	}
 	args.LinkedAccountTitle = sendLA.Title()
+	args.Description = ip.Description
+	args.DestinationIdentity = q.DestinationIdentity
+	args.DestinationIdentityType = q.DestinationIdentityType
+	args.CreatedBy = q.CreatedBy
 
 	// Check if we have already created this outgoing transaction and just return it.
-	if args.IdempotencyKey != "" {
-		existing, err := ops.GetOutgoingPayment(ctx, b, args.IdempotencyKey)
-		if err != nil && !errors.Is(err, openpayments.ErrNotFound) {
-			span.RecordError(err)
-			return nil, err
-		}
-		if existing != nil {
-			return existing, nil
-		}
+	existing, err := ops.GetOutgoingPaymentByQuote(ctx, b, args.QuoteID)
+	if err != nil && !errors.Is(err, openpayments.ErrNotFound) {
+		span.RecordError(err)
+		return nil, err
+	}
+	if existing != nil {
+		return existing, nil
 	}
 
 	id, trxID, err := ops.CreateOutgoingPayment(ctx, b, args)
