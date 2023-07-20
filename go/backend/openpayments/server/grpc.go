@@ -401,8 +401,12 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 			return nil, toGRPCError(err)
 		}
 
-		// the 3ds session is initialized with orderID=idempotency key
-		if session3DS.OrderID != args.QuoteID {
+		orderID := q.ID
+		idxSlash := strings.LastIndex(q.ID, "/")
+		if idxSlash > 0 {
+			orderID = orderID[idxSlash+1:]
+		}
+		if session3DS.OrderID != orderID {
 			err = fmt.Errorf("%w 3DS session invalid.", openpayments.ErrInternal)
 			return nil, toGRPCError(err)
 		}
