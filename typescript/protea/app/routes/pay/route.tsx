@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useLoaderData, useSearchParams } from '@remix-run/react'
+import { useLoaderData, useNavigation, useSearchParams } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
@@ -138,11 +138,23 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { address } = useLoaderData<typeof loader>()
   const [params, setSearchParams] = useSearchParams()
-  const [setAddress, step, setStep] = usePayStore((state) => [
+  const [setAddress, step, setStep, reset] = usePayStore((state) => [
     state.setAddress,
     state.step,
-    state.setStep
+    state.setStep,
+    state.reset
   ])
+
+  const navigation = useNavigation()
+
+  useEffect(() => {
+    if (
+      navigation.state == 'loading' &&
+      navigation.location?.pathname !== '/pay'
+    ) {
+      reset()
+    }
+  }, [navigation, reset])
 
   // Check if there is already a user selected from me page
   useEffect(() => {
