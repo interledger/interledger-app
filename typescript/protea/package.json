@@ -34,6 +34,7 @@
     "@remix-run/node": "^1.16.0",
     "@remix-run/react": "^1.16.0",
     "@remix-run/serve": "^1.16.0",
+    "@sentry/remix": "^7.59.3",
     "clsx": "^1.2.1",
     "datocms-structured-text-utils": "^2.0.4",
     "dompurify": "^3.0.3",

@@ -7,6 +7,7 @@ import {
   useParams,
   useRouteError
 } from '@remix-run/react'
+import { captureRemixErrorBoundaryError } from '@sentry/remix'
 import clsx from 'clsx'
 import { useState } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
@@ -318,7 +319,8 @@ export function ErrorBoundary() {
   const params = useParams()
 
   if (isRouteErrorResponse(error)) {
-    if (error.status == 404)
+    if (error.status == 404) {
+      captureRemixErrorBoundaryError(error)
       return (
         <>
           <Card>
@@ -340,6 +342,7 @@ export function ErrorBoundary() {
           </ButtonRouter>
         </>
       )
+    }
   }
 
   throw error
