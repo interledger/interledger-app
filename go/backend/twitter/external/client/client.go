@@ -10,6 +10,7 @@ import (
 
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/twitter/external"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/oauth2"
 )
 
@@ -19,6 +20,7 @@ type (
 	client struct {
 		oauthConfig *oauth2.Config
 		bearerToken string
+		web         *http.Client
 	}
 
 	NewClientArgs struct {
@@ -45,11 +47,13 @@ func New(args *NewClientArgs) *client {
 	return &client{
 		oauthConfig: oauthConfig,
 		bearerToken: args.BearerToken,
+		web:         otelhttp.DefaultClient,
 	}
 }
 
 func (c *client) CreateToken(ctx context.Context, args *external.CreateTokenArgs) (*oauth2.Token, error) {
-	token, err := c.oauthConfig.Exchange(ctx, args.AuthCode, oauth2.SetAuthURLParam("code_verifier", args.CodeVerifier))
+	reqCtx := context.WithValue(ctx, oauth2.HTTPClient, c.web)
+	token, err := c.oauthConfig.Exchange(reqCtx, args.AuthCode, oauth2.SetAuthURLParam("code_verifier", args.CodeVerifier))
 	if err != nil {
 		return nil, fmt.Errorf("could not exchange auth code for token: %v", err)
 	}
@@ -58,7 +62,12 @@ func (c *client) CreateToken(ctx context.Context, args *external.CreateTokenArgs
 }
 
 func (c *client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*twitter.TwitterUser, error) {
-	res, err := c.oauthConfig.Client(ctx, token).Get("https://api.twitter.com/2/users/me")
+	reqCtx := context.WithValue(ctx, oauth2.HTTPClient, c.web)
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, "https://api.twitter.com/2/users/me", nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not create request: %v", err)
+	}
+	res, err := c.oauthConfig.Client(reqCtx, token).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("could not get authorized user: %v", err)
 	}
@@ -85,7 +94,13 @@ func (c *client) PostTweet(ctx context.Context, token *oauth2.Token, text string
 		return nil, fmt.Errorf("could not encode tweet: %v", err)
 	}
 
-	res, err := c.oauthConfig.Client(ctx, token).Post("https://api.twitter.com/2/tweets", "application/json", &buf)
+	reqCtx := context.WithValue(ctx, oauth2.HTTPClient, c.web)
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, "https://api.twitter.com/2/tweets", &buf)
+	if err != nil {
+		return nil, fmt.Errorf("could not create request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	res, err := c.oauthConfig.Client(reqCtx, token).Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("could not post tweet: %v", err)
 	}
@@ -114,7 +129,7 @@ func (c *client) PostTweet(ctx context.Context, token *oauth2.Token, text string
 }
 
 func (c *client) GetTweet(ctx context.Context, tweetID string) (*twitter.Tweet, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://api.twitter.com/2/tweets/%s", tweetID), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://api.twitter.com/2/tweets/%s", tweetID), nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %v", err)
 	}
@@ -126,7 +141,7 @@ func (c *client) GetTweet(ctx context.Context, tweetID string) (*twitter.Tweet, 
 	req.URL.RawQuery = queryParams.Encode()
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.bearerToken))
-	res, err := http.DefaultClient.Do(req)
+	res, err := c.web.Do(req)
 	// do error handling with res.StatusCode
 	if err != nil {
 		return nil, fmt.Errorf("could not get tweet: %v", err)
