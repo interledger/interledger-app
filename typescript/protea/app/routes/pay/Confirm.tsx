@@ -1,5 +1,5 @@
-import { useFetcher } from '@remix-run/react'
-import { useCallback, useState } from 'react'
+import { useFetcher, useNavigation } from '@remix-run/react'
+import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   Button,
@@ -25,16 +25,35 @@ export function Confirm() {
   const confirm = useFetcher()
   const [showDialog, setShowDialog] = useState<boolean>(false)
   const [agreement, setAgreement] = useState<boolean>(false)
+  const navigation = useNavigation()
 
-  const [address, account, displayAmount, note, publicWalletInfo, quoteId] =
-    usePayStore((state) => [
-      state.address,
-      state.account,
-      state.displayAmount,
-      state.note,
-      state.publicWalletInfo,
-      state.quoteId
-    ])
+  const [
+    address,
+    account,
+    displayAmount,
+    note,
+    publicWalletInfo,
+    quoteId,
+    reset
+  ] = usePayStore((state) => [
+    state.address,
+    state.account,
+    state.displayAmount,
+    state.note,
+    state.publicWalletInfo,
+    state.quoteId,
+    state.reset
+  ])
+
+  useEffect(() => {
+    if (
+      navigation.state == 'loading' &&
+      navigation.location?.pathname.includes('3ds')
+    ) {
+      console.log('will reset')
+      reset()
+    }
+  }, [navigation, reset])
 
   const _onClick = useCallback<{
     (): void
