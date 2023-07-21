@@ -83,11 +83,12 @@ export function Search() {
               onClick={() => _onClickResult(result)}
               name='address'
               type='button'
-              className='items-center space-x-3'
+              className='items-center gap-x-3'
             >
               {result.identifierType == 'wallet' && <FynbosIcon />}
               {result.identifierType == 'twitter' && <TwitterIcon />}
               <span className='text-medium'>{result.identifier}</span>
+              <Icon className='ml-auto'>navigate_next</Icon>
             </CardButton>
           )
         })}

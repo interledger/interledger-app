@@ -107,6 +107,7 @@ export function AppPage() {
             </CardContent>
             <Label className='mt-2'>Wallet address</Label>
             <CardButton
+              noHover
               type='button'
               onClick={async () => {
                 if (typeof navigator.clipboard == 'undefined') {
