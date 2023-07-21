@@ -1,6 +1,8 @@
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import type { ShouldRevalidateFunction } from '@remix-run/react'
+import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
+import type {
+  ShouldRevalidateFunction
+} from '@remix-run/react';
 import {
   Link,
   Links,
@@ -9,16 +11,18 @@ import {
   Scripts,
   ScrollRestoration,
   isRouteErrorResponse,
+  useLoaderData,
   useLocation,
   useNavigation,
   useRouteError
-} from '@remix-run/react'
-import clsx from 'clsx'
-import type { ReactNode } from 'react'
-import { AnchorRouter, Error, Scaffold } from '~/components'
-import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
-import styles from '~/styles/app.css'
-import { hasUserSession } from './lib/kratos.server'
+} from '@remix-run/react';
+import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix';
+import clsx from 'clsx';
+import type { ReactNode } from 'react';
+import { AnchorRouter, Error, Scaffold } from '~/components';
+import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server';
+import styles from '~/styles/app.css';
+import { hasUserSession } from './lib/kratos.server';
 
 const metaContent = {
   title: 'Fynbos',
@@ -105,24 +109,36 @@ export async function loader({ request }: LoaderArgs) {
   return json({
     isUser,
     isSignupGated: IS_SIGNUP_GATED,
-    fynbosEnv: process.env.FYNBOS_ENV
+    env: {
+      fynbosEnv: process.env.FYNBOS_ENV,
+      sentryDsn: process.env.SENTRY_DSN,
+      sentryRelease: process.env.SENTRY_RELEASE,
+    }
   })
 }
 
-export default function Page() {
+function Page() {
   const location = useLocation()
+  const loader = useLoaderData()
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 
   return (
     <Document>
       <Scaffold />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.ENV = ${JSON.stringify(loader.env)}`
+        }}
+      />
     </Document>
   )
 }
+export default withSentry(Page)
 
 export function ErrorBoundary() {
   const error = useRouteError()
+  captureRemixErrorBoundaryError(error)
 
   if (isRouteErrorResponse(error)) {
     return (
