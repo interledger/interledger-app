@@ -27,7 +27,7 @@ export function handleError(
     // Optionally capture non-Error objects
     Sentry.captureException(error)
   }
-  console.error(error);
+  console.error(error)
 }
 
 export default function handleRequest(
@@ -38,17 +38,17 @@ export default function handleRequest(
 ) {
   return isbot(request.headers.get('user-agent'))
     ? handleBotRequest(
-      request,
-      responseStatusCode,
-      responseHeaders,
-      remixContext
-    )
+        request,
+        responseStatusCode,
+        responseHeaders,
+        remixContext
+      )
     : handleBrowserRequest(
-      request,
-      responseStatusCode,
-      responseHeaders,
-      remixContext
-    )
+        request,
+        responseStatusCode,
+        responseHeaders,
+        remixContext
+      )
 }
 
 function handleBotRequest(
