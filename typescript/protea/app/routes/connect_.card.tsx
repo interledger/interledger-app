@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import {
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useSubmit
+} from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 
 import {
@@ -53,6 +58,8 @@ export default function Page() {
   const submit = useSubmit()
   const actionData = useActionData<typeof action>()
 
+  const navigation = useNavigation()
+
   const [fieldErrors, setFieldErrors] = useState({
     number: '',
     date: '',
@@ -77,6 +84,12 @@ export default function Page() {
   useEffect(() => {
     setScaffoldLoading(loading)
   }, [loading, setScaffoldLoading])
+
+  useEffect(() => {
+    if (loading && navigation.location?.pathname.includes('accounts')) {
+      setLoading(false)
+    }
+  }, [loading, navigation])
 
   useEffect(() => {
     if (actionData && actionData.error) {
