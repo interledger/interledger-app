@@ -31,3 +31,8 @@ build_protea:
       .
     - docker push
       "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"
+    - echo -en
+      "SENTRY_ORG=fynbos\nSENTRY_PROJECT=frontend\nSENTRY_AUTH_TOKEN=$SENTRY_DSN"
+      > .env.sentry
+    - docker build --target=upload-sourcemaps --secret id=sentry,src=.env.sentry
+      --build-arg IMAGE_HASH="${PROTEA_IMAGE_HASH}" .

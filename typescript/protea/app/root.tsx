@@ -9,10 +9,12 @@ import {
   Scripts,
   ScrollRestoration,
   isRouteErrorResponse,
+  useLoaderData,
   useLocation,
   useNavigation,
   useRouteError
 } from '@remix-run/react'
+import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import { AnchorRouter, Error, Scaffold } from '~/components'
@@ -105,24 +107,36 @@ export async function loader({ request }: LoaderArgs) {
   return json({
     isUser,
     isSignupGated: IS_SIGNUP_GATED,
-    fynbosEnv: process.env.FYNBOS_ENV
+    env: {
+      fynbosEnv: process.env.FYNBOS_ENV,
+      sentryDsn: process.env.SENTRY_DSN,
+      sentryRelease: process.env.SENTRY_RELEASE
+    }
   })
 }
 
-export default function Page() {
+function Page() {
   const location = useLocation()
+  const loader = useLoaderData()
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 
   return (
     <Document>
       <Scaffold />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.ENV = ${JSON.stringify(loader.env)}`
+        }}
+      />
     </Document>
   )
 }
+export default withSentry(Page)
 
 export function ErrorBoundary() {
   const error = useRouteError()
+  captureRemixErrorBoundaryError(error)
 
   if (isRouteErrorResponse(error)) {
     return (
