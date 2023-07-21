@@ -41,7 +41,7 @@ func UserForCookie(ctx context.Context, b Backends, cookie string) (*user.User, 
 
 	session, resp, err := b.Kratos().V0alpha2Api.ToSession(ctx).Cookie(kratosCookieName + "=" + cookie).Execute()
 	if err != nil {
-		if resp.StatusCode == http.StatusUnauthorized {
+		if resp != nil && resp.StatusCode == http.StatusUnauthorized {
 			return nil, nil
 		}
 		return nil, err
