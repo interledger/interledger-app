@@ -5,6 +5,8 @@ import (
 	"os"
 	"sync"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -23,7 +25,7 @@ const (
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
 	initOnce.Do(func() {
-		api = ext_slack.New(os.Getenv("SLACK_TOKEN"))
+		api = ext_slack.New(os.Getenv("SLACK_TOKEN"), ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
 	})
 	if api == nil {
 		return
