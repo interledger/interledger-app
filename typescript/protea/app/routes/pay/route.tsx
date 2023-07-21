@@ -138,11 +138,20 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { address } = useLoaderData<typeof loader>()
   const [params, setSearchParams] = useSearchParams()
-  const [setAddress, step, setStep] = usePayStore((state) => [
+  const [setAddress, step, setStep, reset] = usePayStore((state) => [
     state.setAddress,
     state.step,
-    state.setStep
+    state.setStep,
+    state.reset
   ])
+
+  useEffect(() => {
+    // This ensures that the state is only cleared when this route is unmounted.
+    return () => {
+      console.log('unmounting')
+      reset()
+    }
+  }, [reset])
 
   // Check if there is already a user selected from me page
   useEffect(() => {
