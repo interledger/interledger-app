@@ -175,13 +175,16 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 	}
 
 	args := openpayments.CreateQuoteArgs{
-		SendPaymentPointer:    ops.StandardisePaymentPointer(req.SendPaymentPointer),
-		ReceivePaymentPointer: ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
-		ExpiresAt:             req.ExpiresAt.AsTime(),
-		SendAmount:            amount,
-		LinkedAccID:           req.GetSendLinkedAccount(),
-		CreatedBy:             ops.StandardisePaymentPointer(req.SendPaymentPointer),
-		Description:           req.Description,
+		SendPaymentPointer:      ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		ReceivePaymentPointer:   ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
+		ExpiresAt:               req.ExpiresAt.AsTime(),
+		SendAmount:              amount,
+		Reference:               "",
+		Description:             req.Description,
+		LinkedAccID:             req.GetSendLinkedAccount(),
+		CreatedBy:               ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		DestinationIdentity:     req.GetIdentity(),
+		DestinationIdentityType: req.GetIdentityType(),
 	}
 
 	var found bool

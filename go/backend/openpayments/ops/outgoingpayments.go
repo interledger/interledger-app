@@ -95,6 +95,9 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 	if args.DestinationIdentity == "" {
 		args.DestinationIdentity = toPP.URL
 		args.DestinationIdentityType = "wallet"
+	} else if q.RecvIdentity.Valid && q.RecvIdentityType.Valid {
+		args.DestinationIdentity = q.RecvIdentity.String
+		args.DestinationIdentityType = q.RecvIdentityType.String
 	}
 
 	var trxID string
