@@ -88,21 +88,25 @@ const CardLink = forwardRef<
 })
 CardLink.displayName = 'CardLink'
 
-const CardButton = forwardRef<
-  HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement>
->(({ className, ...props }, ref) => {
-  return (
-    <button
-      ref={ref}
-      className={clsx(
-        'my-1 flex rounded-xl bg-nav p-3 first:mt-0 last-of-type:mb-0 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
-        className
-      )}
-      {...props}
-    />
-  )
-})
+interface CardButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  noHover?: boolean
+}
+
+const CardButton = forwardRef<HTMLButtonElement, CardButtonProps>(
+  ({ className, noHover, ...props }, ref) => {
+    return (
+      <button
+        ref={ref}
+        className={clsx(
+          noHover && 'bg-nav',
+          'my-1 flex rounded-xl p-3 first:mt-0 last-of-type:mb-0 hover:bg-nav focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
 CardButton.displayName = 'CardButton'
 
 export {
