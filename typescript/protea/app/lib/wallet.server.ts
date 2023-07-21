@@ -186,7 +186,7 @@ export async function getWalletInfo(request: Request): Promise<WalletInfo> {
   return response.response
 }
 
-type FormattedLinkedAccount = {
+export type FormattedLinkedAccount = {
   id: string
   name: string
   nickname: string
@@ -422,6 +422,7 @@ export type createCardError =
   | 'Failed precondition: ErrMaxCardsAdded'
   | 'Already exists: ErrDuplicateCard'
   | 'Internal server error'
+
 export async function createCard(
   request: Request,
   tokenID: string
