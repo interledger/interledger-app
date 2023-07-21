@@ -145,7 +145,8 @@ export default function Page() {
 
         submit(formData, {
           action: route('/pay/3ds'),
-          method: 'POST'
+          method: 'POST',
+          replace: true
         })
       })
 
@@ -166,7 +167,8 @@ export default function Page() {
 
               submit(formData, {
                 action: route('/pay/3ds'),
-                method: 'POST'
+                method: 'POST',
+                replace: true
               })
               break
 
