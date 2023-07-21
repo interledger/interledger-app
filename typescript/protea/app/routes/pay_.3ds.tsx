@@ -1,7 +1,12 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
-import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import {
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useSubmit
+} from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -24,6 +29,7 @@ import {
   openPaymentsClient
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { usePayStore } from '~/lib/usePayStore'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
 
@@ -103,6 +109,7 @@ function cleanupSongbirdScript(script: ScriptElt) {
 export default function Page() {
   const { quoteId, initJWT, threeDsId, songbirdURL, fynbosEnv } =
     useLoaderData<typeof loader>()
+  const navigation = useNavigation()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
   const state = useScript(songbirdURL, cleanupSongbirdScript)
@@ -110,6 +117,16 @@ export default function Page() {
   const [showingIssuerChallenge, setShowingIssuerChallenge] =
     useState<boolean>(false)
   const [threeDSError, setThreeDSError] = useState<boolean>(false)
+
+  const [reset] = usePayStore((state) => [state.reset])
+
+  useEffect(() => {
+    console.log('navigation', navigation)
+    if (navigation.state == 'idle') {
+      console.log('resetting')
+      reset()
+    }
+  }, [navigation, reset])
 
   useEffect(() => {
     if (
