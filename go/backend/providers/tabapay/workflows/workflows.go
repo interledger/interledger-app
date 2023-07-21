@@ -54,16 +54,24 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		linkedAccountState = linkedaccounts.OwnershipReviewRequired
 	}
 
+	pullNetwork := cardInfo.Card.Pull.Network
+	if strings.EqualFold(strings.TrimSpace(pullNetwork), "mastercard") {
+		pullNetwork = "Mastercard"
+	}
+	pushNetwork := cardInfo.Card.Push.Network
+	if strings.EqualFold(strings.TrimSpace(pushNetwork), "mastercard") {
+		pushNetwork = "Mastercard"
+	}
 	var tokenizedCard basistheory.Card
 	err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, basistheory.CreateCardArgs{
 		WalletID:         args.WalletID,
 		TokenID:          args.BasisTheoryTokenID,
 		Bin:              cardInfo.Card.Bin,
-		PullNetwork:      cardInfo.Card.Pull.Network,
+		PullNetwork:      pullNetwork,
 		PullEnabled:      cardInfo.Card.Pull.Enabled,
 		PullType:         string(cardInfo.Card.Pull.Type),
 		PullCountry:      cardInfo.Card.Pull.Country,
-		PushNetwork:      cardInfo.Card.Push.Network,
+		PushNetwork:      pushNetwork,
 		PushEnabled:      cardInfo.Card.Push.Enabled,
 		PushType:         string(cardInfo.Card.Push.Type),
 		PushAvailability: cardInfo.Card.Push.Availability,
@@ -142,14 +150,9 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	}
 
 	mask := cardInfo.Card.Last4
-	var network string
-	if cardInfo.Card.Push.Network != "" {
-		network = cardInfo.Card.Push.Network
-	} else if cardInfo.Card.Pull.Network != "" {
-		network = cardInfo.Card.Pull.Network
-	}
-	if strings.EqualFold(strings.TrimSpace(network), "mastercard") {
-		network = "Mastercard"
+	network := pullNetwork
+	if network == "" {
+		network = pushNetwork
 	}
 	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
 		ID:         tokenizedCard.ID,

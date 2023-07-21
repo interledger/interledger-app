@@ -35,7 +35,7 @@ func TestCreateCardWorkflow(t *testing.T) {
 				Last4: last4,
 				Bin:   "5678",
 				Push: external.PushObject{
-					Network: "MasterCard",
+					Network:      "MasterCard",
 					Enabled:      true,
 					Type:         external.CardTypeCredit,
 					Availability: "Immediate",
@@ -43,7 +43,7 @@ func TestCreateCardWorkflow(t *testing.T) {
 				},
 				Pull: external.PullObject{
 					Enabled: true,
-					Network: "Mastercard",
+					Network: "MasterCard",
 					Country: "US",
 					Type:    external.CardTypeDebit,
 				},
@@ -55,7 +55,7 @@ func TestCreateCardWorkflow(t *testing.T) {
 		WalletID:         walletID,
 		TokenID:          basisTheoryCardID,
 		Bin:              "5678",
-		PushNetwork:      "VISA",
+		PushNetwork:      "Mastercard",
 		PushEnabled:      true,
 		PushType:         "Credit",
 		PushAvailability: "Immediate",
