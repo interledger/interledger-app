@@ -240,7 +240,7 @@ export function Amount() {
           </div>
         </CardContent>
         <Label className='mt-2'>Payment to</Label>
-        <CardButton onClick={() => setShowDialog(true)}>
+        <CardButton noHover onClick={() => setShowDialog(true)}>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{address?.identifier}</span>
             <Icon>navigate_next</Icon>
