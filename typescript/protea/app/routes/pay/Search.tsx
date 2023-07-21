@@ -1,4 +1,6 @@
+import { Combobox } from '@headlessui/react'
 import { useFetcher } from '@remix-run/react'
+import clsx from 'clsx'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -55,9 +57,10 @@ export function Search() {
   )
 
   return (
-    <>
+    <Combobox onChange={_onClickResult}>
       <Card>
-        <TextField
+        <Combobox.Input
+          as={TextField}
           id='search'
           autoFocus
           form='search-form'
@@ -76,23 +79,29 @@ export function Search() {
         {results.length == 0 && (
           <CardContent>Your search returned no results.</CardContent>
         )}
-        {results.map((result: SearchResult) => {
-          return (
-            <CardButton
-              key={result.walletID + result.identifier}
-              onClick={() => _onClickResult(result)}
-              name='address'
-              type='button'
-              className='items-center gap-x-3'
-            >
-              {result.identifierType == 'wallet' && <FynbosIcon />}
-              {result.identifierType == 'twitter' && <TwitterIcon />}
-              <span className='text-medium'>{result.identifier}</span>
-              <Icon className='ml-auto'>navigate_next</Icon>
-            </CardButton>
-          )
-        })}
+        <Combobox.Options static className='contents w-full'>
+          {results.map((result: SearchResult) => {
+            return (
+              <Combobox.Option
+                as={CardButton}
+                key={result.walletID + result.identifier}
+                value={result}
+                onClick={() => _onClickResult(result)}
+                name='address'
+                type='button'
+                className={({ active }) =>
+                  clsx('items-center gap-x-3', active ? 'bg-nav-hover' : '')
+                }
+              >
+                {result.identifierType == 'wallet' && <FynbosIcon />}
+                {result.identifierType == 'twitter' && <TwitterIcon />}
+                <span className='text-medium'>{result.identifier}</span>
+                <Icon className='ml-auto'>navigate_next</Icon>
+              </Combobox.Option>
+            )
+          })}
+        </Combobox.Options>
       </Card>
-    </>
+    </Combobox>
   )
 }
