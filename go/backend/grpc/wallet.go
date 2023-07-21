@@ -266,7 +266,7 @@ func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsReq
 		res[i] = &pb.SearchResult{
 			WalletID:       r.WalletID,
 			WalletUrl:      r.WalletUrl,
-			Identifier:     r.Identifier,
+			Identifier:     strings.TrimPrefix(r.Identifier, "https://"),
 			IdentifierType: r.IdentifierType,
 			CanSend:        walletCanRecv[r.WalletID],
 		}

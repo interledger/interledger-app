@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"math"
+	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -115,6 +116,9 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment {
 		title = tx.DestinationIdentity
 	}
+
+	// Remove https if it exists
+	title = strings.TrimPrefix(title, "https://")
 
 	fees := currency.FromFloat64(0, tx.Amount.Currency)
 
