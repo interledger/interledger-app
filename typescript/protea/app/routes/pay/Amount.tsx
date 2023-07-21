@@ -180,10 +180,10 @@ export function Amount() {
   ])
 
   useEffect(() => {
-    if (accounts.data?.sendAccounts) {
+    if (accounts.data?.sendAccounts && !account) {
       setAccount({ ...accounts.data?.sendAccounts[0] })
     }
-  }, [accounts.data?.sendAccounts, setAccount])
+  }, [account, accounts.data?.sendAccounts, setAccount])
 
   useEffect(() => {
     if (publicWalletInfoFetcher.data?.publicWalletInfo) {
