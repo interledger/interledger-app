@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"os"
+	"strings"
+
 	vault "github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/kubernetes"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
-	"os"
-	"strings"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type client struct {
@@ -27,6 +29,7 @@ func NewClient() (Client, error) {
 
 		config := vault.DefaultConfig()
 		config.Address = addr
+		config.HttpClient = otelhttp.DefaultClient
 		vc, err := vault.NewClient(config)
 		if err != nil {
 			return nil, fmt.Errorf("unable to initialize Vault client: %w", err)

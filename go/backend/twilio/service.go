@@ -12,6 +12,7 @@ import (
 	"github.com/twilio/twilio-go/client"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
 	"gitlab.com/fynbos/env"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var (
@@ -67,6 +68,7 @@ func NewService(args *ServiceArgs) (Service, error) {
 
 	customClient.SetAccountSid(args.AccountSid)
 	customClient.BaseURL = args.ApiBaseUrl
+	customClient.HTTPClient = otelhttp.DefaultClient
 
 	twilioClient := twilio.NewRestClientWithParams(twilio.ClientParams{
 		Client: customClient,
