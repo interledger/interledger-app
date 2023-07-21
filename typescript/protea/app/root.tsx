@@ -1,8 +1,6 @@
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import type {
-  ShouldRevalidateFunction
-} from '@remix-run/react';
+import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   Link,
   Links,
@@ -15,14 +13,14 @@ import {
   useLocation,
   useNavigation,
   useRouteError
-} from '@remix-run/react';
-import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix';
-import clsx from 'clsx';
-import type { ReactNode } from 'react';
-import { AnchorRouter, Error, Scaffold } from '~/components';
-import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server';
-import styles from '~/styles/app.css';
-import { hasUserSession } from './lib/kratos.server';
+} from '@remix-run/react'
+import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
+import clsx from 'clsx'
+import type { ReactNode } from 'react'
+import { AnchorRouter, Error, Scaffold } from '~/components'
+import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
+import styles from '~/styles/app.css'
+import { hasUserSession } from './lib/kratos.server'
 
 const metaContent = {
   title: 'Fynbos',
@@ -112,7 +110,7 @@ export async function loader({ request }: LoaderArgs) {
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,
-      sentryRelease: process.env.SENTRY_RELEASE,
+      sentryRelease: process.env.SENTRY_RELEASE
     }
   })
 }

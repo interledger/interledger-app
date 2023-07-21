@@ -279,7 +279,7 @@ function mapper(field: fieldErrorsMap): 'amount' | null {
   }
 }
 
-type quoteLimitError = 
+type quoteLimitError =
   | 'Failed precondition: LimitTransaction'
   | 'Failed precondition: LimitDaily'
   | 'Failed precondition: LimitMonthly'
@@ -349,19 +349,19 @@ export async function action({ request }: ActionArgs) {
     } else if (response.code == Code.FAILED_PRECONDITION) {
       switch (response.message as quoteLimitError) {
         case 'Failed precondition: LimitTransaction':
-          fieldErrors["amount"] = "Exceeds per transaction limit."
+          fieldErrors['amount'] = 'Exceeds per transaction limit.'
           break
         case 'Failed precondition: LimitDaily':
-          fieldErrors["amount"] = "Exceeds daily limit."
+          fieldErrors['amount'] = 'Exceeds daily limit.'
           break
         case 'Failed precondition: LimitMonthly':
-          fieldErrors["amount"] = "Exceeds monthly limit."
+          fieldErrors['amount'] = 'Exceeds monthly limit.'
           break
         case 'Failed precondition: Limit6Monthly':
-          fieldErrors["amount"] = "Exceeds rolling 6 month limit."
+          fieldErrors['amount'] = 'Exceeds rolling 6 month limit.'
           break
         default:
-          fieldErrors["amount"] = "Exceeds account limit."
+          fieldErrors['amount'] = 'Exceeds account limit.'
       }
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(response.code))
