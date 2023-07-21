@@ -63,10 +63,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		args.Description = ip.Description
 	}
 
-	id := args.IdempotencyKey
-	if id == "" {
-		id = uuid.NewString()
-	}
+	id := uuid.NewString()
 
 	stmt, qargs, err := db.NewInsert("openpayments_outgoing_payment").
 		Value("id", id).
@@ -98,6 +95,9 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 	if args.DestinationIdentity == "" {
 		args.DestinationIdentity = toPP.URL
 		args.DestinationIdentityType = "wallet"
+	} else if q.RecvIdentity.Valid && q.RecvIdentityType.Valid {
+		args.DestinationIdentity = q.RecvIdentity.String
+		args.DestinationIdentityType = q.RecvIdentityType.String
 	}
 
 	var trxID string
@@ -109,7 +109,7 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 
 		_, err = tx.ExecContext(ctx,
 			"UPDATE openpayments_incoming_payment SET external_ref=$1 WHERE id=$2",
-			args.ExternalRef,
+			args.Description,
 			q.IncomingPaymentID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
@@ -161,6 +161,27 @@ func GetOutgoingPayment(ctx context.Context, b Backends, id string) (*openpaymen
 	err := b.DB().GetContext(ctx, &op,
 		fmt.Sprintf("SELECT %s FROM openpayments_outgoing_payment WHERE id=$1", outgoingPaymentCols),
 		id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return transformOutgoingPayment(ctx, b, op)
+}
+
+func GetOutgoingPaymentByQuote(ctx context.Context, b Backends, qid string) (*openpayments.OutgoingPayment, error) {
+	// Our friends may have provided the full ID with the payment pointer and the `incoming-payments` prefix.
+	idxSlash := strings.LastIndex(qid, "/")
+	if idxSlash > 0 {
+		qid = qid[idxSlash+1:]
+	}
+
+	var op dbOutgoingPayments
+	err := b.DB().GetContext(ctx, &op,
+		fmt.Sprintf("SELECT %s FROM openpayments_outgoing_payment WHERE quote_id=$1", outgoingPaymentCols),
+		qid)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", openpayments.ErrNotFound, err)
 	}

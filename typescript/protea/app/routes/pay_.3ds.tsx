@@ -13,7 +13,7 @@ import {
   Layouts,
   LoadingShapes
 } from '~/components'
-import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import {
@@ -43,13 +43,16 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export async function loader({ request }: LoaderArgs) {
   await getUserSession(request)
-  const flow = await requireFlow(request, flowType.Pay)
+  const url = new URL(request.url)
+
+  const quoteId = url.searchParams.get('quoteId')
+
+  if (!quoteId) throw json({}, httpMapping(Code.INVALID_ARGUMENT))
 
   let threeDSInit = await grpcClient
     .init3DS(
       {
-        idempotencyKey: flow.data.idempotencyKey,
-        quoteID: flow.data.quoteID
+        quoteID: quoteId
       },
       {
         meta: {
@@ -62,6 +65,7 @@ export async function loader({ request }: LoaderArgs) {
   if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
 
   return json({
+    quoteId,
     initJWT: threeDSInit.response.jwt,
     threeDsId: threeDSInit.response.id,
     songbirdURL: threeDSInit.response.songbirdURL,
@@ -97,7 +101,7 @@ function cleanupSongbirdScript(script: ScriptElt) {
 }
 
 export default function Page() {
-  const { initJWT, threeDsId, songbirdURL, fynbosEnv } =
+  const { quoteId, initJWT, threeDsId, songbirdURL, fynbosEnv } =
     useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
@@ -137,9 +141,12 @@ export default function Page() {
         formData.append('language', navigator.language)
         formData.append('userAgent', navigator.userAgent)
 
+        formData.append('quoteId', quoteId)
+
         submit(formData, {
           action: route('/pay/3ds'),
-          method: 'POST'
+          method: 'POST',
+          replace: true
         })
       })
 
@@ -156,9 +163,12 @@ export default function Page() {
               formData.append('threeDsId', threeDsId)
               formData.append('jwt', jwt)
 
+              formData.append('quoteId', quoteId)
+
               submit(formData, {
                 action: route('/pay/3ds'),
-                method: 'POST'
+                method: 'POST',
+                replace: true
               })
               break
 
@@ -172,7 +182,7 @@ export default function Page() {
         jwt: initJWT
       })
     }
-  }, [initJWT, state, threeDsId, submit, fynbosEnv])
+  }, [initJWT, state, threeDsId, submit, fynbosEnv, quoteId])
 
   const showIssuerChallenge = () => {
     setShowingIssuerChallenge(true)
@@ -234,14 +244,12 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = form.get('name')
   const threeDSID = form.get('threeDsId') as string
-  const flow = await requireFlow(request, flowType.Pay)
-  const idempotencyKey = flow.data.idempotencyKey as string
+  const quoteId = form.get('quoteId') as string
 
   if (formName === 'lookup') {
     let lookup3DS = await grpcClient
       .lookup3DS(
         {
-          idempotencyKey,
           threeDSID,
           colorDepth: String(form.get('colorDepth')) || '',
           header: String(request.headers.get('Accept')),
@@ -284,7 +292,6 @@ export async function action({ request }: ActionArgs) {
     let auth3DS = await grpcClient
       .authenticate3DS(
         {
-          idempotencyKey,
           threeDSID,
           jwt: form.get('jwt') as string
         },
@@ -307,14 +314,15 @@ export async function action({ request }: ActionArgs) {
   let payment = await openPaymentsClient
     .createOutgoingPayment(
       {
-        idempotencyKey,
         threeDSID,
-        quoteID: flow.data.quoteID,
-        description: flow.data.note,
-        externalRef: '',
+        quoteID: quoteId,
         ipAddress: clientIpAddress,
-        identityType: flow.data.address.type,
-        identity: flow.data.address.handle
+        // deprecated but still required by client..
+        idempotencyKey: '',
+        identity: '',
+        identityType: '',
+        description: '',
+        externalRef: ''
       },
       {
         meta: {
@@ -326,7 +334,6 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
   if (isGrpcError(payment)) throw json({}, httpMapping(payment.code))
 
-  await exitFlow(request, flowType.Pay)
   return redirect(route('/'), {
     headers: {
       'Set-Cookie': await flashSnackbar(request, {

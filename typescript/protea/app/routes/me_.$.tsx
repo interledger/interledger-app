@@ -36,16 +36,15 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
 import {
   StatusError,
-  grpcClient,
   httpMapping,
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
+import { PayStep } from '~/lib/usePayStore'
 import {
   getPublicLinkedIdentities,
   getPublicWalletDetails,
@@ -165,6 +164,7 @@ export default function Page() {
         </CardContent>
         <Label className='mt-2'>Wallet address</Label>
         <CardButton
+          noHover
           type='button'
           onClick={async () => {
             if (typeof navigator.clipboard == 'undefined') {
@@ -199,7 +199,7 @@ export default function Page() {
           <span className='text-medium'>{walletAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
         </CardButton>
-        {identities.length > 0 && <Label>Twitter</Label>}
+        {identities.length > 0 && <Label className='mt-4'>Twitter</Label>}
         {identities.map((identity) => (
           <CardLink
             key={identity.id}
@@ -267,6 +267,7 @@ export default function Page() {
         name='paymentPointer'
         type='hidden'
       />
+      {/* TODO Disable this if can't send to this user too */}
       <Button disabled={!isUser} form='me' type='submit'>
         Send a payment
       </Button>
@@ -337,6 +338,7 @@ export function ErrorBoundary() {
               <Chip color={ChipColor.green}>Available</Chip>
             </div>
           </Card>
+          {/* TODO This should prefill the /wallet-address page for the user with the current address*/}
           <ButtonRouter to={route('/signup')}>
             Claim wallet address
           </ButtonRouter>
@@ -350,32 +352,5 @@ export function ErrorBoundary() {
 
 export async function action({ request, params }: ActionArgs) {
   const walletAddressParam = params['*'] as string
-  const response = await grpcClient
-    .getPaymentAddress(
-      { address: walletAddressParam },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
-
-  // We can redirect immediately because /pay/amount will handle un-authed calls appropriately.
-  await requireFlow(request, flowType.Pay, {
-    startRoute: route('/pay/amount'),
-    data: {
-      address: { ...response.response }
-    },
-    returnTo: '/'
-  })
-
-  await updateFlow(request, flowType.Pay, {
-    address: { ...response.response }
-  })
-  return redirect(route('/pay/amount'))
+  return redirect(`/pay?address=${walletAddressParam}&start=${PayStep.AMOUNT}`)
 }

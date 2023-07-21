@@ -175,12 +175,16 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 	}
 
 	args := openpayments.CreateQuoteArgs{
-		SendPaymentPointer:    ops.StandardisePaymentPointer(req.SendPaymentPointer),
-		ReceivePaymentPointer: ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
-		ExpiresAt:             req.ExpiresAt.AsTime(),
-		SendAmount:            amount,
-		LinkedAccID:           req.GetSendLinkedAccount(),
-		CreatedBy:             ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		SendPaymentPointer:      ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		ReceivePaymentPointer:   ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
+		ExpiresAt:               req.ExpiresAt.AsTime(),
+		SendAmount:              amount,
+		Reference:               "",
+		Description:             req.Description,
+		LinkedAccID:             req.GetSendLinkedAccount(),
+		CreatedBy:               ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		DestinationIdentity:     req.GetIdentity(),
+		DestinationIdentityType: req.GetIdentityType(),
 	}
 
 	var found bool
@@ -379,14 +383,9 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 	}
 
 	args := openpayments.CreateOutgoingPaymentArgs{
-		IdempotencyKey:          req.IdempotencyKey,
-		QuoteID:                 req.QuoteID,
-		Description:             req.Description,
-		ExternalRef:             req.ExternalRef,
-		IPAddress:               req.IpAddress,
-		ThreeDSID:               req.GetThreeDSID(),
-		DestinationIdentityType: req.IdentityType,
-		DestinationIdentity:     req.Identity,
+		QuoteID:   req.QuoteID,
+		IPAddress: req.IpAddress,
+		ThreeDSID: req.GetThreeDSID(),
 	}
 
 	err = g.b.Validator().Struct(args)
@@ -405,8 +404,12 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 			return nil, toGRPCError(err)
 		}
 
-		// the 3ds session is initialized with orderID=idempotency key
-		if session3DS.OrderID != args.IdempotencyKey {
+		orderID := q.ID
+		idxSlash := strings.LastIndex(q.ID, "/")
+		if idxSlash > 0 {
+			orderID = orderID[idxSlash+1:]
+		}
+		if session3DS.OrderID != orderID {
 			err = fmt.Errorf("%w 3DS session invalid.", openpayments.ErrInternal)
 			return nil, toGRPCError(err)
 		}

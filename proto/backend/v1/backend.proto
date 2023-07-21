@@ -109,13 +109,13 @@ message PreCheckOutgoingPaymentResponse {
 
 message CreateOutgoingPaymentRequest {
   string quoteID = 1;
-  string description = 2;
-  string externalRef = 3;
+  string description = 2 [deprecated=true];
+  string externalRef = 3 [deprecated=true];
   string ipAddress = 4;
-  string idempotencyKey = 5;
+  string idempotencyKey = 5 [deprecated=true];
   string threeDSID = 6;
-  string identity = 7;
-  string identityType = 8;
+  string identity = 7 [deprecated=true];
+  string identityType = 8 [deprecated=true];
 }
 
 message LookupIncomingPaymentRequest {
@@ -153,6 +153,8 @@ message CreateQuoteRequest {
   google.protobuf.Timestamp expiresAt = 4;
   string description = 5;
   optional string sendLinkedAccount = 6;
+  string identity = 7;
+  string identityType = 8;
 }
 
 message Quote {
@@ -359,8 +361,7 @@ message CreateCardRequest {
 }
 
 message Init3DSRequest {
-  string idempotencyKey = 1;
-  string quoteID = 2;
+  string quoteID = 1;
 }
 
 message Init3DSResponse {
@@ -377,24 +378,22 @@ message Lookup3DSResponse {
 }
 
 message Lookup3DSRequest {
-  string idempotencyKey = 1;
-  string threeDSID = 2;
-  bool  javascriptEnabled = 3;
-  string userAgent = 4;
-  string header = 5;
-  bool javaEnabled = 6;
-  string language = 7;
-  string colorDepth = 8;
-  string screenHeight =9;
-  string screenWidth = 10;
-  string timezone = 11;
+  string threeDSID = 1;
+  bool  javascriptEnabled = 2;
+  string userAgent = 3;
+  string header = 4;
+  bool javaEnabled = 5;
+  string language = 6;
+  string colorDepth = 7;
+  string screenHeight =8;
+  string screenWidth = 9;
+  string timezone = 10;
   string ipAddress = 12;
 }
 
 message Authenticate3DSRequest {
-  string idempotencyKey = 1;
-  string threeDSID = 2;
-  string jwt = 3;
+  string threeDSID = 1;
+  string jwt = 2;
 }
 
 message Authenticate3DSResponse {
