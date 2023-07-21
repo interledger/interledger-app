@@ -62,9 +62,9 @@ type Await func(ctx context.Context, result interface{}) error
 
 type (
 	Init3DSArgs struct {
-		Amount         currency.Amount
-		IdempotencyKey string
-		CardID         string
+		Amount  currency.Amount
+		OrderID string
+		CardID  string
 	}
 
 	Init3DSResponse struct {
@@ -134,7 +134,7 @@ var (
 
 type (
 	Lookup3DSArgs struct {
-		IdempotencyKey          string
+		OrderID                 string
 		CardID                  string
 		ThreeDSID               string
 		AuthenticationIndicator AuthenticationIndicator
@@ -161,9 +161,8 @@ type (
 
 type (
 	Authenticate3DSArgs struct {
-		IdempotencyKey string
-		ThreeDSID      string
-		JWT            string
+		ThreeDSID string
+		JWT       string
 	}
 
 	Authenticate3DSResponse struct {

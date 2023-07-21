@@ -76,7 +76,6 @@ func TestCreateOutgoingPayment(t *testing.T) {
 			},
 			opArgs: openpayments.CreateOutgoingPaymentArgs{
 				Description: "Description",
-				ExternalRef: "ExternalRef",
 				CreatedBy:   uuid.NewString(),
 			},
 		},

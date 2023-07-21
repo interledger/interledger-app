@@ -160,7 +160,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </div>
         </CardContent>
         <Label className='mt-2'>Payment to</Label>
-        <CardButton onClick={openDialog}>
+        <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{transaction.title}</span>
             <Icon>navigate_next</Icon>
@@ -231,7 +231,7 @@ function Incoming({ openDialog }: { openDialog: () => void }) {
           </div>
         </CardContent>
         <Label className='mt-2'>Payment from</Label>
-        <CardButton onClick={openDialog}>
+        <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{transaction.title}</span>
             <Icon>navigate_next</Icon>
