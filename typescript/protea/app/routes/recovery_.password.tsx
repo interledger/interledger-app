@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import {Form, useActionData, useLoaderData, useRevalidator} from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useRevalidator
+} from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -17,7 +22,8 @@ import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
   handleFlowError,
-  kratosErrorMapping, hasUserSession
+  hasUserSession,
+  kratosErrorMapping
 } from '~/lib/kratos.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 
@@ -79,7 +85,7 @@ export async function loader({ request }: LoaderArgs) {
 export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flowId, csrfToken } = useLoaderData<typeof loader>()
-  const {revalidate, state} = useRevalidator()
+  const { revalidate, state } = useRevalidator()
 
   const [revalidateCount, setRevalidateCount] = useState<number>(0)
   const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
@@ -88,7 +94,12 @@ export default function Page() {
   )
 
   useEffect(() => {
-    if (flowId == '' && csrfToken == '' && state === 'idle' && revalidateCount < 1) {
+    if (
+      flowId == '' &&
+      csrfToken == '' &&
+      state === 'idle' &&
+      revalidateCount < 1
+    ) {
       revalidate()
       setRevalidateCount(1)
     }
@@ -115,21 +126,21 @@ export default function Page() {
             You've successfully recovered your account. Set a new password to
             continue.
           </span>
-          <TextField
-            id='new-password'
-            form='recovery-password'
-            label='New password'
-            name='new-password'
-            type='password'
-            className='mt-6'
-            aria-invalid={Boolean(actionData?.errors?.password) || undefined}
-            aria-describedby={
-              actionData?.errors?.password ? 'password-error' : undefined
-            }
-            required
-            errorMessage={actionData?.errors?.password}
-          />
         </CardContent>
+        <TextField
+          id='new-password'
+          form='recovery-password'
+          label='New password'
+          name='new-password'
+          type='password'
+          className='mt-2'
+          aria-invalid={Boolean(actionData?.errors?.password) || undefined}
+          aria-describedby={
+            actionData?.errors?.password ? 'password-error' : undefined
+          }
+          required
+          errorMessage={actionData?.errors?.password}
+        />
         <input
           form='recovery-password'
           defaultValue={csrfToken}
