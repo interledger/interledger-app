@@ -259,7 +259,6 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 		args := openpayments.CreateOutgoingPaymentArgs{
 			QuoteID:     q.ID,
 			Description: httpArgs.ExternalRef,
-			ExternalRef: httpArgs.ExternalRef,
 			CreatedBy:   grant.Client,
 			GrantID:     grant.ID,
 		}

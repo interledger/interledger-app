@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -338,6 +340,7 @@ func ExceedsKYCLimits(ctx context.Context, b Backends, walletID string, amount c
 		limit30Day = 0
 		limit180Day = 0
 	}
+	log.Info("Limit Check", zap.String("level", level.String()), zap.Float64("limitTransaction", limitTransaction), zap.String("amount", amount.Format()))
 
 	// Short circuit.
 	if amount.Float64() >= limitTransaction {
