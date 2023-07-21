@@ -199,7 +199,7 @@ export default function Page() {
           <span className='text-medium'>{walletAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
         </CardButton>
-        {identities.length > 0 && <Label>Twitter</Label>}
+        {identities.length > 0 && <Label className='mt-4'>Twitter</Label>}
         {identities.map((identity) => (
           <CardLink
             key={identity.id}
