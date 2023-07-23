@@ -8,6 +8,7 @@ if (
   (window as any).ENV.sentryDsn
 ) {
   Sentry.init({
+    tunnel: "/api/hordor",
     dsn: (window as any).ENV.sentryDsn,
     release: (window as any).ENV.sentryRelease,
     integrations: [
