@@ -270,6 +270,15 @@ func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsReq
 			IdentifierType: r.IdentifierType,
 			CanSend:        walletCanRecv[r.WalletID],
 		}
+		for _, sr := range r.SubResults {
+			res[i].SubResults = append(res[i].SubResults, &pb.SearchResult{
+				WalletID:       sr.WalletID,
+				WalletUrl:      sr.WalletUrl,
+				Identifier:     strings.TrimPrefix(sr.Identifier, "https://"),
+				IdentifierType: sr.IdentifierType,
+				CanSend:        walletCanRecv[sr.WalletID],
+			})
+		}
 	}
 
 	return &pb.SearchWalletsResponse{Results: res}, nil
