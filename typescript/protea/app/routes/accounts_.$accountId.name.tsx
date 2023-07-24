@@ -50,7 +50,9 @@ export default function Page() {
     <>
       <Form
         id='edit-linked-account-name'
-        action={`/accounts/${params.accountId}`}
+        action={route('/accounts/:accountId/name', {
+          accountId: params.accountId as string
+        })}
         method='post'
         className='hidden'
       />
@@ -128,5 +130,9 @@ export async function action({ request, params }: ActionArgs) {
     icon: 'close'
   })
 
-  return redirect(route('/accounts'))
+  return redirect(
+    route('/accounts/:accountId', {
+      accountId: params.accountId as string
+    })
+  )
 }
