@@ -64,8 +64,12 @@ export function Search() {
           id='search'
           autoFocus
           form='search-form'
+          onBlur={(e) => {
+            // This is to stop the form from clearing on blur
+            e.preventDefault()
+          }}
           name='search'
-          defaultValue={term}
+          value={term}
           placeholder='Search for someone to pay'
           onChange={_onChangeInput}
           prefixIcon={<Icon>search</Icon>}
