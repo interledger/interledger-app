@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/images"
-	img_client "gitlab.com/fynbos/backend/images/client"
 	"net"
 	"net/http"
 	"os"
@@ -14,6 +12,10 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/images"
+	img_client "gitlab.com/fynbos/backend/images/client"
+
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -99,6 +101,19 @@ func main() {
 
 	// Set the timezone globally
 	time.Local = time.UTC
+
+	if os.Getenv("SENTRY_DSN") != "" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn:              os.Getenv("SENTRY_DSN"),
+			Release:          os.Getenv("SENTRY_RELEASE"),
+			TracesSampleRate: 1.0,
+		})
+		if err != nil {
+			log.Fatal("sentry.Init: %s", zap.Error(err))
+		}
+		// Flush buffered events before the program terminates.
+		defer sentry.Flush(2 * time.Second)
+	}
 
 	command := os.Args[1]
 	switch command {
