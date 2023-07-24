@@ -687,6 +687,10 @@ export interface SearchResult {
      * @generated from protobuf field: string identifierType = 3;
      */
     identifierType: string;
+    /**
+     * @generated from protobuf field: repeated backend.v1.SearchResult subResults = 6;
+     */
+    subResults: SearchResult[];
 }
 /**
  * @generated from protobuf message backend.v1.GetPublicWalletInfoRequest
@@ -4230,11 +4234,12 @@ class SearchResult$Type extends MessageType<SearchResult> {
             { no: 5, name: "walletUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "canSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 2, name: "identifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "identifierType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "identifierType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "subResults", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => SearchResult }
         ]);
     }
     create(value?: PartialMessage<SearchResult>): SearchResult {
-        const message = { walletID: "", walletUrl: "", canSend: false, identifier: "", identifierType: "" };
+        const message = { walletID: "", walletUrl: "", canSend: false, identifier: "", identifierType: "", subResults: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SearchResult>(this, message, value);
@@ -4259,6 +4264,9 @@ class SearchResult$Type extends MessageType<SearchResult> {
                     break;
                 case /* string identifierType */ 3:
                     message.identifierType = reader.string();
+                    break;
+                case /* repeated backend.v1.SearchResult subResults */ 6:
+                    message.subResults.push(SearchResult.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4287,6 +4295,9 @@ class SearchResult$Type extends MessageType<SearchResult> {
         /* string identifierType = 3; */
         if (message.identifierType !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.identifierType);
+        /* repeated backend.v1.SearchResult subResults = 6; */
+        for (let i = 0; i < message.subResults.length; i++)
+            SearchResult.internalBinaryWrite(message.subResults[i], writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
