@@ -128,5 +128,9 @@ export async function action({ request, params }: ActionArgs) {
     icon: 'close'
   })
 
-  return redirect(route('/accounts'))
+  return redirect(
+    route('/accounts/:accountId', {
+      accountId: params.accountId as string
+    })
+  )
 }
