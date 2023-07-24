@@ -289,6 +289,7 @@ service BackendService {
 
   // Basistheory
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
+  rpc GetCardDetails(GetCardDetailsRequest) returns (CardDetails);
 
   // Features
   rpc ListFeatures(Empty) returns (Features);
@@ -303,6 +304,23 @@ service BackendService {
 
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
+}
+
+message GetCardDetailsRequest {
+  string id = 1;
+}
+
+message CardDetails {
+  string id = 1;
+  string network = 2;
+  string bin = 3;
+  string last4 = 4;
+  string type = 5;
+  string expiration = 6;
+  string nickname = 7;
+  string state = 8;
+  bool canSend = 9;
+  bool canReceive = 10;
 }
 
 message SearchWalletsRequest {

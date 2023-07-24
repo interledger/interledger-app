@@ -13,7 +13,8 @@ import {
   Icon,
   Layouts,
   Snackbar,
-  WalletGrid
+  WalletGrid,
+  WalletShapes
 } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus } from '~/lib/wallet.server'
@@ -40,7 +41,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Settings',
-      actions: [{ type: 'shapes' }]
+      actions: <WalletShapes />
     }
   }
 }

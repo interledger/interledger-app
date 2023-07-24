@@ -5,10 +5,10 @@ declare module "routes-gen" {
     "/legal/:jurisdiction?/:slug": { "jurisdiction"?: string, "slug": string };
     "/me/identities/:identityId": { "identityId": string };
     "/settings/keys/add-public": Record<string, never>;
+    "/accounts/:accountId/name": { "accountId": string };
     "/what-is-a-payment-pointer": Record<string, never>;
     "/settings/keys/:keyId": { "keyId": string };
     "/temp-cloudflare-error": Record<string, never>;
-    "/accounts/:accountId": { "accountId": string };
     "/api/maps/geocode": Record<string, never>;
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
@@ -27,9 +27,12 @@ declare module "routes-gen" {
     "/transactions": Record<string, never>;
     "/transactions/:transactionId": { "transactionId": string };
     "/blog/:slug": { "slug": string };
+    "/pay/amount": Record<string, never>;
     "/identities": Record<string, never>;
     "/identities/:identityId": { "identityId": string };
+    "/api/fern": Record<string, never>;
     "/accounts": Record<string, never>;
+    "/accounts/:accountId": { "accountId": string };
     "/contacts": Record<string, never>;
     "/pay/3ds": Record<string, never>;
     "/recovery": Record<string, never>;
@@ -61,10 +64,10 @@ declare module "routes-gen" {
       | ["/legal/:jurisdiction?/:slug", RouteParams["/legal/:jurisdiction?/:slug"]]
       | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
       | ["/settings/keys/add-public"]
+      | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
       | ["/what-is-a-payment-pointer"]
       | ["/settings/keys/:keyId", RouteParams["/settings/keys/:keyId"]]
       | ["/temp-cloudflare-error"]
-      | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/api/maps/geocode"]
       | ["/recovery/password"]
       | ["/settings/password"]
@@ -83,9 +86,12 @@ declare module "routes-gen" {
       | ["/transactions"]
       | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
+      | ["/pay/amount"]
       | ["/identities"]
       | ["/identities/:identityId", RouteParams["/identities/:identityId"]]
+      | ["/api/fern"]
       | ["/accounts"]
+      | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
       | ["/contacts"]
       | ["/pay/3ds"]
       | ["/recovery"]
