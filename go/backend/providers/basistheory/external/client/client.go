@@ -44,7 +44,7 @@ func (c *Client) GetToken(ctx context.Context, id string) (*basistheory.Token, e
 	return token, nil
 }
 
-func (c *Client) CreateCardToken(ctx context.Context, args bt.CreateCardArgs) (*basistheory.CreateTokenResponse, error) {
+func (c *Client) CreateCardToken(ctx context.Context, args bt.CreateCardTokenArgs) (*basistheory.CreateTokenResponse, error) {
 	apiContext := context.WithValue(ctx, basistheory.ContextAPIKeys, map[string]basistheory.APIKey{
 		"ApiKey": {Key: c.apiKey},
 	})

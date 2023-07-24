@@ -37,7 +37,7 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // CreateCardToken mocks base method.
-func (m *MockClient) CreateCardToken(ctx context.Context, args basistheory0.CreateCardArgs) (*basistheory.CreateTokenResponse, error) {
+func (m *MockClient) CreateCardToken(ctx context.Context, args basistheory0.CreateCardTokenArgs) (*basistheory.CreateTokenResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateCardToken", ctx, args)
 	ret0, _ := ret[0].(*basistheory.CreateTokenResponse)
