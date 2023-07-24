@@ -51,23 +51,18 @@ export const handle: ApplicationProps = {
     header: {
       back: route('/transactions'),
       title: 'Sent payment',
-      actions: [
-        {
-          type: 'chip',
-          content: (match) => {
-            switch (match.data.transaction.status) {
-              case 'Completed':
-                return <Chip color={ChipColor.green}>Complete</Chip>
-              case 'Pending':
-                return <Chip color={ChipColor.orange}>Pending</Chip>
-              case 'Failed':
-                return <Chip color={ChipColor.red}>Failed</Chip>
-              default:
-                return null
-            }
-          }
+      actions: (match) => {
+        switch (match.data.transaction.status) {
+          case 'Completed':
+            return <Chip color={ChipColor.green}>Complete</Chip>
+          case 'Pending':
+            return <Chip color={ChipColor.orange}>Pending</Chip>
+          case 'Failed':
+            return <Chip color={ChipColor.red}>Failed</Chip>
+          default:
+            return null
         }
-      ]
+      }
     },
     isNested: true
   }

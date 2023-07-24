@@ -5,6 +5,7 @@ import type { FC, ReactNode } from 'react'
 export enum ChipColor {
   green = 'bg-green-200 text-green-800',
   purple = 'bg-purple-200 text-purple-800',
+  indigo = 'bg-indigo-200 text-indigo-800',
   orange = 'bg-orange-200 text-orange-800',
   yellow = 'bg-yellow-200 text-yellow-800',
   blue = 'bg-blue-200 text-blue-800',
@@ -20,7 +21,7 @@ export const Chip: FC<ChipProps> = ({ children, color = ChipColor.blue }) => {
   return (
     <div
       className={clsx(
-        'flex items-center justify-center rounded-lg px-3 py-1.5 text-xs',
+        'flex items-center justify-center rounded px-1.5 py-1 text-xs',
         color
       )}
     >
