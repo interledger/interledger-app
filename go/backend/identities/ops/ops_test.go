@@ -2,9 +2,10 @@ package ops_test
 
 import (
 	"context"
+	"testing"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/openpayments"
-	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -263,6 +264,10 @@ func TestSearch(t *testing.T) {
 
 	env.SetEnv(t, "local")
 	walletID := uuid.NewString()
+
+	_, err := b.DB().ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, "warmer")
+	require.NoError(t, err)
+
 	pp := openpayments.PaymentPointer{
 		URL:        op_ops.StandardisePaymentPointer(env.OpenPaymentsURL() + "/notking"),
 		WalletID:   walletID,
@@ -270,7 +275,7 @@ func TestSearch(t *testing.T) {
 		Asset:      currency.USD,
 		AssetScale: 2,
 	}
-	err := op_ops.CreatePaymentPointer(ctx, b, pp)
+	err = op_ops.CreatePaymentPointer(ctx, b, pp)
 	require.NoError(t, err)
 
 	// Publicly visible
@@ -314,4 +319,21 @@ func TestSearch(t *testing.T) {
 	assert.Len(t, res, 1)
 	assert.Equal(t, string("wallet"), res[0].IdentifierType)
 	assert.Equal(t, pp.URL, res[0].Identifier)
+
+	// Now for a grouping, wallet and twitter name matches so group em
+	_, err = b.DB().ExecContext(ctx, "UPDATE wallets SET name=$1 WHERE id = $2", "cold_iron", walletID)
+	require.NoError(t, err)
+
+	res, err = ops.Search(ctx, b, uuid.NewString(), "cold")
+	require.NoError(t, err)
+
+	require.Len(t, res, 1)
+	assert.Equal(t, "wallet", res[0].IdentifierType)
+	assert.Equal(t, "cold_iron", res[0].Identifier)
+	assert.Equal(t, 0.5, res[0].Rank)
+	require.Len(t, res[0].SubResults, 1)
+	assert.Equal(t, string(identities.PlatformTwitter), res[0].SubResults[0].IdentifierType)
+	assert.Equal(t, "king_cold", res[0].SubResults[0].Identifier)
+	assert.Equal(t, float64(0.5), res[0].SubResults[0].Rank)
+
 }
