@@ -70,15 +70,10 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: (match) => `/me/${match.data.identity.walletUrlWithoutProtocol}`,
-      actions: [
-        {
-          type: 'chip',
-          content: (match) =>
-            match.data.identity.state == 'verified' ? (
-              <Chip color={ChipColor.green}>Verified</Chip>
-            ) : null
-        }
-      ]
+      actions: (match) =>
+        match.data.identity.state == 'verified' ? (
+          <Chip color={ChipColor.green}>Verified</Chip>
+        ) : null
     }
   }
 }

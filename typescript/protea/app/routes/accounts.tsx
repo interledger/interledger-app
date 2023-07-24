@@ -19,7 +19,8 @@ import {
   Layouts,
   Router,
   Snackbar,
-  WalletGrid
+  WalletGrid,
+  WalletShapes
 } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
@@ -46,7 +47,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Accounts',
-      actions: [{ type: 'shapes' }]
+      actions: <WalletShapes />
     },
     fab: Fab.Pay
   }
@@ -118,10 +119,6 @@ export default function Page() {
                   <span>{method.name}</span>
                 </div>
                 <div className='flex items-center space-x-2'>
-                  {method.canSend && <Chip color={ChipColor.green}>Send</Chip>}
-                  {method.canReceive && (
-                    <Chip color={ChipColor.purple}>Receive</Chip>
-                  )}
                   <Icon>navigate_next</Icon>
                 </div>
               </CardLink>
@@ -179,8 +176,6 @@ export default function Page() {
                   </span>
                 </div>
                 <div className='flex items-center space-x-2'>
-                  <Chip color={ChipColor.green}>Send</Chip>
-                  <Chip color={ChipColor.purple}>Receive</Chip>
                   <Icon>navigate_next</Icon>
                 </div>
               </CardLink>
