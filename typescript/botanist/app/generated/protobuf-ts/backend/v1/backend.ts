@@ -554,6 +554,60 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetCardDetailsRequest
+ */
+export interface GetCardDetailsRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CardDetails
+ */
+export interface CardDetails {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string network = 2;
+     */
+    network: string;
+    /**
+     * @generated from protobuf field: string bin = 3;
+     */
+    bin: string;
+    /**
+     * @generated from protobuf field: string last4 = 4;
+     */
+    last4: string;
+    /**
+     * @generated from protobuf field: string type = 5;
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: string expiration = 6;
+     */
+    expiration: string;
+    /**
+     * @generated from protobuf field: string nickname = 7;
+     */
+    nickname: string;
+    /**
+     * @generated from protobuf field: string state = 8;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: bool canSend = 9;
+     */
+    canSend: boolean;
+    /**
+     * @generated from protobuf field: bool canReceive = 10;
+     */
+    canReceive: boolean;
+}
+/**
  * @generated from protobuf message backend.v1.SearchWalletsRequest
  */
 export interface SearchWalletsRequest {
@@ -3750,6 +3804,163 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetCardDetailsRequest$Type extends MessageType<GetCardDetailsRequest> {
+    constructor() {
+        super("backend.v1.GetCardDetailsRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetCardDetailsRequest>): GetCardDetailsRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetCardDetailsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetCardDetailsRequest): GetCardDetailsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetCardDetailsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetCardDetailsRequest
+ */
+export const GetCardDetailsRequest = new GetCardDetailsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CardDetails$Type extends MessageType<CardDetails> {
+    constructor() {
+        super("backend.v1.CardDetails", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "network", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "bin", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "last4", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "expiration", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "canSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 10, name: "canReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CardDetails>): CardDetails {
+        const message = { id: "", network: "", bin: "", last4: "", type: "", expiration: "", nickname: "", state: "", canSend: false, canReceive: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CardDetails>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CardDetails): CardDetails {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string network */ 2:
+                    message.network = reader.string();
+                    break;
+                case /* string bin */ 3:
+                    message.bin = reader.string();
+                    break;
+                case /* string last4 */ 4:
+                    message.last4 = reader.string();
+                    break;
+                case /* string type */ 5:
+                    message.type = reader.string();
+                    break;
+                case /* string expiration */ 6:
+                    message.expiration = reader.string();
+                    break;
+                case /* string nickname */ 7:
+                    message.nickname = reader.string();
+                    break;
+                case /* string state */ 8:
+                    message.state = reader.string();
+                    break;
+                case /* bool canSend */ 9:
+                    message.canSend = reader.bool();
+                    break;
+                case /* bool canReceive */ 10:
+                    message.canReceive = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CardDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string network = 2; */
+        if (message.network !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.network);
+        /* string bin = 3; */
+        if (message.bin !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.bin);
+        /* string last4 = 4; */
+        if (message.last4 !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.last4);
+        /* string type = 5; */
+        if (message.type !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.type);
+        /* string expiration = 6; */
+        if (message.expiration !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.expiration);
+        /* string nickname = 7; */
+        if (message.nickname !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.nickname);
+        /* string state = 8; */
+        if (message.state !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.state);
+        /* bool canSend = 9; */
+        if (message.canSend !== false)
+            writer.tag(9, WireType.Varint).bool(message.canSend);
+        /* bool canReceive = 10; */
+        if (message.canReceive !== false)
+            writer.tag(10, WireType.Varint).bool(message.canReceive);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CardDetails
+ */
+export const CardDetails = new CardDetails$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SearchWalletsRequest$Type extends MessageType<SearchWalletsRequest> {
     constructor() {
@@ -9385,6 +9596,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "Lookup3DS", options: {}, I: Lookup3DSRequest, O: Lookup3DSResponse },
     { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse },
     { name: "CreateCard", options: {}, I: CreateCardRequest, O: LinkedAccount },
+    { name: "GetCardDetails", options: {}, I: GetCardDetailsRequest, O: CardDetails },
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
     { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },
