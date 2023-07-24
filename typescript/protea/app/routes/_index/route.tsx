@@ -3,7 +3,7 @@ import { defer } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
-import { Fab, Layouts } from '~/components'
+import { Fab, Layouts, WalletShapes } from '~/components'
 import type {
   FooterRecord,
   HomeRouteRecord
@@ -95,7 +95,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Home',
-      actions: [{ type: 'shapes' }]
+      actions: <WalletShapes />
     },
     fab: Fab.Pay,
     footer: (match) => match.data.footer
