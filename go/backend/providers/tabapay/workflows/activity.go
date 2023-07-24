@@ -194,8 +194,8 @@ func (a *Activity) MarkCardNotDeleted(ctx context.Context, id string) (*linkedac
 	return la, nil
 }
 
-func (a *Activity) CreateBasisTheoryCard(ctx context.Context, walletID, tokenID string) (*basistheory.Card, error) {
-	card, err := a.b.BasisTheory().CreateCard(ctx, tokenID, walletID)
+func (a *Activity) CreateBasisTheoryCard(ctx context.Context, args basistheory.CreateCardArgs) (*basistheory.Card, error) {
+	card, err := a.b.BasisTheory().CreateCard(ctx, args)
 	if err != nil {
 		return nil, err
 	}

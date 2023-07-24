@@ -576,6 +576,7 @@ type BackendServiceClient interface {
 	Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error)
 	// Basistheory
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error)
 	// Features
 	ListFeatures(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Features, error)
 	// Twitter
@@ -1109,6 +1110,15 @@ func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardReq
 	return out, nil
 }
 
+func (c *backendServiceClient) GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error) {
+	out := new(CardDetails)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetCardDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) ListFeatures(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Features, error) {
 	out := new(Features)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ListFeatures", in, out, opts...)
@@ -1241,6 +1251,7 @@ type BackendServiceServer interface {
 	Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error)
 	// Basistheory
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
+	GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error)
 	// Features
 	ListFeatures(context.Context, *Empty) (*Features, error)
 	// Twitter
@@ -1427,6 +1438,9 @@ func (UnimplementedBackendServiceServer) Authenticate3DS(context.Context, *Authe
 }
 func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
+}
+func (UnimplementedBackendServiceServer) GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCardDetails not implemented")
 }
 func (UnimplementedBackendServiceServer) ListFeatures(context.Context, *Empty) (*Features, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFeatures not implemented")
@@ -2484,6 +2498,24 @@ func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetCardDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCardDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetCardDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetCardDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetCardDetails(ctx, req.(*GetCardDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_ListFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -2826,6 +2858,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateCard",
 			Handler:    _BackendService_CreateCard_Handler,
+		},
+		{
+			MethodName: "GetCardDetails",
+			Handler:    _BackendService_GetCardDetails_Handler,
 		},
 		{
 			MethodName: "ListFeatures",
