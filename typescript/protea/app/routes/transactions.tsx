@@ -29,7 +29,8 @@ import {
   Layouts,
   Router,
   TwitterIcon,
-  WalletGrid
+  WalletGrid,
+  WalletShapes
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { Transaction } from '~/generated/protobuf-ts/backend/v1/backend'
@@ -98,7 +99,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Transactions',
-      actions: [{ type: 'shapes' }]
+      actions: <WalletShapes />
     },
     fab: Fab.Pay
   }
