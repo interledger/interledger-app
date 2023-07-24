@@ -68,7 +68,7 @@ func (a *Activity) SeedTabapayLinkedAccounts(ctx context.Context, tcs []TabapayT
 	return nil
 }
 
-func (a *Activity) CreateBasisTheoryCardToken(ctx context.Context, args basistheory.CreateCardArgs) (string, error) {
+func (a *Activity) CreateBasisTheoryCardToken(ctx context.Context, args basistheory.CreateCardTokenArgs) (string, error) {
 	tokenID, err := a.b.BasisTheory().CreateCardToken(ctx, args)
 	if err != nil {
 		return "", err
@@ -196,7 +196,7 @@ func TabapayCertificationWorkflow(ctx workflow.Context) error {
 	}
 	for _, tc := range cardQueryTestCases {
 		var basisTheoryTokenID string
-		err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCardToken, basistheory.CreateCardArgs{
+		err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCardToken, basistheory.CreateCardTokenArgs{
 			WalletID:        tc.WalletID,
 			Number:          tc.CardNumber,
 			ExpirationMonth: 4,
@@ -271,7 +271,7 @@ func TabapayCertificationWorkflow(ctx workflow.Context) error {
 	}
 	for _, tc := range createAccountTestCases {
 		var basisTheoryTokenID string
-		err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCardToken, basistheory.CreateCardArgs{
+		err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCardToken, basistheory.CreateCardTokenArgs{
 			WalletID:        tc.WalletID,
 			Number:          tc.CardNumber,
 			ExpirationMonth: 4,

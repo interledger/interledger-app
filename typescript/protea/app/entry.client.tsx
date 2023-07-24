@@ -8,7 +8,7 @@ if (
   (window as any).ENV.sentryDsn
 ) {
   Sentry.init({
-    tunnel: "/api/fern",
+    tunnel: '/api/fern',
     dsn: (window as any).ENV.sentryDsn,
     release: (window as any).ENV.sentryRelease,
     integrations: [
