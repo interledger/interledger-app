@@ -42,15 +42,15 @@ func New(apiKey string, b Backends) basistheory.Client {
 	}
 }
 
-func (c client) CreateCard(ctx context.Context, tokenID, walletID string) (*basistheory.Card, error) {
-	return ops.CreateCard(ctx, c.b, tokenID, walletID)
+func (c client) CreateCard(ctx context.Context, args basistheory.CreateCardArgs) (*basistheory.Card, error) {
+	return ops.CreateCard(ctx, c.b, args)
 }
 
 func (c client) GetCard(ctx context.Context, id string) (*basistheory.Card, error) {
 	return ops.GetCard(ctx, c.b, id)
 }
 
-func (c client) CreateCardToken(ctx context.Context, args basistheory.CreateCardArgs) (string, error) {
+func (c client) CreateCardToken(ctx context.Context, args basistheory.CreateCardTokenArgs) (string, error) {
 	token, err := c.b.External().CreateCardToken(ctx, args)
 	if err != nil {
 		return "", err

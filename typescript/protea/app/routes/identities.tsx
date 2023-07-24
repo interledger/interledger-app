@@ -24,7 +24,8 @@ import {
   Router,
   Snackbar,
   TwitterIcon,
-  WalletGrid
+  WalletGrid,
+  WalletShapes
 } from '~/components'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
@@ -49,7 +50,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Identities',
-      actions: [{ type: 'shapes' }]
+      actions: <WalletShapes />
     },
     fab: Fab.Pay
   }

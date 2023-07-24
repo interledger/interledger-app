@@ -11,18 +11,18 @@ import (
 )
 
 const (
-	cardFields       = "id, wallet_id, token_id, expiration_month, expiration_year, tokenized_number, fingerprint, created_at, updated_at"
-	insertCardFields = "wallet_id, token_id, expiration_month, expiration_year, tokenized_number, fingerprint"
+	cardFields       = "id, wallet_id, token_id, expiration_month, expiration_year, tokenized_number, fingerprint, bin, pull_network, pull_enabled, pull_type, pull_country, push_network, push_enabled, push_type, push_availability, push_country, created_at, updated_at"
+	insertCardFields = "wallet_id, token_id, expiration_month, expiration_year, tokenized_number, fingerprint, bin, pull_network, pull_enabled, pull_type, pull_country, push_network, push_enabled, push_type, push_availability, push_country"
 )
 
-func CreateCard(ctx context.Context, b Backends, tokenID, walletID string) (*basistheory.Card, error) {
+func CreateCard(ctx context.Context, b Backends, args basistheory.CreateCardArgs) (*basistheory.Card, error) {
 	var card basistheory.Card
 	err := b.DB().GetContext(
 		ctx,
 		&card,
 		fmt.Sprintf("SELECT %s FROM basistheory_cards WHERE wallet_id=$1 AND token_id=$2;", cardFields),
-		walletID,
-		tokenID,
+		args.WalletID,
+		args.TokenID,
 	)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)
@@ -31,7 +31,7 @@ func CreateCard(ctx context.Context, b Backends, tokenID, walletID string) (*bas
 		return &card, nil
 	}
 
-	token, err := b.External().GetToken(ctx, tokenID)
+	token, err := b.External().GetToken(ctx, args.TokenID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)
 	}
@@ -44,13 +44,23 @@ func CreateCard(ctx context.Context, b Backends, tokenID, walletID string) (*bas
 	err = b.DB().GetContext(
 		ctx,
 		&card,
-		fmt.Sprintf("INSERT INTO basistheory_cards (%s) VALUES ($1, $2, $3, $4, $5, $6) RETURNING %s;", insertCardFields, cardFields),
-		walletID,
+		fmt.Sprintf("INSERT INTO basistheory_cards (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING %s;", insertCardFields, cardFields),
+		args.WalletID,
 		token.Id,
 		cardData.ExpirationMonth,
 		cardData.ExpirationYear,
 		cardData.TokenizedNumber,
 		token.GetFingerprint(),
+		args.Bin,
+		args.PullNetwork,
+		args.PullEnabled,
+		args.PullType,
+		args.PullCountry,
+		args.PushNetwork,
+		args.PushEnabled,
+		args.PushType,
+		args.PushAvailability,
+		args.PushCountry,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", basistheory.ErrInternal, err)

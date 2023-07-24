@@ -2,8 +2,10 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -127,4 +129,54 @@ func (s *rpcService) SetNicknameLinkedAccount(ctx context.Context, req *pb.SetNi
 	}
 
 	return transformLinkedAccount(*la), nil
+}
+
+func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsRequest) (*pb.CardDetails, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().Get(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if la.WalletID != wallet.ID && la.Type != tabapay.ProviderName {
+		return nil, NotFoundError("ErrNotFound")
+	}
+
+	card, err := s.b.BasisTheory().GetCard(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if card.WalletID != wallet.ID {
+		return nil, NotFoundError("ErrNotFound")
+	}
+
+	network := card.PullNetwork
+	if network == "" {
+		network = card.PushNetwork
+	}
+	cardType := card.PullType
+	if cardType == "" {
+		cardType = card.PushType
+	}
+
+	return &pb.CardDetails{
+		Id:         card.ID,
+		Network:    network,
+		Bin:        card.Bin,
+		Type:       cardType,
+		Expiration: fmt.Sprintf("%s/%s", card.ExpirationMonth, card.ExpirationYear),
+		Last4:      la.Mask,
+		Nickname:   la.Nickname,
+		State:      string(la.State),
+		CanSend:    la.CanSend,
+		CanReceive: la.CanReceive,
+	}, nil
 }

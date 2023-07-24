@@ -14,8 +14,7 @@ import {
   IconButton,
   LoadingShapes,
   MarketingRouter,
-  Router,
-  WalletShapes
+  Router
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
@@ -40,11 +39,6 @@ export enum Fab {
   Account = 'Account'
 }
 
-export type ScaffoldHeaderActions = {
-  type: 'search' | 'chip' | 'shapes'
-  content?: (match: RouteMatch) => ReactNode
-}
-
 /**
  * ScaffoldProps
  * @property header - Scaffold header props
@@ -60,7 +54,11 @@ export type ScaffoldProps = {
     // Back should check the history stack, and if the previous route is the same as the specified route, it should pop the history stack
     back?: string | ((match: RouteMatch) => string)
     title?: string | ((match: RouteMatch) => string)
-    actions?: ScaffoldHeaderActions[] // TODO: use a better type here, this is too generic
+    actions?:
+      | ReactNode
+      | ReactNode[]
+      | ((match: RouteMatch) => ReactNode | ReactNode[])
+      | null
   }
   footer?: (match: RouteMatch) => FooterRecord
   fab?: Fab
@@ -103,9 +101,12 @@ export function Scaffold() {
   if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch)
   else layout = layoutHandle
 
-  let actions: ScaffoldHeaderActions[]
+  const actionHandle = scaffold.header?.actions
+  let actions: ReactNode | ReactNode[]
 
-  actions = scaffold.header?.actions ?? []
+  if (typeof actionHandle === 'function')
+    actions = actionHandle(currentMatch) ?? null
+  else actions = actionHandle ?? null
 
   const titleHandle = scaffold.header?.title
 
@@ -121,10 +122,12 @@ export function Scaffold() {
     if (typeof parentTitleHandle === 'function')
       parentTitle = parentTitleHandle(matches[matches.length - 2])
     else parentTitle = parentTitleHandle ?? ''
-    if (actions.length === 0) {
-      actions =
-        matches[matches.length - 2].handle?.scaffold.header?.actions ?? []
-    }
+
+    // if (!actions && !isNested) {
+    //   if (typeof actionHandle === 'function')
+    //     actions = actionHandle(matches[matches.length - 2]) ?? null
+    //   else actions = actionHandle ?? null
+    // }
   }
 
   return (
@@ -202,9 +205,6 @@ export function Scaffold() {
               <HeaderLink to={route('/blog')} title='Blog' />
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
-            {/*<div className='ml-auto flex items-center lg:hidden'>*/}
-            {/*  <IconButton>light_mode</IconButton>*/}
-            {/*</div>*/}
             <div className='ml-auto hidden items-center lg:flex'>
               {!isUser && (
                 <div className='flex space-x-10 pb-2 pt-3'>
@@ -288,21 +288,16 @@ export function Scaffold() {
               </div>
             )}
             {actions && !loading && (
-              <div className='ml-auto flex items-center space-x-4'>
-                {/* TODO: Put loading shapes here */}
-                {actions.map((action, index) => {
-                  return (
-                    <div key={'header-action' + index} className='ml-auto'>
-                      {action.type === 'chip' &&
-                        action?.content &&
-                        action?.content(matches[matches.length - 1])}
-                      {action.type === 'search' && (
-                        <IconButton>light_mode</IconButton>
-                      )}
-                      {action.type === 'shapes' && <WalletShapes />}
-                    </div>
-                  )
-                })}
+              <div className='ml-auto flex items-center space-x-2'>
+                {Array.isArray(actions) &&
+                  actions.map((action, index) => {
+                    return (
+                      <div key={'header-action' + index} className='ml-auto'>
+                        {action}
+                      </div>
+                    )
+                  })}
+                {!Array.isArray(actions) && actions}
               </div>
             )}
           </div>
