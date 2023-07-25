@@ -593,6 +593,14 @@ table "openpayments_quotes" {
     null = true
     type = text
   }
+  column "otp_required" {
+    null = true
+    type = boolean
+  }
+  column "otp_validated" {
+    null = true
+    type = boolean
+  }
   primary_key {
     columns = [column.id]
   }

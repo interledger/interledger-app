@@ -21,6 +21,8 @@ service OpenPaymentService {
   rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
   rpc CreateQuote(CreateQuoteRequest) returns (Quote);
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
+  rpc SendQuoteOTP(SendQuoteOTPRequest) returns (Empty);
+  rpc SetQuoteOTP(SetQuoteOTPRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
   rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
@@ -147,6 +149,15 @@ message LookupQuoteRequest {
   string id = 1;
 }
 
+message SendQuoteOTPRequest {
+  string quoteID = 1;
+}
+
+message SetQuoteOTPRequest {
+  string quoteID = 1;
+  string otp = 2;
+}
+
 message CreateQuoteRequest {
   string sendPaymentPointer = 1;
   string receivePaymentPointer = 2;
@@ -156,6 +167,7 @@ message CreateQuoteRequest {
   optional string sendLinkedAccount = 6;
   string identity = 7;
   string identityType = 8;
+  optional string otp = 9;
 }
 
 message Quote {
@@ -166,6 +178,8 @@ message Quote {
   Amount receiveAmount = 5;
   google.protobuf.Timestamp expiresAt = 6;
   google.protobuf.Timestamp createdAt = 7;
+  bool requiresOTP = 8;
+  bool otpComplete = 9;
 }
 
 message PaymentPointerExistsRequest {

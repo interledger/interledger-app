@@ -33,6 +33,7 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
+	txClient.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 
 	b := NewTestBackends(t, db, nil, la_mock, txClient, nil, nil)

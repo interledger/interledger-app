@@ -489,6 +489,16 @@ func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.
 	return res, nil
 }
 
+func GetHasTransacted(ctx context.Context, b Backends, walletID, destination string) (bool, error) {
+	var txCnt int
+	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND destination ILIKE $3", walletID, transactions.StateCompleted, destination)
+	if err != nil {
+		return false, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return txCnt > 0, nil
+}
+
 func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreignID string) error {
 	var walletID string
 	err := b.DB().GetContext(ctx, &walletID, "UPDATE transactions SET foreign_id=$1, updated_at=now() WHERE id=$2 returning wallet_id",

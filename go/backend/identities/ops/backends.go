@@ -3,6 +3,9 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/backend/user"
+
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/images"
 	images_mock "gitlab.com/fynbos/backend/images/client/mock"
@@ -43,6 +46,14 @@ type testBackends struct {
 	tc  *twitter_mock.MockClient
 	op  openpayments.Client
 	img images.Client
+}
+
+func (t testBackends) Twilio() twilio.Service {
+	return nil
+}
+
+func (t testBackends) Users() user.Client {
+	return nil
 }
 
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {

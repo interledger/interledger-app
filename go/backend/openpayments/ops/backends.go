@@ -3,6 +3,9 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/backend/user"
+
 	"github.com/golang/mock/gomock"
 
 	"gitlab.com/fynbos/backend/features"
@@ -28,6 +31,8 @@ type Backends interface {
 	Tabapay() tabapay.Client
 	Analytics() analytics.Client
 	Features() features.Client
+	Twilio() twilio.Service
+	Users() user.Client
 }
 
 type testBackends struct {
@@ -38,6 +43,16 @@ type testBackends struct {
 	tbc tabapay.Client
 	ac  analytics.Client
 	fc  features.Client
+}
+
+func (t testBackends) Twilio() twilio.Service {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t testBackends) Users() user.Client {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (t testBackends) Transactions() transactions.Client {
