@@ -802,7 +802,7 @@ func TestGetHasTransacted(t *testing.T) {
 				ForeignID:   uuid.NewString(),
 				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 				Provider:    transactions.ProviderGMT,
-				State:       transactions.StatePending,
+				State:       transactions.StateCompleted,
 				Source:      "$fynbos.me/alice",
 				Destination: "$fynbos.me/bob",
 				Amount: currency.Amount{

@@ -370,6 +370,11 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, err
 	}
 
+	hasTx, err := b.Transactions().GetHasTransacted(ctx, sendPP.WalletID, recvPP.URL)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: Calculate the from/to conversion one day
 
 	id := uuid.NewString()
@@ -400,6 +405,10 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("recv_identity", sql.NullString{
 			String: args.DestinationIdentity,
 			Valid:  args.DestinationIdentity != "",
+		}).
+		Value("otp_required", sql.NullBool{
+			Bool:  !hasTx,
+			Valid: true,
 		}).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w insert sql create failed (%s)", openpayments.ErrInternal, err)
@@ -430,7 +439,8 @@ type dbQuote struct {
 	CreatedBy             sql.NullString `db:"created_by"`
 	RecvIdentity          sql.NullString `db:"recv_identity"`
 	RecvIdentityType      sql.NullString `db:"recv_identity_type"`
-	OTPId                 sql.NullString `db:"otp_id"`
+	OTPRequired           sql.NullBool   `db:"otp_required"`
+	OTPValidated          sql.NullBool   `db:"otp_validated"`
 }
 
 // getDBQuote returns a single quote in it's raw form from the DB without formatting.
@@ -438,7 +448,7 @@ type dbQuote struct {
 func getDBQuote(ctx context.Context, b Backends, where string, args ...interface{}) (*dbQuote, error) {
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type, otp_id FROM openpayments_quotes WHERE "+where, args...)
+		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type, otp_required, otp_validated FROM openpayments_quotes WHERE "+where, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}
@@ -460,11 +470,6 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	hasTx, err := b.Transactions().GetHasTransacted(ctx, sendPP.WalletID, recvPP.URL)
-	if err != nil {
-		return nil, err
-	}
-
 	amount := currency.Amount{
 		Value:    dbq.SendAmount,
 		Currency: currency.ParseCurrency(dbq.SendAsset),
@@ -482,8 +487,8 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		CreatedBy:               dbq.CreatedBy.String,
 		DestinationIdentity:     dbq.RecvIdentity.String,
 		DestinationIdentityType: dbq.RecvIdentityType.String,
-		RequiresOTP:             !hasTx,
-		OTPId:                   dbq.OTPId.String,
+		RequiresOTP:             dbq.OTPRequired.Bool,
+		OTPValidated:            dbq.OTPValidated.Bool,
 	}, nil
 }
 
@@ -541,17 +546,21 @@ func SendQuoteOTP(ctx context.Context, b Backends, qid string) error {
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	vc, err := b.Twilio().SendVerificationCode(ctx, ul[0].PhoneNumber)
-	if err != nil {
-		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	_, err = b.DB().ExecContext(ctx, "UPDATE openpayments_quotes SET otp_id=S1 WHERE id=$2", vc.Sid, qid)
+	_, err = b.Twilio().SendVerificationCode(ctx, ul[0].PhoneNumber)
 	if err != nil {
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
 	return nil
+}
+
+func SetQuoteOTPValidated(ctx context.Context, b Backends, qid string) (*openpayments.Quote, error) {
+	_, err := b.DB().ExecContext(ctx, "UPDATE openpayments_quotes SET otp_validated  = TRUE WHERE id=$1", qid)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return GetQuote(ctx, b, qid)
 }
 
 func GetPaymentPointerQuote(ctx context.Context, b Backends, paymentPointerID, id string) (*openpayments.Quote, error) {

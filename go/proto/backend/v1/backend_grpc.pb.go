@@ -29,6 +29,7 @@ type OpenPaymentServiceClient interface {
 	CreateQuote(ctx context.Context, in *CreateQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	LookupQuote(ctx context.Context, in *LookupQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	SendQuoteOTP(ctx context.Context, in *SendQuoteOTPRequest, opts ...grpc.CallOption) (*Empty, error)
+	SetQuoteOTP(ctx context.Context, in *SetQuoteOTPRequest, opts ...grpc.CallOption) (*Quote, error)
 	CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error)
@@ -108,6 +109,15 @@ func (c *openPaymentServiceClient) SendQuoteOTP(ctx context.Context, in *SendQuo
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) SetQuoteOTP(ctx context.Context, in *SetQuoteOTPRequest, opts ...grpc.CallOption) (*Quote, error) {
+	out := new(Quote)
+	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/SetQuoteOTP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *openPaymentServiceClient) CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error) {
 	out := new(IncomingPayment)
 	err := c.cc.Invoke(ctx, "/backend.v1.OpenPaymentService/CreateIncomingPayment", in, out, opts...)
@@ -173,6 +183,7 @@ type OpenPaymentServiceServer interface {
 	CreateQuote(context.Context, *CreateQuoteRequest) (*Quote, error)
 	LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error)
 	SendQuoteOTP(context.Context, *SendQuoteOTPRequest) (*Empty, error)
+	SetQuoteOTP(context.Context, *SetQuoteOTPRequest) (*Quote, error)
 	CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error)
 	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
 	PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error)
@@ -205,6 +216,9 @@ func (UnimplementedOpenPaymentServiceServer) LookupQuote(context.Context, *Looku
 }
 func (UnimplementedOpenPaymentServiceServer) SendQuoteOTP(context.Context, *SendQuoteOTPRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendQuoteOTP not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) SetQuoteOTP(context.Context, *SetQuoteOTPRequest) (*Quote, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetQuoteOTP not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateIncomingPayment not implemented")
@@ -362,6 +376,24 @@ func _OpenPaymentService_SendQuoteOTP_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OpenPaymentService_SetQuoteOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetQuoteOTPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).SetQuoteOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.OpenPaymentService/SetQuoteOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).SetQuoteOTP(ctx, req.(*SetQuoteOTPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OpenPaymentService_CreateIncomingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateIncomingPaymentRequest)
 	if err := dec(in); err != nil {
@@ -504,6 +536,10 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendQuoteOTP",
 			Handler:    _OpenPaymentService_SendQuoteOTP_Handler,
+		},
+		{
+			MethodName: "SetQuoteOTP",
+			Handler:    _OpenPaymentService_SetQuoteOTP_Handler,
 		},
 		{
 			MethodName: "CreateIncomingPayment",

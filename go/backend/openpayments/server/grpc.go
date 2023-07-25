@@ -219,6 +219,7 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		ExpiresAt:      timestamppb.New(q.ExpiresAt),
 		CreatedAt:      timestamppb.New(q.CreatedAt),
 		RequiresOTP:    q.RequiresOTP,
+		OtpComplete:    q.OTPValidated,
 	}, nil
 }
 
@@ -247,11 +248,62 @@ func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest
 		ExpiresAt:      timestamppb.New(q.ExpiresAt),
 		CreatedAt:      timestamppb.New(q.CreatedAt),
 		RequiresOTP:    q.RequiresOTP,
+		OtpComplete:    q.OTPValidated,
+	}, nil
+}
+
+func (g *grpcServer) SetQuoteOTP(ctx context.Context, req *pb.SetQuoteOTPRequest) (*pb.Quote, error) {
+	u, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no login found")
+	}
+
+	_, err = g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	vc, err := g.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+		PhoneNumber: u.PhoneNumber,
+		Code:        req.Otp,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if !vc.IsValid() {
+		return nil, NewValidationError("otp", "Invalid OTP")
+	}
+
+	q, err := ops.SetQuoteOTPValidated(ctx, g.b, req.QuoteID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Quote{
+		Id:             q.ID,
+		PaymentPointer: q.PaymentPointer,
+		Receiver:       q.IncomingPayment,
+		SendAmount:     q.SendAmount.ToPB(),
+		ReceiveAmount:  q.ReceiveAmount.ToPB(),
+		ExpiresAt:      timestamppb.New(q.ExpiresAt),
+		CreatedAt:      timestamppb.New(q.CreatedAt),
+		RequiresOTP:    q.RequiresOTP,
+		OtpComplete:    q.OTPValidated,
 	}, nil
 }
 
 func (g *grpcServer) SendQuoteOTP(ctx context.Context, req *pb.SendQuoteOTPRequest) (*pb.Empty, error) {
-	err := ops.SendQuoteOTP(ctx, g.b, req.Id)
+	_, err := g.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("no login found")
+	}
+
+	_, err = g.b.Users().WalletForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	err = ops.SendQuoteOTP(ctx, g.b, req.QuoteID)
 
 	return &pb.Empty{}, toGRPCError(err)
 }
@@ -382,7 +434,7 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 
-	user, err := g.b.Users().UserForContext(ctx)
+	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("no login found")
 	}
@@ -408,23 +460,8 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 		return nil, toGRPCError(err)
 	}
 
-	if q.RequiresOTP {
-		if req.GetOtp() == "" {
-			return nil, NewValidationError("otp", "OTP is required for this quote")
-		}
-
-		vc, err := g.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
-			PhoneNumber:    user.PhoneNumber,
-			Code:           req.GetOtp(),
-			VerificationID: q.OTPId,
-		})
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-
-		if !vc.IsValid() {
-			return nil, NewValidationError("otp", "OTP is invalid for the quote")
-		}
+	if q.RequiresOTP && !q.OTPValidated {
+		return nil, FailedPreconditionError("OTP for quote has not been validated")
 	}
 
 	if args.ThreeDSID != "" {
