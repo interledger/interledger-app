@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	http_log "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/twilio"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
 	"go.temporal.io/sdk/temporal"
 )
@@ -17,7 +18,7 @@ import (
 func (s *rpcService) CreateCard(
 	ctx context.Context, req *backendv1.CreateCardRequest,
 ) (*backendv1.LinkedAccount, error) {
-	_, err := s.b.Users().UserForContext(ctx)
+	u, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -34,6 +35,32 @@ func (s *rpcService) CreateCard(
 
 	if !feats.AddCardsEnabled {
 		return nil, FailedPreconditionError("ErrMaxCardsAdded")
+	}
+
+	lal, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	var hasAddedCard bool
+	for _, la := range lal {
+		if la.State == linkedaccounts.Verified && la.Provider == tabapay.ProviderName {
+			hasAddedCard = true
+		}
+	}
+	if hasAddedCard {
+		if req.GetOtp() == "" {
+			return nil, NewValidationError("otp", "OTP is required for adding more cards")
+		}
+		vr, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: u.PhoneNumber,
+			Code:        req.GetOtp(),
+		})
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		if !vr.IsValid() {
+			return nil, NewValidationError("otp", "Invalid OTP")
+		}
 	}
 
 	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{

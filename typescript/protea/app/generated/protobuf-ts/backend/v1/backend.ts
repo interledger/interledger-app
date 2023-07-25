@@ -787,6 +787,10 @@ export interface CreateCardRequest {
      * @generated from protobuf field: string tokenID = 1;
      */
     tokenID: string;
+    /**
+     * @generated from protobuf field: optional string otp = 2;
+     */
+    otp?: string;
 }
 /**
  * @generated from protobuf message backend.v1.Init3DSRequest
@@ -4533,7 +4537,8 @@ export const Features = new Features$Type();
 class CreateCardRequest$Type extends MessageType<CreateCardRequest> {
     constructor() {
         super("backend.v1.CreateCardRequest", [
-            { no: 1, name: "tokenID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "tokenID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateCardRequest>): CreateCardRequest {
@@ -4551,6 +4556,9 @@ class CreateCardRequest$Type extends MessageType<CreateCardRequest> {
                 case /* string tokenID */ 1:
                     message.tokenID = reader.string();
                     break;
+                case /* optional string otp */ 2:
+                    message.otp = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4566,6 +4574,9 @@ class CreateCardRequest$Type extends MessageType<CreateCardRequest> {
         /* string tokenID = 1; */
         if (message.tokenID !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.tokenID);
+        /* optional string otp = 2; */
+        if (message.otp !== undefined)
+            writer.tag(2, WireType.LengthDelimited).string(message.otp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

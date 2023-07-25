@@ -384,6 +384,7 @@ message Features {
 
 message CreateCardRequest {
   string tokenID = 1;
+  optional string otp = 2;
 }
 
 message Init3DSRequest {
