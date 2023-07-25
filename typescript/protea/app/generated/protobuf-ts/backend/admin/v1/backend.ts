@@ -48,6 +48,18 @@ export interface LinkedAccountReview {
      */
     reason: string;
     /**
+     * @generated from protobuf field: string walletID = 9;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string walletName = 10;
+     */
+    walletName: string;
+    /**
+     * @generated from protobuf field: string mask = 11;
+     */
+    mask: string;
+    /**
      * @generated from protobuf field: google.protobuf.Timestamp createdAt = 7;
      */
     createdAt?: Timestamp;
@@ -579,12 +591,15 @@ class LinkedAccountReview$Type extends MessageType<LinkedAccountReview> {
             { no: 4, name: "linkedAccountID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "reviewedBy", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "walletName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "createdAt", kind: "message", T: () => Timestamp },
             { no: 8, name: "completedAt", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<LinkedAccountReview>): LinkedAccountReview {
-        const message = { id: "", state: "", newState: "", linkedAccountID: "", reviewedBy: "", reason: "" };
+        const message = { id: "", state: "", newState: "", linkedAccountID: "", reviewedBy: "", reason: "", walletID: "", walletName: "", mask: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccountReview>(this, message, value);
@@ -612,6 +627,15 @@ class LinkedAccountReview$Type extends MessageType<LinkedAccountReview> {
                     break;
                 case /* string reason */ 6:
                     message.reason = reader.string();
+                    break;
+                case /* string walletID */ 9:
+                    message.walletID = reader.string();
+                    break;
+                case /* string walletName */ 10:
+                    message.walletName = reader.string();
+                    break;
+                case /* string mask */ 11:
+                    message.mask = reader.string();
                     break;
                 case /* google.protobuf.Timestamp createdAt */ 7:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
@@ -649,6 +673,15 @@ class LinkedAccountReview$Type extends MessageType<LinkedAccountReview> {
         /* string reason = 6; */
         if (message.reason !== "")
             writer.tag(6, WireType.LengthDelimited).string(message.reason);
+        /* string walletID = 9; */
+        if (message.walletID !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.walletID);
+        /* string walletName = 10; */
+        if (message.walletName !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.walletName);
+        /* string mask = 11; */
+        if (message.mask !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.mask);
         /* google.protobuf.Timestamp createdAt = 7; */
         if (message.createdAt)
             Timestamp.internalBinaryWrite(message.createdAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();

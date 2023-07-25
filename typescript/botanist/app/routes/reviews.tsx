@@ -56,6 +56,24 @@ export default function Page() {
                       </th>
                       <th
                         scope='col'
+                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                      >
+                        Wallet ID
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                      >
+                        Wallet Name
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                      >
+                        Mask
+                      </th>
+                      <th
+                        scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Action
@@ -73,6 +91,15 @@ export default function Page() {
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
                           {review.state}
+                        </td>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
+                          {review.walletID}
+                        </td>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
+                          {review.walletName}
+                        </td>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
+                          {review.mask}
                         </td>
                         <td
                           className='whitespace-nowrap p-4 text-sm text-gray-500'

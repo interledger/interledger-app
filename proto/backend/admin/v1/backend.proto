@@ -35,6 +35,9 @@ message LinkedAccountReview {
   string linkedAccountID = 4;
   string reviewedBy = 5;
   string reason = 6;
+  string walletID = 9;
+  string walletName = 10;
+  string mask = 11;
   google.protobuf.Timestamp createdAt = 7; 
   google.protobuf.Timestamp completedAt = 8; 
 }
