@@ -24,6 +24,7 @@ service Backend {
   rpc ListIncompleteLinkedAccountReviews(PaginationRequest) returns (LinkedAccountReviews);
   rpc GetLinkedAccountReview(GetLinkedAccountReviewRequest) returns (LinkedAccountReview);
   rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns(LinkedAccountReview);
+  rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
 }
 
 message Empty {}
@@ -35,6 +36,9 @@ message LinkedAccountReview {
   string linkedAccountID = 4;
   string reviewedBy = 5;
   string reason = 6;
+  string walletID = 9;
+  string walletName = 10;
+  string mask = 11;
   google.protobuf.Timestamp createdAt = 7; 
   google.protobuf.Timestamp completedAt = 8; 
 }
@@ -87,6 +91,10 @@ message AuditOperation {
 
 message ListLinkedAccountsRequest {
   string walletID = 1;
+}
+
+message GetLinkedAccountRequest {
+  string id = 1;
 }
 
 message ListLinkedAccountsResponse {

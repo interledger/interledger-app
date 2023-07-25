@@ -2,20 +2,20 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/wallets"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"gitlab.com/fynbos/backend/keys"
-	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"gitlab.com/fynbos/backend/notify"
-	notify_client "gitlab.com/fynbos/backend/notify/client"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
-
 	"github.com/go-playground/validator/v10"
+	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/keys"
+	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
+	"gitlab.com/fynbos/backend/notify"
+	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/user"
 	"go.uber.org/zap"
 )
@@ -29,6 +29,7 @@ type TestContainer struct {
 	ValidatorImpl  *validator.Validate
 	Nf             notify.Client
 	kc             keys.Client
+	Wc             *wallets_mock.MockClient
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -39,8 +40,8 @@ func (t TestContainer) DB() *sqlx.DB {
 	return t.Db
 }
 
-func (t TestContainer) Users() user.Client {
-	return t.Us
+func (t TestContainer) Wallets() wallets.Client {
+	return t.Wc
 }
 
 func (t TestContainer) Notify() notify.Client {
@@ -63,16 +64,16 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	}
 	c.Logger = logger
 
-	c.Us = user_mock.NewMock()
-
 	c.LinkedAccounts = linked_account_client.New(c)
 
 	c.Nf = notify_client.New(c, "")
 
 	ctrl := gomock.NewController(t)
 	kc := keys_mock.NewMockClient(ctrl)
+	wc := wallets_mock.NewMockClient(ctrl)
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
 	c.kc = kc
+	c.Wc = wc
 
 	return c, nil
 }

@@ -1,5 +1,7 @@
 declare module "routes-gen" {
   export type RouteParams = {
+    "/review/:id": { "id": string };
+    "/review/:id/details": { "id": string };
     "/wallet/:id": { "id": string };
     "/wallet/:id/transactions": { "id": string };
     "/wallet/:id/transactions/:transactionId": { "id": string, "transactionId": string };
@@ -13,6 +15,8 @@ declare module "routes-gen" {
 
   export function route<
     T extends
+      | ["/review/:id", RouteParams["/review/:id"]]
+      | ["/review/:id/details", RouteParams["/review/:id/details"]]
       | ["/wallet/:id", RouteParams["/wallet/:id"]]
       | ["/wallet/:id/transactions", RouteParams["/wallet/:id/transactions"]]
       | ["/wallet/:id/transactions/:transactionId", RouteParams["/wallet/:id/transactions/:transactionId"]]

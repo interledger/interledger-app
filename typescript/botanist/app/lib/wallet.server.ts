@@ -3,6 +3,8 @@ import { DateTime } from 'luxon'
 import type {
   Features,
   GetTransactionDetailsResponse,
+  LinkedAccount,
+  LinkedAccountReview,
   LinkedAccountReviews,
   ListAuditResponse,
   ListWalletsResponse,
@@ -12,10 +14,10 @@ import type {
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 import type { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
 import {
-  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError
+  isGrpcError,
+  StatusError
 } from '~/lib/proto.server'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
@@ -362,16 +364,69 @@ export async function ListLinkedAccountReviews(
   return rpc.response
 }
 
-export async function SetLinkedAccountReviewToVerified(
+export async function GetLinkedAccount(
+  request: Request,
+  linkedAccountID: string
+): Promise<LinkedAccount> {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .getLinkedAccount(
+      { id: linkedAccountID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function GetReview(
   request: Request,
   reviewID: string
+): Promise<LinkedAccountReview> {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .getLinkedAccountReview(
+      { id: reviewID },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export type LinkedAccountReviewState =
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'OwnershipReviewRequired'
+
+export async function CompleteLinkedAccountReview(
+  request: Request,
+  reviewID: string,
+  newState: LinkedAccountReviewState,
+  reason: string
 ) {
   const cookie = String(request.headers.get('cookie'))
   let rpc = await grpcClient
     .completeLinkedAccountReview(
       {
         id: reviewID,
-        newState: 'Verified',
+        newState: newState,
         reason: 'Manually approved.'
       },
       {

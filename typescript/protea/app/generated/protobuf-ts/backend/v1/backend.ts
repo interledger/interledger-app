@@ -676,7 +676,8 @@ export interface SearchResult {
      */
     walletUrl: string;
     /**
-     * @generated from protobuf field: bool canSend = 4;
+     * @deprecated
+     * @generated from protobuf field: bool canSend = 4 [deprecated = true];
      */
     canSend: boolean;
     /**
@@ -4256,7 +4257,7 @@ class SearchResult$Type extends MessageType<SearchResult> {
                 case /* string walletUrl */ 5:
                     message.walletUrl = reader.string();
                     break;
-                case /* bool canSend */ 4:
+                case /* bool canSend = 4 [deprecated = true];*/ 4:
                     message.canSend = reader.bool();
                     break;
                 case /* string identifier */ 2:
@@ -4286,7 +4287,7 @@ class SearchResult$Type extends MessageType<SearchResult> {
         /* string walletUrl = 5; */
         if (message.walletUrl !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.walletUrl);
-        /* bool canSend = 4; */
+        /* bool canSend = 4 [deprecated = true]; */
         if (message.canSend !== false)
             writer.tag(4, WireType.Varint).bool(message.canSend);
         /* string identifier = 2; */

@@ -3,6 +3,7 @@ package ops
 import (
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/user"
 
@@ -22,6 +23,7 @@ type Backends interface {
 	Notify() notify.Client
 	Analytics() analytics.Client
 	Users() user.Client
+	Wallets() wallets.Client
 	Keys() keys.Client
 	KYC() kyc.Client
 }
