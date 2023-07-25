@@ -41,7 +41,7 @@ type Quote struct {
 	DestinationIdentity     string          `json:"-"`
 	DestinationIdentityType string          `json:"-"`
 	RequiresOTP             bool            `json:"-"`
-	OTPId                   string          `json:"-"`
+	OTPValidated            bool            `json:"-"`
 }
 
 type ILPConnection struct {

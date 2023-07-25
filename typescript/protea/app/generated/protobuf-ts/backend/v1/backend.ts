@@ -307,10 +307,6 @@ export interface CreateOutgoingPaymentRequest {
      * @generated from protobuf field: string identityType = 8 [deprecated = true];
      */
     identityType: string;
-    /**
-     * @generated from protobuf field: optional string otp = 9;
-     */
-    otp?: string;
 }
 /**
  * @generated from protobuf message backend.v1.LookupIncomingPaymentRequest
@@ -401,9 +397,22 @@ export interface LookupQuoteRequest {
  */
 export interface SendQuoteOTPRequest {
     /**
-     * @generated from protobuf field: string id = 1;
+     * @generated from protobuf field: string quoteID = 1;
      */
-    id: string;
+    quoteID: string;
+}
+/**
+ * @generated from protobuf message backend.v1.SetQuoteOTPRequest
+ */
+export interface SetQuoteOTPRequest {
+    /**
+     * @generated from protobuf field: string quoteID = 1;
+     */
+    quoteID: string;
+    /**
+     * @generated from protobuf field: string otp = 2;
+     */
+    otp: string;
 }
 /**
  * @generated from protobuf message backend.v1.CreateQuoteRequest
@@ -441,6 +450,10 @@ export interface CreateQuoteRequest {
      * @generated from protobuf field: string identityType = 8;
      */
     identityType: string;
+    /**
+     * @generated from protobuf field: optional string otp = 9;
+     */
+    otp?: string;
 }
 /**
  * @generated from protobuf message backend.v1.Quote
@@ -478,6 +491,10 @@ export interface Quote {
      * @generated from protobuf field: bool requiresOTP = 8;
      */
     requiresOTP: boolean;
+    /**
+     * @generated from protobuf field: bool otpComplete = 9;
+     */
+    otpComplete: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.PaymentPointerExistsRequest
@@ -2919,8 +2936,7 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
             { no: 5, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "identity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateOutgoingPaymentRequest>): CreateOutgoingPaymentRequest {
@@ -2959,9 +2975,6 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
                 case /* string identityType = 8 [deprecated = true];*/ 8:
                     message.identityType = reader.string();
                     break;
-                case /* optional string otp */ 9:
-                    message.otp = reader.string();
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -2998,9 +3011,6 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         /* string identityType = 8 [deprecated = true]; */
         if (message.identityType !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.identityType);
-        /* optional string otp = 9; */
-        if (message.otp !== undefined)
-            writer.tag(9, WireType.LengthDelimited).string(message.otp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3287,11 +3297,11 @@ export const LookupQuoteRequest = new LookupQuoteRequest$Type();
 class SendQuoteOTPRequest$Type extends MessageType<SendQuoteOTPRequest> {
     constructor() {
         super("backend.v1.SendQuoteOTPRequest", [
-            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<SendQuoteOTPRequest>): SendQuoteOTPRequest {
-        const message = { id: "" };
+        const message = { quoteID: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<SendQuoteOTPRequest>(this, message, value);
@@ -3302,8 +3312,8 @@ class SendQuoteOTPRequest$Type extends MessageType<SendQuoteOTPRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string id */ 1:
-                    message.id = reader.string();
+                case /* string quoteID */ 1:
+                    message.quoteID = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3317,9 +3327,9 @@ class SendQuoteOTPRequest$Type extends MessageType<SendQuoteOTPRequest> {
         return message;
     }
     internalBinaryWrite(message: SendQuoteOTPRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string id = 1; */
-        if (message.id !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string quoteID = 1; */
+        if (message.quoteID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3331,6 +3341,60 @@ class SendQuoteOTPRequest$Type extends MessageType<SendQuoteOTPRequest> {
  */
 export const SendQuoteOTPRequest = new SendQuoteOTPRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class SetQuoteOTPRequest$Type extends MessageType<SetQuoteOTPRequest> {
+    constructor() {
+        super("backend.v1.SetQuoteOTPRequest", [
+            { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetQuoteOTPRequest>): SetQuoteOTPRequest {
+        const message = { quoteID: "", otp: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetQuoteOTPRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetQuoteOTPRequest): SetQuoteOTPRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string quoteID */ 1:
+                    message.quoteID = reader.string();
+                    break;
+                case /* string otp */ 2:
+                    message.otp = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetQuoteOTPRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string quoteID = 1; */
+        if (message.quoteID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
+        /* string otp = 2; */
+        if (message.otp !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.otp);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SetQuoteOTPRequest
+ */
+export const SetQuoteOTPRequest = new SetQuoteOTPRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
     constructor() {
         super("backend.v1.CreateQuoteRequest", [
@@ -3341,7 +3405,8 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
             { no: 5, name: "description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "sendLinkedAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "identity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateQuoteRequest>): CreateQuoteRequest {
@@ -3380,6 +3445,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
                 case /* string identityType */ 8:
                     message.identityType = reader.string();
                     break;
+                case /* optional string otp */ 9:
+                    message.otp = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -3416,6 +3484,9 @@ class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
         /* string identityType = 8; */
         if (message.identityType !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.identityType);
+        /* optional string otp = 9; */
+        if (message.otp !== undefined)
+            writer.tag(9, WireType.LengthDelimited).string(message.otp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3437,11 +3508,12 @@ class Quote$Type extends MessageType<Quote> {
             { no: 5, name: "receiveAmount", kind: "message", T: () => Amount },
             { no: 6, name: "expiresAt", kind: "message", T: () => Timestamp },
             { no: 7, name: "createdAt", kind: "message", T: () => Timestamp },
-            { no: 8, name: "requiresOTP", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 8, name: "requiresOTP", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 9, name: "otpComplete", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Quote>): Quote {
-        const message = { id: "", paymentPointer: "", receiver: "", requiresOTP: false };
+        const message = { id: "", paymentPointer: "", receiver: "", requiresOTP: false, otpComplete: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Quote>(this, message, value);
@@ -3475,6 +3547,9 @@ class Quote$Type extends MessageType<Quote> {
                     break;
                 case /* bool requiresOTP */ 8:
                     message.requiresOTP = reader.bool();
+                    break;
+                case /* bool otpComplete */ 9:
+                    message.otpComplete = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3512,6 +3587,9 @@ class Quote$Type extends MessageType<Quote> {
         /* bool requiresOTP = 8; */
         if (message.requiresOTP !== false)
             writer.tag(8, WireType.Varint).bool(message.requiresOTP);
+        /* bool otpComplete = 9; */
+        if (message.otpComplete !== false)
+            writer.tag(9, WireType.Varint).bool(message.otpComplete);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9618,6 +9696,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "CreateQuote", options: {}, I: CreateQuoteRequest, O: Quote },
     { name: "LookupQuote", options: {}, I: LookupQuoteRequest, O: Quote },
     { name: "SendQuoteOTP", options: {}, I: SendQuoteOTPRequest, O: Empty },
+    { name: "SetQuoteOTP", options: {}, I: SetQuoteOTPRequest, O: Quote },
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
     { name: "PreCheckOutgoingPayment", options: {}, I: PreCheckOutgoingPaymentRequest, O: PreCheckOutgoingPaymentResponse },

@@ -22,6 +22,7 @@ service OpenPaymentService {
   rpc CreateQuote(CreateQuoteRequest) returns (Quote);
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
   rpc SendQuoteOTP(SendQuoteOTPRequest) returns (Empty);
+  rpc SetQuoteOTP(SetQuoteOTPRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
   rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
@@ -118,7 +119,6 @@ message CreateOutgoingPaymentRequest {
   string threeDSID = 6;
   string identity = 7 [deprecated=true];
   string identityType = 8 [deprecated=true];
-  optional string otp = 9;
 }
 
 message LookupIncomingPaymentRequest {
@@ -150,9 +150,13 @@ message LookupQuoteRequest {
 }
 
 message SendQuoteOTPRequest {
-  string id = 1;
+  string quoteID = 1;
 }
 
+message SetQuoteOTPRequest {
+  string quoteID = 1;
+  string otp = 2;
+}
 
 message CreateQuoteRequest {
   string sendPaymentPointer = 1;
@@ -163,6 +167,7 @@ message CreateQuoteRequest {
   optional string sendLinkedAccount = 6;
   string identity = 7;
   string identityType = 8;
+  optional string otp = 9;
 }
 
 message Quote {
@@ -174,6 +179,7 @@ message Quote {
   google.protobuf.Timestamp expiresAt = 6;
   google.protobuf.Timestamp createdAt = 7;
   bool requiresOTP = 8;
+  bool otpComplete = 9;
 }
 
 message PaymentPointerExistsRequest {
