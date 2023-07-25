@@ -363,6 +363,7 @@ export type DetailedTransaction = {
   accountTitle: string
   reference: string
   transfers: Array<DetailedTransfer>
+  refundState: string
 }
 
 export type DetailedTransfer = {
@@ -396,6 +397,7 @@ export async function getTransaction(
         type: resp.response.type,
         title: resp.response.title,
         status: resp.response.state,
+        refundState: resp.response.refundState,
         reference: resp.response.reference,
         accountTitle: resp.response.accountTitle,
         icon: resp.response.destinationIdentityType,
