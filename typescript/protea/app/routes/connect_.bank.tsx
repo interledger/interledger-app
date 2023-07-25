@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
+import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
 import {
   StatusError,
   grpcClient,
@@ -13,9 +14,11 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { getFeatures } from '~/lib/wallet.server'
+import { commitSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   // TODO Add colorScheme option once theme is in the users session
+  const session = await getSessionWithCSRFToken(request)
   const features = await getFeatures(request)
 
   if (!features.banksEnabled) {
@@ -35,7 +38,10 @@ export async function loader({ request }: LoaderArgs) {
     throw json({}, httpMapping(rpc.code))
   }
 
-  return json({ url: rpc.response.url })
+  return json(
+    { url: rpc.response.url, csrfToken: session.get('csrf-token') as string },
+    { headers: { 'Set-Cookie': await commitSession(session) } }
+  )
 }
 
 export const handle: ApplicationProps = {
@@ -56,7 +62,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const submit = useSubmit()
-  const { url } = useLoaderData<typeof loader>()
+  const { url, csrfToken } = useLoaderData<typeof loader>()
   let widgetRef = useRef<any>(null)
   const { revalidate } = useRevalidator()
 
@@ -72,6 +78,7 @@ export default function Page() {
           formData.append('userGuid', event.user_guid)
           formData.append('memberGuid', event.member_guid)
           formData.append('sessionGuid', event.session_guid)
+          formData.append('csrfToken', csrfToken)
           submit(formData, {
             action: '/connect/bank',
             method: 'post'
@@ -128,6 +135,21 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
+  const csrfToken = form.get('csrfToken') as string
+  const err = await validateCSRFToken(request, csrfToken).catch(
+    (err: Error) => err
+  )
+  if (err) {
+    throw json(
+      {
+        action: {
+          route: route('/connect/bank'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
   let rpc = await grpcClient
     .createMXBankAccounts(
       {

@@ -14,6 +14,7 @@ import {
   Snackbar,
   TextField
 } from '~/components'
+import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -24,8 +25,10 @@ import {
   openPaymentsClient
 } from '~/lib/proto.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { commitSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
+  const session = await getSessionWithCSRFToken(request)
   let response = await openPaymentsClient
     .listWalletPaymentPointers(
       {},
@@ -43,12 +46,14 @@ export async function loader({ request }: LoaderArgs) {
     throw redirect(route('/'))
   }
 
-  const session = await getUserSession(request)
+  const userSession = await getUserSession(request)
   let usernameIsValid = false
   let attempts = 0
-  let username = session.identity.traits.firstName
+  let username = userSession.identity.traits.firstName
   let publicName =
-    session.identity.traits.firstName + ' ' + session.identity.traits.lastName
+    userSession.identity.traits.firstName +
+    ' ' +
+    userSession.identity.traits.lastName
 
   while (!usernameIsValid && attempts < 5) {
     let response = await openPaymentsClient
@@ -59,8 +64,8 @@ export async function loader({ request }: LoaderArgs) {
       .catch(StatusError)
     if (isGrpcError(response) || response.response.exists) {
       attempts++
-      username = session.identity.traits.firstName
-      if (username.length < 4) username += session.identity.traits.lastName
+      username = userSession.identity.traits.firstName
+      if (username.length < 4) username += userSession.identity.traits.lastName
 
       if (attempts > 1)
         username += String(Math.floor(Math.random() * 10000)).padStart(4, '0')
@@ -73,12 +78,16 @@ export async function loader({ request }: LoaderArgs) {
 
   const snackbar = await getSnackbar(request)
 
-  return json({
-    paymentPointerBase: PAYMENT_POINTER_BASE,
-    username: username.toLowerCase(),
-    publicName: publicName,
-    snackbar
-  })
+  return json(
+    {
+      paymentPointerBase: PAYMENT_POINTER_BASE,
+      username: username.toLowerCase(),
+      publicName: publicName,
+      snackbar,
+      csrfToken: session.get('csrf-token')
+    },
+    { headers: { 'Set-Cookie': await commitSession(session) } }
+  )
 }
 
 export const handle: ApplicationProps = {
@@ -98,7 +107,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const fetcher = useFetcher()
-  const { paymentPointerBase, username, snackbar } =
+  const { paymentPointerBase, username, snackbar, csrfToken } =
     useLoaderData<typeof loader>()
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
@@ -119,6 +128,13 @@ export default function Page() {
         action='/wallet-address'
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='wallet-address'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <input
         form='wallet-address'
@@ -196,6 +212,21 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const username = form.get('username') as string
   const canSubmit = Boolean(form.get('canSubmit') as string)
+  const csrfToken = form.get('csrfToken') as string
+  const err = await validateCSRFToken(request, csrfToken).catch(
+    (err: Error) => err
+  )
+  if (err) {
+    return json(
+      {
+        errors: {
+          form: '',
+          username: 'Please try again.'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',

@@ -16,6 +16,7 @@ import {
   TextArea,
   WalletGrid
 } from '~/components'
+import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -25,10 +26,18 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { commitSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
-  return json({ traits: session.identity.traits })
+  const csrfSession = await getSessionWithCSRFToken(request)
+  return json(
+    {
+      traits: session.identity.traits,
+      csrfToken: csrfSession.get('csrf-token')
+    },
+    { headers: { 'Set-Cookie': await commitSession(csrfSession) } }
+  )
 }
 
 export const handle: ApplicationProps = {
@@ -47,7 +56,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { traits } = useLoaderData<typeof loader>()
+  const { traits, csrfToken } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   return (
     <WalletGrid>
@@ -56,6 +65,13 @@ export default function Page() {
         action={route('/support')}
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='support-form'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <input
         defaultValue={traits.firstName}
@@ -163,6 +179,24 @@ export async function action({ request }: ActionArgs) {
   const lastName = form.get('lastName') as string
   const email = form.get('email') as string
   const description = form.get('description') as string
+  const csrfToken = form.get('csrfToken') as string
+  const err = await validateCSRFToken(request, csrfToken).catch(
+    (err: Error) => err
+  )
+  if (err) {
+    return json(
+      {
+        errors: {
+          form: '',
+          firstName: '',
+          lastName: '',
+          email: '',
+          description: 'Please try again.'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',

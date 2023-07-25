@@ -3,6 +3,7 @@ import type { ActionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
+import { validateCSRFToken } from '~/lib/csrf.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -26,6 +27,20 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   const phone = form.get('phone') as string
+  const csrfToken = form.get('csrfToken') as string
+  const err = await validateCSRFToken(request, csrfToken).catch(
+    (err: Error) => err
+  )
+  if (err) {
+    return json(
+      {
+        errors: {
+          phone: 'Something went wrong. Please try again.'
+        }
+      },
+      { status: 422, statusText: err.message }
+    )
+  }
 
   const fieldErrors = {
     form: '',
