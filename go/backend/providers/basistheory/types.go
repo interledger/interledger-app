@@ -50,6 +50,23 @@ type (
 		UpdatedAt        string
 	}
 
+	UpdateCardArgs struct {
+		ID               string
+		Bin              string
+		ExpirationMonth  string
+		ExpirationYear   string
+		Fingerprint      string
+		PullNetwork      string
+		PullEnabled      bool
+		PullType         string
+		PullCountry      string
+		PushNetwork      string
+		PushEnabled      bool
+		PushType         string
+		PushAvailability string
+		PushCountry      string
+	}
+
 	CreateCardTokenArgs struct {
 		WalletID        string
 		Number          string `json:"number"`

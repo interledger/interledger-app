@@ -58,3 +58,11 @@ func (c client) CreateCardToken(ctx context.Context, args basistheory.CreateCard
 
 	return token.GetId(), nil
 }
+
+func (c client) UpdateCard(ctx context.Context, args basistheory.UpdateCardArgs) (*basistheory.Card, error) {
+	return ops.UpdateCard(ctx, c.b, args)
+}
+
+func (c client) ListCards(ctx context.Context) ([]basistheory.Card, error) {
+	return ops.ListCards(ctx, c.b, 1000)
+}

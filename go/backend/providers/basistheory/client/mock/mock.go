@@ -79,3 +79,33 @@ func (mr *MockClientMockRecorder) GetCard(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCard", reflect.TypeOf((*MockClient)(nil).GetCard), ctx, id)
 }
+
+// ListCards mocks base method.
+func (m *MockClient) ListCards(ctx context.Context) ([]basistheory.Card, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCards", ctx)
+	ret0, _ := ret[0].([]basistheory.Card)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListCards indicates an expected call of ListCards.
+func (mr *MockClientMockRecorder) ListCards(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCards", reflect.TypeOf((*MockClient)(nil).ListCards), ctx)
+}
+
+// UpdateCard mocks base method.
+func (m *MockClient) UpdateCard(ctx context.Context, args basistheory.UpdateCardArgs) (*basistheory.Card, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCard", ctx, args)
+	ret0, _ := ret[0].(*basistheory.Card)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateCard indicates an expected call of UpdateCard.
+func (mr *MockClientMockRecorder) UpdateCard(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCard", reflect.TypeOf((*MockClient)(nil).UpdateCard), ctx, args)
+}
