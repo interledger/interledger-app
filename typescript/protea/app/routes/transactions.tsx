@@ -275,11 +275,12 @@ export default function Page() {
                 >
                   <div className='flex w-7/12 items-center space-x-2'>
                     {transaction.state == 'Pending' && <AnimatedSchedule />}
-                    {transaction.state != 'Pending' &&
+                    {transaction.state == 'Failed' && <Icon className='text-error'>exclamation</Icon>}
+                    {transaction.state != 'Pending' && transaction.state != 'Failed' &&
                       transaction.destinationIdentityType == 'wallet' && (
                         <FynbosIcon />
                       )}
-                    {transaction.state != 'Pending' &&
+                    {transaction.state != 'Pending' && transaction.state != 'Failed' &&
                       transaction.destinationIdentityType == 'twitter' && (
                         <TwitterIcon />
                       )}

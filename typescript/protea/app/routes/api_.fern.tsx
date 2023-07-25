@@ -17,7 +17,7 @@ export async function action({ request }: ActionArgs) {
 
     let url = new URL(expectedDsn)
     let projectID = url.pathname.replace('/', ``)
-    let proxiedRequest = await fetch(
+    await fetch(
       `https://${url.hostname}/api/${projectID}/envelope`,
       {
         method: 'POST',
