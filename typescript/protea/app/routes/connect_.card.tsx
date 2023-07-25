@@ -24,17 +24,23 @@ import clsx from 'clsx'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
+import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { createCard, getWalletId } from '~/lib/wallet.server'
+import { commitSession } from '~/session.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletId = await getWalletId(request)
-
-  return json({
-    walletId,
-    token: process.env.BT_TOKEN || ''
-  })
+  const session = await getSessionWithCSRFToken(request)
+  return json(
+    {
+      walletId,
+      token: process.env.BT_TOKEN || '',
+      csrfToken: session.get('csrf-token') as string
+    },
+    { headers: { 'Set-Cookie': await commitSession(session) } }
+  )
 }
 
 export const handle: ApplicationProps = {
@@ -54,7 +60,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { walletId, token } = useLoaderData<typeof loader>()
+  const { walletId, token, csrfToken } = useLoaderData<typeof loader>()
   const submit = useSubmit()
   const actionData = useActionData<typeof action>()
 
@@ -111,6 +117,9 @@ export default function Page() {
           errorMessage =
             'You have connected the maximum number of cards to Fynbos.'
           break
+        case 'Invalid CSRF token':
+          errorMessage = 'Please try again.'
+          break
         default:
           errorMessage = 'There was an error connecting your card.'
       }
@@ -151,6 +160,7 @@ export default function Page() {
         let formData = new FormData()
         if (!Array.isArray(token)) {
           formData.append('tokenId', token.id as string)
+          formData.append('csrfToken', csrfToken)
           submit(formData, {
             action: `/connect/card`,
             method: 'post'
@@ -309,6 +319,18 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
+  const csrfToken = form.get('csrfToken') as string
+  const err = await validateCSRFToken(request, csrfToken).catch(
+    (err: Error) => err
+  )
+  if (err) {
+    return json(
+      {
+        error: 'Invalid CSRF token'
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   let resp = await createCard(request, cardToken)
   if (resp.httpMapping?.status == 409 || resp.httpMapping?.status == 400) {

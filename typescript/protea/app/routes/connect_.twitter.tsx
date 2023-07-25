@@ -12,12 +12,14 @@ import {
   LoadingShapes,
   Shape
 } from '~/components'
+import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
 import {
   StatusError,
   grpcClient,
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
+import { commitSession } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -34,6 +36,7 @@ export async function loader({ request }: LoaderArgs) {
   let url = new URL(request.url)
   let state = url.searchParams.get('state')
   let code = url.searchParams.get('code')
+  const session = await getSessionWithCSRFToken(request)
 
   if (state && code) {
     let resp = await grpcClient.twitterCallback(
@@ -52,16 +55,20 @@ export async function loader({ request }: LoaderArgs) {
       throw json({}, httpMapping(resp.code))
     }
 
-    return json({
-      id: resp.response.id
-    })
+    return json(
+      { id: resp.response.id, csrfToken: session.get('csrf-token') },
+      { headers: { 'Set-Cookie': await commitSession(session) } }
+    )
   } else {
-    return json({ id: null })
+    return json(
+      { id: null, csrfToken: session.get('csrf-token') },
+      { headers: { 'Set-Cookie': await commitSession(session) } }
+    )
   }
 }
 
 export default function Page() {
-  let { id } = useLoaderData<typeof loader>()
+  let { id, csrfToken } = useLoaderData<typeof loader>()
   const nav = useNavigate()
 
   // We do this redirect clientside because the browser removes secure cookies when coming from another domain.
@@ -76,6 +83,13 @@ export default function Page() {
         action={'/connect/twitter'}
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='connect-twitter'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       {id && (
         <Card>
@@ -161,6 +175,22 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  const csrfToken = form.get('csrfToken') as string
+  const err = await validateCSRFToken(request, csrfToken).catch(
+    (err: Error) => err
+  )
+  if (err) {
+    throw json(
+      {
+        action: {
+          route: route('/connect/twitter'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
   let resp = await grpcClient
     .createTwitterAuthURL(
       {},

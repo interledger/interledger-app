@@ -14,6 +14,7 @@ import {
   LoadingShapes
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import {
@@ -26,6 +27,7 @@ import {
 import { flashSnackbar } from '~/lib/snackbar.server'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
+import { commitSession, getSession } from '~/session.server'
 
 // The loader generates a new 3ds session. This must only be called on initial page load
 // and not after submitting actions.
@@ -44,6 +46,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export async function loader({ request }: LoaderArgs) {
   await getUserSession(request)
   const url = new URL(request.url)
+  const session = await getSessionWithCSRFToken(request)
 
   const quoteId = url.searchParams.get('quoteId')
 
@@ -64,13 +67,17 @@ export async function loader({ request }: LoaderArgs) {
     .catch(StatusError)
   if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
 
-  return json({
-    quoteId,
-    initJWT: threeDSInit.response.jwt,
-    threeDsId: threeDSInit.response.id,
-    songbirdURL: threeDSInit.response.songbirdURL,
-    fynbosEnv: process.env.FYNBOS_ENV
-  })
+  return json(
+    {
+      quoteId,
+      initJWT: threeDSInit.response.jwt,
+      threeDsId: threeDSInit.response.id,
+      songbirdURL: threeDSInit.response.songbirdURL,
+      fynbosEnv: process.env.FYNBOS_ENV,
+      csrfToken: session.get('csrf-token') as string
+    },
+    { headers: { 'Set-Cookie': await commitSession(session) } }
+  )
 }
 
 export const handle: ApplicationProps = {
@@ -94,14 +101,14 @@ function cleanupSongbirdScript(script: ScriptElt) {
   }
 
   if (typeof window !== 'undefined' && (window as any).Cardinal) {
-    ;(window as any).Cardinal.off('payments.setupComplete')
-    ;(window as any).Cardinal.off('payments.validated')
+    ; (window as any).Cardinal.off('payments.setupComplete')
+      ; (window as any).Cardinal.off('payments.validated')
     delete (window as any).Cardinal
   }
 }
 
 export default function Page() {
-  const { quoteId, initJWT, threeDsId, songbirdURL, fynbosEnv } =
+  const { quoteId, initJWT, threeDsId, songbirdURL, fynbosEnv, csrfToken } =
     useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
@@ -142,6 +149,7 @@ export default function Page() {
         formData.append('userAgent', navigator.userAgent)
 
         formData.append('quoteId', quoteId)
+        formData.append('csrfToken', csrfToken)
 
         submit(formData, {
           action: route('/pay/3ds'),
@@ -164,6 +172,7 @@ export default function Page() {
               formData.append('jwt', jwt)
 
               formData.append('quoteId', quoteId)
+              formData.append('csrfToken', csrfToken)
 
               submit(formData, {
                 action: route('/pay/3ds'),
@@ -182,7 +191,7 @@ export default function Page() {
         jwt: initJWT
       })
     }
-  }, [initJWT, state, threeDsId, submit, fynbosEnv, quoteId])
+  }, [initJWT, state, threeDsId, submit, fynbosEnv, quoteId, csrfToken])
 
   const showIssuerChallenge = () => {
     setShowingIssuerChallenge(true)
@@ -245,6 +254,21 @@ export async function action({ request }: ActionArgs) {
   const formName = form.get('name')
   const threeDSID = form.get('threeDsId') as string
   const quoteId = form.get('quoteId') as string
+  const csrfToken = form.get('csrfToken') as string
+  const err = await validateCSRFToken(request, csrfToken).catch(
+    (err: Error) => err
+  )
+  if (err) {
+    throw json(
+      {
+        action: {
+          route: route('/pay/3ds'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   if (formName === 'lookup') {
     let lookup3DS = await grpcClient
