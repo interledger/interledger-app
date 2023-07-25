@@ -69,14 +69,17 @@ var (
 )
 
 type Review struct {
-	ID              string
-	LinkedAccountID string
-	State           State
-	NewState        State
-	Reason          string
-	ReviewedBy      string
-	CreatedAt       time.Time
-	CompletedAt     time.Time
+	ID                string
+	LinkedAccountID   string
+	State             State
+	NewState          State
+	Reason            string
+	LinkedAccountMask string
+	WalletID          string
+	WalletName        string
+	ReviewedBy        string
+	CreatedAt         time.Time
+	CompletedAt       time.Time
 }
 
 type CreateReviewArgs struct {

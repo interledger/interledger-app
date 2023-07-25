@@ -284,7 +284,7 @@ func TestReviews(t *testing.T) {
 	// Create Wallet
 	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
 		UserID: userId,
-		Name:   "",
+		Name:   "John",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -326,6 +326,9 @@ func TestReviews(t *testing.T) {
 	assert.Equal(t, "test@fynbos.dev", review.ReviewedBy)
 	assert.Equal(t, linkedaccounts.OwnershipReviewRequired, review.State)
 	assert.Equal(t, linkedaccounts.Verified, review.NewState)
+	assert.Equal(t, la.Mask, review.LinkedAccountMask)
+	assert.Equal(t, wallet.Name, review.WalletName)
+	assert.Equal(t, wallet.ID, review.WalletID)
 	assert.NotEmpty(t, review.CompletedAt)
 }
 
@@ -338,7 +341,7 @@ func TestListReviews(t *testing.T) {
 	// Create Wallet
 	wallet, err := c.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
 		UserID: userId,
-		Name:   "",
+		Name:   "John",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -366,6 +369,7 @@ func TestListReviews(t *testing.T) {
 	reviews, err := c.LinkedAccounts.ListReviews(ctx, db.Pagination{})
 	require.NoError(t, err)
 	assert.Len(t, reviews, 4)
+	assert.Equal(t, wallet.Name, reviews[0].WalletName)
 
 	reviews, err = c.LinkedAccounts.ListReviews(ctx, db.Pagination{PageToken: reviews[0].ID})
 	require.NoError(t, err)
@@ -381,4 +385,5 @@ func TestListReviews(t *testing.T) {
 	reviews, err = c.LinkedAccounts.ListIncompleteReviews(ctx, db.Pagination{})
 	require.NoError(t, err)
 	assert.Len(t, reviews, 3)
+	assert.Equal(t, wallet.Name, reviews[0].WalletName)
 }

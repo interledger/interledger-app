@@ -30,8 +30,9 @@ const (
 )
 
 const (
-	reviewAllFields    = "id, linked_account_id, state, new_state, reason, reviewed_by, created_at, completed_at"
-	reviewInsertFields = "linked_account_id, state"
+	reviewAllFields      = "id, linked_account_id, state, new_state, reason, reviewed_by, created_at, completed_at"
+	reviewDetailedFields = "lar.id, linked_account_id, lar.state, new_state, reason, reviewed_by, lar.created_at, completed_at, mask, wallet_id"
+	reviewInsertFields   = "linked_account_id, state"
 )
 
 func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
@@ -269,27 +270,42 @@ func Requires3DS(ctx context.Context, b Backends, id string) (bool, error) {
 }
 
 type dbReview struct {
-	ID              string
-	LinkedAccountID string `db:"linked_account_id"`
-	State           linkedaccounts.State
-	NewState        linkedaccounts.State `db:"new_state"`
-	Reason          string
-	ReviewedBy      string       `db:"reviewed_by"`
-	CreatedAt       time.Time    `db:"created_at"`
-	CompletedAt     sql.NullTime `db:"completed_at"`
+	ID                    string `db:"id"`
+	LinkedAccountID       string `db:"linked_account_id"`
+	State                 linkedaccounts.State
+	LinkedAccountMask     string               `db:"mask"`
+	LinkedAccountWalletID string               `db:"wallet_id"`
+	NewState              linkedaccounts.State `db:"new_state"`
+	Reason                string
+	ReviewedBy            string       `db:"reviewed_by"`
+	CreatedAt             time.Time    `db:"created_at"`
+	CompletedAt           sql.NullTime `db:"completed_at"`
 }
 
-func toReview(record dbReview) linkedaccounts.Review {
-	return linkedaccounts.Review{
-		ID:              record.ID,
-		LinkedAccountID: record.LinkedAccountID,
-		State:           record.State,
-		NewState:        record.NewState,
-		Reason:          record.Reason,
-		ReviewedBy:      record.ReviewedBy,
-		CreatedAt:       record.CreatedAt,
-		CompletedAt:     record.CompletedAt.Time,
+func toReview(ctx context.Context, b Backends, record dbReview) (*linkedaccounts.Review, error) {
+	var walletName string
+	if record.LinkedAccountWalletID != "" {
+		wallet, err := b.Users().GetWallet(ctx, record.LinkedAccountWalletID)
+		if err != nil {
+			return nil, err
+		}
+
+		walletName = wallet.Name
 	}
+
+	return &linkedaccounts.Review{
+		ID:                record.ID,
+		LinkedAccountID:   record.LinkedAccountID,
+		State:             record.State,
+		NewState:          record.NewState,
+		Reason:            record.Reason,
+		LinkedAccountMask: record.LinkedAccountMask,
+		WalletID:          record.LinkedAccountWalletID,
+		WalletName:        walletName,
+		ReviewedBy:        record.ReviewedBy,
+		CreatedAt:         record.CreatedAt,
+		CompletedAt:       record.CompletedAt.Time,
+	}, nil
 }
 
 func CreateReviews(ctx context.Context, b Backends, reviewsArgs []linkedaccounts.CreateReviewArgs) ([]linkedaccounts.Review, error) {
@@ -314,7 +330,12 @@ func CreateReviews(ctx context.Context, b Backends, reviewsArgs []linkedaccounts
 
 	reviews := make([]linkedaccounts.Review, len(dbReviews))
 	for i, record := range dbReviews {
-		reviews[i] = toReview(record)
+		review, err := toReview(ctx, b, record)
+		if err != nil {
+			return nil, err
+		}
+
+		reviews[i] = *review
 	}
 
 	return reviews, nil
@@ -325,15 +346,19 @@ func GetReview(ctx context.Context, b Backends, id string) (*linkedaccounts.Revi
 	err := b.DB().GetContext(
 		ctx,
 		&dbReview,
-		fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE id=$1;", reviewAllFields),
+		fmt.Sprintf("SELECT %s FROM linked_account_reviews AS lar INNER JOIN linked_accounts AS la ON lar.linked_account_id = la.id WHERE lar.id=$1;", reviewDetailedFields),
 		id,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
 	}
 
-	review := toReview(dbReview)
-	return &review, nil
+	review, err := toReview(ctx, b, dbReview)
+	if err != nil {
+		return nil, err
+	}
+
+	return review, nil
 }
 
 func ListReviews(ctx context.Context, b Backends, pagination db.Pagination) ([]linkedaccounts.Review, error) {
@@ -342,10 +367,10 @@ func ListReviews(ctx context.Context, b Backends, pagination db.Pagination) ([]l
 		pageSize = 50
 	}
 
-	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE created_at < (SELECT created_at FROM linked_account_reviews WHERE id=$1) OR (created_at = (SELECT created_at FROM linked_account_reviews WHERE id=$1) AND id < $1) ORDER BY created_at desc LIMIT $2;", reviewAllFields)
+	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews AS lar INNER JOIN linked_accounts AS la ON lar.linked_account_id = la.id WHERE lar.created_at < (SELECT created_at FROM linked_account_reviews WHERE id=$1) OR (lar.created_at = (SELECT created_at FROM linked_account_reviews WHERE id=$1) AND lar.id < $1) ORDER BY lar.created_at desc LIMIT $2;", reviewDetailedFields)
 	args := []interface{}{pagination.PageToken, pageSize}
 	if pagination.PageToken == "" {
-		query = fmt.Sprintf("SELECT %s FROM linked_account_reviews ORDER BY created_at desc LIMIT $1;", reviewAllFields)
+		query = fmt.Sprintf("SELECT %s FROM linked_account_reviews AS lar INNER JOIN linked_accounts AS la ON lar.linked_account_id = la.id ORDER BY lar.created_at desc LIMIT $1;", reviewDetailedFields)
 		args = []interface{}{pageSize}
 	}
 
@@ -357,7 +382,12 @@ func ListReviews(ctx context.Context, b Backends, pagination db.Pagination) ([]l
 
 	reviews := make([]linkedaccounts.Review, len(dbReviews))
 	for i, record := range dbReviews {
-		reviews[i] = toReview(record)
+		review, err := toReview(ctx, b, record)
+		if err != nil {
+			return nil, err
+		}
+
+		reviews[i] = *review
 	}
 
 	return reviews, nil
@@ -369,10 +399,10 @@ func ListIncompleteReviews(ctx context.Context, b Backends, pagination db.Pagina
 		pageSize = 50
 	}
 
-	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE (created_at < (SELECT created_at FROM linked_account_reviews WHERE id=$1) OR (created_at = (SELECT created_at FROM linked_account_reviews WHERE id=$1) AND id < $1)) AND completed_at is null ORDER BY created_at desc LIMIT $2;", reviewAllFields)
+	query := fmt.Sprintf("SELECT %s FROM linked_account_reviews AS lar INNER JOIN linked_accounts AS la ON lar.linked_account_id = la.id WHERE (lar.created_at < (SELECT lar.created_at FROM linked_account_reviews WHERE lar.id=$1) OR (lar.created_at = (SELECT lar.created_at FROM linked_account_reviews WHERE id=$1) AND id < $1)) AND lar.completed_at is null ORDER BY lar.created_at desc LIMIT $2;", reviewDetailedFields)
 	args := []interface{}{pagination.PageToken, pageSize}
 	if pagination.PageToken == "" {
-		query = fmt.Sprintf("SELECT %s FROM linked_account_reviews WHERE completed_at is NULL ORDER BY created_at desc LIMIT $1;", reviewAllFields)
+		query = fmt.Sprintf("SELECT %s FROM linked_account_reviews AS lar INNER JOIN linked_accounts AS la ON lar.linked_account_id = la.id WHERE completed_at is NULL ORDER BY lar.created_at desc LIMIT $1;", reviewDetailedFields)
 		args = []interface{}{pageSize}
 	}
 
@@ -384,7 +414,12 @@ func ListIncompleteReviews(ctx context.Context, b Backends, pagination db.Pagina
 
 	reviews := make([]linkedaccounts.Review, len(dbReviews))
 	for i, record := range dbReviews {
-		reviews[i] = toReview(record)
+		review, err := toReview(ctx, b, record)
+		if err != nil {
+			return nil, err
+		}
+
+		reviews[i] = *review
 	}
 
 	return reviews, nil
@@ -436,8 +471,11 @@ func CompleteReview(ctx context.Context, b Backends, args linkedaccounts.Complet
 		return nil, fmt.Errorf("%w Failed to update linked account's new state after review.", linkedaccounts.ErrInternal)
 	}
 
-	review := toReview(dbReview)
-	return &review, nil
+	review, err := toReview(ctx, b, dbReview)
+	if err != nil {
+		return nil, err
+	}
+	return review, nil
 }
 
 func ListByProviderID(ctx context.Context, b Backends, provider, providerID string) ([]linkedaccounts.LinkedAccount, error) {
