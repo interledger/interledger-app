@@ -434,7 +434,7 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 
-	user, err := g.b.Users().UserForContext(ctx)
+	_, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("no login found")
 	}

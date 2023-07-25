@@ -307,10 +307,6 @@ export interface CreateOutgoingPaymentRequest {
      * @generated from protobuf field: string identityType = 8 [deprecated = true];
      */
     identityType: string;
-    /**
-     * @generated from protobuf field: optional string otp = 9;
-     */
-    otp?: string;
 }
 /**
  * @generated from protobuf message backend.v1.LookupIncomingPaymentRequest
@@ -2944,8 +2940,7 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
             { no: 5, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "identity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateOutgoingPaymentRequest>): CreateOutgoingPaymentRequest {
@@ -2984,9 +2979,6 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
                 case /* string identityType = 8 [deprecated = true];*/ 8:
                     message.identityType = reader.string();
                     break;
-                case /* optional string otp */ 9:
-                    message.otp = reader.string();
-                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -3023,9 +3015,6 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         /* string identityType = 8 [deprecated = true]; */
         if (message.identityType !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.identityType);
-        /* optional string otp = 9; */
-        if (message.otp !== undefined)
-            writer.tag(9, WireType.LengthDelimited).string(message.otp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

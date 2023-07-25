@@ -119,7 +119,6 @@ message CreateOutgoingPaymentRequest {
   string threeDSID = 6;
   string identity = 7 [deprecated=true];
   string identityType = 8 [deprecated=true];
-  optional string otp = 9;
 }
 
 message LookupIncomingPaymentRequest {
