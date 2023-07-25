@@ -21,6 +21,7 @@ service OpenPaymentService {
   rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
   rpc CreateQuote(CreateQuoteRequest) returns (Quote);
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
+  rpc SendQuoteOTP(SendQuoteOTPRequest) returns (Empty);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
   rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
@@ -117,6 +118,7 @@ message CreateOutgoingPaymentRequest {
   string threeDSID = 6;
   string identity = 7 [deprecated=true];
   string identityType = 8 [deprecated=true];
+  optional string otp = 9;
 }
 
 message LookupIncomingPaymentRequest {
@@ -147,6 +149,11 @@ message LookupQuoteRequest {
   string id = 1;
 }
 
+message SendQuoteOTPRequest {
+  string id = 1;
+}
+
+
 message CreateQuoteRequest {
   string sendPaymentPointer = 1;
   string receivePaymentPointer = 2;
@@ -166,6 +173,7 @@ message Quote {
   Amount receiveAmount = 5;
   google.protobuf.Timestamp expiresAt = 6;
   google.protobuf.Timestamp createdAt = 7;
+  bool requiresOTP = 8;
 }
 
 message PaymentPointerExistsRequest {

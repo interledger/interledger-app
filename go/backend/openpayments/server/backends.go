@@ -3,6 +3,8 @@ package server
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/twilio"
+
 	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/identities"
@@ -44,6 +46,7 @@ type Backends interface {
 	Keys() keys.Client
 	Identities() identities.Client
 	Features() features.Client
+	Twilio() twilio.Service
 }
 
 type testBackends struct {
@@ -62,6 +65,10 @@ type testBackends struct {
 	ids  identities.Client
 	us   user.Client
 	fc   features.Client
+}
+
+func (t *testBackends) Twilio() twilio.Service {
+	return nil
 }
 
 func (t *testBackends) Keys() keys.Client {

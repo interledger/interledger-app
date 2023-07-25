@@ -430,6 +430,7 @@ type dbQuote struct {
 	CreatedBy             sql.NullString `db:"created_by"`
 	RecvIdentity          sql.NullString `db:"recv_identity"`
 	RecvIdentityType      sql.NullString `db:"recv_identity_type"`
+	OTPId                 sql.NullString `db:"otp_id"`
 }
 
 // getDBQuote returns a single quote in it's raw form from the DB without formatting.
@@ -437,7 +438,7 @@ type dbQuote struct {
 func getDBQuote(ctx context.Context, b Backends, where string, args ...interface{}) (*dbQuote, error) {
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type FROM openpayments_quotes WHERE "+where, args...)
+		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type, otp_id FROM openpayments_quotes WHERE "+where, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}
@@ -459,6 +460,11 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
+	hasTx, err := b.Transactions().GetHasTransacted(ctx, sendPP.WalletID, recvPP.URL)
+	if err != nil {
+		return nil, err
+	}
+
 	amount := currency.Amount{
 		Value:    dbq.SendAmount,
 		Currency: currency.ParseCurrency(dbq.SendAsset),
@@ -476,6 +482,8 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		CreatedBy:               dbq.CreatedBy.String,
 		DestinationIdentity:     dbq.RecvIdentity.String,
 		DestinationIdentityType: dbq.RecvIdentityType.String,
+		RequiresOTP:             !hasTx,
+		OTPId:                   dbq.OTPId.String,
 	}, nil
 }
 
@@ -506,6 +514,44 @@ func GetWalletQuote(ctx context.Context, b Backends, walletID, id string) (*open
 	}
 
 	return GetPaymentPointerQuote(ctx, b, pp[0].ID, id)
+}
+
+func SendQuoteOTP(ctx context.Context, b Backends, qid string) error {
+	idxSlash := strings.LastIndex(qid, "/")
+	if idxSlash > 0 {
+		qid = qid[idxSlash+1:]
+	}
+
+	q, err := GetQuote(ctx, b, qid)
+	if err != nil {
+		return err
+	}
+
+	if !q.RequiresOTP {
+		return nil
+	}
+
+	sendPP, err := getPaymentPointerByID(ctx, b, q.PaymentPointer)
+	if err != nil {
+		return err
+	}
+
+	ul, err := b.Users().ListUsers(ctx, sendPP.WalletID)
+	if err != nil || len(ul) == 0 {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	vc, err := b.Twilio().SendVerificationCode(ctx, ul[0].PhoneNumber)
+	if err != nil {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE openpayments_quotes SET otp_id=S1 WHERE id=$2", vc.Sid, qid)
+	if err != nil {
+		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+	}
+
+	return nil
 }
 
 func GetPaymentPointerQuote(ctx context.Context, b Backends, paymentPointerID, id string) (*openpayments.Quote, error) {

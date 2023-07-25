@@ -795,3 +795,63 @@ func TestSetTransferState(t *testing.T) {
 		})
 	}
 }
+
+func TestGetHasTransacted(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+
+	cases := []struct {
+		name        string
+		walletID    string
+		destination string
+		args        *transactions.CreateTransactionArgs
+		hasTx       bool
+	}{
+		{
+			name:        "has transacted",
+			walletID:    uuid.NewString(),
+			hasTx:       true,
+			destination: "$fynbos.me/bob",
+			args: &transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderGMT,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+		},
+		{
+			name:        "not transacted",
+			walletID:    uuid.NewString(),
+			hasTx:       false,
+			destination: "$fynbos.me/bob",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create Wallets
+
+			if tc.args != nil {
+				tc.args.WalletID = tc.walletID
+				_, err := ops.CreateTransaction(ctx, b, *tc.args)
+				require.NoError(t, err)
+			}
+
+			hasTx, err := ops.GetHasTransacted(ctx, b, tc.walletID, tc.destination)
+			require.NoError(t, err)
+			require.Equal(t, hasTx, tc.hasTx)
+
+		})
+	}
+}

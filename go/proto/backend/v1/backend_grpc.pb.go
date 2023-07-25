@@ -25,6 +25,7 @@ const (
 	OpenPaymentService_ListWalletPaymentPointers_FullMethodName = "/backend.v1.OpenPaymentService/ListWalletPaymentPointers"
 	OpenPaymentService_CreateQuote_FullMethodName               = "/backend.v1.OpenPaymentService/CreateQuote"
 	OpenPaymentService_LookupQuote_FullMethodName               = "/backend.v1.OpenPaymentService/LookupQuote"
+	OpenPaymentService_SendQuoteOTP_FullMethodName              = "/backend.v1.OpenPaymentService/SendQuoteOTP"
 	OpenPaymentService_CreateIncomingPayment_FullMethodName     = "/backend.v1.OpenPaymentService/CreateIncomingPayment"
 	OpenPaymentService_LookupIncomingPayment_FullMethodName     = "/backend.v1.OpenPaymentService/LookupIncomingPayment"
 	OpenPaymentService_PreCheckOutgoingPayment_FullMethodName   = "/backend.v1.OpenPaymentService/PreCheckOutgoingPayment"
@@ -43,6 +44,7 @@ type OpenPaymentServiceClient interface {
 	ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error)
 	CreateQuote(ctx context.Context, in *CreateQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
 	LookupQuote(ctx context.Context, in *LookupQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
+	SendQuoteOTP(ctx context.Context, in *SendQuoteOTPRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
 	PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error)
@@ -113,6 +115,15 @@ func (c *openPaymentServiceClient) LookupQuote(ctx context.Context, in *LookupQu
 	return out, nil
 }
 
+func (c *openPaymentServiceClient) SendQuoteOTP(ctx context.Context, in *SendQuoteOTPRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, OpenPaymentService_SendQuoteOTP_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *openPaymentServiceClient) CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error) {
 	out := new(IncomingPayment)
 	err := c.cc.Invoke(ctx, OpenPaymentService_CreateIncomingPayment_FullMethodName, in, out, opts...)
@@ -177,6 +188,7 @@ type OpenPaymentServiceServer interface {
 	ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error)
 	CreateQuote(context.Context, *CreateQuoteRequest) (*Quote, error)
 	LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error)
+	SendQuoteOTP(context.Context, *SendQuoteOTPRequest) (*Empty, error)
 	CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error)
 	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
 	PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error)
@@ -206,6 +218,9 @@ func (UnimplementedOpenPaymentServiceServer) CreateQuote(context.Context, *Creat
 }
 func (UnimplementedOpenPaymentServiceServer) LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LookupQuote not implemented")
+}
+func (UnimplementedOpenPaymentServiceServer) SendQuoteOTP(context.Context, *SendQuoteOTPRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendQuoteOTP not implemented")
 }
 func (UnimplementedOpenPaymentServiceServer) CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateIncomingPayment not implemented")
@@ -341,6 +356,24 @@ func _OpenPaymentService_LookupQuote_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OpenPaymentServiceServer).LookupQuote(ctx, req.(*LookupQuoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OpenPaymentService_SendQuoteOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendQuoteOTPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenPaymentServiceServer).SendQuoteOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OpenPaymentService_SendQuoteOTP_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenPaymentServiceServer).SendQuoteOTP(ctx, req.(*SendQuoteOTPRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -483,6 +516,10 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LookupQuote",
 			Handler:    _OpenPaymentService_LookupQuote_Handler,
+		},
+		{
+			MethodName: "SendQuoteOTP",
+			Handler:    _OpenPaymentService_SendQuoteOTP_Handler,
 		},
 		{
 			MethodName: "CreateIncomingPayment",

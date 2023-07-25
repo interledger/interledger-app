@@ -593,6 +593,10 @@ table "openpayments_quotes" {
     null = true
     type = text
   }
+  column "otp_id" {
+    null = true
+    type = text
+  }
   primary_key {
     columns = [column.id]
   }

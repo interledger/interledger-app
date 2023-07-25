@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/fynbos/backend/twilio"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
@@ -216,6 +218,7 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		ReceiveAmount:  q.ReceiveAmount.ToPB(),
 		ExpiresAt:      timestamppb.New(q.ExpiresAt),
 		CreatedAt:      timestamppb.New(q.CreatedAt),
+		RequiresOTP:    q.RequiresOTP,
 	}, nil
 }
 
@@ -243,7 +246,14 @@ func (g *grpcServer) LookupQuote(ctx context.Context, req *pb.LookupQuoteRequest
 		ReceiveAmount:  q.ReceiveAmount.ToPB(),
 		ExpiresAt:      timestamppb.New(q.ExpiresAt),
 		CreatedAt:      timestamppb.New(q.CreatedAt),
+		RequiresOTP:    q.RequiresOTP,
 	}, nil
+}
+
+func (g *grpcServer) SendQuoteOTP(ctx context.Context, req *pb.SendQuoteOTPRequest) (*pb.Empty, error) {
+	err := ops.SendQuoteOTP(ctx, g.b, req.Id)
+
+	return &pb.Empty{}, toGRPCError(err)
 }
 
 func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIncomingPaymentRequest) (*pb.IncomingPayment, error) {
@@ -372,7 +382,7 @@ func (g *grpcServer) PreCheckOutgoingPayment(ctx context.Context, req *pb.PreChe
 
 func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOutgoingPaymentRequest) (*pb.OutgoingPayment, error) {
 
-	_, err := g.b.Users().UserForContext(ctx)
+	user, err := g.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("no login found")
 	}
@@ -396,6 +406,25 @@ func (g *grpcServer) CreateOutgoingPayment(ctx context.Context, req *pb.CreateOu
 	q, err := ops.GetWalletQuote(ctx, g.b, wallet.ID, args.QuoteID)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	if q.RequiresOTP {
+		if req.GetOtp() == "" {
+			return nil, NewValidationError("otp", "OTP is required for this quote")
+		}
+
+		vc, err := g.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+			PhoneNumber:    user.PhoneNumber,
+			Code:           req.GetOtp(),
+			VerificationID: q.OTPId,
+		})
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		if !vc.IsValid() {
+			return nil, NewValidationError("otp", "OTP is invalid for the quote")
+		}
 	}
 
 	if args.ThreeDSID != "" {
