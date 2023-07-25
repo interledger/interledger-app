@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/wallets"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -233,6 +234,11 @@ func TestReviews(t *testing.T) {
 	require.NoError(t, err)
 
 	walletID := uuid.NewString()
+	c.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
+		ID:   walletID,
+		Name: "Test Wallet",
+	}, nil).AnyTimes()
+
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
 		WalletID: walletID,
 		Name:     "Test",
@@ -270,6 +276,7 @@ func TestReviews(t *testing.T) {
 	assert.Equal(t, "test@fynbos.dev", review.ReviewedBy)
 	assert.Equal(t, linkedaccounts.OwnershipReviewRequired, review.State)
 	assert.Equal(t, linkedaccounts.Verified, review.NewState)
+	assert.Equal(t, la.Mask, review.LinkedAccountMask)
 	assert.NotEmpty(t, review.CompletedAt)
 }
 
@@ -279,6 +286,11 @@ func TestListReviews(t *testing.T) {
 	require.NoError(t, err)
 
 	walletID := uuid.NewString()
+	c.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
+		ID:   walletID,
+		Name: "Test Wallet",
+	}, nil).AnyTimes()
+
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
 		WalletID: walletID,
 		Name:     "Test",
