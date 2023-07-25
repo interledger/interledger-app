@@ -257,7 +257,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
                FROM identities
                WHERE public = true AND state = 'verified' AND identifier ILIKE $2
                UNION
-               SELECT wallet_id, url as identifier, 'wallet' as identifier_type, coalesce(similarity(substring(url, $3), $1), 0) as rank
+               SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $3), $1), 0) as rank
                FROM payment_pointers
                WHERE url ILIKE $2
                UNION 
@@ -294,6 +294,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 			WalletUrl:      r[0].WalletUrl,
 			WalletName:     r[0].WalletName,
 			IdentifierType: "wallet",
+			Identifier:     r[0].WalletName,
 		}
 		for _, sr := range r {
 			// Pick the highest possible rank of the sub results
@@ -302,7 +303,6 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 			}
 			// The wallet is already the grouping, don't include as one of the sub results
 			if sr.IdentifierType == "wallet" {
-				group.Identifier = sr.Identifier
 				continue
 			}
 			group.SubResults = append(group.SubResults, sr)
