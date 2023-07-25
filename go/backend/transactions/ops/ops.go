@@ -251,12 +251,12 @@ func ListCompleted(ctx context.Context, b Backends, walletID string, page db.Pag
 
 func ListWithPending(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
 
-	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2) or (state=$3 and type<>$4)) ORDER BY updated_at DESC,id %s"
-	sqlArgs := []interface{}{walletID, transactions.StateCompleted, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming}
+	sqlStmt := "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2, $3) or (state=$4 and type<>$5)) ORDER BY updated_at DESC,id %s"
+	sqlArgs := []interface{}{walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming}
 
 	if page.PageToken != "" {
-		sqlStmt = "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2) or (state=$3 and type<>$4)) and updated_at<=(SELECT updated_at FROM transactions WHERE id=$5) ORDER BY updated_at DESC,id %s"
-		sqlArgs = []interface{}{walletID, transactions.StateCompleted, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming, page.PageToken}
+		sqlStmt = "SELECT %s FROM transactions WHERE wallet_id=$1 and (state in ($2, $3) or (state=$4 and type<>$5)) and updated_at<=(SELECT updated_at FROM transactions WHERE id=$6) ORDER BY updated_at DESC,id %s"
+		sqlArgs = []interface{}{walletID, transactions.StateCompleted, transactions.StateFailed, transactions.StatePending, transactions.TransactionTypeOpenPaymentIncoming, page.PageToken}
 	}
 
 	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
@@ -460,7 +460,7 @@ type dbTransfer struct {
 
 func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.Transfer, error) {
 	var trs []dbTransfer
-	err := b.DB().SelectContext(ctx, &trs, fmt.Sprintf("SELECT %s FROM transfers WHERE transaction_id=$1", transferCols), txID)
+	err := b.DB().SelectContext(ctx, &trs, fmt.Sprintf("SELECT %s FROM transfers WHERE transaction_id=$1 ORDER BY updated_at DESC", transferCols), txID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
