@@ -303,6 +303,10 @@ export interface CreateOutgoingPaymentRequest {
      * @generated from protobuf field: string identityType = 8 [deprecated = true];
      */
     identityType: string;
+    /**
+     * @generated from protobuf field: optional string otp = 9;
+     */
+    otp?: string;
 }
 /**
  * @generated from protobuf message backend.v1.LookupIncomingPaymentRequest
@@ -389,6 +393,15 @@ export interface LookupQuoteRequest {
     id: string;
 }
 /**
+ * @generated from protobuf message backend.v1.SendQuoteOTPRequest
+ */
+export interface SendQuoteOTPRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
  * @generated from protobuf message backend.v1.CreateQuoteRequest
  */
 export interface CreateQuoteRequest {
@@ -457,6 +470,10 @@ export interface Quote {
      * @generated from protobuf field: google.protobuf.Timestamp createdAt = 7;
      */
     createdAt?: Timestamp;
+    /**
+     * @generated from protobuf field: bool requiresOTP = 8;
+     */
+    requiresOTP: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.PaymentPointerExistsRequest
@@ -2891,7 +2908,8 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
             { no: 5, name: "idempotencyKey", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "threeDSID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "identity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "identityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateOutgoingPaymentRequest>): CreateOutgoingPaymentRequest {
@@ -2930,6 +2948,9 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
                 case /* string identityType = 8 [deprecated = true];*/ 8:
                     message.identityType = reader.string();
                     break;
+                case /* optional string otp */ 9:
+                    message.otp = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -2966,6 +2987,9 @@ class CreateOutgoingPaymentRequest$Type extends MessageType<CreateOutgoingPaymen
         /* string identityType = 8 [deprecated = true]; */
         if (message.identityType !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.identityType);
+        /* optional string otp = 9; */
+        if (message.otp !== undefined)
+            writer.tag(9, WireType.LengthDelimited).string(message.otp);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3249,6 +3273,53 @@ class LookupQuoteRequest$Type extends MessageType<LookupQuoteRequest> {
  */
 export const LookupQuoteRequest = new LookupQuoteRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class SendQuoteOTPRequest$Type extends MessageType<SendQuoteOTPRequest> {
+    constructor() {
+        super("backend.v1.SendQuoteOTPRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SendQuoteOTPRequest>): SendQuoteOTPRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SendQuoteOTPRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SendQuoteOTPRequest): SendQuoteOTPRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SendQuoteOTPRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SendQuoteOTPRequest
+ */
+export const SendQuoteOTPRequest = new SendQuoteOTPRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CreateQuoteRequest$Type extends MessageType<CreateQuoteRequest> {
     constructor() {
         super("backend.v1.CreateQuoteRequest", [
@@ -3354,11 +3425,12 @@ class Quote$Type extends MessageType<Quote> {
             { no: 4, name: "sendAmount", kind: "message", T: () => Amount },
             { no: 5, name: "receiveAmount", kind: "message", T: () => Amount },
             { no: 6, name: "expiresAt", kind: "message", T: () => Timestamp },
-            { no: 7, name: "createdAt", kind: "message", T: () => Timestamp }
+            { no: 7, name: "createdAt", kind: "message", T: () => Timestamp },
+            { no: 8, name: "requiresOTP", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Quote>): Quote {
-        const message = { id: "", paymentPointer: "", receiver: "" };
+        const message = { id: "", paymentPointer: "", receiver: "", requiresOTP: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Quote>(this, message, value);
@@ -3389,6 +3461,9 @@ class Quote$Type extends MessageType<Quote> {
                     break;
                 case /* google.protobuf.Timestamp createdAt */ 7:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+                    break;
+                case /* bool requiresOTP */ 8:
+                    message.requiresOTP = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3423,6 +3498,9 @@ class Quote$Type extends MessageType<Quote> {
         /* google.protobuf.Timestamp createdAt = 7; */
         if (message.createdAt)
             Timestamp.internalBinaryWrite(message.createdAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* bool requiresOTP = 8; */
+        if (message.requiresOTP !== false)
+            writer.tag(8, WireType.Varint).bool(message.requiresOTP);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9528,6 +9606,7 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "ListWalletPaymentPointers", options: {}, I: Empty, O: ListWalletPaymentPointersResponse },
     { name: "CreateQuote", options: {}, I: CreateQuoteRequest, O: Quote },
     { name: "LookupQuote", options: {}, I: LookupQuoteRequest, O: Quote },
+    { name: "SendQuoteOTP", options: {}, I: SendQuoteOTPRequest, O: Empty },
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
     { name: "PreCheckOutgoingPayment", options: {}, I: PreCheckOutgoingPaymentRequest, O: PreCheckOutgoingPaymentResponse },
