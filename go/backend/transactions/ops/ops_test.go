@@ -222,6 +222,24 @@ func TestListWithPendingTransaction(t *testing.T) {
 			},
 		},
 		{
+			name: "include failed",
+			len:  1,
+			args: transactions.CreateTransactionArgs{
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderGMT,
+				State:       transactions.StateFailed,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			},
+		},
+		{
 			name: "with transfers",
 			len:  1,
 			args: transactions.CreateTransactionArgs{
