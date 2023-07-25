@@ -1,7 +1,12 @@
 import * as widgetSdk from '@mxenabled/web-widget-sdk'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useLoaderData, useRevalidator, useSubmit } from '@remix-run/react'
+import {
+  useLoaderData,
+  useRevalidator,
+  useRouteLoaderData,
+  useSubmit
+} from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -13,6 +18,7 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { getFeatures } from '~/lib/wallet.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   // TODO Add colorScheme option once theme is in the users session
@@ -59,6 +65,9 @@ export default function Page() {
   const { url } = useLoaderData<typeof loader>()
   let widgetRef = useRef<any>(null)
   const { revalidate } = useRevalidator()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
 
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
@@ -72,6 +81,7 @@ export default function Page() {
           formData.append('userGuid', event.user_guid)
           formData.append('memberGuid', event.member_guid)
           formData.append('sessionGuid', event.session_guid)
+          formData.append('csrfToken', csrfToken)
           submit(formData, {
             action: '/connect/bank',
             method: 'post'
@@ -128,6 +138,23 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie') as string)
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/connect/bank'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
   let rpc = await grpcClient
     .createMXBankAccounts(
       {

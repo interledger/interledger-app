@@ -4,6 +4,7 @@ import {
   useActionData,
   useLoaderData,
   useNavigation,
+  useRouteLoaderData,
   useSubmit
 } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
@@ -27,6 +28,7 @@ import { Button, Card, CardContent, Layouts } from '~/components'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { createCard, getWalletId } from '~/lib/wallet.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletId = await getWalletId(request)
@@ -57,6 +59,9 @@ export default function Page() {
   const { walletId, token } = useLoaderData<typeof loader>()
   const submit = useSubmit()
   const actionData = useActionData<typeof action>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
 
   const navigation = useNavigation()
 
@@ -151,6 +156,7 @@ export default function Page() {
         let formData = new FormData()
         if (!Array.isArray(token)) {
           formData.append('tokenId', token.id as string)
+          formData.append('csrfToken', csrfToken)
           submit(formData, {
             action: `/connect/card`,
             method: 'post'
@@ -309,6 +315,23 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie') as string)
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/connect/card'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   let resp = await createCard(request, cardToken)
   if (resp.httpMapping?.status == 409 || resp.httpMapping?.status == 400) {

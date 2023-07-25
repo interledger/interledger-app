@@ -1,12 +1,13 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form } from '@remix-run/react'
+import { Form, useRouteLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, Router, Shape } from '~/components'
 import { flowType, requireFlow } from '~/lib/flows.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import { canSignup } from '~/lib/signupCheck.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   await canSignup(request)
@@ -31,6 +32,9 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   return (
     <>
       <Form
@@ -38,6 +42,13 @@ export default function Page() {
         action={route('/signup')}
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='signup'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <Card>
         <CardContent>
@@ -142,6 +153,21 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  const csrfToken = form.get('csrfToken') as string
+  const session = await getSession(request.headers.get('Cookie'))
+  if (!validateCSRFToken(csrfToken, session)) {
+    throw json(
+      {
+        action: {
+          route: route('/signup'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
+
   await requireFlow(request, flowType.Signup)
   return redirect(route('/signup/about'))
 }

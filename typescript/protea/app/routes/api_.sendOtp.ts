@@ -3,6 +3,7 @@ import type { ActionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
+import { route } from 'routes-gen'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -10,6 +11,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 type fieldErrorsMap = 'To'
 
@@ -26,6 +28,17 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   const phone = form.get('phone') as string
+  const csrfToken = form.get('csrfToken') as string
+  if (!validateCSRFToken(csrfToken, await getSession(request.headers.get("Cookie")))) {
+    return json(
+      {
+        errors: {
+          phone: "Something went wrong. Please try again."
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',

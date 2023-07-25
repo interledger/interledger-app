@@ -1,6 +1,6 @@
 import type { ActionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData, useRouteLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -22,6 +22,7 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -41,6 +42,9 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
 
   return (
     <>
@@ -50,7 +54,13 @@ export default function Page() {
         method='post'
         className='hidden'
       />
-
+      <input
+        id='csrfToken'
+        form='add-public-key'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
+      />
       <Card>
         <CardContent>
           <p>
@@ -204,6 +214,24 @@ function mapper(
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie') as string)
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/settings/keys/add-public'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
+
   const fieldErrors = {
     applicationName: '',
     publicKey: '',

@@ -21,6 +21,7 @@ import { AnchorRouter, Error, Scaffold } from '~/components'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import styles from '~/styles/app.css'
 import { hasUserSession } from './lib/kratos.server'
+import { commitSession, getCSRFToken, getSession } from './session.server'
 
 const metaContent = {
   title: 'Fynbos',
@@ -104,15 +105,21 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = hasUserSession(request)
-  return json({
-    isUser,
-    isSignupGated: IS_SIGNUP_GATED,
-    env: {
-      fynbosEnv: process.env.FYNBOS_ENV,
-      sentryDsn: process.env.SENTRY_DSN,
-      sentryRelease: process.env.SENTRY_RELEASE
-    }
-  })
+  const session = await getSession(request.headers.get('Cookie'))
+  const csrfToken = getCSRFToken(request, session)
+  return json(
+    {
+      isUser,
+      isSignupGated: IS_SIGNUP_GATED,
+      csrfToken,
+      env: {
+        fynbosEnv: process.env.FYNBOS_ENV,
+        sentryDsn: process.env.SENTRY_DSN,
+        sentryRelease: process.env.SENTRY_RELEASE
+      }
+    },
+    { headers: { 'Set-Cookie': await commitSession(session) } }
+  )
 }
 
 function Page() {
@@ -139,6 +146,7 @@ export function ErrorBoundary() {
   captureRemixErrorBoundaryError(error)
 
   if (isRouteErrorResponse(error)) {
+    console.log('route error', error)
     return (
       <Document>
         <Error

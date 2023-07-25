@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData, useRouteLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
@@ -24,6 +24,7 @@ import {
   openPaymentsClient
 } from '~/lib/proto.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   let response = await openPaymentsClient
@@ -100,6 +101,9 @@ export default function Page() {
   const fetcher = useFetcher()
   const { paymentPointerBase, username, snackbar } =
     useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
@@ -121,6 +125,13 @@ export default function Page() {
         className='hidden'
       />
       <input
+        id='csrfToken'
+        form='wallet-address'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
+      />
+      <input
         form='wallet-address'
         value='true'
         name='canSubmit'
@@ -140,7 +151,7 @@ export default function Page() {
           prefix={`${paymentPointerBase}/`}
           appendIcon={
             username == '' &&
-            typeof fetcher.data == 'undefined' ? undefined : fetcher.data
+              typeof fetcher.data == 'undefined' ? undefined : fetcher.data
                 ?.errors.username ? (
               <Icon className='text-error'>error</Icon>
             ) : (
@@ -196,6 +207,23 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const username = form.get('username') as string
   const canSubmit = Boolean(form.get('canSubmit') as string)
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie'))
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/wallet-address'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',

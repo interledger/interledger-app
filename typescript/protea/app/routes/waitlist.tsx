@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useRouteLoaderData
+} from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -23,6 +28,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 type Country = {
   id: string
@@ -92,6 +98,9 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { mug, countryCode, countries, email, fullName } =
     useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
 
   const [country, setCountry] = useState<Country>(
     countries.find((country: Country) => country.id == countryCode) as Country
@@ -127,6 +136,13 @@ export default function Page() {
         action='/waitlist'
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='join-waitlist'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <input
         id='country'
@@ -274,6 +290,23 @@ export async function action({ request }: ActionArgs) {
   const country = form.get('country') as string
   const betaOptIn = form.get('beta') as string
   const mugId = form.get('mugId') as string
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie'))
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/waitlist'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',

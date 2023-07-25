@@ -4,7 +4,8 @@ import {
   Form,
   useActionData,
   useFetcher,
-  useLoaderData
+  useLoaderData,
+  useRouteLoaderData
 } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
@@ -34,6 +35,7 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { canSignup } from '~/lib/signupCheck.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderArgs) {
@@ -85,6 +87,9 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, hasVerified, countries } = useLoaderData<typeof loader>()
   const [showDialog, setShowDialog] = useState<boolean>(false)
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
 
   useEffect(() => {
     if (
@@ -109,6 +114,13 @@ export default function Page() {
         action='/api/sendOtp'
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='signup-phone-otp'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <Card>
         <CardContent>
@@ -164,6 +176,13 @@ export default function Page() {
         action='/signup/phone'
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='signup-phone-otp-validation'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <Dialog open={showDialog} setOpen={setShowDialog}>
         <CardHeader>
@@ -229,6 +248,23 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const otp = form.get('otp') as string
   const phone = form.get('phone') as string
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie'))
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/signup/phone'), 
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',
