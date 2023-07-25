@@ -126,6 +126,10 @@ export interface Transaction {
      * @generated from protobuf field: string destinationIdentityType = 19;
      */
     destinationIdentityType: string;
+    /**
+     * @generated from protobuf field: string refundState = 20;
+     */
+    refundState: string; // NA , PENDING , COMPLETE
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -2312,11 +2316,12 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 16, name: "accountTitle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 17, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 18, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 20, name: "refundState", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "" };
+        const message = { id: "", type: "", source: "", destination: "", state: "", transfers: [], foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -2383,6 +2388,9 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* string destinationIdentityType */ 19:
                     message.destinationIdentityType = reader.string();
+                    break;
+                case /* string refundState */ 20:
+                    message.refundState = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2453,6 +2461,9 @@ class Transaction$Type extends MessageType<Transaction> {
         /* string destinationIdentityType = 19; */
         if (message.destinationIdentityType !== "")
             writer.tag(19, WireType.LengthDelimited).string(message.destinationIdentityType);
+        /* string refundState = 20; */
+        if (message.refundState !== "")
+            writer.tag(20, WireType.LengthDelimited).string(message.refundState);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
