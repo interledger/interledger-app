@@ -470,6 +470,11 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
+	hasTx, err := b.Transactions().GetHasTransacted(ctx, sendPP.WalletID, recvPP.URL)
+	if err != nil {
+		return nil, err
+	}
+
 	amount := currency.Amount{
 		Value:    dbq.SendAmount,
 		Currency: currency.ParseCurrency(dbq.SendAsset),
