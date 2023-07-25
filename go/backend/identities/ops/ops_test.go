@@ -317,7 +317,7 @@ func TestSearch(t *testing.T) {
 	res, err = ops.Search(ctx, b, uuid.NewString(), "notking")
 	require.NoError(t, err)
 	assert.Len(t, res, 1)
-	assert.Equal(t, string("wallet"), res[0].IdentifierType)
+	assert.Equal(t, string("wallet_url"), res[0].IdentifierType)
 	assert.Equal(t, pp.URL, res[0].Identifier)
 
 	// Now for a grouping, wallet and twitter name matches so group em
