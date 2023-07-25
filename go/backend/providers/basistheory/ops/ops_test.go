@@ -15,7 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/basistheory/ops"
 )
 
-func TestCreateCard(t *testing.T) {
+func TestCreateAndUpdateCard(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	t.Cleanup(func() {
@@ -81,4 +81,39 @@ func TestCreateCard(t *testing.T) {
 	assert.Equal(t, tokenID, idempotentCard.TokenID)
 	assert.Equal(t, card.ID, idempotentCard.ID)
 	assert.Equal(t, fingerprint, idempotentCard.Fingerprint)
+
+	updatedCard, err := ops.UpdateCard(ctx, b, fynbos_basistheory.UpdateCardArgs{
+		ID:               card.ID,
+		Bin:              "1234",
+		ExpirationMonth:  "01",
+		ExpirationYear:   "2025",
+		Fingerprint:      "fingerprint",
+		PullNetwork:      "Mastercard",
+		PullEnabled:      false,
+		PullType:         "Credit",
+		PullCountry:      "USA",
+		PushNetwork:      "VISA",
+		PushEnabled:      false,
+		PushType:         "Debit",
+		PushAvailability: "NextDay",
+		PushCountry:      "USA",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, card.ID, updatedCard.ID)
+	assert.Equal(t, card.WalletID, updatedCard.WalletID)
+	assert.Equal(t, card.TokenID, tokenID)
+	assert.Equal(t, card.TokenizedNumber, updatedCard.TokenizedNumber)
+	assert.Equal(t, "01", updatedCard.ExpirationMonth)
+	assert.Equal(t, "2025", updatedCard.ExpirationYear)
+	assert.Equal(t, "fingerprint", updatedCard.Fingerprint)
+	assert.Equal(t, "1234", updatedCard.Bin)
+	assert.Equal(t, "Mastercard", updatedCard.PullNetwork)
+	assert.False(t, updatedCard.PullEnabled)
+	assert.Equal(t, "Credit", updatedCard.PullType)
+	assert.Equal(t, "USA", updatedCard.PullCountry)
+	assert.Equal(t, "VISA", updatedCard.PushNetwork)
+	assert.False(t, updatedCard.PushEnabled)
+	assert.Equal(t, "Debit", updatedCard.PushType)
+	assert.Equal(t, "NextDay", updatedCard.PushAvailability)
+	assert.Equal(t, "USA", updatedCard.PushCountry)
 }
