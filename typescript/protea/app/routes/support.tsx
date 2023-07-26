@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useRouteLoaderData
+} from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -25,6 +30,7 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -48,6 +54,9 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const { traits } = useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const actionData = useActionData<typeof action>()
   return (
     <WalletGrid>
@@ -56,6 +65,13 @@ export default function Page() {
         action={route('/support')}
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='support-form'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <input
         defaultValue={traits.firstName}
@@ -163,6 +179,23 @@ export async function action({ request }: ActionArgs) {
   const lastName = form.get('lastName') as string
   const email = form.get('email') as string
   const description = form.get('description') as string
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie'))
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/support'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',

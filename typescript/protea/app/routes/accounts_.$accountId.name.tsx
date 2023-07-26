@@ -1,6 +1,12 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useParams,
+  useRouteLoaderData
+} from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
@@ -14,6 +20,7 @@ import {
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { getLinkedAccount } from '~/lib/wallet.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
@@ -44,6 +51,9 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { name } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const params = useParams()
 
   return (
@@ -55,6 +65,13 @@ export default function Page() {
         })}
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='edit-linked-account-name'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <Card>
         <TextField
@@ -94,6 +111,20 @@ export async function action({ request, params }: ActionArgs) {
   const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
   const nickname = form.get('name') as string
+  const csrfToken = form.get('csrfToken') as string
+  if (!validateCSRFToken(csrfToken, await getSession(cookie))) {
+    throw json(
+      {
+        action: {
+          route: route('/accounts/:accountId/name', {
+            accountId: params.accountId as string
+          }),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   const fieldErrors = {
     form: '',

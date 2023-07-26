@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useLoaderData, useNavigate } from '@remix-run/react'
+import {
+  Form,
+  useLoaderData,
+  useNavigate,
+  useRouteLoaderData
+} from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -18,6 +23,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -62,6 +68,9 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function Page() {
   let { id } = useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const nav = useNavigate()
 
   // We do this redirect clientside because the browser removes secure cookies when coming from another domain.
@@ -76,6 +85,13 @@ export default function Page() {
         action={'/connect/twitter'}
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='connect-twitter'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       {id && (
         <Card>
@@ -161,6 +177,24 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie') as string)
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/connect/twitter'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
   let resp = await grpcClient
     .createTwitterAuthURL(
       {},

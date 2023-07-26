@@ -1,7 +1,12 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
-import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import {
+  useActionData,
+  useLoaderData,
+  useRouteLoaderData,
+  useSubmit
+} from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -26,6 +31,7 @@ import {
 import { flashSnackbar } from '~/lib/snackbar.server'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 // The loader generates a new 3ds session. This must only be called on initial page load
 // and not after submitting actions.
@@ -103,6 +109,9 @@ function cleanupSongbirdScript(script: ScriptElt) {
 export default function Page() {
   const { quoteId, initJWT, threeDsId, songbirdURL, fynbosEnv } =
     useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
   const state = useScript(songbirdURL, cleanupSongbirdScript)
@@ -142,6 +151,7 @@ export default function Page() {
         formData.append('userAgent', navigator.userAgent)
 
         formData.append('quoteId', quoteId)
+        formData.append('csrfToken', csrfToken)
 
         submit(formData, {
           action: route('/pay/3ds'),
@@ -164,6 +174,7 @@ export default function Page() {
               formData.append('jwt', jwt)
 
               formData.append('quoteId', quoteId)
+              formData.append('csrfToken', csrfToken)
 
               submit(formData, {
                 action: route('/pay/3ds'),
@@ -182,7 +193,7 @@ export default function Page() {
         jwt: initJWT
       })
     }
-  }, [initJWT, state, threeDsId, submit, fynbosEnv, quoteId])
+  }, [initJWT, state, threeDsId, submit, fynbosEnv, quoteId, csrfToken])
 
   const showIssuerChallenge = () => {
     setShowingIssuerChallenge(true)
@@ -245,6 +256,19 @@ export async function action({ request }: ActionArgs) {
   const formName = form.get('name')
   const threeDSID = form.get('threeDsId') as string
   const quoteId = form.get('quoteId') as string
+  const csrfToken = form.get('csrfToken') as string
+  const session = await getSession(request.headers.get('Cookie'))
+  if (!validateCSRFToken(csrfToken, session)) {
+    throw json(
+      {
+        action: {
+          route: route('/pay/3ds'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   if (formName === 'lookup') {
     let lookup3DS = await grpcClient

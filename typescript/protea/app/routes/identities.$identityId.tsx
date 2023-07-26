@@ -5,7 +5,8 @@ import {
   useActionData,
   useFetcher,
   useLoaderData,
-  useRevalidator
+  useRevalidator,
+  useRouteLoaderData
 } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { useCallback, useEffect, useState } from 'react'
@@ -38,6 +39,7 @@ import {
   setTwitterIdentityPublic,
   verifyTwitterIdentity
 } from '~/lib/wallet.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletInfo = await getWalletInfo(request)
@@ -80,6 +82,9 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const { identity, publicName, walletInfo, snackbar } =
     useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const response = useActionData<typeof action>()
 
   const { revalidate } = useRevalidator()
@@ -121,6 +126,13 @@ export default function Page() {
         action={`/identities/${identity.id}`}
         method='post'
         className='hidden'
+      />
+      <input
+        id='csrfToken'
+        form='identity'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       {identity.state == 'verified' && (
         <>
@@ -344,6 +356,25 @@ export async function action({ request, params }: ActionArgs) {
   const formName = (await form.get('formName')) as string
   const identityId = params.identityId as string
   const publish = (await form.get('publish')) as string
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie') as string)
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/identities/:identityId', {
+            identityId: params.identityId as string
+          }),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   switch (formName) {
     case 'verify':

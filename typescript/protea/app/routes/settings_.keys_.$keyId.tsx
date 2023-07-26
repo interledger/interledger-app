@@ -1,6 +1,11 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useRouteLoaderData
+} from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -25,6 +30,7 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -54,6 +60,9 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export default function Page() {
   const { connection, limits, snackbar } = useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const actionData = useActionData<typeof action>()
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     snackbar.show ?? false
@@ -71,7 +80,13 @@ export default function Page() {
         method='post'
         className='hidden'
       />
-
+      <input
+        id='csrfToken'
+        form='key-id'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
+      />
       <Card>
         <CardContent>
           <code className='flex items-center justify-between break-all rounded-xl bg-nav p-2 font-mono text-medium'>
@@ -211,6 +226,25 @@ function mapper(
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const formName = await form.get('formName')
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie') as string)
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/settings/keys/:keyId', {
+            keyId: params.keyId as string
+          }),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
 
   if (formName === 'delete') {
     const response = await grpcClient

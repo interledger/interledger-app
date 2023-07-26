@@ -1,4 +1,6 @@
+import type { Session } from '@remix-run/node'
 import { createCookie, createSessionStorage } from '@remix-run/node'
+import { randomUUID } from 'crypto'
 import { v4 } from 'uuid'
 import { redisClient } from '~/lib/redis.server'
 
@@ -43,3 +45,13 @@ export const { getSession, commitSession, destroySession } =
       await redisClient.del(id)
     }
   })
+
+export function getCSRFToken(request: Request, session: Session): string {
+  let token = randomUUID()
+  session.set('csrf-token', token)
+  return token
+}
+
+export function validateCSRFToken(token: string, session: Session): Boolean {
+  return session.get('csrf-token') === token
+}

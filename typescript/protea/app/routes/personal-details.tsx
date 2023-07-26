@@ -1,6 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { useLoaderData, useSubmit } from '@remix-run/react'
+import { useLoaderData, useRouteLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import { Button, Card, CardContent, Layouts, Shape } from '~/components'
@@ -14,6 +14,7 @@ import {
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+import { getSession, validateCSRFToken } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
@@ -59,6 +60,9 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const submit = useSubmit()
   const { inquiryId, sessionToken } = useLoaderData<typeof loader>()
+  const { csrfToken } = useRouteLoaderData('root') as ReturnType<
+    () => { csrfToken: string }
+  >
   const [ready, setReady] = useState(false)
   const status = useScript(
     'https://cdn.withpersona.com/dist/persona-v4.8.0-alpha.js'
@@ -79,7 +83,9 @@ export default function Page() {
         sessionToken,
         onReady: () => setReady(true),
         onComplete: ({ inquiryId, status, fields }: any) => {
-          submit(null, {
+          let formData = new FormData()
+          formData.append('csrfToken', csrfToken)
+          submit(formData, {
             action: '/personal-details',
             method: 'post'
           })
@@ -88,7 +94,7 @@ export default function Page() {
         onError: (error: any) => console.log(error)
       })
     }
-  }, [inquiryId, sessionToken, status, submit])
+  }, [inquiryId, sessionToken, status, submit, csrfToken])
 
   return (
     <>
@@ -175,6 +181,25 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
+  const form = await request.formData()
+  const csrfToken = form.get('csrfToken') as string
+  if (
+    !validateCSRFToken(
+      csrfToken,
+      await getSession(request.headers.get('Cookie') as string)
+    )
+  ) {
+    throw json(
+      {
+        action: {
+          route: route('/personal-details'),
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
+  }
+
   await exitFlow(request, flowType.PersonalDetails)
 
   return redirect(route('/'), {
