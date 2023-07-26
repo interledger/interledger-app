@@ -127,7 +127,6 @@ func (t testBackends) Features() features.Client {
 	return t.fc
 }
 
-
 func NewTestBackends(t *testing.T, db *sqlx.DB, temp temporal.Client, la linkedaccounts.Client, tx transactions.Client, kyc kyc.Client, cc contacts.Client, opts ...func(*testBackends)) Backends {
 	ac := analytics_client.New(nil, "")
 	ctrl := gomock.NewController(t)

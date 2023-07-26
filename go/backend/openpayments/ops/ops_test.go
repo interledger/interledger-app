@@ -665,10 +665,10 @@ func TestCreateQuote(t *testing.T) {
 					Type:       gmt.TypeBankAccount,
 				}, nil)
 
-				laClient.EXPECT().ListByWalletId(ctx, sendWallet.ID).Return([]linkedaccounts.LinkedAccount{
+				laClient.EXPECT().ListByWalletId(ctx, sendWalletID).Return([]linkedaccounts.LinkedAccount{
 					{
 						ID:         tc.args.LinkedAccID,
-						WalletID:   sendWallet.ID,
+						WalletID:   sendWalletID,
 						Name:       "NoName",
 						Nickname:   "NoName",
 						Mask:       "1234",
@@ -681,10 +681,10 @@ func TestCreateQuote(t *testing.T) {
 					},
 				}, nil).AnyTimes()
 			} else {
-				laClient.EXPECT().ListByWalletId(ctx, sendWallet.ID).Return([]linkedaccounts.LinkedAccount{
+				laClient.EXPECT().ListByWalletId(ctx, sendWalletID).Return([]linkedaccounts.LinkedAccount{
 					{
 						ID:         uuid.NewString(),
-						WalletID:   sendWallet.ID,
+						WalletID:   sendWalletID,
 						Name:       "NoName",
 						Nickname:   "NoName",
 						Mask:       "1234",
@@ -698,10 +698,10 @@ func TestCreateQuote(t *testing.T) {
 				}, nil).AnyTimes()
 			}
 
-			laClient.EXPECT().ListByWalletId(ctx, recvWallet.ID).Return([]linkedaccounts.LinkedAccount{
+			laClient.EXPECT().ListByWalletId(ctx, recvWalletID).Return([]linkedaccounts.LinkedAccount{
 				{
 					ID:         uuid.NewString(),
-					WalletID:   recvWallet.ID,
+					WalletID:   recvWalletID,
 					Name:       "NoName",
 					Nickname:   "NoName",
 					Mask:       "1234",

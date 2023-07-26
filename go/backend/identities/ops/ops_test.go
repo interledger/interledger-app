@@ -16,8 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/ops"
 	op_ops "gitlab.com/fynbos/backend/openpayments/ops"
-	"gitlab.com/fynbos/backend/user"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/env"
 )
 
@@ -193,19 +191,13 @@ func TestGetByIdentifier(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 	b := ops.NewTestBackends(t, db)
 
-	userClient := users_mock.NewMock()
-
-	w, err := userClient.CreateNewWallet(ctx, user.CreateWalletArgs{
-		UserID: uuid.NewString(),
-		Name:   "test",
-	})
-	require.NoError(t, err)
+	walletID := uuid.NewString()
 
 	env.SetEnv(t, "local")
 
 	// Publicly visible
 	iv, err := ops.Add(ctx, b, identities.AddArgs{
-		WalletID:   w.ID,
+		WalletID:   walletID,
 		Platform:   identities.PlatformTwitter,
 		Identifier: "king_cold",
 	})

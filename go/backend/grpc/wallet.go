@@ -6,10 +6,13 @@ import (
 	"strings"
 	"sync"
 
+	"gitlab.com/fynbos/backend/wallets"
+
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/paymentpointers"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/user"
@@ -64,12 +67,12 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 		return nil, toGRPCError(err)
 	}
 
-	pp, err := paymentpointers.Parse(opp.URL)
+	wa, err := wallets.ParseAddress(opp.URL)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	wallet, err := s.b.Users().GetWallet(ctx, opp.WalletID)
+	wallet, err := s.b.Wallets().Get(ctx, opp.WalletID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -81,7 +84,7 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 
 	idsResp := make([]*pb.Identity, len(ids))
 	for i, id := range ids {
-		idsResp[i] = identityToPB(&id, pp.String())
+		idsResp[i] = identityToPB(&id, wa.String())
 	}
 
 	lal, err := s.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
@@ -99,8 +102,8 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 
 	return &pb.PublicWalletInfo{
 		WalletID:     wallet.ID,
-		Address:      pp.String(),
-		ShortAddress: pp.ShortString(),
+		Address:      wa.String(),
+		ShortAddress: wa.ShortString(),
 		Identities:   idsResp,
 		CanReceive:   canRecv,
 		PublicName:   wallet.Name,
@@ -113,7 +116,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -121,7 +124,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 	var hasWalletAddress, hasCard, hasBank, hasIdentities, hasTxs bool
 	var anyErr error
 	var wg sync.WaitGroup
-	var pp paymentpointers.PaymentPointer
+	var wa wallets.Address
 
 	wg.Add(4)
 
@@ -136,7 +139,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 			return
 		}
 
-		pp, err = paymentpointers.Parse(opp.URL)
+		wa, err = wallets.ParseAddress(opp.URL)
 		if err != nil {
 			anyErr = err
 			return
@@ -189,8 +192,8 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 
 	return &pb.WalletInfo{
 		WalletID:         w.ID,
-		Url:              pp.String(),
-		FormattedURL:     pp.ShortString(),
+		Url:              wa.String(),
+		FormattedURL:     wa.ShortString(),
 		HasCard:          hasCard,
 		HasBank:          hasBank,
 		HasIdentities:    hasIdentities,
@@ -205,7 +208,7 @@ func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsReq
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
