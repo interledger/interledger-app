@@ -6,9 +6,10 @@ import (
 	"net/url"
 	"strings"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
-	"gitlab.com/fynbos/backend/paymentpointers"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -24,7 +25,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 	source := identifySource(add)
 
 	var walletID string
-	w, err := s.b.Users().WalletForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err == nil {
 		walletID = w.ID
 	}
@@ -34,7 +35,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
-		parsedPP, err := paymentpointers.Parse(pp.URL)
+		parsedPP, err := wallets.ParseAddress(pp.URL)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}

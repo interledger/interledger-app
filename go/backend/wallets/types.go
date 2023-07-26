@@ -55,7 +55,7 @@ func ParseAddress(rawAddress string) (Address, error) {
 
 	pp := standardize(rawAddress)
 
-	ppURL, err := url.Parse(pp)
+	ppURL, err := url.ParseRequestURI(pp)
 	if err != nil {
 		return Address{}, err
 	}
@@ -70,21 +70,26 @@ func ParseAddress(rawAddress string) (Address, error) {
 // - fynbos.me/alice
 // - $fynbos.me/alice
 // Returns the standard format of : https:///fynbos.me/alice
-func standardize(pp string) string {
-	if strings.HasPrefix(pp, "https://") {
-		return pp
+func standardize(wa string) string {
+	if strings.HasPrefix(wa, "https://") {
+		return wa
 	}
 
 	// Replace the $ with https://
-	if strings.HasPrefix(pp, "$") {
-		return strings.Replace(pp, "$", "https://", 1)
+	if strings.HasPrefix(wa, "$") {
+		return strings.Replace(wa, "$", "https://", 1)
 	}
 
 	// We use https here
-	if strings.HasPrefix(pp, "http://") {
-		return strings.Replace(pp, "http://", "https://", 1)
+	if strings.HasPrefix(wa, "http://") {
+		return strings.Replace(wa, "http://", "https://", 1)
+	}
+
+	// Payment pointer URLs have at least one slash after the prefix, let the chips fall and the URL parsing fail
+	if !strings.Contains(wa, "/") {
+		return wa
 	}
 
 	// The payment pointer has no prefix assume we need to add https://
-	return "https://" + pp
+	return "https://" + wa
 }

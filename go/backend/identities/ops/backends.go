@@ -3,6 +3,10 @@ package ops
 import (
 	"testing"
 
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 
@@ -46,6 +50,7 @@ type testBackends struct {
 	tc  *twitter_mock.MockClient
 	op  openpayments.Client
 	img images.Client
+	wc  wallets.Client
 }
 
 func (t testBackends) Twilio() twilio.Service {
@@ -104,11 +109,17 @@ func (t testBackends) Features() features.Client {
 	return nil
 }
 
+func (t testBackends) Wallets() wallets.Client {
+	return t.wc
+}
+
 func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 	ctrl := gomock.NewController(t)
 	kc := keys_mock.NewMockClient(ctrl)
 	tc := twitter_mock.NewMockClient(ctrl)
 	img := images_mock.NewMockClient(ctrl)
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	img.EXPECT().GenerateTwitterIdentity(gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
 	img.EXPECT().GenerateTwitterIdentityOG(gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
@@ -128,5 +139,5 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 		Asset:      "",
 		AssetScale: 0,
 	}, nil).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, op: op, img: img}
+	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, op: op, img: img, wc: wc}
 }

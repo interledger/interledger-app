@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/user"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"gitlab.com/fynbos/backend/limits"
@@ -338,21 +337,17 @@ func TestExceedsKYCLimits(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			wallet, err := b.Users().CreateNewWallet(ctx, user.CreateWalletArgs{
-				UserID: uuid.NewString(),
-				Name:   "test",
-			})
-			require.NoError(t, err)
-			b.kyc.EXPECT().GetKYCStatus(gomock.Any(), wallet.ID).Return(tc.kycLevel, nil)
+			walletID := uuid.NewString()
+			b.kyc.EXPECT().GetKYCStatus(gomock.Any(), walletID).Return(tc.kycLevel, nil)
 
 			if tc.tx != nil {
-				tc.tx.WalletID = wallet.ID
+				tc.tx.WalletID = walletID
 
-				_, err = txClient.CreateTransaction(ctx, *tc.tx)
+				_, err := txClient.CreateTransaction(ctx, *tc.tx)
 				require.NoError(t, err)
 			}
 
-			exceeds, limitType, err := ops.ExceedsKYCLimits(ctx, b, wallet.ID, tc.amnt)
+			exceeds, limitType, err := ops.ExceedsKYCLimits(ctx, b, walletID, tc.amnt)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectExceedsLimit, exceeds)
 			assert.Equal(t, tc.expectLimitType, limitType)

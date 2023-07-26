@@ -9,13 +9,14 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/platforms"
-	"gitlab.com/fynbos/backend/paymentpointers"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
@@ -240,7 +241,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	var dbRes, allCandidates, candidates []identities.SearchResult
 
 	// Strip the URL prefix if it is a wallet address or a twitter account URL
-	wa, err := paymentpointers.Parse(term)
+	wa, err := wallets.ParseAddress(term)
 	if err == nil {
 		// Valid URL, possibly wallet address
 		term = strings.TrimPrefix(wa.String(), env.OpenPaymentsURL()+"/")

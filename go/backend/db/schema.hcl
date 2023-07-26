@@ -889,7 +889,7 @@ table "wallet_addresses" {
   primary_key {
     columns = [column.id]
   }
-  index "wallet_id_ind" {
+  index "wallet_addresses_wallet_id_ind" {
     columns = [column.wallet_id]
   }
   index "wallet_address_url_ind" {

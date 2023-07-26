@@ -137,7 +137,7 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
