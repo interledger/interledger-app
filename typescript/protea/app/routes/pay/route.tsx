@@ -81,7 +81,7 @@ export async function loader({ request }: LoaderArgs) {
       .catch(StatusError)
 
     if (!isGrpcError(response)) {
-      results = response.response.results.filter((v) => v.canSend)
+      results = response.response.results
     }
   }
 
