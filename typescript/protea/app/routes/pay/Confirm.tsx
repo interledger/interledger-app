@@ -1,5 +1,5 @@
 import { useFetcher } from '@remix-run/react'
-import { useCallback, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
   Button,
@@ -16,6 +16,7 @@ import {
   Icon,
   LinkedInIcon,
   TextButton,
+  TextField,
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -23,39 +24,67 @@ import { usePayStore } from '~/lib/usePayStore'
 
 export function Confirm() {
   const confirm = useFetcher()
-  const [showDialog, setShowDialog] = useState<boolean>(false)
-  const [agreement, setAgreement] = useState<boolean>(false)
+  const otpFetcher = useFetcher()
 
-  const [address, account, displayAmount, note, publicWalletInfo, quoteId] =
-    usePayStore((state) => [
-      state.address,
-      state.account,
-      state.displayAmount,
-      state.note,
-      state.publicWalletInfo,
-      state.quoteId
-    ])
+  const phoneMask = useFetcher()
 
-  const _onClick = useCallback<{
-    (): void
-  }>(() => {
-    confirm.submit(
-      {
-        formName: 'confirm',
-        quoteId,
-        serviceAgreement: String(agreement)
-      },
-      { method: 'post' }
-    )
-  }, [confirm, quoteId, agreement])
+  const [showOTPDialog, setShowOTPDialog] = useState<boolean>(false)
+  const [showPublicWalletDialog, setShowPublicWalletDialog] =
+    useState<boolean>(false)
+
+  const [
+    address,
+    account,
+    displayAmount,
+    note,
+    publicWalletInfo,
+    quoteId,
+    requiresOTP
+  ] = usePayStore((state) => [
+    state.address,
+    state.account,
+    state.displayAmount,
+    state.note,
+    state.publicWalletInfo,
+    state.quoteId,
+    state.requiresOTP
+  ])
+
+  useEffect(() => {
+    if (phoneMask.state == 'idle' && phoneMask.data == null && requiresOTP) {
+      phoneMask.load(`/pay?phone=true`)
+    }
+  }, [phoneMask, requiresOTP])
+
+  useEffect(() => {
+    if (
+      !showOTPDialog &&
+      otpFetcher.state == 'loading' &&
+      otpFetcher?.data?.success
+    ) {
+      setShowOTPDialog(true)
+    }
+  }, [otpFetcher?.data, otpFetcher.state, showOTPDialog])
 
   return (
     <>
+      <otpFetcher.Form
+        id='pay-phone-otp'
+        action='/api/sendOtp'
+        method='post'
+        className='hidden'
+      />
       <confirm.Form
         id='pay-confirm'
         action={route('/pay')}
         method='post'
         className='hidden'
+      />
+      <input
+        form='pay-confirm'
+        defaultValue={quoteId}
+        name='quoteId'
+        type='hidden'
       />
       <Card>
         <CardContent>
@@ -72,7 +101,7 @@ export function Confirm() {
           </div>
         </CardContent>
         <Label className='mt-2'>Payment to</Label>
-        <CardButton noHover onClick={() => setShowDialog(true)}>
+        <CardButton noHover onClick={() => setShowPublicWalletDialog(true)}>
           <div className='flex w-full items-center justify-between text-medium'>
             <span>{address?.identifier}</span>
             <Icon>navigate_next</Icon>
@@ -118,11 +147,8 @@ export function Confirm() {
         <CardContent>
           <Checkbox
             id='service-agreement'
-            name='service-agreement'
-            checked={agreement}
-            onChange={() => {
-              setAgreement(!agreement)
-            }}
+            name='serviceAgreement'
+            form='pay-confirm'
             className='flex'
             aria-invalid={
               Boolean(confirm.data?.errors?.serviceAgreement) || undefined
@@ -140,18 +166,24 @@ export function Confirm() {
             debiting my account, so long as the transaction corresponds to the
             terms in this online form and my agreement with Fynbos.
           </Checkbox>
-          <input
-            form='pay-confirm'
-            defaultValue={account?.type}
-            name='linked-account-type'
-            type='hidden'
-          />
         </CardContent>
       </Card>
-      <Button onClick={_onClick} type='button'>
-        Confirm payment
-      </Button>
-      <Dialog open={showDialog} setOpen={setShowDialog}>
+      {requiresOTP && (
+        <Button form='pay-phone-otp' type='submit'>
+          Confirm payment
+        </Button>
+      )}
+      {!requiresOTP && (
+        <Button
+          form='pay-confirm'
+          name='formName'
+          value='confirm'
+          type='submit'
+        >
+          Confirm payment
+        </Button>
+      )}
+      <Dialog open={showPublicWalletDialog} setOpen={setShowPublicWalletDialog}>
         <CardHeader>
           <h1 className='text-xl font-medium'>User information</h1>
         </CardHeader>
@@ -197,8 +229,54 @@ export function Confirm() {
         ))}
 
         <CardContent className='flex w-full justify-end space-x-6'>
-          <TextButton type='button' onClick={() => setShowDialog(false)}>
+          <TextButton
+            type='button'
+            onClick={() => setShowPublicWalletDialog(false)}
+          >
             Close
+          </TextButton>
+        </CardContent>
+      </Dialog>
+      <Dialog open={showOTPDialog} setOpen={setShowOTPDialog}>
+        <CardHeader>
+          <h1 className='text-xl font-medium'>Two-step verification</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            Enter the six digit code sent to your mobile number.
+          </span>
+        </CardContent>
+        <Label className='mt-2'>Your mobile phone number</Label>
+        <div className='mt-1 flex space-x-2 rounded-xl bg-nav p-3 text-medium'>
+          <Icon>phone_android</Icon>
+          <span>{phoneMask?.data?.phoneMask}</span>
+        </div>
+
+        <TextField
+          id='otp'
+          form='pay-confirm'
+          label='Verification code'
+          name='otp'
+          type='number'
+          className='mt-4'
+          aria-invalid={Boolean(confirm.data?.errors.otp) || undefined}
+          aria-describedby={
+            confirm.data?.errors.otp ? 'email-error' : undefined
+          }
+          required
+          errorMessage={confirm.data?.errors.otp}
+        />
+        <CardContent className='mt-2 flex w-full justify-end space-x-6'>
+          <TextButton type='submit' form='pay-phone-otp'>
+            Resend code
+          </TextButton>
+          <TextButton
+            form='pay-confirm'
+            name='formName'
+            value='confirm'
+            type='submit'
+          >
+            Verify
           </TextButton>
         </CardContent>
       </Dialog>
