@@ -209,9 +209,13 @@ table "linked_accounts" {
     unique  = true
     columns = [column.wallet_id, column.provider, column.provider_id]
   }
-  index "wallet_can_receive" {
-    unique  = true
-    columns = [column.wallet_id, column.can_receive]
+  index "linked_accounts_wallet_id" {
+    unique  = false
+    columns = [column.wallet_id]
+  }
+  index "wallet_can_receive_state" {
+    unique  = false
+    columns = [column.wallet_id, column.can_receive, column.state]
   }
 }
 table "linked_account_reviews" {
