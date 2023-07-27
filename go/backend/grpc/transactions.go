@@ -114,13 +114,13 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 		// So it will move from state NA -> PENDING -> COMPLETE based on how many transfers there are
 		// This is for Card origination transaction so any ACH origin transactions will never get out of NA state
 		if refundState == "NA" &&
-			tr.State == transactions.StateCompleted &&
+			tx.State == transactions.StateFailed &&
 			tx.Type == transactions.TransactionTypeOpenOutgoingPayment &&
 			tr.Type == transactions.TransferTypeDebitCard {
 			refundState = "PENDING"
 		}
 		if refundState == "PENDING" &&
-			tr.State == transactions.StateCompleted &&
+			tx.State == transactions.StateFailed &&
 			tx.Type == transactions.TransactionTypeOpenOutgoingPayment &&
 			tr.Type == transactions.TransferTypeCreditCard {
 			refundState = "COMPLETE"
