@@ -209,6 +209,10 @@ table "linked_accounts" {
     unique  = true
     columns = [column.wallet_id, column.provider, column.provider_id]
   }
+  index "wallet_can_receive" {
+    unique  = true
+    columns = [column.wallet_id, column.can_receive]
+  }
 }
 table "linked_account_reviews" {
   schema = schema.public
@@ -840,6 +844,10 @@ table "wallets" {
   primary_key {
     columns = [column.id]
   }
+  index "wallets_name" {
+    unique  = false
+    columns = [column.name]
+  }
 }
 table "transactions" {
   schema = schema.public
@@ -1287,6 +1295,10 @@ table "identities" {
   index "wallet_id_ind" {
     unique  = false
     columns = [column.wallet_id]
+  }
+  index "public_state" {
+    unique=false
+    columns = [column.public, column.state]
   }
 }
 
