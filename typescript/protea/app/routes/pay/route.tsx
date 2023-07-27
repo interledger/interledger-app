@@ -105,7 +105,8 @@ export async function loader({ request }: LoaderArgs) {
         walletUrl: response.response.walletUrl,
         canSend: response.response.canSendToAddress,
         identifier: response.response.handle,
-        identifierType: response.response.type
+        identifierType: response.response.type,
+        subResults: []
       }
     }
   }
