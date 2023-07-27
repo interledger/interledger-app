@@ -481,6 +481,16 @@ func startWorker(args *cli.StartArgs) {
 		BearerToken:   args.TwitterBearerToken,
 	})
 
+	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+		AccountSid:   args.TwilioSid,
+		AccountToken: args.TwilioSecret,
+		ServiceSid:   args.TwilioServiceSid,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.twilio = twilioService
+
 	b.limits = limits_client.New(b)
 
 	b.contacts = contacts_client.New(b)

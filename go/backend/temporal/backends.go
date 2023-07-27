@@ -20,6 +20,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
 	"go.temporal.io/sdk/client"
@@ -48,4 +49,5 @@ type Backends interface {
 	Identities() identities.Client
 	Images() images.Client
 	Features() features.Client
+	Twilio() twilio.Service
 }
