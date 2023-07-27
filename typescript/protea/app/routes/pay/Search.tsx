@@ -98,7 +98,8 @@ export function Search() {
                 }
               >
                 <div className='flex gap-x-3'>
-                  {result.identifierType == 'wallet' && <FynbosIcon />}
+                  {(result.identifierType == 'wallet' ||
+                    result.identifierType == 'wallet_url') && <FynbosIcon />}
                   {result.identifierType == 'twitter' && <TwitterIcon />}
                   <div className='flex flex-col items-start gap-y-2'>
                     <span className='text-medium'>{result.identifier}</span>
@@ -108,7 +109,8 @@ export function Search() {
                           key={subResult.walletID + subResult.identifier}
                           className='flex justify-start gap-x-1'
                         >
-                          {subResult.identifierType == 'wallet' && (
+                          {(subResult.identifierType == 'wallet' ||
+                            subResult.identifierType == 'wallet_url') && (
                             <FynbosIcon />
                           )}
                           {subResult.identifierType == 'twitter' && (
