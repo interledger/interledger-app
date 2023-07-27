@@ -284,10 +284,6 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 			// Shouldn't happen but I'm just paranoid
 			continue
 		}
-		if len(r) == 1 {
-			res = append(res, r[0])
-			continue
-		}
 
 		group := identities.SearchResult{
 			WalletID:       wid,

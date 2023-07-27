@@ -296,9 +296,13 @@ func TestSearch(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Len(t, res, 1)
-	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
-	assert.Equal(t, "king_cold", res[0].Identifier)
+	assert.Len(t, res[0].SubResults, 1)
+	assert.Equal(t, "wallet", res[0].IdentifierType)
+	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, 0.5, res[0].Rank)
+	assert.Equal(t, string(identities.PlatformTwitter), res[0].SubResults[0].IdentifierType)
+	assert.Equal(t, "king_cold", res[0].SubResults[0].Identifier)
+	assert.Equal(t, 0.5, res[0].SubResults[0].Rank)
 
 	// Can't search for yourself
 	res, err = ops.Search(ctx, b, walletID, "cold")
@@ -308,17 +312,22 @@ func TestSearch(t *testing.T) {
 	// Search with a full twitter URL
 	res, err = ops.Search(ctx, b, uuid.NewString(), "https://twitter.com/king_cold")
 	require.NoError(t, err)
-	assert.Len(t, res, 1)
-	assert.Equal(t, string(identities.PlatformTwitter), res[0].IdentifierType)
-	assert.Equal(t, "king_cold", res[0].Identifier)
+	assert.Len(t, res[0].SubResults, 1)
+	assert.Equal(t, "wallet", res[0].IdentifierType)
+	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, float64(1), res[0].Rank)
+	assert.Equal(t, string(identities.PlatformTwitter), res[0].SubResults[0].IdentifierType)
+	assert.Equal(t, "king_cold", res[0].SubResults[0].Identifier)
+	assert.Equal(t, float64(1), res[0].SubResults[0].Rank)
 
 	// Search payment pointer
 	res, err = ops.Search(ctx, b, uuid.NewString(), "notking")
 	require.NoError(t, err)
 	assert.Len(t, res, 1)
-	assert.Equal(t, string("wallet_url"), res[0].IdentifierType)
-	assert.Equal(t, pp.URL, res[0].Identifier)
+	assert.Equal(t, string("wallet"), res[0].IdentifierType)
+	assert.Equal(t, "warmer", res[0].Identifier)
+	assert.Equal(t, string("wallet_url"), res[0].SubResults[0].IdentifierType)
+	assert.Equal(t, pp.URL, res[0].SubResults[0].Identifier)
 
 	// Now for a grouping, wallet and twitter name matches so group em
 	_, err = b.DB().ExecContext(ctx, "UPDATE wallets SET name=$1 WHERE id = $2", "cold_iron", walletID)
