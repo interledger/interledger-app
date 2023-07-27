@@ -43,7 +43,7 @@ export function Amount() {
     setAmount,
     setStep,
     setNote,
-    setQuoteId,
+    setQuote,
     setAccount,
     setPublicWalletInfo
   ] = usePayStore((state) => [
@@ -56,7 +56,7 @@ export function Amount() {
     state.setAmount,
     state.setStep,
     state.setNote,
-    state.setQuoteId,
+    state.setQuote,
     state.setAccount,
     state.setPublicWalletInfo
   ])
@@ -163,7 +163,7 @@ export function Amount() {
 
   useEffect(() => {
     if (quoteFetcher.data?.quoteId) {
-      setQuoteId(quoteFetcher.data?.quoteId)
+      setQuote(quoteFetcher.data?.quoteId, quoteFetcher.data?.requiresOTP)
     }
     if (
       quoteFetcher.data?.type == 'submitting' &&
@@ -175,7 +175,7 @@ export function Amount() {
     quoteFetcher,
     quoteFetcher.data?.quoteId,
     quoteFetcher.data?.type,
-    setQuoteId,
+    setQuote,
     setStep
   ])
 

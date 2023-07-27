@@ -40,6 +40,8 @@ type Quote struct {
 	CreatedBy               string          `json:"-"`
 	DestinationIdentity     string          `json:"-"`
 	DestinationIdentityType string          `json:"-"`
+	RequiresOTP             bool            `json:"-"`
+	OTPValidated            bool            `json:"-"`
 }
 
 type ILPConnection struct {

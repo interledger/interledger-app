@@ -116,8 +116,9 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 }
 
 type CheckVerificationCodeArgs struct {
-	PhoneNumber string `validate:"required,e164"`
-	Code        string `validate:"required,numeric,len=6"`
+	PhoneNumber    string `validate:"required,e164"`
+	Code           string `validate:"required,numeric,len=6"`
+	VerificationID string
 }
 
 func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error) {
@@ -138,6 +139,9 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 	params := &verify.CreateVerificationCheckParams{}
 	params.SetTo(args.PhoneNumber)
 	params.SetCode(args.Code)
+	if args.VerificationID != "" {
+		params.SetVerificationSid(args.VerificationID)
+	}
 
 	res, err := s.twilioClient.VerifyV2.CreateVerificationCheck(s.serviceSid, params)
 	if err != nil {

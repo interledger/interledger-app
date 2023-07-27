@@ -306,6 +306,7 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 	tc := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
+	tc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
 
 	la_mock := linked_account_mock.NewMockClient(ctrl)
 	ft_mock := features_mock.NewMockClient(ctrl)
