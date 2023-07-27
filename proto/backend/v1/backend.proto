@@ -338,6 +338,7 @@ message SearchResult {
   bool canSend = 4;
   string identifier = 2;
   string identifierType = 3;
+  repeated SearchResult subResults = 6;
 }
 
 message GetPublicWalletInfoRequest {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -236,7 +237,7 @@ func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*ident
 }
 
 func Search(ctx context.Context, b Backends, walletID, term string) ([]identities.SearchResult, error) {
-	var res []identities.SearchResult
+	var dbRes []identities.SearchResult
 
 	// Strip the URL prefix if it is a wallet address or a twitter account URL
 	wa, err := paymentpointers.Parse(term)
@@ -245,31 +246,69 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 		term = strings.TrimPrefix(wa.String(), env.OpenPaymentsURL()+"/")
 		term = strings.TrimPrefix(term, "https://twitter.com/")
 	}
-
-	if len(term) < 3 {
-		return res, nil
-	}
-
-	// If twitter @ is in
+	// Trim the twitter '@' prefix as we don't store it
 	term = strings.TrimPrefix(term, "@")
 
-	err = b.DB().SelectContext(ctx, &res, `SELECT tmp.*, url FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
+	if len(term) < 3 {
+		return dbRes, nil
+	}
+
+	err = b.DB().SelectContext(ctx, &dbRes, `SELECT tmp.*, pp.url, w.name FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
                FROM identities
                WHERE public = true AND state = 'verified' AND identifier ILIKE $2
                UNION
-               SELECT wallet_id, url as identifier, 'wallet' as identifier_type, coalesce(similarity(substring(url, $3), $1), 0) as rank
+               SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $3), $1), 0) as rank
                FROM payment_pointers
                WHERE url ILIKE $2
                UNION 
                SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
                FROM wallets
                WHERE name ILIKE $2) tmp 
-         INNER JOIN payment_pointers ON tmp.wallet_id = payment_pointers.wallet_id
-         WHERE tmp.wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
+         INNER JOIN payment_pointers pp ON tmp.wallet_id = pp.wallet_id
+         INNER JOIN wallets w ON w.id = tmp.wallet_id
+         WHERE tmp.wallet_id<>$4 ORDER BY tmp.rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
+
+	// Group by duplicate wallet addresses
+	mp := make(map[string][]identities.SearchResult)
+	for _, r := range dbRes {
+		mp[r.WalletID] = append(mp[r.WalletID], r)
+	}
+
+	var res []identities.SearchResult
+	for wid, r := range mp {
+		if len(r) == 0 {
+			// Shouldn't happen but I'm just paranoid
+			continue
+		}
+
+		group := identities.SearchResult{
+			WalletID:       wid,
+			WalletUrl:      r[0].WalletUrl,
+			WalletName:     r[0].WalletName,
+			IdentifierType: "wallet",
+			Identifier:     r[0].WalletName,
+		}
+		for _, sr := range r {
+			// Pick the highest possible rank of the sub results
+			if sr.Rank > group.Rank {
+				group.Rank = sr.Rank
+			}
+			// The wallet is already the grouping, don't include as one of the sub results
+			if sr.IdentifierType == "wallet" {
+				continue
+			}
+			group.SubResults = append(group.SubResults, sr)
+		}
+		res = append(res, group)
+	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Rank < res[j].Rank
+	})
 
 	return res, nil
 }
