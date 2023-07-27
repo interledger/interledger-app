@@ -99,6 +99,7 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) *
 }
 
 func transformTransaction(tx transactions.Transaction) *pb.Transaction {
+	refundState := "NA"
 	trs := make([]*pb.Transfer, len(tx.Transfers))
 	for y, tr := range tx.Transfers {
 		trs[y] = &pb.Transfer{
@@ -108,6 +109,21 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 			LinkedAccountId: tr.LinkedAccountID,
 			Timestamp:       timestamppb.New(tr.Timestamp),
 			Amount:          tr.Amount.ToPB(),
+		}
+		// The transfers are in order.
+		// So it will move from state NA -> PENDING -> COMPLETE based on how many transfers there are
+		// This is for Card origination transaction so any ACH origin transactions will never get out of NA state
+		if refundState == "NA" &&
+			tx.State == transactions.StateFailed &&
+			tx.Type == transactions.TransactionTypeOpenOutgoingPayment &&
+			tr.Type == transactions.TransferTypeDebitCard {
+			refundState = "PENDING"
+		}
+		if refundState == "PENDING" &&
+			tx.State == transactions.StateFailed &&
+			tx.Type == transactions.TransactionTypeOpenOutgoingPayment &&
+			tr.Type == transactions.TransferTypeCreditCard {
+			refundState = "COMPLETE"
 		}
 	}
 
@@ -142,6 +158,7 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 		Reference:               tx.Reference,
 		DestinationIdentity:     tx.DestinationIdentity,
 		DestinationIdentityType: tx.DestinationIdentityType,
+		RefundState:             refundState,
 	}
 }
 

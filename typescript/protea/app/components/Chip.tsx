@@ -9,7 +9,7 @@ export enum ChipColor {
   orange = 'bg-orange-200 text-orange-800',
   yellow = 'bg-yellow-200 text-yellow-800',
   blue = 'bg-blue-200 text-blue-800',
-  red = 'bg-red-200 text-red-800'
+  red = 'bg-red-100 text-red-800'
 }
 
 export type ChipProps = {

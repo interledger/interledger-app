@@ -9,6 +9,7 @@ import {
   CardButton,
   CardContent,
   CardHeader,
+  CardIcon,
   CardLink,
   Chip,
   ChipColor,
@@ -52,6 +53,11 @@ export const handle: ApplicationProps = {
       back: route('/transactions'),
       title: 'Sent payment',
       actions: (match) => {
+        if (match.data.transaction.refundState == 'PENDING') {
+          return <Chip color={ChipColor.red}>Pending refund</Chip>
+        } else if (match.data.transaction.refundState == 'COMPLETE') {
+          return <Chip color={ChipColor.red}>Refunded</Chip>
+        }
         switch (match.data.transaction.status) {
           case 'Completed':
             return <Chip color={ChipColor.green}>Complete</Chip>
@@ -162,27 +168,115 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </div>
         </CardButton>
       </Card>
-      <Card>
-        <CardContent>
-          <div className='flex w-full justify-between'>
-            <span className='text-weak'>Total fees</span>
-            <span className='text-medium'>
-              Free <sup>*</sup>
-            </span>
-          </div>
-          <div className='mt-2 flex w-full justify-between'>
-            <span className='text-weak'>They receive</span>
-            <span className='text-medium'>{transaction.total}</span>
-          </div>
-          <div className='mt-4 flex w-full space-x-2'>
-            <span className='text-xs text-medium'>*</span>
-            <span className='text-xs text-medium'>
-              For a limited time, Fynbos will absorb the fees associated with
-              making a payment.
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      {transaction.refundState == 'PENDING' && (
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <CardIcon className='!bg-error'>
+                <Icon className='text-error'>exclamation</Icon>
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>Pending refund</h3>
+                <p className='text-sm text-medium'>
+                  Any money, including fees, debited from your account will be
+                  returned.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {transaction.refundState == 'COMPLETE' && (
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <CardIcon className='!bg-error'>
+                <Icon className='text-error'>exclamation</Icon>
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>
+                  Payment unsuccessful
+                </h3>
+                <p className='text-sm text-medium'>
+                  All money, including fees, debited from your account has been
+                  returned.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {transaction.refundState == 'NA' && transaction.status == 'Failed' && (
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <CardIcon className='!bg-error'>
+                <Icon className='text-error'>exclamation</Icon>
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>
+                  Payment unsuccessful
+                </h3>
+                <p className='text-sm text-medium'>
+                  No need to worry. Nothing has been debited from your account.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {transaction.refundState != 'NA' && transaction.status == 'Failed' && (
+        <Card>
+          <CardContent>
+            <div className='flex w-full justify-between'>
+              <span className='text-weak'>Total fees</span>
+              <span className='text-medium'>
+                Free <sup>*</sup>
+              </span>
+            </div>
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>You paid</span>
+              <span className='text-medium'>{transaction.total}</span>
+            </div>
+            {transaction.refundState == 'COMPLETE' && (
+              <div className='mt-2 flex w-full justify-between'>
+                <span className='text-weak'>Your refund</span>
+                <span className='text-medium'>{transaction.total}</span>
+              </div>
+            )}
+            <div className='mt-4 flex w-full space-x-2'>
+              <span className='text-xs text-medium'>*</span>
+              <span className='text-xs text-medium'>
+                For a limited time, Fynbos will absorb the fees associated with
+                making a payment.
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {transaction.status != 'Failed' && (
+        <Card>
+          <CardContent>
+            <div className='flex w-full justify-between'>
+              <span className='text-weak'>Total fees</span>
+              <span className='text-medium'>
+                Free <sup>*</sup>
+              </span>
+            </div>
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>You paid</span>
+              <span className='text-medium'>{transaction.total}</span>
+            </div>
+            <div className='mt-4 flex w-full space-x-2'>
+              <span className='text-xs text-medium'>*</span>
+              <span className='text-xs text-medium'>
+                For a limited time, Fynbos will absorb the fees associated with
+                making a payment.
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardContent>
           <div className='flex w-full flex-col justify-between space-y-1'>

@@ -59,6 +59,7 @@ message Transaction {
   string reference = 17;
   string destinationIdentity = 18;
   string destinationIdentityType = 19;
+  string refundState = 20; // NA , PENDING , COMPLETE
 }
 
 message ListTransactionsResponse {
