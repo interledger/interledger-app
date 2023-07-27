@@ -349,7 +349,7 @@ export async function action({ request }: ActionArgs) {
     }
 
     // TODO: Bank payments should just create outgoing payment here
-    return redirect(`/pay/3ds?quoteId=${quoteIdParam}`)
+    return redirect(`/pay/3ds?quoteId=${quoteIdParam}&init=`)
   }
 
   throw json(
