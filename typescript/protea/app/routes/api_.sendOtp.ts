@@ -3,6 +3,7 @@ import type { ActionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
+import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -27,6 +28,9 @@ export async function action({ request }: ActionArgs) {
   const country = form.get('country') as string
   const phone = form.get('phone') as string
 
+  // If the phone is missing we assume the user has a session and we can get it from there.
+  const validation = form.has('phone')
+
   const fieldErrors = {
     form: '',
     country: '',
@@ -34,36 +38,43 @@ export async function action({ request }: ActionArgs) {
   }
 
   let phoneNumber = ''
-  try {
-    phoneNumber = parsePhoneNumberWithError(
-      phone,
-      country as CountryCode
-    ).number
-  } catch (error) {
-    switch ((error as ParseError).message) {
-      case 'NOT_A_NUMBER':
-        return json(
-          { errors: { phone: 'Phone number is invalid.' } },
-          { status: 400 }
-        )
-      case 'INVALID_COUNTRY':
-        return json(
-          { errors: { phone: 'Country is invalid.' } },
-          { status: 400 }
-        )
-      case 'TOO_SHORT':
-        return json(
-          { errors: { phone: 'Phone number is too short.' } },
-          { status: 400 }
-        )
-      case 'TOO_LONG':
-        return json(
-          { errors: { phone: 'Phone number is too long.' } },
-          { status: 400 }
-        )
-      default:
-        throw error
+
+  if (validation) {
+    try {
+      phoneNumber = parsePhoneNumberWithError(
+        phone,
+        country as CountryCode
+      ).number
+    } catch (error) {
+      switch ((error as ParseError).message) {
+        case 'NOT_A_NUMBER':
+          return json(
+            { errors: { phone: 'Phone number is invalid.' } },
+            { status: 400 }
+          )
+        case 'INVALID_COUNTRY':
+          return json(
+            { errors: { phone: 'Country is invalid.' } },
+            { status: 400 }
+          )
+        case 'TOO_SHORT':
+          return json(
+            { errors: { phone: 'Phone number is too short.' } },
+            { status: 400 }
+          )
+        case 'TOO_LONG':
+          return json(
+            { errors: { phone: 'Phone number is too long.' } },
+            { status: 400 }
+          )
+        default:
+          throw error
+      }
     }
+  } else {
+    phoneNumber = await getUserSession(request).then(
+      (v) => v.identity.traits.phone
+    )
   }
 
   let response = await grpcClient
