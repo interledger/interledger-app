@@ -97,9 +97,30 @@ export function Search() {
                   clsx('items-center gap-x-3', active ? 'bg-nav-hover' : '')
                 }
               >
-                {result.identifierType == 'wallet' && <FynbosIcon />}
-                {result.identifierType == 'twitter' && <TwitterIcon />}
-                <span className='text-medium'>{result.identifier}</span>
+                <div className='flex gap-x-3'>
+                  {result.identifierType == 'wallet' && <FynbosIcon />}
+                  {result.identifierType == 'twitter' && <TwitterIcon />}
+                  <div className='flex flex-col items-start gap-y-2'>
+                    <span className='text-medium'>{result.identifier}</span>
+                    {result.subResults?.map((subResult) => {
+                      return (
+                        <div
+                          key={subResult.walletID + subResult.identifier}
+                          className='flex justify-start gap-x-1'
+                        >
+                          {result.identifierType == 'wallet' && <FynbosIcon />}
+                          {result.identifierType == 'twitter' && (
+                            <TwitterIcon />
+                          )}
+                          <span className='text-medium'>
+                            {subResult.identifier}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
                 <Icon className='ml-auto'>navigate_next</Icon>
               </Combobox.Option>
             )
