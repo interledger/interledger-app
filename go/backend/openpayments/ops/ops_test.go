@@ -554,6 +554,7 @@ func TestCreateQuote(t *testing.T) {
 	txClient := transactions_mock.NewMockClient(ctrl)
 	txID := uuid.NewString()
 	txClient.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
+	txClient.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes()
 
 	b := ops.NewTestBackends(t, db, laClient, txClient)
 
