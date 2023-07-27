@@ -266,6 +266,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
                WHERE name ILIKE $2) tmp 
          INNER JOIN payment_pointers pp ON tmp.wallet_id = pp.wallet_id
          INNER JOIN wallets w ON w.id = tmp.wallet_id
+         INNER JOIN linked_accounts la ON tmp.wallet_id = la.wallet_id AND can_receive=TRUE
          WHERE tmp.wallet_id<>$4 ORDER BY tmp.rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
 
 	if err != nil {
