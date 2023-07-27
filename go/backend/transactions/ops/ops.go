@@ -460,7 +460,7 @@ type dbTransfer struct {
 
 func getTransfers(ctx context.Context, b Backends, txID string) ([]transactions.Transfer, error) {
 	var trs []dbTransfer
-	err := b.DB().SelectContext(ctx, &trs, fmt.Sprintf("SELECT %s FROM transfers WHERE transaction_id=$1 ORDER BY updated_at DESC", transferCols), txID)
+	err := b.DB().SelectContext(ctx, &trs, fmt.Sprintf("SELECT %s FROM transfers WHERE transaction_id=$1 ORDER BY updated_at ASC", transferCols), txID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
