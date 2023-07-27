@@ -17,14 +17,11 @@ export async function action({ request }: ActionArgs) {
 
     let url = new URL(expectedDsn)
     let projectID = url.pathname.replace('/', ``)
-    await fetch(
-      `https://${url.hostname}/api/${projectID}/envelope`,
-      {
-        method: 'POST',
-        body: envelope,
-        headers: { 'Content-Type': 'application/x-sentry-envelope' }
-      }
-    )
+    await fetch(`https://${url.hostname}/api/${projectID}/envelope`, {
+      method: 'POST',
+      body: envelope,
+      headers: { 'Content-Type': 'application/x-sentry-envelope' }
+    })
 
     return new Response(null, { status: 200 })
   } catch (error) {

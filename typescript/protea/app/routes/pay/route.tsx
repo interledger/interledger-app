@@ -315,7 +315,7 @@ export async function action({ request }: ActionArgs) {
     const quoteIdParam = quoteId.split('/').at(-1)
 
     // TODO: Bank payments should just create outgoing payment here
-    return redirect(`/pay/3ds?quoteId=${quoteIdParam}`)
+    return redirect(`/pay/3ds?quoteId=${quoteIdParam}&init=`)
   }
 
   throw json(
