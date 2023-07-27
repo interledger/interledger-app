@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/openpayments"
 
@@ -267,6 +269,9 @@ func TestSearch(t *testing.T) {
 
 	_, err := b.DB().ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, "warmer")
 	require.NoError(t, err)
+
+	b.DB().MustExecContext(ctx, "INSERT INTO linked_accounts (wallet_id, name, mask, provider, type, provider_id, state, can_receive) VALUES ($1, $2, $3, $4, $5, $6, $7,$8)",
+		walletID, "warmer", "1234", "testing", "card", uuid.NewString(), linkedaccounts.Verified, true)
 
 	pp := openpayments.PaymentPointer{
 		URL:        op_ops.StandardisePaymentPointer(env.OpenPaymentsURL() + "/notking"),
