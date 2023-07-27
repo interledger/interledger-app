@@ -3,6 +3,8 @@ package workflows
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/twilio"
+
 	features_mock "gitlab.com/fynbos/backend/features/client/mock"
 
 	"github.com/golang/mock/gomock"
@@ -43,6 +45,7 @@ type Backends interface {
 	Tabapay() tabapay.Client
 	Keys() keys.Client
 	Features() features.Client
+	Twilio() twilio.Service
 }
 
 type testBackends struct {
@@ -58,6 +61,11 @@ type testBackends struct {
 	tbc tabapay.Client
 	kc  keys.Client
 	fc  features.Client
+	ts  twilio.Service
+}
+
+func (t testBackends) Twilio() twilio.Service {
+	return t.ts
 }
 
 func (t testBackends) Transactions() transactions.Client {
@@ -127,5 +135,6 @@ func NewTestBackends(t *testing.T, db *sqlx.DB, temp temporal.Client, la linkeda
 		IdentitiesEnabled: true,
 		TwitterEnabled:    true,
 	}, nil).AnyTimes()
+
 	return &testBackends{db: db, val: validator.New(), t: temp, la: la, tx: tx, kyc: kyc, ac: ac, cc: cc, kc: kc, fc: fc}
 }

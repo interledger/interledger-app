@@ -18,6 +18,7 @@ interface PayState {
   // Amount page
   publicWalletInfo: PublicWalletInfo | null
   quoteId: string
+  requiresOTP: boolean
   account: FormattedLinkedAccount | null
   amount: string
   displayAmount: string
@@ -32,7 +33,7 @@ interface PayActions {
   setNote: (note: string) => void
   setPublicWalletInfo: (walletInfo: PublicWalletInfo) => void
   setAccount: (account: FormattedLinkedAccount) => void
-  setQuoteId: (id: string) => void
+  setQuote: (id: string, requiresOTP: boolean) => void
   reset: () => void
 }
 
@@ -41,6 +42,7 @@ const payInitialState = {
   address: null,
   publicWalletInfo: null,
   quoteId: '',
+  requiresOTP: false,
   account: null,
   amount: '',
   displayAmount: '$ 0.00',
@@ -69,7 +71,7 @@ export const usePayStore = create<PayState & PayActions>((set) => ({
     set((state) => ({ publicWalletInfo: walletInfo })),
   setNote: (note) => set((state) => ({ note })),
   setAccount: (account) => set((state) => ({ account })),
-  setQuoteId: (id) => set((state) => ({ quoteId: id })),
+  setQuote: (id, requiresOTP) => set((state) => ({ quoteId: id, requiresOTP })),
   reset: () => set((state) => ({ ...payInitialState }))
 }))
 
