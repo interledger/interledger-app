@@ -21,6 +21,7 @@ type Channel string
 const (
 	PersonaChannel Channel = "C053HA9ANCF"
 	NotifyGMT      Channel = "C05A6PKHVUY"
+	NotifyCard     Channel = "C05KABR3Z8U"
 )
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
