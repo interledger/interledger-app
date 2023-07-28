@@ -1,43 +1,124 @@
-import type { Session } from '@remix-run/node'
+import type { TypedResponse } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { randomUUID } from 'crypto'
 import { commitSession, getSession } from '~/session.server'
 
-type csrfSessionData = {
-  ['csrf-token']: string
-}
-
-// commitSession must be called after this function and the Set-Cookie header set in the response.
-export async function getSessionWithCSRFToken(
-  request: Request
-): Promise<Session<csrfSessionData>> {
+async function getCSRFToken(
+  request: Request,
+  headers?: ResponseInit['headers']
+) {
   const session = await getSession(request.headers.get('Cookie'))
-  let token = session.get('csrf-token')
-  if (typeof token !== 'string') {
-    session.set('csrf-token', randomUUID())
+
+  // It's important that we always get the already set CSRF token from the session.
+  // Loaders can run in parallel and we don't want to override the CSRF token.
+  let csrfToken = session.get('csrf-token')
+  if (typeof csrfToken === 'undefined') {
+    csrfToken = randomUUID()
+    session.set('csrf-token', csrfToken)
   }
 
-  return session
+  const cookie = await commitSession(session)
+  const newHeaders = new Headers(headers)
+  newHeaders.append('Set-Cookie', cookie)
+
+  return { csrfToken, newHeaders }
 }
 
-// This will check that
+type JsonWithCSRFFunction = <Data extends unknown>(
+  request: Request,
+  data: Data,
+  init?: number | ResponseInit
+) => Promise<
+  TypedResponse<
+    Data &
+      object & {
+        // Typescript is a weird beast
+        csrfToken: `${string}-${string}-${string}-${string}-${string}`
+      }
+  >
+>
+
+/**
+ * This is an extension of the json function from Remix.
+ * This function will add a CSRF token to the response data.
+ * And ensure that a new CSRF token is always set in the session storage.
+ * @param request
+ * @param data
+ * @param init
+ */
+export const jsonWithCSRF: JsonWithCSRFFunction = async (
+  request,
+  data,
+  init
+) => {
+  let responseInit = typeof init === 'number' ? { status: init } : init
+
+  const { csrfToken, newHeaders } = await getCSRFToken(
+    request,
+    responseInit?.headers
+  )
+
+  if (typeof data !== 'object') {
+    throw json(
+      {},
+      {
+        status: 400,
+        statusText: 'Only objects should be returned from loaders.'
+      }
+    )
+  }
+
+  return json(
+    { ...data, csrfToken },
+    {
+      ...responseInit,
+      headers: newHeaders
+    }
+  )
+}
+
+/**
+ * This function will validate the CSRF token in the request.
+ * It will throw an error if:
+ *  - there is no CSRF token stored in the user's session
+ *  - the token is different to the CSRF token stored in the user's session.
+ *  - the token is missing from the FormData.
+ * @param request
+ * @param form
+ */
 export async function validateCSRFToken(
   request: Request,
-  token: string
+  form: FormData
 ): Promise<void> {
-  if (token === '') {
-    throw new Error('CSRF token is empty.')
-  }
+  const csrfToken = form.get('csrfToken') as string
+
   let session = await getSession(request.headers.get('Cookie'))
   let serverToken = session.get('csrf-token')
-  if (typeof serverToken !== 'string' || serverToken === '') {
-    throw new Error('No CSRF token set in session.')
+
+  if (
+    !form.has('csrfToken') ||
+    csrfToken === '' ||
+    typeof serverToken !== 'string' ||
+    serverToken === '' ||
+    serverToken !== csrfToken
+  ) {
+    // throw new Error('No CSRF token set in session.')
+    const url = new URL(request.url)
+    throw json(
+      {
+        action: {
+          route: url.pathname,
+          text: 'Try again'
+        }
+      },
+      { status: 422, statusText: 'Invalid CSRF token.' }
+    )
   }
 
-  if (serverToken !== token) {
-    throw new Error('Invalid CSRF token.')
-  }
-
-  // invalidate old token
+  // Invalidate old token by setting a new one.
+  // Ensures we never use the same token twice.
+  // And that there is always a token set in the session.
+  // If we simply unset the token, we run into possible race conditions in loaders fetching data in parallel.
   session.set('csrf-token', randomUUID())
 
   await commitSession(session)

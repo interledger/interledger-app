@@ -1,4 +1,4 @@
-import { useFetcher } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import type { SelectOptions } from '~/components'
@@ -23,9 +23,10 @@ import {
 import { Label } from '~/components/Label'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
+import type { loader } from './route'
 
 export function Amount() {
-  // const { linkedAccounts } = useLoaderData<typeof loader>()
+  const { csrfToken } = useLoaderData<typeof loader>()
 
   const accounts = useFetcher()
   const quoteFetcher = useFetcher()
@@ -89,7 +90,8 @@ export function Amount() {
           walletUrl: address?.walletUrl as string,
           identity: address?.identifier as string,
           identityType: address?.identifierType as string,
-          note
+          note,
+          csrfToken
         },
         { method: 'post' }
       )
@@ -99,6 +101,7 @@ export function Amount() {
       address?.identifier,
       address?.identifierType,
       address?.walletUrl,
+      csrfToken,
       note,
       quoteFetcher,
       setAmount
@@ -117,7 +120,8 @@ export function Amount() {
           walletUrl: address?.walletUrl as string,
           identity: address?.identifier as string,
           identityType: address?.identifierType as string,
-          note
+          note,
+          csrfToken
         },
         { method: 'post' }
       )
@@ -127,6 +131,7 @@ export function Amount() {
       address?.identifierType,
       address?.walletUrl,
       amount,
+      csrfToken,
       note,
       quoteFetcher,
       setAccount
@@ -145,7 +150,8 @@ export function Amount() {
           walletUrl: address?.walletUrl as string,
           identity: address?.identifier as string,
           identityType: address?.identifierType as string,
-          note
+          note,
+          csrfToken
         },
         { method: 'post' }
       )
@@ -156,6 +162,7 @@ export function Amount() {
       address?.identifierType,
       address?.walletUrl,
       amount,
+      csrfToken,
       quoteFetcher,
       setNote
     ]
@@ -203,7 +210,8 @@ export function Amount() {
         note,
         identity: address?.identifier as string,
         identityType: address?.identifierType as string,
-        type: 'submitting'
+        type: 'submitting',
+        csrfToken
       },
       { method: 'post' }
     )
@@ -213,6 +221,7 @@ export function Amount() {
     address?.identifierType,
     address?.walletUrl,
     amount,
+    csrfToken,
     note,
     quoteFetcher
   ])

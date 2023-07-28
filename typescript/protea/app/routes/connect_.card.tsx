@@ -24,23 +24,17 @@ import clsx from 'clsx'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { createCard, getWalletId } from '~/lib/wallet.server'
-import { commitSession } from '~/session.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletId = await getWalletId(request)
-  const session = await getSessionWithCSRFToken(request)
-  return json(
-    {
-      walletId,
-      token: process.env.BT_TOKEN || '',
-      csrfToken: session.get('csrf-token') as string
-    },
-    { headers: { 'Set-Cookie': await commitSession(session) } }
-  )
+  return jsonWithCSRF(request, {
+    walletId,
+    token: process.env.BT_TOKEN || ''
+  })
 }
 
 export const handle: ApplicationProps = {
@@ -116,9 +110,6 @@ export default function Page() {
         case 'Failed precondition: ErrMaxCardsAdded':
           errorMessage =
             'You have connected the maximum number of cards to Fynbos.'
-          break
-        case 'Invalid CSRF token':
-          errorMessage = 'Please try again.'
           break
         default:
           errorMessage = 'There was an error connecting your card.'
@@ -319,18 +310,8 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    return json(
-      {
-        error: 'Invalid CSRF token'
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
-  }
+
+  await validateCSRFToken(request, form)
 
   let resp = await createCard(request, cardToken)
   if (resp.httpMapping?.status == 409 || resp.httpMapping?.status == 400) {

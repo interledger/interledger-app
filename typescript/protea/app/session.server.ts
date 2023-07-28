@@ -7,7 +7,7 @@ const COOKIE_SECRETS = JSON.parse(
   process.env.COOKIE_SECRETS || '["TODO:secrets"]'
 )
 
-export const cookie = createCookie('user_settings', {
+const cookie = createCookie('user_settings', {
   httpOnly: true,
   path: '/',
   secrets: COOKIE_SECRETS,

@@ -24,7 +24,7 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -35,11 +35,9 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { canSignup } from '~/lib/signupCheck.server'
-import { commitSession } from '~/session.server'
 import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await getSessionWithCSRFToken(request)
   await requireNoUserSession(request)
   await canSignup(request)
   const flow = await requireFlow(request, flowType.Signup)
@@ -51,17 +49,13 @@ export async function loader({ request }: LoaderArgs) {
     throw json({}, httpMapping(countries.code))
   }
 
-  return json(
-    {
-      flow,
-      hasVerified:
-        typeof flow.data.phone !== 'undefined' &&
-        typeof flow.data.otp !== 'undefined',
-      countries: countries.response.countries,
-      csrfToken: session.get('csrf-token')
-    },
-    { headers: { 'Set-Cookie': await commitSession(session) } }
-  )
+  return jsonWithCSRF(request, {
+    flow,
+    hasVerified:
+      typeof flow.data.phone !== 'undefined' &&
+      typeof flow.data.otp !== 'undefined',
+    countries: countries.response.countries
+  })
 }
 
 export function links() {
@@ -119,7 +113,6 @@ export default function Page() {
         className='hidden'
       />
       <input
-        id='csrfToken'
         form='signup-phone-otp'
         value={csrfToken}
         name='csrfToken'
@@ -181,7 +174,6 @@ export default function Page() {
         className='hidden'
       />
       <input
-        id='csrfToken'
         form='signup-phone-otp-validation'
         value={csrfToken}
         name='csrfToken'
@@ -251,22 +243,8 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const otp = form.get('otp') as string
   const phone = form.get('phone') as string
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    return json(
-      {
-        errors: {
-          form: '',
-          otp: 'Please try again.',
-          phone: 'Please try again.'
-        }
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
-  }
+
+  await validateCSRFToken(request, form)
 
   const fieldErrors = {
     form: '',

@@ -4,6 +4,7 @@ import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 import { destroySession, getSession } from '~/session.server'
@@ -19,7 +20,7 @@ export async function loader({ request }: LoaderArgs) {
   })
   flow = await flowRes.json()
   if (flowRes.status >= 400) handleFlowError(flow, 'logout')
-  return json({ logoutToken: flow.logout_token })
+  return jsonWithCSRF(request, { logoutToken: flow.logout_token })
 }
 
 export const handle: ApplicationProps = {
@@ -39,11 +40,12 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { logoutToken } = useLoaderData<typeof loader>()
+  const { logoutToken, csrfToken } = useLoaderData<typeof loader>()
 
   return (
     <>
       <Form id='logout' action='/logout' method='post' className='hidden' />
+      <input form='logout' value={csrfToken} name='csrfToken' type='hidden' />
       <Card>
         <CardContent>
           <p>Are you sure you want to log out?</p>
@@ -65,6 +67,8 @@ export async function action({ request }: ActionArgs) {
   const cookie = request.headers.get('cookie') as string
   const form = await request.formData()
   const token = form.get('logoutToken')
+
+  await validateCSRFToken(request, form)
 
   const res = await fetch(`${KRATOS_URL}/self-service/logout?token=${token}`, {
     method: 'GET',

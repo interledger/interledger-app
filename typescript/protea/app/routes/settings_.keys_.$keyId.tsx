@@ -17,7 +17,7 @@ import {
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { getConnection, getConnectionLimits } from '~/lib/connections.server'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -26,7 +26,6 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
-import { commitSession } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -50,16 +49,11 @@ export async function loader({ request, params }: LoaderArgs) {
     getConnectionLimits(request, params.keyId as string),
     getSnackbar(request)
   ])
-  const session = await getSessionWithCSRFToken(request)
-  return json(
-    {
-      connection: data[0],
-      limits: data[1],
-      snackbar: data[2],
-      csrfToken: session.get('csrf-token')
-    },
-    { headers: { 'Set-Cookie': await commitSession(session) } }
-  )
+  return jsonWithCSRF(request, {
+    connection: data[0],
+    limits: data[1],
+    snackbar: data[2]
+  })
 }
 
 export default function Page() {
@@ -82,13 +76,7 @@ export default function Page() {
         method='post'
         className='hidden'
       />
-      <input
-        id='csrfToken'
-        form='key-id'
-        value={csrfToken}
-        name='csrfToken'
-        type='hidden'
-      />
+      <input form='key-id' value={csrfToken} name='csrfToken' type='hidden' />
       <Card>
         <CardContent>
           <code className='flex items-center justify-between break-all rounded-xl bg-nav p-2 font-mono text-medium'>
@@ -228,22 +216,8 @@ function mapper(
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const formName = await form.get('formName')
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    return json(
-      {
-        errors: {
-          dailyLimit: 'Please try again.',
-          monthlyLimit: '',
-          overallLimit: ''
-        }
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
-  }
+
+  await validateCSRFToken(request, form)
 
   if (formName === 'delete') {
     const response = await grpcClient

@@ -11,6 +11,7 @@ import type {
   SearchResult
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -124,7 +125,7 @@ export async function loader({ request }: LoaderArgs) {
     })
   }
 
-  return json({
+  return jsonWithCSRF(request, {
     results,
     address,
     sendAccounts,
@@ -209,6 +210,8 @@ function mapper(field: fieldErrorsMap): 'address' | 'amount' | null {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = (await form.get('formName')) as string
+
+  await validateCSRFToken(request, form)
 
   if (formName === 'quote') {
     const amount = form.get('amount') as string

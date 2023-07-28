@@ -28,20 +28,8 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const country = form.get('country') as string
   const phone = form.get('phone') as string
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    return json(
-      {
-        errors: {
-          phone: 'Something went wrong. Please try again.'
-        }
-      },
-      { status: 422, statusText: err.message }
-    )
-  }
+
+  await validateCSRFToken(request, form)
 
   // If the phone is missing we assume the user has a session and we can get it from there.
   const validation = form.has('phone')
