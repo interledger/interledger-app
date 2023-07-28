@@ -4,9 +4,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Grid, Icon, Router } from '~/components'
-import type {
-  LinkedAccountReviewState
-} from '~/lib/wallet.server';
+import type { LinkedAccountReviewState } from '~/lib/wallet.server'
 import {
   CompleteLinkedAccountReview,
   ListLinkedAccountReviews
