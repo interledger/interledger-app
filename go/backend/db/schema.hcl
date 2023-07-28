@@ -241,6 +241,10 @@ table "linked_account_reviews" {
     type = text
     default = ""
   }
+  index "review_linked_account_index" {
+    unique  = false
+    columns = [column.linked_account_id]
+  }
   column "created_at" {
     null    = false
     type    = timestamp
