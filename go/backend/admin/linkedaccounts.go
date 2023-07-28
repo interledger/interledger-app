@@ -23,6 +23,7 @@ func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLi
 			Provider:   la.Provider,
 			ProviderID: la.ProviderID,
 			Type:       la.Type,
+			State:      string(la.State),
 		}
 	}
 
@@ -45,5 +46,6 @@ func (s *AdminRpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinke
 		Provider:   la.Provider,
 		ProviderID: la.ProviderID,
 		Type:       la.Type,
+		State:      string(la.State),
 	}, nil
 }

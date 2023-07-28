@@ -344,6 +344,31 @@ export async function GetWalletAudits(
   return response.response
 }
 
+export async function ListLinkedAccounts(
+  request: Request,
+  walletID: string
+): Promise<LinkedAccount[]> {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .listLinkedAccounts(
+      {
+        walletID
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response.accounts
+}
+
 export async function ListLinkedAccountReviews(
   request: Request,
   page: PaginationRequest
