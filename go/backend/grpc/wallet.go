@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-
 	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/db"
@@ -220,47 +218,6 @@ func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsReq
 		return nil, toGRPCError(err)
 	}
 
-	walletCanRecv := make(map[string]bool)
-	// Deduplicate as we could have the same result more than once if multiple identities match for the same wallet
-	for _, r := range results {
-		walletCanRecv[r.WalletID] = false
-	}
-
-	var mutex sync.Mutex
-	var wg sync.WaitGroup
-	var anyErr error
-
-	for wid := range walletCanRecv {
-		// Can't send to yourself so don't bother checking, search results should exclude it but let us be paranoid.
-		if wid == w.ID {
-			continue
-		}
-		wg.Add(1)
-		go func(walletID string) {
-			defer wg.Done()
-			accounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, walletID)
-			if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
-				anyErr = err
-				return
-			}
-
-			for _, acc := range accounts {
-				if acc.CanReceive {
-					mutex.Lock()
-					defer mutex.Unlock()
-					walletCanRecv[walletID] = true
-					return
-				}
-			}
-		}(wid)
-	}
-
-	wg.Wait()
-
-	if anyErr != nil {
-		return nil, toGRPCError(err)
-	}
-
 	res := make([]*pb.SearchResult, len(results))
 	for i, r := range results {
 		res[i] = &pb.SearchResult{
@@ -268,7 +225,16 @@ func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsReq
 			WalletUrl:      r.WalletUrl,
 			Identifier:     strings.TrimPrefix(r.Identifier, "https://"),
 			IdentifierType: r.IdentifierType,
-			CanSend:        walletCanRecv[r.WalletID],
+			CanSend:        true,
+		}
+		for _, sr := range r.SubResults {
+			res[i].SubResults = append(res[i].SubResults, &pb.SearchResult{
+				WalletID:       sr.WalletID,
+				WalletUrl:      sr.WalletUrl,
+				Identifier:     strings.TrimPrefix(sr.Identifier, "https://"),
+				IdentifierType: sr.IdentifierType,
+				CanSend:        true,
+			})
 		}
 	}
 

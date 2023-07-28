@@ -5,21 +5,22 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/paymentpointers"
-
-	"gitlab.com/fynbos/env"
-
-	"gitlab.com/fynbos/log"
-	"go.temporal.io/api/enums/v1"
-	"go.uber.org/zap"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/platforms"
+	"gitlab.com/fynbos/backend/paymentpointers"
+	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
+	"go.uber.org/zap"
 )
 
 const cols = ` id, wallet_id, platform, identifier, state, public, key_id, proof, signature, signature_hash, created_at, verified_at `
@@ -236,7 +237,7 @@ func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*ident
 }
 
 func Search(ctx context.Context, b Backends, walletID, term string) ([]identities.SearchResult, error) {
-	var res []identities.SearchResult
+	var idRes, walletRes, ppRes, dbRes, candidates []identities.SearchResult
 
 	// Strip the URL prefix if it is a wallet address or a twitter account URL
 	wa, err := paymentpointers.Parse(term)
@@ -245,31 +246,156 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 		term = strings.TrimPrefix(wa.String(), env.OpenPaymentsURL()+"/")
 		term = strings.TrimPrefix(term, "https://twitter.com/")
 	}
-
-	if len(term) < 3 {
-		return res, nil
-	}
-
-	// If twitter @ is in
+	// Trim the twitter '@' prefix as we don't store it
 	term = strings.TrimPrefix(term, "@")
 
-	err = b.DB().SelectContext(ctx, &res, `SELECT tmp.*, url FROM (SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
-               FROM identities
-               WHERE public = true AND state = 'verified' AND identifier ILIKE $2
-               UNION
-               SELECT wallet_id, url as identifier, 'wallet' as identifier_type, coalesce(similarity(substring(url, $3), $1), 0) as rank
-               FROM payment_pointers
-               WHERE url ILIKE $2
-               UNION 
-               SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
-               FROM wallets
-               WHERE name ILIKE $2) tmp 
-         INNER JOIN payment_pointers ON tmp.wallet_id = payment_pointers.wallet_id
-         WHERE tmp.wallet_id<>$4 ORDER BY rank DESC LIMIT 20`, term, "%"+term+"%", len(env.OpenPaymentsURL())+1, walletID)
+	if len(term) < 3 {
+		return dbRes, nil
+	}
 
+	err = b.DB().SelectContext(ctx, &idRes, `SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
+               FROM identities
+               WHERE wallet_id<>$3 AND public = true AND state = 'verified' AND identifier ILIKE $2 ORDER BY RANK DESC LIMIT 100`, term, "%"+term+"%", walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	dbRes = append(dbRes, idRes...)
+
+	err = b.DB().SelectContext(ctx, &ppRes, `SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $4), $1), 0) as rank
+               FROM payment_pointers
+               WHERE wallet_id<>$3 AND url ILIKE $2 ORDER BY rank,wallet_id DESC LIMIT 100`, term, "%"+term+"%", walletID, len(env.OpenPaymentsURL())+1)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	dbRes = append(dbRes, ppRes...)
+
+	err = b.DB().SelectContext(ctx, &walletRes, `SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
+               FROM wallets
+               WHERE  id<>$3 AND name ILIKE $2  ORDER BY rank, id DESC LIMIT 100`, term, "%"+term+"%", walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	dbRes = append(dbRes, walletRes...)
+
+	if len(dbRes) == 0 {
+		return nil, nil
+	}
+
+	wids := make([]interface{}, len(dbRes))
+	for i, sr := range dbRes {
+		wids[i] = sr.WalletID
+	}
+
+	var canRecv []string
+	canRecvQuery, canRecvArgs, err := sqlx.In("SELECT DISTINCT wallet_id FROM linked_accounts WHERE wallet_id IN (?) AND state=? AND can_receive=?", wids, linkedaccounts.Verified, true)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	err = b.DB().SelectContext(ctx, &canRecv, b.DB().Rebind(canRecvQuery), canRecvArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	return res, nil
+	if len(canRecv) == 0 {
+		return nil, nil
+	}
+
+	canRecvWalletIDs := make([]interface{}, len(canRecv))
+	for i, wid := range canRecv {
+		canRecvWalletIDs[i] = wid
+	}
+
+	walletCanRecv := make(map[string]bool)
+	for _, cr := range canRecv {
+		walletCanRecv[cr] = true
+	}
+
+	// Loop over all the possible results and only include the ones that can receive payment in the candidates
+	for _, r := range dbRes {
+		if walletCanRecv[r.WalletID] {
+			candidates = append(candidates, r)
+		}
+	}
+
+	// Lookup URLs for the candidate walletIDs
+	ppUrlQuery, ppUrlArgs, err := sqlx.In(`SELECT wallet_id, url FROM payment_pointers WHERE wallet_id IN(?)`, canRecvWalletIDs)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	dbRes = nil
+	err = b.DB().SelectContext(ctx, &dbRes, b.DB().Rebind(ppUrlQuery), ppUrlArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	walletURLs := make(map[string]string)
+	for _, r := range dbRes {
+		walletURLs[r.WalletID] = r.WalletUrl
+	}
+
+	// Lookup the Wallet names for walletIDs
+	nameQuery, nameArgs, err := sqlx.In(`SELECT id as wallet_id, name FROM wallets WHERE id IN(?)`, canRecvWalletIDs)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+	dbRes = nil
+	err = b.DB().SelectContext(ctx, &dbRes, b.DB().Rebind(nameQuery), nameArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	walletNames := make(map[string]string)
+	for _, r := range dbRes {
+		walletNames[r.WalletID] = r.WalletName
+	}
+
+	// Set the wallet names and URLs
+	for i, r := range candidates {
+		candidates[i].WalletName = walletNames[r.WalletID]
+		candidates[i].WalletUrl = walletURLs[r.WalletID]
+	}
+
+	// Group by duplicate wallet addresses
+	mp := make(map[string][]identities.SearchResult)
+	for _, r := range candidates {
+		mp[r.WalletID] = append(mp[r.WalletID], r)
+	}
+
+	var resp []identities.SearchResult
+	for wid, r := range mp {
+		if len(r) == 0 {
+			// Shouldn't happen but I'm just paranoid
+			continue
+		}
+
+		group := identities.SearchResult{
+			WalletID:       wid,
+			WalletUrl:      r[0].WalletUrl,
+			WalletName:     r[0].WalletName,
+			IdentifierType: "wallet",
+			Identifier:     r[0].WalletName,
+		}
+		for _, sr := range r {
+			// Pick the highest possible rank of the sub results
+			if sr.Rank > group.Rank {
+				group.Rank = sr.Rank
+			}
+			// The wallet is already the grouping, don't include as one of the sub results
+			if sr.IdentifierType == "wallet" {
+				continue
+			}
+			group.SubResults = append(group.SubResults, sr)
+		}
+		resp = append(resp, group)
+	}
+
+	sort.Slice(resp, func(i, j int) bool {
+		return resp[i].Rank < resp[j].Rank
+	})
+
+	if len(resp) > 20 {
+		resp = resp[:20]
+	}
+
+	return resp, nil
 }
