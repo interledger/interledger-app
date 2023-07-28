@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { LinkedAccount } from "./backend";
+import type { GetLinkedAccountRequest } from "./backend";
 import type { CompleteLinkedAccountReviewRequest } from "./backend";
 import type { LinkedAccountReview } from "./backend";
 import type { GetLinkedAccountReviewRequest } from "./backend";
@@ -85,6 +87,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: CompleteLinkedAccountReview(backend.admin.v1.CompleteLinkedAccountReviewRequest) returns (backend.admin.v1.LinkedAccountReview);
      */
     completeLinkedAccountReview(input: CompleteLinkedAccountReviewRequest, options?: RpcOptions): UnaryCall<CompleteLinkedAccountReviewRequest, LinkedAccountReview>;
+    /**
+     * @generated from protobuf rpc: GetLinkedAccount(backend.admin.v1.GetLinkedAccountRequest) returns (backend.admin.v1.LinkedAccount);
+     */
+    getLinkedAccount(input: GetLinkedAccountRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountRequest, LinkedAccount>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -185,5 +191,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     completeLinkedAccountReview(input: CompleteLinkedAccountReviewRequest, options?: RpcOptions): UnaryCall<CompleteLinkedAccountReviewRequest, LinkedAccountReview> {
         const method = this.methods[12], opt = this._transport.mergeOptions(options);
         return stackIntercept<CompleteLinkedAccountReviewRequest, LinkedAccountReview>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetLinkedAccount(backend.admin.v1.GetLinkedAccountRequest) returns (backend.admin.v1.LinkedAccount);
+     */
+    getLinkedAccount(input: GetLinkedAccountRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountRequest, LinkedAccount> {
+        const method = this.methods[13], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
 }
