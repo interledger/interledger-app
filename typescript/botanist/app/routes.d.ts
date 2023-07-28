@@ -3,6 +3,7 @@ declare module "routes-gen" {
     "/review/:id": { "id": string };
     "/review/:id/details": { "id": string };
     "/wallet/:id": { "id": string };
+    "/wallet/:id/linked-accounts": { "id": string };
     "/wallet/:id/transactions": { "id": string };
     "/wallet/:id/transactions/:transactionId": { "id": string, "transactionId": string };
     "/wallet/:id/profile": { "id": string };
@@ -18,6 +19,7 @@ declare module "routes-gen" {
       | ["/review/:id", RouteParams["/review/:id"]]
       | ["/review/:id/details", RouteParams["/review/:id/details"]]
       | ["/wallet/:id", RouteParams["/wallet/:id"]]
+      | ["/wallet/:id/linked-accounts", RouteParams["/wallet/:id/linked-accounts"]]
       | ["/wallet/:id/transactions", RouteParams["/wallet/:id/transactions"]]
       | ["/wallet/:id/transactions/:transactionId", RouteParams["/wallet/:id/transactions/:transactionId"]]
       | ["/wallet/:id/profile", RouteParams["/wallet/:id/profile"]]

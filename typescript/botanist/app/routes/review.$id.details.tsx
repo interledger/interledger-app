@@ -8,7 +8,6 @@ import {
 } from '~/lib/wallet.server'
 import { GridCard, Icon } from '~/components'
 import { route } from 'routes-gen'
-import { Simulate } from 'react-dom/test-utils'
 
 export async function loader({ request, params }: LoaderArgs) {
   const review = await GetReview(request, params.id as string)
