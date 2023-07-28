@@ -110,6 +110,7 @@ message LinkedAccount {
   string provider = 6;
   string providerID = 7;
   string type = 8;
+  string state = 9;
 }
 
 message GetTransactionDetailsRequest {

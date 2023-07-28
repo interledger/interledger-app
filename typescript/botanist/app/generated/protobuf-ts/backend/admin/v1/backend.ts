@@ -259,6 +259,10 @@ export interface LinkedAccount {
      * @generated from protobuf field: string type = 8;
      */
     type: string;
+    /**
+     * @generated from protobuf field: string state = 9;
+     */
+    state: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
@@ -1337,11 +1341,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 5, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "providerID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "" };
+        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -1375,6 +1380,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string type */ 8:
                     message.type = reader.string();
+                    break;
+                case /* string state */ 9:
+                    message.state = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1412,6 +1420,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string type = 8; */
         if (message.type !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.type);
+        /* string state = 9; */
+        if (message.state !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.state);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
