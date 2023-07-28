@@ -96,6 +96,21 @@ func (mr *MockClientMockRecorder) CreateTransactionTx(ctx, tx, args interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransactionTx", reflect.TypeOf((*MockClient)(nil).CreateTransactionTx), ctx, tx, args)
 }
 
+// GetHasTransacted mocks base method.
+func (m *MockClient) GetHasTransacted(ctx context.Context, walletID, destination string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHasTransacted", ctx, walletID, destination)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHasTransacted indicates an expected call of GetHasTransacted.
+func (mr *MockClientMockRecorder) GetHasTransacted(ctx, walletID, destination interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHasTransacted", reflect.TypeOf((*MockClient)(nil).GetHasTransacted), ctx, walletID, destination)
+}
+
 // GetTransaction mocks base method.
 func (m *MockClient) GetTransaction(ctx context.Context, walletID, trxID string) (*transactions.Transaction, error) {
 	m.ctrl.T.Helper()

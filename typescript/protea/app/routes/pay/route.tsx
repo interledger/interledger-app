@@ -11,6 +11,7 @@ import type {
   SearchResult
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -40,6 +41,7 @@ export async function loader({ request }: LoaderArgs) {
   let address: SearchResult | null = null
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PublicWalletInfo | null = null
+  let phoneMask: string = ''
 
   if (url.search == '') {
     const { kycStatus } = await getKycStatus(request)
@@ -113,10 +115,19 @@ export async function loader({ request }: LoaderArgs) {
     publicWalletInfo = await getPublicWalletInfo(request, walletUrl)
   }
 
+  const phone = url.searchParams.get('phone')
+  if (phone) {
+    phoneMask = await getUserSession(request).then((v) => {
+      const len = v.identity.traits.phone.length
+      return v.identity.traits.phone.substring(len - 4, len).padStart(len, '*')
+    })
+  }
+
   return json({
     results,
     address,
     sendAccounts,
+    phoneMask,
     publicWalletInfo,
     fynbosEnv: process.env.FYNBOS_ENV
   })
@@ -285,6 +296,7 @@ export async function action({ request }: ActionArgs) {
     const data = {
       errors: { ...fieldErrors },
       quoteId: response.response.id,
+      requiresOTP: response.response.requiresOTP,
       type
     }
 
@@ -294,12 +306,13 @@ export async function action({ request }: ActionArgs) {
   if (formName === 'confirm') {
     const serviceAgreement = form.get('serviceAgreement') as string
     const quoteId = form.get('quoteId') as string
+    const otp = form.get('otp') as string
     const fieldErrors = {
       form: '',
       serviceAgreement: ''
     }
 
-    if (serviceAgreement == 'false') {
+    if (serviceAgreement == null) {
       fieldErrors.serviceAgreement =
         'You are required to authorize to continue.'
       return json(
@@ -313,6 +326,26 @@ export async function action({ request }: ActionArgs) {
     }
 
     const quoteIdParam = quoteId.split('/').at(-1)
+
+    if (otp) {
+      const response = await openPaymentsClient
+        .setQuoteOTP(
+          {
+            quoteID: quoteIdParam as string,
+            otp
+          },
+          {
+            meta: {
+              cookies: String(request.headers.get('cookie')) || ''
+            }
+          }
+        )
+        .then((v) => v)
+        .catch(StatusError)
+      if (isGrpcError(response)) {
+        throw json({}, httpMapping(response.code))
+      }
+    }
 
     // TODO: Bank payments should just create outgoing payment here
     return redirect(`/pay/3ds?quoteId=${quoteIdParam}`)
