@@ -1,4 +1,4 @@
-import { useFetcher } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
@@ -21,8 +21,10 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { usePayStore } from '~/lib/usePayStore'
+import type { loader } from '~/routes/pay/route'
 
 export function Confirm() {
+  const { csrfToken } = useLoaderData<typeof loader>()
   const confirm = useFetcher()
   const otpFetcher = useFetcher()
 
@@ -74,11 +76,23 @@ export function Confirm() {
         method='post'
         className='hidden'
       />
+      <input
+        form='pay-phone-otp'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
+      />
       <confirm.Form
         id='pay-confirm'
         action={route('/pay')}
         method='post'
         className='hidden'
+      />
+      <input
+        form='pay-confirm'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <input
         form='pay-confirm'

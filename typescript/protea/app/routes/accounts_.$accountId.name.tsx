@@ -5,7 +5,7 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -15,19 +15,13 @@ import {
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { getLinkedAccount } from '~/lib/wallet.server'
-import { commitSession } from '~/session.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
-  const session = await getSessionWithCSRFToken(request)
-  return json(
-    {
-      name: account.nickname,
-      type: account.type,
-      csrfToken: session.get('csrf-token')
-    },
-    { headers: { 'Set-Cookie': await commitSession(session) } }
-  )
+  return jsonWithCSRF(request, {
+    name: account.nickname,
+    type: account.type
+  })
 }
 
 export const handle: ApplicationProps = {
@@ -63,7 +57,6 @@ export default function Page() {
         className='hidden'
       />
       <input
-        id='csrfToken'
         form='edit-linked-account-name'
         value={csrfToken}
         name='csrfToken'
@@ -107,16 +100,8 @@ export async function action({ request, params }: ActionArgs) {
   const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
   const nickname = form.get('name') as string
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    return json(
-      { errors: { name: 'Something went wrong. Please try again.' } },
-      { status: 422, statusText: err.message }
-    )
-  }
+
+  await validateCSRFToken(request, form)
 
   const fieldErrors = {
     form: '',

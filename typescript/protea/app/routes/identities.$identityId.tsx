@@ -29,7 +29,7 @@ import {
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
 import {
   deleteTwitterIdentity,
@@ -39,7 +39,6 @@ import {
   setTwitterIdentityPublic,
   verifyTwitterIdentity
 } from '~/lib/wallet.server'
-import { commitSession } from '~/session.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletInfo = await getWalletInfo(request)
@@ -49,22 +48,17 @@ export async function loader({ request, params }: LoaderArgs) {
   )
   const identity = await getIdentity(request, params.identityId as string)
   const snackbar = await getSnackbar(request)
-  const session = await getSessionWithCSRFToken(request)
-  return json(
-    {
-      csrfToken: session.get('csrf-token'),
-      snackbar,
-      walletInfo,
-      publicName,
-      identity: {
-        ...identity,
-        verifiedAt: DateTime.fromSeconds(
-          parseInt(identity.verifiedAt?.seconds ?? '')
-        ).toFormat('dd MMM yyyy')
-      }
-    },
-    { headers: { 'Set-Cookie': await commitSession(session) } }
-  )
+  return jsonWithCSRF(request, {
+    snackbar,
+    walletInfo,
+    publicName,
+    identity: {
+      ...identity,
+      verifiedAt: DateTime.fromSeconds(
+        parseInt(identity.verifiedAt?.seconds ?? '')
+      ).toFormat('dd MMM yyyy')
+    }
+  })
 }
 
 export const handle: ApplicationProps = {
@@ -129,13 +123,7 @@ export default function Page() {
         method='post'
         className='hidden'
       />
-      <input
-        id='csrfToken'
-        form='identity'
-        value={csrfToken}
-        name='csrfToken'
-        type='hidden'
-      />
+      <input form='identity' value={csrfToken} name='csrfToken' type='hidden' />
       {identity.state == 'verified' && (
         <>
           <Card>
@@ -355,26 +343,11 @@ export default function Page() {
 
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
-  const formName = (await form.get('formName')) as string
+  const formName = form.get('formName') as string
   const identityId = params.identityId as string
-  const publish = (await form.get('publish')) as string
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    throw json(
-      {
-        action: {
-          route: route('/identities/:identityId', {
-            identityId: params.identityId as string
-          }),
-          text: 'Try again'
-        }
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
-  }
+  const publish = form.get('publish') as string
+
+  await validateCSRFToken(request, form)
 
   switch (formName) {
     case 'verify':

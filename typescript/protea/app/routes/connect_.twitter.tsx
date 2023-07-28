@@ -12,14 +12,13 @@ import {
   LoadingShapes,
   Shape
 } from '~/components'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import {
   StatusError,
   grpcClient,
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { commitSession } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -36,7 +35,6 @@ export async function loader({ request }: LoaderArgs) {
   let url = new URL(request.url)
   let state = url.searchParams.get('state')
   let code = url.searchParams.get('code')
-  const session = await getSessionWithCSRFToken(request)
 
   if (state && code) {
     let resp = await grpcClient.twitterCallback(
@@ -55,15 +53,9 @@ export async function loader({ request }: LoaderArgs) {
       throw json({}, httpMapping(resp.code))
     }
 
-    return json(
-      { id: resp.response.id, csrfToken: session.get('csrf-token') },
-      { headers: { 'Set-Cookie': await commitSession(session) } }
-    )
+    return jsonWithCSRF(request, { id: resp.response.id })
   } else {
-    return json(
-      { id: null, csrfToken: session.get('csrf-token') },
-      { headers: { 'Set-Cookie': await commitSession(session) } }
-    )
+    return jsonWithCSRF(request, { id: null })
   }
 }
 
@@ -85,7 +77,6 @@ export default function Page() {
         className='hidden'
       />
       <input
-        id='csrfToken'
         form='connect-twitter'
         value={csrfToken}
         name='csrfToken'
@@ -176,21 +167,9 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    throw json(
-      {
-        action: {
-          route: route('/connect/twitter'),
-          text: 'Try again'
-        }
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
-  }
+
+  await validateCSRFToken(request, form)
+
   let resp = await grpcClient
     .createTwitterAuthURL(
       {},

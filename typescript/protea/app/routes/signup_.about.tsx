@@ -17,6 +17,7 @@ import type {
   Country,
   SetSignupUserDataResponse
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { flowType, requireFlow, updateFlow } from '~/lib/flows.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -41,7 +42,7 @@ export async function loader({ request, params }: LoaderArgs) {
     throw json({}, httpMapping(response.code))
   }
 
-  return json({
+  return jsonWithCSRF(request, {
     flow,
     countries: response.response.countries
   })
@@ -65,7 +66,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, countries } = useLoaderData<typeof loader>()
+  const { flow, countries, csrfToken } = useLoaderData<typeof loader>()
 
   const [country, setCountry] = useState<Country>(
     countries.find(
@@ -100,9 +101,15 @@ export default function Page() {
     <>
       <Form
         id='signup-about-details'
-        action='/signup/about'
+        action={route('/signup/about')}
         method='post'
         className='hidden'
+      />
+      <input
+        form='signup-about-details'
+        value={csrfToken}
+        name='csrfToken'
+        type='hidden'
       />
       <Card>
         <CardContent>
@@ -224,6 +231,8 @@ export async function action({ request }: ActionArgs) {
   const lastName = form.get('lastName') as string
   const country = form.get('country') as string
   const email = form.get('email') as string
+
+  await validateCSRFToken(request, form)
 
   // TODO: Determine what countries to let through.
   if (!(country == 'US' || country == 'GB')) {

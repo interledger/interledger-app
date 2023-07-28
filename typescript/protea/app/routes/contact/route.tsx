@@ -2,6 +2,7 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
+import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
   AnchorRouter,
@@ -13,6 +14,7 @@ import {
   TextField
 } from '~/components'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { getContactRoute } from '~/lib/marketing.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -24,7 +26,7 @@ import {
 
 export async function loader({ request }: LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
-  return json({ contactRoute, footer })
+  return jsonWithCSRF(request, { contactRoute, footer })
 }
 
 export const handle: ApplicationProps = {
@@ -44,7 +46,7 @@ export function meta({ data, params }: any) {
 }
 
 export default function Page() {
-  const { contactRoute } = useLoaderData<typeof loader>()
+  const { contactRoute, csrfToken } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   return (
     <>
@@ -61,9 +63,15 @@ export default function Page() {
             </div>
             <Form
               id='contact-form'
-              action='/contact'
+              action={route('/contact')}
               method='post'
               className='hidden'
+            />
+            <input
+              form='contact-form'
+              value={csrfToken}
+              name='csrfToken'
+              type='hidden'
             />
             <TextField
               id='firstName'
@@ -190,6 +198,8 @@ export async function action({ request }: ActionArgs) {
   const lastName = form.get('lastName') as string
   const email = form.get('email') as string
   const description = form.get('description') as string
+
+  await validateCSRFToken(request, form)
 
   const fieldErrors = {
     form: '',

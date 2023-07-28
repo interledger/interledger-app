@@ -14,7 +14,7 @@ import {
   TextField
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -23,7 +23,6 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { flashSnackbar } from '~/lib/snackbar.server'
-import { commitSession } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -42,11 +41,7 @@ export const meta: MetaFunction = () => {
 }
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await getSessionWithCSRFToken(request)
-  return json(
-    { csrfToken: session.get('csrf-token') },
-    { headers: { 'Set-Cookie': await commitSession(session) } }
-  )
+  return jsonWithCSRF(request, {})
 }
 
 export default function Page() {
@@ -62,7 +57,6 @@ export default function Page() {
         className='hidden'
       />
       <input
-        id='csrfToken'
         form='add-public-key'
         value={csrfToken}
         name='csrfToken'
@@ -221,24 +215,8 @@ function mapper(
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    return json(
-      {
-        errors: {
-          applicationName: 'Please try again.',
-          publicKey: '',
-          dailyLimit: '',
-          monthlyLimit: '',
-          overallLimit: ''
-        }
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
-  }
+
+  await validateCSRFToken(request, form)
 
   const fieldErrors = {
     applicationName: '',

@@ -15,7 +15,7 @@ import {
   Layouts,
   TextField
 } from '~/components'
-import { getSessionWithCSRFToken, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -24,7 +24,6 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { commitSession } from '~/session.server'
 
 type Country = {
   id: string
@@ -32,7 +31,6 @@ type Country = {
 }
 
 export async function loader({ request }: LoaderArgs) {
-  const session = await getSessionWithCSRFToken(request)
   await requireNoUserSession(request)
   let response = await grpcClient
     .getCountries({})
@@ -63,20 +61,16 @@ export async function loader({ request }: LoaderArgs) {
     isMugAvailable = response.response.available
   }
 
-  return json(
-    {
-      mug: {
-        id: mugId ?? undefined,
-        available: isMugAvailable
-      },
-      countryCode,
-      countries,
-      email,
-      fullName,
-      csrfToken: session.get('csrf-token')
+  return jsonWithCSRF(request, {
+    mug: {
+      id: mugId ?? undefined,
+      available: isMugAvailable
     },
-    { headers: { 'Set-Cookie': await commitSession(session) } }
-  )
+    countryCode,
+    countries,
+    email,
+    fullName
+  })
 }
 
 export const handle: ApplicationProps = {
@@ -136,7 +130,6 @@ export default function Page() {
         className='hidden'
       />
       <input
-        id='csrfToken'
         form='join-waitlist'
         value={csrfToken}
         name='csrfToken'
@@ -288,23 +281,8 @@ export async function action({ request }: ActionArgs) {
   const country = form.get('country') as string
   const betaOptIn = form.get('beta') as string
   const mugId = form.get('mugId') as string
-  const csrfToken = form.get('csrfToken') as string
-  const err = await validateCSRFToken(request, csrfToken).catch(
-    (err: Error) => err
-  )
-  if (err) {
-    return json(
-      {
-        errors: {
-          form: '',
-          fullName: 'Please try again.',
-          countryCode: '',
-          email: ''
-        }
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
-  }
+
+  await validateCSRFToken(request, form)
 
   const fieldErrors = {
     form: '',
