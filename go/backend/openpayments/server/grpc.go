@@ -258,7 +258,7 @@ func (g *grpcServer) SetQuoteOTP(ctx context.Context, req *pb.SetQuoteOTPRequest
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	_, err = g.b.Users().WalletForContext(ctx)
+	_, err = g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -298,7 +298,7 @@ func (g *grpcServer) SendQuoteOTP(ctx context.Context, req *pb.SendQuoteOTPReque
 		return nil, UnauthenticatedError("no login found")
 	}
 
-	_, err = g.b.Users().WalletForContext(ctx)
+	_, err = g.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
