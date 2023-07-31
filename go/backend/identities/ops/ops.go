@@ -237,7 +237,7 @@ func GetByIdentifier(ctx context.Context, b Backends, identifier string) (*ident
 }
 
 func Search(ctx context.Context, b Backends, walletID, term string) ([]identities.SearchResult, error) {
-	var idRes, walletRes, ppRes, dbRes, candidates []identities.SearchResult
+	var dbRes, allCandidates, candidates []identities.SearchResult
 
 	// Strip the URL prefix if it is a wallet address or a twitter account URL
 	wa, err := paymentpointers.Parse(term)
@@ -253,41 +253,50 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 		return dbRes, nil
 	}
 
-	err = b.DB().SelectContext(ctx, &idRes, `SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
+	// Lookup twitter and other external identities.
+	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
                FROM identities
                WHERE wallet_id<>$3 AND public = true AND state = 'verified' AND identifier ILIKE $2 ORDER BY RANK DESC LIMIT 100`, term, "%"+term+"%", walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
-	}
-	dbRes = append(dbRes, idRes...)
 
-	err = b.DB().SelectContext(ctx, &ppRes, `SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $4), $1), 0) as rank
+	}
+	allCandidates = append(allCandidates, dbRes...)
+
+	// Lookup payment pointer URLs.
+	// TODO: move to wallet addresses table.
+	dbRes = nil
+	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $4), $1), 0) as rank
                FROM payment_pointers
                WHERE wallet_id<>$3 AND url ILIKE $2 ORDER BY rank,wallet_id DESC LIMIT 100`, term, "%"+term+"%", walletID, len(env.OpenPaymentsURL())+1)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
-	dbRes = append(dbRes, ppRes...)
+	allCandidates = append(allCandidates, dbRes...)
 
-	err = b.DB().SelectContext(ctx, &walletRes, `SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
+	// Lookup Wallet names.
+	dbRes = nil
+	err = b.DB().SelectContext(ctx, &dbRes, `SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
                FROM wallets
                WHERE  id<>$3 AND name ILIKE $2  ORDER BY rank, id DESC LIMIT 100`, term, "%"+term+"%", walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
-	dbRes = append(dbRes, walletRes...)
+	allCandidates = append(allCandidates, dbRes...)
 
-	if len(dbRes) == 0 {
-		return nil, nil
+	if len(allCandidates) == 0 {
+		return allCandidates, nil
 	}
 
-	wids := make([]interface{}, len(dbRes))
-	for i, sr := range dbRes {
-		wids[i] = sr.WalletID
+	// Get the walletIDs
+	allWalletIDs := make([]interface{}, len(allCandidates))
+	for i, sr := range allCandidates {
+		allWalletIDs[i] = sr.WalletID
 	}
 
+	// Lookup all the wallets that can receive payments from the list of results
 	var canRecv []string
-	canRecvQuery, canRecvArgs, err := sqlx.In("SELECT DISTINCT wallet_id FROM linked_accounts WHERE wallet_id IN (?) AND state=? AND can_receive=?", wids, linkedaccounts.Verified, true)
+	canRecvQuery, canRecvArgs, err := sqlx.In("SELECT DISTINCT wallet_id FROM linked_accounts WHERE wallet_id IN (?) AND state=? AND can_receive=?", allWalletIDs, linkedaccounts.Verified, true)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -311,7 +320,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	}
 
 	// Loop over all the possible results and only include the ones that can receive payment in the candidates
-	for _, r := range dbRes {
+	for _, r := range allCandidates {
 		if walletCanRecv[r.WalletID] {
 			candidates = append(candidates, r)
 		}
