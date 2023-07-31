@@ -3,10 +3,11 @@ import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Grid, Icon } from '~/components'
+import { Grid, Icon, Router } from '~/components'
+import type { LinkedAccountReviewState } from '~/lib/wallet.server'
 import {
-  ListLinkedAccountReviews,
-  SetLinkedAccountReviewToVerified
+  CompleteLinkedAccountReview,
+  ListLinkedAccountReviews
 } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -56,6 +57,24 @@ export default function Page() {
                       </th>
                       <th
                         scope='col'
+                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                      >
+                        Wallet ID
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                      >
+                        Wallet Name
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm  font-medium text-strong'
+                      >
+                        Mask
+                      </th>
+                      <th
+                        scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
                         Action
@@ -74,6 +93,15 @@ export default function Page() {
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
                           {review.state}
                         </td>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
+                          {review.walletID}
+                        </td>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
+                          {review.walletName}
+                        </td>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
+                          {review.mask}
+                        </td>
                         <td
                           className='whitespace-nowrap p-4 text-sm text-gray-500'
                           onClick={() => {
@@ -89,6 +117,17 @@ export default function Page() {
                             <Icon>approval_delegation</Icon>
                             <span>Approve</span>
                           </span>
+                        </td>
+                        <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
+                          <Router
+                            to={route('/review/:id/details', {
+                              id: review.id
+                            })}
+                            className='text-primary'
+                          >
+                            View
+                            <span className='sr-only'>, {review.id}</span>
+                          </Router>
                         </td>
                       </tr>
                     ))}
@@ -123,8 +162,10 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const reviewID = form.get('reviewID') as string
+  const newState = form.get('newState') as LinkedAccountReviewState
+  const reason = form.get('reason') as string
 
-  await SetLinkedAccountReviewToVerified(request, reviewID)
+  await CompleteLinkedAccountReview(request, reviewID, newState, reason)
 
   return null
 }

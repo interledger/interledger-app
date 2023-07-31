@@ -48,6 +48,18 @@ export interface LinkedAccountReview {
      */
     reason: string;
     /**
+     * @generated from protobuf field: string walletID = 9;
+     */
+    walletID: string;
+    /**
+     * @generated from protobuf field: string walletName = 10;
+     */
+    walletName: string;
+    /**
+     * @generated from protobuf field: string mask = 11;
+     */
+    mask: string;
+    /**
      * @generated from protobuf field: google.protobuf.Timestamp createdAt = 7;
      */
     createdAt?: Timestamp;
@@ -194,6 +206,15 @@ export interface ListLinkedAccountsRequest {
     walletID: string;
 }
 /**
+ * @generated from protobuf message backend.admin.v1.GetLinkedAccountRequest
+ */
+export interface GetLinkedAccountRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.ListLinkedAccountsResponse
  */
 export interface ListLinkedAccountsResponse {
@@ -238,6 +259,10 @@ export interface LinkedAccount {
      * @generated from protobuf field: string type = 8;
      */
     type: string;
+    /**
+     * @generated from protobuf field: string state = 9;
+     */
+    state: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
@@ -583,12 +608,15 @@ class LinkedAccountReview$Type extends MessageType<LinkedAccountReview> {
             { no: 4, name: "linkedAccountID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "reviewedBy", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "reason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "walletName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "createdAt", kind: "message", T: () => Timestamp },
             { no: 8, name: "completedAt", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<LinkedAccountReview>): LinkedAccountReview {
-        const message = { id: "", state: "", newState: "", linkedAccountID: "", reviewedBy: "", reason: "" };
+        const message = { id: "", state: "", newState: "", linkedAccountID: "", reviewedBy: "", reason: "", walletID: "", walletName: "", mask: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccountReview>(this, message, value);
@@ -616,6 +644,15 @@ class LinkedAccountReview$Type extends MessageType<LinkedAccountReview> {
                     break;
                 case /* string reason */ 6:
                     message.reason = reader.string();
+                    break;
+                case /* string walletID */ 9:
+                    message.walletID = reader.string();
+                    break;
+                case /* string walletName */ 10:
+                    message.walletName = reader.string();
+                    break;
+                case /* string mask */ 11:
+                    message.mask = reader.string();
                     break;
                 case /* google.protobuf.Timestamp createdAt */ 7:
                     message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
@@ -653,6 +690,15 @@ class LinkedAccountReview$Type extends MessageType<LinkedAccountReview> {
         /* string reason = 6; */
         if (message.reason !== "")
             writer.tag(6, WireType.LengthDelimited).string(message.reason);
+        /* string walletID = 9; */
+        if (message.walletID !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.walletID);
+        /* string walletName = 10; */
+        if (message.walletName !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.walletName);
+        /* string mask = 11; */
+        if (message.mask !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.mask);
         /* google.protobuf.Timestamp createdAt = 7; */
         if (message.createdAt)
             Timestamp.internalBinaryWrite(message.createdAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
@@ -1191,6 +1237,53 @@ class ListLinkedAccountsRequest$Type extends MessageType<ListLinkedAccountsReque
  */
 export const ListLinkedAccountsRequest = new ListLinkedAccountsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class GetLinkedAccountRequest$Type extends MessageType<GetLinkedAccountRequest> {
+    constructor() {
+        super("backend.admin.v1.GetLinkedAccountRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetLinkedAccountRequest>): GetLinkedAccountRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetLinkedAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetLinkedAccountRequest): GetLinkedAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetLinkedAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetLinkedAccountRequest
+ */
+export const GetLinkedAccountRequest = new GetLinkedAccountRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class ListLinkedAccountsResponse$Type extends MessageType<ListLinkedAccountsResponse> {
     constructor() {
         super("backend.admin.v1.ListLinkedAccountsResponse", [
@@ -1248,11 +1341,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 5, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "providerID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "" };
+        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -1286,6 +1380,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string type */ 8:
                     message.type = reader.string();
+                    break;
+                case /* string state */ 9:
+                    message.state = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1323,6 +1420,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string type = 8; */
         if (message.type !== "")
             writer.tag(8, WireType.LengthDelimited).string(message.type);
+        /* string state = 9; */
+        if (message.state !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.state);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2388,5 +2488,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "SetWalletFeatures", options: {}, I: Features, O: Features },
     { name: "ListIncompleteLinkedAccountReviews", options: {}, I: PaginationRequest, O: LinkedAccountReviews },
     { name: "GetLinkedAccountReview", options: {}, I: GetLinkedAccountReviewRequest, O: LinkedAccountReview },
-    { name: "CompleteLinkedAccountReview", options: {}, I: CompleteLinkedAccountReviewRequest, O: LinkedAccountReview }
+    { name: "CompleteLinkedAccountReview", options: {}, I: CompleteLinkedAccountReviewRequest, O: LinkedAccountReview },
+    { name: "GetLinkedAccount", options: {}, I: GetLinkedAccountRequest, O: LinkedAccount }
 ]);

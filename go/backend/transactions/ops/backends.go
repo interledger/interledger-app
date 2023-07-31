@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"gitlab.com/fynbos/backend/wallets"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -18,6 +19,7 @@ type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
 	Users() user.Client
+	Wallets() wallets.Client
 	Notify() notify.Client
 	Analytics() analytics.Client
 }
@@ -30,6 +32,10 @@ type testBackends struct {
 }
 
 func (t testBackends) Users() user.Client {
+	return nil
+}
+
+func (t testBackends) Wallets() wallets.Client {
 	return nil
 }
 

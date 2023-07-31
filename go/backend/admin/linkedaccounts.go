@@ -23,8 +23,29 @@ func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLi
 			Provider:   la.Provider,
 			ProviderID: la.ProviderID,
 			Type:       la.Type,
+			State:      string(la.State),
 		}
 	}
 
 	return &pb.ListLinkedAccountsResponse{Accounts: resp}, err
+}
+
+// create an rpc method for getting a linked account by id
+func (s *AdminRpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinkedAccountRequest) (*pb.LinkedAccount, error) {
+	la, err := s.b.LinkedAccounts().Get(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.LinkedAccount{
+		Id:         la.ID,
+		WalletID:   la.WalletID,
+		Name:       la.Name,
+		Nickname:   la.Nickname,
+		Mask:       la.Mask,
+		Provider:   la.Provider,
+		ProviderID: la.ProviderID,
+		Type:       la.Type,
+		State:      string(la.State),
+	}, nil
 }
