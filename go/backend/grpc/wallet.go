@@ -8,8 +8,6 @@ import (
 
 	"gitlab.com/fynbos/backend/wallets"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-
 	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/db"
