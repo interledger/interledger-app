@@ -2,36 +2,17 @@
 
 Email templates for fynbos.
 
-### Get started
+> NOTE: The production directory contains the kratos templates that are still
+> required until the kratos templates are migrated to use sendgrid.
 
-```shell
-# Install dependencies
-yarn
+## Development
 
-# Build prod email templates
-yarn build
+- `template.html` is the template that is used to generate the email. This is copied to `one-template` found at https://mc.sendgrid.com/dynamic-templates 
+- `data.json` is the test data to show how it works.
 
-# Format templates
-yarn format
-```
-
-Any `.html` file in `./templates` will be compiled in to the `<article>` tag in
-a specified `./layouts` file. Most of the time you can just use
-`./layouts/main.html`. The output is dumped into `./production` with the same
-directory structure. This then needs to be manually copied to sendgrid.
-
-An example template:
-
-```html
-<template src="main">
-  <h1>Welcome</h1>
-  <p>Thank you for signing up to Fynbos.</p>
-</template>
-```
-
-> NOTE: we don't generate .gotmpl files (just used in kratos). Just copy the
-> contents on the corresponding .html file.
+Email templates can be found in [the protea figma file](https://www.figma.com/file/tPklFkjSVd8GZe0IqJGzcG/Protea?node-id=1486%3A4516&mode=dev).
 
 ### Helpful resources
 
 https://www.caniemail.com/
+https://docs.sendgrid.com/for-developers/sending-email/using-handlebars
