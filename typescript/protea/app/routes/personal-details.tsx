@@ -102,26 +102,6 @@ export default function Page() {
             <Shape
               flex='flex-none'
               width='w-8'
-              radius='rounded-full'
-              color='bg-yellow-300'
-            />
-            <Shape
-              flex='flex-none'
-              width='w-8'
-              radius='rounded-tl-full'
-              color='bg-rose-400'
-            />
-            <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Photo ID</h3>
-              <p className='text-medium'>
-                We require a photo of a government ID to verify your identity.
-              </p>
-            </div>
-          </div>
-          <div className='mt-10 flex items-start'>
-            <Shape
-              flex='flex-none'
-              width='w-8'
               radius='rounded-t-full'
               color='bg-purple-200'
             />
@@ -135,29 +115,6 @@ export default function Page() {
               <h3 className='mb-1 font-medium text-strong'>Personal details</h3>
               <p className='text-medium'>
                 Confirmation of your personal details and your address.
-              </p>
-            </div>
-          </div>
-          <div className='mt-10 flex items-start'>
-            <Shape
-              flex='flex-none'
-              width='w-8'
-              radius='rounded-br-full'
-              color='bg-slate-300'
-            />
-            <Shape
-              flex='flex-none'
-              width='w-8'
-              radius='rounded-l-full'
-              color='bg-lime-400'
-            />
-            <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>
-                Selfie verification
-              </h3>
-              <p className='text-medium'>
-                A picture of yourself taken using your smartphone, webcam or
-                tablet.
               </p>
             </div>
           </div>
