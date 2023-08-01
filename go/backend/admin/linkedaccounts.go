@@ -2,8 +2,8 @@ package admin
 
 import (
 	"context"
-
 	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	"strconv"
 )
 
 func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLinkedAccountsRequest) (*pb.ListLinkedAccountsResponse, error) {
@@ -24,6 +24,8 @@ func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLi
 			ProviderID: la.ProviderID,
 			Type:       la.Type,
 			State:      string(la.State),
+			CanSend:    strconv.FormatBool(la.CanSend),
+			CanReceive: strconv.FormatBool(la.CanReceive),
 		}
 	}
 
@@ -47,5 +49,7 @@ func (s *AdminRpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinke
 		ProviderID: la.ProviderID,
 		Type:       la.Type,
 		State:      string(la.State),
+		CanSend:    strconv.FormatBool(la.CanSend),
+		CanReceive: strconv.FormatBool(la.CanReceive),
 	}, nil
 }

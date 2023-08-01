@@ -263,6 +263,14 @@ export interface LinkedAccount {
      * @generated from protobuf field: string state = 9;
      */
     state: string;
+    /**
+     * @generated from protobuf field: string canSend = 10;
+     */
+    canSend: string;
+    /**
+     * @generated from protobuf field: string canReceive = 11;
+     */
+    canReceive: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
@@ -1342,11 +1350,13 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 6, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "providerID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 9, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "canSend", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "canReceive", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "" };
+        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "", canSend: "", canReceive: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -1383,6 +1393,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string state */ 9:
                     message.state = reader.string();
+                    break;
+                case /* string canSend */ 10:
+                    message.canSend = reader.string();
+                    break;
+                case /* string canReceive */ 11:
+                    message.canReceive = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1423,6 +1439,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string state = 9; */
         if (message.state !== "")
             writer.tag(9, WireType.LengthDelimited).string(message.state);
+        /* string canSend = 10; */
+        if (message.canSend !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.canSend);
+        /* string canReceive = 11; */
+        if (message.canReceive !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.canReceive);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
