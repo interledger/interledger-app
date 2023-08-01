@@ -435,10 +435,11 @@ export async function GetReview(
   return rpc.response
 }
 
-export type LinkedAccountReviewState =
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'OwnershipReviewRequired'
+export enum LinkedAccountReviewState {
+  Verified = 'Verified',
+  Rejected = 'Rejected',
+  OwnershipReviewRequired = 'OwnershipReviewRequired'
+}
 
 export async function CompleteLinkedAccountReview(
   request: Request,

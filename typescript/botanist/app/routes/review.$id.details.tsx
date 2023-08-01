@@ -4,7 +4,7 @@ import { Form, useLoaderData, useSubmit } from '@remix-run/react'
 import {
   GetLinkedAccount,
   GetReview,
-  GetWalletDetails
+  GetWalletDetails, LinkedAccountReviewState
 } from '~/lib/wallet.server'
 import { GridCard, Icon } from '~/components'
 import { route } from 'routes-gen'
@@ -56,7 +56,7 @@ export default function Page() {
         onClick={() => {
           let formData = new FormData()
           formData.append('reviewID', review.id)
-          formData.append('newState', 'Verified')
+          formData.append('newState', LinkedAccountReviewState.Verified)
           formData.append('reason', 'Manually verified.')
           submit(formData, {
             action: route('/reviews'),
@@ -74,7 +74,7 @@ export default function Page() {
         onClick={() => {
           let formData = new FormData()
           formData.append('reviewID', review.id)
-          formData.append('newState', 'Rejected')
+          formData.append('newState', LinkedAccountReviewState.Rejected)
           formData.append('reason', 'Manually rejected.')
           submit(formData, {
             action: route('/reviews'),

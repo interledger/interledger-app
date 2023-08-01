@@ -93,3 +93,14 @@ type CompleteReviewArgs struct {
 	NewState   State
 	ReviewedBy string
 }
+
+var validStates = map[State]bool{
+	Verified:                true,
+	OwnershipReviewRequired: true,
+	Rejected:                true,
+}
+
+func IsValidState(s State) bool {
+	_, ok := validStates[s]
+	return ok
+}

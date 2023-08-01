@@ -4,7 +4,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { route } from 'routes-gen'
 import { Grid, Icon, Router } from '~/components'
-import type { LinkedAccountReviewState } from '~/lib/wallet.server'
+import { LinkedAccountReviewState } from '~/lib/wallet.server'
 import {
   CompleteLinkedAccountReview,
   ListLinkedAccountReviews
@@ -107,6 +107,7 @@ export default function Page() {
                           onClick={() => {
                             let formData = new FormData()
                             formData.append('reviewID', review.id)
+                            formData.append('newState', LinkedAccountReviewState.Verified)
                             submit(formData, {
                               action: route('/reviews'),
                               method: 'POST'

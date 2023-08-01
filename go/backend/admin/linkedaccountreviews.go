@@ -64,6 +64,10 @@ func (s *AdminRpcService) CompleteLinkedAccountReview(ctx context.Context, req *
 		return nil, toGRPCError(err)
 	}
 
+	if !linkedaccounts.IsValidState(linkedaccounts.State(req.GetNewState())) {
+		return nil, toGRPCError(linkedaccounts.ErrInvalidArgument)
+	}
+
 	r, err := s.b.LinkedAccounts().CompleteReview(ctx, linkedaccounts.CompleteReviewArgs{
 		ID:         req.GetId(),
 		Reason:     req.GetReason(),
