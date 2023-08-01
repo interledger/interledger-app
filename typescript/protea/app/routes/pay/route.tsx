@@ -211,7 +211,7 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = (await form.get('formName')) as string
 
-  await validateCSRFToken(request, form)
+  // await validateCSRFToken(request, form)
 
   if (formName === 'quote') {
     const amount = form.get('amount') as string
