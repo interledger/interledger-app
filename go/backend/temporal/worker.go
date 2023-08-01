@@ -50,6 +50,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.RunGMTCertification)
 	w.RegisterWorkflow(jobs.TabapayCertificationWorkflow)
 	w.RegisterWorkflow(jobs.UpdateBasisTheoryCardDetailsWorkflow)
+	w.RegisterWorkflow(jobs.MigratePaymentPointers)
 
 	return w, nil
 }
