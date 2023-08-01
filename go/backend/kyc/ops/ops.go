@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
@@ -189,6 +192,11 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 		walletID, status)
 	if err != nil {
 		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeKyc)
+	if err != nil {
+		log.Error("notify error", zap.Error(err), zap.String("type", "kyc"))
 	}
 
 	return nil

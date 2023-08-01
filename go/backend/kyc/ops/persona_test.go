@@ -29,7 +29,7 @@ func TestGetPersonaInquiry(t *testing.T) {
 
 	sc := signup_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, sc, nil)
 	pc := persona_mock.NewMockClient(ctrl)
 
 	// There is no existing inquiry or KYC data

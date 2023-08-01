@@ -2,6 +2,8 @@ package ops_test
 
 import (
 	"context"
+	"github.com/golang/mock/gomock"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"testing"
 
 	"github.com/google/uuid"
@@ -17,7 +19,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil)
 
 	walletID := uuid.NewString()
 
@@ -167,7 +169,10 @@ func TestKYCStatus(t *testing.T) {
 
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil)
+	ctrl := gomock.NewController(t)
+	nc := notify_client.NewMockClient(ctrl)
+	nc.EXPECT().NotifyWallet(ctx, gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nc)
 
 	walletID := uuid.NewString()
 
