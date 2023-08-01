@@ -1,7 +1,8 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import type { SelectOptions } from '~/components'
+import type {
+  SelectOptions} from '~/components';
 import {
   Button,
   Card,
@@ -82,6 +83,13 @@ export function Amount() {
     (event) => {
       let amount = event.target.value
       setAmount(amount)
+    },
+    [setAmount]
+  )
+
+  // debounce calling quote endpoint
+  useEffect(() => {
+    const handler = setTimeout(() => {
       quoteFetcher.submit(
         {
           formName: 'quote',
@@ -95,18 +103,21 @@ export function Amount() {
         },
         { method: 'post' }
       )
-    },
-    [
-      account?.id,
-      address?.identifier,
-      address?.identifierType,
-      address?.walletUrl,
-      csrfToken,
-      note,
-      quoteFetcher,
-      setAmount
-    ]
-  )
+    }, 500)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [
+    amount,
+    account?.id,
+    address?.identifier,
+    address?.identifierType,
+    address?.walletUrl,
+    csrfToken,
+    note,
+    quoteFetcher
+  ])
 
   const _onChangeLinkedAccount = useCallback(
     (event: SelectOptions) => {
