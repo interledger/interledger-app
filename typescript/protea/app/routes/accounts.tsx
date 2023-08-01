@@ -133,7 +133,7 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {kycStatus == KycStatus.Verified && !hasCard && (
+        {kycStatus == KycStatus.Approved && !hasCard && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>
@@ -190,7 +190,7 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {/*{kycStatus == KycStatus.Verified && !hasBank && (*/}
+        {/*{kycStatus == KycStatus.Approved && !hasBank && (*/}
         {/*  <Card>*/}
         {/*    <CardContent>*/}
         {/*      <div className='flex items-start space-x-4'>*/}

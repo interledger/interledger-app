@@ -31,11 +31,13 @@ import { MarketingPage } from './marketing'
 
 export enum KycStatus {
   Unknown = 0,
-  InProgress = 1,
+  Pending = 1,
   DocumentsRequired = 2,
-  Verified = 3,
-  Suspended = 4,
-  InReview = 5
+  Approved = 3,
+  Denied = 4,
+  InReview = 5,
+  Level1 = 6,
+  Level2 = 7
 }
 
 export async function loader({ request }: LoaderArgs) {
