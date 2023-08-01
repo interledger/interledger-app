@@ -22,20 +22,22 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 )
 
-const outgoingPaymentCols = ` id, to_payment_pointer_id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at, created_by `
+const outgoingPaymentCols = ` id, to_payment_pointer_id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at, created_by, sender_wallet_address, receiver_wallet_address `
 
 type dbOutgoingPayments struct {
-	ID                 string         `db:"id"`
-	QuoteID            string         `db:"quote_id"`
-	ToPaymentPointerID string         `db:"to_payment_pointer_id"`
-	Failed             bool           `db:"failed"`
-	Description        string         `db:"description"`
-	AssetCode          string         `db:"sent_asset"`
-	AssetScale         int            `db:"sent_scale"`
-	SentAmount         uint64         `db:"sent_amount"`
-	CreatedAt          time.Time      `db:"created_at"`
-	UpdatedAt          time.Time      `db:"updated_at"`
-	CreatedBy          sql.NullString `db:"created_by"`
+	ID                    string         `db:"id"`
+	QuoteID               string         `db:"quote_id"`
+	ToPaymentPointerID    string         `db:"to_payment_pointer_id"`
+	Failed                bool           `db:"failed"`
+	Description           string         `db:"description"`
+	AssetCode             string         `db:"sent_asset"`
+	AssetScale            int            `db:"sent_scale"`
+	SentAmount            uint64         `db:"sent_amount"`
+	CreatedAt             time.Time      `db:"created_at"`
+	UpdatedAt             time.Time      `db:"updated_at"`
+	CreatedBy             sql.NullString `db:"created_by"`
+	SenderWalletAddress   sql.NullString `db:"sender_wallet_address"`
+	ReceiverWalletAddress sql.NullString `db:"receiver_wallet_address"`
 }
 
 func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.CreateOutgoingPaymentArgs) (string, string, error) {
@@ -77,7 +79,9 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		Value("created_by", sql.NullString{
 			String: args.CreatedBy,
 			Valid:  args.CreatedBy != "",
-		}).GetStatement()
+		}).
+		Value("receiver_wallet_address", q.ReceiverWalletAddress).
+		Value("sender_wallet_address", q.SenderWalletAddress).GetStatement()
 	if err != nil {
 		return "", "", fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}

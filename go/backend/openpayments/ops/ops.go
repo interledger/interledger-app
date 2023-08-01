@@ -425,6 +425,14 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		Value("otp_required", sql.NullBool{
 			Bool:  !hasTx,
 			Valid: true,
+		}).
+		Value("sender_wallet_address", sql.NullString{
+			String: sendPP.URL,
+			Valid:  true,
+		}).
+		Value("receiver_wallet_address", sql.NullString{
+			String: recvPP.URL,
+			Valid:  true,
 		}).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w insert sql create failed (%s)", openpayments.ErrInternal, err)
@@ -457,6 +465,8 @@ type dbQuote struct {
 	RecvIdentityType      sql.NullString `db:"recv_identity_type"`
 	OTPRequired           sql.NullBool   `db:"otp_required"`
 	OTPValidated          sql.NullBool   `db:"otp_validated"`
+	SenderWalletAddress   sql.NullString `db:"sender_wallet_address"`
+	ReceiverWalletAddress sql.NullString `db:"receiver_wallet_address"`
 }
 
 // getDBQuote returns a single quote in it's raw form from the DB without formatting.
@@ -464,7 +474,7 @@ type dbQuote struct {
 func getDBQuote(ctx context.Context, b Backends, where string, args ...interface{}) (*dbQuote, error) {
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type, otp_required, otp_validated FROM openpayments_quotes WHERE "+where, args...)
+		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type, otp_required, otp_validated, sender_wallet_address, receiver_wallet_address FROM openpayments_quotes WHERE "+where, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}

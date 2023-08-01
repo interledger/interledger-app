@@ -378,6 +378,10 @@ table "openpayments_incoming_payment" {
     null = true
     type = uuid
   }
+  column "receiver_wallet_address" {
+    null = true
+    type = text
+  }
   column "asset_code" {
     null = true
     type = text
@@ -432,6 +436,10 @@ table "openpayments_incoming_payment" {
   column "from_payment_pointer_id" {
     null = true
     type = uuid
+  }
+  column "sender_wallet_address" {
+    null = true
+    type = text
   }
   column "description" {
     null = true
@@ -503,6 +511,14 @@ table "openpayments_outgoing_payment" {
     null = true
     type = uuid
   }
+  column "receiver_wallet_address" {
+    null = true
+    type = text
+  }
+  column "sender_wallet_address" {
+    null = true
+    type = text
+  }
   column "completed" {
     null    = false
     type    = boolean
@@ -543,9 +559,17 @@ table "openpayments_quotes" {
     null = false
     type = uuid
   }
+  column "sender_wallet_address" {
+    null = true
+    type = text
+  }
   column "recv_payment_pointer_id" {
     null = false
     type = uuid
+  }
+  column "receiver_wallet_address" {
+    null = true
+    type = text
   }
   column "incoming_payment_id" {
     null = false

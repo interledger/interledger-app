@@ -15,26 +15,28 @@ import (
 	"gitlab.com/fynbos/env"
 )
 
-const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at, created_by`
+const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at, created_by, sender_wallet_address, receiver_wallet_address`
 
 type dbIncomingPayment struct {
-	ID                   string         `db:"id"`
-	PaymentPointerID     string         `db:"payment_pointer_id"`
-	FromPaymentPointerID sql.NullString `db:"from_payment_pointer_id"`
-	Description          sql.NullString `db:"description"`
-	AssetCode            sql.NullString `db:"asset_code"`
-	AssetScale           sql.NullInt32  `db:"asset_scale"`
-	IncomingAmount       uint64         `db:"incoming_amount"`
-	ReceivedAmount       uint64         `db:"received_amount"`
-	Completed            bool           `db:"completed"`
-	ExternalRef          sql.NullString `db:"external_ref"`
-	ILPStream            sql.NullString `db:"ilp_stream_id"`
-	ILPAddress           sql.NullString `db:"ilp_address"`
-	ILPSecret            sql.NullString `db:"ilp_shared_secret"`
-	ExpiresAt            sql.NullTime   `db:"expires_at"`
-	CreatedAt            time.Time      `db:"created_at"`
-	UpdatedAt            time.Time      `db:"updated_at"`
-	CreatedBy            sql.NullString `db:"created_by"`
+	ID                    string         `db:"id"`
+	PaymentPointerID      string         `db:"payment_pointer_id"`
+	FromPaymentPointerID  sql.NullString `db:"from_payment_pointer_id"`
+	Description           sql.NullString `db:"description"`
+	AssetCode             sql.NullString `db:"asset_code"`
+	AssetScale            sql.NullInt32  `db:"asset_scale"`
+	IncomingAmount        uint64         `db:"incoming_amount"`
+	ReceivedAmount        uint64         `db:"received_amount"`
+	Completed             bool           `db:"completed"`
+	ExternalRef           sql.NullString `db:"external_ref"`
+	ILPStream             sql.NullString `db:"ilp_stream_id"`
+	ILPAddress            sql.NullString `db:"ilp_address"`
+	ILPSecret             sql.NullString `db:"ilp_shared_secret"`
+	ExpiresAt             sql.NullTime   `db:"expires_at"`
+	CreatedAt             time.Time      `db:"created_at"`
+	UpdatedAt             time.Time      `db:"updated_at"`
+	CreatedBy             sql.NullString `db:"created_by"`
+	SenderWalletAddress   sql.NullString `db:"sender_wallet_address"`
+	ReceiverWalletAddress sql.NullString `db:"receiver_wallet_address"`
 }
 
 func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments.CreateIncomingPaymentArgs) (*openpayments.IncomingPayment, error) {
@@ -70,6 +72,14 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 		Value("created_by", sql.NullString{
 			String: payment.CreatedBy,
 			Valid:  payment.CreatedBy != "",
+		}).
+		Value("sender_wallet_address", sql.NullString{
+			String: fromPP.URL,
+			Valid:  fromPP.URL != "",
+		}).
+		Value("receiver_wallet_address", sql.NullString{
+			String: pp.URL,
+			Valid:  pp.URL != "",
 		})
 	if payment.IncomingAmount != nil {
 		ib.Value("asset_code", payment.IncomingAmount.Currency).
