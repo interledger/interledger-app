@@ -42,7 +42,7 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 
 	uc := user_mock.NewMock()
 
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil, nil)
 
 	inquiryCases := []struct {
 		name          string
