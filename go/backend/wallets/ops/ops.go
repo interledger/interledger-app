@@ -89,7 +89,7 @@ func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Walle
 	if err != nil {
 		return nil, err
 	}
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, address) VALUES ($1, $2)", id, address)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, url) VALUES ($1, $2)", id, address)
 	if db.IsErrorCode(err, db.UniqueViolationError) {
 		return nil, fmt.Errorf("%w %s", wallets.ErrAddressExists, err)
 	}
