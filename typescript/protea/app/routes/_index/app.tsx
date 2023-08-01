@@ -67,7 +67,7 @@ export function AppPage() {
             </CardContent>
           </Card>
         )}
-        {(kycStatus == KycStatus.InProgress ||
+        {(kycStatus == KycStatus.Pending ||
           kycStatus == KycStatus.InReview) && (
           <Card>
             <CardHeader>
@@ -81,7 +81,7 @@ export function AppPage() {
             </CardContent>
           </Card>
         )}
-        {kycStatus == KycStatus.Suspended && (
+        {kycStatus == KycStatus.Denied && (
           <Card>
             <CardHeader>
               <CardTitle>Activation error</CardTitle>
@@ -94,7 +94,7 @@ export function AppPage() {
             </CardContent>
           </Card>
         )}
-        {kycStatus == KycStatus.Verified && (
+        {kycStatus == KycStatus.Approved && (
           <Card>
             <CardHeader>
               <CardTitle>Wallet</CardTitle>
@@ -146,7 +146,7 @@ export function AppPage() {
             </CardButton>
           </Card>
         )}
-        {kycStatus == KycStatus.Verified && (
+        {kycStatus == KycStatus.Approved && (
           <>
             <div className='contents lg:hidden'>
               <CTACards />
@@ -226,7 +226,7 @@ export function AppPage() {
         )}
       </GridColumn>
       <GridColumn className='hidden lg:col-span-6 lg:flex'>
-        {kycStatus == KycStatus.Verified && <CTACards />}
+        {kycStatus == KycStatus.Approved && <CTACards />}
       </GridColumn>
 
       <Snackbar

@@ -239,7 +239,7 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {initialPage.kycStatus == KycStatus.Verified &&
+        {initialPage.kycStatus == KycStatus.Approved &&
           transactions &&
           transactions.length == 0 && (
             <Card>

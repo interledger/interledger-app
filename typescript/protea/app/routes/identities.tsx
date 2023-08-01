@@ -147,7 +147,7 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {!linkedIdentities.twitter && kycStatus == KycStatus.Verified && (
+        {!linkedIdentities.twitter && kycStatus == KycStatus.Approved && (
           <Card>
             <div className='flex items-center space-x-4'>
               <CardIcon>
@@ -165,7 +165,7 @@ export default function Page() {
             </div>
           </Card>
         )}
-        {!linkedIdentities.github && kycStatus == KycStatus.Verified && (
+        {!linkedIdentities.github && kycStatus == KycStatus.Approved && (
           <Card>
             <div className='flex items-center space-x-4'>
               <CardIcon>
@@ -178,7 +178,7 @@ export default function Page() {
             </div>
           </Card>
         )}
-        {!linkedIdentities.linkedIn && kycStatus == KycStatus.Verified && (
+        {!linkedIdentities.linkedIn && kycStatus == KycStatus.Approved && (
           <Card>
             <div className='flex items-center space-x-4'>
               <CardIcon>
@@ -191,7 +191,7 @@ export default function Page() {
             </div>
           </Card>
         )}
-        {!linkedIdentities.facebook && kycStatus == KycStatus.Verified && (
+        {!linkedIdentities.facebook && kycStatus == KycStatus.Approved && (
           <Card>
             <div className='flex items-center space-x-4'>
               <CardIcon>
@@ -204,7 +204,7 @@ export default function Page() {
             </div>
           </Card>
         )}
-        {!linkedIdentities.instagram && kycStatus == KycStatus.Verified && (
+        {!linkedIdentities.instagram && kycStatus == KycStatus.Approved && (
           <Card>
             <div className='flex items-center space-x-4'>
               <CardIcon>

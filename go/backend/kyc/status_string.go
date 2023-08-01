@@ -14,11 +14,13 @@ func _() {
 	_ = x[StatusApproved-3]
 	_ = x[StatusDenied-4]
 	_ = x[StatusInReview-5]
+	_ = x[StatusLevel1-6]
+	_ = x[StatusLevel2-7]
 }
 
-const _Status_name = "UnknownPendingDocumentsRequiredApprovedDeniedInReview"
+const _Status_name = "UnknownPendingDocumentsRequiredApprovedDeniedInReviewLevel1Level2"
 
-var _Status_index = [...]uint8{0, 7, 14, 31, 39, 45, 53}
+var _Status_index = [...]uint8{0, 7, 14, 31, 39, 45, 53, 59, 65}
 
 func (i Status) String() string {
 	if i < 0 || i >= Status(len(_Status_index)-1) {

@@ -46,7 +46,7 @@ export async function loader({ request }: LoaderArgs) {
 
   if (url.search == '') {
     const { kycStatus } = await getKycStatus(request)
-    if (kycStatus != KycStatus.Verified)
+    if (kycStatus != KycStatus.Approved)
       return redirect(route('/personal-details'))
   }
 
