@@ -56,7 +56,7 @@ export default function Page() {
         onClick={() => {
           let formData = new FormData()
           formData.append('reviewID', review.id)
-          formData.append('newState', 'Approved')
+          formData.append('newState', 'Verified')
           formData.append('reason', 'Manually verified.')
           submit(formData, {
             action: route('/reviews'),
