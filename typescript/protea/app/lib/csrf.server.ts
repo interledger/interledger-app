@@ -2,6 +2,7 @@ import type { TypedResponse } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { randomUUID } from 'crypto'
 import { commitSession, getSession } from '~/session.server'
+import {captureMessage} from '@sentry/remix'
 
 async function getCSRFToken(
   request: Request,
@@ -15,6 +16,14 @@ async function getCSRFToken(
   if (typeof csrfToken === 'undefined') {
     csrfToken = randomUUID()
     session.set('csrf-token', csrfToken)
+    const url = new URL(request.url)
+    captureMessage('Generating new CSRF token', {
+      extra: {
+        url: url.pathname,
+        csrfToken,
+        session: session.id
+      }
+    })
   }
 
   const cookie = await commitSession(session)
@@ -104,15 +113,23 @@ export async function validateCSRFToken(
   ) {
     // throw new Error('No CSRF token set in session.')
     const url = new URL(request.url)
-    throw json(
-      {
-        action: {
-          route: url.pathname,
-          text: 'Try again'
-        }
-      },
-      { status: 422, statusText: 'Invalid CSRF token.' }
-    )
+    captureMessage('Invalid CSRF token', {
+      extra: {
+        url: url.pathname,
+        serverToken,
+        csrfToken,
+        session: session.id
+      }
+    })
+    // throw json(
+    //   {
+    //     action: {
+    //       route: url.pathname,
+    //       text: 'Try again'
+    //     }
+    //   },
+    //   { status: 422, statusText: 'Invalid CSRF token.' }
+    // )
   }
 
   // Invalidate old token by setting a new one.
