@@ -8,8 +8,6 @@ import (
 
 	"gitlab.com/fynbos/backend/wallets"
 
-	"gitlab.com/fynbos/backend/openpayments"
-
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -60,20 +58,12 @@ func (s *rpcService) GetPublicWalletDetails(ctx context.Context, req *pb.GetPubl
 }
 
 func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicWalletInfoRequest) (*pb.PublicWalletInfo, error) {
-	opp, err := s.b.OpenPayments().GetPaymentPointer(ctx, req.WalletAddress)
+	wallet, err := s.b.Wallets().GetFromAddress(ctx, req.WalletAddress)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	wa, err := wallets.ParseAddress(opp.URL)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	wallet, err := s.b.Wallets().Get(ctx, opp.WalletID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
+	wa := wallet.Addresses[0]
 
 	ids, err := s.b.Identities().ListPublic(ctx, wallet.ID)
 	if err != nil {
@@ -124,26 +114,12 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 	var wg sync.WaitGroup
 	var wa wallets.Address
 
-	wg.Add(4)
+	wg.Add(3)
 
-	go func() {
-		defer wg.Done()
-		opp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, w.ID)
-		if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
-			return
-		}
-		if err != nil {
-			anyErr = err
-			return
-		}
-
-		wa, err = wallets.ParseAddress(opp.URL)
-		if err != nil {
-			anyErr = err
-			return
-		}
+	if len(w.Addresses) > 0 {
 		hasWalletAddress = true
-	}()
+		wa = w.Addresses[0]
+	}
 
 	go func() {
 		defer wg.Done()
