@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 	"strings"
 	"time"
 
@@ -340,7 +341,7 @@ func CreateReviews(ctx context.Context, b Backends, reviewsArgs []linkedaccounts
 	}
 
 	for _, review := range reviews {
-		slack.SendToChannel(ctx, slack.NotifyCard, "FynBOT", fmt.Sprintf("Review ID: %s\nLinked Account ID: %s\nState: %s\nReason: %s\n", review.ID, review.LinkedAccountID, review.State, review.Reason))
+		slack.SendToChannel(ctx, slack.NotifyCard, "Fynbot", fmt.Sprintf("New linked account review in [%s] link [%s/review/%s/details]", env.GetEnv(), env.AdminURL(), review.ID))
 	}
 
 	return reviews, nil
