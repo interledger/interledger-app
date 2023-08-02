@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/mx"
 
@@ -88,23 +90,19 @@ func TestCreateOutgoingPayment(t *testing.T) {
 			sendWalletID := uuid.NewString()
 			recvWalletID := uuid.NewString()
 
-			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-				URL:        tc.quoteArgs.SendPaymentPointer,
-				WalletID:   sendWalletID,
-				Alias:      "Alias",
-				Asset:      tc.quoteArgs.SendAmount.Currency,
-				AssetScale: tc.quoteArgs.SendAmount.Scale,
-			})
+			sa, err := wallets.ParseAddress(tc.quoteArgs.SendPaymentPointer)
 			require.NoError(t, err)
+			wc.EXPECT().GetFromAddress(gomock.Any(), tc.quoteArgs.SendPaymentPointer).Return(&wallets.Wallet{
+				ID:        sendWalletID,
+				Addresses: []wallets.Address{sa},
+			}, nil).AnyTimes()
 
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-				URL:        tc.quoteArgs.ReceivePaymentPointer,
-				WalletID:   recvWalletID,
-				Alias:      "Alias",
-				Asset:      tc.quoteArgs.SendAmount.Currency,
-				AssetScale: tc.quoteArgs.SendAmount.Scale,
-			})
+			ra, err := wallets.ParseAddress(tc.quoteArgs.ReceivePaymentPointer)
 			require.NoError(t, err)
+			wc.EXPECT().GetFromAddress(gomock.Any(), tc.quoteArgs.ReceivePaymentPointer).Return(&wallets.Wallet{
+				ID:        recvWalletID,
+				Addresses: []wallets.Address{ra},
+			}, nil).AnyTimes()
 
 			q, err := ops.CreateQuote(ctx, b, tc.quoteArgs)
 			require.NoError(t, err)

@@ -452,18 +452,6 @@ table "openpayments_incoming_payment" {
   primary_key {
     columns = [column.id]
   }
-  foreign_key "fk_from_payment_pointer_id_ref_payment_pointers" {
-    columns     = [column.from_payment_pointer_id]
-    ref_columns = [table.payment_pointers.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
-  foreign_key "fk_payment_pointer_id_ref_payment_pointers" {
-    columns     = [column.payment_pointer_id]
-    ref_columns = [table.payment_pointers.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
 }
 table "openpayments_outgoing_payment" {
   schema = schema.public
@@ -541,12 +529,6 @@ table "openpayments_outgoing_payment" {
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }
-  foreign_key "fk_to_payment_pointer_id_ref_payment_pointers" {
-    columns     = [column.to_payment_pointer_id]
-    ref_columns = [table.payment_pointers.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
 }
 table "openpayments_quotes" {
   schema = schema.public
@@ -555,17 +537,9 @@ table "openpayments_quotes" {
     type    = uuid
     default = sql("gen_random_uuid()")
   }
-  column "send_payment_pointer_id" {
-    null = false
-    type = uuid
-  }
   column "sender_wallet_address" {
     null = true
     type = text
-  }
-  column "recv_payment_pointer_id" {
-    null = false
-    type = uuid
   }
   column "receiver_wallet_address" {
     null = true
@@ -646,67 +620,11 @@ table "openpayments_quotes" {
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }
-  foreign_key "fk_recv_payment_pointer_id_ref_payment_pointers" {
-    columns     = [column.recv_payment_pointer_id]
-    ref_columns = [table.payment_pointers.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
   foreign_key "fk_send_linked_acc_id_ref_linked_accounts" {
     columns     = [column.send_linked_acc_id]
     ref_columns = [table.linked_accounts.column.id]
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
-  }
-  foreign_key "fk_send_payment_pointer_id_ref_payment_pointers" {
-    columns     = [column.send_payment_pointer_id]
-    ref_columns = [table.payment_pointers.column.id]
-    on_update   = NO_ACTION
-    on_delete   = NO_ACTION
-  }
-}
-table "payment_pointers" {
-  schema = schema.public
-  column "id" {
-    null    = false
-    type    = uuid
-    default = sql("gen_random_uuid()")
-  }
-  column "wallet_id" {
-    null = false
-    type = uuid
-  }
-  column "url" {
-    null = false
-    type = text
-  }
-  column "alias" {
-    null = true
-    type = text
-  }
-  column "asset" {
-    null = false
-    type = text
-  }
-  column "scale" {
-    null = false
-    type = bigint
-  }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now():::TIMESTAMP")
-  }
-  column "updated_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now():::TIMESTAMP")
-  }
-  primary_key {
-    columns = [column.id]
-  }
-  index "wallet_id_ind" {
-    columns = [column.wallet_id]
   }
 }
 table "schema_lock" {

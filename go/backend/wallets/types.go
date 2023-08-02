@@ -4,7 +4,9 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
+	"testing"
 )
 
 type CreateArgs struct {
@@ -57,17 +59,71 @@ func (p *Address) ShortString() string {
 	return strings.Replace(s, "https://", "$", 1)
 }
 
+var addressRegex = regexp.MustCompile(`^[A-Za-z]{3}[a-zA-z0\d_]{0,26}$`)
+var addressPrefixRegex = regexp.MustCompile(`^[A-Za-z]{3}$`)
+var ReservedURLParts = []string{"outgoing", "incoming", "quotes", "jwks.json", "identities"}
+
+// TestAddress creates a Address without any of the validation, only a valid URL is required.
+// To be used only for testing.
+func TestAddress(_ *testing.T, address *url.URL) Address {
+	return Address{url: address}
+}
+
 func ParseAddress(rawAddress string) (Address, error) {
 
-	pp := standardize(rawAddress)
+	rawAddress = strings.TrimSuffix(rawAddress, "/")
 
-	ppURL, err := url.ParseRequestURI(pp)
+	unescaped, err := url.PathUnescape(rawAddress)
+	if err != nil || unescaped != rawAddress {
+		// Some URL escapes where added or invalid URL escapes are present
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address can only contain letters, numbers and '_'")
+	}
+
+	wa := standardize(rawAddress)
+
+	waURL, err := url.ParseRequestURI(wa)
 	if err != nil {
-		return Address{}, err
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, err)
+	}
+
+	if waURL.Scheme == "" || waURL.Host == "" {
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address needs to contain a host and a http scheme")
+	}
+
+	// Fragments are after a '#' character in the url.
+	// Payment pointers do not contain queries.
+	if waURL.Fragment != "" || waURL.RawQuery != "" {
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address can only contain letters, numbers and '_'")
+	}
+
+	waPath := strings.TrimPrefix(waURL.Path, "/")
+
+	if len(waPath) < 3 {
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address must be longer than 3 characters")
+	}
+	if len(waPath) > 30 {
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address must be shorter than 30 characters")
+	}
+
+	if !addressPrefixRegex.MatchString(waPath[:3]) {
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your first 3 characters must be letters")
+	}
+
+	if !addressRegex.MatchString(waPath) {
+		return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address can only contain letters, numbers and '_'")
+	}
+
+	pathParts := strings.Split(waPath, "/")
+	for _, pp := range pathParts {
+		for _, res := range ReservedURLParts {
+			if strings.EqualFold(pp, res) {
+				return Address{}, fmt.Errorf("%w %s", ErrInvalidAddress, "Your wallet address cannot contain reserved path parts")
+			}
+		}
 	}
 
 	return Address{
-		url: ppURL,
+		url: waURL,
 	}, nil
 }
 

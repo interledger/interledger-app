@@ -65,21 +65,6 @@ func (mr *MockClientMockRecorder) GetOutgoingPayment(ctx, id interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOutgoingPayment", reflect.TypeOf((*MockClient)(nil).GetOutgoingPayment), ctx, id)
 }
 
-// GetPaymentPointer mocks base method.
-func (m *MockClient) GetPaymentPointer(ctx context.Context, ppURL string) (*openpayments.PaymentPointer, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPaymentPointer", ctx, ppURL)
-	ret0, _ := ret[0].(*openpayments.PaymentPointer)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetPaymentPointer indicates an expected call of GetPaymentPointer.
-func (mr *MockClientMockRecorder) GetPaymentPointer(ctx, ppURL interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPaymentPointer", reflect.TypeOf((*MockClient)(nil).GetPaymentPointer), ctx, ppURL)
-}
-
 // GetQuote mocks base method.
 func (m *MockClient) GetQuote(ctx context.Context, id string) (*openpayments.Quote, error) {
 	m.ctrl.T.Helper()
@@ -93,19 +78,4 @@ func (m *MockClient) GetQuote(ctx context.Context, id string) (*openpayments.Quo
 func (mr *MockClientMockRecorder) GetQuote(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuote", reflect.TypeOf((*MockClient)(nil).GetQuote), ctx, id)
-}
-
-// GetWalletPaymentPointer mocks base method.
-func (m *MockClient) GetWalletPaymentPointer(ctx context.Context, walletID string) (*openpayments.PaymentPointer, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWalletPaymentPointer", ctx, walletID)
-	ret0, _ := ret[0].(*openpayments.PaymentPointer)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetWalletPaymentPointer indicates an expected call of GetWalletPaymentPointer.
-func (mr *MockClientMockRecorder) GetWalletPaymentPointer(ctx, walletID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWalletPaymentPointer", reflect.TypeOf((*MockClient)(nil).GetWalletPaymentPointer), ctx, walletID)
 }

@@ -25,7 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/authorisation"
 	mock_auth "gitlab.com/fynbos/backend/authorisation/client/mock"
-	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 	identities_mock "gitlab.com/fynbos/backend/identities/client/mock"
@@ -36,7 +35,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_account_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/openpayments"
-	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -52,7 +50,6 @@ func TestGetHandler(t *testing.T) {
 	idc := identities_mock.NewMockClient(ctrl)
 	userClient := users_mock.NewMock()
 	wc := wallets_mock.NewMockClient(ctrl)
-	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db
 		tb.ids = idc
@@ -63,27 +60,18 @@ func TestGetHandler(t *testing.T) {
 	cases := []struct {
 		name       string
 		getPath    string
-		pointer    *openpayments.PaymentPointer
 		statusCode int
 		identities []identities.Identity
 	}{
 		{
 			name:       "not_found",
 			getPath:    "https://fynbos.local.me/not_real",
-			pointer:    nil,
 			statusCode: http.StatusNotFound,
 			identities: []identities.Identity{},
 		},
 		{
-			name:    "found",
-			getPath: "https://fynbos.local.me/found_me",
-			pointer: &openpayments.PaymentPointer{
-				WalletID:   uuid.NewString(),
-				Alias:      "Some Alias",
-				Asset:      "USD",
-				AssetScale: 2,
-				URL:        "https://fynbos.local.me/found_me",
-			},
+			name:       "found",
+			getPath:    "https://fynbos.local.me/found_me",
 			statusCode: http.StatusOK,
 			identities: []identities.Identity{},
 		},
@@ -96,14 +84,15 @@ func TestGetHandler(t *testing.T) {
 			req.Header.Add("X-Forwarded-For", "8.8.8.8")
 			require.NoError(t, err)
 
-			// Setup the payment pointer
-			if tc.pointer != nil {
-				tc.pointer.WalletID = uuid.NewString()
-
-				err = ops.CreatePaymentPointer(ctx, b, *tc.pointer)
+			wc.EXPECT().Get(gomock.Any(), gomock.Any()).Return(&wallets.Wallet{ID: uuid.NewString(), Name: "Alias"}, nil).AnyTimes()
+			if tc.statusCode == http.StatusNotFound {
+				wc.EXPECT().GetFromAddress(gomock.Any(), tc.getPath).Return(nil, wallets.ErrNoWalletFound).Times(1)
+			} else {
+				wa, err := wallets.ParseAddress(tc.getPath)
 				require.NoError(t, err)
-
-				wc.EXPECT().Get(gomock.Any(), tc.pointer.WalletID).Return(&wallets.Wallet{ID: tc.pointer.WalletID, Name: tc.pointer.Alias}, nil)
+				wc.EXPECT().GetFromAddress(gomock.Any(), tc.getPath).
+					Return(&wallets.Wallet{ID: uuid.NewString(), Name: "Alias", Addresses: []wallets.Address{wa}}, nil).
+					Times(1)
 			}
 
 			idc.EXPECT().ListPublic(gomock.Any(), gomock.Any()).Return(tc.identities, nil).AnyTimes()
@@ -114,7 +103,7 @@ func TestGetHandler(t *testing.T) {
 
 			require.Equal(t, tc.statusCode, rr.Code)
 
-			if tc.pointer == nil {
+			if tc.statusCode != http.StatusOK {
 				return
 			}
 
@@ -122,7 +111,7 @@ func TestGetHandler(t *testing.T) {
 			err = json.NewDecoder(rr.Body).Decode(&resp)
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.pointer.Alias, resp.PublicName)
+			assert.Equal(t, "Alias", resp.PublicName)
 			assert.Equal(t, req.URL.String(), resp.Id)
 		})
 	}
@@ -203,32 +192,24 @@ func TestHTTPCreateIncomingPaymentGet(t *testing.T) {
 		sendWalletID := uuid.NewString()
 		recvWalletID := uuid.NewString()
 
+		wa, err := wallets.ParseAddress(tc.args.ToPP)
+		require.NoError(t, err)
+		wc.EXPECT().GetFromAddress(gomock.Any(), tc.args.ToPP).
+			Return(&wallets.Wallet{ID: recvWalletID, Name: "Alias", Addresses: []wallets.Address{wa}}, nil).
+			Times(1)
+
+		sendWA, err := wallets.ParseAddress(tc.args.FromPP)
+		require.NoError(t, err)
+		wc.EXPECT().GetFromAddress(gomock.Any(), tc.args.FromPP).
+			Return(&wallets.Wallet{ID: sendWalletID, Name: "Alias", Addresses: []wallets.Address{sendWA}}, nil).
+			Times(1)
+
 		body, err := json.Marshal(tc.args)
 		require.NoError(t, err)
 
 		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/incoming", env.OpenPaymentsURL()), bytes.NewReader(body))
 		req.Header.Set("authorization", "GNAP "+testToken)
 		req.Header.Set("Content-Digest", tc.contentDigest)
-		require.NoError(t, err)
-
-		// Setup the payment pointers
-		asset := currency.USD
-		assetScale := 2
-		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-			URL:        tc.args.ToPP,
-			Alias:      "alias",
-			WalletID:   recvWalletID,
-			Asset:      asset,
-			AssetScale: assetScale,
-		})
-		require.NoError(t, err)
-		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-			URL:        tc.args.FromPP,
-			Alias:      "alias",
-			WalletID:   sendWalletID,
-			Asset:      asset,
-			AssetScale: assetScale,
-		})
 		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()
@@ -370,23 +351,17 @@ func TestHTTPCreateOutgoingPaymentGet(t *testing.T) {
 		sendWalletID := uuid.NewString()
 		recvWalletID := uuid.NewString()
 
-		// Setup the payment pointers
-		err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-			URL:        tc.args.FromPP,
-			Alias:      "alias",
-			WalletID:   sendWalletID,
-			Asset:      currency.ParseCurrency(tc.args.SendAmount.Currency),
-			AssetScale: 2,
-		})
+		wa, err := wallets.ParseAddress(tc.args.ToPP)
 		require.NoError(t, err)
-		err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-			URL:        tc.args.ToPP,
-			Alias:      "alias",
-			WalletID:   recvWalletID,
-			Asset:      currency.ParseCurrency(tc.args.SendAmount.Currency),
-			AssetScale: 2,
-		})
+		wc.EXPECT().GetFromAddress(gomock.Any(), tc.args.ToPP).
+			Return(&wallets.Wallet{ID: recvWalletID, Name: "Alias", Addresses: []wallets.Address{wa}}, nil).
+			AnyTimes()
+
+		sendWA, err := wallets.ParseAddress(tc.args.FromPP)
 		require.NoError(t, err)
+		wc.EXPECT().GetFromAddress(gomock.Any(), tc.args.FromPP).
+			Return(&wallets.Wallet{ID: sendWalletID, Name: "Alias", Addresses: []wallets.Address{sendWA}}, nil).
+			AnyTimes()
 
 		// Create outgoing payment
 
@@ -448,7 +423,6 @@ func TestListKeys(t *testing.T) {
 	keyClient := mock_keys.NewMockClient(ctrl)
 	keyClient.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
 	wc := wallets_mock.NewMockClient(ctrl)
-	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	b := NewTestBackends(t, func(tb *testBackends) {
 		tb.db = db.MigrateTestDB(t, ctx)
 		tb.keys = keyClient
@@ -456,16 +430,8 @@ func TestListKeys(t *testing.T) {
 	})
 
 	walletID := uuid.NewString()
-	asset := currency.USD
-	assetScale := 2
-	err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-		URL:        "https://fynbos.local.me/found_me",
-		Alias:      "alias",
-		WalletID:   walletID,
-		Asset:      asset,
-		AssetScale: assetScale,
-	})
-	require.NoError(t, err)
+
+	wc.EXPECT().GetFromAddress(gomock.Any(), "https://fynbos.local.me/found_me").Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 
 	keyClient.EXPECT().List(gomock.Any(), walletID).Return([]keys.Key{
 		{
@@ -498,7 +464,6 @@ func TestListKeys(t *testing.T) {
 }
 
 func TestGetIdentitiesHandler(t *testing.T) {
-	t.Parallel()
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	db := db.MigrateTestDB(t, ctx)
@@ -514,44 +479,46 @@ func TestGetIdentitiesHandler(t *testing.T) {
 	})
 
 	cases := []struct {
-		name        string
-		getPath     string
-		contentType string
-		pointer     *openpayments.PaymentPointer
-		statusCode  int
-		identities  []identities.Identity
+		name          string
+		getPath       string
+		walletAddress string
+		contentType   string
+		statusCode    int
+		identities    []identities.Identity
 	}{
+		{
+			name:          "found",
+			getPath:       "https://fynbos.local.me/found_me3/identities/OTg3",
+			walletAddress: "https://fynbos.local.me/found_me3",
+			statusCode:    http.StatusOK,
+			identities: []identities.Identity{
+				{
+					ID:            "dd192bbd-1b08-4e41-8c37-e909af79d10e",
+					Platform:      identities.PlatformTwitter,
+					State:         identities.StateVerified,
+					Public:        true,
+					SignatureHash: []byte("987"),
+				},
+			},
+		},
 		{
 			name:       "not_found_pp",
 			getPath:    "https://fynbos.local.me/not_real/identities/MTIzNA==",
-			pointer:    nil,
 			statusCode: http.StatusNotFound,
 			identities: []identities.Identity{},
 		},
 		{
-			name:    "not_found_identity",
-			getPath: "https://fynbos.local.me/found_me/identities/MTIzNA==",
-			pointer: &openpayments.PaymentPointer{
-				WalletID:   uuid.NewString(),
-				Alias:      "Some Alias",
-				Asset:      "USD",
-				AssetScale: 2,
-				URL:        "https://fynbos.local.me/found_me",
-			},
-			statusCode: http.StatusNotFound,
-			identities: []identities.Identity{},
+			name:          "not_found_identity",
+			getPath:       "https://fynbos.local.me/found_me/identities/MTIzNA==",
+			walletAddress: "https://fynbos.local.me/found_me",
+			statusCode:    http.StatusNotFound,
+			identities:    []identities.Identity{},
 		},
 		{
-			name:    "identity_not_same_as_wallet",
-			getPath: "https://fynbos.local.me/found_me1/identities/MTIzNA==",
-			pointer: &openpayments.PaymentPointer{
-				WalletID:   uuid.NewString(),
-				Alias:      "Some Alias",
-				Asset:      "USD",
-				AssetScale: 2,
-				URL:        "https://fynbos.local.me/found_me1",
-			},
-			statusCode: http.StatusNotFound,
+			name:          "identity_not_same_as_wallet",
+			getPath:       "https://fynbos.local.me/found_me1/identities/MTIzNA==",
+			walletAddress: "https://fynbos.local.me/found_me1",
+			statusCode:    http.StatusNotFound,
 			identities: []identities.Identity{
 				{
 					ID:            "1234",
@@ -562,65 +529,16 @@ func TestGetIdentitiesHandler(t *testing.T) {
 			},
 		},
 		{
-			name:    "identity_not_public",
-			getPath: "https://fynbos.local.me/found_me2/identities/MTIzNA==",
-			pointer: &openpayments.PaymentPointer{
-				WalletID:   "841a60bc-112d-4bd7-ac24-3e48d52b3fe8",
-				Alias:      "Some Alias",
-				Asset:      "USD",
-				AssetScale: 2,
-				URL:        "https://fynbos.local.me/found_me2",
-			},
-			statusCode: http.StatusNotFound,
+			name:          "identity_not_public",
+			getPath:       "https://fynbos.local.me/found_me2/identities/MTIzNA==",
+			walletAddress: "https://fynbos.local.me/found_me2",
+			statusCode:    http.StatusNotFound,
 			identities: []identities.Identity{
 				{
 					ID:            "dd192bbd-1b08-4e41-8c37-e909af79d10e",
 					Platform:      identities.PlatformTwitter,
 					State:         identities.StateVerified,
 					Public:        false,
-					SignatureHash: []byte("1234"),
-				},
-			},
-		},
-		{
-			name:    "found",
-			getPath: "https://fynbos.local.me/found_me3/identities/MTIzNA==",
-			pointer: &openpayments.PaymentPointer{
-				WalletID:   uuid.NewString(),
-				Alias:      "Some Alias",
-				Asset:      "USD",
-				AssetScale: 2,
-				URL:        "https://fynbos.local.me/found_me3",
-			},
-			statusCode: http.StatusOK,
-			identities: []identities.Identity{
-				{
-					ID:            "dd192bbd-1b08-4e41-8c37-e909af79d10e",
-					Platform:      identities.PlatformTwitter,
-					State:         identities.StateVerified,
-					Public:        true,
-					SignatureHash: []byte("1234"),
-				},
-			},
-		},
-		{
-			name:    "redirect_html",
-			getPath: "https://fynbos.local.me/found_me4/identities/MTIzNA==",
-			pointer: &openpayments.PaymentPointer{
-				WalletID:   uuid.NewString(),
-				Alias:      "Some Alias",
-				Asset:      "USD",
-				AssetScale: 2,
-				URL:        "https://fynbos.local.me/found_me4",
-			},
-			contentType: "text/html; charset=utf-8",
-			statusCode:  http.StatusSeeOther,
-			identities: []identities.Identity{
-				{
-					ID:            "dd192bbd-1b08-4e41-8c37-e909af79d10e",
-					Platform:      identities.PlatformTwitter,
-					State:         identities.StateVerified,
-					Public:        true,
 					SignatureHash: []byte("1234"),
 				},
 			},
@@ -638,24 +556,20 @@ func TestGetIdentitiesHandler(t *testing.T) {
 			require.NoError(t, err)
 
 			// Setup the payment pointer
-			if tc.pointer != nil {
-				walletID := uuid.NewString()
-				tc.pointer.WalletID = walletID
-
-				// set wallet id on identity on empty ones
-				for i := range tc.identities {
-					if tc.identities[i].WalletID == "" {
-						tc.identities[i].WalletID = walletID
-					}
-				}
-
-				err = ops.CreatePaymentPointer(ctx, b, *tc.pointer)
+			walletID := uuid.NewString()
+			if tc.walletAddress != "" {
+				wa, err := wallets.ParseAddress(tc.walletAddress)
 				require.NoError(t, err)
+				wc.EXPECT().GetFromAddress(gomock.Any(), tc.walletAddress).Return(&wallets.Wallet{ID: walletID, Addresses: []wallets.Address{wa}}, nil)
+			} else {
+				wc.EXPECT().GetFromAddress(gomock.Any(), gomock.Any()).Return(nil, wallets.ErrNoWalletFound)
 			}
+
 			idc.EXPECT().GetBySignatureHash(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, sigHash []byte) (*identities.Identity, error) {
 				// find the identity in the list
 				for _, i := range tc.identities {
 					if bytes.Equal(i.SignatureHash, sigHash) {
+						i.WalletID = walletID
 						return &i, nil
 					}
 				}
