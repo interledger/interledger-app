@@ -1,5 +1,11 @@
 import type { RouteMatch } from '@remix-run/react'
-import { NavLink, Outlet, useMatches, useNavigate } from '@remix-run/react'
+import {
+  NavLink,
+  Outlet,
+  useMatches,
+  useNavigate,
+  useSearchParams
+} from '@remix-run/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
@@ -77,6 +83,7 @@ export function Scaffold() {
   const [openNavModal, setOpenNavModal] = useState<boolean>(false)
   const matches = useMatches()
   const navigate = useNavigate()
+  const [search] = useSearchParams()
 
   const [payStep, payStepBack] = usePayStore((state) => [
     state.step,
@@ -252,6 +259,10 @@ export function Scaffold() {
               <IconButton
                 className={clsx('mr-4', scaffold.isNested && 'lg:hidden')}
                 onClick={() => {
+                  if (search.has('back')) {
+                    const searchBack = search.get('back')
+                    if (searchBack) navigate(-parseInt(searchBack))
+                  }
                   if (scaffold.header.back === 'pay') {
                     if (payStep == PayStep.SEARCH) {
                       payStepBack()
