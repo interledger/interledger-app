@@ -6,10 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
+	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
-	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/workflows"
@@ -187,7 +190,12 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 }
 
 func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status) error {
-	_, err := b.DB().ExecContext(ctx,
+	old, err := GetKYCStatus(ctx, b, walletID)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx,
 		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
 		walletID, status)
 	if err != nil {
@@ -197,6 +205,27 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeKyc)
 	if err != nil {
 		log.Error("notify error", zap.Error(err), zap.String("type", "kyc"))
+	}
+
+	// only send out email if moving into the denied state.
+	if old != kyc.StatusDenied && status == kyc.StatusDenied {
+		kycData, err := GetIndividualDetails(ctx, b, walletID)
+		if err != nil {
+			kycData = &kyc.IndividualDetails{}
+		}
+
+		greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
+		err = b.Email().SendMailTemplate(ctx, walletID, email.ApplicationDenied, map[string]interface{}{
+			"subject": email.ApplicationDenied.Subject(),
+			"data": []map[string]interface{}{
+				{"paragraph": strings.TrimSpace(greeting) + ","},
+				{"heading": "Your wallet verification was denied,"},
+				{"paragraph": "We are unable to verify your identity at this time. Please contact support using the details below."},
+			},
+		}, nil)
+		if err != nil {
+			log.Error("Failed to send kyc application denied email.", zap.Error(err), zap.String("walletID", walletID), zap.String("previous status", old.String()))
+		}
 	}
 
 	return nil

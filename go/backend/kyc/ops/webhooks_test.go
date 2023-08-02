@@ -8,9 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/email"
+	email_client "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -41,8 +44,13 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 	ctx := context.Background()
 
 	uc := user_mock.NewMock()
-
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil, nil)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	em := email_client.NewMockClient(ctrl)
+	em.EXPECT().SendMailTemplate(ctx, gomock.Any(), email.ApplicationDenied, gomock.Any(), gomock.Any()).AnyTimes()
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil, nil, em)
 
 	inquiryCases := []struct {
 		name          string

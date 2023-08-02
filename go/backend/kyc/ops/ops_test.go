@@ -2,10 +2,13 @@ package ops_test
 
 import (
 	"context"
-	"github.com/golang/mock/gomock"
-	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"testing"
 
+	"gitlab.com/fynbos/backend/email"
+	email_client "gitlab.com/fynbos/backend/email/client/mock"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
+
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +22,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil)
 
 	walletID := uuid.NewString()
 
@@ -170,9 +173,13 @@ func TestKYCStatus(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 
 	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(ctx, gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	b := ops.NewTestBackends(t, db, nil, nil, nil, nc)
+	em := email_client.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nc, em)
 
 	walletID := uuid.NewString()
 
@@ -194,8 +201,21 @@ func TestKYCStatus(t *testing.T) {
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusApproved)
 	require.NoError(t, err)
 
-	// status should be pending
+	// status should be approved
 	s, err = ops.GetKYCStatus(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, kyc.StatusApproved, s)
+
+	// Setting status to denied also sends out email
+	em.EXPECT().SendMailTemplate(ctx, walletID, email.ApplicationDenied, gomock.Any(), gomock.Any()).Times(1)
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusDenied)
+	require.NoError(t, err)
+
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusDenied, s)
+
+	// don't send out email if kyc is already denied
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusDenied)
+	require.NoError(t, err)
 }

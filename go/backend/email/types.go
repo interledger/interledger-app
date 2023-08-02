@@ -33,6 +33,7 @@ const (
 	WithdrawalInitiated         TemplateID = `d-17430f64081a423c86afa15396df9ee4`
 	StatementTemplateID         TemplateID = `d-d1acf02459324ee9aefbeae818354ad5`
 	FailedTransactionTemplateID TemplateID = `d-a68f1a97b6e94ec3bd687aee89c942c9`
+	ApplicationDenied           TemplateID = "applicationDenied"
 )
 
 var templateSubjects = map[TemplateID]string{
@@ -42,6 +43,7 @@ var templateSubjects = map[TemplateID]string{
 	WithdrawalInitiated:         "You've initiated a withdrawal",
 	StatementTemplateID:         "Your monthly statement",
 	FailedTransactionTemplateID: "Your recent %s was unsuccessful",
+	ApplicationDenied:           "Application denied",
 }
 
 type Attachment struct {
