@@ -10,6 +10,8 @@ import {
   Button,
   Card,
   CardContent,
+  CardIcon,
+  Icon,
   Layouts,
   TextField
 } from '~/components'
@@ -188,6 +190,23 @@ export default function Page() {
           type='hidden'
         />
       </Card>
+      {country && country?.id !== 'US' && (
+        <Card>
+          <CardContent>
+            <div className='flex items-center space-x-4'>
+              <CardIcon className='!bg-error'>
+                <Icon className='text-error'>exclamation</Icon>
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <p className='text-sm text-medium'>
+                  Country not yet supported. Click "Continue" to join the
+                  waitlist.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <Button form='signup-about-details' type='submit'>
         Continue
       </Button>
@@ -235,7 +254,7 @@ export async function action({ request }: ActionArgs) {
   await validateCSRFToken(request, form)
 
   // TODO: Determine what countries to let through.
-  if (!(country == 'US' || country == 'GB')) {
+  if (!(country == 'US')) {
     return redirect(
       `/waitlist?country=${country}&email=${email}&fullName=${firstName} ${lastName}`
     )
