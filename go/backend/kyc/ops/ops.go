@@ -221,7 +221,7 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 			"subject": email.ApplicationDenied.Subject(),
 			"data": []map[string]interface{}{
 				{"paragraph": greeting},
-				{"heading": "Your wallet verification was denied,"},
+				{"heading": "Your wallet verification was denied"},
 				{"paragraph": "We are unable to verify your identity at this time. Please contact support using the details below."},
 			},
 		}, nil)
@@ -243,9 +243,18 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 			"subject": email.ApplicationApproved.Subject(),
 			"data": []map[string]interface{}{
 				{"paragraph": greeting},
-				{"heading": "Your wallet is active,"},
+				{"heading": "Your wallet is active"},
 				{"code": address.String()},
 				{"paragraph": "You can now use your wallet to send and receive payments."},
+			},
+		}, nil)
+	} else if old != kyc.StatusPending && status == kyc.StatusPending {
+		err = b.Email().SendMailTemplate(ctx, walletID, email.ApplicationPending, map[string]interface{}{
+			"subject": email.ApplicationPending.Subject(),
+			"data": []map[string]interface{}{
+				{"paragraph": greeting},
+				{"heading": "Pending review"},
+				{"paragraph": "Your account creation is currently under review. We will notify you once it's complete or if any further information is needed."},
 			},
 		}, nil)
 	}

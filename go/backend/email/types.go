@@ -35,6 +35,7 @@ const (
 	FailedTransactionTemplateID TemplateID = `d-a68f1a97b6e94ec3bd687aee89c942c9`
 	ApplicationDenied           TemplateID = "applicationDenied"
 	ApplicationApproved         TemplateID = "applicationApproved"
+	ApplicationPending          TemplateID = "applicationPending"
 )
 
 var templateSubjects = map[TemplateID]string{
@@ -46,6 +47,7 @@ var templateSubjects = map[TemplateID]string{
 	FailedTransactionTemplateID: "Your recent %s was unsuccessful",
 	ApplicationDenied:           "Application denied",
 	ApplicationApproved:         "Application approved",
+	ApplicationPending:          "Pending review",
 }
 
 type Attachment struct {
