@@ -107,10 +107,10 @@ export default function Page() {
     (event) => {
       const username = event.target.value
       if (username?.length >= 3) {
-        fetcher.submit({ username }, { method: 'post' })
+        fetcher.submit({ username, csrfToken }, { method: 'post' })
       }
     },
-    [fetcher]
+    [csrfToken, fetcher]
   )
 
   return (
