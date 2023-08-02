@@ -72,6 +72,13 @@ export default function Page() {
     setLoading(!ready)
   }, [ready, setLoading])
 
+  // Unmount make sure the loading state is set to false
+  useEffect(() => {
+    return () => {
+      setLoading(false)
+    }
+  }, [setLoading])
+
   useEffect(() => {
     if (typeof window !== 'undefined' && status == 'ready') {
       personaRef.current = (window as any).Persona
@@ -80,6 +87,7 @@ export default function Page() {
         sessionToken,
         onReady: () => setReady(true),
         onComplete: ({ inquiryId, status, fields }: any) => {
+          setReady(false)
           submit(null, {
             action: '/personal-details',
             method: 'post'
