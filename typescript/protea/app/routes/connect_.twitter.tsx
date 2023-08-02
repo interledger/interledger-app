@@ -65,7 +65,7 @@ export default function Page() {
 
   // We do this redirect clientside because the browser removes secure cookies when coming from another domain.
   useEffect(() => {
-    if (id != null) nav(`/identities/${id}`)
+    if (id != null) nav(`/identities/${id}?back=4`)
   }, [id, nav])
 
   return (
