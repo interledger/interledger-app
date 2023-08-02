@@ -3,6 +3,7 @@ package ops
 import (
 	"gitlab.com/fynbos/backend/notify"
 	notify_mock "gitlab.com/fynbos/backend/notify/client/mock"
+	"context"
 	"testing"
 
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
@@ -16,7 +17,6 @@ import (
 	"gitlab.com/fynbos/backend/images"
 	images_mock "gitlab.com/fynbos/backend/images/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
 
@@ -27,7 +27,6 @@ import (
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/twitter"
 	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
 	temporal "go.temporal.io/sdk/client"
@@ -40,9 +39,9 @@ type Backends interface {
 	Temporal() temporal.Client
 	Analytics() analytics.Client
 	Keys() keys.Client
-	OpenPayments() openpayments.Client
 	Images() images.Client
 	Notify() notify.Client
+	Wallets() wallets.Client
 }
 
 type testBackends struct {
@@ -51,7 +50,6 @@ type testBackends struct {
 	an  analytics.Client
 	kc  *keys_mock.MockClient
 	tc  *twitter_mock.MockClient
-	op  openpayments.Client
 	img images.Client
 	wc  wallets.Client
 	nc  notify.Client
@@ -101,10 +99,6 @@ func (t testBackends) Keys() keys.Client {
 	return t.kc
 }
 
-func (t testBackends) OpenPayments() openpayments.Client {
-	return t.op
-}
-
 func (t testBackends) Images() images.Client {
 	return t.img
 }
@@ -130,6 +124,14 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 	nc := notify_mock.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
+	wc.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*wallets.Wallet, error) {
+		wa, _ := wallets.ParseAddress("https://something.com/someaddress")
+		return &wallets.Wallet{
+			ID:        id,
+			Name:      "name",
+			Addresses: []wallets.Address{wa},
+		}, nil
+	})
 	img.EXPECT().GenerateTwitterIdentity(gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
 	img.EXPECT().GenerateTwitterIdentityOG(gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
@@ -140,14 +142,6 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 		},
 	}, nil).AnyTimes()
 	kc.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
-	op := openpayments_mock.NewMockClient(ctrl)
-	op.EXPECT().GetWalletPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{
-		ID:         "",
-		URL:        "",
-		WalletID:   "",
-		Alias:      "",
-		Asset:      "",
-		AssetScale: 0,
-	}, nil).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, op: op, img: img, wc: wc, nc: nc}
+
+	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, img: img, wc: wc, nc: nc}
 }

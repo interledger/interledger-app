@@ -11,13 +11,17 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
-	"gitlab.com/fynbos/backend/openpayments"
+	"github.com/google/uuid"
+
+	"gitlab.com/fynbos/backend/wallets"
+
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"github.com/golang/mock/gomock"
-	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/authorisation"
@@ -58,8 +62,8 @@ func (s testEd25519Signer) Public() crypto.PublicKey {
 func TestGrantRequest(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
-	op := openpayments_mock.NewMockClient(ctrl)
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), op)
+	wc := wallets_mock.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), wc)
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
 
@@ -82,8 +86,14 @@ func TestGrantRequest(t *testing.T) {
 	})
 
 	clientPaymentPointer := opserver.URL
+	waURL, err := url.Parse(clientPaymentPointer)
+	require.NoError(t, err)
+	wa := wallets.TestAddress(t, waURL)
 
-	op.EXPECT().GetPaymentPointer(gomock.Any(), clientPaymentPointer).Return(&openpayments.PaymentPointer{URL: clientPaymentPointer}, nil).AnyTimes()
+	wc.EXPECT().GetFromAddress(gomock.Any(), clientPaymentPointer).Return(&wallets.Wallet{
+		ID:        uuid.NewString(),
+		Addresses: []wallets.Address{wa},
+	}, nil).AnyTimes()
 	_, err = ops.CreateClient(ctx, b, clientPaymentPointer)
 	require.NoError(t, err)
 

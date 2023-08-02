@@ -4,11 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/kyc"
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
-
-	"gitlab.com/fynbos/backend/limits"
-
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -17,9 +12,12 @@ import (
 	auth_ops "gitlab.com/fynbos/backend/authorisation/ops"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/limits/ops"
 	"gitlab.com/fynbos/backend/transactions"
 	tx_client "gitlab.com/fynbos/backend/transactions/client"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 )
 
 func TestExceeds(t *testing.T) {

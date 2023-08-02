@@ -3,26 +3,25 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/openpayments"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
-	OpenPayments() openpayments.Client
+	Wallets() wallets.Client
 }
 
 type testBackends struct {
 	db  *sqlx.DB
 	val *validator.Validate
-	op  openpayments.Client
+	wc  wallets.Client
 }
 
-func (t testBackends) OpenPayments() openpayments.Client {
-	return t.op
+func (t testBackends) Wallets() wallets.Client {
+	return t.wc
 }
 
 func (t testBackends) Validator() *validator.Validate {
@@ -33,6 +32,6 @@ func (t testBackends) DB() *sqlx.DB {
 	return t.db
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, op openpayments.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), op: op}
+func NewTestBackends(_ *testing.T, db *sqlx.DB, wc wallets.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), wc: wc}
 }

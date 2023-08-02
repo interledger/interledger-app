@@ -2,18 +2,18 @@ package ops_test
 
 import (
 	"context"
+	"strings"
 	"testing"
-
-	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
+	users_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/backend/wallets/ops"
-	"gotest.tools/assert"
 )
 
 func TestCreateWallet(t *testing.T) {
@@ -142,4 +142,101 @@ func TestSetWalletName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, w.ID, w.ID)
 	require.Equal(t, w.Name, "Harry Potter")
+}
+
+func TestAddAddress(t *testing.T) {
+
+	t.Parallel()
+	ctx := context.Background()
+	db := db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	km := keys_mock.NewMockClient(ctrl)
+	km.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	uc := users_mock.NewMock()
+	b := ops.NewTestBackends(t, db, km, uc)
+
+	cases := []struct {
+		name      string
+		url       string
+		duplicate bool
+		err       error
+		errMsg    string
+	}{
+		{
+			name: "success",
+			url:  "https://fynbos.me/abcd1",
+			err:  nil,
+		},
+		{
+			name: "invalid_url",
+			url:  "httpssss://fynbos.me/creature",
+			err:  wallets.ErrInvalidAddress,
+		},
+		{
+			name:      "duplicate",
+			url:       "https://fynbos.me/abcd3",
+			duplicate: true,
+			err:       wallets.ErrAddressExists,
+		},
+		{
+			name:   "regex_first_4_not_alpha",
+			url:    "https://fynbos.me/1234PayMe",
+			err:    wallets.ErrInvalidAddress,
+			errMsg: "Your first 3 characters must be letters",
+		},
+		{
+			name:   "regex_contains_slash",
+			url:    "https://fynbos.me/PayMe/1234",
+			err:    wallets.ErrInvalidAddress,
+			errMsg: "Your wallet address can only contain letters, numbers and '_'",
+		},
+		{
+			name:   "regex_too_short",
+			url:    "https://fynbos.me/Pa",
+			err:    wallets.ErrInvalidAddress,
+			errMsg: "Your wallet address must be longer than 3 characters",
+		},
+		{
+			name:   "regex_too_long",
+			url:    "https://fynbos.me/asdfnwelkjnasfdgoiaertaqri0943lnsfgas094905",
+			err:    wallets.ErrInvalidAddress,
+			errMsg: "Your wallet address must be shorter than 30 characters",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			walletID := uuid.NewString()
+			uc.WalletUser[walletID] = uuid.NewString()
+			_, err := ops.Create(ctx, b, wallets.CreateArgs{
+				ID:     walletID,
+				UserID: uuid.NewString(),
+				Name:   tc.name,
+			})
+			require.NoError(t, err)
+
+			_, err = ops.AddAddress(ctx, b, walletID, tc.url)
+			if tc.duplicate {
+				require.NoError(t, err)
+				_, err = ops.AddAddress(ctx, b, uuid.NewString(), tc.url)
+			}
+
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+				assert.True(t, strings.HasSuffix(err.Error(), tc.errMsg))
+				assert.True(t, strings.HasPrefix(err.Error(), tc.err.Error()))
+				return
+			}
+
+			require.NoError(t, err)
+
+			// Lookup and validate
+			w, err := ops.GetFromAddress(ctx, b, tc.url)
+			require.NoError(t, err)
+			assert.Equal(t, tc.name, w.Name)
+			assert.Equal(t, walletID, w.ID)
+			assert.Equal(t, tc.url, w.Addresses[0].String())
+		})
+	}
 }

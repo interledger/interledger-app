@@ -73,8 +73,8 @@ func TestListContacts(t *testing.T) {
 		"John Jacob",
 	}
 	for _, name := range contactNames {
-		pp, err := wallets.ParseAddress("$fynbos.me/" + strings.TrimSpace(name))
-		require.NoError(t, err)
+		pp, err := wallets.ParseAddress("$fynbos.me/" + strings.ReplaceAll(name, " ", ""))
+		require.NoError(t, err, "name", name)
 		_, err = ops.Create(ctx, b, contacts.CreateContactArgs{
 			Name:           name,
 			PaymentPointer: pp,
