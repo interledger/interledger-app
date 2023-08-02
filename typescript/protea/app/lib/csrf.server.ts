@@ -1,8 +1,8 @@
 import type { TypedResponse } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import { captureMessage } from '@sentry/remix'
 import { randomUUID } from 'crypto'
 import { commitSession, getSession } from '~/session.server'
-import {captureMessage} from '@sentry/remix'
 
 async function getCSRFToken(
   request: Request,
