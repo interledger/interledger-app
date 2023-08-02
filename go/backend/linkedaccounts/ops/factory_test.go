@@ -2,9 +2,14 @@ package ops_test
 
 import (
 	"context"
+	"testing"
+
+	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
+	"gitlab.com/fynbos/backend/kyc"
+	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
-	"testing"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -30,6 +35,8 @@ type TestContainer struct {
 	Nf             notify.Client
 	kc             keys.Client
 	Wc             *wallets_mock.MockClient
+	Ec             *email_mock.MockClient
+	Kyc            *kyc_mock.MockClient
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -50,6 +57,14 @@ func (t TestContainer) Notify() notify.Client {
 
 func (t TestContainer) Keys() keys.Client {
 	return t.kc
+}
+
+func (t TestContainer) KYC() kyc.Client {
+	return t.Kyc
+}
+
+func (t TestContainer) Email() email.Client {
+	return t.Ec
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -74,6 +89,13 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
 	c.kc = kc
 	c.Wc = wc
+	c.Ec = email_mock.NewMockClient(ctrl)
+	c.Kyc = kyc_mock.NewMockClient(ctrl)
+
+	c.Kyc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).Return(&kyc.IndividualDetails{
+		FirstName: "Test",
+		LastName:  "User",
+	}, nil).AnyTimes()
 
 	return c, nil
 }

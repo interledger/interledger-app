@@ -1,8 +1,13 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/wallets"
 	"testing"
+
+	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
+	"gitlab.com/fynbos/backend/kyc"
+	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"github.com/golang/mock/gomock"
 	"gitlab.com/fynbos/backend/analytics"
@@ -22,6 +27,8 @@ type Backends interface {
 	Wallets() wallets.Client
 	Notify() notify.Client
 	Analytics() analytics.Client
+	KYC() kyc.Client
+	Email() email.Client
 }
 
 type testBackends struct {
@@ -29,6 +36,8 @@ type testBackends struct {
 	val    *validator.Validate
 	notify notify.Client
 	ac     analytics.Client
+	ec     *email_mock.MockClient
+	kyc    *kyc_mock.MockClient
 }
 
 func (t testBackends) Users() user.Client {
@@ -55,10 +64,21 @@ func (t testBackends) Analytics() analytics.Client {
 	return t.ac
 }
 
+func (t testBackends) KYC() kyc.Client {
+	return t.kyc
+}
+
+func (t testBackends) Email() email.Client {
+	return t.ec
+}
+
 func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
 	ctrl := gomock.NewController(t)
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-
-	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, "")}
+	ec := email_mock.NewMockClient(ctrl)
+	ec.EXPECT().SendMailTemplate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	kycMock := kyc_mock.NewMockClient(ctrl)
+	kycMock.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).Return(&kyc.IndividualDetails{}, nil).AnyTimes()
+	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), ec: ec, kyc: kycMock}
 }
