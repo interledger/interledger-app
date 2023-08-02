@@ -204,16 +204,6 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 			stateTags++
 		}
 	}
-	// Too many state tags.
-	if stateTags > 1 {
-		slack.SendToChannel(ctx, slack.PersonaChannel, "FynBOT", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
-			env.GetEnv(), externalAcc.ID))
-	} else if kycState != 0 {
-		err = SetKYCStatus(ctx, b, externalAcc.Attributes.ReferenceID, kycState)
-		if err != nil {
-			return err
-		}
-	}
 
 	if isDirty { // then sync account state
 		details := externalAcc.Attributes
@@ -308,6 +298,17 @@ func accountTagAddedWebhook(ctx context.Context, b Backends, pc persona.Client, 
 
 		_, err = pc.RemoveTag(ctx, externalAcc.ID, string(persona.AccountTagDirty))
 		if err != nil && !errors.Is(err, persona.ErrNotFound) { // ignore if dirty tag is not there
+			return err
+		}
+	}
+
+	// Too many state tags.
+	if stateTags > 1 {
+		slack.SendToChannel(ctx, slack.PersonaChannel, "FynBOT", fmt.Sprintf("Persona account in [%s] is in unknown state. link [https://app.withpersona.com/dashboard/accounts/%s]",
+			env.GetEnv(), externalAcc.ID))
+	} else if kycState != 0 {
+		err = SetKYCStatus(ctx, b, externalAcc.Attributes.ReferenceID, kycState)
+		if err != nil {
 			return err
 		}
 	}

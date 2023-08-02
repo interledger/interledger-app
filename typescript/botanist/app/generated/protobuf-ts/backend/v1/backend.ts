@@ -9768,6 +9768,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetIdentity", options: {}, I: GetIdentityRequest, O: GetIdentityResponse },
     { name: "GetIdentityBySignatureHash", options: {}, I: GetIdentityBySignatureHashRequest, O: GetIdentityResponse },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
+    { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
     { name: "StartKYC", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
     { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse },
