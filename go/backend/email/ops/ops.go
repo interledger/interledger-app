@@ -10,6 +10,8 @@ import (
 	"gitlab.com/fynbos/backend/email/sendgrid"
 )
 
+const oneTemplateID = "d-d1d84d89553a43f89d6c60e2497b24c3"
+
 func SendMailTemplate(ctx context.Context, b Backends, walletID string, template email.TemplateID, templateData map[string]interface{}, attachments []email.Attachment) error {
 	if !template.IsValid() {
 		return fmt.Errorf("%w %s is not a known template ID", email.ErrInvalidTemplate, template)
@@ -46,7 +48,7 @@ func SendMailTemplate(ctx context.Context, b Backends, walletID string, template
 		}
 	}
 
-	err = b.External().SendTemplate(ctx, template.Subject(), emails, template.String(), templateData, mailAttachments)
+	err = b.External().SendTemplate(ctx, template.Subject(), emails, oneTemplateID, templateData, mailAttachments)
 	if err != nil {
 		return fmt.Errorf("%w %s", email.ErrInternal, err)
 	}
