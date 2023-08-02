@@ -36,6 +36,8 @@ const (
 	ApplicationDenied           TemplateID = "applicationDenied"
 	ApplicationApproved         TemplateID = "applicationApproved"
 	ApplicationPending          TemplateID = "applicationPending"
+	ConnectedAccountSuccess     TemplateID = "connectedAccountSuccess"
+	ConnectedAccountReview      TemplateID = "connectedAccountReview"
 )
 
 var templateSubjects = map[TemplateID]string{
@@ -48,6 +50,8 @@ var templateSubjects = map[TemplateID]string{
 	ApplicationDenied:           "Application denied",
 	ApplicationApproved:         "Application approved",
 	ApplicationPending:          "Pending review",
+	ConnectedAccountSuccess:     "Connected account success",
+	ConnectedAccountReview:      "Pending review - awaiting documents",
 }
 
 type Attachment struct {

@@ -1,8 +1,10 @@
 package ops_test
 
 import (
-	"gitlab.com/fynbos/backend/wallets"
 	"testing"
+
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
@@ -71,6 +73,10 @@ func (t testBackends) KYC() kyc.Client {
 }
 
 func (t testBackends) Wallets() wallets.Client {
+	return nil
+}
+
+func (t testBackends) Email() email.Client {
 	return nil
 }
 

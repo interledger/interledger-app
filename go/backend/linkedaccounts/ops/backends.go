@@ -3,6 +3,8 @@ package ops
 import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/wallets"
 )
@@ -12,4 +14,6 @@ type Backends interface {
 	DB() *sqlx.DB
 	Wallets() wallets.Client
 	Notify() notify.Client
+	Email() email.Client
+	KYC() kyc.Client
 }

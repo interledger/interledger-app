@@ -5,9 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/slack"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -78,7 +82,74 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		log.Error("notify failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
 	}
 
+	kycData, err := b.KYC().GetIndividualDetails(ctx, args.WalletID)
+	if err != nil {
+		kycData = &kyc.IndividualDetails{}
+	}
+
+	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
+	greeting = strings.TrimSpace(greeting) + ","
+	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired {
+		err = b.Email().SendMailTemplate(ctx, args.WalletID, email.ConnectedAccountReview, map[string]interface{}{
+			"subject": email.ConnectedAccountReview.Subject(),
+			"data": []map[string]interface{}{
+				{"paragraph": greeting},
+				{"title": "Pending review"},
+				{"paragraph": "Based on the information from your bank, the provided billing address appears to be incorrect. Please send a copy of your billing address to the support email address below."},
+			},
+		}, nil)
+	} else if linkedAccount.State == linkedaccounts.Verified {
+		err = b.Email().SendMailTemplate(ctx, args.WalletID, email.ConnectedAccountSuccess, map[string]interface{}{
+			"subject": email.ConnectedAccountSuccess.Subject(),
+			"data": []map[string]interface{}{
+				{"paragraph": greeting},
+				{"title": "You have successfully connected an account"},
+				{"table": getDetailsForSuccessEmail(ctx, linkedAccount)},
+			},
+			"cta": map[string]interface{}{
+				"text": "View your account",
+				"url":  fmt.Sprintf("%s/accounts/%s", env.GetEnv(), linkedAccount.ID),
+			},
+		}, nil)
+	}
+	if err != nil {
+		log.Error("Failed to send linked account email.", zap.Error(err), zap.String("state", string(linkedAccount.State)), zap.String("linkedAccountID", linkedAccountID))
+	}
+
 	return &linkedAccount, nil
+}
+
+func getDetailsForSuccessEmail(ctx context.Context, la linkedaccounts.LinkedAccount) []map[string]interface{} {
+	var table []map[string]interface{}
+	if la.Provider == tabapay.ProviderName {
+		table = append(table, map[string]interface{}{
+			"label": "Card ending",
+			"text":  strings.ReplaceAll(la.Mask, "*", ""),
+		})
+	} else if la.Provider == mx.ProviderName {
+		table = append(table, map[string]interface{}{
+			"label": "Account ending",
+			"text":  strings.ReplaceAll(la.Mask, "*", ""),
+		})
+	}
+
+	table = append(table, map[string]interface{}{
+		"label": "Capabilities",
+	})
+
+	if la.CanReceive {
+		table = append(table, map[string]interface{}{
+			"text": "Receiving enabled",
+		})
+	}
+
+	if la.CanReceive {
+		table = append(table, map[string]interface{}{
+			"text": "Sending enabled",
+		})
+	}
+
+	return table
 }
 
 func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateArgs) ([]linkedaccounts.LinkedAccount, error) {
