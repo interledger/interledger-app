@@ -11,7 +11,7 @@ import type {
   SearchResult
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { jsonWithCSRF } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -174,7 +174,7 @@ export default function Page() {
     ) {
       setAddress(address)
       setStep(PayStep.AMOUNT)
-      setSearchParams({})
+      setSearchParams({}, { replace: true })
     }
   }, [address, params, setAddress, setSearchParams, setStep])
 
