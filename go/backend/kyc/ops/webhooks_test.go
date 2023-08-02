@@ -17,6 +17,8 @@ import (
 	"gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/kyc/persona"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 )
 
 func TestNewHandlePersonaWebhook(t *testing.T) {
@@ -50,7 +52,10 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 	})
 	em := email_client.NewMockClient(ctrl)
 	em.EXPECT().SendMailTemplate(ctx, gomock.Any(), email.ApplicationDenied, gomock.Any(), gomock.Any()).AnyTimes()
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil, nil, em)
+	em.EXPECT().SendMailTemplate(ctx, gomock.Any(), email.ApplicationApproved, gomock.Any(), gomock.Any()).AnyTimes()
+	wc := wallet_mock.NewMockClient(ctrl)
+	wc.EXPECT().Get(ctx, gomock.Any()).Return(&wallets.Wallet{}, nil).AnyTimes()
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil, nil, em, wc)
 
 	inquiryCases := []struct {
 		name          string

@@ -7,6 +7,8 @@ import (
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client/mock"
 	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	wallet_client "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -22,7 +24,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
 
 	walletID := uuid.NewString()
 
@@ -179,9 +181,11 @@ func TestKYCStatus(t *testing.T) {
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(ctx, gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	em := email_client.NewMockClient(ctrl)
-	b := ops.NewTestBackends(t, db, nil, nil, nil, nc, em)
+	wc := wallet_client.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nc, em, wc)
 
 	walletID := uuid.NewString()
+	wc.EXPECT().Get(ctx, gomock.Any()).Return(&wallets.Wallet{}, nil).AnyTimes()
 
 	// Defaults to unknown if not set
 	s, err := ops.GetKYCStatus(ctx, b, walletID)
@@ -218,4 +222,21 @@ func TestKYCStatus(t *testing.T) {
 	// don't send out email if kyc is already denied
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusDenied)
 	require.NoError(t, err)
+
+	// Setting status to kyc level 1 or kyc level 2 sends out approved email
+	em.EXPECT().SendMailTemplate(ctx, walletID, email.ApplicationApproved, gomock.Any(), gomock.Any()).Times(1)
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusLevel1)
+	require.NoError(t, err)
+
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusLevel1, s)
+
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusLevel2)
+	require.NoError(t, err)
+
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusLevel2, s)
+
 }
