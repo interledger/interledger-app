@@ -14,6 +14,7 @@ import {
 import { flashSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
+import {SetKYCStatusPending} from "~/lib/wallet.server";
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
@@ -133,6 +134,8 @@ export default function Page() {
 
 export async function action({ request }: ActionArgs) {
   await exitFlow(request, flowType.PersonalDetails)
+
+  await SetKYCStatusPending(request)
 
   return redirect(route('/'), {
     headers: {
