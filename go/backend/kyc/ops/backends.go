@@ -1,8 +1,10 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/notify"
 	"testing"
+
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/notify"
 
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/user"
@@ -20,6 +22,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	Users() user.Client
 	Notify() notify.Client
+	Email() email.Client
 }
 
 type testBackends struct {
@@ -29,6 +32,7 @@ type testBackends struct {
 	uc  user.Client
 	sc  signup.Client
 	nc  notify.Client
+	em  email.Client
 }
 
 func (t testBackends) Users() user.Client {
@@ -55,6 +59,10 @@ func (t testBackends) Notify() notify.Client {
 	return t.nc
 }
 
-func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client, uc user.Client, sc signup.Client, nc notify.Client) Backends {
-	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc, sc: sc, nc: nc}
+func (t testBackends) Email() email.Client {
+	return t.em
+}
+
+func NewTestBackends(_ *testing.T, db *sqlx.DB, tp temporal.Client, uc user.Client, sc signup.Client, nc notify.Client, em email.Client) Backends {
+	return &testBackends{db: db, val: validator.New(), tp: tp, uc: uc, sc: sc, nc: nc, em: em}
 }
