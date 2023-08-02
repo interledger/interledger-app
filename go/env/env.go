@@ -127,3 +127,25 @@ func AuthURL() string {
 
 	return authURL
 }
+
+var adminURL string
+var adminURLSync sync.Once
+
+func AdminURL() string {
+	adminURLSync.Do(func() {
+		adminURL = os.Getenv("ADMIN_BASE_URL")
+		if adminURL == "" {
+			if IsProd() {
+				adminURL = "https://admin.mgnt.fynbos.dev"
+			} else if IsDev() {
+				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+			} else if IsLocal() {
+				adminURL = "https://admin.fynbos.test"
+			} else {
+				adminURL = "https://admin-dev.mgnt.fynbos.dev"
+			}
+		}
+	})
+
+	return adminURL
+}
