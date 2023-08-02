@@ -41,12 +41,12 @@ const (
 )
 
 var templateSubjects = map[TemplateID]string{
-	ReceiptTemplateID:           "Fynbos payment receipt",
-	ReceivedReceiptTemplateID:   "You received a payment",
+	ReceiptTemplateID:           "Payment sent",
+	ReceivedReceiptTemplateID:   "Payment received",
 	DepositSuccessTemplateID:    "Deposit received",
 	WithdrawalInitiated:         "You've initiated a withdrawal",
 	StatementTemplateID:         "Your monthly statement",
-	FailedTransactionTemplateID: "Your recent %s was unsuccessful",
+	FailedTransactionTemplateID: "Payment unsuccessful",
 	ApplicationDenied:           "Application denied",
 	ApplicationApproved:         "Application approved",
 	ApplicationPending:          "Pending review",
