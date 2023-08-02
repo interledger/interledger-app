@@ -174,7 +174,7 @@ export default function Page() {
     ) {
       setAddress(address)
       setStep(PayStep.AMOUNT)
-      setSearchParams({})
+      setSearchParams({}, { replace: true })
     }
   }, [address, params, setAddress, setSearchParams, setStep])
 
