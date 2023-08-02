@@ -3,30 +3,25 @@ package ops_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/golang/mock/gomock"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/analytics"
+	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
-
-	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
-
-	"gitlab.com/fynbos/backend/user"
-
-	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-
-	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/notify"
-
 	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
-
 	"gitlab.com/fynbos/backend/openpayments"
-
-	"github.com/go-playground/validator/v10"
-	"github.com/golang/mock/gomock"
-	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 type testBackends struct {
@@ -38,6 +33,7 @@ type testBackends struct {
 	op     openpayments.Client
 	kc     keys.Client
 	kyc    *kyc_mock.MockClient
+	wc     wallets.Client
 }
 
 func (t testBackends) OpenPayments() openpayments.Client {
@@ -73,7 +69,7 @@ func (t testBackends) KYC() kyc.Client {
 }
 
 func (t testBackends) Wallets() wallets.Client {
-	return nil
+	return t.wc
 }
 
 func (t testBackends) Email() email.Client {
@@ -85,14 +81,13 @@ func NewTestBackends(t *testing.T, db *sqlx.DB, uc user.Client) *testBackends {
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 
-	op := openpayments_mock.NewMockClient(ctrl)
-	op.EXPECT().GetWalletPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{Asset: "USD", URL: "https://fynbos.me/bobby"}, nil).AnyTimes()
-	op.EXPECT().GetPaymentPointer(gomock.Any(), gomock.Any()).Return(&openpayments.PaymentPointer{Asset: "USD", URL: "https://fynbos.me/bobby"}, nil).AnyTimes()
-
 	kc := keys_mock.NewMockClient(ctrl)
 	kc.EXPECT().ProvisionPrivateKey(gomock.Any(), gomock.Any()).AnyTimes()
 
 	kyc := kyc_mock.NewMockClient(ctrl)
 
-	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), user: uc, op: op, kc: kc, kyc: kyc}
+	wc := wallets_mock.NewMockClient(ctrl)
+	wc.EXPECT().GetFromAddress(gomock.Any(), gomock.Any()).Return(&wallets.Wallet{ID: uuid.NewString()}, nil).AnyTimes()
+
+	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), user: uc, kc: kc, kyc: kyc, wc: wc}
 }

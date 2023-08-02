@@ -393,15 +393,6 @@ export interface LookupQuoteRequest {
     id: string;
 }
 /**
- * @generated from protobuf message backend.v1.SendQuoteOTPRequest
- */
-export interface SendQuoteOTPRequest {
-    /**
-     * @generated from protobuf field: string quoteID = 1;
-     */
-    quoteID: string;
-}
-/**
  * @generated from protobuf message backend.v1.SetQuoteOTPRequest
  */
 export interface SetQuoteOTPRequest {
@@ -3298,53 +3289,6 @@ class LookupQuoteRequest$Type extends MessageType<LookupQuoteRequest> {
  * @generated MessageType for protobuf message backend.v1.LookupQuoteRequest
  */
 export const LookupQuoteRequest = new LookupQuoteRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class SendQuoteOTPRequest$Type extends MessageType<SendQuoteOTPRequest> {
-    constructor() {
-        super("backend.v1.SendQuoteOTPRequest", [
-            { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<SendQuoteOTPRequest>): SendQuoteOTPRequest {
-        const message = { quoteID: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<SendQuoteOTPRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SendQuoteOTPRequest): SendQuoteOTPRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string quoteID */ 1:
-                    message.quoteID = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: SendQuoteOTPRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string quoteID = 1; */
-        if (message.quoteID !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.SendQuoteOTPRequest
- */
-export const SendQuoteOTPRequest = new SendQuoteOTPRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SetQuoteOTPRequest$Type extends MessageType<SetQuoteOTPRequest> {
     constructor() {
@@ -9707,7 +9651,6 @@ export const OpenPaymentService = new ServiceType("backend.v1.OpenPaymentService
     { name: "ListWalletPaymentPointers", options: {}, I: Empty, O: ListWalletPaymentPointersResponse },
     { name: "CreateQuote", options: {}, I: CreateQuoteRequest, O: Quote },
     { name: "LookupQuote", options: {}, I: LookupQuoteRequest, O: Quote },
-    { name: "SendQuoteOTP", options: {}, I: SendQuoteOTPRequest, O: Empty },
     { name: "SetQuoteOTP", options: {}, I: SetQuoteOTPRequest, O: Quote },
     { name: "CreateIncomingPayment", options: {}, I: CreateIncomingPaymentRequest, O: IncomingPayment },
     { name: "LookupIncomingPayment", options: {}, I: LookupIncomingPaymentRequest, O: IncomingPayment },
@@ -9768,7 +9711,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetIdentity", options: {}, I: GetIdentityRequest, O: GetIdentityResponse },
     { name: "GetIdentityBySignatureHash", options: {}, I: GetIdentityBySignatureHashRequest, O: GetIdentityResponse },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
-    { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
     { name: "StartKYC", options: {}, I: Empty, O: Empty },
     { name: "GetPersonaInquiry", options: {}, I: KYCPersonaInquiryRequest, O: KYCPersonaInquiryResponse },
     { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse },

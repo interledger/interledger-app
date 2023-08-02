@@ -85,6 +85,17 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 }
 
 func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Wallet, error) {
+	// Check if it already exists
+	w, err := GetFromAddress(ctx, b, url)
+	if err != nil && !errors.Is(err, wallets.ErrNoWalletFound) {
+		return nil, err
+	}
+
+	if w != nil && w.ID == id {
+		// The address already belongs to this wallet, nothing to see here.
+		return w, nil
+	}
+
 	address, err := wallets.ParseAddress(url)
 	if err != nil {
 		return nil, err
@@ -109,7 +120,7 @@ func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Walle
 	}
 
 	var wid string
-	err = b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM wallet_addresses WHERE url=$1", address)
+	err = b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM wallet_addresses WHERE lower(url)=lower($1)", address)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("%w address(%s) not found", wallets.ErrNoWalletFound, address.String())
 	}

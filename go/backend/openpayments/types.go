@@ -6,15 +6,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 )
 
-type PaymentPointer struct {
-	ID         string            `db:"id" json:"-"`
-	URL        string            `db:"url" json:"id"`
-	WalletID   string            `db:"wallet_id" validate:"uuid4" json:"-"`
-	Alias      string            `db:"alias" json:"publicName" validate:"required"`
-	Asset      currency.Currency `db:"asset" validate:"iso4217"  json:"assetCode"`
-	AssetScale int               `db:"scale" validate:"gt=0" json:"assetScale"`
-}
-
 type CreateQuoteArgs struct {
 	SendPaymentPointer      string `validate:"url"`
 	ReceivePaymentPointer   string `json:"receiver" validate:"url"`

@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/backend/twilio"
-
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/backend/openpayments/workflows"
+	"gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/backend/wallets"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -37,23 +37,15 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	pp := openpayments.PaymentPointer{
-		URL:        ops.StandardisePaymentPointer(req.Url),
-		WalletID:   wallet.ID,
-		Alias:      req.GetAlias(),
-		Asset:      currency.ParseCurrency(req.GetAsset()),
-		AssetScale: int(req.GetAssetScale()),
+	wa, err := wallets.ParseAddress(req.Url)
+	if errors.Is(err, wallets.ErrInvalidAddress) {
+		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), wallets.ErrInvalidAddress.Error())))
 	}
-
-	err = g.b.Validator().Struct(pp)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	err = ops.CreatePaymentPointer(ctx, g.b, pp)
-	if errors.Is(err, openpayments.ErrInvalidPointerPath) {
-		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), openpayments.ErrInvalidPointerPath.Error())))
-	}
+	_, err = g.b.Wallets().AddAddress(ctx, wallet.ID, wa.String())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -67,29 +59,24 @@ func (g *grpcServer) CreatePaymentPointer(ctx context.Context, req *pb.CreatePay
 }
 
 func (g *grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPointerRequest) (*pb.PaymentPointer, error) {
-	pp, err := ops.GetPaymentPointer(ctx, g.b, ops.StandardisePaymentPointer(req.Url))
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	formattedPP, err := ops.FormattedPaymentPointer(pp.URL)
+	w, err := g.b.Wallets().GetFromAddress(ctx, req.Url)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	legalName := ""
-	kycInfo, err := g.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
+	kycInfo, err := g.b.KYC().GetIndividualDetails(ctx, w.ID)
 	if err == nil {
 		legalName = kycInfo.FirstName + " " + kycInfo.LastName
 	}
 
 	return &pb.PaymentPointer{
-		Url:        pp.URL,
-		Asset:      pp.Asset.String(),
-		AssetScale: int32(pp.AssetScale),
-		Alias:      pp.Alias,
-		WalletID:   pp.WalletID,
-		Formatted:  formattedPP,
+		Url:        w.Addresses[0].String(),
+		Asset:      "USD",
+		AssetScale: int32(2),
+		Alias:      w.Name,
+		WalletID:   w.ID,
+		Formatted:  w.Addresses[0].ShortString(),
 		LegalName:  legalName,
 	}, nil
 }
@@ -105,30 +92,22 @@ func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty)
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	pp, err := ops.ListWalletPaymentPointers(ctx, g.b, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
 	legalName := ""
 	kycInfo, err := g.b.KYC().GetIndividualDetails(ctx, wallet.ID)
 	if err == nil {
 		legalName = kycInfo.FirstName + " " + kycInfo.LastName
 	}
 
-	resp := make([]*pb.PaymentPointer, len(pp))
-	for i, p := range pp {
-		formattedPP, err := ops.FormattedPaymentPointer(p.URL)
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
+	resp := make([]*pb.PaymentPointer, len(wallet.Addresses))
+	for i, wa := range wallet.Addresses {
+
 		resp[i] = &pb.PaymentPointer{
-			Url:        p.URL,
-			Asset:      p.Asset.String(),
-			AssetScale: int32(p.AssetScale),
-			Alias:      p.Alias,
-			WalletID:   p.WalletID,
-			Formatted:  formattedPP,
+			Url:        wa.String(),
+			Asset:      "USD",
+			AssetScale: int32(0),
+			Alias:      wallet.Name,
+			WalletID:   wallet.ID,
+			Formatted:  wa.ShortString(),
 			LegalName:  legalName,
 		}
 	}
@@ -137,9 +116,9 @@ func (g *grpcServer) ListWalletPaymentPointers(ctx context.Context, _ *pb.Empty)
 }
 
 func (g *grpcServer) PaymentPointerExists(ctx context.Context, req *pb.PaymentPointerExistsRequest) (*pb.PaymentPointerExistsResponse, error) {
-	exists, err := ops.PaymentPointerExists(ctx, g.b, ops.StandardisePaymentPointer(req.Url))
-	if errors.Is(err, openpayments.ErrInvalidPointerPath) {
-		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), openpayments.ErrInvalidPointerPath.Error())))
+	exists, err := ops.PaymentPointerExists(ctx, g.b, req.Url)
+	if errors.Is(err, wallets.ErrInvalidAddress) {
+		return nil, NewValidationError("url", strings.TrimSpace(strings.TrimPrefix(err.Error(), wallets.ErrInvalidAddress.Error())))
 	}
 	if err != nil {
 		return nil, toGRPCError(err)
@@ -162,11 +141,6 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	ppl, err := ops.ListWalletPaymentPointers(ctx, g.b, wallet.ID)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
 	amount := currency.FromPB(req.Amount)
 	exceedsLimit, limitType, err := g.b.Limits().ExceedsKYCLimits(ctx, wallet.ID, amount)
 	if err != nil {
@@ -176,22 +150,38 @@ func (g *grpcServer) CreateQuote(ctx context.Context, req *pb.CreateQuoteRequest
 		return nil, FailedPreconditionError(string(limitType))
 	}
 
+	// Ensure the receiver address exists
+	_, err = g.b.Wallets().GetFromAddress(ctx, req.ReceivePaymentPointer)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	sendWa, err := wallets.ParseAddress(req.SendPaymentPointer)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	recvWa, err := wallets.ParseAddress(req.ReceivePaymentPointer)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	args := openpayments.CreateQuoteArgs{
-		SendPaymentPointer:      ops.StandardisePaymentPointer(req.SendPaymentPointer),
-		ReceivePaymentPointer:   ops.StandardisePaymentPointer(req.ReceivePaymentPointer),
+		SendPaymentPointer:      sendWa.String(),
+		ReceivePaymentPointer:   recvWa.String(),
 		ExpiresAt:               req.ExpiresAt.AsTime(),
 		SendAmount:              amount,
 		Reference:               "",
 		Description:             req.Description,
 		LinkedAccID:             req.GetSendLinkedAccount(),
-		CreatedBy:               ops.StandardisePaymentPointer(req.SendPaymentPointer),
+		CreatedBy:               sendWa.String(),
 		DestinationIdentity:     req.GetIdentity(),
 		DestinationIdentityType: req.GetIdentityType(),
 	}
 
 	var found bool
-	for _, pp := range ppl {
-		if strings.EqualFold(pp.URL, args.SendPaymentPointer) {
+	for _, pp := range wallet.Addresses {
+		if strings.EqualFold(pp.String(), args.SendPaymentPointer) {
 			found = true
 		}
 	}
@@ -292,22 +282,6 @@ func (g *grpcServer) SetQuoteOTP(ctx context.Context, req *pb.SetQuoteOTPRequest
 	}, nil
 }
 
-func (g *grpcServer) SendQuoteOTP(ctx context.Context, req *pb.SendQuoteOTPRequest) (*pb.Empty, error) {
-	_, err := g.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("no login found")
-	}
-
-	_, err = g.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, ForbiddenError("Unauthenticated.")
-	}
-
-	err = ops.SendQuoteOTP(ctx, g.b, req.QuoteID)
-
-	return &pb.Empty{}, toGRPCError(err)
-}
-
 func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIncomingPaymentRequest) (*pb.IncomingPayment, error) {
 
 	_, err := g.b.Users().UserForContext(ctx)
@@ -320,16 +294,16 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	ppl, err := ops.ListWalletPaymentPointers(ctx, g.b, wallet.ID)
+	receiverWa, err := wallets.ParseAddress(req.PaymentPointer)
 	if err != nil {
-		return nil, toGRPCError(err)
+		return nil, err
 	}
 
 	args := openpayments.CreateIncomingPaymentArgs{
-		PaymentPointer: ops.StandardisePaymentPointer(req.PaymentPointer),
+		PaymentPointer: receiverWa.String(),
 		ExternalRef:    req.Reference,
 		ExpiresAt:      req.ExpiresAt.AsTime(),
-		CreatedBy:      ops.StandardisePaymentPointer(req.PaymentPointer),
+		CreatedBy:      receiverWa.String(),
 	}
 	if req.Amount != nil {
 		amt := currency.FromPB(req.GetAmount())
@@ -339,8 +313,8 @@ func (g *grpcServer) CreateIncomingPayment(ctx context.Context, req *pb.CreateIn
 	// TODO: Can you only create incoming payments for yourself...
 	// Probably not long term, but for now :shrug:
 	var found bool
-	for _, pp := range ppl {
-		if strings.EqualFold(pp.URL, args.PaymentPointer) {
+	for _, pp := range wallet.Addresses {
+		if strings.EqualFold(pp.String(), receiverWa.String()) {
 			found = true
 		}
 	}

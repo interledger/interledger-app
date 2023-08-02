@@ -6,15 +6,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"path"
+	"regexp"
+	"time"
+
 	"gitlab.com/fynbos/backend/cdn"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/twitter"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
-	"net/url"
-	"path"
-	"regexp"
-	"time"
 
 	twitterscraper "github.com/n0madic/twitter-scraper"
 	"gitlab.com/fynbos/backend/identities"
@@ -56,13 +57,18 @@ func (tp *twitterPlatform) GenerateSignedClaim(ctx context.Context, args *Signed
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
 	}
 
-	pp, err := tp.b.OpenPayments().GetWalletPaymentPointer(ctx, args.WalletID)
+	wallet, err := tp.b.Wallets().Get(ctx, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
+	var wa string
+	if len(wallet.Addresses) > 0 {
+		wa = wallet.Addresses[0].String()
+	}
+
 	claim := identities.Claim{
-		Wallet:     pp.URL,
+		Wallet:     wa,
 		Type:       "twitter",
 		Identifier: args.Identifier,
 		Kid:        signingKey.ID,
