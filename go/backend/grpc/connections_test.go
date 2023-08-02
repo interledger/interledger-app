@@ -14,7 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/limits"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -148,19 +147,17 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 	u := &user.User{
 		ID: uuid.NewString(),
 	}
+
+	wa, err := wallets.ParseAddress("https://local.fynbos.me/test")
+	require.NoError(t, err)
+
 	wallet := wallets.Wallet{
-		ID:   uuid.NewString(),
-		Name: "testing",
+		ID:        uuid.NewString(),
+		Name:      "testing",
+		Addresses: []wallets.Address{wa},
 	}
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
 	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
-
-	ppURL := "https://local.fynbos.me/test"
-	c.OPClient.EXPECT().GetWalletPaymentPointer(gomock.Any(), wallet.ID).Return(&openpayments.PaymentPointer{
-		ID:       uuid.NewString(),
-		WalletID: wallet.ID,
-		URL:      ppURL,
-	}, nil).AnyTimes()
 
 	publicKeyUuid := uuid.NewString()
 	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), wallet.ID, publicKeyUuid, limits.Limit{
@@ -181,7 +178,7 @@ func TestUpdatePublicKeyLimits(t *testing.T) {
 		},
 	}).Return(nil).AnyTimes()
 
-	_, err := client.UpdateConnectionLimits(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdateConnectionLimitsRequest{
+	_, err = client.UpdateConnectionLimits(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.UpdateConnectionLimitsRequest{
 		Id: publicKeyUuid,
 		Daily: &backendv1.Amount{
 			Asset:      "USD",

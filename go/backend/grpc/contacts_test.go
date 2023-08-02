@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
@@ -32,36 +31,29 @@ func TestCreateContact(t *testing.T) {
 	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&w, nil).AnyTimes()
 
 	// Create contact
+	wa, err := wallets.ParseAddress("$fynbos.me/alice")
+	require.NoError(t, err)
 	cw := wallets.Wallet{
-		ID:   uuid.NewString(),
-		Name: "testing",
+		ID:        uuid.NewString(),
+		Name:      "testing",
+		Addresses: []wallets.Address{wa},
 	}
 	c.walletImpl.EXPECT().Get(gomock.Any(), cw.ID).Return(&cw, nil).AnyTimes()
 
-	pp, err := wallets.ParseAddress("$fynbos.me/alice")
-	require.NoError(t, err)
-
-	c.OPClient.EXPECT().GetPaymentPointer(gomock.Any(), pp.String()).Return(&openpayments.PaymentPointer{
-		ID:         uuid.NewString(),
-		URL:        pp.String(),
-		WalletID:   cw.ID,
-		Alias:      "Test",
-		Asset:      "USD",
-		AssetScale: 2,
-	}, nil).AnyTimes()
+	c.walletImpl.EXPECT().GetFromAddress(gomock.Any(), gomock.Any()).Return(&cw, nil).AnyTimes()
 
 	c.ContactsClient.EXPECT().Create(gomock.Any(), gomock.Any()).Return(
 		&contacts.Contact{
 			ID:             uuid.NewString(),
 			Name:           cw.Name,
-			PaymentPointer: pp,
+			PaymentPointer: wa,
 			WalletID:       cw.ID,
 		},
 		nil,
 	).AnyTimes()
 
 	rpc, err := client.CreateContact(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateContactRequest{
-		PaymentPointer: pp.ShortString(),
+		PaymentPointer: wa.ShortString(),
 	})
 	require.NoError(t, err)
 

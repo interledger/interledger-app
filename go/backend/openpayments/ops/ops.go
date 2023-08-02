@@ -5,9 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"net/url"
-	"path"
-	"regexp"
 	"strings"
 	"time"
 
@@ -20,250 +17,44 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 )
 
-func CreatePaymentPointer(ctx context.Context, b Backends, pointer openpayments.PaymentPointer) error {
-	err := b.Validator().Struct(pointer)
-	if err != nil {
-		return fmt.Errorf("%w %s", openpayments.ErrInvalidArgument, err)
-	}
-
-	ppURL, err := validatePaymentPointer(pointer.URL)
-	if err != nil {
-		return err
-	}
-
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO payment_pointers (wallet_id, url, alias, asset, scale) VALUES ($1,$2,$3,$4,$5)",
-		pointer.WalletID, ppURL, pointer.Alias, pointer.Asset, pointer.AssetScale)
-
-	if db.IsErrorCode(err, db.UniqueViolationError) {
-		return fmt.Errorf("%w payment pointer url exists already (%s)", openpayments.ErrPaymentPointerExists, pointer.URL)
-	}
-	if err != nil {
-		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	_, err = b.Wallets().AddAddress(ctx, pointer.WalletID, ppURL)
-	if err != nil {
-		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	b.Analytics().TrackWalletPaymentPointerCreated(pointer.WalletID)
-	return nil
-}
-
 func PaymentPointerExists(ctx context.Context, b Backends, pointerURLRaw string) (bool, error) {
 	// Validate that this is a valid payment pointer
-	ppURL, err := validatePaymentPointer(pointerURLRaw)
+	ppURL, err := wallets.ParseAddress(pointerURLRaw)
 	if err != nil {
 		return false, err
 	}
 
-	pp, err := GetPaymentPointer(ctx, b, ppURL)
-	if err != nil && !errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
-		return false, err
-	}
-	if pp != nil {
-		return true, nil
-	}
-
-	wa, err := b.Wallets().GetFromAddress(ctx, ppURL)
+	wa, err := b.Wallets().GetFromAddress(ctx, ppURL.String())
 	if err != nil && !errors.Is(err, wallets.ErrNoWalletFound) {
 		return false, err
 	}
 
-	return pp != nil || wa != nil, nil
-}
-
-func getPaymentPointerByID(ctx context.Context, b Backends, id string) (*openpayments.PaymentPointer, error) {
-	var pp openpayments.PaymentPointer
-	err := b.DB().GetContext(ctx, &pp, "SELECT id, wallet_id, url, alias, asset, scale FROM payment_pointers WHERE id = $1",
-		id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w unkown payment pointer id(%s)", openpayments.ErrPaymentPointerNotFound, id)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	return &pp, nil
-}
-
-func GetPaymentPointer(ctx context.Context, b Backends, pointerURLRaw string) (*openpayments.PaymentPointer, error) {
-
-	ppURL, err := sanitizePaymentPointer(pointerURLRaw)
-	if err != nil {
-		return nil, err
-	}
-
-	var pp openpayments.PaymentPointer
-	err = b.DB().GetContext(ctx, &pp, "SELECT id, wallet_id, url, alias, asset, scale FROM payment_pointers WHERE lower(url) = lower($1)",
-		ppURL)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w unkown payment pointer url(%s)", openpayments.ErrPaymentPointerNotFound, ppURL)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	return &pp, nil
-}
-
-var reservedURLParts = []string{"outgoing", "incoming", "quotes", "jwks.json", "identities"}
-
-// sanitizePaymentPointer takes a full URL and checks for any reserved words and invalid formatting
-func sanitizePaymentPointer(rawURL string) (string, error) {
-	rawURL = StandardisePaymentPointer(rawURL)
-	pointerURL, err := url.Parse(rawURL)
-	if err != nil {
-		return "", openpayments.ErrInvalidPointerURL
-	}
-
-	if pointerURL.Scheme == "" || pointerURL.Host == "" {
-		return "", openpayments.ErrInvalidPointerURL
-	}
-
-	if len(pointerURL.Path) == 0 {
-		return "", openpayments.ErrInvalidPointerURL
-	}
-	pathParts := strings.Split(pointerURL.Path, "/")
-	for _, pp := range pathParts {
-		for _, res := range reservedURLParts {
-			if strings.EqualFold(pp, res) {
-				return "", openpayments.ErrInvalidPointerURL
-			}
-		}
-	}
-
-	return strings.TrimSuffix(pointerURL.String(), "/"), nil
-}
-
-var pointerRegex = regexp.MustCompile(`^[A-Za-z]{4}[a-zA-z0\d_]{0,26}$`)
-var pointerPrefixRegex = regexp.MustCompile(`^[A-Za-z]{3}$`)
-
-// validatePaymentPointer returns the sanitized url or an error if the payment pointer is not in the format https://{base}/{variable}
-// {variable} has the following conditions:
-// - Between 4 and 42 characters
-// - Only AlphaNumeric characters and underscore
-// - The first 4 characters can only be alpha
-// Assumption: {base} does not contain any slashes
-func validatePaymentPointer(rawURL string) (string, error) {
-	rawURL = StandardisePaymentPointer(rawURL)
-
-	unescaped, err := url.PathUnescape(rawURL)
-	if err != nil || unescaped != rawURL {
-		// Some URL escapes where added or invalid URL escapes are present
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
-	}
-
-	pointerURL, err := url.Parse(rawURL)
-	if err != nil {
-		return "", openpayments.ErrInvalidPointerURL
-	}
-
-	if pointerURL.Scheme == "" || pointerURL.Host == "" {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer needs to contain a host and a http scheme")
-	}
-
-	// Fragments are after a '#' character in the url.
-	// Payment pointers do not contain queries.
-	if pointerURL.Fragment != "" || pointerURL.RawQuery != "" {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
-	}
-
-	path := strings.TrimPrefix(pointerURL.Path, "/")
-
-	if len(path) < 3 {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer must be longer than 3 characters")
-	}
-	if len(path) > 30 {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer must be shorter than 30 characters")
-	}
-
-	if !pointerPrefixRegex.MatchString(path[:3]) {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your first 3 characters must be letters")
-	}
-
-	if !pointerRegex.MatchString(path) {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
-	}
-
-	ppURL, err := sanitizePaymentPointer(rawURL)
-	if err != nil {
-		return "", err
-	}
-
-	// Some characters where removed from the URL, error
-	if !strings.EqualFold(ppURL, rawURL) {
-		return "", fmt.Errorf("%w %s", openpayments.ErrInvalidPointerPath, "Your payment pointer can only contain letters, numbers and '_'")
-	}
-
-	return ppURL, nil
-}
-
-func FormattedPaymentPointer(rawURL string) (string, error) {
-	parsedUrl, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-
-	formatted := path.Join(parsedUrl.Host, parsedUrl.Path)
-
-	return formatted, nil
-}
-
-// StandardisePaymentPointer takes in a payment pointer in either the forms:
-// - https://fynbos.me/alice
-// - fynbos.me/alice
-// - $fynbos.me/alice
-// Returns the standard format of : https:///fynbos.me/alice
-func StandardisePaymentPointer(pp string) string {
-	if strings.HasPrefix(pp, "https://") {
-		return pp
-	}
-
-	// Replace the $ with https://
-	if strings.HasPrefix(pp, "$") {
-		return strings.Replace(pp, "$", "https://", 1)
-	}
-
-	// We use https here
-	if strings.HasPrefix(pp, "http://") {
-		return strings.Replace(pp, "http://", "https://", 1)
-	}
-
-	// The payment pointer has no prefix assume we need to add https://
-	return "https://" + pp
+	return wa != nil, nil
 }
 
 // ExtractPaymentPointer takes a full URL and removes the known suffix and what is left is the original Payment pointer
 // returns the payment pointer as well as the matching suffix
 func ExtractPaymentPointer(rawURL string) (string, string, error) {
 	var res string
-	for _, res = range reservedURLParts {
+	for _, res = range wallets.ReservedURLParts {
 		if strings.Contains(rawURL, res) {
-			sanitized, err := sanitizePaymentPointer(rawURL[:strings.LastIndex(rawURL, res)])
+			waRaw := rawURL[:strings.LastIndex(rawURL, res)]
+
+			wa, err := wallets.ParseAddress(waRaw)
 			if err != nil {
 				return "", "", err
 			}
-			return sanitized, res, nil
+
+			return wa.String(), res, nil
 		}
 	}
 
 	// No suffix found, return the original sanitized
-	sanitized, err := sanitizePaymentPointer(rawURL)
-	return sanitized, "", err
-}
-
-func ListWalletPaymentPointers(ctx context.Context, b Backends, walletID string) ([]openpayments.PaymentPointer, error) {
-	var pp []openpayments.PaymentPointer
-	err := b.DB().SelectContext(ctx, &pp, "SELECT id, wallet_id, url, alias, asset, scale FROM payment_pointers WHERE wallet_id=$1", walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w payment pointers fround for wallet(%s)", openpayments.ErrPaymentPointerNotFound, walletID)
-	}
+	wa, err := wallets.ParseAddress(rawURL)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
+		return "", "", err
 	}
-
-	return pp, nil
+	return wa.String(), "", err
 }
 
 func CheckWalletsCanSendRecv(ctx context.Context, b Backends, fromWalletID, fromLinkedAccID, toWalletID string) error {
@@ -338,45 +129,50 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, fmt.Errorf("%w invalid expiry time", openpayments.ErrInvalidArgument)
 	}
 
-	recvPP, err := GetPaymentPointer(ctx, b, args.ReceivePaymentPointer)
+	recvAddress, err := wallets.ParseAddress(args.ReceivePaymentPointer)
 	if err != nil {
 		return nil, err
 	}
 
-	sendPP, err := GetPaymentPointer(ctx, b, args.SendPaymentPointer)
+	senderAddress, err := wallets.ParseAddress(args.SendPaymentPointer)
 	if err != nil {
 		return nil, err
-	}
-
-	if sendPP.Asset != recvPP.Asset || recvPP.Asset != args.SendAmount.Currency {
-		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
 	}
 
 	// Tying to send money to yourself.
-	if recvPP.ID == sendPP.ID {
+	if recvAddress.String() == senderAddress.String() {
 		return nil, fmt.Errorf("%w cannot send money to the same payment pointer", openpayments.ErrInvalidArgument)
 	}
 
+	senderWallet, err := b.Wallets().GetFromAddress(ctx, senderAddress.String())
+	if err != nil {
+		return nil, err
+	}
 	if args.LinkedAccID != "" {
 		la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccID)
 		if err != nil {
 			return nil, err
 		}
 
-		if la.WalletID != sendPP.WalletID {
+		if la.WalletID != senderWallet.ID {
 			return nil, fmt.Errorf("%w specified linked account not associated with the send payment pointer", openpayments.ErrInvalidArgument)
 		}
 	}
 
-	err = CheckWalletsCanSendRecv(ctx, b, sendPP.WalletID, args.LinkedAccID, recvPP.WalletID)
+	recvWallet, err := b.Wallets().GetFromAddress(ctx, recvAddress.String())
+	if err != nil {
+		return nil, err
+	}
+
+	err = CheckWalletsCanSendRecv(ctx, b, senderWallet.ID, args.LinkedAccID, recvWallet.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create Incoming Payment
 	ip, err := CreateIncomingPayment(ctx, b, openpayments.CreateIncomingPaymentArgs{
-		PaymentPointer:     recvPP.URL,
-		FromPaymentPointer: sendPP.URL,
+		PaymentPointer:     recvAddress.String(),
+		FromPaymentPointer: senderAddress.String(),
 		ExternalRef:        args.Reference,
 		Description:        args.Description,
 		IncomingAmount:     &args.SendAmount,
@@ -386,7 +182,7 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, err
 	}
 
-	hasTx, err := b.Transactions().GetHasTransacted(ctx, sendPP.WalletID, recvPP.URL)
+	hasTx, err := b.Transactions().GetHasTransacted(ctx, senderWallet.ID, recvAddress.String())
 	if err != nil {
 		return nil, err
 	}
@@ -396,8 +192,6 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 	id := uuid.NewString()
 	query, vals, err := db.NewInsert("openpayments_quotes").
 		Value("id", id).
-		Value("send_payment_pointer_id", sendPP.ID).
-		Value("recv_payment_pointer_id", recvPP.ID).
 		Value("incoming_payment_id", ip.ID[strings.LastIndex(ip.ID, "/")+1:]).
 		Value("send_amount", args.SendAmount.Value).
 		Value("send_asset", args.SendAmount.Currency).
@@ -427,11 +221,11 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 			Valid: true,
 		}).
 		Value("sender_wallet_address", sql.NullString{
-			String: sendPP.URL,
+			String: senderAddress.String(),
 			Valid:  true,
 		}).
 		Value("receiver_wallet_address", sql.NullString{
-			String: recvPP.URL,
+			String: recvAddress.String(),
 			Valid:  true,
 		}).GetStatement()
 	if err != nil {
@@ -442,13 +236,11 @@ func CreateQuote(ctx context.Context, b Backends, args openpayments.CreateQuoteA
 		return nil, fmt.Errorf("%w insert failed (%s)", openpayments.ErrInternal, err)
 	}
 
-	return GetPaymentPointerQuote(ctx, b, sendPP.ID, id)
+	return GetWalletAddressQuote(ctx, b, senderAddress.String(), id)
 }
 
 type dbQuote struct {
 	ID                    string         `db:"id"`
-	SendPaymentPointer    string         `db:"send_payment_pointer_id"`
-	ReceivePaymentPointer string         `db:"recv_payment_pointer_id"`
 	IncomingPaymentID     string         `db:"incoming_payment_id"`
 	SendAmount            uint64         `db:"send_amount"`
 	SendAsset             string         `db:"send_asset"`
@@ -474,7 +266,7 @@ type dbQuote struct {
 func getDBQuote(ctx context.Context, b Backends, where string, args ...interface{}) (*dbQuote, error) {
 	var dbq dbQuote
 	err := b.DB().GetContext(ctx, &dbq,
-		"SELECT id, send_linked_acc_id, send_payment_pointer_id, recv_payment_pointer_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type, otp_required, otp_validated, sender_wallet_address, receiver_wallet_address FROM openpayments_quotes WHERE "+where, args...)
+		"SELECT id, send_linked_acc_id, incoming_payment_id, send_amount, send_asset, send_scale, recv_amount, recv_asset, recv_scale, expires_at, created_at, updated_at, created_by, recv_identity, recv_identity_type, otp_required, otp_validated, sender_wallet_address, receiver_wallet_address FROM openpayments_quotes WHERE "+where, args...)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, openpayments.ErrNotFound
 	}
@@ -485,16 +277,7 @@ func getDBQuote(ctx context.Context, b Backends, where string, args ...interface
 	return &dbq, nil
 }
 
-func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments.Quote, error) {
-	recvPP, err := getPaymentPointerByID(ctx, b, dbq.ReceivePaymentPointer)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	sendPP, err := getPaymentPointerByID(ctx, b, dbq.SendPaymentPointer)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
+func transformQuote(dbq dbQuote) *openpayments.Quote {
 
 	amount := currency.Amount{
 		Value:    dbq.SendAmount,
@@ -502,9 +285,9 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		Scale:    dbq.SendAssetScale,
 	}
 	return &openpayments.Quote{
-		ID:                      fmt.Sprintf("%s/quotes/%s", sendPP.URL, dbq.ID),
-		PaymentPointer:          sendPP.URL,
-		IncomingPayment:         fmt.Sprintf("%s/incoming-payments/%s", recvPP.URL, dbq.IncomingPaymentID),
+		ID:                      fmt.Sprintf("%s/quotes/%s", dbq.SenderWalletAddress.String, dbq.ID),
+		PaymentPointer:          dbq.SenderWalletAddress.String,
+		IncomingPayment:         fmt.Sprintf("%s/incoming-payments/%s", dbq.ReceiverWalletAddress.String, dbq.IncomingPaymentID),
 		ReceiveAmount:           amount,
 		SendAmount:              amount,
 		ExpiresAt:               dbq.ExpiresAt,
@@ -515,7 +298,7 @@ func transformQuote(ctx context.Context, b Backends, dbq dbQuote) (*openpayments
 		DestinationIdentityType: dbq.RecvIdentityType.String,
 		RequiresOTP:             dbq.OTPRequired.Bool,
 		OTPValidated:            dbq.OTPValidated.Bool,
-	}, nil
+	}
 }
 
 // GetQuote returns a quote for the given ID. No validation is done on if the caller/user/paymentpointer can access the quote.
@@ -531,53 +314,20 @@ func GetQuote(ctx context.Context, b Backends, id string) (*openpayments.Quote, 
 		return nil, err
 	}
 
-	return transformQuote(ctx, b, *dbq)
+	return transformQuote(*dbq), nil
 }
 
 func GetWalletQuote(ctx context.Context, b Backends, walletID, id string) (*openpayments.Quote, error) {
-	pp, err := ListWalletPaymentPointers(ctx, b, walletID)
+	wallet, err := b.Wallets().Get(ctx, walletID)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(pp) != 1 {
-		return nil, fmt.Errorf("%w wallet has (%d) payment pointers", openpayments.ErrInternal, len(pp))
+	if len(wallet.Addresses) != 1 {
+		return nil, fmt.Errorf("%w wallet has (%d) payment pointers", openpayments.ErrInternal, len(wallet.Addresses))
 	}
 
-	return GetPaymentPointerQuote(ctx, b, pp[0].ID, id)
-}
-
-func SendQuoteOTP(ctx context.Context, b Backends, qid string) error {
-	idxSlash := strings.LastIndex(qid, "/")
-	if idxSlash > 0 {
-		qid = qid[idxSlash+1:]
-	}
-
-	q, err := GetQuote(ctx, b, qid)
-	if err != nil {
-		return err
-	}
-
-	if !q.RequiresOTP {
-		return nil
-	}
-
-	sendPP, err := getPaymentPointerByID(ctx, b, q.PaymentPointer)
-	if err != nil {
-		return err
-	}
-
-	ul, err := b.Users().ListUsers(ctx, sendPP.WalletID)
-	if err != nil || len(ul) == 0 {
-		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	_, err = b.Twilio().SendVerificationCode(ctx, ul[0].PhoneNumber)
-	if err != nil {
-		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	return nil
+	return GetWalletAddressQuote(ctx, b, wallet.Addresses[0].String(), id)
 }
 
 func SetQuoteOTPValidated(ctx context.Context, b Backends, qid string) (*openpayments.Quote, error) {
@@ -589,24 +339,24 @@ func SetQuoteOTPValidated(ctx context.Context, b Backends, qid string) (*openpay
 	return GetQuote(ctx, b, qid)
 }
 
-func GetPaymentPointerQuote(ctx context.Context, b Backends, paymentPointerID, id string) (*openpayments.Quote, error) {
+func GetWalletAddressQuote(ctx context.Context, b Backends, senderAddress, id string) (*openpayments.Quote, error) {
 	// Our friends may have provided the full ID with the payment pointer and the `quotes` prefix.
 	idxSlash := strings.LastIndex(id, "/")
 	if idxSlash > 0 {
 		id = id[idxSlash+1:]
 	}
 
-	dbq, err := getDBQuote(ctx, b, "id=$1 AND send_payment_pointer_id=$2", id, paymentPointerID)
+	dbq, err := getDBQuote(ctx, b, "id=$1 AND sender_wallet_address=$2", id, senderAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	return transformQuote(ctx, b, *dbq)
+	return transformQuote(*dbq), nil
 }
 
-func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string) (bool, error) {
-	pp, err := GetPaymentPointer(ctx, b, StandardisePaymentPointer(ppString))
-	if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+func ValidateCanSend(ctx context.Context, b Backends, walletID, walletAddress string) (bool, error) {
+	addressWallet, err := b.Wallets().GetFromAddress(ctx, walletAddress)
+	if errors.Is(err, wallets.ErrNoWalletFound) {
 		// Payment pointer doesn't exists, don't error just return false
 		return false, nil
 	}
@@ -619,19 +369,25 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 		return true, nil
 	}
 
-	ppl, err := ListWalletPaymentPointers(ctx, b, walletID)
+	wallet, err := b.Wallets().Get(ctx, walletID)
 	if err != nil {
 		return false, err
 	}
 
-	for _, own := range ppl {
-		if own.ID == pp.ID {
-			return false, nil
+	if wallet.ID == addressWallet.ID {
+		return false, nil
+	}
+	for _, wa := range wallet.Addresses {
+		for _, recvWA := range addressWallet.Addresses {
+			if wa.String() == recvWA.String() {
+				return false, nil
+			}
 		}
+
 	}
 
 	// check recv pp has a linked account that is verified and receive enabled.
-	receiveLAs, err := b.LinkedAccounts().ListByWalletId(ctx, pp.WalletID)
+	receiveLAs, err := b.LinkedAccounts().ListByWalletId(ctx, addressWallet.ID)
 	if err != nil {
 		return false, err
 	}
@@ -658,17 +414,4 @@ func ValidateCanSend(ctx context.Context, b Backends, walletID, ppString string)
 
 	// Target Payment Pointer exists and can receive, sending wallet can send, it's not sending to itself, authenticated request
 	return canReceive && canSend, nil
-}
-
-func GetWalletPaymentPointer(ctx context.Context, b Backends, walletID string) (*openpayments.PaymentPointer, error) {
-	var pp openpayments.PaymentPointer
-	err := b.DB().GetContext(ctx, &pp, "SELECT id, wallet_id, url, alias, asset, scale FROM payment_pointers WHERE wallet_id = $1 LIMIT 1;", walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("%w unkown payment pointer for walletID(%s)", openpayments.ErrPaymentPointerNotFound, walletID)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
-	}
-
-	return &pp, nil
 }

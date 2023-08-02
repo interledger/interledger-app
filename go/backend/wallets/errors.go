@@ -7,4 +7,5 @@ var (
 	ErrNoWalletFound   = errors.New("wallets: no wallet found")
 	ErrDuplicateWallet = errors.New("wallets: duplicate wallet")
 	ErrAddressExists   = errors.New("wallets: duplicate wallet")
+	ErrInvalidAddress  = errors.New("wallets: invalid address")
 )
