@@ -4,7 +4,7 @@ import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Icon, Layouts } from '~/components'
+import { Card, CardContent, Icon, Layouts, WalletShapes } from '~/components'
 import { Label } from '~/components/Label'
 import {
   StatusError,
@@ -65,7 +65,8 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Personal information'
+      title: 'Personal information',
+      actions: <WalletShapes />
     },
     isNested: true
   }
@@ -102,6 +103,7 @@ export default function Page() {
               <span>
                 {kycDetails.address?.formattedAddress
                   ?.split(',')
+                  .filter((line) => line.length > 0)
                   .map((line) => (
                     <>
                       <span>{line}</span>
@@ -118,19 +120,20 @@ export default function Page() {
             <div className='flex space-x-3'>
               <Icon>flag</Icon>
               <span>{country}</span>
-              <span>{kycDetails.countryCode}</span>
             </div>
           </div>
         </div>
-        <div className='flex w-full flex-col space-y-1'>
-          <Label>Gender</Label>
-          <div className='mt-1 flex w-full justify-between p-3'>
-            <div className='flex space-x-3'>
-              <Icon>{gender.icon}</Icon>
-              <span>{gender.title}</span>
+        {kycDetails.gender > 0 && (
+          <div className='flex w-full flex-col space-y-1'>
+            <Label>Gender</Label>
+            <div className='mt-1 flex w-full justify-between p-3'>
+              <div className='flex space-x-3'>
+                <Icon>{gender.icon}</Icon>
+                <span>{gender.title}</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
         <div className='flex w-full flex-col space-y-1'>
           <Label>Birth date</Label>
           <div className='mt-1 flex w-full justify-between p-3'>

@@ -61,14 +61,17 @@ export async function loader({ request }: LoaderArgs) {
     headers = trimHeaders(flowRes.headers, ['set-cookie'])
   }
 
-  return json({
-    returnTo: flow.ui.returnTo,
-    flowId: flow.id,
-    csrfToken: getCsrfTokenFromFlow(flow),
-    isSignupGated: IS_SIGNUP_GATED
-  }, {
-    headers: headers ?? undefined
-  })
+  return json(
+    {
+      returnTo: flow.ui.returnTo,
+      flowId: flow.id,
+      csrfToken: getCsrfTokenFromFlow(flow),
+      isSignupGated: IS_SIGNUP_GATED
+    },
+    {
+      headers: headers ?? undefined
+    }
+  )
 }
 
 export const handle: ApplicationProps = {
@@ -86,7 +89,8 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { csrfToken, isSignupGated, flowId, returnTo } = useLoaderData<typeof loader>()
+  const { csrfToken, isSignupGated, flowId, returnTo } =
+    useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
 
   const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
@@ -115,12 +119,7 @@ export default function Page() {
         name='csrf_token'
         type='hidden'
       />
-      <input
-        form='login'
-        defaultValue={flowId}
-        name='flow_id'
-        type='hidden'
-      />
+      <input form='login' defaultValue={flowId} name='flow_id' type='hidden' />
       <input
         form='login'
         defaultValue={returnTo}
