@@ -106,7 +106,7 @@ func (a *Activity) CheckWalletOFAC(ctx context.Context, walletID string) error {
 	}
 
 	// Notify slack that user has an OFAC match
-	slack.SendToChannel(ctx, slack.NotifyGMT, "GMT_OFAC", fmt.Sprintf("GMT OFAC hit  in [%s] wallet_id [%s]", env.GetEnv(), walletID))
+	slack.SendToChannel(ctx, slack.ChannelNotifyGMT, "GMT_OFAC", fmt.Sprintf("GMT OFAC hit  in [%s] wallet_id [%s]", env.GetEnv(), walletID))
 
 	return nil
 }
@@ -849,7 +849,7 @@ func (a *Activity) InsertACH(ctx context.Context, args providers.TransfersArgs) 
 
 	if strings.EqualFold(res.Status, "Hold") {
 		// Notify slack that user has an OFAC match
-		slack.SendToChannel(ctx, slack.NotifyGMT, "GMT_HOLD", fmt.Sprintf("GMT transaction on Hold in [%s] tx_id[%s] from_wallet_id [%s] to_wallet_id [%s]", env.GetEnv(), args.FromTransactionID, args.FromWalletID, args.ToWalletID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyGMT, "GMT_HOLD", fmt.Sprintf("GMT transaction on Hold in [%s] tx_id[%s] from_wallet_id [%s] to_wallet_id [%s]", env.GetEnv(), args.FromTransactionID, args.FromWalletID, args.ToWalletID))
 	}
 
 	return &TransactionResp{
