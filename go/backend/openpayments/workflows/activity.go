@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/contacts"
@@ -216,16 +216,30 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
-	// TODO verify that these are formatted correctly.
+	kycData, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
+	if err != nil {
+		kycData = &kyc.IndividualDetails{}
+	}
+
+	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
+	greeting = strings.TrimSpace(greeting) + ","
 	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceiptTemplateID, map[string]interface{}{
-		"transactionID":      txURL,
-		"paymentDate":        op.UpdatedAt.Format(time.RFC1123),
-		"sendAmount":         op.SentAmount.Format(),
-		"fees":               "$ 0.00",
-		"receiveAmount":      op.ReceiveAmount.Format(),
-		"note":               op.Description,
-		"toPaymentPointer":   op.ToPaymentPointer,
-		"fromPaymentPointer": op.PaymentPointer,
+		"subject": email.ReceiptTemplateID.Subject(),
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your recent payment was successful"},
+			{
+				"table": []map[string]interface{}{
+					{"label": "Total amount", "text": op.SentAmount.Format(), "large": true},
+					{"label": "To", "text": op.ToPaymentPointer},
+					{"label": "Date", "text": op.UpdatedAt.Format("02 Jan 2006")},
+				},
+			},
+		},
+		"cta": map[string]interface{}{
+			"text": "View transaction",
+			"url":  txURL,
+		},
 	}, []email.Attachment{})
 
 	return err
@@ -263,14 +277,30 @@ func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
+	kycData, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
+	if err != nil {
+		kycData = &kyc.IndividualDetails{}
+	}
+
+	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
+	greeting = strings.TrimSpace(greeting) + ","
 	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceivedReceiptTemplateID, map[string]interface{}{
-		"fromPaymentPointer": ip.FromPaymentPointer,
-		"toPaymentPointer":   ip.PaymentPointer,
-		"transactionID":      txURL,
-		"paymentDate":        ip.UpdatedAt.Format(time.RFC1123),
-		"receiveAmount":      ip.ReceivedAmount.Format(),
-		"note":               ip.Description,
-		"subject":            "Fynbos payment received.",
+		"subject": email.ReceivedReceiptTemplateID.Subject(),
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your have received a payment"},
+			{
+				"table": []map[string]interface{}{
+					{"label": "Total amount", "text": ip.ReceivedAmount.Format(), "large": true},
+					{"label": "From", "text": ip.FromPaymentPointer},
+					{"label": "Date", "text": ip.UpdatedAt.Format("02 Jan 2006")},
+				},
+			},
+		},
+		"cta": map[string]interface{}{
+			"text": "View transaction",
+			"url":  txURL,
+		},
 	}, []email.Attachment{})
 
 	return err
@@ -290,24 +320,29 @@ func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID
 		return err
 	}
 
-	user, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
-	if errors.Is(err, openpayments.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
-	}
-	if err != nil {
-		return err
-	}
-
 	actionUrl, err := url.JoinPath(env.GetUrl(), "pay")
 	if err != nil {
 		return err
 	}
 
+	kycData, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
+	if err != nil {
+		kycData = &kyc.IndividualDetails{}
+	}
+
+	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
+	greeting = strings.TrimSpace(greeting) + ","
 	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.FailedTransactionTemplateID, map[string]interface{}{
-		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), "payment"),
-		"transactionType": "payment",
-		"name":            user.FirstName,
-		"actionUrl":       actionUrl,
+		"subject": fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), "payment"),
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your recent payment was unsuccessful"},
+			{"paragraph": "Please try again or contact support using the details below."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Try again",
+			"url":  actionUrl,
+		},
 	}, []email.Attachment{})
 
 	return err
