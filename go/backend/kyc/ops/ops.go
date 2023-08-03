@@ -11,6 +11,8 @@ import (
 
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -208,24 +210,53 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 	}
 
 	// only send out email if moving into the denied state.
-	if old != kyc.StatusDenied && status == kyc.StatusDenied {
-		kycData, err := GetIndividualDetails(ctx, b, walletID)
-		if err != nil {
-			kycData = &kyc.IndividualDetails{}
-		}
+	kycData, err := GetIndividualDetails(ctx, b, walletID)
+	if err != nil {
+		kycData = &kyc.IndividualDetails{}
+	}
 
-		greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
+	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
+	greeting = strings.TrimSpace(greeting) + ","
+	if old != kyc.StatusDenied && status == kyc.StatusDenied {
 		err = b.Email().SendMailTemplate(ctx, walletID, email.ApplicationDenied, map[string]interface{}{
 			"subject": email.ApplicationDenied.Subject(),
 			"data": []map[string]interface{}{
-				{"paragraph": strings.TrimSpace(greeting) + ","},
+				{"paragraph": greeting},
 				{"heading": "Your wallet verification was denied,"},
 				{"paragraph": "We are unable to verify your identity at this time. Please contact support using the details below."},
 			},
 		}, nil)
+
+		// we don't send out approved email if user moves from kyc level 1 to kyc level 2
+	} else if old != kyc.StatusLevel1 && old != kyc.StatusLevel2 && (status == kyc.StatusLevel1 || status == kyc.StatusLevel2) {
+		var w *wallets.Wallet
+		w, err = b.Wallets().Get(ctx, walletID)
 		if err != nil {
-			log.Error("Failed to send kyc application denied email.", zap.Error(err), zap.String("walletID", walletID), zap.String("previous status", old.String()))
+			w = &wallets.Wallet{}
 		}
+
+		var address wallets.Address
+		if len(w.Addresses) > 1 {
+			address = w.Addresses[0]
+		}
+
+		err = b.Email().SendMailTemplate(ctx, walletID, email.ApplicationApproved, map[string]interface{}{
+			"subject": email.ApplicationApproved.Subject(),
+			"data": []map[string]interface{}{
+				{"paragraph": greeting},
+				{"heading": "Your wallet has been activated,"},
+				{"code": address.String()},
+				{"paragraph": "You can now use your wallet to send and receive payments."},
+			},
+			"cta": map[string]interface{}{
+				"text": "Connect an account",
+				"url":  fmt.Sprintf("%s/connect/card", env.GetUrl()),
+			},
+		}, nil)
+	}
+
+	if err != nil {
+		log.Error("Failed to send kyc application denied email.", zap.Error(err), zap.String("walletID", walletID), zap.String("previous status", old.String()))
 	}
 
 	return nil
