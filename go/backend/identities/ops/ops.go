@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/notify"
 	"sort"
 	"strings"
 	"time"
@@ -94,6 +95,11 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
+	err = b.Notify().NotifyWallet(ctx, args.WalletID, notify.NotificationTypeIdentity)
+	if err != nil {
+		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
+	}
+
 	return &identity, nil
 }
 
@@ -153,6 +159,11 @@ func Delete(ctx context.Context, b Backends, id, walletID string) error {
 		return fmt.Errorf("%w wrong number of rows deleted (%d)", identities.ErrInternal, rows)
 	}
 
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeIdentity)
+	if err != nil {
+		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
+	}
+
 	return err
 }
 
@@ -160,6 +171,11 @@ func SetPublic(ctx context.Context, b Backends, id, walletID string, public bool
 	_, err := b.DB().ExecContext(ctx, "UPDATE identities SET public=$1, updated_at=now() WHERE id=$2 AND wallet_id=$3", public, id, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeIdentity)
+	if err != nil {
+		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
 	}
 
 	return Get(ctx, b, id)
@@ -203,9 +219,22 @@ func UpdateState(ctx context.Context, b Backends, id string, state identities.St
 		verifiedAt = time.Now()
 	}
 
-	_, err = b.DB().ExecContext(ctx, "UPDATE identities SET proof=$1, state=$2, updated_at=now(), verified_at=$3 WHERE id=$4", proof, state, verifiedAt, ident.ID)
+	row := b.DB().QueryRowContext(ctx,
+		`UPDATE identities 
+    SET proof=$1, state=$2, updated_at=now(), verified_at=$3 
+    WHERE id=$4 
+    RETURNING wallet_id`,
+		proof, state, verifiedAt, ident.ID)
+
+	var walletID string
+	err = row.Scan(&walletID)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeIdentity)
+	if err != nil {
+		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
 	}
 
 	return nil
