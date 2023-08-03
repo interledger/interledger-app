@@ -192,7 +192,8 @@ func TestKYCStatus(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, kyc.StatusUnknown, s)
 
-	// Can set status
+	// Can set status and sends out pending email
+	em.EXPECT().SendMailTemplate(ctx, walletID, email.ApplicationPending, gomock.Any(), gomock.Any()).Times(1)
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusPending)
 	require.NoError(t, err)
 
