@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
-	"time"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/workflows"
@@ -187,7 +188,12 @@ func convertDBDetails(details dbIndividualDetails) (*kyc.IndividualDetails, erro
 }
 
 func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.Status) error {
-	_, err := b.DB().ExecContext(ctx,
+	old, err := GetKYCStatus(ctx, b, walletID)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx,
 		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
 		walletID, status)
 	if err != nil {
@@ -197,6 +203,16 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeKyc)
 	if err != nil {
 		log.Error("notify error", zap.Error(err), zap.String("type", "kyc"))
+	}
+
+	if old != kyc.StatusDenied && status == kyc.StatusDenied {
+		b.Email().SendApplicationDeniedEmail(ctx, walletID)
+
+		// we don't send out approved email if user moves from kyc level 1 to kyc level 2
+	} else if old != kyc.StatusLevel1 && old != kyc.StatusLevel2 && (status == kyc.StatusLevel1 || status == kyc.StatusLevel2) {
+		b.Email().SendApplicationApprovedEmail(ctx, walletID)
+	} else if old != kyc.StatusInReview && status == kyc.StatusInReview {
+		b.Email().SendApplicationPendingEmail(ctx, walletID)
 	}
 
 	return nil

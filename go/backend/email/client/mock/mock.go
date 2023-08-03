@@ -9,7 +9,8 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	email "gitlab.com/fynbos/backend/email"
+	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
+	openpayments "gitlab.com/fynbos/backend/openpayments"
 )
 
 // MockClient is a mock of Client interface.
@@ -35,16 +36,98 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// SendMailTemplate mocks base method.
-func (m *MockClient) SendMailTemplate(ctx context.Context, walletID string, template email.TemplateID, personalization map[string]interface{}, attachments []email.Attachment) error {
+// SendApplicationApprovedEmail mocks base method.
+func (m *MockClient) SendApplicationApprovedEmail(ctx context.Context, walletID string) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMailTemplate", ctx, walletID, template, personalization, attachments)
-	ret0, _ := ret[0].(error)
-	return ret0
+	m.ctrl.Call(m, "SendApplicationApprovedEmail", ctx, walletID)
 }
 
-// SendMailTemplate indicates an expected call of SendMailTemplate.
-func (mr *MockClientMockRecorder) SendMailTemplate(ctx, walletID, template, personalization, attachments interface{}) *gomock.Call {
+// SendApplicationApprovedEmail indicates an expected call of SendApplicationApprovedEmail.
+func (mr *MockClientMockRecorder) SendApplicationApprovedEmail(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMailTemplate", reflect.TypeOf((*MockClient)(nil).SendMailTemplate), ctx, walletID, template, personalization, attachments)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendApplicationApprovedEmail", reflect.TypeOf((*MockClient)(nil).SendApplicationApprovedEmail), ctx, walletID)
+}
+
+// SendApplicationDeniedEmail mocks base method.
+func (m *MockClient) SendApplicationDeniedEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendApplicationDeniedEmail", ctx, walletID)
+}
+
+// SendApplicationDeniedEmail indicates an expected call of SendApplicationDeniedEmail.
+func (mr *MockClientMockRecorder) SendApplicationDeniedEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendApplicationDeniedEmail", reflect.TypeOf((*MockClient)(nil).SendApplicationDeniedEmail), ctx, walletID)
+}
+
+// SendApplicationPendingEmail mocks base method.
+func (m *MockClient) SendApplicationPendingEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendApplicationPendingEmail", ctx, walletID)
+}
+
+// SendApplicationPendingEmail indicates an expected call of SendApplicationPendingEmail.
+func (mr *MockClientMockRecorder) SendApplicationPendingEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendApplicationPendingEmail", reflect.TypeOf((*MockClient)(nil).SendApplicationPendingEmail), ctx, walletID)
+}
+
+// SendConnectedAccountDocumentsNeededEmail mocks base method.
+func (m *MockClient) SendConnectedAccountDocumentsNeededEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendConnectedAccountDocumentsNeededEmail", ctx, walletID)
+}
+
+// SendConnectedAccountDocumentsNeededEmail indicates an expected call of SendConnectedAccountDocumentsNeededEmail.
+func (mr *MockClientMockRecorder) SendConnectedAccountDocumentsNeededEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendConnectedAccountDocumentsNeededEmail", reflect.TypeOf((*MockClient)(nil).SendConnectedAccountDocumentsNeededEmail), ctx, walletID)
+}
+
+// SendConnectedAccountEmail mocks base method.
+func (m *MockClient) SendConnectedAccountEmail(ctx context.Context, la linkedaccounts.LinkedAccount) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendConnectedAccountEmail", ctx, la)
+}
+
+// SendConnectedAccountEmail indicates an expected call of SendConnectedAccountEmail.
+func (mr *MockClientMockRecorder) SendConnectedAccountEmail(ctx, la interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendConnectedAccountEmail", reflect.TypeOf((*MockClient)(nil).SendConnectedAccountEmail), ctx, la)
+}
+
+// SendPaymentFailedEmail mocks base method.
+func (m *MockClient) SendPaymentFailedEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendPaymentFailedEmail", ctx, walletID)
+}
+
+// SendPaymentFailedEmail indicates an expected call of SendPaymentFailedEmail.
+func (mr *MockClientMockRecorder) SendPaymentFailedEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentFailedEmail", reflect.TypeOf((*MockClient)(nil).SendPaymentFailedEmail), ctx, walletID)
+}
+
+// SendPaymentReceivedEmail mocks base method.
+func (m *MockClient) SendPaymentReceivedEmail(ctx context.Context, walletID, trxID string, ip openpayments.IncomingPayment) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendPaymentReceivedEmail", ctx, walletID, trxID, ip)
+}
+
+// SendPaymentReceivedEmail indicates an expected call of SendPaymentReceivedEmail.
+func (mr *MockClientMockRecorder) SendPaymentReceivedEmail(ctx, walletID, trxID, ip interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentReceivedEmail", reflect.TypeOf((*MockClient)(nil).SendPaymentReceivedEmail), ctx, walletID, trxID, ip)
+}
+
+// SendPaymentSentEmail mocks base method.
+func (m *MockClient) SendPaymentSentEmail(ctx context.Context, walletID, trxID string, op openpayments.OutgoingPayment) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendPaymentSentEmail", ctx, walletID, trxID, op)
+}
+
+// SendPaymentSentEmail indicates an expected call of SendPaymentSentEmail.
+func (mr *MockClientMockRecorder) SendPaymentSentEmail(ctx, walletID, trxID, op interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentSentEmail", reflect.TypeOf((*MockClient)(nil).SendPaymentSentEmail), ctx, walletID, trxID, op)
 }

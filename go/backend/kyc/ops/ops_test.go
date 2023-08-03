@@ -2,10 +2,14 @@ package ops_test
 
 import (
 	"context"
-	"github.com/golang/mock/gomock"
-	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"testing"
 
+	email_client "gitlab.com/fynbos/backend/email/client/mock"
+	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	wallet_client "gitlab.com/fynbos/backend/wallets/client/mock"
+
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +23,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nil, nil, nil)
 
 	walletID := uuid.NewString()
 
@@ -170,32 +174,62 @@ func TestKYCStatus(t *testing.T) {
 	db := db.MigrateTestDB(t, ctx)
 
 	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(ctx, gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	b := ops.NewTestBackends(t, db, nil, nil, nil, nc)
+	em := email_client.NewMockClient(ctrl)
+	wc := wallet_client.NewMockClient(ctrl)
+	b := ops.NewTestBackends(t, db, nil, nil, nil, nc, em, wc)
 
 	walletID := uuid.NewString()
+	wc.EXPECT().Get(ctx, gomock.Any()).Return(&wallets.Wallet{}, nil).AnyTimes()
 
 	// Defaults to unknown if not set
 	s, err := ops.GetKYCStatus(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, kyc.StatusUnknown, s)
 
-	// Can set status
+	// Can set status and sends out pending email
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusPending)
 	require.NoError(t, err)
-
-	// status should be pending
 	s, err = ops.GetKYCStatus(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, kyc.StatusPending, s)
 
-	// Can set already set status
-	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusApproved)
+	// send out email when going into review
+	em.EXPECT().SendApplicationPendingEmail(ctx, walletID).Times(1)
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusInReview)
+	require.NoError(t, err)
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	assert.Equal(t, kyc.StatusInReview, s)
 	require.NoError(t, err)
 
-	// status should be pending
+	// Setting status to kyc level 1 or kyc level 2 sends out approved email
+	em.EXPECT().SendApplicationApprovedEmail(ctx, walletID).Times(1) // only send 1 email
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusLevel1)
+	require.NoError(t, err)
 	s, err = ops.GetKYCStatus(ctx, b, walletID)
 	require.NoError(t, err)
-	assert.Equal(t, kyc.StatusApproved, s)
+	assert.Equal(t, kyc.StatusLevel1, s)
+
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusLevel2)
+	require.NoError(t, err)
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusLevel2, s)
+
+	// Setting status to denied also sends out email
+	em.EXPECT().SendApplicationDeniedEmail(ctx, walletID).Times(1)
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusDenied)
+	require.NoError(t, err)
+
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	require.NoError(t, err)
+	assert.Equal(t, kyc.StatusDenied, s)
+
+	// don't send out email if kyc is already denied
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusDenied)
+	require.NoError(t, err)
 }

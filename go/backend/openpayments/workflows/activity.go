@@ -4,14 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
-	"time"
 
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
@@ -19,7 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -211,24 +207,9 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", txID)
-	if err != nil {
-		return err
-	}
+	a.b.Email().SendPaymentSentEmail(ctx, pp.WalletID, txID, *op)
 
-	// TODO verify that these are formatted correctly.
-	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceiptTemplateID, map[string]interface{}{
-		"transactionID":      txURL,
-		"paymentDate":        op.UpdatedAt.Format(time.RFC1123),
-		"sendAmount":         op.SentAmount.Format(),
-		"fees":               "$ 0.00",
-		"receiveAmount":      op.ReceiveAmount.Format(),
-		"note":               op.Description,
-		"toPaymentPointer":   op.ToPaymentPointer,
-		"fromPaymentPointer": op.PaymentPointer,
-	}, []email.Attachment{})
-
-	return err
+	return nil
 }
 
 func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID, txFkID string) error {
@@ -258,22 +239,9 @@ func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", tx.ID)
-	if err != nil {
-		return err
-	}
+	a.b.Email().SendPaymentReceivedEmail(ctx, pp.WalletID, tx.ID, *ip)
 
-	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceivedReceiptTemplateID, map[string]interface{}{
-		"fromPaymentPointer": ip.FromPaymentPointer,
-		"toPaymentPointer":   ip.PaymentPointer,
-		"transactionID":      txURL,
-		"paymentDate":        ip.UpdatedAt.Format(time.RFC1123),
-		"receiveAmount":      ip.ReceivedAmount.Format(),
-		"note":               ip.Description,
-		"subject":            "Fynbos payment received.",
-	}, []email.Attachment{})
-
-	return err
+	return nil
 }
 
 func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID string) error {
@@ -290,27 +258,9 @@ func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID
 		return err
 	}
 
-	user, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
-	if errors.Is(err, openpayments.ErrNotFound) {
-		return temporal.NewNonRetryableApplicationError(err.Error(), "ErrNotFound", err)
-	}
-	if err != nil {
-		return err
-	}
+	a.b.Email().SendPaymentFailedEmail(ctx, pp.WalletID)
 
-	actionUrl, err := url.JoinPath(env.GetUrl(), "pay")
-	if err != nil {
-		return err
-	}
-
-	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.FailedTransactionTemplateID, map[string]interface{}{
-		"subject":         fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), "payment"),
-		"transactionType": "payment",
-		"name":            user.FirstName,
-		"actionUrl":       actionUrl,
-	}, []email.Attachment{})
-
-	return err
+	return nil
 }
 
 func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPaymentPointer string) error {

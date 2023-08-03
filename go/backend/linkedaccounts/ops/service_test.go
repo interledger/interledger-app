@@ -2,9 +2,11 @@ package ops_test
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/wallets"
 	"testing"
 
+	"gitlab.com/fynbos/backend/wallets"
+
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -21,10 +23,10 @@ func TestLinkedAccounts(s *testing.T) {
 	if err != nil {
 		s.Fatal(err)
 	}
-
-	s.Run("can create a linked account", func(t *testing.T) {
+	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
+	s.Run("can create a linked account under review", func(t *testing.T) {
 		walletID := uuid.NewString()
-
+		c.Ec.EXPECT().SendConnectedAccountDocumentsNeededEmail(ctx, gomock.Any()).Times(1)
 		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
 			WalletID:   walletID,
 			Name:       "Test",
@@ -45,6 +47,30 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.True(t, linkedAccount.CanSend)
 		assert.True(t, linkedAccount.CanReceive)
 		assert.Equal(t, linkedAccount.State, linkedaccounts.OwnershipReviewRequired)
+	})
+
+	s.Run("can create a linked account", func(t *testing.T) {
+		walletID := uuid.NewString()
+		linkedAccount, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
+			WalletID:   walletID,
+			Name:       "Test",
+			Mask:       "1234",
+			Provider:   "mx",
+			Type:       "bank",
+			CanSend:    true,
+			CanReceive: true,
+			State:      linkedaccounts.Verified,
+		})
+		require.NoError(t, err)
+
+		assert.NotNil(t, linkedAccount)
+		assert.Equal(t, linkedAccount.Provider, "mx")
+		assert.Equal(t, linkedAccount.ProviderID, "")
+		assert.Equal(t, linkedAccount.Type, "bank")
+		assert.Equal(t, linkedAccount.WalletID, walletID)
+		assert.True(t, linkedAccount.CanSend)
+		assert.True(t, linkedAccount.CanReceive)
+		assert.Equal(t, linkedAccount.State, linkedaccounts.Verified)
 	})
 
 	s.Run("can get a linked account", func(t *testing.T) {
@@ -114,6 +140,7 @@ func TestDelete(t *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
+	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
 
 	walletID := uuid.NewString()
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
@@ -149,7 +176,7 @@ func TestListMXBankAccounts(t *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
-
+	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
 	walletID := uuid.NewString()
 
 	linkedAccounts, err := c.LinkedAccounts.CreateBatch(ctx, []linkedaccounts.CreateArgs{
@@ -201,7 +228,7 @@ func TestSetNickname(s *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, s)
 	require.NoError(s, err)
-
+	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
 	walletID := uuid.NewString()
 
 	la, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
@@ -232,7 +259,7 @@ func TestReviews(t *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
-
+	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
 	walletID := uuid.NewString()
 	c.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
 		ID:   walletID,
@@ -284,7 +311,7 @@ func TestListReviews(t *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, t)
 	require.NoError(t, err)
-
+	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
 	walletID := uuid.NewString()
 	c.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
 		ID:   walletID,

@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -80,6 +81,12 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 	}
 
 	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", args.Name, args.Provider, env.AdminURL()+"/wallet/"+args.WalletID+"/linked-accounts"))
+
+	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired {
+		b.Email().SendConnectedAccountDocumentsNeededEmail(ctx, args.WalletID)
+	} else if linkedAccount.State == linkedaccounts.Verified {
+		b.Email().SendConnectedAccountEmail(ctx, linkedAccount)
+	}
 
 	return &linkedAccount, nil
 }
