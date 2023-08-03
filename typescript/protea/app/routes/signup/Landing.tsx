@@ -1,44 +1,17 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Form } from '@remix-run/react'
+import { useCallback } from 'react'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts, Router, Shape } from '~/components'
-import { flowType, requireFlow } from '~/lib/flows.server'
-import { requireNoUserSession } from '~/lib/kratos.server'
-import { canSignup } from '~/lib/signupCheck.server'
+import { Button, Card, CardContent, Router, Shape } from '~/components'
+import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 
-export async function loader({ request }: LoaderArgs) {
-  await canSignup(request)
-  await requireNoUserSession(request)
-  await requireFlow(request, flowType.Signup)
-  return json({})
-}
+export function Landing() {
+  const setStep = useSignupStore((state) => state.setStep)
 
-export const handle: ApplicationProps = {
-  layout: Layouts.Focus,
-  scaffold: {
-    header: {
-      title: 'Sign up'
-    }
-  }
-}
+  const _onClick = useCallback(() => {
+    setStep(SignupStep.ABOUT)
+  }, [setStep])
 
-export const meta: MetaFunction = () => {
-  return {
-    title: 'Sign up'
-  }
-}
-
-export default function Page() {
   return (
     <>
-      <Form
-        id='signup'
-        action={route('/signup')}
-        method='post'
-        className='hidden'
-      />
       <Card>
         <CardContent>
           <span>Sign up for an account by completing these steps:</span>
@@ -126,7 +99,7 @@ export default function Page() {
           </div>
         </CardContent>
       </Card>
-      <Button form='signup' type='submit'>
+      <Button type='button' onClick={_onClick}>
         Let's get started
       </Button>
       <div className='flex justify-center'>
@@ -139,9 +112,4 @@ export default function Page() {
       </div>
     </>
   )
-}
-
-export async function action({ request }: ActionArgs) {
-  await requireFlow(request, flowType.Signup)
-  return redirect(route('/signup/about'))
 }

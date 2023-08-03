@@ -17,12 +17,9 @@ declare module "routes-gen" {
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
-    "/signup/password": Record<string, never>;
     "/wallet-address": Record<string, never>;
     "/connect/bank": Record<string, never>;
     "/connect/card": Record<string, never>;
-    "/signup/about": Record<string, never>;
-    "/signup/phone": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
     "/transactions": Record<string, never>;
     "/transactions/:transactionId": { "transactionId": string };
@@ -75,12 +72,9 @@ declare module "routes-gen" {
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/personal-details"]
-      | ["/signup/password"]
       | ["/wallet-address"]
       | ["/connect/bank"]
       | ["/connect/card"]
-      | ["/signup/about"]
-      | ["/signup/phone"]
       | ["/api/sendOtp"]
       | ["/transactions"]
       | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
