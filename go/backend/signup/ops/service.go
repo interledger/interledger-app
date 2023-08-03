@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/twilio"
 
 	"github.com/google/uuid"
@@ -182,6 +182,8 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
 	if err != nil {
 		return fmt.Errorf("%w %s", signup.ErrInternal, err)
 	}
+
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("New sign up\nID: %s\nUser ID: %s\nFull name: %s", current.ID, current.UserID, current.FirstName+" "+current.LastName))
 
 	return nil
 }

@@ -79,6 +79,8 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		log.Error("notify failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
 	}
 
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("Linked account created\nName: %s\nProvider: %s\nLink: %s", args.Name, args.Provider, env.AdminURL()+"/wallet/"+args.WalletID+"/linked-accounts"))
+
 	return &linkedAccount, nil
 }
 
@@ -135,6 +137,8 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 		}
 
 		notifiedWallets[la.WalletID] = true
+
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("Linked account created\nName: %s\nProvider: %s\nLink: %s", la.Name, la.Provider, env.AdminURL()+"/wallet/"+la.WalletID+"/linked-accounts"))
 	}
 
 	return linkedAccounts, nil
@@ -341,7 +345,7 @@ func CreateReviews(ctx context.Context, b Backends, reviewsArgs []linkedaccounts
 	}
 
 	for _, review := range reviews {
-		slack.SendToChannel(ctx, slack.NotifyCard, "Fynbot", fmt.Sprintf("New linked account review in [%s] link [%s/review/%s/details]", env.GetEnv(), env.AdminURL(), review.ID))
+		slack.SendToChannel(ctx, slack.ChannelNotifyReview, "Fynbot", fmt.Sprintf("New linked account review in [%s] link [%s/review/%s/details]", env.GetEnv(), env.AdminURL(), review.ID))
 	}
 
 	return reviews, nil

@@ -19,9 +19,10 @@ var initOnce sync.Once
 type Channel string
 
 const (
-	PersonaChannel Channel = "C053HA9ANCF"
-	NotifyGMT      Channel = "C05A6PKHVUY"
-	NotifyCard     Channel = "C05KABR3Z8U"
+	ChannelPersona      Channel = "C053HA9ANCF"
+	ChannelNotifyGMT    Channel = "C05A6PKHVUY"
+	ChannelNotifyReview Channel = "C05KABR3Z8U"
+	ChannelNotifyEvents Channel = "C05L0Q20RJ9"
 )
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
