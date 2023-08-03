@@ -9,9 +9,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/slack"
-
-	"gitlab.com/fynbos/backend/email"
-	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
