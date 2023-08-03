@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc/ops"
 	"gitlab.com/fynbos/backend/kyc/persona"
@@ -51,8 +50,6 @@ func TestNewHandlePersonaWebhook(t *testing.T) {
 		ctrl.Finish()
 	})
 	em := email_client.NewMockClient(ctrl)
-	em.EXPECT().SendMailTemplate(ctx, gomock.Any(), email.ApplicationDenied, gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendMailTemplate(ctx, gomock.Any(), email.ApplicationApproved, gomock.Any(), gomock.Any()).AnyTimes()
 	wc := wallet_mock.NewMockClient(ctrl)
 	wc.EXPECT().Get(ctx, gomock.Any()).Return(&wallets.Wallet{}, nil).AnyTimes()
 	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), nil, uc, nil, nil, em, wc)

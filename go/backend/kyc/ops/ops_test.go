@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client/mock"
 	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
@@ -193,42 +192,36 @@ func TestKYCStatus(t *testing.T) {
 	assert.Equal(t, kyc.StatusUnknown, s)
 
 	// Can set status and sends out pending email
-	em.EXPECT().SendMailTemplate(ctx, walletID, email.ApplicationPending, gomock.Any(), gomock.Any()).Times(1)
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusPending)
 	require.NoError(t, err)
-
-	// status should be pending
 	s, err = ops.GetKYCStatus(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, kyc.StatusPending, s)
 
-	// Can set already set status
-	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusApproved)
+	// send out email when going into review
+	em.EXPECT().SendApplicationPendingEmail(ctx, walletID).Times(1)
+	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusInReview)
+	require.NoError(t, err)
+	s, err = ops.GetKYCStatus(ctx, b, walletID)
+	assert.Equal(t, kyc.StatusInReview, s)
 	require.NoError(t, err)
 
 	// Setting status to kyc level 1 or kyc level 2 sends out approved email
-	em.EXPECT().SendMailTemplate(ctx, walletID, email.ApplicationApproved, gomock.Any(), gomock.Any()).Times(1)
+	em.EXPECT().SendApplicationApprovedEmail(ctx, walletID).Times(1) // only send 1 email
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusLevel1)
 	require.NoError(t, err)
-
 	s, err = ops.GetKYCStatus(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, kyc.StatusLevel1, s)
 
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusLevel2)
 	require.NoError(t, err)
-
 	s, err = ops.GetKYCStatus(ctx, b, walletID)
 	require.NoError(t, err)
 	assert.Equal(t, kyc.StatusLevel2, s)
 
-	// status should be approved
-	s, err = ops.GetKYCStatus(ctx, b, walletID)
-	require.NoError(t, err)
-	assert.Equal(t, kyc.StatusApproved, s)
-
 	// Setting status to denied also sends out email
-	em.EXPECT().SendMailTemplate(ctx, walletID, email.ApplicationDenied, gomock.Any(), gomock.Any()).Times(1)
+	em.EXPECT().SendApplicationDeniedEmail(ctx, walletID).Times(1)
 	err = ops.SetKYCStatus(ctx, b, walletID, kyc.StatusDenied)
 	require.NoError(t, err)
 

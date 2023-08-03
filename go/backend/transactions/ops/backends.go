@@ -77,7 +77,7 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
 	nc := notify_client.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	ec := email_mock.NewMockClient(ctrl)
-	ec.EXPECT().SendMailTemplate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	ec.EXPECT().SendConnectedAccountEmail(gomock.Any(), gomock.Any()).AnyTimes()
 	kycMock := kyc_mock.NewMockClient(ctrl)
 	kycMock.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).Return(&kyc.IndividualDetails{}, nil).AnyTimes()
 	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), ec: ec, kyc: kycMock}
