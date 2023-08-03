@@ -25,6 +25,7 @@ import {
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
+import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -86,6 +87,11 @@ export function Scaffold() {
   const [search] = useSearchParams()
 
   const [payStep, payStepBack] = usePayStore((state) => [
+    state.step,
+    state.stepBack
+  ])
+
+  const [signupStep, signupStepBack] = useSignupStore((state) => [
     state.step,
     state.stepBack
   ])
@@ -268,6 +274,11 @@ export function Scaffold() {
                       payStepBack()
                       navigate(-1)
                     } else payStepBack()
+                  } else if (scaffold.header.back === 'signup') {
+                    if (signupStep == SignupStep.LANDING) {
+                      signupStepBack()
+                      navigate(-1)
+                    } else signupStepBack()
                   } else navigate(-1)
                 }}
                 aria-label='Back'

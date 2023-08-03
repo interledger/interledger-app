@@ -4,7 +4,6 @@ import { v4 } from 'uuid'
 import { commitSession, getSession } from '~/session.server'
 
 export enum flowType {
-  Signup = 'signup',
   LinkCardAccount = 'linkCard',
   LinkBankAccount = 'linkBank',
   PersonalDetails = 'personalDetails',
@@ -41,7 +40,6 @@ export async function requireFlow(
 
   const flows: Flows = session.get('flows') ?? {
     pay: null,
-    signup: null,
     linkCard: null,
     linkBank: null,
     personalDetails: null,
@@ -134,12 +132,6 @@ const flowTemplate = (type: flowType): Flow => {
         startRoute: route('/connect/bank'),
         data: {},
         returnTo: route('/accounts')
-      }
-    case flowType.Signup:
-      return {
-        startRoute: route('/signup'),
-        data: {},
-        returnTo: route('/')
       }
     case flowType.PersonalDetails:
       return {

@@ -101,8 +101,7 @@ export function handleFlowError(
   // This is the fynbos flow, for redirect purposes
   flowId?: string
 ): void {
-  let redirectRoute =
-    flowType == 'signup' ? `/signup/${flowId}/password` : `/${flowType}`
+  let redirectRoute = `/${flowType}`
 
   switch (flow.error.id) {
     case 'session_inactive':
