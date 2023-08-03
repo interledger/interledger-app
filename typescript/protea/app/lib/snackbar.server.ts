@@ -1,3 +1,4 @@
+import { redirect } from '@remix-run/node'
 import { commitSession, getSession } from '~/session.server'
 
 export type SnackbarType = {
@@ -38,4 +39,31 @@ export async function getSnackbar(request: Request): Promise<SnackbarType> {
   await commitSession(session)
 
   return snackbar
+}
+
+/**
+ * Helper method used to redirect the user to a new page with flash snackbar data.
+ * @param request Request
+ * @param url Url to redirect to
+ * @param snackbar Snackbar values
+ * @param init Response options
+ * @returns Redirect response
+ */
+export async function redirectWithSnackbar(
+  request: Request,
+  url: string,
+  snackbar: SnackbarType,
+  init?: ResponseInit
+) {
+  const session = await getSession(request.headers.get('Cookie'))
+  session.flash('snackbar', snackbar)
+  
+  const cookie = await commitSession(session)
+  const newHeaders = new Headers(init?.headers)
+  newHeaders.append('Set-Cookie', cookie)
+
+  return redirect(url, {
+    ...init,
+    headers: newHeaders
+  })
 }
