@@ -468,6 +468,10 @@ export interface WalletDetails {
      * @generated from protobuf field: string nationality = 11;
      */
     nationality: string;
+    /**
+     * @generated from protobuf field: string walletName = 12;
+     */
+    walletName: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.PaginationRequest
@@ -1978,11 +1982,12 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
             { no: 7, name: "address", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "kycStatus", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "placeOfBirth", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "nationality", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 11, name: "nationality", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "walletName", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<WalletDetails>): WalletDetails {
-        const message = { users: [], walletID: "", firstName: "", lastName: "", countryCode: "", gender: 0, address: "", kycStatus: "", placeOfBirth: "", nationality: "" };
+        const message = { users: [], walletID: "", firstName: "", lastName: "", countryCode: "", gender: 0, address: "", kycStatus: "", placeOfBirth: "", nationality: "", walletName: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WalletDetails>(this, message, value);
@@ -2025,6 +2030,9 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
                     break;
                 case /* string nationality */ 11:
                     message.nationality = reader.string();
+                    break;
+                case /* string walletName */ 12:
+                    message.walletName = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2071,6 +2079,9 @@ class WalletDetails$Type extends MessageType<WalletDetails> {
         /* string nationality = 11; */
         if (message.nationality !== "")
             writer.tag(11, WireType.LengthDelimited).string(message.nationality);
+        /* string walletName = 12; */
+        if (message.walletName !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.walletName);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

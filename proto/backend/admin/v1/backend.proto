@@ -177,6 +177,7 @@ message WalletDetails {
   string kycStatus = 9;
   string placeOfBirth = 10;
   string nationality = 11;
+  string walletName = 12;
 }
 
 message PaginationRequest {
