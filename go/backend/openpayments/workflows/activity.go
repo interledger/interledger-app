@@ -4,14 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 
-	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/contacts"
-	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/openpayments/ops"
@@ -19,7 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/wallets"
-	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -211,38 +207,9 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", txID)
-	if err != nil {
-		return err
-	}
+	a.b.Email().SendPaymentSentEmail(ctx, pp.WalletID, txID, *op)
 
-	kycData, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
-	if err != nil {
-		kycData = &kyc.IndividualDetails{}
-	}
-
-	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
-	greeting = strings.TrimSpace(greeting) + ","
-	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceiptTemplateID, map[string]interface{}{
-		"subject": email.ReceiptTemplateID.Subject(),
-		"data": []map[string]interface{}{
-			{"paragraph": greeting},
-			{"heading": "Your recent payment was successful"},
-			{
-				"table": []map[string]interface{}{
-					{"label": "Total amount", "text": op.SentAmount.Format(), "large": true},
-					{"label": "To", "text": op.ToPaymentPointer},
-					{"label": "Date", "text": op.UpdatedAt.Format("02 Jan 2006")},
-				},
-			},
-		},
-		"cta": map[string]interface{}{
-			"text": "View transaction",
-			"url":  txURL,
-		},
-	}, []email.Attachment{})
-
-	return err
+	return nil
 }
 
 func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID, txFkID string) error {
@@ -272,38 +239,9 @@ func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", tx.ID)
-	if err != nil {
-		return err
-	}
+	a.b.Email().SendPaymentReceivedEmail(ctx, pp.WalletID, tx.ID, *ip)
 
-	kycData, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
-	if err != nil {
-		kycData = &kyc.IndividualDetails{}
-	}
-
-	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
-	greeting = strings.TrimSpace(greeting) + ","
-	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.ReceivedReceiptTemplateID, map[string]interface{}{
-		"subject": email.ReceivedReceiptTemplateID.Subject(),
-		"data": []map[string]interface{}{
-			{"paragraph": greeting},
-			{"heading": "Your have received a payment"},
-			{
-				"table": []map[string]interface{}{
-					{"label": "Total amount", "text": ip.ReceivedAmount.Format(), "large": true},
-					{"label": "From", "text": ip.FromPaymentPointer},
-					{"label": "Date", "text": ip.UpdatedAt.Format("02 Jan 2006")},
-				},
-			},
-		},
-		"cta": map[string]interface{}{
-			"text": "View transaction",
-			"url":  txURL,
-		},
-	}, []email.Attachment{})
-
-	return err
+	return nil
 }
 
 func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID string) error {
@@ -320,32 +258,9 @@ func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID
 		return err
 	}
 
-	actionUrl, err := url.JoinPath(env.GetUrl(), "pay")
-	if err != nil {
-		return err
-	}
+	a.b.Email().SendPaymentFailedEmail(ctx, pp.WalletID)
 
-	kycData, err := a.b.KYC().GetIndividualDetails(ctx, pp.WalletID)
-	if err != nil {
-		kycData = &kyc.IndividualDetails{}
-	}
-
-	greeting := fmt.Sprintf("Hello %s", kycData.FirstName)
-	greeting = strings.TrimSpace(greeting) + ","
-	err = a.b.Email().SendMailTemplate(ctx, pp.WalletID, email.FailedTransactionTemplateID, map[string]interface{}{
-		"subject": fmt.Sprintf(email.FailedTransactionTemplateID.Subject(), "payment"),
-		"data": []map[string]interface{}{
-			{"paragraph": greeting},
-			{"heading": "Your recent payment was unsuccessful"},
-			{"paragraph": "Please try again or contact support using the details below."},
-		},
-		"cta": map[string]interface{}{
-			"text": "Try again",
-			"url":  actionUrl,
-		},
-	}, []email.Attachment{})
-
-	return err
+	return nil
 }
 
 func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPaymentPointer string) error {
