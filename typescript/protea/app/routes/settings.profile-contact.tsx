@@ -4,7 +4,14 @@ import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Icon, Layouts, Snackbar } from '~/components'
+import {
+  Card,
+  CardContent,
+  Icon,
+  Layouts,
+  Snackbar,
+  WalletShapes
+} from '~/components'
 import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
@@ -25,7 +32,8 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Contact information'
+      title: 'Contact information',
+      actions: <WalletShapes />
     },
     isNested: true
   }

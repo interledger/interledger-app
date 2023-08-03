@@ -4,7 +4,13 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Layouts, Snackbar } from '~/components'
+import {
+  Card,
+  CardContent,
+  Layouts,
+  Snackbar,
+  WalletShapes
+} from '~/components'
 import {
   StatusError,
   grpcClient,
@@ -40,7 +46,8 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Keys'
+      title: 'Keys',
+      actions: <WalletShapes />
     },
     isNested: true
   }

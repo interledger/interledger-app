@@ -209,7 +209,7 @@ export default function Page() {
     <WalletGrid ref={divHeight}>
       <GridColumn
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'transactions'}
-        className='col-span-full lg:col-span-5'
+        className='col-span-full lg:col-span-6'
       >
         {initialPage.kycStatus == KycStatus.Unknown && (
           <Card>
