@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -13,7 +13,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { getPublicWalletDetails, getWalletInfo } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -129,10 +129,8 @@ export async function action({ request }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  await flashSnackbar(request, {
+  return redirectWithSnackbar(request, route('/settings/profile-public'), {
     message: 'Your public name was updated.',
     icon: 'close'
   })
-
-  return redirect(route('/settings/profile-public'))
 }

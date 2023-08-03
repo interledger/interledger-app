@@ -2,7 +2,7 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -11,7 +11,6 @@ import {
   CardContent,
   Icon,
   Layouts,
-  Snackbar,
   TextField
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -24,7 +23,7 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
-import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   let response = await openPaymentsClient
@@ -72,13 +71,10 @@ export async function loader({ request }: LoaderArgs) {
     }
   }
 
-  const snackbar = await getSnackbar(request)
-
   return jsonWithCSRF(request, {
     paymentPointerBase: PAYMENT_POINTER_BASE,
     username: username.toLowerCase(),
-    publicName: publicName,
-    snackbar
+    publicName: publicName
   })
 }
 
@@ -99,9 +95,8 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const fetcher = useFetcher()
-  const { paymentPointerBase, username, snackbar, csrfToken } =
+  const { paymentPointerBase, username, csrfToken } =
     useLoaderData<typeof loader>()
-  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
@@ -173,15 +168,6 @@ export default function Page() {
       <Button form='wallet-address' type='submit'>
         Save
       </Button>
-      <Snackbar
-        message={snackbar.message}
-        icon={snackbar.icon}
-        action={snackbar.action}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        onClose={() => setSnackbar(false)}
-        dismissAfter={3000}
-      />
     </>
   )
 }
@@ -270,13 +256,9 @@ export async function action({ request }: ActionArgs) {
       } else throw json({}, httpMapping(response.code))
     }
 
-    return redirect(route('/'), {
-      headers: {
-        'Set-Cookie': await flashSnackbar(request, {
-          message: 'Your wallet is reserved.',
-          icon: 'close'
-        })
-      }
+    return redirectWithSnackbar(request, route('/'), {
+      message: 'Your wallet address is reserved.',
+      icon: 'close'
     })
   } else return json({ errors: { ...fieldErrors } })
 }

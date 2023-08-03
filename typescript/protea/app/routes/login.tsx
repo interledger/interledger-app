@@ -6,7 +6,7 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -16,7 +16,6 @@ import {
   CardTitle,
   Layouts,
   Router,
-  Snackbar,
   TextField
 } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
@@ -28,6 +27,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -93,17 +93,18 @@ export default function Page() {
     useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
 
-  const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    Boolean(actionData?.errors.form) ?? false
-  )
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   useEffect(() => {
     if (actionData?.errors.form) {
-      setSnackbar(actionData?.errors.form)
-      setShowSnackbar(true)
+      pushSnackbar({
+        id: actionData?.errors.form,
+        message: actionData?.errors.form,
+        icon: 'close',
+        canShow: true
+      })
     }
-  }, [actionData])
+  }, [actionData, pushSnackbar])
 
   return (
     <>
@@ -164,16 +165,6 @@ export default function Page() {
       <Button form='login' type='submit'>
         Log in
       </Button>
-      <Snackbar
-        message={snackbarMessage}
-        icon='close'
-        show={showSnackbar}
-        id='error-snackbar'
-        onClose={() => {
-          setSnackbar('')
-          setShowSnackbar(false)
-        }}
-      />
       <p className='text-center text-sm font-medium text-medium'>
         New to Fynbos?{' '}
         {isSignupGated && (

@@ -9,14 +9,7 @@ import {
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  Layouts,
-  Snackbar,
-  TextField
-} from '~/components'
+import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -25,7 +18,8 @@ import {
   hasUserSession,
   kratosErrorMapping
 } from '~/lib/kratos.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -88,10 +82,19 @@ export default function Page() {
   const { revalidate, state } = useRevalidator()
 
   const [revalidateCount, setRevalidateCount] = useState<number>(0)
-  const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    Boolean(actionData?.errors.form) ?? false
-  )
+
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
+  useEffect(() => {
+    if (actionData?.errors.form) {
+      pushSnackbar({
+        id: actionData?.errors.form,
+        message: actionData?.errors.form,
+        icon: 'close',
+        canShow: true
+      })
+    }
+  }, [actionData, pushSnackbar])
 
   useEffect(() => {
     if (
@@ -104,13 +107,6 @@ export default function Page() {
       setRevalidateCount(1)
     }
   }, [csrfToken, flowId, revalidate, revalidateCount, state])
-
-  useEffect(() => {
-    if (actionData?.errors.form) {
-      setSnackbar(actionData?.errors.form)
-      setShowSnackbar(true)
-    }
-  }, [actionData])
 
   return (
     <>
@@ -151,16 +147,6 @@ export default function Page() {
       <Button form='recovery-password' type='submit'>
         Continue
       </Button>
-      <Snackbar
-        message={snackbarMessage}
-        icon='close'
-        show={showSnackbar}
-        id='error-snackbar'
-        onClose={() => {
-          setSnackbar('')
-          setShowSnackbar(false)
-        }}
-      />
     </>
   )
 }
@@ -200,12 +186,8 @@ export async function action({ request }: ActionArgs) {
     return kratosErrorMapping(res, fieldErrors)
   }
 
-  return redirect(route('/settings'), {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'New password successfully saved.',
-        icon: 'close'
-      })
-    }
+  return redirectWithSnackbar(request, route('/settings'), {
+    message: 'New password successfully saved.',
+    icon: 'close'
   })
 }

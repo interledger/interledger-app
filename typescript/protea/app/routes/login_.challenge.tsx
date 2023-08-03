@@ -1,17 +1,10 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  Layouts,
-  Snackbar,
-  TextField
-} from '~/components'
+import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -20,6 +13,7 @@ import {
   handleFlowError,
   kratosErrorMapping
 } from '~/lib/kratos.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -81,17 +75,18 @@ export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, csrfToken, email } = useLoaderData<typeof loader>()
 
-  const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    Boolean(actionData?.errors.form) ?? false
-  )
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   useEffect(() => {
     if (actionData?.errors.form) {
-      setSnackbar(actionData?.errors.form)
-      setShowSnackbar(true)
+      pushSnackbar({
+        id: actionData?.errors.form,
+        message: actionData?.errors.form,
+        icon: 'close',
+        canShow: true
+      })
     }
-  }, [actionData])
+  }, [actionData, pushSnackbar])
 
   return (
     <>
@@ -135,16 +130,6 @@ export default function Page() {
       <Button form='login-challenge' type='submit'>
         Continue
       </Button>
-      <Snackbar
-        message={snackbarMessage}
-        icon='close'
-        show={showSnackbar}
-        id='error-snackbar'
-        onClose={() => {
-          setSnackbar('')
-          setShowSnackbar(false)
-        }}
-      />
     </>
   )
 }
