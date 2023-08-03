@@ -9,7 +9,7 @@ declare global {
   var __pusherClient: Pusher | undefined
 }
 
-type Events = 'linkedAccount' | 'transaction' | 'kyc'
+type Events = 'linkedAccount' | 'transaction' | 'kyc' | 'identity'
 
 export type PusherArgs = {
   appKey: string
@@ -33,6 +33,12 @@ export function usePusher(args: PusherArgs, events: Events[]) {
     if (state == 'idle' && events.find((e) => e == 'transaction')) revalidate()
   })
   usePusherEvent(channel, 'kyc', () => {
+    if (state == 'idle' && events.find((e) => e == 'kyc')) revalidate()
+  })
+  usePusherEvent(channel, 'identity', () => {
+    if (state == 'idle' && events.find((e) => e == 'kyc')) revalidate()
+  })
+  usePusherEvent(channel, 'linkedAccount', () => {
     if (state == 'idle' && events.find((e) => e == 'kyc')) revalidate()
   })
   // TODO: Maybe return connection state?
