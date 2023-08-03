@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 	"strings"
 	"time"
 
@@ -97,6 +99,8 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		Amount:   args.Amount,
 		UserID:   userID,
 	})
+
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":money_with_wings: New Transaction Created\nID: %s\nWallet ID: %s\nAmount:%s\nLink: %s", transID, args.WalletID, args.Amount.Format(), env.AdminURL()+"/wallet/"+args.WalletID+"/transactions"))
 
 	return transID, nil
 }
