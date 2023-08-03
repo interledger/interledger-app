@@ -6,4 +6,5 @@ const (
 	NotificationTypeLinkedAccount = "linkedAccount"
 	NotificationTypeTransaction   = "transaction"
 	NotificationTypeKyc           = "kyc"
+	NotificationTypeIdentity      = "identity"
 )

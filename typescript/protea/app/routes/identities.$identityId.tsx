@@ -4,8 +4,7 @@ import {
   Form,
   useActionData,
   useFetcher,
-  useLoaderData,
-  useRevalidator
+  useLoaderData
 } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { useCallback, useEffect, useState } from 'react'
@@ -30,7 +29,9 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { getPusherArgs } from '~/lib/pusher.server'
 import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { usePusher } from '~/lib/usePusher'
 import {
   deleteTwitterIdentity,
   getIdentity,
@@ -48,6 +49,8 @@ export async function loader({ request, params }: LoaderArgs) {
   )
   const identity = await getIdentity(request, params.identityId as string)
   const snackbar = await getSnackbar(request)
+  const pusherArgs = await getPusherArgs(request)
+
   return jsonWithCSRF(request, {
     snackbar,
     walletInfo,
@@ -57,7 +60,8 @@ export async function loader({ request, params }: LoaderArgs) {
       verifiedAt: DateTime.fromSeconds(
         parseInt(identity.verifiedAt?.seconds ?? '')
       ).toFormat('dd MMM yyyy')
-    }
+    },
+    pusherArgs
   })
 }
 
@@ -79,11 +83,11 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { identity, publicName, walletInfo, snackbar, csrfToken } =
+  const { identity, publicName, walletInfo, snackbar, csrfToken, pusherArgs } =
     useLoaderData<typeof loader>()
   const response = useActionData<typeof action>()
 
-  const { revalidate } = useRevalidator()
+  usePusher(pusherArgs, ['identity'])
 
   const [showSnackbar, setSnackbar] = useState<boolean>(
     (snackbar.show || response?.show) ?? false
@@ -106,14 +110,6 @@ export default function Page() {
   useEffect(() => {
     setSnackbar((snackbar.show || response?.show) ?? false)
   }, [snackbar, response])
-
-  // Polling for now until we have pusher for this
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (identity.state != 'verified') revalidate()
-    }, 2000)
-    return () => clearInterval(interval)
-  }, [identity.state, revalidate])
 
   return (
     <>
