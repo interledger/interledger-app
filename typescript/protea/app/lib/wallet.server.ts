@@ -634,11 +634,9 @@ export async function setTwitterIdentityPublic(
   }
 }
 
-export async function setKYCStatusPending(
-  request: Request,
-): Promise<void> {
+export async function setKYCStatusPending(request: Request): Promise<void> {
   const cookie = String(request.headers.get('cookie'))
-  const response = await grpcClient
+  await grpcClient
     .setKYCStatusPending(
       {},
       {
