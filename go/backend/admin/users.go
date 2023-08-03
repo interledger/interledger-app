@@ -97,6 +97,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 
 	return &adminv1.WalletDetails{
 		WalletID:     req.WalletID,
+		WalletName:   wallet.Name,
 		FirstName:    id.FirstName,
 		LastName:     id.LastName,
 		CountryCode:  id.CountryCode,

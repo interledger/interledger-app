@@ -44,7 +44,13 @@ export default function Page() {
                         scope='col'
                         className='px-4 py-3.5 text-left text-sm font-medium text-strong'
                       >
-                        Wallet ID
+                        ID
+                      </th>
+                      <th
+                        scope='col'
+                        className='px-4 py-3.5 text-left text-sm font-medium text-strong'
+                      >
+                        Name
                       </th>
                       <th
                         scope='col'
@@ -68,6 +74,9 @@ export default function Page() {
                       <tr key={wallet.walletID}>
                         <td className='p-4 text-sm font-medium text-gray-900'>
                           {wallet.walletID}
+                        </td>
+                        <td className='p-4 text-sm font-medium text-gray-900'>
+                          {wallet.walletName}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
                           {wallet.users[0].email}
