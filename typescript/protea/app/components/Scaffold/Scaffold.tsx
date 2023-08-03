@@ -9,7 +9,7 @@ import {
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import {
@@ -20,7 +20,8 @@ import {
   IconButton,
   LoadingShapes,
   MarketingRouter,
-  Router
+  Router,
+  Snackbar
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
@@ -95,6 +96,15 @@ export function Scaffold() {
     state.step,
     state.stepBack
   ])
+
+  // TODO Add snackbar to scaffold store
+  const [showSnackbar, setSnackbar] = useState<boolean>(
+    matches[0].data.snackbar.show ?? false
+  )
+
+  useEffect(() => {
+    setSnackbar(matches[0].data.snackbar.show ?? false)
+  }, [matches])
 
   const isUser = matches[0]?.data.isUser
   const isSignupGated = matches[0]?.data.isSignupGated
@@ -550,6 +560,16 @@ export function Scaffold() {
           <FAB to={route('/pay')} />
         )}
       </AnimatePresence>
+      <Snackbar
+        message={matches[0].data.snackbar.message}
+        action={matches[0].data.action}
+        icon={matches[0].data.icon}
+        show={showSnackbar}
+        id='cookie-snackbar'
+        dismissAfter={3000}
+        offset={layout === Layouts.Wallet}
+        onClose={() => setSnackbar(false)}
+      />
     </div>
   )
 }
