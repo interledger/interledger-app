@@ -43,10 +43,16 @@ func (p *Address) Scan(src interface{}) error {
 }
 
 func (p *Address) String() string {
+	if p == nil || p.url == nil {
+		return ""
+	}
 	return p.url.String()
 }
 
 func (p *Address) ShortString() string {
+	if p == nil || p.url == nil {
+		return ""
+	}
 	s := p.url.String()
 	return strings.Replace(s, "https://", "$", 1)
 }
