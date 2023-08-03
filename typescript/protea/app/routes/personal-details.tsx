@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
@@ -11,7 +11,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 import { setKYCStatusPending } from '~/lib/wallet.server'
@@ -145,12 +145,8 @@ export async function action({ request }: ActionArgs) {
 
   await setKYCStatusPending(request)
 
-  return redirect(route('/'), {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'Personal details captured.',
-        icon: 'close'
-      })
-    }
+  return redirectWithSnackbar(request, route('/'), {
+    message: 'Personal details captured.',
+    icon: 'close'
   })
 }

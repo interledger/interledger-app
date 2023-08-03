@@ -19,6 +19,7 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import { AnchorRouter, Error, Scaffold } from '~/components'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
+import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
 import { hasUserSession } from './lib/kratos.server'
 
@@ -104,8 +105,10 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export async function loader({ request }: LoaderArgs) {
   const isUser = hasUserSession(request)
+  const snackbar = await getSnackbar(request)
   return json({
     isUser,
+    snackbar,
     isSignupGated: IS_SIGNUP_GATED,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,

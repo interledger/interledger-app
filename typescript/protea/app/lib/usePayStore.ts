@@ -49,7 +49,7 @@ const payInitialState = {
   note: ''
 }
 
-export const usePayStore = create<PayState & PayActions>((set) => ({
+export const usePayStore = create<PayState & PayActions>()((set) => ({
   ...payInitialState,
   setStep: (step) => set((state) => ({ step: step })),
   stepBack: () =>
