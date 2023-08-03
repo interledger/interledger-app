@@ -1,23 +1,15 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Card,
-  CardContent,
-  Layouts,
-  Snackbar,
-  WalletShapes
-} from '~/components'
+import { Card, CardContent, Layouts, WalletShapes } from '~/components'
 import {
   StatusError,
   grpcClient,
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { getSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   let connections = await grpcClient
@@ -36,9 +28,7 @@ export async function loader({ request }: LoaderArgs) {
     throw json({}, httpMapping(connections.code))
   }
 
-  let snackbar = await getSnackbar(request)
-
-  return json({ keys: connections, snackbar })
+  return json({ keys: connections })
 }
 
 export const handle: ApplicationProps = {
@@ -60,14 +50,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { keys, snackbar } = useLoaderData<typeof loader>()
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    snackbar.show ?? false
-  )
-
-  useEffect(() => {
-    setShowSnackbar(snackbar.show ?? false)
-  }, [snackbar])
+  const { keys } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -103,16 +86,6 @@ export default function Page() {
       {/*<ButtonRouter to={route('/settings/keys/add-public')}>*/}
       {/*  Add a public key*/}
       {/*</ButtonRouter>*/}
-
-      <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        onClose={() => setShowSnackbar(false)}
-      />
     </>
   )
 }

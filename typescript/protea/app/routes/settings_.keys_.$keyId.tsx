@@ -1,7 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -12,7 +11,6 @@ import {
   CardTitle,
   Layouts,
   OutlineButton,
-  Snackbar,
   TextField
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
@@ -25,7 +23,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -46,27 +44,17 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, params }: LoaderArgs) {
   let data = await Promise.all([
     getConnection(request, params.keyId as string),
-    getConnectionLimits(request, params.keyId as string),
-    getSnackbar(request)
+    getConnectionLimits(request, params.keyId as string)
   ])
   return jsonWithCSRF(request, {
     connection: data[0],
-    limits: data[1],
-    snackbar: data[2]
+    limits: data[1]
   })
 }
 
 export default function Page() {
-  const { connection, limits, snackbar, csrfToken } =
-    useLoaderData<typeof loader>()
+  const { connection, limits, csrfToken } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    snackbar.show ?? false
-  )
-
-  useEffect(() => {
-    setShowSnackbar(snackbar.show ?? false)
-  }, [snackbar])
 
   return (
     <>
@@ -181,16 +169,6 @@ export default function Page() {
           Save
         </Button>
       </div>
-
-      <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        onClose={() => setShowSnackbar(false)}
-      />
     </>
   )
 }
@@ -238,12 +216,10 @@ export async function action({ request, params }: ActionArgs) {
       throw json({}, httpMapping(response.code))
     }
 
-    await flashSnackbar(request, {
+    return redirectWithSnackbar(request, route('/settings/keys'), {
       message: 'Public key was deleted.',
       icon: 'close'
     })
-
-    return redirect(route('/settings/keys'))
   }
 
   const fieldErrors = {
@@ -296,11 +272,6 @@ export async function action({ request, params }: ActionArgs) {
       return json({ errors: { ...fieldErrors } }, { status: 400 })
     } else throw json({}, httpMapping(response.code))
   }
-
-  await flashSnackbar(request, {
-    message: 'Public key was updated.',
-    icon: 'close'
-  })
 
   return json({ errors: { ...fieldErrors } })
 }

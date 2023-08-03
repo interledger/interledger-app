@@ -9,7 +9,6 @@ import {
 } from '@remix-run/react'
 import { captureRemixErrorBoundaryError } from '@sentry/remix'
 import clsx from 'clsx'
-import { useState } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image } from 'react-datocms'
 import { route } from 'routes-gen'
@@ -32,7 +31,6 @@ import {
   Layouts,
   LinkedInIcon,
   Router,
-  Snackbar,
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -45,6 +43,7 @@ import {
   openPaymentsClient
 } from '~/lib/proto.server'
 import { PayStep } from '~/lib/usePayStore'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import {
   getPublicLinkedIdentities,
   getPublicWalletDetails,
@@ -123,12 +122,7 @@ export default function Page() {
     paymentPointerParam
   } = useLoaderData<typeof loader>()
 
-  const [snackbarState, setSnackbar] = useState<any>({
-    message: 'Wallet address copied to clipboard.',
-    icon: 'close',
-    show: false
-  })
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(false)
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   return (
     <>
@@ -166,31 +160,31 @@ export default function Page() {
         <CardButton
           noHover
           type='button'
-          onClick={async () => {
+          onClick={() => {
             if (typeof navigator.clipboard == 'undefined') {
-              setSnackbar({
+              pushSnackbar({
+                id: 'copy-to-clipboard-fail',
                 message: "Couldn't copy to clipboard.",
                 icon: 'close',
-                show: true
+                canShow: true
               })
-              setShowSnackbar(true)
             } else
               navigator.clipboard.writeText(walletAddress).then(
                 () => {
-                  setSnackbar({
+                  pushSnackbar({
+                    id: 'copy-wallet-address-success',
                     message: 'Wallet address copied to clipboard.',
                     icon: 'close',
-                    show: true
+                    canShow: true
                   })
-                  setShowSnackbar(true)
                 },
                 () => {
-                  setSnackbar({
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
                     message: "Couldn't copy to clipboard.",
                     icon: 'close',
-                    show: true
+                    canShow: true
                   })
-                  setShowSnackbar(true)
                 }
               )
           }}
@@ -302,15 +296,6 @@ export default function Page() {
           </CardContent>
         </Card>
       )}
-      <Snackbar
-        message={snackbarState.message}
-        action={snackbarState.action}
-        icon={snackbarState.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        onClose={() => setShowSnackbar(false)}
-      />
     </>
   )
 }
