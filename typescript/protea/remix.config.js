@@ -13,7 +13,7 @@ module.exports = {
   appDirectory: 'app',
   assetsBuildDirectory: 'public/build',
   serverModuleFormat: 'cjs',
-  publicPath: '/build/',
+  publicPath: `${process.env.REMIX_PUBLIC_PATH || ''}/build/`,
   ignoredRouteFiles: ['.*', '**/*.stories.tsx', '**/*.test.{ts,tsx}'],
   sourcemap: true
 }
