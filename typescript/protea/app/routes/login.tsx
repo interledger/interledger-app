@@ -36,6 +36,7 @@ export async function loader({ request }: LoaderArgs) {
   const cookie = String(request.headers.get('cookie'))
 
   let flow
+  let headers: Headers | null = null
   if (flowId) {
     // If ?flow=.. was in the URL, we fetch it
     const flowRes = await fetch(
@@ -57,14 +58,16 @@ export async function loader({ request }: LoaderArgs) {
     )
     flow = await flowRes.json()
     if (flowRes.status >= 400) handleFlowError(flow, 'login')
-    url.searchParams.set('flow', flow.id)
-    return redirect(`/login?${url.searchParams}`, {
-      headers: trimHeaders(flowRes.headers, ['set-cookie'])
-    })
+    headers = trimHeaders(flowRes.headers, ['set-cookie'])
   }
+
   return json({
+    returnTo: flow.ui.returnTo,
+    flowId: flow.id,
     csrfToken: getCsrfTokenFromFlow(flow),
     isSignupGated: IS_SIGNUP_GATED
+  }, {
+    headers: headers ?? undefined
   })
 }
 
@@ -83,7 +86,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { csrfToken, isSignupGated } = useLoaderData<typeof loader>()
+  const { csrfToken, isSignupGated, flowId, returnTo } = useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
 
   const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
@@ -110,6 +113,18 @@ export default function Page() {
         form='login'
         defaultValue={csrfToken}
         name='csrf_token'
+        type='hidden'
+      />
+      <input
+        form='login'
+        defaultValue={flowId}
+        name='flow_id'
+        type='hidden'
+      />
+      <input
+        form='login'
+        defaultValue={returnTo}
+        name='return_to'
         type='hidden'
       />
       <Card>
@@ -178,14 +193,12 @@ export default function Page() {
 }
 
 export async function action({ request }: ActionArgs) {
-  const url = new URL(request.url)
-  const flowId = url.searchParams.get('flow')
-  const returnTo = url.searchParams.get('return_to')
-
   const form = await request.formData()
   const csrfToken = form.get('csrf_token')
   const email = form.get('email')
   const password = form.get('password')
+  const flowId = form.get('flow_id')
+  const returnTo = form.get('return_to')?.toString()
 
   const fieldErrors = {
     form: '',
