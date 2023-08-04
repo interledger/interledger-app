@@ -13,7 +13,7 @@ module.exports = {
   appDirectory: 'app',
   assetsBuildDirectory: 'public/build',
   serverModuleFormat: 'cjs',
-  publicPath: '/build/',
+  publicPath: process.env.FYNBOS_ENV == 'prod' || process.env.FYNBOS_ENV == 'dev' ? 'https://cdn.fynbos.app/protea/build/' : '/build/',
   ignoredRouteFiles: ['.*', '**/*.stories.tsx', '**/*.test.{ts,tsx}'],
   sourcemap: true
 }
