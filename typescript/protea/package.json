@@ -18,7 +18,7 @@
     "report": "playwright show-report",
     "chromatic": "chromatic --exit-zero-on-changes",
     "generate-cms": "graphql-codegen --config graphql.config.yml",
-    "upload-sourcemaps": "remix build --sourcemap && sentry-upload-sourcemaps"
+    "upload-sourcemaps": "remix build --sourcemap && sentry-upload-sourcemaps --release $IMAGE_HASH && sentry-upload-sourcemaps --release $IMAGE_HASH --url-prefix /app/build --buildPath build "
   },
   "dependencies": {
     "@apollo/client": "^3.7.14",
