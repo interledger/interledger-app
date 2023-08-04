@@ -27,7 +27,7 @@ RUN pnpm build
 FROM builder AS upload-sourcemaps
 WORKDIR /app
 ARG IMAGE_HASH
-RUN --mount=type=secret,id=sentry,dst=.env.sentry SENTRY_DOTENV_PATH=.env.sentry pnpm upload-sourcemaps --release $IMAGE_HASH
+RUN --mount=type=secret,id=sentry,dst=.env.sentry SENTRY_DOTENV_PATH=.env.sentry IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps
 
 ## Production image, copy all the files and run remix
 FROM node:alpine AS runner
