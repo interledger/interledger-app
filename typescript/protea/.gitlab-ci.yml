@@ -36,3 +36,7 @@ build_protea:
       > .env.sentry
     - docker build --target=upload-sourcemaps --secret id=sentry,src=.env.sentry
       --build-arg IMAGE_HASH="${PROTEA_IMAGE_HASH}" .
+    - echo -en
+      "[cdn]\ntype = s3\nprovider = Cloudflare\nregion=auto\nacl = private\nendpoint = https://583f5af724d9d4b0ba6d77be24d732b3.r2.cloudflarestorage.com/cdn\naccess_key_id=$CDN_ACCESS_KEY_ID\nsecret_access_key = $CDN_ACCESS_KEY"
+      > .env.rclone
+    - docker build --target=upload-assets --secret id=cdn,src=.env.rclone .
