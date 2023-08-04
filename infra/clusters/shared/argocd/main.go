@@ -84,6 +84,7 @@ func main() {
 					"prefix":   pulumi.String("/"),
 					"rewrite":  pulumi.String("/"),
 					"service":  pulumi.String("argocd-server:443"),
+					"timeout":  pulumi.Int(90000),
 				},
 			},
 		}, pulumi.Provider(kubeProvider), pulumi.DependsOn([]pulumi.Resource{namespace, argo}))
