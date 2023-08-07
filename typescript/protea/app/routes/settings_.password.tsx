@@ -19,7 +19,7 @@ import {
   handleFlowError,
   kratosErrorMapping
 } from '~/lib/kratos.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -177,12 +177,8 @@ export async function action({ request }: ActionArgs) {
     return kratosErrorMapping(res, fieldErrors)
   }
 
-  return redirect(route('/settings'), {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'New password successfully saved.',
-        icon: 'close'
-      })
-    }
+  return redirectWithSnackbar(request, route('/settings'), {
+    message: 'New password successfully saved.',
+    icon: 'close'
   })
 }

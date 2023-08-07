@@ -25,7 +25,7 @@ import {
   hasUserSession,
   kratosErrorMapping
 } from '~/lib/kratos.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -200,12 +200,8 @@ export async function action({ request }: ActionArgs) {
     return kratosErrorMapping(res, fieldErrors)
   }
 
-  return redirect(route('/settings'), {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'New password successfully saved.',
-        icon: 'close'
-      })
-    }
+  return redirectWithSnackbar(request, route('/settings'), {
+    message: 'New password successfully saved.',
+    icon: 'close'
   })
 }

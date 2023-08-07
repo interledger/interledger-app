@@ -1,12 +1,7 @@
 import { redirect } from '@remix-run/node'
+import { v4 } from 'uuid'
+import type { SnackbarType } from '~/lib/useScaffoldStore'
 import { commitSession, getSession } from '~/session.server'
-
-export type SnackbarType = {
-  message: string
-  show?: boolean
-  action?: string
-  icon?: string
-}
 
 /**
  * Allows flashing a snackbar to the session storage.
@@ -56,8 +51,8 @@ export async function redirectWithSnackbar(
   init?: ResponseInit
 ) {
   const session = await getSession(request.headers.get('Cookie'))
-  session.flash('snackbar', snackbar)
-  
+  session.flash('snackbar', { id: v4(), ...snackbar })
+
   const cookie = await commitSession(session)
   const newHeaders = new Headers(init?.headers)
   newHeaders.append('Set-Cookie', cookie)

@@ -97,15 +97,6 @@ export function Scaffold() {
     state.stepBack
   ])
 
-  // TODO Add snackbar to scaffold store
-  const [showSnackbar, setSnackbar] = useState<boolean>(
-    matches[0].data.snackbar.show ?? false
-  )
-
-  useEffect(() => {
-    setSnackbar(matches[0].data.snackbar.show ?? false)
-  }, [matches])
-
   const isUser = matches[0]?.data.isUser
   const isSignupGated = matches[0]?.data.isSignupGated
 
@@ -114,7 +105,18 @@ export function Scaffold() {
 
   const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
 
-  const [loading] = useScaffoldStore((state) => [state.loading])
+  const [loading, snackbar, setSnackbar, hideSnackbar] = useScaffoldStore(
+    (state) => [
+      state.loading,
+      state.snackbar,
+      state.setSnackbar,
+      state.hideSnackbar
+    ]
+  )
+
+  useEffect(() => {
+    setSnackbar(matches[0].data.snackbar)
+  }, [matches, setSnackbar])
 
   const footer = scaffold.footer && scaffold.footer(currentMatch)
 
@@ -561,14 +563,15 @@ export function Scaffold() {
         )}
       </AnimatePresence>
       <Snackbar
-        message={matches[0].data.snackbar.message}
-        action={matches[0].data.action}
-        icon={matches[0].data.icon}
-        show={showSnackbar}
+        message={snackbar.message}
+        action={snackbar.action}
+        icon={snackbar.icon}
+        show={snackbar.show}
         id='cookie-snackbar'
         dismissAfter={3000}
-        offset={layout === Layouts.Wallet}
-        onClose={() => setSnackbar(false)}
+        xOffset={layout === Layouts.Wallet}
+        yOffset={typeof scaffold.fab !== 'undefined'}
+        onClose={() => hideSnackbar()}
       />
     </div>
   )

@@ -31,7 +31,7 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 import {
@@ -78,11 +78,10 @@ export async function loader({ request }: LoaderArgs) {
     )
 
     if (sendAccounts.length === 0) {
-      await flashSnackbar(request, {
+      return redirectWithSnackbar(request, route('/accounts'), {
         message: 'You need a connected account to make a payment.',
         icon: 'close'
       })
-      return redirect(route('/accounts'))
     }
   }
 

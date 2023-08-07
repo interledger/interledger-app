@@ -13,7 +13,9 @@ interface SnackbarProps {
   icon?: string
   onClose(): void
   // Offset to the right for the WalletLayout on desktop
-  offset?: boolean
+  xOffset?: boolean
+  // Offset upwards for the FAB on mobile
+  yOffset?: boolean
   // ms delay after which the snackbar should be aut dismissed.
   dismissAfter?: number
 }
@@ -24,7 +26,8 @@ export const Snackbar: FC<SnackbarProps> = ({
   action,
   icon,
   onClose,
-  offset,
+  xOffset,
+  yOffset,
   show = false,
   dismissAfter
 }) => {
@@ -45,8 +48,9 @@ export const Snackbar: FC<SnackbarProps> = ({
       show={show}
       as={'div'}
       className={clsx(
-        'fixed left-0 top-2 z-[100] mx-auto w-full overflow-y-visible lg:top-4',
-        offset ? 'lg:pl-64' : ''
+        'fixed left-0 z-[100] mx-auto w-full overflow-y-visible lg:bottom-auto lg:top-4',
+        xOffset ? 'lg:pl-64' : '',
+        yOffset ? 'bottom-32' : 'bottom-4'
       )}
     >
       <div className='flex justify-center text-center'>

@@ -1,7 +1,6 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
-import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -22,12 +21,10 @@ import {
   Layouts,
   LinkedInIcon,
   Router,
-  Snackbar,
   TwitterIcon,
   WalletGrid,
   WalletShapes
 } from '~/components'
-import { getSnackbar } from '~/lib/snackbar.server'
 import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 
@@ -36,10 +33,7 @@ export async function loader({ request }: LoaderArgs) {
 
   const kycStatus = await getKycStatus(request)
 
-  const snackbar = await getSnackbar(request)
-
   return json({
-    snackbar,
     linkedIdentities: identities,
     kycStatus: kycStatus.kycStatus
   })
@@ -63,10 +57,8 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { snackbar, linkedIdentities, kycStatus } =
-    useLoaderData<typeof loader>()
+  const { linkedIdentities, kycStatus } = useLoaderData<typeof loader>()
 
-  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
   return (
@@ -221,15 +213,6 @@ export default function Page() {
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>
-      <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        onClose={() => setSnackbar(false)}
-      />
     </WalletGrid>
   )
 }

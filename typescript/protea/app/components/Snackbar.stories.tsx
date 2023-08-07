@@ -51,5 +51,5 @@ Offset.args = {
   message: 'To the right, to the right.',
   icon: 'start',
   show: true,
-  offset: true
+  xOffset: true
 }

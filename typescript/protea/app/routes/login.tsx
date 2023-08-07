@@ -28,6 +28,7 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -97,6 +98,7 @@ export default function Page() {
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
     Boolean(actionData?.errors.form) ?? false
   )
+  const [setSnackbar] = useScaffoldStore((state) => [state.setSnackbar])
 
   useEffect(() => {
     if (actionData?.errors.form) {

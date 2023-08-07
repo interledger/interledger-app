@@ -1,13 +1,8 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useFetcher,
-  useLoaderData
-} from '@remix-run/react'
+import { json } from '@remix-run/node'
+import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -26,14 +21,13 @@ import {
   Layouts,
   OutlineButton,
   Router,
-  Snackbar,
   Switch,
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { getPusherArgs } from '~/lib/pusher.server'
-import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { flashSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
 import {
   deleteTwitterIdentity,
@@ -51,11 +45,9 @@ export async function loader({ request, params }: LoaderArgs) {
     walletInfo.walletID
   )
   const identity = await getIdentity(request, params.identityId as string)
-  const snackbar = await getSnackbar(request)
   const pusherArgs = await getPusherArgs(request)
 
   return jsonWithCSRF(request, {
-    snackbar,
     walletInfo,
     publicName,
     identity: {
@@ -99,15 +91,11 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { identity, publicName, walletInfo, snackbar, csrfToken, pusherArgs } =
+  const { identity, publicName, walletInfo, csrfToken, pusherArgs } =
     useLoaderData<typeof loader>()
-  const response = useActionData<typeof action>()
 
   usePusher(pusherArgs, ['identity'])
 
-  const [showSnackbar, setSnackbar] = useState<boolean>(
-    (snackbar.show || response?.show) ?? false
-  )
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
   const fetcher = useFetcher()
@@ -122,10 +110,6 @@ export default function Page() {
     },
     [fetcher]
   )
-
-  useEffect(() => {
-    setSnackbar((snackbar.show || response?.show) ?? false)
-  }, [snackbar, response])
 
   return (
     <>
@@ -313,15 +297,6 @@ export default function Page() {
           </OutlineButton>
         </>
       )}
-      <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        onClose={() => setSnackbar(false)}
-      />
       <Dialog open={showDialog} setOpen={setShowDialog}>
         <CardHeader>
           <h1 className='text-xl font-medium'>Remove Twitter ID card</h1>
@@ -406,13 +381,9 @@ export async function action({ request, params }: ActionArgs) {
       )
     case 'delete':
       await deleteTwitterIdentity(request, identityId)
-      return redirect(route('/identities'), {
-        headers: {
-          'Set-Cookie': await flashSnackbar(request, {
-            message: 'Identity deleted successfully.',
-            icon: 'close'
-          })
-        }
+      return redirectWithSnackbar(request, route('/identities'), {
+        message: 'Identity deleted successfully.',
+        icon: 'close'
       })
     default:
       throw json(

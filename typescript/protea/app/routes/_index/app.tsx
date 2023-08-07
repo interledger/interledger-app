@@ -1,7 +1,7 @@
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
-import { useState } from 'react'
 import { route } from 'routes-gen'
+import { v4 } from 'uuid'
 import {
   Alert,
   AlertBody,
@@ -19,12 +19,12 @@ import {
   GridColumn,
   Icon,
   Router,
-  Snackbar,
   TwitterIcon,
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
 import { usePusher } from '~/lib/usePusher'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { loader } from './route'
 import { KycStatus } from './route'
 
@@ -38,10 +38,7 @@ export function AppPage() {
     pusherArgs
   } = useLoaderData<typeof loader>()
 
-  const [snackbarState, setSnackbar] = useState<any>(snackbar)
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    snackbar.show ?? false
-  )
+  const [setSnackbar] = useScaffoldStore((state) => [state.setSnackbar])
 
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
@@ -129,28 +126,28 @@ export function AppPage() {
               onClick={async () => {
                 if (typeof navigator.clipboard == 'undefined') {
                   setSnackbar({
+                    id: v4(),
                     message: "Couldn't copy to clipboard.",
                     icon: 'close',
                     show: true
                   })
-                  setShowSnackbar(true)
                 } else
                   navigator.clipboard.writeText(walletInfo.url).then(
                     () => {
                       setSnackbar({
+                        id: v4(),
                         message: 'Wallet address copied to clipboard.',
                         icon: 'close',
                         show: true
                       })
-                      setShowSnackbar(true)
                     },
                     () => {
                       setSnackbar({
+                        id: v4(),
                         message: "Couldn't copy to clipboard.",
                         icon: 'close',
                         show: true
                       })
-                      setShowSnackbar(true)
                     }
                   )
               }}
@@ -245,17 +242,6 @@ export function AppPage() {
       <GridColumn className='hidden lg:col-span-6 lg:flex'>
         {kycStatus == KycStatus.Approved && <CTACards />}
       </GridColumn>
-
-      <Snackbar
-        message={snackbarState.message}
-        action={snackbarState.action}
-        icon={snackbarState.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        offset
-        onClose={() => setShowSnackbar(false)}
-      />
     </WalletGrid>
   )
 }
