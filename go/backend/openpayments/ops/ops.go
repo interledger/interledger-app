@@ -327,7 +327,7 @@ func GetWalletQuote(ctx context.Context, b Backends, walletID, id string) (*open
 		return nil, fmt.Errorf("%w wallet has (%d) payment pointers", openpayments.ErrInternal, len(wallet.Addresses))
 	}
 
-	return GetWalletAddressQuote(ctx, b, wallet.Addresses[0].String(), id)
+	return GetWalletAddressQuote(ctx, b, wallet.AddressString(), id)
 }
 
 func SetQuoteOTPValidated(ctx context.Context, b Backends, qid string) (*openpayments.Quote, error) {
