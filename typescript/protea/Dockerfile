@@ -1,7 +1,7 @@
 # Install dependencies only when needed
 FROM public.ecr.aws/docker/library/node:16-alpine AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat curl
+RUN apk add --no-cache libc6-compat curl unzip
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
@@ -18,6 +18,8 @@ CMD ["pnpm", "dev"]
 
 # Rebuild the source code only when needed
 FROM public.ecr.aws/docker/library/node:16-alpine AS builder
+RUN apk add --no-cache curl unzip
+RUN curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/bin/rclone
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
@@ -27,7 +29,11 @@ RUN pnpm build
 FROM builder AS upload-sourcemaps
 WORKDIR /app
 ARG IMAGE_HASH
-RUN --mount=type=secret,id=sentry,dst=.env.sentry SENTRY_DOTENV_PATH=.env.sentry pnpm upload-sourcemaps --release $IMAGE_HASH
+RUN --mount=type=secret,id=sentry,dst=.env.sentry SENTRY_DOTENV_PATH=.env.sentry IMAGE_HASH=${IMAGE_HASH} pnpm upload-sourcemaps
+
+FROM builder AS upload-assets
+WORKDIR /app
+RUN --mount=type=secret,id=cdn,dst=.env.rclone rclone --config=.env.rclone --progress sync public/build cdn:protea/build/
 
 ## Production image, copy all the files and run remix
 FROM node:alpine AS runner
