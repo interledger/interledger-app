@@ -5,8 +5,18 @@ import { DateTime } from 'luxon'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Layouts } from '~/components'
+import {
+  Alert,
+  AlertBody,
+  Card,
+  CardContent,
+  CardIcon,
+  Icon,
+  Layouts,
+  Router
+} from '~/components'
 import type {
+  Features,
   PublicWalletInfo,
   SearchResult
 } from '~/generated/protobuf-ts/backend/v1/backend'
@@ -25,6 +35,7 @@ import { flashSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 import {
+  getFeatures,
   getKycStatus,
   getLinkedAccounts,
   getPublicWalletInfo,
@@ -43,11 +54,19 @@ export async function loader({ request }: LoaderArgs) {
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PublicWalletInfo | null = null
   let phoneMask: string = ''
+  let features: Features | null = null
 
   if (url.search == '') {
     const { kycStatus } = await getKycStatus(request)
     if (kycStatus != KycStatus.Approved)
       return redirect(route('/personal-details'))
+
+    features = await getFeatures(request)
+
+    const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
+    sendAccounts = [...cardAccounts, ...bankAccounts].filter(
+      (acc) => acc.canSend
+    )
   }
 
   const accounts = url.searchParams.get('accounts')
@@ -126,6 +145,7 @@ export async function loader({ request }: LoaderArgs) {
   }
 
   return jsonWithCSRF(request, {
+    features,
     results,
     address,
     sendAccounts,
@@ -149,7 +169,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { address } = useLoaderData<typeof loader>()
+  const { address, features, sendAccounts } = useLoaderData<typeof loader>()
   const [params, setSearchParams] = useSearchParams()
   const [setAddress, step, setStep, reset] = usePayStore((state) => [
     state.setAddress,
@@ -177,6 +197,66 @@ export default function Page() {
       setSearchParams({}, { replace: true })
     }
   }, [address, params, setAddress, setSearchParams, setStep])
+
+  if (features && !features.sendEnabled)
+    return (
+      <>
+        <Alert>
+          <Icon>error</Icon>
+          <AlertBody>
+            Making payments in your state is currently unavailable. We're
+            working to unlock all regions and will notify you when accessible.
+            Thank you for your patience.
+          </AlertBody>
+        </Alert>
+        <Card>
+          <CardContent>
+            <div className='flex items-start space-x-4'>
+              <CardIcon>
+                <Icon>credit_card</Icon>
+              </CardIcon>
+              <div className='flex flex-col space-y-4'>
+                <p className='text-sm text-medium'>
+                  Connect a card to receive payments.
+                </p>
+                <Router
+                  prefetch='render'
+                  className='text-sm font-medium text-primary'
+                  to={route('/accounts')}
+                >
+                  Go to accounts page
+                </Router>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </>
+    )
+
+  if (sendAccounts.length === 0)
+    return (
+      <Card>
+        <CardContent>
+          <div className='flex items-start space-x-4'>
+            <CardIcon>
+              <Icon>credit_card</Icon>
+            </CardIcon>
+            <div className='flex flex-col space-y-4'>
+              <p className='text-sm text-medium'>
+                To send a payment, first connect a card.
+              </p>
+              <Router
+                prefetch='render'
+                className='text-sm font-medium text-primary'
+                to={route('/accounts')}
+              >
+                Go to accounts page
+              </Router>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
 
   return (
     <>

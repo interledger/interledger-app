@@ -80,8 +80,11 @@ export function Search() {
         <CardHeader>
           <CardTitle>Results</CardTitle>
         </CardHeader>
-        {results.length == 0 && (
-          <CardContent>Your search returned no results.</CardContent>
+        {results.length == 0 && term.length >= 3 && (
+          <CardContent>No results found.</CardContent>
+        )}
+        {results.length == 0 && term.length < 3 && (
+          <CardContent>Type at least 3 characters to search.</CardContent>
         )}
         <Combobox.Options static className='contents w-full'>
           {results.map((result: SearchResult) => {
