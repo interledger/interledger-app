@@ -28,26 +28,26 @@ func NewActivity(b Backends) *Activity {
 }
 
 func checkCanSendRecv(ctx context.Context, b Backends, sendPointer, fromLinkedAccID, recvPointer string) error {
-	sender, err := ops.GetPaymentPointer(ctx, b, sendPointer)
+	sender, err := b.Wallets().GetFromAddress(ctx, sendPointer)
 	if err != nil {
 		return err
 	}
 
-	receiver, err := ops.GetPaymentPointer(ctx, b, recvPointer)
+	receiver, err := b.Wallets().GetFromAddress(ctx, recvPointer)
 	if err != nil {
 		return err
 	}
 
-	return ops.CheckWalletsCanSendRecv(ctx, b, sender.WalletID, fromLinkedAccID, receiver.WalletID)
+	return ops.CheckWalletsCanSendRecv(ctx, b, sender.ID, fromLinkedAccID, receiver.ID)
 }
 
 func getDefaultSendAcc(ctx context.Context, b Backends, pointer string) (*linkedaccounts.LinkedAccount, error) {
-	pp, err := ops.GetPaymentPointer(ctx, b, pointer)
+	wallet, err := b.Wallets().GetFromAddress(ctx, pointer)
 	if err != nil {
 		return nil, err
 	}
 
-	accs, err := b.LinkedAccounts().ListByWalletId(ctx, pp.WalletID)
+	accs, err := b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -64,12 +64,12 @@ func getDefaultSendAcc(ctx context.Context, b Backends, pointer string) (*linked
 }
 
 func getDefaultRecvAcc(ctx context.Context, b Backends, pointer string) (*linkedaccounts.LinkedAccount, error) {
-	pp, err := ops.GetPaymentPointer(ctx, b, pointer)
+	wallet, err := b.Wallets().GetFromAddress(ctx, pointer)
 	if err != nil {
 		return nil, err
 	}
 
-	accs, err := b.LinkedAccounts().ListByWalletId(ctx, pp.WalletID)
+	accs, err := b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -202,12 +202,12 @@ func (a *Activity) SendOutgoingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
-	pp, err := ops.GetPaymentPointer(ctx, a.b, op.PaymentPointer)
+	wallet, err := a.b.Wallets().GetFromAddress(ctx, op.PaymentPointer)
 	if err != nil {
 		return err
 	}
 
-	a.b.Email().SendPaymentSentEmail(ctx, pp.WalletID, txID, *op)
+	a.b.Email().SendPaymentSentEmail(ctx, wallet.ID, txID, *op)
 
 	return nil
 }
@@ -229,17 +229,17 @@ func (a *Activity) SendIncomingPaymentReceipt(ctx context.Context, outgoingID, t
 		return err
 	}
 
-	pp, err := ops.GetPaymentPointer(ctx, a.b, ip.PaymentPointer)
+	wallet, err := a.b.Wallets().GetFromAddress(ctx, ip.PaymentPointer)
 	if err != nil {
 		return err
 	}
 
-	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, pp.WalletID, txFkID)
+	tx, err := a.b.Transactions().GetTransactionByForeignID(ctx, wallet.ID, txFkID)
 	if err != nil {
 		return err
 	}
 
-	a.b.Email().SendPaymentReceivedEmail(ctx, pp.WalletID, tx.ID, *ip)
+	a.b.Email().SendPaymentReceivedEmail(ctx, wallet.ID, tx.ID, *ip)
 
 	return nil
 }
@@ -253,22 +253,22 @@ func (a *Activity) SendFailedOutgoingPaymentMail(ctx context.Context, outgoingID
 		return err
 	}
 
-	pp, err := ops.GetPaymentPointer(ctx, a.b, op.PaymentPointer)
+	wallet, err := a.b.Wallets().GetFromAddress(ctx, op.PaymentPointer)
 	if err != nil {
 		return err
 	}
 
-	a.b.Email().SendPaymentFailedEmail(ctx, pp.WalletID)
+	a.b.Email().SendPaymentFailedEmail(ctx, wallet.ID)
 
 	return nil
 }
 
 func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPaymentPointer string) error {
-	issuedFromPaymentPointer, err := ops.GetPaymentPointer(ctx, a.b, fromPaymentPointer)
+	issuedFromWallet, err := a.b.Wallets().GetFromAddress(ctx, fromPaymentPointer)
 	if err != nil {
 		return err
 	}
-	issuedToPaymentPointer, err := ops.GetPaymentPointer(ctx, a.b, toPaymentPointer)
+	issuedToWallet, err := a.b.Wallets().GetFromAddress(ctx, toPaymentPointer)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPayment
 	}
 
 	// Check if it exists and don't error on not found
-	c, err := a.b.Contacts().Get(ctx, issuedFromPaymentPointer.WalletID, tpp)
+	c, err := a.b.Contacts().Get(ctx, issuedFromWallet.ID, tpp)
 	if err != nil && !errors.Is(err, contacts.ErrNotFound) {
 		return err
 	}
@@ -288,16 +288,11 @@ func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPayment
 		return nil
 	}
 
-	toWallet, err := a.b.Wallets().Get(ctx, issuedToPaymentPointer.WalletID)
-	if err != nil {
-		return err
-	}
-
 	// Create new contact
 	_, err = a.b.Contacts().Create(ctx, contacts.CreateContactArgs{
-		Name:           toWallet.Name,
+		Name:           issuedToWallet.Name,
 		PaymentPointer: tpp,
-		WalletID:       issuedFromPaymentPointer.WalletID,
+		WalletID:       issuedFromWallet.ID,
 	})
 	if err != nil {
 		return err
@@ -307,7 +302,7 @@ func (a *Activity) AddContact(ctx context.Context, fromPaymentPointer, toPayment
 }
 
 func (a *Activity) MarkContactLastPaid(ctx context.Context, fromPaymentPointer, toPaymentPointer string) error {
-	issuedFromPaymentPointer, err := ops.GetPaymentPointer(ctx, a.b, fromPaymentPointer)
+	issuedFromWallet, err := a.b.Wallets().GetFromAddress(ctx, fromPaymentPointer)
 	if err != nil {
 		return err
 	}
@@ -318,7 +313,7 @@ func (a *Activity) MarkContactLastPaid(ctx context.Context, fromPaymentPointer, 
 	}
 
 	//Also mark as last paid for now
-	err = a.b.Contacts().SetLastPaidAtNow(ctx, issuedFromPaymentPointer.WalletID, tpp)
+	err = a.b.Contacts().SetLastPaidAtNow(ctx, issuedFromWallet.ID, tpp)
 	if err != nil {
 		return err
 	}
