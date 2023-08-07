@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
@@ -15,12 +17,10 @@ import (
 	"gitlab.com/fynbos/env"
 )
 
-const incomingPaymentsCols = `id, payment_pointer_id, from_payment_pointer_id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at, created_by, sender_wallet_address, receiver_wallet_address`
+const incomingPaymentsCols = `id, description, asset_code, asset_scale, incoming_amount, received_amount, completed, expires_at, external_ref, ilp_stream_id, ilp_address, ilp_shared_secret, created_at, updated_at, created_by, sender_wallet_address, receiver_wallet_address`
 
 type dbIncomingPayment struct {
 	ID                    string         `db:"id"`
-	PaymentPointerID      string         `db:"payment_pointer_id"`
-	FromPaymentPointerID  sql.NullString `db:"from_payment_pointer_id"`
 	Description           sql.NullString `db:"description"`
 	AssetCode             sql.NullString `db:"asset_code"`
 	AssetScale            sql.NullInt32  `db:"asset_scale"`
@@ -49,37 +49,45 @@ func CreateIncomingPayment(ctx context.Context, b Backends, payment openpayments
 		return nil, fmt.Errorf("%w invalid expiry time", openpayments.ErrInvalidArgument)
 	}
 
-	pp, err := GetPaymentPointer(ctx, b, payment.PaymentPointer)
+	_, err = b.Wallets().GetFromAddress(ctx, payment.PaymentPointer)
 	if err != nil {
 		return nil, err
 	}
 
-	fromPP, err := GetPaymentPointer(ctx, b, payment.FromPaymentPointer)
+	_, err = b.Wallets().GetFromAddress(ctx, payment.FromPaymentPointer)
 	if err != nil {
 		return nil, err
 	}
 
-	if payment.IncomingAmount != nil && pp.Asset != payment.IncomingAmount.Currency {
+	if payment.IncomingAmount != nil && currency.USD != payment.IncomingAmount.Currency {
 		return nil, fmt.Errorf("%w incompatible payment pointer assets", openpayments.ErrInvalidArgument)
+	}
+
+	senderWa, err := wallets.ParseAddress(payment.FromPaymentPointer)
+	if err != nil {
+		return nil, err
+	}
+
+	receiverWa, err := wallets.ParseAddress(payment.PaymentPointer)
+	if err != nil {
+		return nil, err
 	}
 
 	id := uuid.NewString()
 	ib := db.NewInsert("openpayments_incoming_payment").
 		Value("id", id).
-		Value("payment_pointer_id", pp.ID).
 		Value("received_amount", 0).
-		Value("from_payment_pointer_id", fromPP.ID).
 		Value("created_by", sql.NullString{
 			String: payment.CreatedBy,
 			Valid:  payment.CreatedBy != "",
 		}).
 		Value("sender_wallet_address", sql.NullString{
-			String: fromPP.URL,
-			Valid:  fromPP.URL != "",
+			String: senderWa.String(),
+			Valid:  senderWa.String() != "",
 		}).
 		Value("receiver_wallet_address", sql.NullString{
-			String: pp.URL,
-			Valid:  pp.URL != "",
+			String: receiverWa.String(),
+			Valid:  receiverWa.String() != "",
 		})
 	if payment.IncomingAmount != nil {
 		ib.Value("asset_code", payment.IncomingAmount.Currency).
@@ -129,24 +137,15 @@ func GetIncomingPayment(ctx context.Context, b Backends, id string) (*openpaymen
 		return nil, fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	return transformIncomingPayment(ctx, b, payment)
+	return transformIncomingPayment(payment), nil
 }
 
-func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomingPayment) (*openpayments.IncomingPayment, error) {
-	fromPP, err := getPaymentPointerByID(ctx, b, payment.FromPaymentPointerID.String)
-	if err != nil {
-		return nil, err
-	}
-
-	toPP, err := getPaymentPointerByID(ctx, b, payment.PaymentPointerID)
-	if err != nil {
-		return nil, err
-	}
+func transformIncomingPayment(payment dbIncomingPayment) *openpayments.IncomingPayment {
 
 	resp := &openpayments.IncomingPayment{
 		ID:                 fmt.Sprintf("%s/incoming/%s", env.OpenPaymentsURL(), payment.ID),
-		PaymentPointer:     toPP.URL,
-		FromPaymentPointer: fromPP.URL,
+		PaymentPointer:     payment.ReceiverWalletAddress.String,
+		FromPaymentPointer: payment.SenderWalletAddress.String,
 		Completed:          payment.Completed,
 		ExternalRef:        payment.ExternalRef.String,
 		ExpiresAt:          payment.ExpiresAt.Time,
@@ -170,5 +169,5 @@ func transformIncomingPayment(ctx context.Context, b Backends, payment dbIncomin
 		}
 	}
 
-	return resp, nil
+	return resp
 }

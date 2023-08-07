@@ -4,52 +4,56 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/wallets"
+
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/authorisation"
 	"gitlab.com/fynbos/backend/authorisation/ops"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/openpayments"
-	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 )
 
 func TestCreateClient(t *testing.T) {
 	cases := []struct {
 		name          string
-		pointer       string
-		pointerExists bool
+		address       string
+		addressExists bool
 		err           error
 	}{
 		{
 			name:          "success",
-			pointer:       "https://fynbos.me/tables",
-			pointerExists: true,
+			address:       "https://fynbos.me/tables",
+			addressExists: true,
 			err:           nil,
 		},
 		{
 			name:          "does not exist",
-			pointer:       "https://fynbos.me/notehere",
-			pointerExists: false,
-			err:           openpayments.ErrPaymentPointerNotFound,
+			address:       "https://fynbos.me/notehere",
+			addressExists: false,
+			err:           wallets.ErrNoWalletFound,
 		},
 	}
 
 	ctx := context.Background()
 
 	ctrl := gomock.NewController(t)
-	op := openpayments_mock.NewMockClient(ctrl)
+	wc := wallets_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), op)
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), wc)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if tc.pointerExists {
-				op.EXPECT().GetPaymentPointer(ctx, tc.pointer).Return(&openpayments.PaymentPointer{URL: tc.pointer}, nil).Times(1)
+			if tc.addressExists {
+				wa, err := wallets.ParseAddress(tc.address)
+				require.NoError(t, err)
+				wc.EXPECT().GetFromAddress(ctx, tc.address).Return(&wallets.Wallet{Addresses: []wallets.Address{wa}}, nil).Times(1)
 			} else {
-				op.EXPECT().GetPaymentPointer(ctx, tc.pointer).Return(nil, openpayments.ErrPaymentPointerNotFound).Times(1)
+				wc.EXPECT().GetFromAddress(ctx, tc.address).Return(nil, wallets.ErrNoWalletFound).Times(1)
 			}
-			_, err := ops.CreateClient(ctx, b, tc.pointer)
+			_, err := ops.CreateClient(ctx, b, tc.address)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -63,16 +67,18 @@ func TestCreateGrant(t *testing.T) {
 	ctx := context.Background()
 
 	ctrl := gomock.NewController(t)
-	op := openpayments_mock.NewMockClient(ctrl)
+	wc := wallets_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), op)
-	clientPaymentPointer := "https://fynbos.me/alice"
-	resourceOwnerPaymentPointer := "https://fynbos.me/bobby"
+	b := ops.NewTestBackends(t, db.MigrateTestDB(t, ctx), wc)
+	clientAddress, err := wallets.ParseAddress("https://fynbos.me/alice")
+	require.NoError(t, err)
+	resourceAddress, err := wallets.ParseAddress("https://fynbos.me/bobby")
+	require.NoError(t, err)
 
-	op.EXPECT().GetPaymentPointer(ctx, clientPaymentPointer).Return(&openpayments.PaymentPointer{URL: clientPaymentPointer}, nil).AnyTimes()
-	op.EXPECT().GetPaymentPointer(ctx, resourceOwnerPaymentPointer).Return(&openpayments.PaymentPointer{URL: resourceOwnerPaymentPointer}, nil).AnyTimes()
+	wc.EXPECT().GetFromAddress(ctx, clientAddress.String()).Return(&wallets.Wallet{Addresses: []wallets.Address{clientAddress}}, nil).AnyTimes()
+	wc.EXPECT().GetFromAddress(ctx, resourceAddress.String()).Return(&wallets.Wallet{Addresses: []wallets.Address{resourceAddress}}, nil).AnyTimes()
 
-	_, err := ops.CreateClient(ctx, b, clientPaymentPointer)
+	_, err = ops.CreateClient(ctx, b, clientAddress.String())
 	require.NoError(t, err)
 
 	g, err := ops.CreateGrant(ctx, b, authorisation.GrantRequest{
@@ -82,28 +88,28 @@ func TestCreateGrant(t *testing.T) {
 					// To be ignored, you can only get tokens for yourself, currently
 					Type:       "incoming-payment",
 					Actions:    []string{"write", "read"},
-					Identifier: resourceOwnerPaymentPointer,
+					Identifier: resourceAddress.String(),
 				},
 				{
 					// To be ignored, you can only get tokens for yourself, currently
 					Type:       "outgoing-payment",
 					Actions:    []string{"write", "read"},
-					Identifier: resourceOwnerPaymentPointer,
+					Identifier: resourceAddress.String(),
 				},
 				{
 					Type:       "incoming-payment",
 					Actions:    []string{"write", "read"},
-					Identifier: clientPaymentPointer,
+					Identifier: clientAddress.String(),
 				},
 				{
 					Type:       "outgoing-payment",
 					Actions:    []string{"write", "read"},
-					Identifier: clientPaymentPointer,
+					Identifier: clientAddress.String(),
 				}},
 
 			Label: "TestAccess1",
 		}},
-		Client: clientPaymentPointer,
+		Client: clientAddress.String(),
 	})
 	require.NoError(t, err)
 

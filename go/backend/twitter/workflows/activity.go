@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/twitter"
 	"go.temporal.io/sdk/temporal"
@@ -52,15 +53,18 @@ func (a *Activity) PostProofTweet(ctx context.Context, identityID string) (strin
 		return "", temporal.NewNonRetryableApplicationError(fmt.Sprintf("no connection found for identity %s", identityID), "ErrNotFound", nil)
 	}
 
-	pp, err := a.b.OpenPayments().GetWalletPaymentPointer(ctx, id.WalletID)
+	wallet, err := a.b.Wallets().Get(ctx, id.WalletID)
 	if err != nil {
 		return "", err
+	}
+	if len(wallet.Addresses) == 0 {
+		return "", fmt.Errorf("no wallet address found for identity %s", identityID)
 	}
 
 	// Post Tweet
 	base64SigHas := base64.URLEncoding.EncodeToString(id.SignatureHash)
 
-	tweetCopy := "Just connected my @fynbosdev wallet with my @Twitter account! Now it's easier than ever to send and receive payments using @" + connection.Username + ". \n\n#ConnectedWallet " + pp.URL + "/identities/" + base64SigHas
+	tweetCopy := "Just connected my @fynbosdev wallet with my @Twitter account! Now it's easier than ever to send and receive payments using @" + connection.Username + ". \n\n#ConnectedWallet " + wallet.AddressString() + "/identities/" + base64SigHas
 
 	tweet, err := a.b.Twitter().PostTweet(ctx, connection.ID, tweetCopy)
 	if err != nil {
