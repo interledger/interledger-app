@@ -236,7 +236,7 @@ func TestAddAddress(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tc.name, w.Name)
 			assert.Equal(t, walletID, w.ID)
-			assert.Equal(t, tc.url, w.Addresses[0].String())
+			assert.Equal(t, tc.url, w.AddressString())
 		})
 	}
 }

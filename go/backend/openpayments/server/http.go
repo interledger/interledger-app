@@ -464,7 +464,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	// Check if the content type is from browser and redirect
 	if strings.Contains(req.Header.Get("Accept"), "text/html") {
-		u, err := url.JoinPath(env.GetUrl(), "/me/", removeProtocol(wallet.Addresses[0].String()))
+		u, err := url.JoinPath(env.GetUrl(), "/me/", removeProtocol(wallet.AddressString()))
 		if err != nil {
 			log.Error("error generating url", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -506,7 +506,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	}
 
 	jsonResponse := JsonResponse{
-		Id:         wallet.Addresses[0].String(),
+		Id:         wallet.AddressString(),
 		PublicName: wallet.Name,
 		Identities: jsonIds,
 	}

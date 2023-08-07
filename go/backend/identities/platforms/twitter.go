@@ -62,13 +62,8 @@ func (tp *twitterPlatform) GenerateSignedClaim(ctx context.Context, args *Signed
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	var wa string
-	if len(wallet.Addresses) > 0 {
-		wa = wallet.Addresses[0].String()
-	}
-
 	claim := identities.Claim{
-		Wallet:     wa,
+		Wallet:     wallet.AddressString(),
 		Type:       "twitter",
 		Identifier: args.Identifier,
 		Kid:        signingKey.ID,
