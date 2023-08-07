@@ -4,10 +4,11 @@ import { Form, useLoaderData, useSubmit } from '@remix-run/react'
 import {
   GetLinkedAccount,
   GetReview,
-  GetWalletDetails, LinkedAccountReviewState
+  GetWalletDetails
 } from '~/lib/wallet.server'
 import { GridCard, Icon } from '~/components'
 import { route } from 'routes-gen'
+import { LinkedAccountReviewState } from '~/lib/types'
 
 export async function loader({ request, params }: LoaderArgs) {
   const review = await GetReview(request, params.id as string)

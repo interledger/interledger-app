@@ -19,6 +19,7 @@ import {
   isGrpcError,
   StatusError
 } from '~/lib/proto.server'
+import type { LinkedAccountReviewState } from '~/lib/types'
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -433,12 +434,6 @@ export async function GetReview(
   }
 
   return rpc.response
-}
-
-export enum LinkedAccountReviewState {
-  Verified = 'Verified',
-  Rejected = 'Rejected',
-  OwnershipReviewRequired = 'OwnershipReviewRequired'
 }
 
 export async function CompleteLinkedAccountReview(
