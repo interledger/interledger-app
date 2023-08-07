@@ -1,34 +1,30 @@
 package ops
 
 import (
-	"gitlab.com/fynbos/backend/notify"
-	notify_mock "gitlab.com/fynbos/backend/notify/client/mock"
 	"context"
 	"testing"
-
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
-
-	"gitlab.com/fynbos/backend/wallets"
-
-	"gitlab.com/fynbos/backend/twilio"
-	"gitlab.com/fynbos/backend/user"
-
-	"gitlab.com/fynbos/backend/features"
-	"gitlab.com/fynbos/backend/images"
-	images_mock "gitlab.com/fynbos/backend/images/client/mock"
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/tabapay"
-	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
+	"gitlab.com/fynbos/backend/features"
+	"gitlab.com/fynbos/backend/images"
+	images_mock "gitlab.com/fynbos/backend/images/client/mock"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/notify"
+	notify_mock "gitlab.com/fynbos/backend/notify/client/mock"
+	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
 	twitter_mock "gitlab.com/fynbos/backend/twitter/client/mock"
+	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/wallets"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	temporal "go.temporal.io/sdk/client"
 )
 
