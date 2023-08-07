@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/wallets"
@@ -68,6 +70,10 @@ func validationDesc(fe validator.FieldError) string {
 func toGRPCError(err error) error {
 	if err == nil {
 		return nil
+	}
+
+	if !env.IsProd() {
+		log.Error("gRPC error", zap.Error(err))
 	}
 
 	// Check if it is a validation error
