@@ -81,17 +81,12 @@ func SendApplicationApprovedEmail(ctx context.Context, b Backends, walletID stri
 		w = &wallets.Wallet{}
 	}
 
-	var address wallets.Address
-	if len(w.Addresses) > 1 {
-		address = w.Addresses[0]
-	}
-
 	err = b.External().SendTemplate(ctx, "Your wallet has been created", sendTo, oneTemplateID, map[string]interface{}{
 		"subject": "Your wallet has been created",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
 			{"heading": "Your wallet has been activated,"},
-			{"code": address.String()},
+			{"code": w.AddressString()},
 			{"paragraph": "You can now use your wallet to send and receive payments."},
 		},
 		"cta": map[string]interface{}{

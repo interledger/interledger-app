@@ -137,7 +137,7 @@ func validateTokenAccess(ctx context.Context, b Backends, args authorisation.Gra
 		for _, acc := range at.Access {
 
 			// Only allow access to your own payment pointer for now.
-			if !strings.EqualFold(acc.Identifier, wa.Addresses[0].String()) {
+			if !strings.EqualFold(acc.Identifier, wa.AddressString()) {
 				continue
 			}
 
