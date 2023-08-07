@@ -22,6 +22,20 @@ type Wallet struct {
 	Addresses []Address
 }
 
+func (w Wallet) AddressShortString() string {
+	if len(w.Addresses) == 0 {
+		return ""
+	}
+	return w.Addresses[0].ShortString()
+}
+
+func (w Wallet) AddressString() string {
+	if len(w.Addresses) == 0 {
+		return ""
+	}
+	return w.Addresses[0].String()
+}
+
 type WalletCtxKey string
 
 var CtxKey = WalletCtxKey("wallet_key")

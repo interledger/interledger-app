@@ -71,12 +71,12 @@ func (g *grpcServer) GetPaymentPointer(ctx context.Context, req *pb.GetPaymentPo
 	}
 
 	return &pb.PaymentPointer{
-		Url:        w.Addresses[0].String(),
+		Url:        w.AddressString(),
 		Asset:      "USD",
 		AssetScale: int32(2),
 		Alias:      w.Name,
 		WalletID:   w.ID,
-		Formatted:  w.Addresses[0].ShortString(),
+		Formatted:  w.AddressShortString(),
 		LegalName:  legalName,
 	}, nil
 }

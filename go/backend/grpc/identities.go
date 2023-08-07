@@ -27,14 +27,9 @@ func (s *rpcService) ListIdentities(ctx context.Context, _ *pb.Empty) (*pb.ListI
 		return nil, toGRPCError(err)
 	}
 
-	var wa string
-	if len(w.Addresses) > 0 {
-		wa = w.Addresses[0].String()
-	}
-
 	resp := make([]*pb.Identity, len(ids))
 	for i, id := range ids {
-		resp[i] = identityToPB(&id, wa)
+		resp[i] = identityToPB(&id, w.AddressString())
 	}
 
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
@@ -51,14 +46,9 @@ func (s *rpcService) ListPublicIdentities(ctx context.Context, req *pb.ListPubli
 		return nil, toGRPCError(err)
 	}
 
-	var wa string
-	if len(wallet.Addresses) > 0 {
-		wa = wallet.Addresses[0].String()
-	}
-
 	resp := make([]*pb.Identity, len(ids))
 	for i, id := range ids {
-		resp[i] = identityToPB(&id, wa)
+		resp[i] = identityToPB(&id, wallet.AddressString())
 	}
 
 	return &pb.ListIdentitiesResponse{Identities: resp}, nil
@@ -96,12 +86,7 @@ func (s *rpcService) SetIdentityPublic(ctx context.Context, req *pb.SetIdentityP
 		return nil, toGRPCError(err)
 	}
 
-	var wa string
-	if len(w.Addresses) > 0 {
-		wa = w.Addresses[0].String()
-	}
-
-	return identityToPB(id, wa), nil
+	return identityToPB(id, w.AddressString()), nil
 }
 
 func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest) (*pb.GetIdentityResponse, error) {
@@ -132,13 +117,8 @@ func (s *rpcService) GetIdentity(ctx context.Context, req *pb.GetIdentityRequest
 		return nil, toGRPCError(err)
 	}
 
-	var wa string
-	if len(wallet.Addresses) > 0 {
-		wa = wallet.Addresses[0].String()
-	}
-
 	return &pb.GetIdentityResponse{
-		Identity: identityToPB(id, wa),
+		Identity: identityToPB(id, wallet.AddressString()),
 	}, nil
 }
 
@@ -162,13 +142,8 @@ func (s *rpcService) GetIdentityBySignatureHash(ctx context.Context, req *pb.Get
 		return nil, toGRPCError(err)
 	}
 
-	var wa string
-	if len(wallet.Addresses) > 0 {
-		wa = wallet.Addresses[0].String()
-	}
-
 	return &pb.GetIdentityResponse{
-		Identity: identityToPB(id, wa),
+		Identity: identityToPB(id, wallet.AddressString()),
 	}, nil
 }
 
