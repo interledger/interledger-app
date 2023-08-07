@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/env"
 
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identities"
@@ -25,12 +25,12 @@ import (
 var errorStatus = map[error]error{
 	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
 	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
-	twilio.ErrInvalidOTP:                   NewValidationError("OTP", "Could not validate OTP"),
-	wallets.ErrDuplicateWallet:             status.Error(codes.AlreadyExists, "Wallet already exists"),
-	linkedaccounts.ErrNotFound:             NotFoundError("linked account not found"),
-	signup.ErrDuplicatePhone:               status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
-	identities.ErrAlreadyExists:            status.Error(codes.AlreadyExists, "Identity already exists"),
-	openpayments.ErrPaymentPointerNotFound: NotFoundError("wallet address not found"),
+	twilio.ErrInvalidOTP:        NewValidationError("OTP", "Could not validate OTP"),
+	wallets.ErrDuplicateWallet:  status.Error(codes.AlreadyExists, "Wallet already exists"),
+	linkedaccounts.ErrNotFound:  NotFoundError("linked account not found"),
+	signup.ErrDuplicatePhone:    status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
+	identities.ErrAlreadyExists: status.Error(codes.AlreadyExists, "Identity already exists"),
+	wallets.ErrNoWalletFound:    NotFoundError("wallet address not found"),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -70,6 +70,10 @@ func validationDesc(fe validator.FieldError) string {
 func toGRPCError(err error) error {
 	if err == nil {
 		return nil
+	}
+
+	if !env.IsProd() {
+		log.Error("gRPC error", zap.Error(err))
 	}
 
 	// Check if it is a validation error

@@ -74,8 +74,6 @@ func Migrate(ctx context.Context, connString string) error {
 		connString,
 		"-u",
 		connString,
-		"--exclude",
-		"public.payment_pointers.payment_pointers_url_lower",
 		"-f",
 		filepath.Join(moduleDir, "../schema.hcl"),
 	}
@@ -104,7 +102,7 @@ func Migrate(ctx context.Context, connString string) error {
 }
 
 func CreateExpIndex(ctx context.Context, db *sqlx.DB) error {
-	_, err := db.ExecContext(ctx, ppExpIndex)
+	_, err := db.ExecContext(ctx, waExpIndex)
 	if err != nil {
 		return err
 	}
@@ -170,11 +168,6 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
-	_, err = db.ExecContext(ctx, ppExpIndex)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	_, err = db.ExecContext(ctx, waExpIndex)
 	if err != nil {
 		t.Fatal(err)
@@ -182,10 +175,6 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 
 	return db
 }
-
-const ppExpIndex = `
-CREATE UNIQUE INDEX IF NOT EXISTS "payment_pointers_url_lower" ON "public"."payment_pointers" (lower(url));
-`
 
 const waExpIndex = `
 CREATE UNIQUE INDEX IF NOT EXISTS "wallet_address_url_lower" ON "public"."wallet_addresses" (lower(url));

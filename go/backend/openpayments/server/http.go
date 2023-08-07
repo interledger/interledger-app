@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	"gitlab.com/fynbos/backend/identities"
 
 	"gitlab.com/fynbos/httpmessagesignatures"
@@ -78,13 +80,13 @@ func postHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	ppURL := getFullURL(req)
 
-	_, err := ops.GetPaymentPointer(ctx, b, ppURL)
+	_, err := b.Wallets().GetFromAddress(ctx, ppURL)
 	if err != nil {
-		if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+		if errors.Is(err, wallets.ErrNoWalletFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
-		if errors.Is(err, openpayments.ErrInvalidPointerURL) {
+		if errors.Is(err, wallets.ErrInvalidAddress) {
 			http.Error(w, "Invalid Payment Pointer", http.StatusBadRequest)
 			return
 		}
@@ -211,7 +213,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 
 		argAmount := currency.FromFloat64(httpArgs.SendAmount.Amount, currency.ParseCurrency(httpArgs.SendAmount.Currency))
 
-		fromPP, err := ops.GetPaymentPointer(req.Context(), b, httpArgs.FromPP)
+		fromWallet, err := b.Wallets().GetFromAddress(req.Context(), httpArgs.FromPP)
 		if err != nil {
 			log.Error("failed to lookup from payment pointer", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -219,7 +221,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 		}
 
 		// Check the limits service to see if the grant client has not exceeded its limits.
-		exceeds, err := b.Limits().Exceeds(req.Context(), fromPP.WalletID, grant.Client, argAmount)
+		exceeds, err := b.Limits().Exceeds(req.Context(), fromWallet.ID, grant.Client, argAmount)
 		if err != nil {
 			log.Error("failed to check limits of the grant client", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -230,7 +232,7 @@ func createOutgoingPayment(b Backends) http.HandlerFunc {
 			return
 		}
 
-		exceedsKyc, _, err := b.Limits().ExceedsKYCLimits(req.Context(), fromPP.WalletID, argAmount)
+		exceedsKyc, _, err := b.Limits().ExceedsKYCLimits(req.Context(), fromWallet.ID, argAmount)
 		if err != nil {
 			log.Error("failed to check limits of the grant client", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -370,9 +372,21 @@ func createIncomingPayment(b Backends) http.HandlerFunc {
 			argAmount = &tmp
 		}
 
+		senderWa, err := wallets.ParseAddress(httpArgs.FromPP)
+		if err != nil {
+			http.Error(w, "Invalid Payment Pointer", http.StatusBadRequest)
+			return
+		}
+
+		receiverWa, err := wallets.ParseAddress(httpArgs.ToPP)
+		if err != nil {
+			http.Error(w, "Invalid Payment Pointer", http.StatusBadRequest)
+			return
+		}
+
 		args := openpayments.CreateIncomingPaymentArgs{
-			PaymentPointer:     ops.StandardisePaymentPointer(httpArgs.ToPP),
-			FromPaymentPointer: ops.StandardisePaymentPointer(httpArgs.FromPP),
+			PaymentPointer:     receiverWa.String(),
+			FromPaymentPointer: senderWa.String(),
 			IncomingAmount:     argAmount,
 			ExternalRef:        httpArgs.ExternalRef,
 			CreatedBy:          grant.Client,
@@ -427,18 +441,18 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
 	ppURL, suffix, err := ops.ExtractPaymentPointer(getFullURL(req))
-	if errors.Is(err, openpayments.ErrInvalidPointerURL) {
+	if errors.Is(err, wallets.ErrInvalidAddress) {
 		http.Error(w, "Invalid Payment Pointer", http.StatusBadRequest)
 		return
 	}
 
-	pp, err := ops.GetPaymentPointer(ctx, b, ppURL)
+	wallet, err := b.Wallets().GetFromAddress(ctx, ppURL)
 	if err != nil {
-		if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+		if errors.Is(err, wallets.ErrNoWalletFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
-		if errors.Is(err, openpayments.ErrInvalidPointerURL) {
+		if errors.Is(err, wallets.ErrInvalidAddress) {
 			http.Error(w, "Invalid Payment Pointer", http.StatusBadRequest)
 			return
 		}
@@ -450,7 +464,7 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	// Check if the content type is from browser and redirect
 	if strings.Contains(req.Header.Get("Accept"), "text/html") {
-		u, err := url.JoinPath(env.GetUrl(), "/me/", removeProtocol(pp.URL))
+		u, err := url.JoinPath(env.GetUrl(), "/me/", removeProtocol(wallet.AddressString()))
 		if err != nil {
 			log.Error("error generating url", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -462,11 +476,11 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 
 	switch suffix {
 	case "jwks.json":
-		listKeys(b, pp.WalletID, w, req)
+		listKeys(b, wallet.ID, w, req)
 		return
 	}
 
-	ids, err := b.Identities().ListPublic(ctx, pp.WalletID)
+	ids, err := b.Identities().ListPublic(ctx, wallet.ID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -491,14 +505,8 @@ func getHandler(b Backends, w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	wallet, err := b.Wallets().Get(ctx, pp.WalletID)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
 	jsonResponse := JsonResponse{
-		Id:         pp.URL,
+		Id:         wallet.AddressString(),
 		PublicName: wallet.Name,
 		Identities: jsonIds,
 	}
@@ -647,9 +655,9 @@ func getIdentity(b Backends) http.HandlerFunc {
 			return
 		}
 
-		pp, err := ops.GetPaymentPointer(req.Context(), b, ppURL)
+		wallet, err := b.Wallets().GetFromAddress(req.Context(), ppURL)
 		if err != nil {
-			if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
+			if errors.Is(err, wallets.ErrNoWalletFound) {
 				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 				return
 			}
@@ -673,7 +681,7 @@ func getIdentity(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if identity.WalletID != pp.WalletID {
+		if identity.WalletID != wallet.ID {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
@@ -748,7 +756,6 @@ func getIdentity(b Backends) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-
 	}
 }
 
