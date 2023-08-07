@@ -3,6 +3,8 @@ import clsx from 'clsx'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import {
+  Alert,
+  AlertBody,
   AnimatedSchedule,
   Card,
   CardButton,
@@ -27,8 +29,14 @@ import type { loader } from './route'
 import { KycStatus } from './route'
 
 export function AppPage() {
-  const { walletInfo, snackbar, transactions, kycStatus, pusherArgs } =
-    useLoaderData<typeof loader>()
+  const {
+    walletInfo,
+    features,
+    snackbar,
+    transactions,
+    kycStatus,
+    pusherArgs
+  } = useLoaderData<typeof loader>()
 
   const [snackbarState, setSnackbar] = useState<any>(snackbar)
   const [showSnackbar, setShowSnackbar] = useState<boolean>(
@@ -40,6 +48,15 @@ export function AppPage() {
   return (
     <WalletGrid>
       <GridColumn className='col-span-full lg:col-span-6'>
+        {!features.sendEnabled && (
+          <Alert>
+            <Icon>south_west</Icon>
+            <AlertBody>Receive only account</AlertBody>
+            <Router className='ml-auto text-primary' to={route('/pay')}>
+              Find out why
+            </Router>
+          </Alert>
+        )}
         {kycStatus == KycStatus.Unknown && (
           <Card>
             <CardHeader>
