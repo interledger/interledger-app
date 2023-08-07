@@ -38,9 +38,9 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 		}
 
 		return &pb.GetPaymentAddressResponse{
-			WalletUrl:        wallet.Addresses[0].String(),
+			WalletUrl:        wallet.AddressString(),
 			Type:             "wallet",
-			Handle:           wallet.Addresses[0].ShortString(),
+			Handle:           wallet.AddressShortString(),
 			CanSendToAddress: canSendToAddress,
 		}, nil
 	}
@@ -66,7 +66,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 		}
 
 		return &pb.GetPaymentAddressResponse{
-			WalletUrl:        receiverWallet.Addresses[0].String(),
+			WalletUrl:        receiverWallet.AddressString(),
 			Type:             "twitter",
 			Handle:           "@" + twitterIdentitifer,
 			CanSendToAddress: canSendToAddress,
