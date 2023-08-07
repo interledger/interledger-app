@@ -8,7 +8,7 @@ const Alert = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
       <div
         ref={ref}
         className={clsx(
-          'flex w-full gap-x-2 rounded-lg bg-nav-active p-2',
+          'flex w-full gap-x-2 rounded-lg bg-nav-active p-4',
           className
         )}
         {...props}
