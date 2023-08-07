@@ -21,7 +21,6 @@ service OpenPaymentService {
   rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
   rpc CreateQuote(CreateQuoteRequest) returns (Quote);
   rpc LookupQuote(LookupQuoteRequest) returns (Quote);
-  rpc SendQuoteOTP(SendQuoteOTPRequest) returns (Empty);
   rpc SetQuoteOTP(SetQuoteOTPRequest) returns (Quote);
   rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
   rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
@@ -147,10 +146,6 @@ message IncomingPayment {
 
 message LookupQuoteRequest {
   string id = 1;
-}
-
-message SendQuoteOTPRequest {
-  string quoteID = 1;
 }
 
 message SetQuoteOTPRequest {

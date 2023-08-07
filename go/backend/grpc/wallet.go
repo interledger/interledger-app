@@ -6,10 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"gitlab.com/fynbos/backend/wallets"
-
-	"gitlab.com/fynbos/backend/openpayments"
-
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -60,17 +56,7 @@ func (s *rpcService) GetPublicWalletDetails(ctx context.Context, req *pb.GetPubl
 }
 
 func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicWalletInfoRequest) (*pb.PublicWalletInfo, error) {
-	opp, err := s.b.OpenPayments().GetPaymentPointer(ctx, req.WalletAddress)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	wa, err := wallets.ParseAddress(opp.URL)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	wallet, err := s.b.Wallets().Get(ctx, opp.WalletID)
+	wallet, err := s.b.Wallets().GetFromAddress(ctx, req.WalletAddress)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -82,7 +68,7 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 
 	idsResp := make([]*pb.Identity, len(ids))
 	for i, id := range ids {
-		idsResp[i] = identityToPB(&id, wa.String())
+		idsResp[i] = identityToPB(&id, wallet.AddressString())
 	}
 
 	lal, err := s.b.LinkedAccounts().ListByWalletId(ctx, wallet.ID)
@@ -100,8 +86,8 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 
 	return &pb.PublicWalletInfo{
 		WalletID:     wallet.ID,
-		Address:      wa.String(),
-		ShortAddress: wa.ShortString(),
+		Address:      wallet.AddressString(),
+		ShortAddress: wallet.AddressShortString(),
 		Identities:   idsResp,
 		CanReceive:   canRecv,
 		PublicName:   wallet.Name,
@@ -122,28 +108,12 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 	var hasWalletAddress, hasCard, hasBank, hasIdentities, hasTxs bool
 	var anyErr error
 	var wg sync.WaitGroup
-	var wa wallets.Address
 
-	wg.Add(4)
+	wg.Add(3)
 
-	go func() {
-		defer wg.Done()
-		opp, err := s.b.OpenPayments().GetWalletPaymentPointer(ctx, w.ID)
-		if errors.Is(err, openpayments.ErrPaymentPointerNotFound) {
-			return
-		}
-		if err != nil {
-			anyErr = err
-			return
-		}
-
-		wa, err = wallets.ParseAddress(opp.URL)
-		if err != nil {
-			anyErr = err
-			return
-		}
+	if len(w.Addresses) > 0 {
 		hasWalletAddress = true
-	}()
+	}
 
 	go func() {
 		defer wg.Done()
@@ -190,8 +160,8 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 
 	return &pb.WalletInfo{
 		WalletID:         w.ID,
-		Url:              wa.String(),
-		FormattedURL:     wa.ShortString(),
+		Url:              w.AddressString(),
+		FormattedURL:     w.AddressShortString(),
 		HasCard:          hasCard,
 		HasBank:          hasBank,
 		HasIdentities:    hasIdentities,
