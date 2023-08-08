@@ -22,12 +22,11 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 )
 
-const outgoingPaymentCols = ` id, to_payment_pointer_id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at, created_by, sender_wallet_address, receiver_wallet_address `
+const outgoingPaymentCols = ` id, quote_id, failed, description, sent_amount, sent_asset, sent_scale, created_at, updated_at, created_by, sender_wallet_address, receiver_wallet_address `
 
 type dbOutgoingPayments struct {
 	ID                    string         `db:"id"`
 	QuoteID               string         `db:"quote_id"`
-	ToPaymentPointerID    string         `db:"to_payment_pointer_id"`
 	Failed                bool           `db:"failed"`
 	Description           string         `db:"description"`
 	AssetCode             string         `db:"sent_asset"`
@@ -70,7 +69,6 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 	stmt, qargs, err := db.NewInsert("openpayments_outgoing_payment").
 		Value("id", id).
 		Value("quote_id", q.ID[strings.LastIndex(q.ID, "/")+1:]).
-		Value("to_payment_pointer_id", q.ReceivePaymentPointer).
 		Value("failed", false).
 		Value("description", args.Description).
 		Value("sent_amount", 0).
@@ -86,22 +84,17 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		return "", "", fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
-	toPP, err := getPaymentPointerByID(ctx, b, q.ReceivePaymentPointer)
-	if err != nil {
-		return "", "", err
-	}
-
-	fromPP, err := getPaymentPointerByID(ctx, b, q.SendPaymentPointer)
-	if err != nil {
-		return "", "", err
-	}
-
 	if args.DestinationIdentity == "" {
-		args.DestinationIdentity = toPP.URL
+		args.DestinationIdentity = q.ReceiverWalletAddress.String
 		args.DestinationIdentityType = "wallet"
 	} else if q.RecvIdentity.Valid && q.RecvIdentityType.Valid {
 		args.DestinationIdentity = q.RecvIdentity.String
 		args.DestinationIdentityType = q.RecvIdentityType.String
+	}
+
+	senderWallet, err := b.Wallets().GetFromAddress(ctx, q.SenderWalletAddress.String)
+	if err != nil {
+		return "", "", err
 	}
 
 	var trxID string
@@ -120,14 +113,14 @@ func CreateOutgoingPayment(ctx context.Context, b Backends, args openpayments.Cr
 		}
 
 		id, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
-			WalletID:    fromPP.WalletID,
+			WalletID:    senderWallet.ID,
 			ForeignID:   id,
 			ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
 			Provider:    transactions.ProviderGMT,
 			State:       transactions.StatePending,
 			Note:        args.Description,
-			Source:      fromPP.URL,
-			Destination: toPP.URL,
+			Source:      q.SenderWalletAddress.String,
+			Destination: q.ReceiverWalletAddress.String,
 			Amount: currency.Amount{
 				Value:    q.SendAmount,
 				Currency: currency.ParseCurrency(q.SendAsset),
@@ -202,21 +195,13 @@ func transformOutgoingPayment(ctx context.Context, b Backends, op dbOutgoingPaym
 		return nil, err
 	}
 
-	q, err := transformQuote(ctx, b, *dbq)
-	if err != nil {
-		return nil, err
-	}
-
-	toPP, err := getPaymentPointerByID(ctx, b, dbq.ReceivePaymentPointer)
-	if err != nil {
-		return nil, err
-	}
+	q := transformQuote(*dbq)
 
 	return &openpayments.OutgoingPayment{
 		ID:                fmt.Sprintf("%s/outgoing/%s", env.OpenPaymentsURL(), op.ID),
-		PaymentPointer:    q.PaymentPointer,
+		PaymentPointer:    dbq.SenderWalletAddress.String,
 		FromLinkedAccount: q.FromLinkedAccount,
-		ToPaymentPointer:  toPP.URL,
+		ToPaymentPointer:  dbq.ReceiverWalletAddress.String,
 		Failed:            op.Failed,
 		Receiver:          q.IncomingPayment,
 		SendAmount:        q.SendAmount,
@@ -245,7 +230,7 @@ func FailOutgoingPayment(ctx context.Context, b Backends, id string) error {
 		return err
 	}
 
-	pp, err := GetPaymentPointer(ctx, b, op.PaymentPointer)
+	wallet, err := b.Wallets().GetFromAddress(ctx, op.PaymentPointer)
 	if err != nil {
 		return err
 	}
@@ -263,7 +248,7 @@ func FailOutgoingPayment(ctx context.Context, b Backends, id string) error {
 			return fmt.Errorf("%w outoing payment (%s) not found", openpayments.ErrNotFound, id)
 		}
 
-		trx, err := b.Transactions().GetTransactionByForeignID(ctx, pp.WalletID, id)
+		trx, err := b.Transactions().GetTransactionByForeignID(ctx, wallet.ID, id)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}
@@ -291,24 +276,24 @@ func CompleteOutgoingPayment(ctx context.Context, b Backends, args openpayments.
 		ipID = ipID[idxSlash+1:]
 	}
 
-	toPP, err := GetPaymentPointer(ctx, b, op.ToPaymentPointer)
+	receiverWallet, err := b.Wallets().GetFromAddress(ctx, op.ToPaymentPointer)
 	if err != nil {
 		return err
 	}
 
-	fromPP, err := GetPaymentPointer(ctx, b, op.PaymentPointer)
+	senderWallet, err := b.Wallets().GetFromAddress(ctx, op.PaymentPointer)
 	if err != nil {
 		return err
 	}
 
-	fromTrx, err := b.Transactions().GetTransactionByForeignID(ctx, fromPP.WalletID, opID)
+	fromTrx, err := b.Transactions().GetTransactionByForeignID(ctx, senderWallet.ID, opID)
 	if err != nil {
 		return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 	}
 
 	var toTrx *transactions.Transaction
 	if args.IncomingSuccess {
-		toTrx, err = b.Transactions().GetTransactionByForeignID(ctx, toPP.WalletID, ipID)
+		toTrx, err = b.Transactions().GetTransactionByForeignID(ctx, receiverWallet.ID, ipID)
 		if err != nil {
 			return fmt.Errorf("%w %s", openpayments.ErrInternal, err)
 		}

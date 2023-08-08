@@ -6,16 +6,12 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
-	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/openpayments"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/identities/ops"
-	op_ops "gitlab.com/fynbos/backend/openpayments/ops"
 	"gitlab.com/fynbos/env"
 )
 
@@ -226,15 +222,8 @@ func TestSearch(t *testing.T) {
 	b.DB().MustExecContext(ctx, "INSERT INTO linked_accounts (wallet_id, name, mask, provider, type, provider_id, state, can_receive) VALUES ($1, $2, $3, $4, $5, $6, $7,$8)",
 		walletID, "warmer", "1234", "testing", "card", uuid.NewString(), linkedaccounts.Verified, true)
 
-	pp := openpayments.PaymentPointer{
-		URL:        op_ops.StandardisePaymentPointer(env.OpenPaymentsURL() + "/notking"),
-		WalletID:   walletID,
-		Alias:      "default",
-		Asset:      currency.USD,
-		AssetScale: 2,
-	}
-	err = op_ops.CreatePaymentPointer(ctx, b, pp)
-	require.NoError(t, err)
+	b.DB().MustExecContext(ctx, "INSERT INTO wallet_addresses (wallet_id, url) VALUES ($1, $2)",
+		walletID, env.OpenPaymentsURL()+"/notking")
 
 	// Publicly visible
 	id, err := ops.Add(ctx, b, identities.AddArgs{
@@ -285,7 +274,7 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, string("wallet"), res[0].IdentifierType)
 	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, string("wallet_url"), res[0].SubResults[0].IdentifierType)
-	assert.Equal(t, pp.URL, res[0].SubResults[0].Identifier)
+	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].Identifier)
 
 	// Now for a grouping, wallet and twitter name matches so group em
 	_, err = b.DB().ExecContext(ctx, "UPDATE wallets SET name=$1 WHERE id = $2", "cold_iron", walletID)

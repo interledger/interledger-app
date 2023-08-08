@@ -10,8 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/analytics"
 	"gitlab.com/fynbos/backend/notify"
 
-	"gitlab.com/fynbos/backend/openpayments"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 )
@@ -19,7 +17,6 @@ import (
 type Backends interface {
 	Validator() *validator.Validate
 	DB() *sqlx.DB
-	OpenPayments() openpayments.Client
 	Notify() notify.Client
 	Analytics() analytics.Client
 	Users() user.Client
