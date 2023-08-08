@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/pulumi/pulumi-aws/sdk/v4/go/aws/iam"
 	"github.com/pulumi/pulumi-kubernetes/sdk/v3/go/kubernetes"
@@ -63,6 +64,14 @@ func main() {
 						annotations := make(map[string]interface{})
 						annotations["eks.amazonaws.com/role-arn"] = role.Arn
 						metadata["annotations"] = annotations
+					}
+				},
+				func(state map[string]interface{}, opts ...pulumi.ResourceOption) {
+					name := state["metadata"].(map[string]interface{})["name"]
+					if state["kind"] == "Secret" && name == "argocd-notifications-secret" {
+						stringData := make(map[string]string)
+						stringData["slack-token"] = os.Getenv("SLACK_OAUTH_TOKEN")
+						state["stringData"] = stringData
 					}
 				},
 			},
