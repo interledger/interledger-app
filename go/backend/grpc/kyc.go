@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -231,9 +232,6 @@ func (s *rpcService) GetPersonaInquiry(ctx context.Context, req *pb.KYCPersonaIn
 
 	resp := &pb.KYCPersonaInquiryResponse{
 		Id: inq.ID,
-	}
-	if inq.SessionToken != "" {
-		resp.SessionToken = &inq.SessionToken
 	}
 
 	return resp, nil

@@ -44,7 +44,6 @@ func TestGetPersonaInquiry(t *testing.T) {
 		inq, err := ops.GetPersonaInquiry(ctx, b, pc, walletID, "")
 		require.NoError(t, err)
 
-		assert.Equal(st, inq.SessionToken, "")
 		assert.Equal(st, inq.ID, inqID)
 
 		// Now lets get an update
@@ -53,9 +52,7 @@ func TestGetPersonaInquiry(t *testing.T) {
 		inq, err = ops.GetPersonaInquiry(ctx, b, pc, walletID, "")
 		require.NoError(t, err)
 
-		assert.Equal(t, inq.SessionToken, "token")
 		assert.Equal(t, inq.ID, inqID)
-
 	})
 	t.Run("returns existing one if it is in needs_review state", func(st *testing.T) {
 		inqID, walletID := uuid.NewString(), uuid.NewString()

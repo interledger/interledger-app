@@ -832,7 +832,7 @@ message KYCPersonaInquiryRequest {
 
 message KYCPersonaInquiryResponse {
   string id = 1;
-  optional string session_token = 2;
+  optional string session_token = 2 [deprecated=true];
 }
 
 message CreateTwitterAuthURLResponse {

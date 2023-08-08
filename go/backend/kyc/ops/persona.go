@@ -51,9 +51,8 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		}
 
 		return &kyc.PersonaInquiry{
-			ID:           inquiry.ID,
-			SessionToken: inquiry.Meta.SessionToken,
-			Status:       persona.InquiryStatus(inquiry.Attributes.Status),
+			ID:     inquiry.ID,
+			Status: persona.InquiryStatus(inquiry.Attributes.Status),
 		}, nil
 	}
 

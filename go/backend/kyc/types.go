@@ -70,9 +70,8 @@ func (a *Address) String() string {
 }
 
 type PersonaInquiry struct {
-	ID           string
-	SessionToken string
-	Status       persona.InquiryStatus
+	ID     string
+	Status persona.InquiryStatus
 }
 
 type PersonaIDNumbers struct {

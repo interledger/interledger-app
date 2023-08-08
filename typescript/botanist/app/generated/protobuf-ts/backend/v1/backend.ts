@@ -2037,7 +2037,8 @@ export interface KYCPersonaInquiryResponse {
      */
     id: string;
     /**
-     * @generated from protobuf field: optional string session_token = 2;
+     * @deprecated
+     * @generated from protobuf field: optional string session_token = 2 [deprecated = true];
      */
     sessionToken?: string;
 }
@@ -9159,7 +9160,7 @@ class KYCPersonaInquiryResponse$Type extends MessageType<KYCPersonaInquiryRespon
                 case /* string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* optional string session_token */ 2:
+                case /* optional string session_token = 2 [deprecated = true];*/ 2:
                     message.sessionToken = reader.string();
                     break;
                 default:
@@ -9177,7 +9178,7 @@ class KYCPersonaInquiryResponse$Type extends MessageType<KYCPersonaInquiryRespon
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* optional string session_token = 2; */
+        /* optional string session_token = 2 [deprecated = true]; */
         if (message.sessionToken !== undefined)
             writer.tag(2, WireType.LengthDelimited).string(message.sessionToken);
         let u = options.writeUnknownFields;
