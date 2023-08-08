@@ -316,7 +316,7 @@ export default function Page() {
             </Card>
           ))}
       </GridColumn>
-      <GridColumn sticky className='col-span-full lg:col-span-7 lg:col-start-6'>
+      <GridColumn sticky className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
       </GridColumn>
     </WalletGrid>
