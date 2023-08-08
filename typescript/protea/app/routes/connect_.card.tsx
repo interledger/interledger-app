@@ -212,7 +212,10 @@ export default function Page() {
       <BasisTheoryProvider bt={bt}>
         <Card>
           <CardContent>
-            <p className='text-medium'>Please provide your card details.</p>
+            <p className='text-medium'>Debit cards enable both sending and receiving money, while credit cards only allow receiving money.</p>
+          </CardContent>
+          <CardContent>
+            <p className='text-medium'>We currently only support Visa and Mastercard cards.</p>
           </CardContent>
           <label className='mt-2 block'>
             <span className='ml-2 block text-sm font-medium text-medium'>
