@@ -247,9 +247,11 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, "wallet", res[0].IdentifierType)
 	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, 0.5, res[0].Rank)
+	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].WalletUrl)
 	assert.Equal(t, string(identities.PlatformTwitter), res[0].SubResults[0].IdentifierType)
 	assert.Equal(t, "king_cold", res[0].SubResults[0].Identifier)
 	assert.Equal(t, 0.5, res[0].SubResults[0].Rank)
+	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].WalletUrl)
 
 	// Can't search for yourself
 	res, err = ops.Search(ctx, b, walletID, "cold")
@@ -263,9 +265,11 @@ func TestSearch(t *testing.T) {
 	assert.Equal(t, "wallet", res[0].IdentifierType)
 	assert.Equal(t, "warmer", res[0].Identifier)
 	assert.Equal(t, float64(1), res[0].Rank)
+	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].WalletUrl)
 	assert.Equal(t, string(identities.PlatformTwitter), res[0].SubResults[0].IdentifierType)
 	assert.Equal(t, "king_cold", res[0].SubResults[0].Identifier)
 	assert.Equal(t, float64(1), res[0].SubResults[0].Rank)
+	assert.Equal(t, env.OpenPaymentsURL()+"/notking", res[0].SubResults[0].WalletUrl)
 
 	// Search payment pointer
 	res, err = ops.Search(ctx, b, uuid.NewString(), "notking")
