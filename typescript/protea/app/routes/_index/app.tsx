@@ -38,7 +38,7 @@ export function AppPage() {
     pusherArgs
   } = useLoaderData<typeof loader>()
 
-  const [setSnackbar] = useScaffoldStore((state) => [state.setSnackbar])
+  const [setSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
@@ -129,7 +129,7 @@ export function AppPage() {
                     id: v4(),
                     message: "Couldn't copy to clipboard.",
                     icon: 'close',
-                    show: true
+                    canShow: true
                   })
                 } else
                   navigator.clipboard.writeText(walletInfo.url).then(
@@ -138,7 +138,7 @@ export function AppPage() {
                         id: v4(),
                         message: 'Wallet address copied to clipboard.',
                         icon: 'close',
-                        show: true
+                        canShow: true
                       })
                     },
                     () => {
@@ -146,7 +146,7 @@ export function AppPage() {
                         id: v4(),
                         message: "Couldn't copy to clipboard.",
                         icon: 'close',
-                        show: true
+                        canShow: true
                       })
                     }
                   )

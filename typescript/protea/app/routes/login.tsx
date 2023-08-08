@@ -6,8 +6,9 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { route } from 'routes-gen'
+import { v4 } from 'uuid'
 import type { ApplicationProps } from '~/components'
 import {
   Button,
@@ -16,7 +17,6 @@ import {
   CardTitle,
   Layouts,
   Router,
-  Snackbar,
   TextField
 } from '~/components'
 import { trimHeaders } from '~/lib/headers.server'
@@ -94,18 +94,15 @@ export default function Page() {
     useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
 
-  const [snackbarMessage, setSnackbar] = useState<any>(actionData?.errors.form)
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    Boolean(actionData?.errors.form) ?? false
-  )
-  const [setSnackbar] = useScaffoldStore((state) => [state.setSnackbar])
+  const [setSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   useEffect(() => {
+    console.log(actionData)
     if (actionData?.errors.form) {
-      setSnackbar(actionData?.errors.form)
-      setShowSnackbar(true)
+      console.log('setting snackbar', actionData?.errors.form)
+      setSnackbar({ id: v4(), message: actionData?.errors.form, canShow: true })
     }
-  }, [actionData])
+  }, [actionData, setSnackbar])
 
   return (
     <>
@@ -166,16 +163,6 @@ export default function Page() {
       <Button form='login' type='submit'>
         Log in
       </Button>
-      <Snackbar
-        message={snackbarMessage}
-        icon='close'
-        show={showSnackbar}
-        id='error-snackbar'
-        onClose={() => {
-          setSnackbar('')
-          setShowSnackbar(false)
-        }}
-      />
       <p className='text-center text-sm font-medium text-medium'>
         New to Fynbos?{' '}
         {isSignupGated && (

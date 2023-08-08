@@ -12,6 +12,7 @@ import type { FC, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
+import { v4 } from 'uuid'
 import {
   AnchorRouter,
   ButtonRouter,
@@ -105,18 +106,19 @@ export function Scaffold() {
 
   const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
 
-  const [loading, snackbar, setSnackbar, hideSnackbar] = useScaffoldStore(
+  const [loading, snackbars, pushSnackbar, shiftSnackbar] = useScaffoldStore(
     (state) => [
       state.loading,
-      state.snackbar,
-      state.setSnackbar,
-      state.hideSnackbar
+      state.snackbars,
+      state.pushSnackbar,
+      state.shiftSnackbar
     ]
   )
 
   useEffect(() => {
-    setSnackbar(matches[0].data.snackbar)
-  }, [matches, setSnackbar])
+    const snackbar = matches[0].data.snackbar
+    if (snackbar) pushSnackbar(matches[0].data.snackbar)
+  }, [matches, pushSnackbar])
 
   const footer = scaffold.footer && scaffold.footer(currentMatch)
 
@@ -154,6 +156,8 @@ export function Scaffold() {
     //   else actions = actionHandle ?? null
     // }
   }
+
+  const [popLayout, setPopLayout] = useState(false)
 
   return (
     <div
@@ -557,22 +561,81 @@ export function Scaffold() {
           )}
         </NavDrawer>
       </NavDrawer.Modal>
-      <AnimatePresence>
-        {scaffold.fab && layout !== Layouts.Marketing && (
-          <FAB to={route('/pay')} />
+      {/*<AnimatePresence>*/}
+      {/*  {scaffold.fab && layout !== Layouts.Marketing && (*/}
+      {/*    <FAB to={route('/pay')} />*/}
+      {/*  )}*/}
+      {/*</AnimatePresence>*/}
+      <div
+        className={clsx(
+          'fixed bottom-4 left-0 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
+          layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
         )}
-      </AnimatePresence>
-      <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
-        show={snackbar.show}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        xOffset={layout === Layouts.Wallet}
-        yOffset={typeof scaffold.fab !== 'undefined'}
-        onClose={() => hideSnackbar()}
-      />
+      >
+        <AnimatePresence mode='sync'>
+          {scaffold.fab && layout !== Layouts.Marketing && (
+            <motion.div
+              key='fab'
+              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              exit={{
+                opacity: 0,
+                scale: 0.5,
+                transition: {
+                  duration: 0.2
+                }
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 20,
+                duration: 0.3
+              }}
+              onClick={() => pushSnackbar({ id: v4(), message: 'Hello' })}
+              className='relative -top-[6rem] right-0 z-50 -mb-[6rem] lg:hidden'
+            >
+              <div className='flex h-24 w-24 items-center justify-center rounded-[1.75rem] bg-primary shadow-lg'></div>
+            </motion.div>
+          )}
+          {/*{scaffold.fab && layout !== Layouts.Marketing && (*/}
+          {/*  <FAB to={route('/pay')} />*/}
+          {/*)}*/}
+          {/*<div className='flex h-12 w-full items-center justify-between space-x-3 overflow-hidden rounded-xl bg-snackbar px-4 py-3 text-left align-middle shadow-lg sm:max-w-xs'></div>*/}
+          <Snackbar />
+          {/*{popLayout && (*/}
+          {/*  <motion.div*/}
+          {/*    key='snackbar'*/}
+          {/*    animate={{ opacity: 1, scale: 1, y: 0 }}*/}
+          {/*    initial={{ opacity: 0, scale: 0.5, y: 8 }}*/}
+          {/*    exit={{*/}
+          {/*      opacity: 0,*/}
+          {/*      scale: 0.5,*/}
+          {/*      y: 8,*/}
+          {/*      transition: {*/}
+          {/*        duration: 0.2*/}
+          {/*      }*/}
+          {/*    }}*/}
+          {/*    transition={{*/}
+          {/*      type: 'spring',*/}
+          {/*      stiffness: 400,*/}
+          {/*      damping: 20,*/}
+          {/*      duration: 0.3*/}
+          {/*    }}*/}
+          {/*    onClick={() => setPopLayout(false)}*/}
+          {/*    className='z-50 flex h-[100px] w-full items-center justify-between space-x-3 overflow-hidden rounded-xl bg-snackbar px-4 py-3 text-left align-middle shadow-lg sm:max-w-xs'*/}
+          {/*  ></motion.div>*/}
+          {/*)}*/}
+        </AnimatePresence>
+      </div>
+      {/*<Snackbar*/}
+      {/*  message={snackbar.message}*/}
+      {/*  action={snackbar.action}*/}
+      {/*  icon={snackbar.icon}*/}
+      {/*  show={snackbar.show}*/}
+      {/*  id='cookie-snackbar'*/}
+      {/*  dismissAfter={3000}*/}
+      {/*  onClose={() => shiftSnackbar()}*/}
+      {/*/>*/}
     </div>
   )
 }
@@ -608,11 +671,12 @@ function FAB({ to }: { to: string }) {
     <Router to={to}>
       <motion.div
         key={to}
-        animate={{ opacity: 1, scale: 1 }}
-        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.5, y: 40 }}
         exit={{
           opacity: 0,
           scale: 0.5,
+          y: 8,
           transition: {
             duration: 0.2
           }
@@ -623,7 +687,7 @@ function FAB({ to }: { to: string }) {
           damping: 20,
           duration: 0.3
         }}
-        className='fixed bottom-4 right-4 flex h-[6rem] w-[6rem] items-center justify-center rounded-[1.75rem] bg-primary shadow-lg lg:hidden'
+        className='z-50 flex h-[6rem] w-[6rem] items-center justify-center self-end rounded-[1.75rem] bg-primary shadow-lg lg:hidden'
       >
         <svg
           width='36'

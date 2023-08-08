@@ -14,6 +14,7 @@ export async function flashSnackbar(
   snackbar: SnackbarType
 ): Promise<string> {
   const session = await getSession(request.headers.get('Cookie'))
+  snackbar.fromServer = true
   session.flash('snackbar', snackbar)
   return commitSession(session)
 }
@@ -26,11 +27,7 @@ export async function flashSnackbar(
 export async function getSnackbar(request: Request): Promise<SnackbarType> {
   const session = await getSession(request.headers.get('Cookie'))
 
-  const snackbar = {
-    // NOTE: session.has must be called before userSettings.get
-    show: session.has('snackbar'),
-    ...session.get('snackbar')
-  }
+  const snackbar = session.get('snackbar')
   await commitSession(session)
 
   return snackbar
@@ -51,7 +48,11 @@ export async function redirectWithSnackbar(
   init?: ResponseInit
 ) {
   const session = await getSession(request.headers.get('Cookie'))
-  session.flash('snackbar', { id: v4(), ...snackbar })
+  session.flash('snackbar', {
+    id: v4(),
+    fromServer: true,
+    ...snackbar
+  })
 
   const cookie = await commitSession(session)
   const newHeaders = new Headers(init?.headers)
