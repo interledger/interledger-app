@@ -293,7 +293,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	}
 	allCandidates = append(allCandidates, dbRes...)
 
-	// Lookup payment pointer URLs.
+	// Lookup Wallet addresses.
 	dbRes = nil
 	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $4), $1), 0) as rank
                FROM wallet_addresses
