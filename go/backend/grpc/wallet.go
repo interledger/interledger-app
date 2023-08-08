@@ -6,10 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"gitlab.com/fynbos/env"
-	"gitlab.com/fynbos/log"
-	"go.uber.org/zap"
-
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -60,9 +56,6 @@ func (s *rpcService) GetPublicWalletDetails(ctx context.Context, req *pb.GetPubl
 }
 
 func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicWalletInfoRequest) (*pb.PublicWalletInfo, error) {
-	if !env.IsProd() {
-		log.Info("Call log to GetPublicWalletInfo", zap.String("wallet_ address", req.GetWalletAddress()))
-	}
 	wallet, err := s.b.Wallets().GetFromAddress(ctx, req.WalletAddress)
 	if err != nil {
 		return nil, toGRPCError(err)

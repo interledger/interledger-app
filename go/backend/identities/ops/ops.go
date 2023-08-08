@@ -356,7 +356,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	}
 
 	// Lookup URLs for the candidate walletIDs
-	ppUrlQuery, ppUrlArgs, err := sqlx.In(`SELECT id as wallet_id, url FROM wallet_addresses WHERE wallet_id IN(?)`, canRecvWalletIDs)
+	ppUrlQuery, ppUrlArgs, err := sqlx.In(`SELECT wallet_id, url FROM wallet_addresses WHERE wallet_id IN(?)`, canRecvWalletIDs)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
