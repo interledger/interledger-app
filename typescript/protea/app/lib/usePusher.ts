@@ -39,7 +39,8 @@ export function usePusher(args: PusherArgs, events: Events[]) {
     if (state == 'idle' && events.find((e) => e == 'identity')) revalidate()
   })
   usePusherEvent(channel, 'linkedAccount', () => {
-    if (state == 'idle' && events.find((e) => e == 'linkedAccount')) revalidate()
+    if (state == 'idle' && events.find((e) => e == 'linkedAccount'))
+      revalidate()
   })
   // TODO: Maybe return connection state?
 }

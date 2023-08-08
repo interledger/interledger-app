@@ -45,6 +45,8 @@ func validationDesc(fe validator.FieldError) string {
 		return "Provide a valid currency"
 	case "ip_addr":
 		return "Provide valid IP address"
+	case "max":
+		return fmt.Sprintf("Must be %s characters or less", fe.Param())
 	}
 
 	return "This field failed validation"

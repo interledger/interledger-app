@@ -61,7 +61,7 @@ export default function Page() {
     <WalletGrid>
       <GridColumn
         hideOnMobile={pathSegments[pathSegments.length - 1] !== 'settings'}
-        className='col-span-full lg:col-span-5'
+        className='col-span-full lg:col-span-6'
       >
         <Card>
           <CardHeader>

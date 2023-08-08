@@ -18,6 +18,9 @@ import {
   CardHeader,
   CardIcon,
   CardLink,
+  CardTitle,
+  Chip,
+  ChipColor,
   Dialog,
   Icon,
   Layouts,
@@ -70,7 +73,20 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/identities'),
-      title: (match) => `@${match.data.identity.identifier}`
+      title: (match) => `@${match.data.identity.identifier}`,
+      actions: ({ data }) => {
+        const state = data.identity.state
+        switch (state) {
+          case 'verified':
+            return <Chip color={ChipColor.green}>Verified</Chip>
+          case 'unverified':
+            return <Chip color={ChipColor.yellow}>Unverified</Chip>
+          case 'failed':
+            return <Chip color={ChipColor.red}>Failed</Chip>
+          case 'pending':
+            return <Chip color={ChipColor.orange}>Pending</Chip>
+        }
+      }
     },
     isNested: true
   }
@@ -123,6 +139,9 @@ export default function Page() {
       {identity.state == 'verified' && (
         <>
           <Card>
+            <CardHeader>
+              <CardTitle>Twitter details</CardTitle>
+            </CardHeader>
             <CardContent>
               <img
                 className='max-w-[310px]'
@@ -131,11 +150,11 @@ export default function Page() {
                 src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/twitter.png`}
               />
               <div className='mt-4 flex w-full flex-col space-y-1'>
-                <span className='text-medium'>Verification date</span>
+                <span className='text-weak'>Verification date</span>
                 <span className='font-medium'>{identity.verifiedAt}</span>
               </div>
               <div className='mt-4 flex w-full flex-col space-y-1'>
-                <span className='text-medium'>Public proof</span>
+                <span className='text-weak'>Public proof</span>
                 <AnchorRouter
                   to={identity.proof}
                   className='break-all font-medium text-primary'
@@ -163,10 +182,21 @@ export default function Page() {
             </CardContent>
           </Card>
           <Card>
+            <Label className='mt-2'>Public profile</Label>
+            <CardLink
+              to={`/me/${walletInfo.formattedURL}`}
+              className='items-center justify-between bg-nav'
+            >
+              <div className='flex space-x-3'>
+                <Icon>contact_page</Icon>
+                <span>{publicName}</span>
+              </div>
+              <Icon>navigate_next</Icon>
+            </CardLink>
             <CardContent>
               <div className='flex items-center justify-between'>
                 <span className='text-sm'>
-                  Show on your Fynbos public profile.
+                  Show Twitter handle on your Fynbos public profile
                 </span>
                 <Switch
                   checked={identity.public}
@@ -175,17 +205,6 @@ export default function Page() {
                 />
               </div>
             </CardContent>
-            <Label className='mt-2'>Public profile</Label>
-            <CardLink
-              to={`/me/${walletInfo.formattedURL}`}
-              className='items-center justify-between'
-            >
-              <div className='flex space-x-3'>
-                <Icon>contact_page</Icon>
-                <span>{publicName}</span>
-              </div>
-              <Icon>navigate_next</Icon>
-            </CardLink>
           </Card>
           <OutlineButton
             className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'

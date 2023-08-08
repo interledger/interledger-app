@@ -12,7 +12,7 @@ type CreateQuoteArgs struct {
 	ExpiresAt               time.Time
 	SendAmount              currency.Amount `json:"sendAmount"`
 	Reference               string
-	Description             string
+	Description             string `validate:"omitempty,max=100"`
 	LinkedAccID             string
 	CreatedBy               string // Either the payment pointer from gRPC or the client_id from Openapyments API, which is also a payment pointer
 	DestinationIdentity     string

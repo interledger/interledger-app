@@ -11,7 +11,8 @@ import {
   CardLink,
   Icon,
   Layouts,
-  Snackbar
+  Snackbar,
+  WalletShapes
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getSnackbar } from '~/lib/snackbar.server'
@@ -35,7 +36,8 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Public information'
+      title: 'Public information',
+      actions: <WalletShapes />
     },
     isNested: true
   }
@@ -72,7 +74,7 @@ export default function Page() {
           to={route('/settings/profile-public/name')}
         >
           <div className='flex space-x-3'>
-            <Icon>flag</Icon>
+            <Icon>account_circle</Icon>
             <span>{name}</span>
           </div>
           <Icon>navigate_next</Icon>

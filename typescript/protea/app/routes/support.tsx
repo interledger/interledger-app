@@ -14,7 +14,8 @@ import {
   Icon,
   Layouts,
   TextArea,
-  WalletGrid
+  WalletGrid,
+  WalletShapes
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { getUserSession } from '~/lib/kratos.server'
@@ -38,7 +39,8 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Support'
+      title: 'Support',
+      actions: <WalletShapes />
     }
   }
 }
@@ -84,7 +86,7 @@ export default function Page() {
         form='support-form'
         type='hidden'
       />
-      <GridColumn className='col-span-full lg:col-span-7'>
+      <GridColumn className='col-span-full lg:col-span-6'>
         <Card>
           <CardHeader>
             <CardTitle>Contact support</CardTitle>
