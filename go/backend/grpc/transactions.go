@@ -30,7 +30,7 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(txs, page), nil
+	return transformTransactions(ctx, s.b, txs, page), nil
 }
 
 func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -51,7 +51,7 @@ func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.Pagi
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(txs, page), nil
+	return transformTransactions(ctx, s.b, txs, page), nil
 }
 
 func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -72,10 +72,10 @@ func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.Pa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(txs, page), nil
+	return transformTransactions(ctx, s.b, txs, page), nil
 }
 
-func transformTransactions(txs []transactions.Transaction, page db.Pagination) *pb.ListTransactionsResponse {
+func transformTransactions(ctx context.Context, b Backends, txs []transactions.Transaction, page db.Pagination) *pb.ListTransactionsResponse {
 	var nextPageToken string
 
 	resSize := int(math.Min(float64(len(txs)), float64(page.PageSize)))
@@ -89,7 +89,7 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) *
 			break
 		}
 
-		res[i] = transformTransaction(tx)
+		res[i] = transformTransaction(ctx, b, tx)
 	}
 
 	return &pb.ListTransactionsResponse{
@@ -98,7 +98,7 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) *
 	}
 }
 
-func transformTransaction(tx transactions.Transaction) *pb.Transaction {
+func transformTransaction(ctx context.Context, b Backends, tx transactions.Transaction) *pb.Transaction {
 	refundState := "NA"
 	trs := make([]*pb.Transfer, len(tx.Transfers))
 	for y, tr := range tx.Transfers {
@@ -128,9 +128,14 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 	}
 
 	amt := tx.Amount.Format()
-	title := tx.Source
-	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment {
-		title = tx.DestinationIdentity
+	title := tx.DestinationIdentity
+	if tx.Type == transactions.TransactionTypeOpenPaymentIncoming {
+		title = tx.Source
+		w, _ := b.Wallets().GetFromAddress(ctx, tx.Source)
+		// We don't care about errors, we'll use the source/full wallet address as the fallback
+		if w != nil {
+			title = w.Name
+		}
 	}
 
 	// Remove https if it exists
@@ -178,5 +183,5 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransaction(*tx), nil
+	return transformTransaction(ctx, s.b, *tx), nil
 }
