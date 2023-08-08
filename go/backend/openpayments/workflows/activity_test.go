@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"github.com/golang/mock/gomock"
@@ -77,23 +79,21 @@ func TestActivity_GetProviderWorkflowArgs(t *testing.T) {
 			sendWalletID := uuid.NewString()
 			recvWalletID := uuid.NewString()
 
-			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-				URL:        tc.quoteArgs.SendPaymentPointer,
-				WalletID:   sendWalletID,
-				Alias:      "Alias",
-				Asset:      tc.quoteArgs.SendAmount.Currency,
-				AssetScale: tc.quoteArgs.SendAmount.Scale,
-			})
+			sendWA, err := wallets.ParseAddress(tc.quoteArgs.SendPaymentPointer)
 			require.NoError(t, err)
+			wc.EXPECT().GetFromAddress(gomock.Any(), sendWA.String()).Return(&wallets.Wallet{
+				ID:        sendWalletID,
+				Name:      "Ladida",
+				Addresses: []wallets.Address{sendWA},
+			}, nil).AnyTimes()
 
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-				URL:        tc.quoteArgs.ReceivePaymentPointer,
-				WalletID:   recvWalletID,
-				Alias:      "Alias",
-				Asset:      tc.quoteArgs.SendAmount.Currency,
-				AssetScale: tc.quoteArgs.SendAmount.Scale,
-			})
+			recieveWA, err := wallets.ParseAddress(tc.quoteArgs.ReceivePaymentPointer)
 			require.NoError(t, err)
+			wc.EXPECT().GetFromAddress(gomock.Any(), recieveWA.String()).Return(&wallets.Wallet{
+				ID:        recvWalletID,
+				Name:      "Ladida",
+				Addresses: []wallets.Address{recieveWA},
+			}, nil).AnyTimes()
 
 			la_mock.EXPECT().ListByWalletId(gomock.Any(), gomock.Any()).Return([]linkedaccounts.LinkedAccount{
 				{

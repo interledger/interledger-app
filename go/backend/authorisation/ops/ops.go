@@ -33,7 +33,7 @@ import (
 func CreateClient(ctx context.Context, b Backends, clientURL string) (*authorisation.Client, error) {
 
 	// Ensure the client URL is a fynbos payment pointer.
-	_, err := b.OpenPayments().GetPaymentPointer(ctx, clientURL)
+	_, err := b.Wallets().GetFromAddress(ctx, clientURL)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func CreateGrant(ctx context.Context, b Backends, args authorisation.GrantReques
 func validateTokenAccess(ctx context.Context, b Backends, args authorisation.GrantRequest) ([]authorisation.AccessTokenReq, error) {
 
 	// Check that the request is for one of the Fynbos payment pointers
-	pp, err := b.OpenPayments().GetPaymentPointer(ctx, args.Client)
+	wa, err := b.Wallets().GetFromAddress(ctx, args.Client)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func validateTokenAccess(ctx context.Context, b Backends, args authorisation.Gra
 		for _, acc := range at.Access {
 
 			// Only allow access to your own payment pointer for now.
-			if !strings.EqualFold(acc.Identifier, pp.URL) {
+			if !strings.EqualFold(acc.Identifier, wa.AddressString()) {
 				continue
 			}
 

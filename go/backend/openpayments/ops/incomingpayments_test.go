@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"github.com/golang/mock/gomock"
@@ -27,7 +29,6 @@ func TestCreateIncomingPayment(t *testing.T) {
 	txID := uuid.NewString()
 	tc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 	wc := wallets_mock.NewMockClient(ctrl)
-	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	b := ops.NewTestBackends(t, db, nil, tc, func(b *ops.TestBackends) {
 		b.Wc = wc
 	})
@@ -79,22 +80,6 @@ func TestCreateIncomingPayment(t *testing.T) {
 			},
 		},
 		{
-			name:    "different assets",
-			ppAsset: "ZAR",
-			err:     openpayments.ErrInvalidArgument,
-			args: openpayments.CreateIncomingPaymentArgs{
-				PaymentPointer:     "https://fynbos.me/moneyplease2",
-				FromPaymentPointer: "https://fynbos.me/sendingmoney2",
-				IncomingAmount: &currency.Amount{
-					Value:    100,
-					Currency: currency.ParseCurrency("USD"),
-					Scale:    2,
-				},
-				ExternalRef: "external",
-				ExpiresAt:   time.Now().Add(time.Hour),
-			},
-		},
-		{
 			name: "past expiry",
 			err:  openpayments.ErrInvalidArgument,
 			args: openpayments.CreateIncomingPaymentArgs{
@@ -113,34 +98,22 @@ func TestCreateIncomingPayment(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			recvWalletID := uuid.NewString()
-			sendWalletID := uuid.NewString()
 
-			asset := currency.USD
-			assetScale := 2
-			if tc.args.IncomingAmount != nil {
-				asset = tc.args.IncomingAmount.Currency
-				assetScale = tc.args.IncomingAmount.Scale
-			}
-			if tc.ppAsset != "" {
-				asset = currency.ParseCurrency(tc.ppAsset)
-			}
-			err := ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-				URL:        tc.args.PaymentPointer,
-				WalletID:   recvWalletID,
-				Alias:      "Alias",
-				Asset:      asset,
-				AssetScale: assetScale,
-			})
+			recvWA, err := wallets.ParseAddress(tc.args.PaymentPointer)
 			require.NoError(t, err)
-			err = ops.CreatePaymentPointer(ctx, b, openpayments.PaymentPointer{
-				URL:        tc.args.FromPaymentPointer,
-				WalletID:   sendWalletID,
-				Alias:      "Alias",
-				Asset:      asset,
-				AssetScale: assetScale,
-			})
+			wc.EXPECT().GetFromAddress(gomock.Any(), tc.args.PaymentPointer).Return(&wallets.Wallet{
+				ID:        uuid.NewString(),
+				Name:      "",
+				Addresses: []wallets.Address{recvWA},
+			}, nil).AnyTimes()
+
+			sendWA, err := wallets.ParseAddress(tc.args.FromPaymentPointer)
 			require.NoError(t, err)
+			wc.EXPECT().GetFromAddress(gomock.Any(), tc.args.FromPaymentPointer).Return(&wallets.Wallet{
+				ID:        uuid.NewString(),
+				Name:      "",
+				Addresses: []wallets.Address{sendWA},
+			}, nil).AnyTimes()
 
 			ip, err := ops.CreateIncomingPayment(ctx, b, tc.args)
 			if tc.err != nil {

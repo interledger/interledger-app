@@ -24,24 +24,19 @@ func (s *rpcService) CreateContact(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	pp, err := wallets.ParseAddress(req.GetPaymentPointer())
+	wa, err := wallets.ParseAddress(req.GetPaymentPointer())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	pPP, err := s.b.OpenPayments().GetPaymentPointer(ctx, pp.String())
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	w, err := s.b.Wallets().Get(ctx, pPP.WalletID)
+	w, err := s.b.Wallets().GetFromAddress(ctx, wa.String())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	c, err := s.b.Contacts().Create(ctx, contacts.CreateContactArgs{
 		Name:           w.Name,
-		PaymentPointer: pp,
+		PaymentPointer: wa,
 		WalletID:       wallet.ID,
 	})
 	if err != nil {

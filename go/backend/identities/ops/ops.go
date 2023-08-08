@@ -293,11 +293,10 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	}
 	allCandidates = append(allCandidates, dbRes...)
 
-	// Lookup payment pointer URLs.
-	// TODO: move to wallet addresses table.
+	// Lookup Wallet addresses.
 	dbRes = nil
 	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_id, url as identifier, 'wallet_url' as identifier_type, coalesce(similarity(substring(url, $4), $1), 0) as rank
-               FROM payment_pointers
+               FROM wallet_addresses
                WHERE wallet_id<>$3 AND url ILIKE $2 ORDER BY rank,wallet_id DESC LIMIT 100`, term, "%"+term+"%", walletID, len(env.OpenPaymentsURL())+1)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
@@ -357,7 +356,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	}
 
 	// Lookup URLs for the candidate walletIDs
-	ppUrlQuery, ppUrlArgs, err := sqlx.In(`SELECT wallet_id, url FROM payment_pointers WHERE wallet_id IN(?)`, canRecvWalletIDs)
+	ppUrlQuery, ppUrlArgs, err := sqlx.In(`SELECT id as wallet_id, url FROM wallet_addresses WHERE wallet_id IN(?)`, canRecvWalletIDs)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
