@@ -1112,6 +1112,10 @@ func (a *Activity) InsertCard2Card(ctx context.Context, args providers.Transfers
 		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
 	}
 
+	if res.Error != 0 {
+		return nil, fmt.Errorf("error code (%d) Message (%s)", res.Error, res.Message)
+	}
+
 	return &TransactionResp{
 		ID:         res.Password,
 		ReceiptRef: res.Receipt,
