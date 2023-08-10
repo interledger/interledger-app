@@ -47,14 +47,17 @@ func (s *rpcService) CreateCard(
 	var la linkedaccounts.LinkedAccount
 	err = await(ctx, &la)
 	var applicationError *temporal.ApplicationError
-	if errors.As(err, &applicationError) && applicationError.Type() == "ErrDuplicateCard" {
-		return nil, AlreadyExistsError("ErrDuplicateCard")
-	}
-	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCard" {
-		return nil, FailedPreconditionError("ErrUnsupportedCard")
-	}
-	if errors.As(err, &applicationError) && applicationError.Type() == "ErrUnsupportedCountry" {
-		return nil, FailedPreconditionError("ErrUnsupportedCountry")
+	if errors.As(err, &applicationError) {
+		switch applicationError.Type() {
+		case "ErrDuplicateCard":
+			return nil, AlreadyExistsError("ErrDuplicateCard")
+		case "ErrUnsupportedCard":
+			return nil, FailedPreconditionError("ErrUnsupportedCard")
+		case "ErrUnsupportedCountry":
+			return nil, FailedPreconditionError("ErrUnsupportedCountry")
+		case "ErrMultiStatus":
+			return nil, UnavailableError("ErrMultiStatus")
+		}
 	}
 	if err != nil {
 		return nil, toGRPCError(err)
