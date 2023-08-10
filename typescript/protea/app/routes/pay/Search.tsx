@@ -27,7 +27,10 @@ export function Search() {
     state.setAddress
   ])
 
-  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+  const [pushSnackbar, setLoading] = useScaffoldStore((state) => [
+    state.pushSnackbar,
+    state.setLoading
+  ])
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
@@ -134,6 +137,49 @@ export function Search() {
           })}
         </Combobox.Options>
       </Card>
+      {results.length == 0 && term.length >= 3 && (
+        <Card>
+          <CardContent>
+            Share this link with {term} to join Fynbos to transact.
+          </CardContent>
+          <CardButton
+            noHover
+            type='button'
+            className='items-center justify-between'
+            onClick={async () => {
+              if (typeof navigator.clipboard == 'undefined') {
+                pushSnackbar({
+                  id: 'copy-to-clipboard-fail',
+                  message: "Couldn't copy to clipboard.",
+                  icon: 'close',
+                  canShow: true
+                })
+              } else
+                navigator.clipboard.writeText('https://fynbos.app/signup').then(
+                  () => {
+                    pushSnackbar({
+                      id: 'copy-signup-link',
+                      message: 'Sign up link copied to clipboard.',
+                      icon: 'close',
+                      canShow: true
+                    })
+                  },
+                  () => {
+                    pushSnackbar({
+                      id: 'copy-to-clipboard-fail',
+                      message: "Couldn't copy to clipboard.",
+                      icon: 'close',
+                      canShow: true
+                    })
+                  }
+                )
+            }}
+          >
+            <span className='text-medium'>fynbos.app/signup</span>
+            <Icon className={'text-medium'}>content_copy</Icon>
+          </CardButton>
+        </Card>
+      )}
     </Combobox>
   )
 }
