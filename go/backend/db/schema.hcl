@@ -2055,9 +2055,6 @@ table "payments" {
   primary_key {
     columns = [column.id]
   }
-  index "payments_wallet_id_ind" {
-    columns = [column.wallet_id]
-  }
   index "payments_public_id_ind" {
     columns = [column.public_id]
     unique  = true

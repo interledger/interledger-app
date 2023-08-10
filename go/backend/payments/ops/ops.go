@@ -5,10 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/rand"
+	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 )
 
@@ -30,16 +34,16 @@ type dbPayment struct {
 	ReceiverCurrency string                `db:"receiver_currency"`
 	ReceiverAccount  sql.NullString        `db:"receiver_account"`
 	CreatedAt        time.Time             `db:"created_at"`
-	UpdatedAt        time.Time             `db:"created_at"`
+	UpdatedAt        time.Time             `db:"updated_at"`
 }
 
-func transformPayment(db dbPayment) payments.Payment {
+func transformPayment(db dbPayment) *payments.Payment {
 	var actions []payments.RequiredAction
 	for _, ra := range db.RequiredActions {
 		actions = append(actions, payments.RequiredAction(ra))
 	}
 
-	return payments.Payment{
+	return &payments.Payment{
 		ID:       db.ID,
 		PublicID: db.PublicID,
 		State:    db.State,
@@ -53,13 +57,15 @@ func transformPayment(db dbPayment) payments.Payment {
 		},
 		SenderAmount:    currency.FromUInt64(db.SenderAmount, currency.ParseCurrency(db.SenderCurrency)),
 		ReceiverAmount:  currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
+		SenderAccount:   db.SenderAccount.String,
+		ReceiverAccount: db.ReceiverAccount.String,
 		RequiredActions: actions,
 	}
 }
 
 func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) {
 	var res dbPayment
-	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 OR public_id=$1", cols), id)
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 OR public_id=$2", cols), id, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, payments.ErrNotFound
 	}
@@ -68,4 +74,53 @@ func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) 
 	}
 
 	return &res, nil
+}
+
+func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, error) {
+	dbp, err := getPayment(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return transformPayment(*dbp), nil
+}
+
+func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
+
+	// TODO Calculate more actions required
+	var actions []payments.RequiredAction
+	if p.SenderAccount == "" {
+		actions = append(actions, payments.RequiredActionSenderAccount)
+	}
+	if p.ReceiverAccount == "" {
+		actions = append(actions, payments.RequiredActionReceiverAccount)
+	}
+
+	id := uuid.NewString()
+	stmt, args, err := db.NewInsert("payments").
+		Value("id", id).
+		Value("public_id", "fynbos_"+strconv.Itoa(rand.Int())). // TODO: Generate "pretty" soft id for display
+		Value("state", payments.StateCreated).
+		Value("required_actions", pq.Array(actions)).
+		Value("sender_id", p.Sender.Identifier).
+		Value("sender_id_type", p.Sender.Type).
+		Value("sender_amount", p.SenderAmount.Value).
+		Value("sender_currency", p.SenderAmount.Currency).
+		Value("sender_account", sql.NullString{String: p.SenderAccount, Valid: p.SenderAccount != ""}).
+		Value("receiver_id", p.Receiver.Identifier).
+		Value("receiver_id_type", p.Receiver.Type).
+		Value("receiver_amount", p.ReceiverAmount.Value).
+		Value("receiver_currency", p.ReceiverAmount.Currency).
+		Value("receiver_account", sql.NullString{String: p.ReceiverAccount, Valid: p.ReceiverAccount != ""}).
+		GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, stmt, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return Lookup(ctx, b, id)
 }

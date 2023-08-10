@@ -2,6 +2,15 @@ package payments
 
 import "gitlab.com/fynbos/backend/currency"
 
+type CreateArgs struct {
+	Sender          Identity
+	Receiver        Identity
+	SenderAmount    currency.Amount
+	SenderAccount   string
+	ReceiverAmount  currency.Amount
+	ReceiverAccount string
+}
+
 type Payment struct {
 	ID              string
 	PublicID        string
@@ -10,6 +19,8 @@ type Payment struct {
 	Receiver        Identity
 	SenderAmount    currency.Amount
 	ReceiverAmount  currency.Amount
+	SenderAccount   string
+	ReceiverAccount string
 	RequiredActions []RequiredAction
 }
 
@@ -17,10 +28,12 @@ type Payment struct {
 type RequiredAction int
 
 const (
-	RequiredActionUnknown     RequiredAction = 0
-	RequiredActionThreeDS     RequiredAction = 1
-	RequiredActionInformation RequiredAction = 2
-	requiredActionSentinel    RequiredAction = 3 // End of range value must be last, no need to public
+	RequiredActionUnknown         RequiredAction = 0
+	RequiredActionThreeDS         RequiredAction = 1
+	RequiredActionInformation     RequiredAction = 2
+	RequiredActionSenderAccount   RequiredAction = 3
+	RequiredActionReceiverAccount RequiredAction = 4
+	requiredActionSentinel        RequiredAction = 5 // End of range value must be last, no need to public
 )
 
 func (i RequiredAction) Valid() bool {
