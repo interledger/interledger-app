@@ -1983,6 +1983,87 @@ table "twitter_connections" {
   }
 }
 
+table "payments" {
+  schema = schema.public
+  column "id" {
+    null    = false
+    type    = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "public_id" {
+    null    = false
+    type    = text
+  }
+  column "state" {
+    null    = false
+    type    = int
+  }
+  column "required_actions" {
+    null = true
+    type = sql("int[]")
+  }
+  column "sender_id" {
+    null = false
+    type = text
+  }
+  column "sender_id_type" {
+    null = false
+    type = text
+  }
+  column "sender_amount" {
+    null = false
+    type = bigint
+  }
+  column "sender_currency" {
+    null = false
+    type = text
+  }
+  column "sender_account" {
+    null = true
+    type = text
+  }
+  column "receiver_id" {
+    null = false
+    type = text
+  }
+  column "receiver_id_type" {
+    null = false
+    type = text
+  }
+  column "receiver_amount" {
+    null = false
+    type = bigint
+  }
+  column "receiver_currency" {
+    null = false
+    type = text
+  }
+  column "receiver_account" {
+    null = true
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "payments_wallet_id_ind" {
+    columns = [column.wallet_id]
+  }
+  index "payments_public_id_ind" {
+    columns = [column.public_id]
+    unique  = true
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

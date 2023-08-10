@@ -1,0 +1,81 @@
+package ops
+
+import (
+	"testing"
+
+	"gitlab.com/fynbos/backend/identities"
+
+	"gitlab.com/fynbos/backend/email"
+	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/wallets"
+
+	"gitlab.com/fynbos/backend/signup"
+	"gitlab.com/fynbos/backend/user"
+
+	temporal "go.temporal.io/sdk/client"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/jmoiron/sqlx"
+)
+
+type Backends interface {
+	Validator() *validator.Validate
+	DB() *sqlx.DB
+	Temporal() temporal.Client
+	Notify() notify.Client
+	Email() email.Client
+	Wallets() wallets.Client
+	Identities() identities.Client
+}
+
+type TestBackends struct {
+	db  *sqlx.DB
+	val *validator.Validate
+	tp  temporal.Client
+	uc  user.Client
+	sc  signup.Client
+	nc  notify.Client
+	em  email.Client
+	wc  wallets.Client
+	ic  identities.Client
+}
+
+func (t TestBackends) Identities() identities.Client {
+	return t.ic
+}
+
+func (t TestBackends) Users() user.Client {
+	return t.uc
+}
+
+func (t TestBackends) Validator() *validator.Validate {
+	return t.val
+}
+
+func (t TestBackends) DB() *sqlx.DB {
+	return t.db
+}
+
+func (t TestBackends) Temporal() temporal.Client {
+	return t.tp
+}
+
+func (t TestBackends) Notify() notify.Client {
+	return t.nc
+}
+
+func (t TestBackends) Email() email.Client {
+	return t.em
+}
+
+func (t TestBackends) Wallets() wallets.Client {
+	return t.wc
+}
+
+func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {
+	b := &TestBackends{val: validator.New()}
+	for _, opt := range opts {
+		opt(b)
+	}
+	return b
+}
