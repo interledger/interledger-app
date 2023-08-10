@@ -424,6 +424,7 @@ export type createCardError =
   | 'Failed precondition: ErrMaxCardsAdded'
   | 'Already exists: ErrDuplicateCard'
   | 'Internal server error'
+  | 'Unavailable: ErrMultiStatus'
 
 export async function createCard(
   request: Request,
