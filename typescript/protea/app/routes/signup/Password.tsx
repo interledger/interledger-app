@@ -1,5 +1,5 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import {
   Button,
@@ -7,9 +7,9 @@ import {
   CardContent,
   Checkbox,
   Router,
-  Snackbar,
   TextField
 } from '~/components'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useSignupStore } from '~/lib/useSignupStore'
 import type { loader } from './route'
 
@@ -18,12 +18,18 @@ export function Password() {
   const { kratosFlowId, kratosCsrfToken, csrfToken } =
     useLoaderData<typeof loader>()
 
-  const [snackbarMessage, setSnackbar] = useState<any>(
-    passwordFetcher.data?.errors?.form
-  )
-  const [showSnackbar, setShowSnackbar] = useState<boolean>(
-    Boolean(passwordFetcher.data?.errors?.form) ?? false
-  )
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
+  useEffect(() => {
+    if (passwordFetcher.data?.errors?.form) {
+      pushSnackbar({
+        id: passwordFetcher.data?.errors?.form,
+        message: passwordFetcher.data?.errors?.form,
+        icon: 'close',
+        canShow: true
+      })
+    }
+  }, [passwordFetcher.data?.errors?.form, pushSnackbar])
 
   const [firstName, lastName, email, country, id, phone] = useSignupStore(
     (state) => [
@@ -35,13 +41,6 @@ export function Password() {
       state.phone
     ]
   )
-
-  useEffect(() => {
-    if (passwordFetcher.data?.errors?.form) {
-      setSnackbar(passwordFetcher.data?.errors?.form)
-      setShowSnackbar(true)
-    }
-  }, [passwordFetcher.data?.errors?.form])
 
   return (
     <>
@@ -165,16 +164,6 @@ export function Password() {
       >
         Confirm
       </Button>
-      <Snackbar
-        message={snackbarMessage}
-        icon='close'
-        show={showSnackbar}
-        id='error-snackbar'
-        onClose={() => {
-          setSnackbar('')
-          setShowSnackbar(false)
-        }}
-      />
     </>
   )
 }

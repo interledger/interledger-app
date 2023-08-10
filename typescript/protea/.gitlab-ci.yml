@@ -38,4 +38,5 @@ build_protea:
       --build-arg IMAGE_HASH="${PROTEA_IMAGE_HASH}" -t
       "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"
       .
-    - docker push "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"
+    - docker push
+      "823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:${PROTEA_IMAGE_HASH}"

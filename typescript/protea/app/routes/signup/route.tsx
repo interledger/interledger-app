@@ -25,7 +25,7 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import { canSignup, setWaitlistSignupComplete } from '~/lib/signupCheck.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { About } from '~/routes/signup/About'
 import { Landing } from '~/routes/signup/Landing'
@@ -293,18 +293,17 @@ export async function action({ request }: ActionArgs) {
     })
     await setWaitlistSignupComplete(request, userId)
 
-    // Delete all the values from the header except of set-cookie
-    const resHeaders = trimHeaders(res.headers, ['set-cookie'])
-
-    const sessionHeaders = await flashSnackbar(request, {
-      message: 'Your account was created successfully.',
-      icon: 'close'
-    })
-    resHeaders.append('set-cookie', sessionHeaders)
-
-    return redirect(route('/wallet-address'), {
-      headers: resHeaders
-    })
+    return redirectWithSnackbar(
+      request,
+      route('/wallet-address'),
+      {
+        message: 'Your account was created successfully.',
+        icon: 'close'
+      },
+      {
+        headers: trimHeaders(res.headers, ['set-cookie'])
+      }
+    )
   }
 
   throw json(

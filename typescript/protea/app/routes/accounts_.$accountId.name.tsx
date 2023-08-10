@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -13,7 +13,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { getLinkedAccount } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -133,14 +133,14 @@ export async function action({ request, params }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  await flashSnackbar(request, {
-    message: 'Linked account nickname updated.',
-    icon: 'close'
-  })
-
-  return redirect(
+  return redirectWithSnackbar(
+    request,
     route('/accounts/:accountId', {
       accountId: params.accountId as string
-    })
+    }),
+    {
+      message: 'Linked account nickname updated.',
+      icon: 'close'
+    }
   )
 }

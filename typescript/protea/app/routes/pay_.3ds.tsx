@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   useActionData,
@@ -29,7 +29,7 @@ import {
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
 
@@ -397,12 +397,8 @@ export async function action({ request }: ActionArgs) {
     throw json({}, httpMapping(payment.code))
   }
 
-  return redirect(route('/'), {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'Payment created successfully.',
-        icon: 'close'
-      })
-    }
+  return redirectWithSnackbar(request, route('/'), {
+    message: 'Payment created successfully.',
+    icon: 'close'
   })
 }

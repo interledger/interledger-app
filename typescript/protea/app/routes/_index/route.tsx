@@ -17,8 +17,6 @@ import { hasUserSession } from '~/lib/kratos.server'
 import { getHomeRoute } from '~/lib/marketing.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
-import type { SnackbarType } from '~/lib/snackbar.server'
-import { getSnackbar } from '~/lib/snackbar.server'
 import type { PusherArgs } from '~/lib/usePusher'
 import {
   getFeatures,
@@ -52,35 +50,24 @@ export async function loader({ request }: LoaderArgs) {
     walletInfo: {} as WalletInfo,
     transactions: [] as Transaction[],
     kycStatus: KycStatus.Unknown,
-    features: {} as Features,
-    snackbar: {
-      message: ''
-    } as SnackbarType
+    features: {} as Features
   }
 
   if (isUser) {
-    const [
-      walletInfo,
-      transactions,
-      kycStatus,
-      snackbar,
-      pusherArgs,
-      features
-    ] = await Promise.all([
-      getWalletInfo(request),
-      getTransactionsWithPending(request, { pageSize: 3 }),
-      getKycStatus(request),
-      getSnackbar(request),
-      getPusherArgs(request),
-      getFeatures(request)
-    ])
+    const [walletInfo, transactions, kycStatus, pusherArgs, features] =
+      await Promise.all([
+        getWalletInfo(request),
+        getTransactionsWithPending(request, { pageSize: 3 }),
+        getKycStatus(request),
+        getPusherArgs(request),
+        getFeatures(request)
+      ])
 
     data = {
       ...data,
       walletInfo,
       transactions: transactions.transactions,
       kycStatus: kycStatus.kycStatus,
-      snackbar,
       pusherArgs,
       features
     }
