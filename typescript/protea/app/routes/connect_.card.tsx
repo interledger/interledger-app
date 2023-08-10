@@ -111,6 +111,10 @@ export default function Page() {
           errorMessage =
             'You have connected the maximum number of cards to Fynbos.'
           break
+        case 'Unavailable: ErrMultiStatus':
+          errorMessage =
+            'We did not receive a response from our card processor.'
+          break
         default:
           errorMessage = 'There was an error connecting your card.'
       }
@@ -212,10 +216,15 @@ export default function Page() {
       <BasisTheoryProvider bt={bt}>
         <Card>
           <CardContent>
-            <p className='text-medium'>Debit cards enable both sending and receiving money, while credit cards only allow receiving money.</p>
+            <p className='text-medium'>
+              Debit cards enable both sending and receiving money, while credit
+              cards only allow receiving money.
+            </p>
           </CardContent>
           <CardContent>
-            <p className='text-medium'>We currently only support Visa and Mastercard cards.</p>
+            <p className='text-medium'>
+              We currently only support Visa and Mastercard cards.
+            </p>
           </CardContent>
           <label className='mt-2 block'>
             <span className='ml-2 block text-sm font-medium text-medium'>
