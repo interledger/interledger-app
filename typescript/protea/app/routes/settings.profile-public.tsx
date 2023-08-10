@@ -1,7 +1,6 @@
 import type { LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -11,23 +10,18 @@ import {
   CardLink,
   Icon,
   Layouts,
-  Snackbar,
   WalletShapes
 } from '~/components'
 import { Label } from '~/components/Label'
-import { getSnackbar } from '~/lib/snackbar.server'
 import { getPublicWalletDetails, getWalletInfo } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const walletInfo = await getWalletInfo(request)
   const wallet = await getPublicWalletDetails(request, walletInfo.walletID)
 
-  const snackbar = await getSnackbar(request)
-
   return json({
     name: wallet.publicName,
-    walletInfo,
-    snackbar
+    walletInfo
   })
 }
 
@@ -50,8 +44,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { name, walletInfo, snackbar } = useLoaderData<typeof loader>()
-  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
+  const { name, walletInfo } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -80,16 +73,6 @@ export default function Page() {
           <Icon>navigate_next</Icon>
         </CardLink>
       </Card>
-      <Snackbar
-        message={snackbar.message}
-        action={snackbar.action}
-        icon={snackbar.icon}
-        show={showSnackbar}
-        id='cookie-snackbar'
-        dismissAfter={3000}
-        offset
-        onClose={() => setSnackbar(false)}
-      />
     </>
   )
 }

@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import {
   useActionData,
   useLoaderData,
@@ -25,7 +25,7 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { createCard, getWalletId } from '~/lib/wallet.server'
 
@@ -332,15 +332,12 @@ export async function action({ request }: ActionArgs) {
     throw json({}, resp.httpMapping)
   }
 
-  return redirect(
+  return redirectWithSnackbar(
+    request,
     route('/accounts/:accountId', { accountId: resp.linkedAccountID }),
     {
-      headers: {
-        'Set-Cookie': await flashSnackbar(request, {
-          message: 'New card successfully saved.',
-          icon: 'close'
-        })
-      }
+      message: 'New card successfully saved.',
+      icon: 'close'
     }
   )
 }

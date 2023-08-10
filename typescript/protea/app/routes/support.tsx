@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -26,7 +26,7 @@ import {
   httpMapping,
   isGrpcError
 } from '~/lib/proto.server'
-import { flashSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -213,12 +213,8 @@ export async function action({ request }: ActionArgs) {
     } else throw json({}, httpMapping(response.code))
   }
 
-  return redirect('/', {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'Support ticket created.',
-        icon: 'close'
-      })
-    }
+  return redirectWithSnackbar(request, route('/'), {
+    message: 'Support ticket created.',
+    icon: 'close'
   })
 }

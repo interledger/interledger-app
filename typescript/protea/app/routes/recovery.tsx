@@ -1,21 +1,8 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigation
-} from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  Layouts,
-  Snackbar,
-  TextField
-} from '~/components'
+import { Button, Card, CardContent, Layouts, TextField } from '~/components'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -23,7 +10,7 @@ import {
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
-import { flashSnackbar, getSnackbar } from '~/lib/snackbar.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -58,9 +45,7 @@ export async function loader({ request }: LoaderArgs) {
     })
   }
 
-  const snackbar = await getSnackbar(request)
-
-  return json({ flow, snackbar, csrfToken: getCsrfTokenFromFlow(flow) })
+  return json({ flow, csrfToken: getCsrfTokenFromFlow(flow) })
 }
 
 export const handle: ApplicationProps = {
@@ -80,16 +65,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { flow, snackbar, csrfToken } = useLoaderData<typeof loader>()
-
-  const navigation = useNavigation()
-  const [showSnackbar, setSnackbar] = useState<boolean>(snackbar.show ?? false)
-
-  useEffect(() => {
-    if (navigation.state == 'idle') {
-      setSnackbar(snackbar.show ?? false)
-    }
-  }, [navigation.state, snackbar.show])
+  const { flow, csrfToken } = useLoaderData<typeof loader>()
 
   return (
     <>
@@ -130,15 +106,6 @@ export default function Page() {
       <Button form='recovery' type='submit'>
         Recover account
       </Button>
-      <Snackbar
-        message={snackbar.message}
-        icon={snackbar.icon}
-        action={snackbar.action}
-        show={showSnackbar}
-        id='recovery-snackbar'
-        onClose={() => setSnackbar(false)}
-        dismissAfter={3000}
-      />
     </>
   )
 }
@@ -175,12 +142,8 @@ export async function action({ request }: ActionArgs) {
     return kratosErrorMapping(res, fieldErrors)
   }
 
-  return redirect(`/recovery?flow=${flowId}`, {
-    headers: {
-      'Set-Cookie': await flashSnackbar(request, {
-        message: 'Recovery email successfully sent.',
-        icon: 'close'
-      })
-    }
+  return redirectWithSnackbar(request, `/recovery?flow=${flowId}`, {
+    message: 'Recovery email successfully sent.',
+    icon: 'close'
   })
 }

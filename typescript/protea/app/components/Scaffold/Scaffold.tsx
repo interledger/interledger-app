@@ -9,7 +9,7 @@ import {
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
-import { useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import { StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import {
@@ -20,7 +20,8 @@ import {
   IconButton,
   LoadingShapes,
   MarketingRouter,
-  Router
+  Router,
+  SnackbarStage
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
@@ -104,7 +105,15 @@ export function Scaffold() {
 
   const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
 
-  const [loading] = useScaffoldStore((state) => [state.loading])
+  const [loading, pushSnackbar] = useScaffoldStore((state) => [
+    state.loading,
+    state.pushSnackbar
+  ])
+
+  useEffect(() => {
+    const snackbar = matches[0].data.snackbar
+    if (snackbar) pushSnackbar(matches[0].data.snackbar)
+  }, [matches, pushSnackbar])
 
   const footer = scaffold.footer && scaffold.footer(currentMatch)
 
@@ -545,11 +554,19 @@ export function Scaffold() {
           )}
         </NavDrawer>
       </NavDrawer.Modal>
-      <AnimatePresence>
-        {scaffold.fab && layout !== Layouts.Marketing && (
-          <FAB to={route('/pay')} />
+      <div
+        className={clsx(
+          'fixed bottom-4 left-0 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
+          layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
         )}
-      </AnimatePresence>
+      >
+        <AnimatePresence mode='popLayout'>
+          {scaffold.fab && layout !== Layouts.Marketing && (
+            <FAB key='fab' to={route('/pay')} />
+          )}
+          <SnackbarStage />
+        </AnimatePresence>
+      </div>
     </div>
   )
 }
@@ -580,16 +597,19 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
   )
 }
 
-function FAB({ to }: { to: string }) {
+const FAB = forwardRef<any, { to: string }>(({ to, ...motionProps }, ref) => {
   return (
     <Router to={to}>
       <motion.div
         key={to}
-        animate={{ opacity: 1, scale: 1 }}
-        initial={{ opacity: 0, scale: 0.5 }}
+        ref={ref}
+        {...motionProps}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.5, y: 40 }}
         exit={{
           opacity: 0,
           scale: 0.5,
+          y: 8,
           transition: {
             duration: 0.2
           }
@@ -600,7 +620,7 @@ function FAB({ to }: { to: string }) {
           damping: 20,
           duration: 0.3
         }}
-        className='fixed bottom-4 right-4 flex h-[6rem] w-[6rem] items-center justify-center rounded-[1.75rem] bg-primary shadow-lg lg:hidden'
+        className='z-50 flex h-[6rem] w-[6rem] items-center justify-center self-end rounded-[1.75rem] bg-primary shadow-lg lg:hidden'
       >
         <svg
           width='36'
@@ -630,4 +650,6 @@ function FAB({ to }: { to: string }) {
       </motion.div>
     </Router>
   )
-}
+})
+
+FAB.displayName = 'FAB'
