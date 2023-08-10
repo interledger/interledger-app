@@ -11,12 +11,14 @@ func _() {
 	_ = x[RequiredActionUnknown-0]
 	_ = x[RequiredActionThreeDS-1]
 	_ = x[RequiredActionInformation-2]
-	_ = x[requiredActionSentinel-3]
+	_ = x[RequiredActionSenderAccount-3]
+	_ = x[RequiredActionReceiverAccount-4]
+	_ = x[requiredActionSentinel-5]
 }
 
-const _RequiredAction_name = "UnknownThreeDSInformationrequiredActionSentinel"
+const _RequiredAction_name = "UnknownThreeDSInformationSenderAccountReceiverAccountrequiredActionSentinel"
 
-var _RequiredAction_index = [...]uint8{0, 7, 14, 25, 47}
+var _RequiredAction_index = [...]uint8{0, 7, 14, 25, 38, 53, 75}
 
 func (i RequiredAction) String() string {
 	if i < 0 || i >= RequiredAction(len(_RequiredAction_index)-1) {

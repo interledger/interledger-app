@@ -9,7 +9,6 @@ import (
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/wallets"
 
-	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/user"
 
 	temporal "go.temporal.io/sdk/client"
@@ -29,11 +28,10 @@ type Backends interface {
 }
 
 type TestBackends struct {
-	db  *sqlx.DB
+	DBC *sqlx.DB
 	val *validator.Validate
 	tp  temporal.Client
 	uc  user.Client
-	sc  signup.Client
 	nc  notify.Client
 	em  email.Client
 	wc  wallets.Client
@@ -53,7 +51,7 @@ func (t TestBackends) Validator() *validator.Validate {
 }
 
 func (t TestBackends) DB() *sqlx.DB {
-	return t.db
+	return t.DBC
 }
 
 func (t TestBackends) Temporal() temporal.Client {
