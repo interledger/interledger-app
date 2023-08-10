@@ -175,3 +175,7 @@ func AlreadyExistsError(message string) error {
 func FailedPreconditionError(message string) error {
 	return status.Error(codes.FailedPrecondition, "Failed precondition: "+message)
 }
+
+func UnavailableError(message string) error {
+	return status.Error(codes.Unavailable, "Unavailable: "+message)
+}

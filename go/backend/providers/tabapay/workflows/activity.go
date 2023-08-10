@@ -89,7 +89,8 @@ func (a *Activity) QueryCard(ctx context.Context, args QueryCard) (*external.Que
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
 	if resp.SC == http.StatusMultiStatus {
-		return nil, fmt.Errorf("%w MultiStatus response. Tabapay error code=%s", tabapay.ErrInternal, resp.EC)
+		err = fmt.Errorf("%w MultiStatus response. Tabapay error code=%s", tabapay.ErrMultiStatus, resp.EC)
+		return nil, temporal.NewApplicationErrorWithCause("tabapay: unavailable", "ErrMultiStatus", err)
 	}
 
 	return resp, nil

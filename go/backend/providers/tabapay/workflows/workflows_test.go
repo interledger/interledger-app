@@ -2,6 +2,7 @@ package workflows_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -244,4 +245,29 @@ func TestCreateUnsupportedCard(t *testing.T) {
 	var applicationError *temporal.ApplicationError
 	require.ErrorAs(t, workflowError, &applicationError)
 	require.Equal(t, "ErrUnsupportedCard", applicationError.Type())
+}
+
+func TestCreateCardMultiStatusError(t *testing.T) {
+	t.Setenv("TABAPAY_CLIENT_ID", "test")
+	t.Setenv("TABAPAY_BEARER_TOKEN", "test")
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	b := workflows.NewTestBackends()
+	a := workflows.NewActivity(b)
+
+	walletID, basisTheoryCardID := uuid.NewString(), uuid.NewString()
+	env.OnActivity(a.QueryCard, mock.Anything, mock.Anything).Return(
+		nil, temporal.NewApplicationErrorWithCause("tabapay: unavailable", "ErrMultiStatus", fmt.Errorf("%w Multistatus.", tabapay.ErrMultiStatus)),
+	)
+
+	env.ExecuteWorkflow(workflows.CreateTabapayCardWorkflow, tabapay.CreateCardArgs{
+		WalletID:           walletID,
+		BasisTheoryTokenID: basisTheoryCardID,
+	})
+
+	require.True(t, env.IsWorkflowCompleted())
+	workflowError := env.GetWorkflowError()
+	var applicationError *temporal.ApplicationError
+	require.ErrorAs(t, workflowError, &applicationError)
+	require.Equal(t, "ErrMultiStatus", applicationError.Type())
 }
