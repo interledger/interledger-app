@@ -1301,3 +1301,11 @@ func NotifyGMTCard2CardWorkflow(ctx workflow.Context, args providers.TransfersAr
 
 	return nil
 }
+
+func GMTComplianceChecksWorkflow(ctx workflow.Context, paymentID string) error {
+	return nil
+}
+
+func GMTNotifyCompleted(ctx workflow.Context, paymentID string) error {
+	return nil
+}
