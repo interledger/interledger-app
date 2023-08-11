@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/twilio"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -89,6 +90,10 @@ func SetUserData(ctx context.Context, b Backends, args signup.UserDataArgs) (str
 	} else if err != nil {
 		return "", err
 	}
+
+	// trim extra spaces from the name
+	args.FirstName = strings.Join(strings.Fields(args.FirstName), " ")
+	args.LastName = strings.Join(strings.Fields(args.LastName), " ")
 
 	var r sql.Result
 	if existing == nil {

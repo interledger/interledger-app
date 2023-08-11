@@ -72,8 +72,8 @@ export function About() {
     if (details.data?.id) {
       setDetails(
         details.data?.id,
-        details.data?.firstName,
-        details.data?.lastName,
+        details.data?.firstName.replace(/\s+/g, ' ').trim(),
+        details.data?.lastName.replace(/\s+/g, ' ').trim(),
         details.data?.email
       )
       setStep(SignupStep.PHONE)
