@@ -117,6 +117,16 @@ func (c *client) CreateInquiry(ctx context.Context, args IndividualAttributes, i
 	}
 
 	if resp.StatusCode != http.StatusCreated {
+		// check if the body contains the idempotency error
+		if resp.StatusCode == http.StatusBadRequest {
+			var respData ErrorResponse
+			err = json.Unmarshal(respBody, &respData)
+			if err == nil {
+				if strings.Contains(respData.Errors[0].Title, "Idempotency") {
+					return nil, ErrIdempotencyDuplicate
+				}
+			}
+		}
 		return nil, fmt.Errorf("failed to create inquiry status (%s) body (%s)", resp.Status, string(respBody))
 	}
 
