@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
+import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -19,7 +20,6 @@ import {
   kratosErrorMapping
 } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -82,19 +82,6 @@ export default function Page() {
   const { revalidate, state } = useRevalidator()
 
   const [revalidateCount, setRevalidateCount] = useState<number>(0)
-
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
-  useEffect(() => {
-    if (actionData?.errors.form) {
-      pushSnackbar({
-        id: actionData?.errors.form,
-        message: actionData?.errors.form,
-        icon: 'close',
-        canShow: true
-      })
-    }
-  }, [actionData, pushSnackbar])
 
   useEffect(() => {
     if (
@@ -183,7 +170,8 @@ export async function action({ request }: ActionArgs) {
   const data = await res.json()
   if (res.status > 400) handleFlowError(data, 'recovery/password')
   else if (res.status == 400) {
-    return kratosErrorMapping(res, fieldErrors)
+    const errs = await kratosErrorMapping(res, fieldErrors)
+    return error(request, errs, errs.form !== '')
   }
 
   return redirectWithSnackbar(request, route('/settings'), {

@@ -7,6 +7,7 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import {
   StatusError,
   grpcClient,
@@ -150,7 +151,7 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
 
   if (isGrpcError(rpc)) {
-    throw json(null, httpMapping(rpc.code))
+    return error(request, {}, true, 'Contact support')
   }
 
   return redirect(route('/accounts'))

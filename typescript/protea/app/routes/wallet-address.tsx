@@ -14,6 +14,7 @@ import {
   TextField
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import type { GrpcError } from '~/lib/proto.server'
@@ -213,19 +214,14 @@ export async function action({ request }: ActionArgs) {
         if (field != null) fieldErrors[field] = violation.description
       }
 
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      return error(request, fieldErrors)
+    } else return error(request, fieldErrors, true, 'Contact support')
   }
 
   if (response.response.exists) {
-    return json(
-      {
-        errors: {
-          username: 'That wallet address has been taken. Please choose another.'
-        }
-      },
-      { status: 400 }
-    )
+    fieldErrors.username =
+      'That wallet address has been taken. Please choose another.'
+    return error(request, fieldErrors)
   }
 
   if (canSubmit) {
@@ -252,8 +248,8 @@ export async function action({ request }: ActionArgs) {
           const field = mapper(violation.field as fieldErrorsMap)
           if (field != null) fieldErrors[field] = violation.description
         }
-        return json({ errors: { ...fieldErrors } }, { status: 400 })
-      } else throw json({}, httpMapping(response.code))
+        return error(request, fieldErrors)
+      } else return error(request, fieldErrors, true, 'Contact support')
     }
 
     return redirectWithSnackbar(request, route('/'), {

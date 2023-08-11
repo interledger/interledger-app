@@ -1,5 +1,4 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
 import {
   useActionData,
   useLoaderData,
@@ -21,10 +20,13 @@ import type {
   CardVerificationCodeElement as CardVerificationCodeElementType
 } from '@basis-theory/basis-theory-react/types'
 import clsx from 'clsx'
+import { AnimatePresence, motion } from 'framer-motion'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
+import { isGrpcError } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { createCard, getWalletId } from '~/lib/wallet.server'
@@ -92,37 +94,8 @@ export default function Page() {
   }, [loading, navigation])
 
   useEffect(() => {
-    if (actionData && actionData.error) {
+    if (actionData) {
       setLoading(false)
-      let errorMessage: string
-      switch (actionData.error) {
-        case 'Failed precondition: ErrUnsupportedCard':
-          errorMessage =
-            'Your card is unsupported and cannot be connected to Fynbos.'
-          break
-        case 'Failed precondition: ErrUnsupportedCountry':
-          errorMessage =
-            'Your country is unsupported and your card cannot be connected to Fynbos.'
-          break
-        case 'Already exists: ErrDuplicateCard':
-          errorMessage = 'Your card is already connected to Fynbos.'
-          break
-        case 'Failed precondition: ErrMaxCardsAdded':
-          errorMessage =
-            'You have connected the maximum number of cards to Fynbos.'
-          break
-        case 'Unavailable: ErrMultiStatus':
-          errorMessage =
-            'We did not receive a response from our card processor.'
-          break
-        default:
-          errorMessage = 'There was an error connecting your card.'
-      }
-      setFieldErrors({
-        number: errorMessage,
-        cvc: '',
-        date: ''
-      })
     }
   }, [actionData, setLoading])
 
@@ -249,11 +222,30 @@ export default function Page() {
                 />
               </div>
             </div>
-            <div className='h-7 pl-2 pt-2'>
+            <AnimatePresence>
               {fieldErrors.number && (
-                <p className='text-sm text-error'>{fieldErrors.number}</p>
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: -8 }}
+                  exit={{
+                    opacity: 0,
+                    y: -8,
+                    transition: {
+                      duration: 0.2
+                    }
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 400,
+                    damping: 20,
+                    duration: 0.3
+                  }}
+                  className='h-7 pl-2 pt-2'
+                >
+                  <p className='text-sm text-error'>{fieldErrors.number}</p>
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </label>
           <div className='mt-4 flex w-full space-x-4'>
             <label className='block w-full'>
@@ -276,11 +268,30 @@ export default function Page() {
                   />
                 </div>
               </div>
-              <div className='h-7 pl-2 pt-2'>
+              <AnimatePresence>
                 {fieldErrors.date && (
-                  <p className='text-sm text-error'>{fieldErrors.date}</p>
+                  <motion.div
+                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: -8 }}
+                    exit={{
+                      opacity: 0,
+                      y: -8,
+                      transition: {
+                        duration: 0.2
+                      }
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 400,
+                      damping: 20,
+                      duration: 0.3
+                    }}
+                    className='h-7 pl-2 pt-2'
+                  >
+                    <p className='text-sm text-error'>{fieldErrors.date}</p>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </label>
             <label className='block w-full'>
               <span className='ml-2 block text-sm font-medium text-medium'>
@@ -303,11 +314,30 @@ export default function Page() {
                   />
                 </div>
               </div>
-              <div className='h-7 pl-2 pt-2'>
+              <AnimatePresence>
                 {fieldErrors.cvc && (
-                  <p className='text-sm text-error'>{fieldErrors.cvc}</p>
+                  <motion.div
+                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: -8 }}
+                    exit={{
+                      opacity: 0,
+                      y: -8,
+                      transition: {
+                        duration: 0.2
+                      }
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 400,
+                      damping: 20,
+                      duration: 0.3
+                    }}
+                    className='h-7 pl-2 pt-2'
+                  >
+                    <p className='text-sm text-error'>{fieldErrors.cvc}</p>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
             </label>
           </div>
         </Card>
@@ -325,16 +355,43 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  let resp = await createCard(request, cardToken)
-  if (resp.httpMapping?.status == 409 || resp.httpMapping?.status == 400) {
-    return json(resp, resp.httpMapping?.status)
-  } else if (resp.httpMapping?.status != 200) {
-    throw json({}, resp.httpMapping)
+  const fieldErrors = {
+    form: ''
+  }
+
+  let response = await createCard(request, cardToken)
+  if (isGrpcError(response)) {
+    if (response.code == 409 || response.code == 400) {
+      switch (response.message) {
+        case 'Failed precondition: ErrUnsupportedCard':
+          fieldErrors.form =
+            'Your card is unsupported and cannot be connected to Fynbos.'
+          return error(request, fieldErrors, true, 'Contact support')
+        case 'Failed precondition: ErrUnsupportedCountry':
+          fieldErrors.form =
+            'Your country is unsupported and your card cannot be connected to Fynbos.'
+          return error(request, fieldErrors, true, 'Contact support')
+        case 'Already exists: ErrDuplicateCard':
+          fieldErrors.form = 'Your card is already connected to Fynbos.'
+          return error(request, fieldErrors, true, 'Contact support')
+        case 'Failed precondition: ErrMaxCardsAdded':
+          fieldErrors.form =
+            'You have connected the maximum number of cards to Fynbos.'
+          return error(request, fieldErrors, true, 'Contact support')
+        case 'Unavailable: ErrMultiStatus':
+          fieldErrors.form =
+            'We did not receive a response from our card processor.'
+          return error(request, fieldErrors, true, 'Contact support')
+        default:
+          fieldErrors.form = 'There was an error connecting your card.'
+          return error(request, fieldErrors, true, 'Contact support')
+      }
+    } else return error(request, {}, true, 'Contact support')
   }
 
   return redirectWithSnackbar(
     request,
-    route('/accounts/:accountId', { accountId: resp.linkedAccountID }),
+    route('/accounts/:accountId', { accountId: response.response.id }),
     {
       message: 'New card successfully saved.',
       icon: 'close'

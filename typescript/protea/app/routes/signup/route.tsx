@@ -9,6 +9,7 @@ import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -192,8 +193,8 @@ export async function action({ request }: ActionArgs) {
           const field = mapper(violation.field as fieldErrorsMap)
           if (field != null) fieldErrors[field] = violation.description
         }
-        return json({ errors: { ...fieldErrors } }, { status: 400 })
-      } else throw json({}, httpMapping(response.code))
+        return error(request, fieldErrors)
+      } else return error(request, fieldErrors, true, 'Contact support')
     }
 
     return json({ id: response.response.id, firstName, lastName, email })
@@ -220,11 +221,11 @@ export async function action({ request }: ActionArgs) {
           const field = mapper(violation.field as fieldErrorsMap)
           if (field != null) fieldErrors[field] = violation.description
         }
-        return json({ errors: { ...fieldErrors } }, { status: 400 })
+        return error(request, fieldErrors)
       } else if (response.code == Code.ALREADY_EXISTS) {
         fieldErrors['phone'] = 'Mobile phone number is already registered.'
-        return json({ errors: { ...fieldErrors } }, { status: 409 })
-      } else throw json({}, httpMapping(response.code))
+        return error(request, fieldErrors)
+      } else return error(request, fieldErrors, true, 'Contact support')
     }
     return json({ id, phone })
   }
@@ -243,14 +244,7 @@ export async function action({ request }: ActionArgs) {
 
     if (serviceAgreement == null) {
       fieldErrors.serviceAgreement = 'You are required to agree to continue.'
-      return json(
-        {
-          errors: {
-            ...fieldErrors
-          }
-        },
-        { status: 400 }
-      )
+      return error(request, fieldErrors)
     }
 
     const res = await fetch(
@@ -276,7 +270,8 @@ export async function action({ request }: ActionArgs) {
       }
     )
     if (res.status >= 400) {
-      return kratosErrorMapping(res, fieldErrors)
+      const errs = await kratosErrorMapping(res, fieldErrors)
+      return error(request, errs, errs.form !== '')
     }
 
     const data = await res.json()

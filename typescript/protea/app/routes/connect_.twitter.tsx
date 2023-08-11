@@ -13,6 +13,7 @@ import {
   Shape
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import {
   StatusError,
   grpcClient,
@@ -183,7 +184,7 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
 
   if (isGrpcError(resp)) {
-    throw json({}, httpMapping(resp.code))
+    return error(request, {}, true, 'Contact support')
   }
 
   return redirect(resp.url)

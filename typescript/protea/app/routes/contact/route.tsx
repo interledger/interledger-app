@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
@@ -15,14 +15,10 @@ import {
 } from '~/components'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { getContactRoute } from '~/lib/marketing.server'
 import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
@@ -226,8 +222,8 @@ export async function action({ request }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      return error(request, fieldErrors)
+    } else return error(request, fieldErrors, true)
   }
 
   return redirect('/contact/success')

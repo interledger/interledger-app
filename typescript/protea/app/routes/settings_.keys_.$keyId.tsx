@@ -16,13 +16,9 @@ import {
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { getConnection, getConnectionLimits } from '~/lib/connections.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -213,7 +209,7 @@ export async function action({ request, params }: ActionArgs) {
         return StatusError(e)
       })
     if (isGrpcError(response)) {
-      throw json({}, httpMapping(response.code))
+      return error(request, {}, true, 'Contact support')
     }
 
     return redirectWithSnackbar(request, route('/settings/keys'), {
@@ -223,6 +219,7 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   const fieldErrors = {
+    form: '',
     dailyLimit: '',
     monthlyLimit: '',
     overallLimit: ''
@@ -269,8 +266,8 @@ export async function action({ request, params }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      return error(request, fieldErrors)
+    } else return error(request, fieldErrors, true, 'Contact support')
   }
 
   return json({ errors: { ...fieldErrors } })

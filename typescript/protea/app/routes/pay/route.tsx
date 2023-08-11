@@ -22,12 +22,12 @@ import type {
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
   grpcClient,
-  httpMapping,
   isGrpcError,
   openPaymentsClient
 } from '~/lib/proto.server'
@@ -315,7 +315,7 @@ export async function action({ request }: ActionArgs) {
 
     if (amountToSubmit == 'NaN') {
       fieldErrors.amount = 'Amount is required.'
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
+      return error(request, fieldErrors)
     }
 
     let walletInfo = await getWalletInfo(request)
@@ -352,7 +352,7 @@ export async function action({ request }: ActionArgs) {
           const field = mapper(violation.field as fieldErrorsMap)
           if (field != null) fieldErrors[field] = violation.description
         }
-        return json({ errors: { ...fieldErrors } }, { status: 400 })
+        return error(request, fieldErrors)
       } else if (response.code == Code.FAILED_PRECONDITION) {
         switch (response.message as quoteLimitError) {
           case 'Failed precondition: LimitTransaction':
@@ -370,8 +370,8 @@ export async function action({ request }: ActionArgs) {
           default:
             fieldErrors['amount'] = 'Exceeds account limit.'
         }
-        return json({ errors: { ...fieldErrors } }, { status: 400 })
-      } else throw json({}, httpMapping(response.code))
+        return error(request, fieldErrors)
+      } else return error(request, fieldErrors, true, 'Contact support')
     }
 
     const data = {
@@ -397,14 +397,7 @@ export async function action({ request }: ActionArgs) {
     if (serviceAgreement == null) {
       fieldErrors.serviceAgreement =
         'You are required to authorize to continue.'
-      return json(
-        {
-          errors: {
-            ...fieldErrors
-          }
-        },
-        { status: 400 }
-      )
+      return error(request, fieldErrors)
     }
 
     const quoteIdParam = quoteId.split('/').at(-1)
@@ -425,7 +418,7 @@ export async function action({ request }: ActionArgs) {
         .then((v) => v)
         .catch(StatusError)
       if (isGrpcError(response)) {
-        throw json({}, httpMapping(response.code))
+        return error(request, fieldErrors, true, 'Contact support')
       }
     }
 

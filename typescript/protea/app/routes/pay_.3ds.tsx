@@ -20,6 +20,7 @@ import {
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import {
@@ -335,7 +336,7 @@ export async function action({ request }: ActionArgs) {
         return StatusError(e)
       })
     if (isGrpcError(lookup3DS)) {
-      throw json({}, httpMapping(lookup3DS.code))
+      return error(request, {}, true, 'Contact support')
     }
 
     if (lookup3DS.response.challengeURL !== '') {
@@ -364,11 +365,9 @@ export async function action({ request }: ActionArgs) {
         }
       )
       .then((v) => v)
-      .catch((e) => {
-        return StatusError(e)
-      })
+      .catch(StatusError)
     if (isGrpcError(auth3DS)) {
-      throw json({}, httpMapping(auth3DS.code))
+      return error(request, {}, true, 'Contact support')
     }
   }
   const clientIpAddress = getClientIP(request)
@@ -394,7 +393,7 @@ export async function action({ request }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(payment)) {
-    throw json({}, httpMapping(payment.code))
+    return error(request, {}, true, 'Contact support')
   }
 
   return redirectWithSnackbar(request, route('/'), {

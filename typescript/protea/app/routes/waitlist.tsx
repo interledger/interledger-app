@@ -16,6 +16,7 @@ import {
   TextField
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
@@ -309,8 +310,8 @@ export async function action({ request }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      return error(request, fieldErrors)
+    } else return error(request, fieldErrors, true, 'Contact support')
   }
 
   return redirect(route('/waitlist/success'))

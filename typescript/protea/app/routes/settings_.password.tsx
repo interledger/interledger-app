@@ -1,10 +1,10 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
+import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -13,7 +13,6 @@ import {
   kratosErrorMapping
 } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -72,19 +71,6 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, csrfToken } = useLoaderData<typeof loader>()
-
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
-  useEffect(() => {
-    if (actionData?.errors.form) {
-      pushSnackbar({
-        id: actionData?.errors.form,
-        message: actionData?.errors.form,
-        icon: 'close',
-        canShow: true
-      })
-    }
-  }, [actionData, pushSnackbar])
 
   return (
     <>
@@ -159,7 +145,8 @@ export async function action({ request }: ActionArgs) {
 
   if (res.status > 400) handleFlowError(data, 'settings/password')
   if (res.status == 400) {
-    return kratosErrorMapping(res, fieldErrors)
+    const errs = await kratosErrorMapping(res, fieldErrors)
+    return error(request, errs, errs.form !== '')
   }
 
   return redirectWithSnackbar(request, route('/settings'), {

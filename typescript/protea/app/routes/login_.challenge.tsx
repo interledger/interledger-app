@@ -1,10 +1,10 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
+import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -13,7 +13,6 @@ import {
   handleFlowError,
   kratosErrorMapping
 } from '~/lib/kratos.server'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -74,19 +73,6 @@ export const meta: MetaFunction = () => {
 export default function Page() {
   const actionData = useActionData<typeof action>()
   const { flow, csrfToken, email } = useLoaderData<typeof loader>()
-
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
-  useEffect(() => {
-    if (actionData?.errors.form) {
-      pushSnackbar({
-        id: actionData?.errors.form,
-        message: actionData?.errors.form,
-        icon: 'close',
-        canShow: true
-      })
-    }
-  }, [actionData, pushSnackbar])
 
   return (
     <>
@@ -166,8 +152,10 @@ export async function action({ request }: ActionArgs) {
   if (res.status >= 400) {
     const data = await res.json()
     // 4000001 is an error if the user already has a privileged session.
-    if (data.ui.messages[0].id !== 4000001)
-      return kratosErrorMapping(res, fieldErrors)
+    if (data.ui.messages[0].id !== 4000001) {
+      const errs = await kratosErrorMapping(res, fieldErrors)
+      return error(request, errs, errs.form !== '')
+    }
   }
 
   const headers = trimHeaders(res.headers, ['set-cookie'])

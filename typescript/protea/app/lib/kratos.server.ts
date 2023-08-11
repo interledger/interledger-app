@@ -7,8 +7,7 @@ import type {
   Session,
   UiNodeInputAttributes
 } from '@ory/kratos-client'
-import type { TypedResponse } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 
 // Export to ensure this is always evaluated server side.
@@ -222,7 +221,7 @@ export function kratosErrorMessage(error: KratosMessage): string {
 export async function kratosErrorMapping<T extends object>(
   response: Response,
   fieldErrors: T
-): Promise<TypedResponse<{ errors: T }>> {
+): Promise<T> {
   const data = await response.json()
   for (let node of data.ui.nodes) {
     // Field validation errors
@@ -235,9 +234,10 @@ export async function kratosErrorMapping<T extends object>(
   if (data.ui.messages && data.ui.messages.length > 0) {
     // form message validation errors
     // This gets rendered in a snackbar - only use one.
+
     Object.assign(fieldErrors, {
       form: kratosErrorMessage(data.ui.messages[0])
     })
   }
-  return json({ errors: { ...fieldErrors } }, { status: 400 })
+  return fieldErrors
 }
