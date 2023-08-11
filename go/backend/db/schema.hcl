@@ -1998,10 +1998,6 @@ table "payments" {
     null    = false
     type    = int
   }
-  column "required_actions" {
-    null = true
-    type = sql("int[]")
-  }
   column "sender_id" {
     null = false
     type = text
@@ -2039,6 +2035,15 @@ table "payments" {
     type = text
   }
   column "receiver_account" {
+    null = true
+    type = text
+  }
+  column "action_three_ds_required" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "action_three_ds_id" {
     null = true
     type = text
   }
