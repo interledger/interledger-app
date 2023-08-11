@@ -48,7 +48,7 @@ export const meta: MetaFunction = () => {
     'twitter:url': 'https://fynbos.app/',
     'twitter:title': metaContent.title,
     'twitter:description': metaContent.description,
-    'twitter:image': '/fynbos_SEO.png'
+    'twitter:image': '/fynbos.png'
   }
 }
 
