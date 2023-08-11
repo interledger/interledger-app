@@ -21,24 +21,16 @@ type Payment struct {
 	ReceiverAmount  currency.Amount
 	SenderAccount   string
 	ReceiverAccount string
-	RequiredActions []RequiredAction
+	RequiredActions []RequiredActionType
 }
 
-//go:generate stringer -type=RequiredAction -trimprefix=RequiredAction
-type RequiredAction int
+//go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType
+type RequiredActionType int
 
 const (
-	RequiredActionUnknown         RequiredAction = 0
-	RequiredActionThreeDS         RequiredAction = 1
-	RequiredActionInformation     RequiredAction = 2
-	RequiredActionSenderAccount   RequiredAction = 3
-	RequiredActionReceiverAccount RequiredAction = 4
-	requiredActionSentinel        RequiredAction = 5 // End of range value must be last, no need to public
+	RequiredActionTypeUnknown RequiredActionType = 0
+	RequiredActionTypeThreeDS RequiredActionType = 1
 )
-
-func (i RequiredAction) Valid() bool {
-	return i > RequiredActionUnknown && i < requiredActionSentinel
-}
 
 //go:generate stringer -type=IdentityType -trimprefix=IdentityType
 type IdentityType int

@@ -10,19 +10,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 )
 
-const cols = `id, public_id, state, required_actions, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, action_three_ds_required, action_three_ds_id, created_at, updated_at`
 
 type dbPayment struct {
 	ID               string                `db:"id"`
 	PublicID         string                `db:"public_id"`
 	State            payments.State        `db:"state"`
-	RequiredActions  pq.Int32Array         `db:"required_actions"`
+	ThreeDSRequired  bool                  `db:"action_three_ds_required"`
+	ThreeDSID        sql.NullString        `db:"action_three_ds_id"`
 	SenderID         string                `db:"sender_id"`
 	SenderIDType     payments.IdentityType `db:"sender_id_type"`
 	SenderAmount     uint64                `db:"sender_amount"`
@@ -38,9 +38,10 @@ type dbPayment struct {
 }
 
 func transformPayment(db dbPayment) *payments.Payment {
-	var actions []payments.RequiredAction
-	for _, ra := range db.RequiredActions {
-		actions = append(actions, payments.RequiredAction(ra))
+
+	var actions []payments.RequiredActionType
+	if db.ThreeDSRequired {
+		actions = append(actions, payments.RequiredActionTypeThreeDS)
 	}
 
 	return &payments.Payment{
@@ -88,20 +89,11 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
 
 	// TODO Calculate more actions required
-	var actions []payments.RequiredAction
-	if p.SenderAccount == "" {
-		actions = append(actions, payments.RequiredActionSenderAccount)
-	}
-	if p.ReceiverAccount == "" {
-		actions = append(actions, payments.RequiredActionReceiverAccount)
-	}
-
 	id := uuid.NewString()
 	stmt, args, err := db.NewInsert("payments").
 		Value("id", id).
 		Value("public_id", "fynbos_"+strconv.Itoa(rand.Int())). // TODO: Generate "pretty" soft id for display
 		Value("state", payments.StateCreated).
-		Value("required_actions", pq.Array(actions)).
 		Value("sender_id", p.Sender.Identifier).
 		Value("sender_id_type", p.Sender.Type).
 		Value("sender_amount", p.SenderAmount.Value).
@@ -112,6 +104,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_amount", p.ReceiverAmount.Value).
 		Value("receiver_currency", p.ReceiverAmount.Currency).
 		Value("receiver_account", sql.NullString{String: p.ReceiverAccount, Valid: p.ReceiverAccount != ""}).
+		Value("action_three_ds_required", true).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)

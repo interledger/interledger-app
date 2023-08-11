@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -25,7 +24,7 @@ func TestCreate(t *testing.T) {
 	cases := []struct {
 		name    string
 		args    payments.CreateArgs
-		actions []payments.RequiredAction
+		actions []payments.RequiredActionType
 		err     error
 	}{
 		{
@@ -44,7 +43,8 @@ func TestCreate(t *testing.T) {
 				SenderAccount:   uuid.NewString(),
 				ReceiverAccount: uuid.NewString(),
 			},
-			err: nil,
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS},
+			err:     nil,
 		},
 		{
 			name: "success_no_accounts",
@@ -60,7 +60,7 @@ func TestCreate(t *testing.T) {
 				SenderAmount:   currency.FromFloat64(51, currency.USD),
 				ReceiverAmount: currency.FromFloat64(50, currency.USD),
 			},
-			actions: []payments.RequiredAction{payments.RequiredActionReceiverAccount, payments.RequiredActionSenderAccount},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS},
 			err:     nil,
 		},
 	}
