@@ -12,12 +12,14 @@ func _() {
 	_ = x[StateCreated-1]
 	_ = x[StateConfirmed-2]
 	_ = x[StateProcessing-3]
-	_ = x[stateSentinel-4]
+	_ = x[StateCompleted-4]
+	_ = x[StateFailed-5]
+	_ = x[stateSentinel-6]
 }
 
-const _State_name = "UnknownCreatedConfirmedProcessingstateSentinel"
+const _State_name = "UnknownCreatedConfirmedProcessingCompletedFailedstateSentinel"
 
-var _State_index = [...]uint8{0, 7, 14, 23, 33, 46}
+var _State_index = [...]uint8{0, 7, 14, 23, 33, 42, 48, 61}
 
 func (i State) String() string {
 	if i < 0 || i >= State(len(_State_index)-1) {

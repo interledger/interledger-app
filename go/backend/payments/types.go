@@ -60,7 +60,9 @@ const (
 	StateCreated    State = 1
 	StateConfirmed  State = 2
 	StateProcessing State = 3
-	stateSentinel   State = 4 // End of range value must be last, no need to public
+	StateCompleted  State = 4
+	StateFailed     State = 5
+	stateSentinel   State = 6 // End of range value must be last, no need to public
 )
 
 func (s State) Valid() bool {
