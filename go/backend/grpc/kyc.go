@@ -2,6 +2,11 @@ package grpc
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"gitlab.com/fynbos/backend/kyc/persona"
+	"math"
+	"time"
 
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -225,7 +230,13 @@ func (s *rpcService) GetPersonaInquiry(ctx context.Context, req *pb.KYCPersonaIn
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	inq, err := s.b.KYC().GetPersonaInquiry(ctx, wallet.ID, req.GetIdempotencyKey())
+	operation := func() (*kyc.PersonaInquiry, error) {
+		return s.b.KYC().GetPersonaInquiry(ctx, wallet.ID, req.GetIdempotencyKey())
+	}
+
+	// loop until we get a response
+	wrappedOperation := retryWithBackoff(operation)
+	inq, err := wrappedOperation()
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -263,4 +274,35 @@ func (s *rpcService) SetKYCStatusPending(ctx context.Context, req *pb.Empty) (*p
 	}
 
 	return &pb.Empty{}, nil
+}
+
+var maxRetries = 3
+var baseDelay = 1 * time.Millisecond
+
+// RetryFunc is a function that can be retried
+type retryFunc func() (*kyc.PersonaInquiry, error)
+
+// RetryWithBackoff retries the given operation with exponential backoff
+func retryWithBackoff(operation retryFunc) retryFunc {
+	return func() (*kyc.PersonaInquiry, error) {
+		var lastError error
+
+		for i := 0; i < maxRetries; i++ {
+			val, err := operation()
+			if err == nil {
+				return val, nil
+			}
+			// only retry for idempotency errors
+			if !errors.Is(err, persona.ErrIdempotencyDuplicate) {
+				return nil, err
+			}
+			secRetry := math.Pow(2, float64(i))
+			fmt.Printf("Retrying operation in %f seconds\n", secRetry)
+			delay := time.Duration(secRetry) * baseDelay
+			time.Sleep(delay)
+			lastError = err
+		}
+
+		return nil, lastError
+	}
 }
