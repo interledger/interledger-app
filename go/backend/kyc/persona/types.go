@@ -148,3 +148,12 @@ func GetTemplateIDForCountry(ctx context.Context, ctry country.Country) InquiryT
 
 	return id
 }
+
+type ErrorResponse struct {
+	Errors []Error `json:"errors"`
+}
+
+type Error struct {
+	Title   string `json:"title"`
+	Details string `json:"details"`
+}
