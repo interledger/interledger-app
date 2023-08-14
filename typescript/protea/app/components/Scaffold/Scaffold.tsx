@@ -556,7 +556,7 @@ export function Scaffold() {
       </NavDrawer.Modal>
       <div
         className={clsx(
-          'fixed bottom-4 left-0 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
+          'fixed bottom-4 left-0 z-50 mx-auto flex w-full flex-col items-end justify-center gap-y-4 overflow-y-visible px-4 text-center lg:bottom-auto lg:top-4 lg:items-center',
           layout === Layouts.Wallet && 'lg:pl-64 lg:pr-0'
         )}
       >
