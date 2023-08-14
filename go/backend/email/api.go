@@ -5,6 +5,7 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/payments"
 )
 
 type Client interface {
@@ -16,4 +17,7 @@ type Client interface {
 	SendPaymentSentEmail(ctx context.Context, walletID, trxID string, op openpayments.OutgoingPayment)
 	SendPaymentReceivedEmail(ctx context.Context, walletID, trxID string, ip openpayments.IncomingPayment)
 	SendPaymentFailedEmail(ctx context.Context, walletID string)
+
+	SendPaymentSentEmailV2(ctx context.Context, walletID string, payment *payments.Payment)
+	SendPaymentReceivedEmailV2(ctx context.Context, walletID string, payment *payments.Payment)
 }

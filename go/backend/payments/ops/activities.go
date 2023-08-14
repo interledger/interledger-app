@@ -17,7 +17,15 @@ func NewActivity(b Backends) *Activity {
 }
 
 func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error {
-	err := SetState(ctx, a.b, id, payments.StateCompleted)
+	payment, err := Lookup(ctx, a.b, id)
+	if err != nil {
+		if errors.Is(err, payments.ErrNotFound) {
+			return temporal.NewApplicationError(err.Error(), "ErrNotFound", err)
+		}
+		return err
+	}
+
+	err = SetState(ctx, a.b, id, payments.StateCompleted)
 	if err != nil {
 		if errors.Is(err, payments.ErrInvalidStateTransition) {
 			return temporal.NewApplicationError(err.Error(), "ErrInvalidStateTransition", err)
@@ -25,9 +33,17 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
-	// send payment sent email
+	senderWallet, err := a.b.Identities().GetByIdentifier(ctx, payment.Sender.Identifier)
+	if err != nil {
+		return err
+	}
+	a.b.Email().SendPaymentSentEmailV2(ctx, senderWallet.ID, payment)
 
-	// send payment received email
+	receiverWallet, err := a.b.Identities().GetByIdentifier(ctx, payment.Receiver.Identifier)
+	if err != nil {
+		return err
+	}
+	a.b.Email().SendPaymentReceivedEmailV2(ctx, receiverWallet.ID, payment)
 
 	return nil
 }
@@ -45,7 +61,15 @@ func (a *Activity) SetPaymentStateProcessing(ctx context.Context, id string) err
 }
 
 func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
-	err := SetState(ctx, a.b, id, payments.StateFailed)
+	payment, err := Lookup(ctx, a.b, id)
+	if err != nil {
+		if errors.Is(err, payments.ErrNotFound) {
+			return temporal.NewApplicationError(err.Error(), "ErrNotFound", err)
+		}
+		return err
+	}
+
+	err = SetState(ctx, a.b, id, payments.StateFailed)
 	if err != nil {
 		if errors.Is(err, payments.ErrInvalidStateTransition) {
 			return temporal.NewApplicationError(err.Error(), "ErrInvalidStateTransition", err)
@@ -53,6 +77,11 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
-	// send payment failed email
+	senderWallet, err := a.b.Identities().GetByIdentifier(ctx, payment.Sender.Identifier)
+	if err != nil {
+		return err
+	}
+	a.b.Email().SendPaymentFailedEmail(ctx, senderWallet.ID)
+
 	return nil
 }

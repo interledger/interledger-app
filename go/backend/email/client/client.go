@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/email/sendgrid"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/payments"
 )
 
 var _ email.Client = &client{}
@@ -54,8 +55,16 @@ func (c *client) SendPaymentSentEmail(ctx context.Context, walletID, trxID strin
 	ops.SendPaymentSentEmail(ctx, c.b, walletID, trxID, op)
 }
 
+func (c *client) SendPaymentSentEmailV2(ctx context.Context, walletID string, payment *payments.Payment) {
+	ops.SendPaymentSentEmailV2(ctx, c.b, walletID, payment)
+}
+
 func (c *client) SendPaymentReceivedEmail(ctx context.Context, walletID, trxID string, ip openpayments.IncomingPayment) {
 	ops.SendPaymentReceivedEmail(ctx, c.b, walletID, trxID, ip)
+}
+
+func (c *client) SendPaymentReceivedEmailV2(ctx context.Context, walletID string, payment *payments.Payment) {
+	ops.SendPaymentReceivedEmailV2(ctx, c.b, walletID, payment)
 }
 
 func (c *client) SendPaymentFailedEmail(ctx context.Context, walletID string) {
