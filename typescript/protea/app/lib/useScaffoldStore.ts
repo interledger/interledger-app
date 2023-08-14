@@ -1,11 +1,13 @@
 import { create } from 'zustand'
 
+export type SnackbarAction = 'Contact support'
+
 export type SnackbarType = {
   id: string
   message: string
   canShow?: boolean
   fromServer?: boolean
-  action?: string
+  action?: SnackbarAction
   icon?: string
 }
 

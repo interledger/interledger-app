@@ -1,21 +1,28 @@
+import { useNavigate } from '@remix-run/react'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { forwardRef, useEffect, useRef, useState } from 'react'
+import { route } from 'routes-gen'
 import { IconButton, TextButton } from '~/components/Buttons'
-import type { SnackbarType } from '~/lib/useScaffoldStore'
+import type { SnackbarAction, SnackbarType } from '~/lib/useScaffoldStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
   const [snackbar, setSnackbar] = useState<SnackbarType | null>(null)
   let dismissRef = useRef<NodeJS.Timeout>()
+  const navigate = useNavigate()
 
   const [snackbars, shiftSnackbar] = useScaffoldStore((state) => [
     state.snackbars,
     state.shiftSnackbar
   ])
 
-  const actionReducer = (action?: string) => {
+  const actionReducer = (action?: SnackbarAction) => {
     switch (action) {
+      case 'Contact support':
+        shiftSnackbar()
+        navigate(route('/support'))
+        break
       default:
         shiftSnackbar()
     }
@@ -77,10 +84,7 @@ const Stage = forwardRef<any>(({ ...motionProps }, ref) => {
           <p className='text-sm text-inverted'>{snackbar.message}</p>
           <div className='ml-auto flex items-center gap-x-3'>
             {snackbar.action && (
-              <TextButton
-                className='uppercase'
-                onClick={() => actionReducer(snackbar?.action)}
-              >
+              <TextButton onClick={() => actionReducer(snackbar?.action)}>
                 {snackbar.action}
               </TextButton>
             )}
