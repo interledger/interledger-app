@@ -2018,6 +2018,10 @@ table "payments" {
     null = true
     type = text
   }
+  column "send_transaction_id" {
+    null = true
+    type = text
+  }
   column "receiver_id" {
     null = false
     type = text
@@ -2035,6 +2039,10 @@ table "payments" {
     type = text
   }
   column "receiver_account" {
+    null = true
+    type = text
+  }
+  column "receive_transaction_id" {
     null = true
     type = text
   }
