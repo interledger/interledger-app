@@ -1,7 +1,9 @@
+import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type {
   Amount,
+  CreateCardRequest,
   Features,
   GetPublicWalletDetailsResponse,
   Identity,
@@ -15,7 +17,7 @@ import type {
   PublicWalletInfo,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
   grpcClient,
@@ -418,24 +420,12 @@ export async function getTransaction(
     })
 }
 
-export type createCardError =
-  | 'Failed precondition: ErrUnsupportedCard'
-  | 'Failed precondition: ErrUnsupportedCountry'
-  | 'Failed precondition: ErrMaxCardsAdded'
-  | 'Already exists: ErrDuplicateCard'
-  | 'Internal server error'
-  | 'Unavailable: ErrMultiStatus'
-
 export async function createCard(
   request: Request,
   tokenID: string
-): Promise<{
-  error: createCardError | undefined
-  httpMapping: ResponseInit | undefined
-  linkedAccountID: string
-}> {
+): Promise<GrpcError | FinishedUnaryCall<CreateCardRequest, LinkedAccount>> {
   const cookie = String(request.headers.get('cookie'))
-  const response = await grpcClient
+  return grpcClient
     .createCard(
       { tokenID },
       {
@@ -447,19 +437,6 @@ export async function createCard(
     )
     .then((v) => v)
     .catch(StatusError)
-  if (isGrpcError(response)) {
-    return {
-      error: response.message as createCardError,
-      httpMapping: httpMapping(response.code),
-      linkedAccountID: ''
-    }
-  }
-
-  return {
-    error: undefined,
-    httpMapping: httpMapping(Code.OK),
-    linkedAccountID: response.response.id
-  }
 }
 
 export async function getLinkedIdentities(

@@ -3,6 +3,7 @@ import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts, TextField } from '~/components'
+import { error } from '~/lib/error.server'
 import {
   KRATOS_URL,
   getCsrfTokenFromFlow,
@@ -139,7 +140,8 @@ export async function action({ request }: ActionArgs) {
     }
   )
   if (res.status >= 400) {
-    return kratosErrorMapping(res, fieldErrors)
+    const errs = await kratosErrorMapping(res, fieldErrors)
+    return error(request, { errors: errs })
   }
 
   return redirectWithSnackbar(request, `/recovery?flow=${flowId}`, {

@@ -16,13 +16,9 @@ import {
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { getConnection, getConnectionLimits } from '~/lib/connections.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -193,9 +189,16 @@ function mapper(
 
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
-  const formName = await form.get('formName')
+  const formName = form.get('formName')
 
   await validateCSRFToken(request, form)
+
+  const fieldErrors = {
+    form: '',
+    dailyLimit: '',
+    monthlyLimit: '',
+    overallLimit: ''
+  }
 
   if (formName === 'delete') {
     const response = await grpcClient
@@ -213,19 +216,13 @@ export async function action({ request, params }: ActionArgs) {
         return StatusError(e)
       })
     if (isGrpcError(response)) {
-      throw json({}, httpMapping(response.code))
+      return error(request, { errors: fieldErrors })
     }
 
     return redirectWithSnackbar(request, route('/settings/keys'), {
       message: 'Public key was deleted.',
       icon: 'close'
     })
-  }
-
-  const fieldErrors = {
-    dailyLimit: '',
-    monthlyLimit: '',
-    overallLimit: ''
   }
 
   const response = await grpcClient
@@ -269,8 +266,13 @@ export async function action({ request, params }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      return error(request, { errors: fieldErrors })
+    } else
+      return error(
+        request,
+        { errors: fieldErrors },
+        { action: 'Contact support' }
+      )
   }
 
   return json({ errors: { ...fieldErrors } })
