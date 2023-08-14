@@ -27,7 +27,7 @@ import {
 import { Label } from '~/components/Label'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { getPusherArgs } from '~/lib/pusher.server'
-import { flashSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
+import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
 import {
   deleteTwitterIdentity,
@@ -342,41 +342,32 @@ export async function action({ request, params }: ActionArgs) {
   switch (formName) {
     case 'verify':
       await verifyTwitterIdentity(request, identityId)
-      return json(
-        { show: true },
+      return jsonWithSnackbar(
+        request,
+        {},
         {
-          headers: {
-            'Set-Cookie': await flashSnackbar(request, {
-              message: 'Linked identity verification started.',
-              icon: 'close'
-            })
-          }
+          message: 'Connected identity verification started.',
+          icon: 'close'
         }
       )
     case 'retry':
       await verifyTwitterIdentity(request, identityId)
-      return json(
-        { show: true },
+      return jsonWithSnackbar(
+        request,
+        {},
         {
-          headers: {
-            'Set-Cookie': await flashSnackbar(request, {
-              message: 'Retrying identity verification.',
-              icon: 'close'
-            })
-          }
+          message: 'Retrying identity verification.',
+          icon: 'close'
         }
       )
     case 'publish':
       await setTwitterIdentityPublic(request, identityId, publish === 'true')
-      return json(
-        { show: true },
+      return jsonWithSnackbar(
+        request,
+        {},
         {
-          headers: {
-            'Set-Cookie': await flashSnackbar(request, {
-              message: 'Identity visibility updated.',
-              icon: 'close'
-            })
-          }
+          message: 'Identity visibility updated.',
+          icon: 'close'
         }
       )
     case 'delete':
