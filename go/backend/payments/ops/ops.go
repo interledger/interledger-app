@@ -117,3 +117,23 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 
 	return Lookup(ctx, b, id)
 }
+
+func SetState(ctx context.Context, b Backends, id string, state payments.State) error {
+	p, err := Lookup(ctx, b, id)
+	if err != nil {
+		return err
+	}
+	if !p.State.CanTransitionTo(state) {
+		return fmt.Errorf("%w id=%s current state=%s, proposed state=%s", payments.ErrInvalidStateTransition, id, p.State, state)
+	}
+
+	result, err := b.DB().ExecContext(ctx, "UPDATE payments SET state=$1 WHERE id=$2 AND state=$3;", state, id, p.State)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return fmt.Errorf("%w Failed to update state. id=%s, proposed state=%s", payments.ErrInternal, id, state)
+	}
+
+	return nil
+}

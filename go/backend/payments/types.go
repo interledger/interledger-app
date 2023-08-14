@@ -68,3 +68,23 @@ const (
 func (s State) Valid() bool {
 	return s > StateUnknown && s < stateSentinel
 }
+
+func (s State) CanTransitionTo(state State) bool {
+	transitions := validTransitions[s]
+	for _, s := range transitions {
+		if s == state {
+			return true
+		}
+	}
+
+	return false
+}
+
+var validTransitions = map[State][]State{
+	StateUnknown:    {StateCreated},
+	StateCreated:    {StateConfirmed},
+	StateConfirmed:  {StateProcessing},
+	StateProcessing: {StateFailed, StateCompleted},
+	StateCompleted:  {},
+	StateFailed:     {StateProcessing, StateCompleted},
+}
