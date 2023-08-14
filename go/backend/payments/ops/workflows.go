@@ -13,8 +13,8 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Second,
-		RetryPolicy:         &temporal.RetryPolicy{
-			// NonRetryableErrorTypes: []string{},
+		RetryPolicy: &temporal.RetryPolicy{
+			NonRetryableErrorTypes: []string{"ErrInvalidStateTransition"},
 		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)

@@ -89,3 +89,30 @@ func TestCreate(t *testing.T) {
 		})
 	}
 }
+
+func TestSetState(t *testing.T) {
+	ctx := context.Background()
+
+	b := ops.NewTestBackends(t, func(b *ops.TestBackends) {
+		b.DBC = db.MigrateTestDB(t, ctx)
+	})
+
+	p, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeTwitter,
+			Identifier: "@willy_wonka",
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://fynbos.me/charlie",
+		},
+		SenderAmount:    currency.FromFloat64(51, currency.USD),
+		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
+		SenderAccount:   uuid.NewString(),
+		ReceiverAccount: uuid.NewString(),
+	})
+	require.NoError(t, err)
+
+	assert.ErrorIs(t, ops.SetState(ctx, b, p.ID, payments.StateCompleted), payments.ErrInvalidStateTransition)
+	assert.NoError(t, ops.SetState(ctx, b, p.ID, payments.StateConfirmed))
+}
