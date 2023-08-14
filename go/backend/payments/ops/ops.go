@@ -15,26 +15,28 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, action_three_ds_required, action_three_ds_id, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, created_at, updated_at`
 
 type dbPayment struct {
-	ID               string                `db:"id"`
-	PublicID         string                `db:"public_id"`
-	State            payments.State        `db:"state"`
-	ThreeDSRequired  bool                  `db:"action_three_ds_required"`
-	ThreeDSID        sql.NullString        `db:"action_three_ds_id"`
-	SenderID         string                `db:"sender_id"`
-	SenderIDType     payments.IdentityType `db:"sender_id_type"`
-	SenderAmount     uint64                `db:"sender_amount"`
-	SenderCurrency   string                `db:"sender_currency"`
-	SenderAccount    sql.NullString        `db:"sender_account"`
-	ReceiverID       string                `db:"receiver_id"`
-	ReceiverIDType   payments.IdentityType `db:"receiver_id_type"`
-	ReceiverAmount   uint64                `db:"receiver_amount"`
-	ReceiverCurrency string                `db:"receiver_currency"`
-	ReceiverAccount  sql.NullString        `db:"receiver_account"`
-	CreatedAt        time.Time             `db:"created_at"`
-	UpdatedAt        time.Time             `db:"updated_at"`
+	ID                   string                `db:"id"`
+	PublicID             string                `db:"public_id"`
+	State                payments.State        `db:"state"`
+	ThreeDSRequired      bool                  `db:"action_three_ds_required"`
+	ThreeDSID            sql.NullString        `db:"action_three_ds_id"`
+	SenderID             string                `db:"sender_id"`
+	SenderIDType         payments.IdentityType `db:"sender_id_type"`
+	SenderAmount         uint64                `db:"sender_amount"`
+	SenderCurrency       string                `db:"sender_currency"`
+	SenderAccount        sql.NullString        `db:"sender_account"`
+	ReceiverID           string                `db:"receiver_id"`
+	ReceiverIDType       payments.IdentityType `db:"receiver_id_type"`
+	ReceiverAmount       uint64                `db:"receiver_amount"`
+	ReceiverCurrency     string                `db:"receiver_currency"`
+	ReceiverAccount      sql.NullString        `db:"receiver_account"`
+	SendTransactionID    sql.NullString        `db:"send_transaction_id"`
+	ReceiveTransactionID sql.NullString        `db:"receive_transaction_id"`
+	CreatedAt            time.Time             `db:"created_at"`
+	UpdatedAt            time.Time             `db:"updated_at"`
 }
 
 func transformPayment(db dbPayment) *payments.Payment {
@@ -56,11 +58,14 @@ func transformPayment(db dbPayment) *payments.Payment {
 			Type:       db.ReceiverIDType,
 			Identifier: db.ReceiverID,
 		},
-		SenderAmount:    currency.FromUInt64(db.SenderAmount, currency.ParseCurrency(db.SenderCurrency)),
-		ReceiverAmount:  currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
-		SenderAccount:   db.SenderAccount.String,
-		ReceiverAccount: db.ReceiverAccount.String,
-		RequiredActions: actions,
+		SenderAmount:         currency.FromUInt64(db.SenderAmount, currency.ParseCurrency(db.SenderCurrency)),
+		ReceiverAmount:       currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
+		SenderAccount:        db.SenderAccount.String,
+		ReceiverAccount:      db.ReceiverAccount.String,
+		RequiredActions:      actions,
+		SendTransactionID:    db.SendTransactionID.String,
+		ReceiveTransactionID: db.ReceiveTransactionID.String,
+		UpdatedAt:            db.UpdatedAt,
 	}
 }
 
