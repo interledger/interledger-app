@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"strings"
+	"time"
 
 	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"gitlab.com/fynbos/backend/transactions"
@@ -10,6 +11,11 @@ import (
 
 func ClearOrphanedGMTTransactions(ctx workflow.Context, txIDs string) error {
 	var gmtActivity *gmt_ops.Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
 
