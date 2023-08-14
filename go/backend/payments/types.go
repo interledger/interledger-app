@@ -1,6 +1,10 @@
 package payments
 
-import "gitlab.com/fynbos/backend/currency"
+import (
+	"time"
+
+	"gitlab.com/fynbos/backend/currency"
+)
 
 type CreateArgs struct {
 	Sender          Identity
@@ -12,16 +16,19 @@ type CreateArgs struct {
 }
 
 type Payment struct {
-	ID              string
-	PublicID        string
-	State           State
-	Sender          Identity
-	Receiver        Identity
-	SenderAmount    currency.Amount
-	ReceiverAmount  currency.Amount
-	SenderAccount   string
-	ReceiverAccount string
-	RequiredActions []RequiredActionType
+	ID                   string
+	PublicID             string
+	State                State
+	Sender               Identity
+	Receiver             Identity
+	SenderAmount         currency.Amount
+	ReceiverAmount       currency.Amount
+	SenderAccount        string
+	ReceiverAccount      string
+	SendTransactionID    string
+	ReceiveTransactionID string
+	RequiredActions      []RequiredActionType
+	UpdatedAt            time.Time
 }
 
 //go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType
