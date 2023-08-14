@@ -1,5 +1,4 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -15,13 +14,9 @@ import {
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -219,6 +214,7 @@ export async function action({ request }: ActionArgs) {
   await validateCSRFToken(request, form)
 
   const fieldErrors = {
+    form: '',
     applicationName: '',
     publicKey: '',
     dailyLimit: '',
@@ -269,8 +265,13 @@ export async function action({ request }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      return error(request, { errors: { ...fieldErrors } })
+    } else
+      return error(
+        request,
+        { errors: { ...fieldErrors } },
+        { action: 'Contact support' }
+      )
   }
 
   return redirectWithSnackbar(request, route('/settings/keys'), {

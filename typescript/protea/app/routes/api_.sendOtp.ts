@@ -4,14 +4,10 @@ import { json } from '@remix-run/node'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
 import { validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 
 type fieldErrorsMap = 'To'
 
@@ -48,30 +44,22 @@ export async function action({ request }: ActionArgs) {
         phone,
         country as CountryCode
       ).number
-    } catch (error) {
-      switch ((error as ParseError).message) {
+    } catch (err) {
+      switch ((err as ParseError).message) {
         case 'NOT_A_NUMBER':
-          return json(
-            { errors: { phone: 'Phone number is invalid.' } },
-            { status: 400 }
-          )
+          fieldErrors.phone = 'Phone number is invalid.'
+          return error(request, { errors: { ...fieldErrors } })
         case 'INVALID_COUNTRY':
-          return json(
-            { errors: { phone: 'Country is invalid.' } },
-            { status: 400 }
-          )
+          fieldErrors.phone = 'Country is invalid.'
+          return error(request, { errors: { ...fieldErrors } })
         case 'TOO_SHORT':
-          return json(
-            { errors: { phone: 'Phone number is too short.' } },
-            { status: 400 }
-          )
+          fieldErrors.phone = 'Phone number is too short.'
+          return error(request, { errors: { ...fieldErrors } })
         case 'TOO_LONG':
-          return json(
-            { errors: { phone: 'Phone number is too long.' } },
-            { status: 400 }
-          )
+          fieldErrors.phone = 'Phone number is too long.'
+          return error(request, { errors: { ...fieldErrors } })
         default:
-          throw error
+          throw err
       }
     }
   } else {
@@ -94,8 +82,13 @@ export async function action({ request }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return json({ errors: { ...fieldErrors } }, { status: 400 })
-    } else throw json({}, httpMapping(response.code))
+      return error(request, { errors: { ...fieldErrors } })
+    } else
+      return error(
+        request,
+        { errors: { ...fieldErrors } },
+        { action: 'Contact support' }
+      )
   }
 
   return json({ phone: phoneNumber, success: true })

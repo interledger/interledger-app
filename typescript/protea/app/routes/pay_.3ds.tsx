@@ -20,6 +20,7 @@ import {
 } from '~/components'
 import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error } from '~/lib/error.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import {
@@ -169,30 +170,25 @@ export default function Page() {
       })
       cardinalRef.current.off('payments.setupComplete')
       cardinalRef.current.on('payments.setupComplete', (data: any) => {
-        let formData = new FormData()
-        formData.append('name', 'lookup')
-        formData.append('threeDsId', threeDsId)
-        formData.append(
-          'colorDepth',
-          window.screen && String(window.screen.colorDepth)
+        submit(
+          {
+            name: 'lookup',
+            threeDsId,
+            colorDepth: window.screen && String(window.screen.colorDepth),
+            screenHeight: String(window.innerHeight),
+            screenWidth: String(window.innerWidth),
+            timezone: String(new Date(Date.now()).getTimezoneOffset()),
+            language: navigator.language,
+            userAgent: navigator.userAgent,
+            quoteId,
+            csrfToken: csrfTokenRef.current
+          },
+          {
+            action: `${route('/pay/3ds')}?quoteId=${quoteId}`,
+            method: 'POST',
+            replace: true
+          }
         )
-        formData.append('screenHeight', String(window.innerHeight))
-        formData.append('screenWidth', String(window.innerWidth))
-        formData.append(
-          'timezone',
-          String(new Date(Date.now()).getTimezoneOffset())
-        )
-        formData.append('language', navigator.language)
-        formData.append('userAgent', navigator.userAgent)
-
-        formData.append('quoteId', quoteId)
-        formData.append('csrfToken', csrfTokenRef.current)
-
-        submit(formData, {
-          action: `${route('/pay/3ds')}?quoteId=${quoteId}`,
-          method: 'POST',
-          replace: true
-        })
       })
 
       // List of action codes https://cardinaldocs.atlassian.net/wiki/spaces/CC/pages/557065/Songbird.js#Songbird.js-payments.validated
@@ -203,19 +199,20 @@ export default function Page() {
           switch (data.ActionCode) {
             case 'SUCCESS':
             case 'NOACTION':
-              let formData = new FormData()
-              formData.append('name', 'authenticate')
-              formData.append('threeDsId', threeDsId)
-              formData.append('jwt', jwt)
-
-              formData.append('quoteId', quoteId)
-              formData.append('csrfToken', csrfTokenRef.current)
-
-              submit(formData, {
-                action: `${route('/pay/3ds')}?quoteId=${quoteId}`,
-                method: 'POST',
-                replace: true
-              })
+              submit(
+                {
+                  name: 'authenticate',
+                  threeDsId,
+                  jwt,
+                  quoteId,
+                  csrfToken: csrfTokenRef.current
+                },
+                {
+                  action: `${route('/pay/3ds')}?quoteId=${quoteId}`,
+                  method: 'POST',
+                  replace: true
+                }
+              )
               break
 
             default:
@@ -308,6 +305,17 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
+  const fieldErrors = {
+    form: ''
+  }
+
+  const data = {
+    errors: { ...fieldErrors },
+    challengeURL: '',
+    payload: '',
+    processorTransactionID: ''
+  }
+
   if (formName === 'lookup') {
     let lookup3DS = await grpcClient
       .lookup3DS(
@@ -331,22 +339,21 @@ export async function action({ request }: ActionArgs) {
         }
       )
       .then((v) => v)
-      .catch((e) => {
-        return StatusError(e)
-      })
+      .catch(StatusError)
     if (isGrpcError(lookup3DS)) {
-      throw json({}, httpMapping(lookup3DS.code))
+      return error(request, data, {
+        message: 'There was an error processing your payment.',
+        action: 'Contact support'
+      })
     }
 
     if (lookup3DS.response.challengeURL !== '') {
-      return json(
-        {
-          challengeURL: lookup3DS.response.challengeURL,
-          payload: lookup3DS.response.payload,
-          processorTransactionID: lookup3DS.response.processorTransactionID
-        },
-        200
-      )
+      Object.assign(data, {
+        challengeURL: lookup3DS.response.challengeURL,
+        payload: lookup3DS.response.payload,
+        processorTransactionID: lookup3DS.response.processorTransactionID
+      })
+      return json(data)
     }
   }
 
@@ -364,13 +371,15 @@ export async function action({ request }: ActionArgs) {
         }
       )
       .then((v) => v)
-      .catch((e) => {
-        return StatusError(e)
-      })
+      .catch(StatusError)
     if (isGrpcError(auth3DS)) {
-      throw json({}, httpMapping(auth3DS.code))
+      return error(request, data, {
+        message: 'There was an error processing your payment.',
+        action: 'Contact support'
+      })
     }
   }
+
   const clientIpAddress = getClientIP(request)
   let payment = await openPaymentsClient
     .createOutgoingPayment(
@@ -394,7 +403,10 @@ export async function action({ request }: ActionArgs) {
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(payment)) {
-    throw json({}, httpMapping(payment.code))
+    return error(request, data, {
+      message: 'There was an error processing your payment.',
+      action: 'Contact support'
+    })
   }
 
   return redirectWithSnackbar(request, route('/'), {
