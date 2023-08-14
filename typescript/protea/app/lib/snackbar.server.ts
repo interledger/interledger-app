@@ -1,4 +1,5 @@
-import { redirect } from '@remix-run/node'
+import type { TypedResponse } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { v4 } from 'uuid'
 import type { SnackbarType } from '~/lib/useScaffoldStore'
 import { commitSession, getSession } from '~/session.server'
@@ -15,6 +16,7 @@ export async function flashSnackbar(
 ): Promise<string> {
   const session = await getSession(request.headers.get('Cookie'))
   snackbar.fromServer = true
+  if (typeof snackbar.id === 'undefined') snackbar.id = v4()
   session.flash('snackbar', snackbar)
   return commitSession(session)
 }
@@ -47,14 +49,7 @@ export async function redirectWithSnackbar(
   snackbar: Partial<SnackbarType>,
   init?: ResponseInit
 ) {
-  const session = await getSession(request.headers.get('Cookie'))
-  session.flash('snackbar', {
-    ...snackbar,
-    id: v4(),
-    fromServer: true
-  })
-
-  const cookie = await commitSession(session)
+  const cookie = await flashSnackbar(request, snackbar)
   const newHeaders = new Headers(init?.headers)
   newHeaders.append('Set-Cookie', cookie)
 
@@ -62,4 +57,50 @@ export async function redirectWithSnackbar(
     ...init,
     headers: newHeaders
   })
+}
+
+type JsonWithSnackbarFunction = <Data extends unknown>(
+  request: Request,
+  data: Data,
+  snackbar: Partial<SnackbarType>,
+  init?: number | ResponseInit
+) => Promise<TypedResponse<(Data & object) | (Data & null)>>
+
+/**
+ * This is an extension of the json function from Remix.
+ * This function will add a error snackbar to the response.
+ * @param request
+ * @param data
+ * @param snackbar
+ * @param init
+ */
+export const jsonWithSnackbar: JsonWithSnackbarFunction = async (
+  request,
+  data,
+  snackbar,
+  init
+) => {
+  let responseInit = typeof init === 'number' ? { status: init } : init
+
+  const cookie = await flashSnackbar(request, snackbar)
+  const newHeaders = new Headers(responseInit?.headers)
+  newHeaders.append('Set-Cookie', cookie)
+
+  if (typeof data !== 'object') {
+    throw json(
+      {},
+      {
+        status: 400,
+        statusText: 'Only objects should be returned from loaders.'
+      }
+    )
+  }
+
+  return json(
+    { ...data },
+    {
+      ...responseInit,
+      headers: newHeaders
+    }
+  )
 }
