@@ -6,7 +6,6 @@ import {
   useLoaderData,
   useSearchParams
 } from '@remix-run/react'
-import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -18,6 +17,7 @@ import {
   Router,
   TextField
 } from '~/components'
+import { error } from '~/lib/error.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -27,7 +27,6 @@ import {
   requireNoUserSession
 } from '~/lib/kratos.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -92,19 +91,6 @@ export default function Page() {
   const { csrfToken, isSignupGated, flowId, returnTo } =
     useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
-
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
-  useEffect(() => {
-    if (actionData?.errors.form) {
-      pushSnackbar({
-        id: actionData?.errors.form,
-        message: actionData?.errors.form,
-        icon: 'close',
-        canShow: true
-      })
-    }
-  }, [actionData, pushSnackbar])
 
   return (
     <>
@@ -210,7 +196,8 @@ export async function action({ request }: ActionArgs) {
     }
   })
   if (res.status >= 400) {
-    return kratosErrorMapping(res, fieldErrors)
+    const errs = await kratosErrorMapping(res, fieldErrors)
+    return error(request, { errors: errs }, { action: 'Contact support' })
   }
 
   // Remove all headers besides set-cookie
