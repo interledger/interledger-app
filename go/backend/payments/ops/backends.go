@@ -6,6 +6,8 @@ import (
 	"gitlab.com/fynbos/backend/identities"
 
 	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
+	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/wallets"
 
@@ -33,13 +35,13 @@ type TestBackends struct {
 	tp  temporal.Client
 	uc  user.Client
 	nc  notify.Client
-	em  email.Client
+	Em  *email_mock.MockClient
 	wc  wallets.Client
-	ic  identities.Client
+	Ic  *id_mock.MockClient
 }
 
 func (t TestBackends) Identities() identities.Client {
-	return t.ic
+	return t.Ic
 }
 
 func (t TestBackends) Users() user.Client {
@@ -63,7 +65,7 @@ func (t TestBackends) Notify() notify.Client {
 }
 
 func (t TestBackends) Email() email.Client {
-	return t.em
+	return t.Em
 }
 
 func (t TestBackends) Wallets() wallets.Client {
