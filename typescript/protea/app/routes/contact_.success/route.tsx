@@ -7,15 +7,15 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
+      back: route('/contact'),
       title: 'Success'
-    },
-    footer: (match) => match.data.footer
+    }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Contact us | Success'
+    title: 'Contact | Success'
   }
 }
 
