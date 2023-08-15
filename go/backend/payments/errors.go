@@ -8,4 +8,6 @@ var (
 	ErrInfoRequired           = errors.New("payments: Information missing for payment")
 	ErrInvalidStateTransition = errors.New("payments: Invalid state transition")
 	ErrRequiredActions        = errors.New("payments: Actions required")
+	ErrInvalidAmount          = errors.New("payments: Invalid amount")
+	ErrInvalidIdentifier      = errors.New("payments: Invalid identifier")
 )

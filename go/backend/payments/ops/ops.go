@@ -242,60 +242,82 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 	return payment, nil, nil
 }
 
-	if payment.Sender.Identifier == "" {
-		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderIdentifier)
+func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payments.Payment, error) {
+	payment, err := getPayment(ctx, b, args.ID)
+	if err != nil {
+		return nil, err
+	}
+	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.Currency.Valid() {
+		return nil, fmt.Errorf("%w Sender amount currency is invalid.", payments.ErrInvalidAmount)
+	}
+	if !args.ReceiverAmount.IsEmpty() && !args.ReceiverAmount.Currency.Valid() {
+		return nil, fmt.Errorf("%w Receiver amount currency is invalid.", payments.ErrInvalidAmount)
+	}
+	if !args.Receiver.IsEmpty() && !args.Receiver.Type.Valid() {
+		return nil, fmt.Errorf("%w Receiver is invalid.", payments.ErrInvalidIdentifier)
 	}
 
-	if payment.SenderAccount == "" {
-		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
+	noop := true
+	receiver := payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}
+	if !args.Receiver.IsEmpty() && !args.Receiver.IsEqual(receiver) {
+		payment.ReceiverID = args.Receiver.Identifier
+		payment.ReceiverIDType = args.Receiver.Type
+		noop = false
 	}
 
-	if payment.Receiver.Identifier == "" || payment.Receiver.Type == payments.IdentityTypeUnknown {
-		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
+	receiveAmount := currency.FromUInt64(payment.ReceiverAmount, currency.Currency(payment.ReceiverCurrency))
+	if !args.ReceiverAmount.IsEmpty() && !args.ReceiverAmount.IsEqual(receiveAmount) {
+		payment.ReceiverAmount = args.ReceiverAmount.Value
+		payment.ReceiverCurrency = args.ReceiverAmount.Currency.String()
+		noop = false
+	}
+	if args.ReceiverAccount != "" && args.ReceiverAccount != payment.ReceiverAccount.String {
+		payment.ReceiverAccount.String = args.ReceiverAccount
+		payment.ReceiverAccount.Valid = true
+		noop = false
+	}
+	if args.SenderAccount != "" && args.SenderAccount != payment.SenderAccount.String {
+		payment.SenderAccount.String = args.SenderAccount
+		payment.SenderAccount.Valid = true
+		noop = false
 	}
 
-	if payment.SenderAmount.Value < 1 || !payment.SenderAmount.Currency.Valid() {
-		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAmount)
+	sendAmount := currency.FromUInt64(payment.SenderAmount, currency.Currency(payment.SenderCurrency))
+	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.IsEqual(sendAmount) {
+		payment.SenderAmount = args.SenderAmount.Value
+		payment.SenderCurrency = args.SenderAmount.Currency.String()
+		noop = false
+	}
+	if args.ThreeDSID != "" && args.ThreeDSID != payment.ThreeDSID.String {
+		payment.ThreeDSID.String = args.ThreeDSID
+		payment.ThreeDSID.Valid = true
+		noop = false
+	}
+	if noop {
+		return transformPayment(*payment), nil
 	}
 
-	if payment.ReceiverAmount.Value < 1 || !payment.ReceiverAmount.Currency.Valid() {
-		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
+	payment.UpdatedAt = time.Now()
+	stmt, values, err := db.NewUpdate("payments").ID(args.ID).
+		Value("sender_amount", payment.SenderAmount).
+		Value("sender_currency", payment.SenderCurrency).
+		Value("sender_account", payment.SenderAccount).
+		Value("receiver_id", payment.ReceiverID).
+		Value("receiver_id_type", payment.ReceiverIDType).
+		Value("receiver_amount", payment.ReceiverAmount).
+		Value("receiver_currency", payment.ReceiverCurrency).
+		Value("receiver_account", payment.ReceiverAccount).
+		Value("updated_at", payment.UpdatedAt).
+		Value("action_three_ds_id", payment.ThreeDSID).Returning(cols).GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	return requiredActions, nil
+	var ret dbPayment
+	err = b.DB().GetContext(ctx, &ret, stmt, values...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPayment(ret), nil
 }
-
-func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []payments.RequiredActionType, error) {
-	requiredActions, err := GetRequiredActions(ctx, b, id)
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(requiredActions) > 0 {
-		return nil, requiredActions, payments.ErrRequiredActions
-	}
-
-	err = SetState(ctx, b, id, payments.StateConfirmed)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	workflowOptions := temporal_client.StartWorkflowOptions{
-		ID:                       "payments_" + id,
-		TaskQueue:                "backend",
-		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
-		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
-	}
-
-	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, PaymentWorkflow, id)
-	if err != nil {
-		return nil, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	payment, err := Lookup(ctx, b, id)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return payment, nil, nil
-}
-

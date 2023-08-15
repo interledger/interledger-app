@@ -68,6 +68,16 @@ type Amount struct {
 	Scale    int      `validate:"omitempty,gt=0" json:"scale"`
 }
 
+// IsEqual returns true if the value and currency are the same
+func (a *Amount) IsEqual(amt Amount) bool {
+	return a.Value == amt.Value && a.Currency == amt.Currency
+}
+
+// IsEmpty returns true if the value is 0 and currency is an empty string
+func (a *Amount) IsEmpty() bool {
+	return a.Value == 0 && a.Currency.String() == ""
+}
+
 // FormatAmount returns the amount in the scale as representative of a human readable format.
 // i.e. Amount { value: 1000, scale: 2} returns "10.00"
 func (a *Amount) FormatAmount() string {

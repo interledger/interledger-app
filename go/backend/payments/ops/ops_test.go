@@ -160,6 +160,19 @@ func TestConfirm(t *testing.T) {
 			Type:       payments.IdentityTypeTwitter,
 			Identifier: "@willy_wonka",
 		},
+	})
+	require.NoError(t, err)
+	paymentID := p.ID
+
+	_, requiredActions, err := ops.Confirm(ctx, b, paymentID)
+	require.Error(t, err)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverAmount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
+
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID: paymentID,
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
 			Identifier: "https://fynbos.me/charlie",
@@ -170,6 +183,8 @@ func TestConfirm(t *testing.T) {
 		ReceiverAccount: uuid.NewString(),
 	})
 	require.NoError(t, err)
+	assert.Equal(t, payments.StateCreated, p.State)
+
 	b.Tp.EXPECT().ExecuteWorkflow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
 		func(ctx context.Context, wo temporal_client.StartWorkflowOptions, w interface{}, args ...interface{}) (temporal_client.WorkflowRun, error) {
 			assert.Len(t, args, 1)
@@ -178,8 +193,67 @@ func TestConfirm(t *testing.T) {
 		},
 	).Times(1)
 
-	p, requiredActions, err := ops.Confirm(ctx, b, p.ID)
+	p, requiredActions, err = ops.Confirm(ctx, b, paymentID)
 	require.NoError(t, err)
 	assert.Empty(t, requiredActions)
 	assert.Equal(t, payments.StateConfirmed, p.State)
+}
+
+func TestUpdate(t *testing.T) {
+	ctx := context.Background()
+	b := &ops.TestBackends{
+		DBC: db.MigrateTestDB(t, ctx),
+	}
+
+	senderAccount := uuid.NewString()
+	receiverAccount := uuid.NewString()
+	p, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeTwitter,
+			Identifier: "@willy_wonka",
+		},
+		SenderAmount:    currency.FromFloat64(51, currency.USD),
+		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
+		SenderAccount:   senderAccount,
+		ReceiverAccount: receiverAccount,
+	})
+	require.NoError(t, err)
+	paymentID := p.ID
+
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID: paymentID,
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://fynbos.me/charlie",
+		},
+	})
+	require.NoError(t, err)
+	assert.True(t, p.Receiver.IsEqual(payments.Identity{
+		Type:       payments.IdentityTypeWalletURL,
+		Identifier: "https://fynbos.me/charlie",
+	}))
+	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(51, currency.USD)))
+	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(50, currency.USD)))
+	assert.Equal(t, receiverAccount, p.ReceiverAccount)
+	assert.Equal(t, senderAccount, p.SenderAccount)
+
+	newSenderAccount := uuid.NewString()
+	newReceiverAccount := uuid.NewString()
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID:              paymentID,
+		SenderAmount:    currency.FromFloat64(53, currency.USD),
+		ReceiverAmount:  currency.FromFloat64(54, currency.USD),
+		SenderAccount:   newSenderAccount,
+		ReceiverAccount: newReceiverAccount,
+	})
+	require.NoError(t, err)
+
+	assert.True(t, p.Receiver.IsEqual(payments.Identity{
+		Type:       payments.IdentityTypeWalletURL,
+		Identifier: "https://fynbos.me/charlie",
+	}))
+	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(53, currency.USD)))
+	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(54, currency.USD)))
+	assert.Equal(t, newReceiverAccount, p.ReceiverAccount)
+	assert.Equal(t, newSenderAccount, p.SenderAccount)
 }

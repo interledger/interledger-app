@@ -57,3 +57,63 @@ func (b InsertBuilder) GetStatement() (string, []interface{}, error) {
 		returning,
 	), b.values, nil
 }
+
+type UpdateBuilder struct {
+	table     string
+	fields    []string
+	returning []string
+	values    []interface{}
+	id        string
+}
+
+func NewUpdate(table string) *UpdateBuilder {
+	return &UpdateBuilder{
+		table:  table,
+		fields: []string{},
+		values: []interface{}{},
+	}
+}
+
+func (b *UpdateBuilder) ID(id string) *UpdateBuilder {
+	b.id = id
+	return b
+}
+
+func (b *UpdateBuilder) Value(field string, value interface{}) *UpdateBuilder {
+	b.fields = append(b.fields, field)
+	b.values = append(b.values, value)
+
+	return b
+}
+
+func (b *UpdateBuilder) Returning(field string) *UpdateBuilder {
+	b.returning = append(b.returning, field)
+
+	return b
+}
+
+func (b UpdateBuilder) GetStatement() (string, []interface{}, error) {
+	if len(b.fields) != len(b.values) {
+		return "", nil, errors.New("update builder: do not have the same amount of insert fields and insert values.")
+	}
+
+	placeholders := make([]string, len(b.values))
+	var lastIndex int
+	for i := range b.values {
+		placeholders[i] = fmt.Sprintf("%s=$%d", b.fields[i], i+1)
+		lastIndex = i + 1
+	}
+
+	var returning string
+	if len(b.returning) > 0 {
+		returning = fmt.Sprintf("RETURNING %s", strings.Join(b.returning, ","))
+	}
+
+	return fmt.Sprintf(
+		"UPDATE %s SET %s WHERE id=$%d %s;",
+		b.table,
+		strings.Join(placeholders, ","),
+		lastIndex+1,
+		returning,
+	), append(b.values, b.id), nil
+}
