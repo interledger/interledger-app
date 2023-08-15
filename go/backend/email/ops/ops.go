@@ -212,17 +212,25 @@ func SendPaymentSentEmail(ctx context.Context, b Backends, walletID, trxID strin
 		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
 		return
 	}
+
+	table := []map[string]interface{}{
+		{"label": "Total amount", "text": op.SentAmount.Format(), "large": true},
+		{"label": "To", "text": op.ToPaymentPointer},
+	}
+
+	if op.Description != "" {
+		table = append(table, map[string]interface{}{"label": "Note", "text": op.Description})
+	}
+
+	table = append(table, map[string]interface{}{"label": "Date", "text": op.UpdatedAt.Format("02 Jan 2006")})
+
 	err = b.External().SendTemplate(ctx, "Payment sent", sendTo, oneTemplateID, map[string]interface{}{
 		"subject": "Payment sent",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
 			{"heading": "Your recent payment was successful"},
 			{
-				"table": []map[string]interface{}{
-					{"label": "Total amount", "text": op.SentAmount.Format(), "large": true},
-					{"label": "To", "text": op.ToPaymentPointer},
-					{"label": "Date", "text": op.UpdatedAt.Format("02 Jan 2006")},
-				},
+				"table": table,
 			},
 		},
 		"cta": map[string]interface{}{
@@ -286,17 +294,25 @@ func SendPaymentReceivedEmail(ctx context.Context, b Backends, walletID, trxID s
 		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
 		return
 	}
+
+	table := []map[string]interface{}{
+		{"label": "Total amount", "text": ip.ReceivedAmount.Format(), "large": true},
+		{"label": "From", "text": ip.FromPaymentPointer},
+	}
+
+	if ip.Description != "" {
+		table = append(table, map[string]interface{}{"label": "Note", "text": ip.Description})
+	}
+
+	table = append(table, map[string]interface{}{"label": "Date", "text": ip.UpdatedAt.Format("02 Jan 2006")})
+
 	err = b.External().SendTemplate(ctx, "Payment received", sendTo, oneTemplateID, map[string]interface{}{
 		"subject": "Payment received",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
 			{"heading": "You have received a payment"},
 			{
-				"table": []map[string]interface{}{
-					{"label": "Total amount", "text": ip.ReceivedAmount.Format(), "large": true},
-					{"label": "From", "text": ip.FromPaymentPointer},
-					{"label": "Date", "text": ip.UpdatedAt.Format("02 Jan 2006")},
-				},
+				"table": table,
 			},
 		},
 		"cta": map[string]interface{}{
