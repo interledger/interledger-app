@@ -74,13 +74,13 @@ func (dnsp *dnsPlatform) GenerateSignedClaim(ctx context.Context, args *SignedCl
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
 	}
 
-	pp, err := dnsp.b.OpenPayments().GetWalletPaymentPointer(ctx, args.WalletID)
+	wallet, err := dnsp.b.Wallets().Get(ctx, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	claim := identities.Claim{
-		Wallet:     pp.URL,
+		Wallet:     wallet.AddressString(),
 		Type:       "dns",
 		Identifier: args.Identifier,
 		Kid:        signingKey.ID,
