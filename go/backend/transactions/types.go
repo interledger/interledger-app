@@ -11,6 +11,8 @@ type TransactionType string
 const (
 	TransactionTypeOpenPaymentIncoming TransactionType = "open_payments_incoming"
 	TransactionTypeOpenOutgoingPayment TransactionType = "open_payments_outgoing"
+	TransactionTypeIncoming            TransactionType = "incoming"
+	TransactionTypeOutgoing            TransactionType = "outgoing"
 )
 
 type State string
@@ -25,8 +27,9 @@ const (
 type Provider string
 
 const (
-	ProviderOpenPayments Provider = "open_payments"
-	ProviderGMT          Provider = "gmt"
+	ProviderOpenPayments   Provider = "open_payments"
+	ProviderGMT            Provider = "gmt"
+	ProviderPaymentsEngine Provider = "payments_engine"
 )
 
 type TransferType string

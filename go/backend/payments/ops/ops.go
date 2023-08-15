@@ -142,3 +142,21 @@ func SetState(ctx context.Context, b Backends, id string, state payments.State) 
 
 	return nil
 }
+
+func setSendTransactionID(ctx context.Context, b Backends, paymentID, txID string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE payments SET send_transaction_id=$1 WHERE id=$2", txID, paymentID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func setReceiveTransactionID(ctx context.Context, b Backends, paymentID, txID string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE payments SET receive_transaction_id=$1 WHERE id=$2", txID, paymentID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return nil
+}
