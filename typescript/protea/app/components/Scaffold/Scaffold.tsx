@@ -24,6 +24,10 @@ import {
   SnackbarStage
 } from '~/components'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import {
+  ConnectDomainStep,
+  useConnectDomainStore
+} from '~/lib/useConnectDomainStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
@@ -96,6 +100,9 @@ export function Scaffold() {
     state.step,
     state.stepBack
   ])
+  const [connectDomainStep, connectDomainStepBack] = useConnectDomainStore(
+    (state) => [state.step, state.stepBack]
+  )
 
   const isUser = matches[0]?.data.isUser
   const isSignupGated = matches[0]?.data.isSignupGated
@@ -288,6 +295,11 @@ export function Scaffold() {
                       signupStepBack()
                       navigate(-1)
                     } else signupStepBack()
+                  } else if (scaffold.header.back === 'connect-domain') {
+                    if (connectDomainStep == ConnectDomainStep.LANDING) {
+                      connectDomainStepBack()
+                      navigate(-1)
+                    } else connectDomainStepBack()
                   } else navigate(-1)
                 }}
                 aria-label='Back'
