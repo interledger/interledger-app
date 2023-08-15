@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func PublishTwitterProofWorkflow(ctx workflow.Context, identityID string) error {
+func PublishTwitterProofWorkflow(ctx workflow.Context, identityID string) (string, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -20,14 +20,14 @@ func PublishTwitterProofWorkflow(ctx workflow.Context, identityID string) error 
 	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update identity state", "error", err)
-		return err
+		return "", err
 	}
 
 	var tweetUrl string
 	err = workflow.ExecuteActivity(ctx, a.PostProofTweet, identityID).Get(ctx, &tweetUrl)
 	if err != nil {
 		logger.Error("PostProofTweet activity failed", "error", err)
-		return err
+		return "", err
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.UpdateIdentityState, &UpdateStateArgs{
@@ -36,15 +36,15 @@ func PublishTwitterProofWorkflow(ctx workflow.Context, identityID string) error 
 	}).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to update identity state", "error", err)
-		return err
+		return "", err
 	}
 
 	// Kickoff verification workflow
 	err = workflow.ExecuteActivity(ctx, a.StartVerification, identityID, tweetUrl).Get(ctx, nil)
 	if err != nil {
 		logger.Error("failed to start verification workflow", "error", err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return tweetUrl, nil
 }

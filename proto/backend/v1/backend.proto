@@ -279,6 +279,7 @@ service BackendService {
   rpc SetIdentityPublic(SetIdentityPublicRequest) returns (Identity);
   rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
   rpc GetIdentityBySignatureHash(GetIdentityBySignatureHashRequest) returns (GetIdentityResponse);
+  rpc VerifyIdentity(VerifyIdentityRequest) returns (Empty);
 
   // KYC
   rpc KYCStatus(Empty) returns (KYCStatusResponse);
@@ -308,7 +309,9 @@ service BackendService {
   // Twitter
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
   rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
-  rpc VerifyTwitter(VerifyTwitterRequest) returns (Empty);
+
+  // DNS Identities
+  rpc CreateDNSIdentity(CreateDNSIdentityRequest) returns (CreateDNSIdentityResponse);
 
   // Payments
   rpc GetPaymentAddress(GetPaymentAddressRequest) returns (GetPaymentAddressResponse);
@@ -801,6 +804,7 @@ message Identity {
   bool public = 11;
   google.protobuf.Timestamp verified_at = 12;
   string wallet_id = 13;
+  optional string txt_record = 14;
 }
 
 message IdentityVerificationInstructions {
@@ -856,10 +860,6 @@ message GetIdentityResponse{
    Identity identity = 1;
 }
 
-message VerifyTwitterRequest {
-  string identity_id = 1;
-}
-
 message GetIdentityBySignatureHashRequest{
   string signature_hash = 1;
 }
@@ -873,4 +873,16 @@ message GetPaymentAddressResponse {
   string type = 2; // wallet, twitter
   string handle = 3; // url or twitter handle
   bool canSendToAddress = 4;
+}
+
+message CreateDNSIdentityRequest {
+  string url = 1;
+}
+
+message CreateDNSIdentityResponse {
+  string id = 1;
+}
+
+message VerifyIdentityRequest {
+  string id = 1;
 }

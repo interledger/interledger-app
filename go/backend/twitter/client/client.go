@@ -100,7 +100,7 @@ func (c *Client) PostTweet(ctx context.Context, id string, text string) (*twitte
 	return ops.PostTweet(ctx, c.b, id, text)
 }
 
-func (c *Client) PublishTweetProof(ctx context.Context, identityID string) error {
+func (c *Client) PublishTweetProof(ctx context.Context, identityID string) (string, error) {
 	return ops.PublishTweetProof(ctx, c.b, identityID)
 }
 

@@ -9,7 +9,7 @@ type Client interface {
 	CreateConnection(ctx context.Context, args *CreateConnectionArgs) (*Connection, error)
 	GetWalletConnections(ctx context.Context, id string) ([]Connection, error)
 	PostTweet(ctx context.Context, id string, text string) (*Tweet, error)
-	PublishTweetProof(ctx context.Context, identityID string) error
+	PublishTweetProof(ctx context.Context, identityID string) (string, error)
 	GetTweet(ctx context.Context, id string) (*Tweet, error)
 	// TODO check connection status/refresh
 }
