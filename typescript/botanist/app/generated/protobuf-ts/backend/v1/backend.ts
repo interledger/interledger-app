@@ -2106,6 +2106,10 @@ export interface Identity {
      * @generated from protobuf field: string wallet_id = 13;
      */
     walletId: string;
+    /**
+     * @generated from protobuf field: optional string txt_record = 14;
+     */
+    txtRecord?: string;
 }
 /**
  * @generated from protobuf message backend.v1.IdentityVerificationInstructions
@@ -2289,9 +2293,9 @@ export interface CreateDNSIdentityRequest {
  */
 export interface CreateDNSIdentityResponse {
     /**
-     * @generated from protobuf field: string txt_record = 1;
+     * @generated from protobuf field: string id = 1;
      */
-    txtRecord: string;
+    id: string;
 }
 /**
  * @generated from protobuf message backend.v1.VerifyIdentityRequest
@@ -9300,7 +9304,8 @@ class Identity$Type extends MessageType<Identity> {
             { no: 10, name: "ctime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 11, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 12, name: "verified_at", kind: "message", T: () => Timestamp },
-            { no: 13, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 13, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "txt_record", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Identity>): Identity {
@@ -9354,6 +9359,9 @@ class Identity$Type extends MessageType<Identity> {
                 case /* string wallet_id */ 13:
                     message.walletId = reader.string();
                     break;
+                case /* optional string txt_record */ 14:
+                    message.txtRecord = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -9405,6 +9413,9 @@ class Identity$Type extends MessageType<Identity> {
         /* string wallet_id = 13; */
         if (message.walletId !== "")
             writer.tag(13, WireType.LengthDelimited).string(message.walletId);
+        /* optional string txt_record = 14; */
+        if (message.txtRecord !== undefined)
+            writer.tag(14, WireType.LengthDelimited).string(message.txtRecord);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -10227,11 +10238,11 @@ export const CreateDNSIdentityRequest = new CreateDNSIdentityRequest$Type();
 class CreateDNSIdentityResponse$Type extends MessageType<CreateDNSIdentityResponse> {
     constructor() {
         super("backend.v1.CreateDNSIdentityResponse", [
-            { no: 1, name: "txt_record", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateDNSIdentityResponse>): CreateDNSIdentityResponse {
-        const message = { txtRecord: "" };
+        const message = { id: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateDNSIdentityResponse>(this, message, value);
@@ -10242,8 +10253,8 @@ class CreateDNSIdentityResponse$Type extends MessageType<CreateDNSIdentityRespon
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string txt_record */ 1:
-                    message.txtRecord = reader.string();
+                case /* string id */ 1:
+                    message.id = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -10257,9 +10268,9 @@ class CreateDNSIdentityResponse$Type extends MessageType<CreateDNSIdentityRespon
         return message;
     }
     internalBinaryWrite(message: CreateDNSIdentityResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string txt_record = 1; */
-        if (message.txtRecord !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.txtRecord);
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
