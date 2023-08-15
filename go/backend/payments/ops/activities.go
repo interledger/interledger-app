@@ -3,8 +3,11 @@ package ops
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -77,11 +80,35 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
-	senderWallet, err := a.b.Identities().GetByIdentifier(ctx, payment.Sender.Identifier)
+	senderWallet, err := lookupWallet(ctx, a.b, payment.Sender)
 	if err != nil {
 		return err
 	}
-	a.b.Email().SendPaymentFailedEmail(ctx, senderWallet.WalletID)
+	a.b.Email().SendPaymentFailedEmail(ctx, senderWallet.ID)
 
 	return nil
+}
+
+func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
+	var resp *wallets.Wallet
+	var err error
+	switch identity.Type {
+	case payments.IdentityTypeWalletID:
+		resp, err = b.Wallets().Get(ctx, identity.Identifier)
+	case payments.IdentityTypeWalletURL:
+		resp, err = b.Wallets().GetFromAddress(ctx, identity.Identifier)
+	case payments.IdentityTypeTwitter:
+		var id *identities.Identity
+		id, err = b.Identities().GetByIdentifier(ctx, identity.Identifier)
+		if err != nil {
+			return nil, err
+		}
+		if id.Platform != identities.PlatformTwitter {
+			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformTwitter, identity.Type)
+		}
+		resp, err = b.Wallets().Get(ctx, id.WalletID)
+	default:
+		return nil, fmt.Errorf("unknown identity type %s", identity.Type)
+	}
+	return resp, err
 }

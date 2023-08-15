@@ -3,6 +3,12 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/transactions"
+
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"gitlab.com/fynbos/backend/identities"
 
 	"gitlab.com/fynbos/backend/email"
@@ -27,6 +33,9 @@ type Backends interface {
 	Email() email.Client
 	Wallets() wallets.Client
 	Identities() identities.Client
+	LinkedAccounts() linkedaccounts.Client
+	Tabapay() tabapay.Client
+	Transactions() transactions.Client
 }
 
 type TestBackends struct {
@@ -38,6 +47,21 @@ type TestBackends struct {
 	Em  *email_mock.MockClient
 	wc  wallets.Client
 	Ic  *id_mock.MockClient
+}
+
+func (t TestBackends) Transactions() transactions.Client {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t TestBackends) Tabapay() tabapay.Client {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t TestBackends) LinkedAccounts() linkedaccounts.Client {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (t TestBackends) Identities() identities.Client {
