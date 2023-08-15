@@ -17,6 +17,7 @@ declare module "routes-gen" {
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
+    "/connect/domain": Record<string, never>;
     "/wallet-address": Record<string, never>;
     "/connect/bank": Record<string, never>;
     "/connect/card": Record<string, never>;
@@ -72,6 +73,7 @@ declare module "routes-gen" {
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/personal-details"]
+      | ["/connect/domain"]
       | ["/wallet-address"]
       | ["/connect/bank"]
       | ["/connect/card"]
