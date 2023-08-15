@@ -5,6 +5,7 @@ import (
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	openpayments_workflows "gitlab.com/fynbos/backend/openpayments/workflows"
+	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
@@ -53,6 +54,13 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
 	w.RegisterWorkflow(jobs.MigrateOpenPaymentsObjects)
 	w.RegisterWorkflow(jobs.ClearOrphanedGMTTransactions)
+
+	// Payment Engine
+	w.RegisterActivity(payments_workflows.NewActivity(b))
+	w.RegisterActivity(payments_workflows.RollbackPayInWorkflow)
+	w.RegisterActivity(payments_workflows.PayinWorkflow)
+	w.RegisterActivity(payments_workflows.PayoutWorkflow)
+	w.RegisterActivity(payments_workflows.PaymentWorkflow)
 
 	return w, nil
 }
