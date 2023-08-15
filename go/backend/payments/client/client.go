@@ -26,7 +26,6 @@ func (c client) Update(ctx context.Context, payment payments.Payment) (*payments
 	panic("implement me")
 }
 
-func (c client) Confirm(ctx context.Context, id string) (*payments.Payment, error) {
-	//TODO implement me
-	panic("implement me")
+func (c client) Confirm(ctx context.Context, id string) (*payments.Payment, []payments.RequiredActionType, error) {
+	return ops.Confirm(ctx, c.b, id)
 }
