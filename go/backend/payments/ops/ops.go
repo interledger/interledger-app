@@ -13,6 +13,8 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
+	"go.temporal.io/api/enums/v1"
+	temporal_client "go.temporal.io/sdk/client"
 )
 
 const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, note, created_at, updated_at`
@@ -163,3 +165,137 @@ func setReceiveTransactionID(ctx context.Context, b Backends, paymentID, txID st
 
 	return nil
 }
+
+/*
+	This checks that the payment has the following:
+
+1) Sender and send account
+2) Receiver identifier
+3) Send amount
+4) Receive amount
+*/
+func GetRequiredActions(ctx context.Context, b Backends, id string) ([]payments.RequiredActionType, error) {
+	payment, err := Lookup(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var requiredActions []payments.RequiredActionType
+	if payment.PublicID == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionTypePublicID)
+	}
+
+	if payment.Sender.Identifier == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderIdentifier)
+	}
+
+	if payment.SenderAccount == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
+	}
+
+	if payment.Receiver.Identifier == "" || payment.Receiver.Type == payments.IdentityTypeUnknown {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
+	}
+
+	if payment.SenderAmount.Value < 1 || !payment.SenderAmount.Currency.Valid() {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAmount)
+	}
+
+	if payment.ReceiverAmount.Value < 1 || !payment.ReceiverAmount.Currency.Valid() {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
+	}
+
+	return requiredActions, nil
+}
+
+func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []payments.RequiredActionType, error) {
+	requiredActions, err := GetRequiredActions(ctx, b, id)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(requiredActions) > 0 {
+		return nil, requiredActions, payments.ErrRequiredActions
+	}
+
+	err = SetState(ctx, b, id, payments.StateConfirmed)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	workflowOptions := temporal_client.StartWorkflowOptions{
+		ID:                       "payments_" + id,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, PaymentWorkflow, id)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	payment, err := Lookup(ctx, b, id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return payment, nil, nil
+}
+
+	if payment.Sender.Identifier == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderIdentifier)
+	}
+
+	if payment.SenderAccount == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
+	}
+
+	if payment.Receiver.Identifier == "" || payment.Receiver.Type == payments.IdentityTypeUnknown {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
+	}
+
+	if payment.SenderAmount.Value < 1 || !payment.SenderAmount.Currency.Valid() {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAmount)
+	}
+
+	if payment.ReceiverAmount.Value < 1 || !payment.ReceiverAmount.Currency.Valid() {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
+	}
+
+	return requiredActions, nil
+}
+
+func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []payments.RequiredActionType, error) {
+	requiredActions, err := GetRequiredActions(ctx, b, id)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(requiredActions) > 0 {
+		return nil, requiredActions, payments.ErrRequiredActions
+	}
+
+	err = SetState(ctx, b, id, payments.StateConfirmed)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	workflowOptions := temporal_client.StartWorkflowOptions{
+		ID:                       "payments_" + id,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+	}
+
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, PaymentWorkflow, id)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	payment, err := Lookup(ctx, b, id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return payment, nil, nil
+}
+

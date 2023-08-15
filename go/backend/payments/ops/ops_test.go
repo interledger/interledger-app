@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,6 +13,8 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
+	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
+	temporal_client "go.temporal.io/sdk/client"
 )
 
 func TestCreate(t *testing.T) {
@@ -117,4 +120,66 @@ func TestSetState(t *testing.T) {
 
 	assert.ErrorIs(t, ops.SetState(ctx, b, p.ID, payments.StateCompleted), payments.ErrInvalidStateTransition)
 	assert.NoError(t, ops.SetState(ctx, b, p.ID, payments.StateConfirmed))
+}
+
+func TestGetRequiredActions(t *testing.T) {
+	ctx := context.Background()
+	b := ops.NewTestBackends(t, func(b *ops.TestBackends) {
+		b.DBC = db.MigrateTestDB(t, ctx)
+	})
+
+	p, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeTwitter,
+			Identifier: "@willy_wonka",
+		},
+	})
+	require.NoError(t, err)
+
+	requiredActions, err := ops.GetRequiredActions(ctx, b, p.ID)
+	require.NoError(t, err)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverAmount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
+}
+
+func TestConfirm(t *testing.T) {
+	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
+	b := &ops.TestBackends{
+		DBC: db.MigrateTestDB(t, ctx),
+		Tp:  temporal_mock.NewMockClient(ctrl),
+	}
+
+	p, err := ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeTwitter,
+			Identifier: "@willy_wonka",
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://fynbos.me/charlie",
+		},
+		SenderAmount:    currency.FromFloat64(51, currency.USD),
+		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
+		SenderAccount:   uuid.NewString(),
+		ReceiverAccount: uuid.NewString(),
+	})
+	require.NoError(t, err)
+	b.Tp.EXPECT().ExecuteWorkflow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, wo temporal_client.StartWorkflowOptions, w interface{}, args ...interface{}) (temporal_client.WorkflowRun, error) {
+			assert.Len(t, args, 1)
+			assert.Equal(t, p.ID, args[0])
+			return nil, nil
+		},
+	).Times(1)
+
+	p, requiredActions, err := ops.Confirm(ctx, b, p.ID)
+	require.NoError(t, err)
+	assert.Empty(t, requiredActions)
+	assert.Equal(t, payments.StateConfirmed, p.State)
 }

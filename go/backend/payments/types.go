@@ -37,8 +37,14 @@ type Payment struct {
 type RequiredActionType int
 
 const (
-	RequiredActionTypeUnknown RequiredActionType = 0
-	RequiredActionTypeThreeDS RequiredActionType = 1
+	RequiredActionTypeUnknown            RequiredActionType = 0
+	RequiredActionTypeThreeDS            RequiredActionType = 1
+	RequiredActionTypeSenderIdentifier   RequiredActionType = 2
+	RequiredActionTypeSenderAccount      RequiredActionType = 3
+	RequiredActionTypeReceiverIdentifier RequiredActionType = 4
+	RequiredActionTypeSenderAmount       RequiredActionType = 5
+	RequiredActionTypeReceiverAmount     RequiredActionType = 6
+	RequiredActionTypePublicID           RequiredActionType = 7
 )
 
 //go:generate stringer -type=IdentityType -trimprefix=IdentityType

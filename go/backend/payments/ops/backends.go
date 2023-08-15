@@ -12,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	"gitlab.com/fynbos/backend/identities"
+	temporal "go.temporal.io/sdk/client"
 
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
@@ -21,7 +22,7 @@ import (
 
 	"gitlab.com/fynbos/backend/user"
 
-	temporal "go.temporal.io/sdk/client"
+	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -43,7 +44,7 @@ type Backends interface {
 type TestBackends struct {
 	DBC *sqlx.DB
 	val *validator.Validate
-	tp  temporal.Client
+	Tp  *temporal_mock.MockClient
 	uc  user.Client
 	nc  notify.Client
 	Em  *email_mock.MockClient
@@ -83,7 +84,7 @@ func (t TestBackends) DB() *sqlx.DB {
 }
 
 func (t TestBackends) Temporal() temporal.Client {
-	return t.tp
+	return t.Tp
 }
 
 func (t TestBackends) Notify() notify.Client {
