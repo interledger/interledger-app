@@ -1,6 +1,8 @@
+import type { PartialMessage } from '@bufbuild/protobuf'
 import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
+import type { ListContactsRequest } from '~/generated/connect/backend/v1/backend_pb'
 import type {
   Amount,
   CreateCardRequest,
@@ -10,13 +12,13 @@ import type {
   IndividualKYCResponse,
   KYCStatusResponse,
   LinkedAccount,
-  ListContactsRequest,
   ListContactsResponse,
   ListTransactionsResponse,
   PaginationRequest,
   PublicWalletInfo,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import { grpcConnectClient } from '~/lib/connect.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -328,20 +330,22 @@ type getWalletContactsResponse = {
 
 export async function getWalletContacts(
   request: Request,
-  input: ListContactsRequest
+  input: PartialMessage<ListContactsRequest>
 ): Promise<getWalletContactsResponse> {
   const cookie = String(request.headers.get('cookie'))
-  return grpcClient
+  console.log('cookie', cookie)
+  return await grpcConnectClient
     .listContacts(input, {
-      meta: {
-        cookies: cookie || ''
+      headers: {
+        Cookie: cookie || ''
       }
     })
     .then((response) => ({
-      nextPageToken: response.response.nextPageToken,
-      contacts: response.response.contacts
+      nextPageToken: response.nextPageToken,
+      contacts: response.contacts
     }))
     .catch((error) => {
+      console.log('grpc error', error)
       const status = StatusError(error)
       if (isGrpcError(status)) {
         throw json({}, httpMapping(status.code))

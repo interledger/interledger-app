@@ -7,6 +7,15 @@ dependencies:
   '@basis-theory/basis-theory-react':
     specifier: ^1.11.0
     version: 1.11.0(react-dom@18.2.0)(react@18.2.0)
+  '@bufbuild/connect':
+    specifier: ^0.12.0
+    version: 0.12.0(@bufbuild/protobuf@1.3.0)
+  '@bufbuild/connect-web':
+    specifier: ^0.12.0
+    version: 0.12.0(@bufbuild/protobuf@1.3.0)
+  '@bufbuild/protobuf':
+    specifier: ^1.3.0
+    version: 1.3.0
   '@googlemaps/google-maps-services-js':
     specifier: ^3.3.30
     version: 3.3.30
@@ -99,6 +108,9 @@ dependencies:
     version: 4.3.9(react@18.2.0)
 
 devDependencies:
+  '@bufbuild/buf':
+    specifier: ^1.26.1
+    version: 1.26.1
   '@graphql-codegen/cli':
     specifier: ^3.3.1
     version: 3.3.1(@babel/core@7.21.8)(@types/node@20.1.7)(graphql@16.6.0)
@@ -1762,6 +1774,95 @@ packages:
   /@bcoe/v8-coverage@0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
+
+  /@bufbuild/buf-darwin-arm64@1.26.1:
+    resolution: {integrity: sha512-nmyWiT/59RFja0ZuXFxjNGoAMDPTApU66CZUUevkFVWbNB9nzeQDjx2vsJyACY64k5fTgZiaelSiyppwObQknw==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@bufbuild/buf-darwin-x64@1.26.1:
+    resolution: {integrity: sha512-jl5WmUv30OW8JiRLid9+mVx1XVH0XttpUfkQfmqDFdUHGfdy4XWYK8kr84YyWu0SiMTIt1mPXkqG5UM3x+tdIQ==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@bufbuild/buf-linux-aarch64@1.26.1:
+    resolution: {integrity: sha512-EedR2KDW/yDIxQKWuq1Y/g7IuwTgvelqylGVO7muMxt2JWShobyUaU6GIU8JB4yhIbqRQYCL2KqBsvDJbJtCUw==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@bufbuild/buf-linux-x64@1.26.1:
+    resolution: {integrity: sha512-5iFL+MmWqR4cBLVNpgsjRecdHgcTxFaIkVYlQV9q8acbaJn5rgOIjUr1tzcBao9YsL3rdBhHvKkgnQ9gi1IiTw==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@bufbuild/buf-win32-arm64@1.26.1:
+    resolution: {integrity: sha512-/ayymSD12gBetN98ErkH0CBGRLTmtYAp4fmbPuvq8zuJcL0eiAnK6d7ZFjTc+vDMuKY/aelQN7dj9WhzdYAQSQ==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@bufbuild/buf-win32-x64@1.26.1:
+    resolution: {integrity: sha512-k9Dy3Z9P96wYR43lUhUo0jbjMSo001+MRBlsadEYiw85POqx6RWVaGyHLrxC2Ly7g+aGMisey050OjqfCWtKTA==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@bufbuild/buf@1.26.1:
+    resolution: {integrity: sha512-NyYx4T//3ndtFYV3BfqX9Xrm1NZEx3eChXniAKc/osCVViFooC5nuLQUbyqglMonH0w39RohiURMXN+e/oEB4g==}
+    engines: {node: '>=12'}
+    hasBin: true
+    requiresBuild: true
+    optionalDependencies:
+      '@bufbuild/buf-darwin-arm64': 1.26.1
+      '@bufbuild/buf-darwin-x64': 1.26.1
+      '@bufbuild/buf-linux-aarch64': 1.26.1
+      '@bufbuild/buf-linux-x64': 1.26.1
+      '@bufbuild/buf-win32-arm64': 1.26.1
+      '@bufbuild/buf-win32-x64': 1.26.1
+    dev: true
+
+  /@bufbuild/connect-web@0.12.0(@bufbuild/protobuf@1.3.0):
+    resolution: {integrity: sha512-bw5E6aIs0q3ab5oyIB263ShRg8DhUMsewMHsl/9lUxJFkmzxvHoPIlNFrSWOUUcyudJrahfhDveXF94bi9C5cA==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.2.1
+    dependencies:
+      '@bufbuild/connect': 0.12.0(@bufbuild/protobuf@1.3.0)
+      '@bufbuild/protobuf': 1.3.0
+    dev: false
+
+  /@bufbuild/connect@0.12.0(@bufbuild/protobuf@1.3.0):
+    resolution: {integrity: sha512-rYn3Akp7teOkvqxguLbf6QKizH37Yeo33lseV+JHDZC19CsAV9wrrZM17Sa+LNEBj/hrYtQF7EIcllgGxhv9aw==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.2.1
+    dependencies:
+      '@bufbuild/protobuf': 1.3.0
+    dev: false
+
+  /@bufbuild/protobuf@1.3.0:
+    resolution: {integrity: sha512-G372ods0pLt46yxVRsnP/e2btVPuuzArcMPFpIDeIwiGPuuglEs9y75iG0HMvZgncsj5TvbYRWqbVyOe3PLCWQ==}
+    dev: false
 
   /@colors/colors@1.5.0:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
