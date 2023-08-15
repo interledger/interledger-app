@@ -95,7 +95,22 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 	return transformPayment(*dbp), nil
 }
 
+// The `Sender` is the minimum required information to create a payment. If the specified identity
+// is not of type WalletID, then the walletID will be looked up and used as the `Sender`.
 func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
+	// convert sender identity to walletID
+	if p.Sender.IsEmpty() || !p.Sender.Type.Valid() {
+		return nil, fmt.Errorf("%w Sender is invalid.", payments.ErrInvalidIdentifier)
+	}
+
+	senderID := p.Sender.Identifier
+	if p.Sender.Type != payments.IdentityTypeWalletID {
+		id, err := b.Identities().GetByIdentifier(ctx, p.Sender.Identifier)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
+		senderID = id.WalletID
+	}
 
 	// TODO Calculate more actions required
 	id := uuid.NewString()
@@ -103,8 +118,8 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("id", id).
 		Value("public_id", "fynbos_"+strconv.Itoa(rand.Int())). // TODO: Generate "pretty" soft id for display
 		Value("state", payments.StateCreated).
-		Value("sender_id", p.Sender.Identifier).
-		Value("sender_id_type", p.Sender.Type).
+		Value("sender_id", senderID).
+		Value("sender_id_type", payments.IdentityTypeWalletID).
 		Value("sender_amount", p.SenderAmount.Value).
 		Value("sender_currency", p.SenderAmount.Currency).
 		Value("sender_account", sql.NullString{String: p.SenderAccount, Valid: p.SenderAccount != ""}).
