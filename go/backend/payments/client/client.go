@@ -21,9 +21,8 @@ func (c client) Create(ctx context.Context, args payments.CreateArgs) (*payments
 	return ops.Create(ctx, c.b, args)
 }
 
-func (c client) Update(ctx context.Context, payment payments.Payment) (*payments.Payment, error) {
-	//TODO implement me
-	panic("implement me")
+func (c client) Update(ctx context.Context, args payments.UpdateArgs) (*payments.Payment, error) {
+	return ops.Update(ctx, c.b, args)
 }
 
 func (c client) Confirm(ctx context.Context, id string) (*payments.Payment, []payments.RequiredActionType, error) {

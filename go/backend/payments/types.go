@@ -15,6 +15,16 @@ type CreateArgs struct {
 	ReceiverAccount string
 }
 
+type UpdateArgs struct {
+	ID              string
+	Receiver        Identity
+	ReceiverAmount  currency.Amount
+	ReceiverAccount string
+	SenderAccount   string
+	SenderAmount    currency.Amount
+	ThreeDSID       string
+}
+
 type Payment struct {
 	ID                   string
 	PublicID             string
@@ -63,6 +73,14 @@ func (i IdentityType) Valid() bool {
 type Identity struct {
 	Type       IdentityType
 	Identifier string
+}
+
+func (i *Identity) IsEmpty() bool {
+	return i.Identifier == "" && i.Type == IdentityTypeUnknown
+}
+
+func (i *Identity) IsEqual(id Identity) bool {
+	return i.Identifier == id.Identifier && i.Type == id.Type
 }
 
 //go:generate stringer -type=State -trimprefix=State
