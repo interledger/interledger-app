@@ -298,7 +298,7 @@ export function Amount() {
         />
         <TextField
           id='note'
-          label='Reference'
+          label='Note'
           name='note'
           type='text'
           defaultValue={note}
