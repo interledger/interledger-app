@@ -804,6 +804,7 @@ message Identity {
   bool public = 11;
   google.protobuf.Timestamp verified_at = 12;
   string wallet_id = 13;
+  optional string txt_record = 14;
 }
 
 message IdentityVerificationInstructions {
@@ -879,7 +880,7 @@ message CreateDNSIdentityRequest {
 }
 
 message CreateDNSIdentityResponse {
-  string txt_record = 1;
+  string id = 1;
 }
 
 message VerifyIdentityRequest {

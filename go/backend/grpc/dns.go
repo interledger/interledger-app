@@ -2,9 +2,7 @@ package grpc
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
-	"fmt"
 	"github.com/go-playground/validator/v10"
 	"gitlab.com/fynbos/backend/identities"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -21,14 +19,14 @@ func (s *rpcService) CreateDNSIdentity(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := s.b.Users().WalletForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	domain, err := getDomain(s.b.Validator(), request.Url)
 	if err != nil {
-		return nil, toGRPCError(err)
+		return nil, err
 	}
 
 	identity, err := s.b.Identities().Add(ctx, identities.AddArgs{
@@ -43,11 +41,8 @@ func (s *rpcService) CreateDNSIdentity(
 		return nil, toGRPCError(err)
 	}
 
-	sighash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
-	txtRecordPrefix := "_fynbos"
-
 	return &backendv1.CreateDNSIdentityResponse{
-		TxtRecord: fmt.Sprintf("%s.%s=%s", txtRecordPrefix, identity.Identifier, sighash),
+		Id: identity.ID,
 	}, nil
 }
 

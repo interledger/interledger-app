@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 
 	"gitlab.com/fynbos/backend/identities"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -157,7 +158,7 @@ func (s *rpcService) VerifyIdentity(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	_, err = s.b.Users().WalletForContext(ctx)
+	_, err = s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -174,6 +175,11 @@ func identityToPB(identity *identities.Identity, walletURL string) *pb.Identity 
 	base64Signature := base64.URLEncoding.EncodeToString(identity.Signature)
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
 
+	var TxtRecord string
+	if identity.Platform == identities.PlatformDNS {
+		TxtRecord = fmt.Sprintf("_fynbos.%s=%s", identity.Identifier, base64SignatureHash)
+	}
+
 	return &pb.Identity{
 		Id:            identity.ID,
 		Wallet:        walletURL,
@@ -188,5 +194,6 @@ func identityToPB(identity *identities.Identity, walletURL string) *pb.Identity 
 		VerifiedAt:    timestamppb.New(identity.VerifiedAt.Time),
 		Public:        identity.Public,
 		WalletId:      identity.WalletID,
+		TxtRecord:     &TxtRecord,
 	}
 }
