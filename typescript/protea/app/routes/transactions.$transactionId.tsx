@@ -285,7 +285,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </div>
           {transaction.reference && (
             <div className='mt-4 flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Reference</span>
+              <span className='text-weak'>Note</span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
           )}
@@ -335,7 +335,7 @@ function Incoming({ openDialog }: { openDialog: () => void }) {
           </div>
           {transaction.reference && (
             <div className='mt-4 flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Their reference</span>
+              <span className='text-weak'>Note</span>
               <span className='text-medium'>{transaction.reference}</span>
             </div>
           )}
