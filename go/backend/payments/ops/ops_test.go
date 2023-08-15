@@ -11,6 +11,8 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/identities"
+	identity_mock "gitlab.com/fynbos/backend/identities/client/mock"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
@@ -19,10 +21,16 @@ import (
 
 func TestCreate(t *testing.T) {
 	ctx := context.Background()
-
-	b := ops.NewTestBackends(t, func(b *ops.TestBackends) {
-		b.DBC = db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
 	})
+	b := &ops.TestBackends{
+		DBC: db.MigrateTestDB(t, ctx),
+		Ic:  identity_mock.NewMockClient(ctrl),
+	}
+	walletID := uuid.NewString()
+	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
 
 	cases := []struct {
 		name    string
@@ -77,8 +85,8 @@ func TestCreate(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.args.Sender.Type, p.Sender.Type)
-			assert.Equal(t, tc.args.Sender.Identifier, p.Sender.Identifier)
+			assert.Equal(t, payments.IdentityTypeWalletID, p.Sender.Type)
+			assert.Equal(t, walletID, p.Sender.Identifier)
 			assert.Equal(t, tc.args.Receiver.Type, p.Receiver.Type)
 			assert.Equal(t, tc.args.Receiver.Identifier, p.Receiver.Identifier)
 			assert.Equal(t, tc.args.SenderAccount, p.SenderAccount)
@@ -102,8 +110,8 @@ func TestSetState(t *testing.T) {
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
-			Type:       payments.IdentityTypeTwitter,
-			Identifier: "@willy_wonka",
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: uuid.NewString(),
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
@@ -128,8 +136,8 @@ func TestGetRequiredActions(t *testing.T) {
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
-			Type:       payments.IdentityTypeTwitter,
-			Identifier: "@willy_wonka",
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: uuid.NewString(),
 		},
 	})
 	require.NoError(t, err)
@@ -155,8 +163,8 @@ func TestConfirm(t *testing.T) {
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
-			Type:       payments.IdentityTypeTwitter,
-			Identifier: "@willy_wonka",
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: uuid.NewString(),
 		},
 	})
 	require.NoError(t, err)
@@ -207,8 +215,8 @@ func TestUpdate(t *testing.T) {
 	receiverAccount := uuid.NewString()
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
-			Type:       payments.IdentityTypeTwitter,
-			Identifier: "@willy_wonka",
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: uuid.NewString(),
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),

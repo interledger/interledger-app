@@ -37,8 +37,8 @@ func TestSetPaymentState(t *testing.T) {
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
-			Type:       payments.IdentityTypeTwitter,
-			Identifier: "@willy_wonka",
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: uuid.NewString(),
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
