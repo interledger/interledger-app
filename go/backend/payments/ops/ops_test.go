@@ -141,6 +141,7 @@ func TestGetRequiredActions(t *testing.T) {
 			Type:       payments.IdentityTypeWalletID,
 			Identifier: uuid.NewString(),
 		},
+		RequiresOTP: true,
 	})
 	require.NoError(t, err)
 
@@ -150,6 +151,8 @@ func TestGetRequiredActions(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
+	assert.Contains(t, requiredActions, payments.RequiredActionType3DS)
 }
 
 func TestConfirm(t *testing.T) {
@@ -168,6 +171,7 @@ func TestConfirm(t *testing.T) {
 			Type:       payments.IdentityTypeWalletID,
 			Identifier: uuid.NewString(),
 		},
+		RequiresOTP: true,
 	})
 	require.NoError(t, err)
 	paymentID := p.ID
@@ -178,6 +182,8 @@ func TestConfirm(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
+	assert.Contains(t, requiredActions, payments.RequiredActionType3DS)
 
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
 		ID: paymentID,
@@ -189,6 +195,8 @@ func TestConfirm(t *testing.T) {
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
 		SenderAccount:   uuid.NewString(),
 		ReceiverAccount: uuid.NewString(),
+		OTP:             "123",
+		ThreeDSID:       "123",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, payments.StateCreated, p.State)
