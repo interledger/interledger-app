@@ -105,13 +105,9 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w Sender is invalid.", payments.ErrInvalidIdentifier)
 	}
 
-	senderID := p.Sender.Identifier
-	if p.Sender.Type != payments.IdentityTypeWalletID {
-		id, err := b.Identities().GetByIdentifier(ctx, p.Sender.Identifier)
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-		}
-		senderID = id.WalletID
+	senderWallet, err := lookupWallet(ctx, b, p.Sender)
+	if err != nil {
+		return nil, err
 	}
 
 	// TODO Calculate more actions required
@@ -120,7 +116,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("id", id).
 		Value("public_id", "fynbos_"+strconv.Itoa(rand.Int())). // TODO: Generate "pretty" soft id for display
 		Value("state", payments.StateCreated).
-		Value("sender_id", senderID).
+		Value("sender_id", senderWallet.ID).
 		Value("sender_id_type", payments.IdentityTypeWalletID).
 		Value("sender_amount", p.SenderAmount.Value).
 		Value("sender_currency", p.SenderAmount.Currency).
