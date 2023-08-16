@@ -17,7 +17,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, note, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, created_at, updated_at`
 
 type dbPayment struct {
 	ID                   string                `db:"id"`
@@ -38,6 +38,8 @@ type dbPayment struct {
 	SendTransactionID    sql.NullString        `db:"send_transaction_id"`
 	ReceiveTransactionID sql.NullString        `db:"receive_transaction_id"`
 	Note                 sql.NullString        `db:"note"`
+	OTPRequired          bool                  `db:"action_otp_required"`
+	OTP                  sql.NullString        `db:"action_otp"`
 	CreatedAt            time.Time             `db:"created_at"`
 	UpdatedAt            time.Time             `db:"updated_at"`
 }
@@ -130,6 +132,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_account", sql.NullString{String: p.ReceiverAccount, Valid: p.ReceiverAccount != ""}).
 		Value("action_three_ds_required", true).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
+		Value("action_otp_required", p.RequiresOTP).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -188,36 +191,42 @@ func setReceiveTransactionID(ctx context.Context, b Backends, paymentID, txID st
 2) Receiver identifier
 3) Send amount
 4) Receive amount
+5) 3DSID
+4) OTP if required
 */
 func GetRequiredActions(ctx context.Context, b Backends, id string) ([]payments.RequiredActionType, error) {
-	payment, err := Lookup(ctx, b, id)
+	payment, err := getPayment(ctx, b, id)
 	if err != nil {
 		return nil, err
 	}
 
 	var requiredActions []payments.RequiredActionType
-	if payment.PublicID == "" {
-		requiredActions = append(requiredActions, payments.RequiredActionTypePublicID)
-	}
-
-	if payment.Sender.Identifier == "" {
+	if payment.SenderID == "" {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderIdentifier)
 	}
 
-	if payment.SenderAccount == "" {
+	if payment.SenderAccount.String == "" {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
 	}
 
-	if payment.Receiver.Identifier == "" || payment.Receiver.Type == payments.IdentityTypeUnknown {
+	if payment.ReceiverID == "" || payment.ReceiverIDType == payments.IdentityTypeUnknown {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	}
 
-	if payment.SenderAmount.Value < 1 || !payment.SenderAmount.Currency.Valid() {
+	if payment.SenderAmount < 1 || !currency.ParseCurrency(payment.SenderCurrency).Valid() {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAmount)
 	}
 
-	if payment.ReceiverAmount.Value < 1 || !payment.ReceiverAmount.Currency.Valid() {
+	if payment.ReceiverAmount < 1 || !currency.ParseCurrency(payment.ReceiverCurrency).Valid() {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
+	}
+
+	if payment.OTPRequired && payment.OTP.String == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeOTP)
+	}
+
+	if payment.ThreeDSRequired && payment.ThreeDSID.String == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionType3DS)
 	}
 
 	return requiredActions, nil
@@ -308,6 +317,11 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		payment.ThreeDSID.Valid = true
 		noop = false
 	}
+	if args.OTP != "" && args.OTP != payment.OTP.String {
+		payment.OTP.String = args.OTP
+		payment.OTP.Valid = true
+		noop = false
+	}
 	if noop {
 		return transformPayment(*payment), nil
 	}
@@ -323,7 +337,8 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		Value("receiver_currency", payment.ReceiverCurrency).
 		Value("receiver_account", payment.ReceiverAccount).
 		Value("updated_at", payment.UpdatedAt).
-		Value("action_three_ds_id", payment.ThreeDSID).Returning(cols).GetStatement()
+		Value("action_three_ds_id", payment.ThreeDSID).
+		Value("action_otp", payment.OTP).Returning(cols).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}

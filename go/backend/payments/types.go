@@ -14,6 +14,7 @@ type CreateArgs struct {
 	ReceiverAmount  currency.Amount
 	ReceiverAccount string
 	Note            string
+	RequiresOTP     bool
 }
 
 type UpdateArgs struct {
@@ -24,6 +25,7 @@ type UpdateArgs struct {
 	SenderAccount   string
 	SenderAmount    currency.Amount
 	ThreeDSID       string
+	OTP             string
 }
 
 type Payment struct {
@@ -54,7 +56,8 @@ const (
 	RequiredActionTypeReceiverIdentifier RequiredActionType = 4
 	RequiredActionTypeSenderAmount       RequiredActionType = 5
 	RequiredActionTypeReceiverAmount     RequiredActionType = 6
-	RequiredActionTypePublicID           RequiredActionType = 7
+	RequiredActionTypeOTP                RequiredActionType = 7
+	RequiredActionType3DS                RequiredActionType = 8
 )
 
 //go:generate stringer -type=IdentityType -trimprefix=IdentityType

@@ -2059,6 +2059,15 @@ table "payments" {
     null = true
     type = text
   }
+  column "action_otp_required" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "action_otp" {
+    null = true
+    type = text
+  }
   column "created_at" {
     null    = false
     type    = timestamp
