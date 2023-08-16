@@ -13,6 +13,7 @@ type CreateArgs struct {
 	SenderAccount   string
 	ReceiverAmount  currency.Amount
 	ReceiverAccount string
+	Note            string
 }
 
 type Payment struct {
@@ -28,6 +29,7 @@ type Payment struct {
 	SendTransactionID    string
 	ReceiveTransactionID string
 	RequiredActions      []RequiredActionType
+	Note                 string
 	UpdatedAt            time.Time
 }
 
