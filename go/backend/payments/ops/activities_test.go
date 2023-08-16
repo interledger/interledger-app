@@ -45,7 +45,7 @@ func TestSetPaymentState(t *testing.T) {
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
-			Identifier: uuid.NewString(),
+			Identifier: walletID,
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,

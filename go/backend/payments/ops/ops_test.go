@@ -16,6 +16,8 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	temporal_client "go.temporal.io/sdk/client"
 )
 
@@ -28,10 +30,11 @@ func TestCreate(t *testing.T) {
 	b := &ops.TestBackends{
 		DBC: db.MigrateTestDB(t, ctx),
 		Ic:  identity_mock.NewMockClient(ctrl),
+		Wc:  wallets_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
-
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	cases := []struct {
 		name    string
 		args    payments.CreateArgs
@@ -105,15 +108,23 @@ func TestCreate(t *testing.T) {
 
 func TestSetState(t *testing.T) {
 	ctx := context.Background()
-
-	b := ops.NewTestBackends(t, func(b *ops.TestBackends) {
-		b.DBC = db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
 	})
+	b := &ops.TestBackends{
+		DBC: db.MigrateTestDB(t, ctx),
+		Ic:  identity_mock.NewMockClient(ctrl),
+		Wc:  wallets_mock.NewMockClient(ctrl),
+	}
+	walletID := uuid.NewString()
+	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
-			Identifier: uuid.NewString(),
+			Identifier: walletID,
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletURL,
@@ -132,14 +143,21 @@ func TestSetState(t *testing.T) {
 
 func TestGetRequiredActions(t *testing.T) {
 	ctx := context.Background()
-	b := ops.NewTestBackends(t, func(b *ops.TestBackends) {
-		b.DBC = db.MigrateTestDB(t, ctx)
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
 	})
+	b := &ops.TestBackends{
+		DBC: db.MigrateTestDB(t, ctx),
+		Wc:  wallets_mock.NewMockClient(ctrl),
+	}
+	walletID := uuid.NewString()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
-			Identifier: uuid.NewString(),
+			Identifier: walletID,
 		},
 		RequiresOTP: true,
 	})
@@ -164,12 +182,15 @@ func TestConfirm(t *testing.T) {
 	b := &ops.TestBackends{
 		DBC: db.MigrateTestDB(t, ctx),
 		Tp:  temporal_mock.NewMockClient(ctrl),
+		Wc:  wallets_mock.NewMockClient(ctrl),
 	}
+	walletID := uuid.NewString()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
-			Identifier: uuid.NewString(),
+			Identifier: walletID,
 		},
 		RequiresOTP: true,
 	})
@@ -217,16 +238,23 @@ func TestConfirm(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	ctx := context.Background()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(func() {
+		ctrl.Finish()
+	})
 	b := &ops.TestBackends{
 		DBC: db.MigrateTestDB(t, ctx),
+		Wc:  wallets_mock.NewMockClient(ctrl),
 	}
+	walletID := uuid.NewString()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 
 	senderAccount := uuid.NewString()
 	receiverAccount := uuid.NewString()
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
-			Identifier: uuid.NewString(),
+			Identifier: walletID,
 		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
