@@ -13,6 +13,10 @@ type client struct {
 	b ops.Backends
 }
 
+func New(b ops.Backends) payments.Client {
+	return &client{b}
+}
+
 func (c client) Lookup(ctx context.Context, id string) (*payments.Payment, error) {
 	return ops.Lookup(ctx, c.b, id)
 }
