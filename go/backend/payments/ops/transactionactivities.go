@@ -84,14 +84,14 @@ func (a *Activity) CreatePayInTransaction(ctx context.Context, paymentID string)
 		ForeignType:             transactions.TransactionTypeOutgoing,
 		Provider:                transactions.ProviderPaymentsEngine,
 		State:                   transactions.StatePending,
-		Note:                    "NOTE", // TODO : payment note
+		Note:                    p.Note,
 		Source:                  senderWallet.AddressString(),
 		Destination:             receiverWallet.AddressString(),
 		Amount:                  p.SenderAmount,
 		LinkedAccountTitle:      la.Title(),
 		DestinationIdentity:     p.Receiver.Identifier,
 		DestinationIdentityType: p.Receiver.Type.String(),
-		Reference:               "NOTE", // TODO : payment note
+		Reference:               p.Note,
 	})
 }
 
@@ -127,14 +127,14 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, fkID 
 		ForeignType:             transactions.TransactionTypeIncoming,
 		Provider:                transactions.ProviderPaymentsEngine,
 		State:                   transactions.StatePending,
-		Note:                    "NOTE", // TODO : payment note
+		Note:                    p.Note,
 		Source:                  senderWallet.AddressString(),
 		Destination:             receiverWallet.AddressString(),
 		Amount:                  p.ReceiverAmount,
 		LinkedAccountTitle:      la.Title(),
 		DestinationIdentity:     p.Receiver.Identifier,
 		DestinationIdentityType: p.Receiver.Type.String(),
-		Reference:               "NOTE", // TODO : payment note
+		Reference:               p.Note,
 		Transfers: []transactions.TransferArgs{
 			{
 				LinkedAccountID: la.ID,

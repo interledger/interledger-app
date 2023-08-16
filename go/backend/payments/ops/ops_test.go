@@ -42,6 +42,7 @@ func TestCreate(t *testing.T) {
 				ReceiverAmount:  currency.FromFloat64(50, currency.USD),
 				SenderAccount:   uuid.NewString(),
 				ReceiverAccount: uuid.NewString(),
+				Note:            "This is a NOTE!!!",
 			},
 			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS},
 			err:     nil,
@@ -82,6 +83,7 @@ func TestCreate(t *testing.T) {
 			assert.Equal(t, tc.args.ReceiverAccount, p.ReceiverAccount)
 			assert.Equal(t, tc.args.SenderAmount.Format(), p.SenderAmount.Format())
 			assert.Equal(t, tc.args.ReceiverAmount.Format(), p.ReceiverAmount.Format())
+			assert.Equal(t, tc.args.Note, p.Note)
 			assert.Len(t, p.RequiredActions, len(tc.actions))
 			for _, ra := range tc.actions {
 				assert.Contains(t, p.RequiredActions, ra)

@@ -15,7 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, note, created_at, updated_at`
 
 type dbPayment struct {
 	ID                   string                `db:"id"`
@@ -35,6 +35,7 @@ type dbPayment struct {
 	ReceiverAccount      sql.NullString        `db:"receiver_account"`
 	SendTransactionID    sql.NullString        `db:"send_transaction_id"`
 	ReceiveTransactionID sql.NullString        `db:"receive_transaction_id"`
+	Note                 sql.NullString        `db:"note"`
 	CreatedAt            time.Time             `db:"created_at"`
 	UpdatedAt            time.Time             `db:"updated_at"`
 }
@@ -66,6 +67,7 @@ func transformPayment(db dbPayment) *payments.Payment {
 		SendTransactionID:    db.SendTransactionID.String,
 		ReceiveTransactionID: db.ReceiveTransactionID.String,
 		UpdatedAt:            db.UpdatedAt,
+		Note:                 db.Note.String,
 	}
 }
 
@@ -110,6 +112,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_currency", p.ReceiverAmount.Currency).
 		Value("receiver_account", sql.NullString{String: p.ReceiverAccount, Valid: p.ReceiverAccount != ""}).
 		Value("action_three_ds_required", true).
+		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)

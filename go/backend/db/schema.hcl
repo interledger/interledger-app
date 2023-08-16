@@ -2055,6 +2055,10 @@ table "payments" {
     null = true
     type = text
   }
+  column "note" {
+    null = true
+    type = text
+  }
   column "created_at" {
     null    = false
     type    = timestamp
