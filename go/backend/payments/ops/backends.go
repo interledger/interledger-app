@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -45,7 +47,7 @@ type TestBackends struct {
 	uc  user.Client
 	nc  notify.Client
 	Em  *email_mock.MockClient
-	wc  wallets.Client
+	Wc  *wallets_mock.MockClient
 	Ic  *id_mock.MockClient
 }
 
@@ -93,7 +95,7 @@ func (t TestBackends) Email() email.Client {
 }
 
 func (t TestBackends) Wallets() wallets.Client {
-	return t.wc
+	return t.Wc
 }
 
 func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {

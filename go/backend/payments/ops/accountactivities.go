@@ -8,6 +8,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
@@ -15,7 +16,7 @@ import (
 
 // PullFromAccount pulls from the account to the GMT account.
 // TODO: For now we expect this to be a Tabapay card account. In the future we need to infer it from the linked account.
-func (a *Activity) PullFromAccount(ctx context.Context, paymentID string) (*tabapay.Transaction, error) {
+func (a *Activity) PullFromAccount(ctx context.Context, paymentID, externalID string) (*tabapay.Transaction, error) {
 
 	dbp, err := getPayment(ctx, a.b, paymentID)
 	if err != nil {
@@ -50,7 +51,7 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID string) (*taba
 	externalTransaction, err := a.b.Tabapay().PullFromCard(ctx, tabapay.PullFromCardArgs{
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: "Reference !!!!", // TODO: store Note
+		ReferenceID: externalID,
 		Amount:      currency.FromUInt64(dbp.SenderAmount, currency.ParseCurrency(dbp.SenderCurrency)),
 		ThreeDSID:   dbp.ThreeDSID.String,
 	})
@@ -61,7 +62,7 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID string) (*taba
 	return externalTransaction, nil
 }
 
-func (a *Activity) PushToAccount(ctx context.Context, paymentID string) (*tabapay.Transaction, error) {
+func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef string) (*tabapay.Transaction, error) {
 
 	dbp, err := getPayment(ctx, a.b, paymentID)
 	if err != nil {
@@ -84,7 +85,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID string) (*tabapa
 	externalTransaction, err := a.b.Tabapay().PushToCard(ctx, tabapay.PushToCardArgs{
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: "NOTE!!!!", // TODO: store note
+		ReferenceID: externalRef,
 		Amount:      currency.FromUInt64(dbp.SenderAmount, currency.ParseCurrency(dbp.SenderCurrency)),
 	})
 	if err != nil {
@@ -103,7 +104,32 @@ func (a *Activity) GetCardTransaction(ctx context.Context, id string) (*tabapay.
 	return externalTransaction, nil
 }
 
-func (a *Activity) RollbackPullFromAccount(ctx context.Context, id string) error {
+func (a *Activity) RollbackPullFromAccount(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	senderWallet, err := lookupWallet(ctx, a.b, p.Sender)
+	if err != nil {
+		return err
+	}
+
+	tx, err := a.b.Transactions().GetTransaction(ctx, senderWallet.ID, p.SendTransactionID)
+	if err != nil {
+		return err
+	}
+
+	var externalTX string
+	for _, tr := range tx.Transfers {
+		if tr.Type == transactions.TransferTypeDebitCard {
+			externalTX = tr.ForeignID
+		}
+	}
+
+	if externalTX == "" {
+		return nil
+	}
 	// TODO: Get if the transaction was actually settled from the reports.
-	return a.b.Tabapay().ReverseTransaction(ctx, id, false)
+	return a.b.Tabapay().ReverseTransaction(ctx, externalTX, false)
 }
