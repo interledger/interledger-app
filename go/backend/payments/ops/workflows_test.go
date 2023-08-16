@@ -48,6 +48,7 @@ func TestCreatePaymentWorkflowGoldenPath(t *testing.T) {
 	env.OnActivity(a.SetPaymentStateProcessing, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
 	env.OnWorkflow(ops.PayinWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
 	env.OnWorkflow(ops.PayoutWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
+	env.OnActivity(a.CheckPaymentSuccess, mock.Anything, mock.Anything).Return(true, nil)
 	env.OnActivity(a.SetPaymentStateComplete, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
 	env.OnWorkflow(gmt_workflows.GMTNotifyCompleted, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
 	env.OnActivity(a.SetPaymentStateFailed, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
@@ -160,6 +161,7 @@ func TestCreatePaymentWorkflowNotifyGmtCompletedFailure(t *testing.T) {
 	env.OnWorkflow(ops.PayinWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
 	env.OnWorkflow(ops.PayoutWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
 	env.OnWorkflow(gmt_workflows.GMTNotifyCompleted, mock.Anything, mock.Anything).Return(errors.New("Failed to notify GMT"))
+	env.OnActivity(a.CheckPaymentSuccess, mock.Anything, mock.Anything).Return(true, nil)
 	env.OnActivity(a.SetPaymentStateFailed, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
 	env.OnActivity(a.SetPaymentStateComplete, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
 
@@ -169,4 +171,31 @@ func TestCreatePaymentWorkflowNotifyGmtCompletedFailure(t *testing.T) {
 	require.NoError(t, env.GetWorkflowError())
 	env.AssertNumberOfCalls(t, "SetPaymentStateFailed", 0)
 	env.AssertNumberOfCalls(t, "SetPaymentStateComplete", 1)
+}
+
+func TestCreatePaymentWorkflowPaymentFailure(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterWorkflow(gmt_workflows.GMTComplianceChecksWorkflow)
+	env.RegisterWorkflow(gmt_workflows.GMTNotifyCompleted)
+	env.RegisterWorkflow(ops.PayinWorkflow)
+	env.RegisterWorkflow(ops.PayoutWorkflow)
+	b := ops.NewTestBackends(t)
+	a := ops.NewActivity(b)
+
+	paymentID := uuid.NewString()
+	env.OnWorkflow(gmt_workflows.GMTComplianceChecksWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
+	env.OnActivity(a.SetPaymentStateProcessing, mock.Anything, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
+	env.OnWorkflow(ops.PayinWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
+	env.OnWorkflow(ops.PayoutWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
+	env.OnActivity(a.CheckPaymentSuccess, mock.Anything, mock.Anything).Return(false, nil)
+	env.OnActivity(a.SetPaymentStateFailed, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
+	env.OnActivity(a.SetPaymentStateComplete, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
+
+	env.ExecuteWorkflow(ops.PaymentWorkflow, paymentID)
+
+	require.True(t, env.IsWorkflowCompleted())
+	require.NoError(t, env.GetWorkflowError())
+	env.AssertNumberOfCalls(t, "SetPaymentStateFailed", 1)
+	env.AssertNumberOfCalls(t, "SetPaymentStateComplete", 0)
 }

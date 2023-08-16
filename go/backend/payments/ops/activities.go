@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/sdk/temporal"
 )
@@ -103,7 +105,7 @@ func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (
 		if err != nil {
 			return nil, err
 		}
-		if id.Platform != identities.PlatformTwitter {
+		if strings.EqualFold(string(id.Platform), string(identities.PlatformTwitter)) {
 			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformTwitter, identity.Type)
 		}
 		resp, err = b.Wallets().Get(ctx, id.WalletID)
@@ -111,4 +113,46 @@ func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (
 		return nil, fmt.Errorf("unknown identity type %s", identity.Type)
 	}
 	return resp, err
+}
+
+func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (bool, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return false, err
+	}
+
+	// If both transactions aren't present something failed.
+	if p.ReceiveTransactionID == "" || p.SendTransactionID == "" {
+		return false, nil
+	}
+
+	senderWallet, err := lookupWallet(ctx, a.b, p.Sender)
+	if err != nil {
+		return false, err
+	}
+
+	senderTx, err := a.b.Transactions().GetTransaction(ctx, senderWallet.ID, p.SendTransactionID)
+	if err != nil {
+		return false, err
+	}
+
+	if senderTx.State == transactions.StateFailed {
+		return false, nil
+	}
+
+	receiverWallet, err := lookupWallet(ctx, a.b, p.Receiver)
+	if err != nil {
+		return false, err
+	}
+
+	receiveTx, err := a.b.Transactions().GetTransaction(ctx, receiverWallet.ID, p.ReceiveTransactionID)
+	if err != nil {
+		return false, err
+	}
+
+	if receiveTx.State == transactions.StateFailed {
+		return false, nil
+	}
+
+	return receiveTx.State == transactions.StateCompleted && senderTx.State == transactions.StateCompleted, nil
 }

@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/wallets"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -28,10 +31,14 @@ func TestSetPaymentState(t *testing.T) {
 		DBC: db.MigrateTestDB(t, ctx),
 		Em:  email_mock.NewMockClient(ctrl),
 		Ic:  id_mock.NewMockClient(ctrl),
+		Wc:  wallets_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{
 		WalletID: walletID,
+	}, nil).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
+		ID: walletID,
 	}, nil).AnyTimes()
 	a := ops.NewActivity(b)
 
