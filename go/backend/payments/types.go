@@ -58,7 +58,6 @@ const (
 	RequiredActionTypeSenderAmount       RequiredActionType = 5
 	RequiredActionTypeReceiverAmount     RequiredActionType = 6
 	RequiredActionTypeOTP                RequiredActionType = 7
-	RequiredActionType3DS                RequiredActionType = 8
 )
 
 //go:generate stringer -type=IdentityType -trimprefix=IdentityType

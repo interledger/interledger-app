@@ -4,6 +4,7 @@
 import { BackendService } from "./backend";
 import type { SearchWalletsResponse } from "./backend";
 import type { SearchWalletsRequest } from "./backend";
+import type { ConfirmPaymentRequest } from "./backend";
 import type { GetPaymentRequest } from "./backend";
 import type { UpdatePaymentRequest } from "./backend";
 import type { Payment } from "./backend";
@@ -591,6 +592,10 @@ export interface IBackendServiceClient {
      */
     getPayment(input: GetPaymentRequest, options?: RpcOptions): UnaryCall<GetPaymentRequest, Payment>;
     /**
+     * @generated from protobuf rpc: ConfirmPayment(backend.v1.ConfirmPaymentRequest) returns (backend.v1.Payment);
+     */
+    confirmPayment(input: ConfirmPaymentRequest, options?: RpcOptions): UnaryCall<ConfirmPaymentRequest, Payment>;
+    /**
      * Search
      *
      * @generated from protobuf rpc: SearchWallets(backend.v1.SearchWalletsRequest) returns (backend.v1.SearchWalletsResponse);
@@ -1116,12 +1121,19 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetPaymentRequest, Payment>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: ConfirmPayment(backend.v1.ConfirmPaymentRequest) returns (backend.v1.Payment);
+     */
+    confirmPayment(input: ConfirmPaymentRequest, options?: RpcOptions): UnaryCall<ConfirmPaymentRequest, Payment> {
+        const method = this.methods[67], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ConfirmPaymentRequest, Payment>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Search
      *
      * @generated from protobuf rpc: SearchWallets(backend.v1.SearchWalletsRequest) returns (backend.v1.SearchWalletsResponse);
      */
     searchWallets(input: SearchWalletsRequest, options?: RpcOptions): UnaryCall<SearchWalletsRequest, SearchWalletsResponse> {
-        const method = this.methods[67], opt = this._transport.mergeOptions(options);
+        const method = this.methods[68], opt = this._transport.mergeOptions(options);
         return stackIntercept<SearchWalletsRequest, SearchWalletsResponse>("unary", this._transport, method, opt, input);
     }
 }

@@ -45,12 +45,6 @@ type dbPayment struct {
 }
 
 func transformPayment(db dbPayment) *payments.Payment {
-
-	var actions []payments.RequiredActionType
-	if db.ThreeDSRequired && !db.ThreeDSID.Valid {
-		actions = append(actions, payments.RequiredActionTypeThreeDS)
-	}
-
 	return &payments.Payment{
 		ID:       db.ID,
 		PublicID: db.PublicID,
@@ -67,7 +61,7 @@ func transformPayment(db dbPayment) *payments.Payment {
 		ReceiverAmount:       currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
 		SenderAccount:        db.SenderAccount.String,
 		ReceiverAccount:      db.ReceiverAccount.String,
-		RequiredActions:      actions,
+		RequiredActions:      getRequiredActions(&db),
 		SendTransactionID:    db.SendTransactionID.String,
 		ReceiveTransactionID: db.ReceiveTransactionID.String,
 		UpdatedAt:            db.UpdatedAt,
@@ -97,7 +91,7 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 	return transformPayment(*dbp), nil
 }
 
-// The `Sender` is the minimum required information to create a payment. If the specified identity
+// Create The `Sender` is the minimum required information to create a payment. If the specified identity
 // is not of type WalletID, then the walletID will be looked up and used as the `Sender`.
 func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
 	// convert sender identity to walletID
@@ -151,7 +145,7 @@ func SetState(ctx context.Context, b Backends, id string, state payments.State) 
 		return fmt.Errorf("%w id=%s current state=%s, proposed state=%s", payments.ErrInvalidStateTransition, id, p.State, state)
 	}
 
-	result, err := b.DB().ExecContext(ctx, "UPDATE payments SET state=$1 WHERE id=$2 AND state=$3;", state, id, p.State)
+	result, err := b.DB().ExecContext(ctx, "UPDATE payments SET state=$1 WHERE id=$2 AND state=$3;", state, p.ID, p.State)
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -181,7 +175,7 @@ func setReceiveTransactionID(ctx context.Context, b Backends, paymentID, txID st
 }
 
 /*
-	This checks that the payment has the following:
+GetRequiredActions checks that the payment has the following:
 
 1) Sender and send account
 2) Receiver identifier
@@ -196,6 +190,12 @@ func GetRequiredActions(ctx context.Context, b Backends, id string) ([]payments.
 		return nil, err
 	}
 
+	requiredActions := getRequiredActions(payment)
+
+	return requiredActions, nil
+}
+
+func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 	var requiredActions []payments.RequiredActionType
 	if payment.SenderID == "" {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderIdentifier)
@@ -222,10 +222,10 @@ func GetRequiredActions(ctx context.Context, b Backends, id string) ([]payments.
 	}
 
 	if payment.ThreeDSRequired && payment.ThreeDSID.String == "" {
-		requiredActions = append(requiredActions, payments.RequiredActionType3DS)
+		requiredActions = append(requiredActions, payments.RequiredActionTypeThreeDS)
 	}
 
-	return requiredActions, nil
+	return requiredActions
 }
 
 func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []payments.RequiredActionType, error) {
@@ -242,14 +242,20 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 		return nil, nil, err
 	}
 
+	// Lookup in case they used the public ID
+	dbp, err := getPayment(ctx, b, id)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	workflowOptions := temporal_client.StartWorkflowOptions{
-		ID:                       "payments_" + id,
+		ID:                       "payments_" + dbp.ID,
 		TaskQueue:                "backend",
 		WorkflowExecutionTimeout: time.Hour * 24 * 8, // Workflow has 8 days to complete
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}
 
-	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, PaymentWorkflow, id)
+	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, PaymentWorkflow, dbp.ID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -330,7 +336,7 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 	}
 
 	payment.UpdatedAt = time.Now()
-	stmt, values, err := db.NewUpdate("payments").ID(args.ID).
+	stmt, values, err := db.NewUpdate("payments").ID(payment.ID).
 		Value("sender_amount", payment.SenderAmount).
 		Value("sender_currency", payment.SenderCurrency).
 		Value("sender_account", payment.SenderAccount).

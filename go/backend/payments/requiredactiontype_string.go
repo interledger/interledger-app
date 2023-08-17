@@ -10,11 +10,17 @@ func _() {
 	var x [1]struct{}
 	_ = x[RequiredActionTypeUnknown-0]
 	_ = x[RequiredActionTypeThreeDS-1]
+	_ = x[RequiredActionTypeSenderIdentifier-2]
+	_ = x[RequiredActionTypeSenderAccount-3]
+	_ = x[RequiredActionTypeReceiverIdentifier-4]
+	_ = x[RequiredActionTypeSenderAmount-5]
+	_ = x[RequiredActionTypeReceiverAmount-6]
+	_ = x[RequiredActionTypeOTP-7]
 }
 
-const _RequiredActionType_name = "UnknownThreeDS"
+const _RequiredActionType_name = "UnknownThreeDSSenderIdentifierSenderAccountReceiverIdentifierSenderAmountReceiverAmountOTP"
 
-var _RequiredActionType_index = [...]uint8{0, 7, 14}
+var _RequiredActionType_index = [...]uint8{0, 7, 14, 30, 43, 61, 73, 87, 90}
 
 func (i RequiredActionType) String() string {
 	if i < 0 || i >= RequiredActionType(len(_RequiredActionType_index)-1) {

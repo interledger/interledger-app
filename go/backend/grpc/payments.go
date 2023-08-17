@@ -239,6 +239,26 @@ func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) 
 	return transformPayment(p), nil
 }
 
+func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentRequest) (*pb.Payment, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, err = s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	p, _, err := s.b.Payments().Confirm(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformPayment(p), err
+
+}
+
 func transformPayment(p *payments.Payment) *pb.Payment {
 	var requiredActions []int32
 	for _, ra := range p.RequiredActions {
