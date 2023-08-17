@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"gitlab.com/fynbos/env"
 
 	"github.com/go-playground/validator/v10"
@@ -31,6 +33,7 @@ var errorStatus = map[error]error{
 	signup.ErrDuplicatePhone:    status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
 	identities.ErrAlreadyExists: status.Error(codes.AlreadyExists, "Identity already exists"),
 	wallets.ErrNoWalletFound:    NotFoundError("wallet address not found"),
+	payments.ErrRequiredActions: status.Error(codes.FailedPrecondition, "Required details missing for payment"),
 }
 
 func validationDesc(fe validator.FieldError) string {

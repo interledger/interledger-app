@@ -625,6 +625,7 @@ type BackendServiceClient interface {
 	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	UpdatePayment(ctx context.Context, in *UpdatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	GetPayment(ctx context.Context, in *GetPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
+	ConfirmPayment(ctx context.Context, in *ConfirmPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	// Search
 	SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error)
 }
@@ -1240,6 +1241,15 @@ func (c *backendServiceClient) GetPayment(ctx context.Context, in *GetPaymentReq
 	return out, nil
 }
 
+func (c *backendServiceClient) ConfirmPayment(ctx context.Context, in *ConfirmPaymentRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/ConfirmPayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error) {
 	out := new(SearchWalletsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SearchWallets", in, out, opts...)
@@ -1340,6 +1350,7 @@ type BackendServiceServer interface {
 	CreatePayment(context.Context, *CreatePaymentRequest) (*Payment, error)
 	UpdatePayment(context.Context, *UpdatePaymentRequest) (*Payment, error)
 	GetPayment(context.Context, *GetPaymentRequest) (*Payment, error)
+	ConfirmPayment(context.Context, *ConfirmPaymentRequest) (*Payment, error)
 	// Search
 	SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error)
 }
@@ -1548,6 +1559,9 @@ func (UnimplementedBackendServiceServer) UpdatePayment(context.Context, *UpdateP
 }
 func (UnimplementedBackendServiceServer) GetPayment(context.Context, *GetPaymentRequest) (*Payment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPayment not implemented")
+}
+func (UnimplementedBackendServiceServer) ConfirmPayment(context.Context, *ConfirmPaymentRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfirmPayment not implemented")
 }
 func (UnimplementedBackendServiceServer) SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchWallets not implemented")
@@ -2770,6 +2784,24 @@ func _BackendService_GetPayment_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ConfirmPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmPaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ConfirmPayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/ConfirmPayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ConfirmPayment(ctx, req.(*ConfirmPaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_SearchWallets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchWalletsRequest)
 	if err := dec(in); err != nil {
@@ -3062,6 +3094,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPayment",
 			Handler:    _BackendService_GetPayment_Handler,
+		},
+		{
+			MethodName: "ConfirmPayment",
+			Handler:    _BackendService_ConfirmPayment_Handler,
 		},
 		{
 			MethodName: "SearchWallets",

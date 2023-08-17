@@ -75,7 +75,7 @@ func TestCreate(t *testing.T) {
 				SenderAmount:   currency.FromFloat64(51, currency.USD),
 				ReceiverAmount: currency.FromFloat64(50, currency.USD),
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeSenderAccount},
 			err:     nil,
 		},
 	}
@@ -170,7 +170,7 @@ func TestGetRequiredActions(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
-	assert.Contains(t, requiredActions, payments.RequiredActionType3DS)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeThreeDS)
 }
 
 func TestConfirm(t *testing.T) {
@@ -204,7 +204,7 @@ func TestConfirm(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
-	assert.Contains(t, requiredActions, payments.RequiredActionType3DS)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeThreeDS)
 
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
 		ID: paymentID,
