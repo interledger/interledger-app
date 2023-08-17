@@ -6,6 +6,9 @@ import (
 	"net/url"
 	"strings"
 
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/payments"
+
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -151,4 +154,110 @@ func canSendToWallet(ctx context.Context, b Backends, fromWalletID string, toWal
 	}
 
 	return true, nil
+}
+
+func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentRequest) (*pb.Payment, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	args := payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: w.ID,
+		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityType(req.ReceiverIdentityType),
+			Identifier: req.ReceiverIdentity,
+		},
+		SenderAmount:    currency.FromPB(req.SenderAmount),
+		SenderAccount:   req.GetSenderAccount(),
+		ReceiverAmount:  currency.FromPB(req.ReceiverAmount),
+		ReceiverAccount: req.GetReceiverAccount(),
+		Note:            req.GetNote(),
+	}
+
+	p, err := s.b.Payments().Create(ctx, args)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformPayment(p), nil
+}
+
+func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentRequest) (*pb.Payment, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, err = s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	args := payments.UpdateArgs{
+		ID:              req.Id,
+		SenderAmount:    currency.FromPB(req.GetSenderAmount()),
+		SenderAccount:   req.GetSenderAccount(),
+		ReceiverAmount:  currency.FromPB(req.GetReceiverAmount()),
+		ReceiverAccount: req.GetReceiverAccount(),
+		Note:            req.GetNote(),
+		ThreeDSID:       req.GetThreeDSID(),
+	}
+
+	p, err := s.b.Payments().Update(ctx, args)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformPayment(p), nil
+}
+
+func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) (*pb.Payment, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	_, err = s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	p, err := s.b.Payments().Lookup(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformPayment(p), nil
+}
+
+func transformPayment(p *payments.Payment) *pb.Payment {
+	var requiredActions []int32
+	for _, ra := range p.RequiredActions {
+		requiredActions = append(requiredActions, int32(ra))
+	}
+
+	return &pb.Payment{
+		Id:                   p.ID,
+		PublicID:             p.PublicID,
+		State:                int32(p.State),
+		SenderIdentity:       p.Sender.Identifier,
+		SenderIdentityType:   int32(p.Sender.Type),
+		ReceiverIdentity:     p.Receiver.Identifier,
+		ReceiverIdentityType: int32(p.Receiver.Type),
+		SenderAmount:         p.SenderAmount.ToPB(),
+		ReceiverAmount:       p.ReceiverAmount.ToPB(),
+		SenderAccount:        p.SenderAccount,
+		ReceiverAccount:      p.ReceiverAccount,
+		Note:                 p.Note,
+		RequiredActions:      requiredActions,
+	}
 }

@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/wallets"
@@ -95,6 +97,10 @@ type TestContainer struct {
 	basistheory        *bt_mock.MockClient
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
+}
+
+func (t TestContainer) Payments() payments.Client {
+	return nil
 }
 
 func (t TestContainer) Wallets() wallets.Client {

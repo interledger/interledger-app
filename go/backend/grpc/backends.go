@@ -17,6 +17,7 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -62,4 +63,5 @@ type Backends interface {
 	BasisTheory() basistheory.Client
 	Features() features.Client
 	Wallets() wallets.Client
+	Payments() payments.Client
 }

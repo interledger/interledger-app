@@ -10,9 +10,9 @@ type CreateArgs struct {
 	Sender          Identity
 	Receiver        Identity
 	SenderAmount    currency.Amount
-	SenderAccount   string
+	SenderAccount   string `validate:"omitempty,uuid"`
 	ReceiverAmount  currency.Amount
-	ReceiverAccount string
+	ReceiverAccount string `validate:"omitempty,uuid"`
 	Note            string
 	RequiresOTP     bool
 }
@@ -26,6 +26,7 @@ type UpdateArgs struct {
 	SenderAmount    currency.Amount
 	ThreeDSID       string
 	OTP             string
+	Note            string
 }
 
 type Payment struct {
@@ -76,7 +77,7 @@ func (i IdentityType) Valid() bool {
 }
 
 type Identity struct {
-	Type       IdentityType
+	Type       IdentityType `validate:"omitempty,gt=0,lt=4"`
 	Identifier string
 }
 

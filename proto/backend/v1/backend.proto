@@ -312,9 +312,52 @@ service BackendService {
 
   // Payments
   rpc GetPaymentAddress(GetPaymentAddressRequest) returns (GetPaymentAddressResponse);
+  rpc CreatePayment(CreatePaymentRequest) returns (Payment);
+  rpc UpdatePayment(UpdatePaymentRequest) returns (Payment);
+  rpc GetPayment(GetPaymentRequest) returns (Payment);
 
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
+}
+
+message GetPaymentRequest {
+  string id = 1; // id or publicID
+}
+
+message UpdatePaymentRequest {
+  string id = 1; // id or publicID
+  optional Amount senderAmount = 2;
+  optional Amount receiverAmount = 3;
+  optional string note = 4;
+  optional string senderAccount = 5; // Linked Account ID
+  optional string receiverAccount = 6; // Linked Account ID
+  optional string threeDSID = 7;
+}
+
+message Payment {
+  string id = 1;
+  string publicID = 2;
+  int32 state = 3; // 1 - Created, 2 - Confirmed, 3 - Processing, 4 - Completed, 5 - Failed
+  string senderIdentity = 4;
+  int32 senderIdentityType = 5; // 1 - Twitter, 2 - WalletID, 3 - WalletURL
+  string receiverIdentity = 6;
+  int32 receiverIdentityType = 7; // 1 - Twitter, 2 - WalletID, 3 - WalletURL
+  Amount senderAmount = 8;
+  Amount receiverAmount = 9;
+  string senderAccount = 10; // Linked Account ID
+  string receiverAccount = 11; // Linked Account ID
+  string note = 12;
+  repeated int32 requiredActions = 13; // 1 - ThreeDS
+}
+
+message CreatePaymentRequest {
+  Amount senderAmount = 1;
+  Amount receiverAmount = 2;
+  string receiverIdentity = 3;
+  int32 receiverIdentityType = 4; // 1 - Twitter, 2 - WalletID, 3 - WalletURL
+  optional string senderAccount = 5; // Linked Account ID
+  optional string receiverAccount = 6; // Linked Account ID
+  optional string note = 7;
 }
 
 message GetCardDetailsRequest {

@@ -70,11 +70,17 @@ type Amount struct {
 
 // IsEqual returns true if the value and currency are the same
 func (a *Amount) IsEqual(amt Amount) bool {
+	if a == nil {
+		return false
+	}
 	return a.Value == amt.Value && a.Currency == amt.Currency
 }
 
 // IsEmpty returns true if the value is 0 and currency is an empty string
 func (a *Amount) IsEmpty() bool {
+	if a == nil {
+		return true
+	}
 	return a.Value == 0 && a.Currency.String() == ""
 }
 

@@ -4,6 +4,10 @@
 import { BackendService } from "./backend";
 import type { SearchWalletsResponse } from "./backend";
 import type { SearchWalletsRequest } from "./backend";
+import type { GetPaymentRequest } from "./backend";
+import type { UpdatePaymentRequest } from "./backend";
+import type { Payment } from "./backend";
+import type { CreatePaymentRequest } from "./backend";
 import type { GetPaymentAddressResponse } from "./backend";
 import type { GetPaymentAddressRequest } from "./backend";
 import type { VerifyTwitterRequest } from "./backend";
@@ -575,6 +579,18 @@ export interface IBackendServiceClient {
      */
     getPaymentAddress(input: GetPaymentAddressRequest, options?: RpcOptions): UnaryCall<GetPaymentAddressRequest, GetPaymentAddressResponse>;
     /**
+     * @generated from protobuf rpc: CreatePayment(backend.v1.CreatePaymentRequest) returns (backend.v1.Payment);
+     */
+    createPayment(input: CreatePaymentRequest, options?: RpcOptions): UnaryCall<CreatePaymentRequest, Payment>;
+    /**
+     * @generated from protobuf rpc: UpdatePayment(backend.v1.UpdatePaymentRequest) returns (backend.v1.Payment);
+     */
+    updatePayment(input: UpdatePaymentRequest, options?: RpcOptions): UnaryCall<UpdatePaymentRequest, Payment>;
+    /**
+     * @generated from protobuf rpc: GetPayment(backend.v1.GetPaymentRequest) returns (backend.v1.Payment);
+     */
+    getPayment(input: GetPaymentRequest, options?: RpcOptions): UnaryCall<GetPaymentRequest, Payment>;
+    /**
      * Search
      *
      * @generated from protobuf rpc: SearchWallets(backend.v1.SearchWalletsRequest) returns (backend.v1.SearchWalletsResponse);
@@ -1079,12 +1095,33 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<GetPaymentAddressRequest, GetPaymentAddressResponse>("unary", this._transport, method, opt, input);
     }
     /**
+     * @generated from protobuf rpc: CreatePayment(backend.v1.CreatePaymentRequest) returns (backend.v1.Payment);
+     */
+    createPayment(input: CreatePaymentRequest, options?: RpcOptions): UnaryCall<CreatePaymentRequest, Payment> {
+        const method = this.methods[64], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreatePaymentRequest, Payment>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: UpdatePayment(backend.v1.UpdatePaymentRequest) returns (backend.v1.Payment);
+     */
+    updatePayment(input: UpdatePaymentRequest, options?: RpcOptions): UnaryCall<UpdatePaymentRequest, Payment> {
+        const method = this.methods[65], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UpdatePaymentRequest, Payment>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetPayment(backend.v1.GetPaymentRequest) returns (backend.v1.Payment);
+     */
+    getPayment(input: GetPaymentRequest, options?: RpcOptions): UnaryCall<GetPaymentRequest, Payment> {
+        const method = this.methods[66], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPaymentRequest, Payment>("unary", this._transport, method, opt, input);
+    }
+    /**
      * Search
      *
      * @generated from protobuf rpc: SearchWallets(backend.v1.SearchWalletsRequest) returns (backend.v1.SearchWalletsResponse);
      */
     searchWallets(input: SearchWalletsRequest, options?: RpcOptions): UnaryCall<SearchWalletsRequest, SearchWalletsResponse> {
-        const method = this.methods[64], opt = this._transport.mergeOptions(options);
+        const method = this.methods[67], opt = this._transport.mergeOptions(options);
         return stackIntercept<SearchWalletsRequest, SearchWalletsResponse>("unary", this._transport, method, opt, input);
     }
 }
