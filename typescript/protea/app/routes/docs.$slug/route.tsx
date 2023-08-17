@@ -1,8 +1,6 @@
 import type { LoaderArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
-import { Outlet, useLoaderData } from '@remix-run/react'
-import { useEffect } from 'react'
-import { route } from 'routes-gen'
+import { json } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { getAllDocs } from '~/lib/marketing.server'
@@ -10,18 +8,9 @@ import { getAllDocs } from '~/lib/marketing.server'
 export async function loader({ request }: LoaderArgs) {
   if (process.env.FYNBOS_ENV == 'prod')
     throw json(null, { status: 404, statusText: 'Not found' })
+  // TODO if pathname == '/docs' redirect to '/docs/getting-started'
   const { allDocs } = await getAllDocs()
-  if (!allDocs || !allDocs[0].slug)
-    throw json(null, { status: 404, statusText: 'Not found' })
-  console.log(allDocs)
-  const slug = allDocs[0].slug
-
-  const url = new URL(request.url)
-
-  if (url.pathname == '/docs') {
-    return redirect(route('/docs/:slug', { slug }))
-  }
-
+  console.log('allDocs', allDocs)
   return json({ allDocs })
 }
 
@@ -29,7 +18,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Docs,
   scaffold: {
     header: {
-      title: 'Docs'
+      title: (match) => match.data.allDocs[0].title
     },
     nav: (match) => match.data.allDocs,
     footer: (match) => match.data.footer
@@ -46,15 +35,16 @@ export function meta({ data, params }: any) {
 
 export default function Page() {
   const { allDocs } = useLoaderData<typeof loader>()
-
-  // Instantiate all sections here for the side nav
-  useEffect(() => {
-    console.log('ALL docs client', allDocs)
-  }, [allDocs])
   return (
     <>
-      <div className='h-16 w-full bg-red-500'></div>
-      <Outlet />
+      <div className='h-16 w-full bg-blue-500'></div>
+      {allDocs?.map((section) => (
+        <h1>test</h1>
+        // <MarketingPageWithSections
+        //   key={section.id}
+        //   section={section as SectionRecord}
+        // />
+      ))}
     </>
   )
 }

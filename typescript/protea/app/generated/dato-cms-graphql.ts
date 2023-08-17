@@ -298,6 +298,88 @@ export type DateFilter = {
   neq?: InputMaybe<Scalars['Date']>;
 };
 
+export type DocModelContentField = {
+  __typename?: 'DocModelContentField';
+  blocks: Array<Scalars['String']>;
+  links: Array<DocRecord>;
+  value: Scalars['JsonField'];
+};
+
+export type DocModelFilter = {
+  AND?: InputMaybe<Array<InputMaybe<DocModelFilter>>>;
+  OR?: InputMaybe<Array<InputMaybe<DocModelFilter>>>;
+  _createdAt?: InputMaybe<CreatedAtFilter>;
+  _firstPublishedAt?: InputMaybe<PublishedAtFilter>;
+  _isValid?: InputMaybe<BooleanFilter>;
+  _publicationScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _publishedAt?: InputMaybe<PublishedAtFilter>;
+  _status?: InputMaybe<StatusFilter>;
+  _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _updatedAt?: InputMaybe<UpdatedAtFilter>;
+  content?: InputMaybe<StructuredTextFilter>;
+  id?: InputMaybe<ItemIdFilter>;
+  parent?: InputMaybe<ParentFilter>;
+  position?: InputMaybe<PositionFilter>;
+  slug?: InputMaybe<SlugFilter>;
+  title?: InputMaybe<StringFilter>;
+};
+
+export enum DocModelOrderBy {
+  CreatedAtAsc = '_createdAt_ASC',
+  CreatedAtDesc = '_createdAt_DESC',
+  FirstPublishedAtAsc = '_firstPublishedAt_ASC',
+  FirstPublishedAtDesc = '_firstPublishedAt_DESC',
+  IsValidAsc = '_isValid_ASC',
+  IsValidDesc = '_isValid_DESC',
+  PublicationScheduledAtAsc = '_publicationScheduledAt_ASC',
+  PublicationScheduledAtDesc = '_publicationScheduledAt_DESC',
+  PublishedAtAsc = '_publishedAt_ASC',
+  PublishedAtDesc = '_publishedAt_DESC',
+  StatusAsc = '_status_ASC',
+  StatusDesc = '_status_DESC',
+  UnpublishingScheduledAtAsc = '_unpublishingScheduledAt_ASC',
+  UnpublishingScheduledAtDesc = '_unpublishingScheduledAt_DESC',
+  UpdatedAtAsc = '_updatedAt_ASC',
+  UpdatedAtDesc = '_updatedAt_DESC',
+  IdAsc = 'id_ASC',
+  IdDesc = 'id_DESC',
+  PositionAsc = 'position_ASC',
+  PositionDesc = 'position_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
+}
+
+/** Record of type Doc (doc) */
+export type DocRecord = RecordInterface & {
+  __typename?: 'DocRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  children?: Maybe<Array<Maybe<DocRecord>>>;
+  content?: Maybe<DocModelContentField>;
+  id: Scalars['ItemId'];
+  parent?: Maybe<DocRecord>;
+  position?: Maybe<Scalars['IntType']>;
+  slug?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Record of type Doc (doc) */
+export type DocRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export enum FaviconType {
   AppleTouchIcon = 'appleTouchIcon',
   Icon = 'icon',
@@ -392,6 +474,8 @@ export type FeatureRecord_SeoMetaTagsArgs = {
 export type FileField = FileFieldInterface & {
   __typename?: 'FileField';
   _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
   _updatedAt: Scalars['DateTime'];
   alt?: Maybe<Scalars['String']>;
   author?: Maybe<Scalars['String']>;
@@ -468,6 +552,8 @@ export type FileFieldUrlArgs = {
 
 export type FileFieldInterface = {
   _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
   _updatedAt: Scalars['DateTime'];
   alt?: Maybe<Scalars['String']>;
   author?: Maybe<Scalars['String']>;
@@ -2464,6 +2550,14 @@ export type OrientationFilter = {
   neq?: InputMaybe<UploadOrientation>;
 };
 
+/** Specifies how to filter by parent (tree-like collections only) */
+export type ParentFilter = {
+  /** Filter records children of the specified record. Value must be a Record ID */
+  eq?: InputMaybe<Scalars['ItemId']>;
+  /** Filter records with a parent record or not */
+  exists?: InputMaybe<Scalars['BooleanType']>;
+};
+
 /** Block of type Person content (person_content) */
 export type PersonContentRecord = RecordInterface & {
   __typename?: 'PersonContentRecord';
@@ -2576,6 +2670,22 @@ export type PersonRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
+/** Specifies how to filter by position (sorted and tree-like collections) */
+export type PositionFilter = {
+  /** Search for records with an exact match */
+  eq?: InputMaybe<Scalars['IntType']>;
+  /** Filter records with a value that's strictly greater than the one specified */
+  gt?: InputMaybe<Scalars['IntType']>;
+  /** Filter records with a value that's greater than or equal to the one specified */
+  gte?: InputMaybe<Scalars['IntType']>;
+  /** Filter records with a value that's less than the one specified */
+  lt?: InputMaybe<Scalars['IntType']>;
+  /** Filter records with a value that's less or equal than the one specified */
+  lte?: InputMaybe<Scalars['IntType']>;
+  /** Exclude records with an exact match */
+  neq?: InputMaybe<Scalars['IntType']>;
+};
+
 /** Specifies how to filter by publication datetime */
 export type PublishedAtFilter = {
   /** Filter records with a value that's within the specified minute range. Seconds and milliseconds are truncated from the argument. */
@@ -2600,6 +2710,8 @@ export type Query = {
   /** Returns meta information regarding a record collection */
   _allBlogPostsMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
+  _allDocsMeta: CollectionMetadata;
+  /** Returns meta information regarding a record collection */
   _allLegalPagesMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
   _allPeopleMeta: CollectionMetadata;
@@ -2612,6 +2724,8 @@ export type Query = {
   /** Returns a collection of records */
   allBlogPosts: Array<BlogPostRecord>;
   /** Returns a collection of records */
+  allDocs: Array<DocRecord>;
+  /** Returns a collection of records */
   allLegalPages: Array<LegalPageRecord>;
   /** Returns a collection of records */
   allPeople: Array<PersonRecord>;
@@ -2623,6 +2737,8 @@ export type Query = {
   blogRoute?: Maybe<BlogRouteRecord>;
   /** Returns the single instance record */
   contactRoute?: Maybe<ContactRouteRecord>;
+  /** Returns a specific record */
+  doc?: Maybe<DocRecord>;
   /** Returns the single instance record */
   footer?: Maybe<FooterRecord>;
   /** Returns the single instance record */
@@ -2643,6 +2759,13 @@ export type Query = {
 /** The query root for this schema */
 export type Query_AllBlogPostsMetaArgs = {
   filter?: InputMaybe<BlogPostModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type Query_AllDocsMetaArgs = {
+  filter?: InputMaybe<DocModelFilter>;
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -2689,6 +2812,17 @@ export type QueryAllBlogPostsArgs = {
   first?: InputMaybe<Scalars['IntType']>;
   locale?: InputMaybe<SiteLocale>;
   orderBy?: InputMaybe<Array<InputMaybe<BlogPostModelOrderBy>>>;
+  skip?: InputMaybe<Scalars['IntType']>;
+};
+
+
+/** The query root for this schema */
+export type QueryAllDocsArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<DocModelFilter>;
+  first?: InputMaybe<Scalars['IntType']>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<DocModelOrderBy>>>;
   skip?: InputMaybe<Scalars['IntType']>;
 };
 
@@ -2746,6 +2880,15 @@ export type QueryBlogRouteArgs = {
 export type QueryContactRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type QueryDocArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<DocModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<DocModelOrderBy>>>;
 };
 
 

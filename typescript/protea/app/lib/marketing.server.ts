@@ -4,6 +4,7 @@ import type {
   QueryAllBlogPostsArgs,
   QueryAllPeopleArgs,
   QueryBlogPostArgs,
+  QueryDocArgs,
   QueryLegalPageArgs
 } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
@@ -59,6 +60,135 @@ export const getAboutRoute = async () => {
     .catch((error) => {
       console.log(error)
       return { aboutRoute: null, footer: null }
+    })
+}
+
+export const getAllDocs = async () => {
+  return apolloClient
+    .query<{
+      allDocs: Query['allDocs']
+    }>({
+      query: gql`
+        query GetRouteContent {
+          allDocs {
+            id
+            slug
+            title
+            children {
+              id
+              slug
+              title
+            }
+            parent {
+              id
+              title
+              slug
+            }
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return { allDocs: res.data.allDocs.filter((doc) => !doc.parent) }
+    })
+    .catch((error) => {
+      console.log(error)
+      return { allDocs: null }
+    })
+}
+
+export const getCurrentDocPage = async (variables: QueryDocArgs) => {
+  return apolloClient
+    .query<{ doc: Query['doc']; footer: Query['footer'] }, QueryDocArgs>({
+      query: gql`
+        ${RESPONSIVE_IMAGE}
+        ${FOOTER}
+        query GetCurrentBlogPostQuery($filter: DocModelFilter) {
+          doc(filter: $filter) {
+            id
+            title
+            slug
+            _status
+            content {
+              value
+              blocks {
+                __typename
+                ... on InlineImageRecord {
+                  id
+                  altText
+                  image {
+                    ...ResponsiveImage
+                  }
+                  imageMobile {
+                    ...ResponsiveImage
+                  }
+                  imageDark {
+                    ...ResponsiveImage
+                  }
+                  imageDarkMobile {
+                    ...ResponsiveImage
+                  }
+                }
+                ... on InlineVideoRecord {
+                  id
+                  video {
+                    provider
+                    providerUid
+                    thumbnailUrl
+                    title
+                    url
+                  }
+                }
+                ... on InlinePersonRecord {
+                  id
+                  name
+                  role
+                  avatar {
+                    responsiveImage(
+                      imgixParams: { fit: max, w: 140, h: 140, auto: format }
+                    ) {
+                      srcSet
+                      webpSrcSet
+                      sizes
+                      src
+                      width
+                      height
+                      aspectRatio
+                      alt
+                      title
+                      base64
+                    }
+                  }
+                }
+                ... on InlineTwitterEmbedRecord {
+                  id
+                  url
+                  imageOfTweet {
+                    ...ResponsiveImage
+                  }
+                }
+              }
+            }
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+            title
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { blogPost: null, footer: null }
     })
 }
 
@@ -249,6 +379,7 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
       return { blogPost: null, footer: null }
     })
 }
+
 export const getPerson = async (variables: QueryAllPeopleArgs) => {
   return apolloClient
     .query<{ person: Query['person'] }, QueryAllPeopleArgs>({

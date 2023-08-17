@@ -42,6 +42,7 @@ export default function Page() {
   return (
     <>
       <Form
+        replace
         id='edit-public-name'
         action={route('/settings/profile-public/name')}
         method='post'
