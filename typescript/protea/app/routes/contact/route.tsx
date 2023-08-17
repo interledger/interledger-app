@@ -14,11 +14,12 @@ import {
   TextField
 } from '~/components'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
+import { grpcConnectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error } from '~/lib/error.server'
 import { getContactRoute } from '~/lib/marketing.server'
 import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
+import { isGrpcError } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
@@ -205,15 +206,15 @@ export async function action({ request }: ActionArgs) {
     description: ''
   }
 
-  let response = await grpcClient
-    .createSupportTicket({
+  let response = await grpcConnectClient.createSupportTicket(
+    {
       description: description,
       firstName: firstName,
       lastName: lastName,
       email: email
-    })
-    .then((v) => v)
-    .catch(StatusError)
+    },
+    request
+  )
 
   if (isGrpcError(response)) {
     if (response.code == 3) {

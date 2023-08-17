@@ -24,7 +24,8 @@ import {
 } from '~/generated/protobuf-ts/google/rpc/error_details'
 import { Status } from '~/generated/protobuf-ts/google/rpc/status'
 
-const BACKEND_GRPC_URL = process.env.BACKEND_GRPC_URL || 'dns:backend:443'
+const BACKEND_GRPC_URL =
+  process.env.BACKEND_GRPC_URL || 'dns:backend.backend:443'
 
 const transport = new GrpcTransport({
   host: BACKEND_GRPC_URL,
@@ -208,5 +209,13 @@ function codeMapping(code: string): Code {
   }
 }
 
-export { grpcClient, openPaymentsClient, StatusError, httpMapping, isGrpcError }
+export {
+  grpcClient,
+  openPaymentsClient,
+  StatusError,
+  codeMapping,
+  httpMapping,
+  typeRegistry,
+  isGrpcError
+}
 export type { GrpcError }
