@@ -13,8 +13,6 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	wallets_client "gitlab.com/fynbos/backend/wallets/client"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
@@ -61,6 +59,8 @@ import (
 	"gitlab.com/fynbos/backend/openpayments"
 	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
 	open_server "gitlab.com/fynbos/backend/openpayments/server"
+	"gitlab.com/fynbos/backend/payments"
+	payments_client "gitlab.com/fynbos/backend/payments/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
 	"gitlab.com/fynbos/backend/providers/gmt"
@@ -87,6 +87,7 @@ import (
 	"gitlab.com/fynbos/backend/waitlist"
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/backend/wallets"
+	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -189,6 +190,8 @@ func start(args *cli.StartArgs) {
 	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 
 	b.wallet = wallets_client.New(b)
+
+	b.payment = payments_client.New(b)
 
 	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
 		AccountSid:   args.TwilioSid,
@@ -457,6 +460,8 @@ func startWorker(args *cli.StartArgs) {
 
 	b.wallet = wallets_client.New(b)
 
+	b.payment = payments_client.New(b)
+
 	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
 	if err != nil {
 		log.Fatalln(err)
@@ -574,6 +579,11 @@ type backends struct {
 	feat           features.Client
 	img            images.Client
 	wallet         wallets.Client
+	payment        payments.Client
+}
+
+func (b backends) Payments() payments.Client {
+	return b.payment
 }
 
 func (b backends) Wallets() wallets.Client {

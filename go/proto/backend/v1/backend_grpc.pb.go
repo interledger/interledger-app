@@ -8,6 +8,7 @@ package backend
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -622,6 +623,9 @@ type BackendServiceClient interface {
 	VerifyTwitter(ctx context.Context, in *VerifyTwitterRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Payments
 	GetPaymentAddress(ctx context.Context, in *GetPaymentAddressRequest, opts ...grpc.CallOption) (*GetPaymentAddressResponse, error)
+	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
+	UpdatePayment(ctx context.Context, in *UpdatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
+	GetPayment(ctx context.Context, in *GetPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	// Search
 	SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error)
 }
@@ -1210,6 +1214,33 @@ func (c *backendServiceClient) GetPaymentAddress(ctx context.Context, in *GetPay
 	return out, nil
 }
 
+func (c *backendServiceClient) CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreatePayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) UpdatePayment(ctx context.Context, in *UpdatePaymentRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/UpdatePayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetPayment(ctx context.Context, in *GetPaymentRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetPayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error) {
 	out := new(SearchWalletsResponse)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SearchWallets", in, out, opts...)
@@ -1307,6 +1338,9 @@ type BackendServiceServer interface {
 	VerifyTwitter(context.Context, *VerifyTwitterRequest) (*Empty, error)
 	// Payments
 	GetPaymentAddress(context.Context, *GetPaymentAddressRequest) (*GetPaymentAddressResponse, error)
+	CreatePayment(context.Context, *CreatePaymentRequest) (*Payment, error)
+	UpdatePayment(context.Context, *UpdatePaymentRequest) (*Payment, error)
+	GetPayment(context.Context, *GetPaymentRequest) (*Payment, error)
 	// Search
 	SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error)
 }
@@ -1506,6 +1540,15 @@ func (UnimplementedBackendServiceServer) VerifyTwitter(context.Context, *VerifyT
 }
 func (UnimplementedBackendServiceServer) GetPaymentAddress(context.Context, *GetPaymentAddressRequest) (*GetPaymentAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentAddress not implemented")
+}
+func (UnimplementedBackendServiceServer) CreatePayment(context.Context, *CreatePaymentRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePayment not implemented")
+}
+func (UnimplementedBackendServiceServer) UpdatePayment(context.Context, *UpdatePaymentRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePayment not implemented")
+}
+func (UnimplementedBackendServiceServer) GetPayment(context.Context, *GetPaymentRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPayment not implemented")
 }
 func (UnimplementedBackendServiceServer) SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchWallets not implemented")
@@ -2674,6 +2717,60 @@ func _BackendService_GetPaymentAddress_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreatePayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/CreatePayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreatePayment(ctx, req.(*CreatePaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_UpdatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).UpdatePayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/UpdatePayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).UpdatePayment(ctx, req.(*UpdatePaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetPayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetPayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetPayment(ctx, req.(*GetPaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_SearchWallets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchWalletsRequest)
 	if err := dec(in); err != nil {
@@ -2954,6 +3051,18 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPaymentAddress",
 			Handler:    _BackendService_GetPaymentAddress_Handler,
+		},
+		{
+			MethodName: "CreatePayment",
+			Handler:    _BackendService_CreatePayment_Handler,
+		},
+		{
+			MethodName: "UpdatePayment",
+			Handler:    _BackendService_UpdatePayment_Handler,
+		},
+		{
+			MethodName: "GetPayment",
+			Handler:    _BackendService_GetPayment_Handler,
 		},
 		{
 			MethodName: "SearchWallets",

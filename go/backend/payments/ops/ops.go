@@ -47,7 +47,7 @@ type dbPayment struct {
 func transformPayment(db dbPayment) *payments.Payment {
 
 	var actions []payments.RequiredActionType
-	if db.ThreeDSRequired {
+	if db.ThreeDSRequired && !db.ThreeDSID.Valid {
 		actions = append(actions, payments.RequiredActionTypeThreeDS)
 	}
 
@@ -318,6 +318,13 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		payment.OTP.Valid = true
 		noop = false
 	}
+	if args.Note != "" && args.Note != payment.Note.String {
+		payment.Note = sql.NullString{
+			String: args.Note,
+			Valid:  true,
+		}
+		noop = false
+	}
 	if noop {
 		return transformPayment(*payment), nil
 	}
@@ -333,6 +340,7 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		Value("receiver_currency", payment.ReceiverCurrency).
 		Value("receiver_account", payment.ReceiverAccount).
 		Value("updated_at", payment.UpdatedAt).
+		Value("note", payment.Note).
 		Value("action_three_ds_id", payment.ThreeDSID).
 		Value("action_otp", payment.OTP).Returning(cols).GetStatement()
 	if err != nil {
