@@ -1,45 +1,54 @@
 import type { LoaderArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { toRemixMeta } from 'react-datocms'
+import { json, redirect } from '@remix-run/node'
+import { Outlet, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Layouts, MarketingPageWithSections } from '~/components'
-import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { getAboutRoute } from '~/lib/marketing.server'
+import { Layouts } from '~/components'
+import { getAllDocs } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
   if (process.env.FYNBOS_ENV == 'prod')
     throw json(null, { status: 404, statusText: 'Not found' })
-  const { aboutRoute, footer } = await getAboutRoute()
-  return json({ aboutRoute, footer })
+
+  const { allDocs } = await getAllDocs()
+  if (!allDocs || !allDocs[0].slug)
+    throw json(null, { status: 404, statusText: 'Not found' })
+
+  const slug = allDocs[0].slug
+
+  const url = new URL(request.url)
+
+  if (url.pathname == '/docs') {
+    return redirect(route('/docs/:slug', { slug }))
+  }
+
+  return json({ allDocs })
 }
 
 export const handle: ApplicationProps = {
-  layout: Layouts.Marketing,
+  layout: Layouts.Docs,
   scaffold: {
-    header: {},
+    header: {
+      title: 'Docs'
+    },
     footer: (match) => match.data.footer
   }
 }
 
 export function meta({ data, params }: any) {
   return {
-    ...toRemixMeta(data.aboutRoute.seoMeta),
+    // ...toRemixMeta(data.allDocs.seoMeta),
     'twitter:url': 'https://fynbos.app/docs',
     'og:url': 'https://fynbos.app/docs'
   }
 }
 
 export default function Page() {
-  const { aboutRoute } = useLoaderData<typeof loader>()
-  return (
-    <>
-      {aboutRoute?.body.map((section) => (
-        <MarketingPageWithSections
-          key={section.id}
-          section={section as SectionRecord}
-        />
-      ))}
-    </>
-  )
+  const { allDocs } = useLoaderData<typeof loader>()
+
+  // Instantiate all sections here for the side nav
+  // useEffect(() => {
+  //   console.log('ALL docs client', allDocs)
+  // }, [allDocs])
+  return <Outlet />
 }

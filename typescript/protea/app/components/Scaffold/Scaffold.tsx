@@ -1,15 +1,17 @@
+import type { SerializeFrom } from '@remix-run/node'
 import type { RouteMatch } from '@remix-run/react'
 import {
   NavLink,
   Outlet,
   useMatches,
   useNavigate,
+  useRouteLoaderData,
   useSearchParams
 } from '@remix-run/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useState } from 'react'
 import { StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import {
@@ -23,10 +25,11 @@ import {
   Router,
   SnackbarStage
 } from '~/components'
-import type { FooterRecord } from '~/generated/dato-cms-graphql'
+import type { DocRecord, FooterRecord } from '~/generated/dato-cms-graphql'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
+import type { loader as docsLoader } from '~/routes/docs/route'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -68,6 +71,7 @@ export type ScaffoldProps = {
       | ((match: RouteMatch) => ReactNode | ReactNode[])
       | null
   }
+  nav?: (match: RouteMatch) => DocRecord[]
   footer?: (match: RouteMatch) => FooterRecord
   fab?: Fab
   isNested?: boolean
@@ -122,6 +126,17 @@ export function Scaffold() {
   let layout: Layouts
   if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch)
   else layout = layoutHandle
+
+  const docsLoaderData = useRouteLoaderData('routes/docs') as SerializeFrom<
+    typeof docsLoader
+  >
+
+  const navItems = useMemo(() => {
+    if (layout == Layouts.Docs && docsLoaderData) {
+      return docsLoaderData.allDocs
+    }
+    return null
+  }, [docsLoaderData, layout])
 
   const actionHandle = scaffold.header?.actions
   let actions: ReactNode | ReactNode[]
@@ -193,6 +208,42 @@ export function Scaffold() {
           </NavDrawer.List>
         </NavDrawerRoot>
       )}
+      {layout === Layouts.Docs && (
+        <NavDrawerRoot>
+          <NavDrawer.List>
+            <div className='ml-4'>
+              <Router to={route('/')} aria-label='Fynbos logo'>
+                <FynbosLogo className='h-8' />
+              </Router>
+            </div>
+
+            {navItems &&
+              navItems.map((item) => (
+                <>
+                  <NavDrawer.ListItem
+                    key={item.id}
+                    to={route('/docs/:slug', { slug: item.slug as string })}
+                  >
+                    {item.title}
+                  </NavDrawer.ListItem>
+                  {item.sections?.map((child) => {
+                    if (!child.slug || !child.title) return null
+                    return (
+                      <NavDrawer.ListItem
+                        key={child?.title}
+                        to={route('/docs/:slug', {
+                          slug: `${item.slug}#${child?.slug}`
+                        })}
+                      >
+                        <span className='ml-4'>{child?.title}</span>
+                      </NavDrawer.ListItem>
+                    )
+                  })}
+                </>
+              ))}
+          </NavDrawer.List>
+        </NavDrawerRoot>
+      )}
       <header
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
@@ -223,7 +274,7 @@ export function Scaffold() {
             <div className='hidden space-x-10 pb-2 pl-10 pt-3 lg:flex'>
               <HeaderLink to={route('/wallet')} title='Wallet' />
               <HeaderLink to={route('/about')} title='About' />
-              {/*<HeaderLink to={route('/docs')} title='Docs' />*/}
+              <HeaderLink to={route('/docs')} title='Docs' />
               <HeaderLink to={route('/blog')} title='Blog' />
               <HeaderLink to={route('/contact')} title='Contact' />
             </div>
@@ -353,9 +404,8 @@ export function Scaffold() {
             'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
           layout === Layouts.Focus &&
             'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
-          layout === Layouts.Wallet &&
-            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex',
-          layout === Layouts.Docs && 'z-50 flex w-56 items-center gap-x-3 px-4'
+          (layout === Layouts.Wallet || layout === Layouts.Docs) &&
+            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
         )}
       >
         {layout !== Layouts.Marketing && (
@@ -511,9 +561,9 @@ export function Scaffold() {
                 <NavDrawer.ListItem to={route('/about')}>
                   About
                 </NavDrawer.ListItem>
-                {/*<NavDrawer.ListItem to={route('/docs')}>*/}
-                {/*  Docs*/}
-                {/*</NavDrawer.ListItem>*/}
+                <NavDrawer.ListItem to={route('/docs')}>
+                  Docs
+                </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={route('/blog')}>
                   Blog
                 </NavDrawer.ListItem>

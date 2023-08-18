@@ -389,11 +389,74 @@ function getSegments(str: string, search: string): Segment[] {
   ]
 }
 
+function HomeHeroTitle({
+  content,
+  isDark
+}: {
+  content: HomeHeroContentRecord
+  isDark: boolean
+}) {
+  console.log('content', JSON.stringify(content))
+  const hightlightTitleDefault = {
+    dark: 'rgba(255, 255, 255, 1)',
+    light: 'rgba(15, 23, 42, 1)'
+  }
+  const highlightTitle = [
+    'rgba(99, 102, 241, 1)',
+    'rgba(249, 115, 22, 1)',
+    'rgba(168, 85, 247, 1)',
+    'rgba(250, 204, 21, 1)'
+  ]
+
+  const variants = {
+    inactive: {
+      color: isDark ? hightlightTitleDefault.dark : hightlightTitleDefault.light
+    },
+    active: (i: number) => ({ color: highlightTitle[i] })
+  }
+
+  const segments: { start: number; end: number; text: string }[] = []
+  content.iterations?.forEach((iteration, i) => {
+    const start = content.title?.indexOf(iteration.title as string) ?? 0
+    segments.push({
+      start: start,
+      end: start + (iteration.title as string).length,
+      text: iteration.title as string
+    })
+  })
+  console.log('segments', segments)
+  /**
+   * content {
+   *   id: '122272899',
+   *   title: 'Connect. Verify. Transact with certainty.',
+   *   iterations: [
+   *     {
+   *       id: '122272895',
+   *       title: 'Connect.'
+   *     },
+   *     {
+   *       id: '122272896',
+   *       title: 'Verify.'
+   *     },
+   *     {
+   *       id: '122272897',
+   *       title: 'Transact'
+   *     },
+   *     {
+   *       id: '122272898',
+   *       title: 'certainty.'
+   *     }
+   *   ],
+   * }
+   */
+}
+
 function HomeHeroContentRecordComponent({
   content
 }: {
   content: HomeHeroContentRecord
 }) {
+  console.log('content', content)
   // TODO Upgrade to pull theme once thats done
   const theme = 'system'
   // const { theme } = useLoaderData<typeof loader>()
@@ -415,12 +478,24 @@ function HomeHeroContentRecordComponent({
     dark: 'rgba(255, 255, 255, 1)',
     light: 'rgba(15, 23, 42, 1)'
   }
+  const variants = {
+    initial: {
+      color: hightlightTitleDefault[currentTheme]
+    },
+    exit: {
+      color: hightlightTitleDefault[currentTheme]
+    },
+    animate: (i: number) => ({
+      color: highlightTitle[i],
+      transition: { duration: 3 }
+    })
+  }
 
   const highlightTitle = [
-    'rgba(99, 102, 241, 1)',
-    'rgba(249, 115, 22, 1)',
-    'rgba(168, 85, 247, 1)',
-    'rgba(250, 204, 21, 1)'
+    'rgb(99 102 241)',
+    'rgb(249 115 22)',
+    'rgb(168 85 247)',
+    'rgb(250 204 21)'
   ]
 
   const hightlightBodyDefault = {
@@ -488,62 +563,73 @@ function HomeHeroContentRecordComponent({
       </AnimatePresence>
       <div className='flex w-full flex-col space-y-8 lg:w-1/2'>
         <div className='font-display text-5xl font-bold'>
-          <AnimatePresence mode='wait'>
-            {titleSegments.map((segment, index) => {
-              if (segment.active) {
-                return (
-                  <motion.span
-                    key={segment.val + 'active' + index}
-                    initial={{ color: hightlightTitleDefault[currentTheme] }}
-                    animate={{
-                      color: highlightTitle[active],
-                      transition: { duration: 0.15 }
-                    }}
-                    exit={{ color: hightlightTitleDefault[currentTheme] }}
-                    className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 text-strong selection:bg-transparent'
-                  >
-                    {segment.val}
-                  </motion.span>
-                )
-              } else
-                return (
-                  <motion.span key={segment.val + 'inactive' + index}>
-                    {segment.val}
-                  </motion.span>
-                )
-            })}
-          </AnimatePresence>
+          <motion.span
+            key={'test-just-colour-active'}
+            variants={variants}
+            animate='animate'
+            initial='initial'
+            exit='exit'
+            custom={2}
+            className='selection:bg-transparent'
+          >
+            Hello
+          </motion.span>
+          {/*<AnimatePresence mode='wait'>*/}
+          {/*  {titleSegments.map((segment, index) => {*/}
+          {/*    if (segment.active) {*/}
+          {/*      return (*/}
+          {/*        <motion.span*/}
+          {/*          key={segment.val + 'active' + index}*/}
+          {/*          initial={{ color: hightlightTitleDefault[currentTheme] }}*/}
+          {/*          animate={{*/}
+          {/*            color: highlightTitle[active],*/}
+          {/*            transition: { duration: 0.15 }*/}
+          {/*          }}*/}
+          {/*          exit={{ color: hightlightTitleDefault[currentTheme] }}*/}
+          {/*          className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 text-strong selection:bg-transparent'*/}
+          {/*        >*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*    } else*/}
+          {/*      return (*/}
+          {/*        <motion.span key={segment.val + 'inactive' + index}>*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*  })}*/}
+          {/*</AnimatePresence>*/}
         </div>
         <div className='text-xl text-medium'>
-          <AnimatePresence mode='wait'>
-            {bodySegments.map((segment, index) => {
-              if (segment.active) {
-                return (
-                  <motion.span
-                    key={segment.val + 'active' + index}
-                    initial={{
-                      backgroundColor: hightlightBodyDefault[currentTheme]
-                    }}
-                    animate={{
-                      backgroundColor: highlightBody[active][currentTheme],
-                      transition: { duration: 0.15 }
-                    }}
-                    exit={{
-                      backgroundColor: hightlightBodyDefault[currentTheme]
-                    }}
-                    className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 selection:bg-transparent'
-                  >
-                    {segment.val}
-                  </motion.span>
-                )
-              } else
-                return (
-                  <motion.span key={segment.val + 'inactive' + index}>
-                    {segment.val}
-                  </motion.span>
-                )
-            })}
-          </AnimatePresence>
+          {/*<AnimatePresence mode='wait'>*/}
+          {/*  {bodySegments.map((segment, index) => {*/}
+          {/*    if (segment.active) {*/}
+          {/*      return (*/}
+          {/*        <motion.span*/}
+          {/*          key={segment.val + 'active' + index}*/}
+          {/*          initial={{*/}
+          {/*            backgroundColor: hightlightBodyDefault[currentTheme]*/}
+          {/*          }}*/}
+          {/*          animate={{*/}
+          {/*            backgroundColor: highlightBody[active][currentTheme],*/}
+          {/*            transition: { duration: 0.15 }*/}
+          {/*          }}*/}
+          {/*          exit={{*/}
+          {/*            backgroundColor: hightlightBodyDefault[currentTheme]*/}
+          {/*          }}*/}
+          {/*          className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 selection:bg-transparent'*/}
+          {/*        >*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*    } else*/}
+          {/*      return (*/}
+          {/*        <motion.span key={segment.val + 'inactive' + index}>*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*  })}*/}
+          {/*</AnimatePresence>*/}
         </div>
         {content.button.length > 0 && (
           <MarketingRouter shrink to={content.button[0]} />
