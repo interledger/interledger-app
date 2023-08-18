@@ -11,7 +11,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
+	mock_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay/ops"
+	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -59,17 +61,23 @@ func (ob *opsBackends) Temporal() temporal.Client {
 }
 
 func New(args NewClientArgs, b Backends) (*Client, error) {
-	externalClient, err := external_client.New(external_client.NewClientArgs{
-		BasisTheoryProxyApiKey: args.BasisTheoryProxyApiKey,
-		ClientID:               args.ClientID,
-		SubClientID:            args.SubClientID,
-		BearerToken:            args.BearerToken,
-		Transport: otelhttp.NewTransport(
-			httplogger.NewTransport(http.DefaultTransport, b, nil),
-		),
-	})
-	if err != nil {
-		return nil, err
+	var externalClient external.Client
+	if env.IsLocal() {
+		externalClient = mock_client.SetupDevMock()
+	} else {
+		var err error
+		externalClient, err = external_client.New(external_client.NewClientArgs{
+			BasisTheoryProxyApiKey: args.BasisTheoryProxyApiKey,
+			ClientID:               args.ClientID,
+			SubClientID:            args.SubClientID,
+			BearerToken:            args.BearerToken,
+			Transport: otelhttp.NewTransport(
+				httplogger.NewTransport(http.DefaultTransport, b, nil),
+			),
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Client{
