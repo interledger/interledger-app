@@ -5,7 +5,7 @@ import "errors"
 var (
 	ErrNotFound               = errors.New("payments: Not Found")
 	ErrInternal               = errors.New("payments: Internal")
-	ErrInfoRequired           = errors.New("payments: Information missing for payment")
+	ErrInvalidState           = errors.New("payments: Cannot update payment confirmed or cancelled payment")
 	ErrInvalidStateTransition = errors.New("payments: Invalid state transition")
 	ErrRequiredActions        = errors.New("payments: Actions required")
 	ErrInvalidAmount          = errors.New("payments: Invalid amount")
