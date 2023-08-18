@@ -283,6 +283,10 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		return nil, fmt.Errorf("%w Receiver is invalid.", payments.ErrInvalidIdentifier)
 	}
 
+	if payment.State != payments.StateCreated {
+		return nil, fmt.Errorf("%w Cannot update payment in state (%s)", payments.ErrInvalidState, payment.State)
+	}
+
 	noop := true
 	receiver := payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}
 	if !args.Receiver.IsEmpty() && !args.Receiver.IsEqual(receiver) {
