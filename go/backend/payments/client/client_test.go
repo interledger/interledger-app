@@ -6,87 +6,25 @@ import (
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/db"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/client"
-	"gitlab.com/fynbos/backend/payments/ops"
-	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"gitlab.com/fynbos/backend/providers/tabapay"
-	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
-	tabapay_external "gitlab.com/fynbos/backend/providers/tabapay/external"
-	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
-	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
-	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/workflow"
 	"gotest.tools/assert"
 )
 
 func TestClient(t *testing.T) {
 	env.SetEnv(t, "local")
 	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	em := email_mock.NewMockClient(ctrl)
-	em.EXPECT().SendPaymentReceivedEmailV2(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendPaymentSentEmailV2(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendPaymentFailedEmail(gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendConnectedAccountEmail(gomock.Any(), gomock.Any()).AnyTimes()
-	tc := tabapay_mock.NewMockClient(ctrl)
-	tc.EXPECT().PullFromCard(gomock.Any(), gomock.Any()).Return(
-		&tabapay.Transaction{
-			ID:        uuid.NewString(),
-			Status:    string(tabapay_external.TransactionStatusCompleted),
-			NetworkRC: "00",
-		},
-		nil,
-	).AnyTimes()
-	tc.EXPECT().PushToCard(gomock.Any(), gomock.Any()).Return(
-		&tabapay.Transaction{
-			ID:        uuid.NewString(),
-			Status:    string(tabapay_external.TransactionStatusCompleted),
-			NetworkRC: "00",
-		},
-		nil,
-	).AnyTimes()
-	tc.EXPECT().Get3DSSession(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, id string) (*tabapay.ThreeDSSession, error) {
-			return &tabapay.ThreeDSSession{ID: id, ECI: tabapay.ThreeDSFullyAuthenticated}, nil
-		},
-	).AnyTimes()
+	b := NewTestBackends(t)
 
-	b := &TestBackends{
-		db:      db.MigrateTestDB(t, ctx),
-		tabapay: tc,
-		user:    user_mock.NewMock(),
-		email:   em,
-	}
 	sendWalletID, sendLinkedAccount := createTestWallet(t, b)
 	receiveWalletID, receiveLinkedAccount := createTestWallet(t, b)
-
-	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestWorkflowEnvironment()
-	env.RegisterActivity(ops.NewActivity(b))
-	env.RegisterWorkflow(ops.PaymentWorkflow)
-	env.RegisterWorkflow(ops.PayinWorkflow)
-	env.RegisterWorkflow(ops.PayoutWorkflow)
-	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
-	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
-
-	tp := temporal_mock.NewMockClient(ctrl)
-	tp.EXPECT().ExecuteWorkflow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(arg1 interface{}, arg2 interface{}, arg3 interface{}, arg4 ...interface{}) (*workflow.Execution, error) {
-		require.Len(t, arg4, 1)
-		env.ExecuteWorkflow(ops.PaymentWorkflow, arg4[0].(string))
-
-		return nil, nil
-	})
-	b.temporal = tp
 
 	pc := client.New(b)
 	p, err := pc.Create(ctx, payments.CreateArgs{
@@ -105,9 +43,17 @@ func TestClient(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// generate 3DS session
+	threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
+		Amount:  p.SenderAmount,
+		OrderID: p.ID,
+		CardID:  sendLinkedAccount,
+	})
+	require.NoError(t, err)
+
 	p, err = pc.Update(ctx, payments.UpdateArgs{
 		ID:        p.ID,
-		ThreeDSID: "123",
+		ThreeDSID: threeDSSession.ID,
 	})
 	require.NoError(t, err)
 
@@ -116,11 +62,11 @@ func TestClient(t *testing.T) {
 	require.Empty(t, requiredActions)
 
 	for {
-		if env.IsWorkflowCompleted() {
+		if b.env.IsWorkflowCompleted() {
 			break
 		}
 	}
-	require.NoError(t, env.GetWorkflowError())
+	require.NoError(t, b.env.GetWorkflowError())
 
 	payment, err := pc.Lookup(ctx, p.ID)
 	require.NoError(t, err)
@@ -142,14 +88,15 @@ func createTestWallet(t *testing.T, b *TestBackends) (string, string) {
 		t.Fatal(err)
 	}
 
+	walletID := uuid.NewString()
+	b.user.MapUserWallet(context.Background(), userID, walletID)
 	wallet, err := b.Wallets().Create(context.Background(), wallets.CreateArgs{
 		UserID:    userID,
+		ID:        walletID,
 		Addresses: []wallets.Address{address},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	b.user.MapUserWallet(context.Background(), userID, wallet.ID)
+	require.NoError(t, err)
+	require.Equal(t, walletID, wallet.ID)
 
 	la, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
 		WalletID:   wallet.ID,
@@ -160,9 +107,7 @@ func createTestWallet(t *testing.T, b *TestBackends) (string, string) {
 		CanReceive: true,
 		Type:       tabapay.TypeCard,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	return wallet.ID, la.ID
 }
