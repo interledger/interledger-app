@@ -395,6 +395,13 @@ type (
 		UCAF                   string `json:"UCAF"`
 		XID                    string `json:"XID"`
 	}
+
+	DeleteTransactionResponse struct {
+		SC       int      `json:"SC"`
+		EC       string   `json:"EC"`
+		Status   string   `json:"status"`
+		Reversal Reversal `json:"reversal"`
+	}
 )
 
 func (t *RetrieveTransactionResponse) GetFees() *Fees {

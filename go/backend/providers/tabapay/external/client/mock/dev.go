@@ -29,7 +29,20 @@ func SetupDevMock(t *testing.T) *MockClient {
 		ReferenceID: uuid.NewString(),
 	}, nil).AnyTimes()
 
-	cl.EXPECT().DeleteTransaction(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	cl.EXPECT().DeleteTransaction(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string, deleteType external.DeleteType) (*external.DeleteTransactionResponse, error) {
+		_, ok := txIDAmounts[id]
+		if !ok {
+			return &external.DeleteTransactionResponse{
+				SC:     http.StatusMultiStatus,
+				EC:     "404",
+				Status: "no payment found to delete",
+			}, nil
+		}
+
+		return &external.DeleteTransactionResponse{
+			SC: http.StatusOK,
+		}, nil
+	}).AnyTimes()
 
 	cl.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, args external.CreateTransactionArgs,
 	) (*external.CreateTransactionResponse, error) {
@@ -39,7 +52,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 			return &external.CreateTransactionResponse{
 				SC:            http.StatusMultiStatus,
 				EC:            "fail",
-				TransactionID: uuid.NewString(),
+				TransactionID: id,
 				Network:       "Mastercard",
 				NetworkRC:     "111",
 				Status:        string(external.TransactionStatusError),
@@ -49,7 +62,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		return &external.CreateTransactionResponse{
 			SC:            http.StatusOK,
 			EC:            "OK",
-			TransactionID: uuid.NewString(),
+			TransactionID: id,
 			Network:       "Mastercard",
 			NetworkRC:     "000",
 			Status:        string(external.TransactionStatusOk),
