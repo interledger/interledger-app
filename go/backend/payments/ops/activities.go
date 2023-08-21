@@ -38,17 +38,17 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
-	senderWallet, err := a.b.Identities().GetByIdentifier(ctx, payment.Sender.Identifier)
+	senderWallet, err := lookupWallet(ctx, a.b, payment.Sender)
 	if err != nil {
 		return err
 	}
-	a.b.Email().SendPaymentSentEmailV2(ctx, senderWallet.WalletID, payment)
+	a.b.Email().SendPaymentSentEmailV2(ctx, senderWallet.ID, payment)
 
-	receiverWallet, err := a.b.Identities().GetByIdentifier(ctx, payment.Receiver.Identifier)
+	receiverWallet, err := lookupWallet(ctx, a.b, payment.Sender)
 	if err != nil {
 		return err
 	}
-	a.b.Email().SendPaymentReceivedEmailV2(ctx, receiverWallet.WalletID, payment)
+	a.b.Email().SendPaymentReceivedEmailV2(ctx, receiverWallet.ID, payment)
 
 	return nil
 }
@@ -125,7 +125,6 @@ func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (b
 	if p.ReceiveTransactionID == "" || p.SendTransactionID == "" {
 		return false, nil
 	}
-
 	senderWallet, err := lookupWallet(ctx, a.b, p.Sender)
 	if err != nil {
 		return false, err
