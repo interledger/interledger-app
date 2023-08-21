@@ -230,7 +230,6 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		}
 		break
 	}
-
 	if signal.PayOutSuccess {
 		// Mark transaction as a success
 		return workflow.ExecuteActivity(ctx, a.UpdateTransactionState, txID, transactions.StateCompleted).Get(ctx, nil)
@@ -359,6 +358,12 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	// Create the incoming transaction
 	var txID string
 	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, accountTX.ID).Get(ctx, &txID)
+	if err != nil {
+		return err
+	}
+
+	// TODO: should we do 2-phase for the payout transaction?
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, txID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
