@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	mock_client "gitlab.com/fynbos/backend/providers/gmt/external/mock"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -40,6 +41,10 @@ type Client interface {
 }
 
 func NewClient(transport http.RoundTripper) Client {
+	if env.IsLocal() {
+		return mock_client.SetupDevMock(nil)
+	}
+
 	t := transport
 	if t == nil {
 		t = otelhttp.NewTransport(http.DefaultTransport)

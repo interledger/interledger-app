@@ -3,14 +3,18 @@ package mock
 import (
 	context "context"
 	"net/http"
+	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 )
 
-func SetupDevMock() *MockClient {
-	ctrl := gomock.NewController(nil)
+var txIDAmounts map[string]string
+
+func SetupDevMock(t *testing.T) *MockClient {
+	txIDAmounts = make(map[string]string)
+	ctrl := gomock.NewController(t)
 	cl := NewMockClient(ctrl)
 
 	cl.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&external.CreateAccountResponse{
@@ -24,6 +28,8 @@ func SetupDevMock() *MockClient {
 
 	cl.EXPECT().CreateTransaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, args external.CreateTransactionArgs,
 	) (*external.CreateTransactionResponse, error) {
+		id := uuid.NewString()
+		txIDAmounts[id] = args.Amount
 		if args.Amount == "6.66" {
 			return &external.CreateTransactionResponse{
 				SC:            http.StatusMultiStatus,
@@ -46,17 +52,23 @@ func SetupDevMock() *MockClient {
 		}, nil
 	})
 
-	cl.EXPECT().RetrieveTransaction(gomock.Any(), gomock.Any()).Return(&external.RetrieveTransactionResponse{
-		SC:          http.StatusOK,
-		EC:          "OK",
-		ReferenceID: uuid.NewString(),
-		Network:     "Mastercard",
-		NetworkRC:   "000",
-		Status:      "OK",
-		Originally:  "OK",
-		Amount:      "10.00",
-		AmountUSD:   "10.00",
-	}, nil).AnyTimes()
+	cl.EXPECT().RetrieveTransaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*external.RetrieveTransactionResponse, error) {
+		amt := "10.00"
+		if _, ok := txIDAmounts[id]; ok {
+			amt = txIDAmounts[id]
+		}
+		return &external.RetrieveTransactionResponse{
+			SC:          http.StatusOK,
+			EC:          "OK",
+			ReferenceID: uuid.NewString(),
+			Network:     "Mastercard",
+			NetworkRC:   "000",
+			Status:      "OK",
+			Originally:  "OK",
+			Amount:      amt,
+			AmountUSD:   amt,
+		}, nil
+	}).AnyTimes()
 
 	cl.EXPECT().QueryCard(gomock.Any(), gomock.Any()).Return(&external.QueryCardResponse{
 		SC: http.StatusOK,
