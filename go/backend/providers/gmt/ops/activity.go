@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/providers/gmt/external/client"
 	"net/http"
 	"os"
 	"strconv"
@@ -55,9 +56,9 @@ func NewActivity(b Backends) *Activity {
 	}
 	a := &Activity{
 		b: b,
-		ext: external.NewClient(
+		ext: client.NewClient(
 			otelhttp.NewTransport(
-				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
+				httplogger.NewTransport(http.DefaultTransport, b, client.Redact),
 			),
 		),
 		mts: int32(mts),
