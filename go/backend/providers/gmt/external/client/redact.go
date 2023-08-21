@@ -1,10 +1,12 @@
-package external
+package client
 
 import (
 	"context"
 	"errors"
 	"io"
 	"strings"
+
+	"gitlab.com/fynbos/backend/providers/gmt/external"
 
 	"github.com/clbanning/mxj"
 )
@@ -36,7 +38,7 @@ func redact(fields map[string]interface{}, parent string) {
 		case map[string]interface{}:
 			redact(v, k)
 		case string:
-			for _, i := range RedactFields {
+			for _, i := range external.RedactFields {
 				if strings.HasSuffix(parent, i) {
 					fields[k] = "*****"
 				}

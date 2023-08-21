@@ -1,4 +1,4 @@
-package external
+package client
 
 import (
 	"bytes"
@@ -9,7 +9,8 @@ import (
 	"net/http"
 	"os"
 
-	mock_client "gitlab.com/fynbos/backend/providers/gmt/external/mock"
+	"gitlab.com/fynbos/backend/providers/gmt/external"
+	mock_client "gitlab.com/fynbos/backend/providers/gmt/external/client/mock"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -28,19 +29,7 @@ type client struct {
 	txPartner  string
 }
 
-type Client interface {
-	InsertTransaction(ctx context.Context, tx InsertTransaction) (*WsResponse, error)
-	UpdateTransactionStatus(ctx context.Context, tx UpdateTransactionStatus) (*WsResponse, error)
-	OfacVerification(ctx context.Context, req OfacVerification) (*WsOfac, error)
-	ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsResponse, error)
-	SetVerified(ctx context.Context, req SetVerified) (*WsResult, error)
-	ConfirmCollection(ctx context.Context, req ConfirmCollection) (*WsResponse, error)
-	ConfirmPayment(ctx context.Context, req ConfirmPayment) (*WsResponse, error)
-	GetNotifications(ctx context.Context) ([]*WsNotifications, error)
-	RequestCancellation(ctx context.Context, txID, msg string) (*WsResponse, error)
-}
-
-func NewClient(transport http.RoundTripper) Client {
+func NewClient(transport http.RoundTripper) external.Client {
 	if env.IsLocal() {
 		return mock_client.SetupDevMock(nil)
 	}
@@ -86,7 +75,7 @@ func getEnvDefault(key, fallback string) string {
 	return val
 }
 
-func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*WsResponse, error) {
+func (c *client) InsertTransaction(ctx context.Context, tx external.InsertTransaction) (*external.WsResponse, error) {
 	if tx.Sender != nil {
 		tx.Sender.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
 	}
@@ -97,8 +86,8 @@ func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*
 		tx.Transfer.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
 	}
 	type txBody struct {
-		Text string                    `xml:",chardata"`
-		Resp InsertTransactionResponse `xml:"InsertTransactionResponse"`
+		Text string                             `xml:",chardata"`
+		Resp external.InsertTransactionResponse `xml:"InsertTransactionResponse"`
 	}
 	response := txBody{}
 
@@ -114,7 +103,7 @@ func (c *client) InsertTransaction(ctx context.Context, tx InsertTransaction) (*
 	return response.Resp.InsertTransactionResult, err
 }
 
-func (c *client) ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsResponse, error) {
+func (c *client) ComplianceCheck(ctx context.Context, req external.ComplianceCheck) (*external.WsResponse, error) {
 	if req.Sender != nil {
 		req.Sender.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
 	}
@@ -125,8 +114,8 @@ func (c *client) ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsR
 		req.Transfer.XmlNS = "http://schemas.datacontract.org/2004/07/gmtpay"
 	}
 	type cmpBody struct {
-		Text string                  `xml:",chardata"`
-		Resp ComplianceCheckResponse `xml:"ComplianceCheckResponse"`
+		Text string                           `xml:",chardata"`
+		Resp external.ComplianceCheckResponse `xml:"ComplianceCheckResponse"`
 	}
 	response := cmpBody{}
 
@@ -142,10 +131,10 @@ func (c *client) ComplianceCheck(ctx context.Context, req ComplianceCheck) (*WsR
 	return response.Resp.ComplianceCheckResult, err
 }
 
-func (c *client) OfacVerification(ctx context.Context, req OfacVerification) (*WsOfac, error) {
+func (c *client) OfacVerification(ctx context.Context, req external.OfacVerification) (*external.WsOfac, error) {
 	type ofacBody struct {
-		Text string                   `xml:",chardata"`
-		Resp OfacVerificationResponse `xml:"OfacVerificationResponse"`
+		Text string                            `xml:",chardata"`
+		Resp external.OfacVerificationResponse `xml:"OfacVerificationResponse"`
 	}
 	response := ofacBody{}
 
@@ -161,10 +150,10 @@ func (c *client) OfacVerification(ctx context.Context, req OfacVerification) (*W
 	return response.Resp.OfacVerificationResult, err
 }
 
-func (c *client) SetVerified(ctx context.Context, req SetVerified) (*WsResult, error) {
+func (c *client) SetVerified(ctx context.Context, req external.SetVerified) (*external.WsResult, error) {
 	type verBody struct {
-		Text string              `xml:",chardata"`
-		Resp SetVerifiedResponse `xml:"SetVerifiedResponse"`
+		Text string                       `xml:",chardata"`
+		Resp external.SetVerifiedResponse `xml:"SetVerifiedResponse"`
 	}
 	response := verBody{}
 
@@ -180,10 +169,10 @@ func (c *client) SetVerified(ctx context.Context, req SetVerified) (*WsResult, e
 	return response.Resp.SetVerifiedResult, err
 }
 
-func (c *client) ConfirmCollection(ctx context.Context, req ConfirmCollection) (*WsResponse, error) {
+func (c *client) ConfirmCollection(ctx context.Context, req external.ConfirmCollection) (*external.WsResponse, error) {
 	type cnfrmBody struct {
-		Text string                    `xml:",chardata"`
-		Resp ConfirmCollectionResponse `xml:"ConfirmCollectionResponse"`
+		Text string                             `xml:",chardata"`
+		Resp external.ConfirmCollectionResponse `xml:"ConfirmCollectionResponse"`
 	}
 	response := cnfrmBody{}
 
@@ -199,10 +188,10 @@ func (c *client) ConfirmCollection(ctx context.Context, req ConfirmCollection) (
 	return response.Resp.ConfirmCollectionResult, err
 }
 
-func (c *client) ConfirmPayment(ctx context.Context, req ConfirmPayment) (*WsResponse, error) {
+func (c *client) ConfirmPayment(ctx context.Context, req external.ConfirmPayment) (*external.WsResponse, error) {
 	type cnfrmBody struct {
-		Text string                 `xml:",chardata"`
-		Resp ConfirmPaymentResponse `xml:"ConfirmPaymentResponse"`
+		Text string                          `xml:",chardata"`
+		Resp external.ConfirmPaymentResponse `xml:"ConfirmPaymentResponse"`
 	}
 	response := cnfrmBody{}
 
@@ -218,13 +207,13 @@ func (c *client) ConfirmPayment(ctx context.Context, req ConfirmPayment) (*WsRes
 	return response.Resp.ConfirmPaymentResult, err
 }
 
-func (c *client) GetNotifications(ctx context.Context) ([]*WsNotifications, error) {
+func (c *client) GetNotifications(ctx context.Context) ([]*external.WsNotifications, error) {
 	type ntfBody struct {
-		Text string                   `xml:",chardata"`
-		Resp GetNotificationsResponse `xml:"GetNotificationsResponse"`
+		Text string                            `xml:",chardata"`
+		Resp external.GetNotificationsResponse `xml:"GetNotificationsResponse"`
 	}
 	response := ntfBody{}
-	req := GetNotifications{
+	req := external.GetNotifications{
 		Alias: c.alias,
 		User:  c.user,
 		Pass:  c.password,
@@ -236,16 +225,16 @@ func (c *client) GetNotifications(ctx context.Context) ([]*WsNotifications, erro
 	}
 
 	if response.Resp.GetNotificationsResult == nil || response.Resp.GetNotificationsResult.WsNotifications == nil {
-		return []*WsNotifications{}, nil
+		return []*external.WsNotifications{}, nil
 	}
 
 	return response.Resp.GetNotificationsResult.WsNotifications, err
 }
 
-func (c *client) UpdateTransactionStatus(ctx context.Context, tx UpdateTransactionStatus) (*WsResponse, error) {
+func (c *client) UpdateTransactionStatus(ctx context.Context, tx external.UpdateTransactionStatus) (*external.WsResponse, error) {
 	type txBody struct {
-		Text string                          `xml:",chardata"`
-		Resp UpdateTransactionStatusResponse `xml:"UpdateTransactionStatusResponse"`
+		Text string                                   `xml:",chardata"`
+		Resp external.UpdateTransactionStatusResponse `xml:"UpdateTransactionStatusResponse"`
 	}
 	response := txBody{}
 
@@ -275,7 +264,7 @@ func (c *client) httpCall(ctx context.Context, action, url string, request, resp
 		meta.Method = action
 	}
 
-	envelope := SOAPEnvelope{
+	envelope := external.SOAPEnvelope{
 		XmlNS: "http://schemas.xmlsoap.org/soap/envelope/",
 	}
 
@@ -308,7 +297,7 @@ func (c *client) httpCall(ctx context.Context, action, url string, request, resp
 		return fmt.Errorf("http error code (%d) msg (%s)", res.StatusCode, body)
 	}
 
-	respEnv := &SOAPEnvelopeResponse{
+	respEnv := &external.SOAPEnvelopeResponse{
 		Body: resp,
 	}
 
@@ -320,8 +309,8 @@ func (c *client) httpCall(ctx context.Context, action, url string, request, resp
 	return nil
 }
 
-func (c *client) RequestCancellation(ctx context.Context, txID, msg string) (*WsResponse, error) {
-	req := RequestCancellation{
+func (c *client) RequestCancellation(ctx context.Context, txID, msg string) (*external.WsResponse, error) {
+	req := external.RequestCancellation{
 		Alias:   c.alias,
 		User:    c.user,
 		Pass:    c.password,
@@ -330,8 +319,8 @@ func (c *client) RequestCancellation(ctx context.Context, txID, msg string) (*Ws
 	}
 
 	type cancellationBody struct {
-		Text string                      `xml:",chardata"`
-		Resp RequestCancellationResponse `xml:"RequestCancellationResponse"`
+		Text string                               `xml:",chardata"`
+		Resp external.RequestCancellationResponse `xml:"RequestCancellationResponse"`
 	}
 	response := cancellationBody{}
 

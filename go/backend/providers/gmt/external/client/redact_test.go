@@ -1,13 +1,14 @@
-package external_test
+package client_test
 
 import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/gmt/external/client"
+
 	"github.com/clbanning/mxj"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/fynbos/backend/providers/gmt/external"
 )
 
 const exampleRequest = `
@@ -75,7 +76,7 @@ const exampleRequest = `
 func TestRedact(t *testing.T) {
 	t.Parallel()
 
-	redactedReq, err := external.Redact(context.Background(), []byte(exampleRequest))
+	redactedReq, err := client.Redact(context.Background(), []byte(exampleRequest))
 	require.NoError(t, err)
 
 	// Check req

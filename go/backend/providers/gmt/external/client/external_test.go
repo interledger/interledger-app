@@ -1,9 +1,11 @@
-package external
+package client
 
 import (
 	"context"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/gmt/external"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/env"
@@ -19,13 +21,13 @@ func TestClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := client.ComplianceCheck(context.Background(), ComplianceCheck{
-		Sender: &WsSender{
+	resp, err := client.ComplianceCheck(context.Background(), external.ComplianceCheck{
+		Sender: &external.WsSender{
 			SenderAchAccount:           "5432154321",
 			SenderAchRouting:           "000300258",
 			SenderAchType:              "SV",
 			SenderAddress:              "123 TEST ADDRESS",
-			SenderBirthDate:            GMTDate(dob),
+			SenderBirthDate:            external.GMTDate(dob),
 			SenderCity:                 "SAN DIEGO",
 			SenderCountryCode:          "US",
 			SenderCurrencyCode:         "USD",
@@ -41,7 +43,7 @@ func TestClient(t *testing.T) {
 			SenderZip:                  "91909",
 			SenderTrackingNumber:       "API-0000-0001",
 		},
-		Receiver: &WsReceiver{
+		Receiver: &external.WsReceiver{
 			ReceiverActive:   true,
 			ReceiverAddress:  "123 TEST ST",
 			ReceiverCity:     "SANTA CLARA",
@@ -53,7 +55,7 @@ func TestClient(t *testing.T) {
 			ReceiverState:    "CALIFORNIA",
 			ReceiverZip:      "",
 		},
-		Transfer: &WsTransferInfo{
+		Transfer: &external.WsTransferInfo{
 			AmountToReceive:       10,
 			BankAccount:           "12345678901",
 			BankCode:              "WFBI",
@@ -76,13 +78,13 @@ func TestClient(t *testing.T) {
 	assert.Equal(t, "OK", resp.Status)
 	assert.True(t, resp.Valid)
 
-	resp, err = client.InsertTransaction(context.Background(), InsertTransaction{
-		Sender: &WsSender{
+	resp, err = client.InsertTransaction(context.Background(), external.InsertTransaction{
+		Sender: &external.WsSender{
 			SenderAchAccount:           "5432154321",
 			SenderAchRouting:           "000300258",
 			SenderAchType:              "SV",
 			SenderAddress:              "123 TEST ADDRESS",
-			SenderBirthDate:            GMTDate(dob),
+			SenderBirthDate:            external.GMTDate(dob),
 			SenderCity:                 "SAN DIEGO",
 			SenderCountryCode:          "US",
 			SenderCurrencyCode:         "USD",
@@ -98,7 +100,7 @@ func TestClient(t *testing.T) {
 			SenderZip:                  "91909",
 			SenderTrackingNumber:       "API-0000-0001",
 		},
-		Receiver: &WsReceiver{
+		Receiver: &external.WsReceiver{
 			ReceiverActive:   true,
 			ReceiverAddress:  "123 TEST ST",
 			ReceiverCity:     "SANTA CLARA",
@@ -110,7 +112,7 @@ func TestClient(t *testing.T) {
 			ReceiverState:    "CALIFORNIA",
 			ReceiverZip:      "",
 		},
-		Transfer: &WsTransferInfo{
+		Transfer: &external.WsTransferInfo{
 			AmountToReceive:       10,
 			BankAccount:           "12345678901",
 			BankCode:              "WFBI",
