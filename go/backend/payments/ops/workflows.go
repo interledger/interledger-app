@@ -77,7 +77,6 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		innerErr := f.Get(childPayoutCtx, nil)
 		if innerErr != nil {
 			logger.Error("Payout worfklow failed. paymentID=", id, "err", innerErr)
-			// rollback payin
 		}
 		err = innerErr
 	})

@@ -86,7 +86,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
 		ReferenceID: externalRef,
-		Amount:      currency.FromUInt64(dbp.SenderAmount, currency.ParseCurrency(dbp.SenderCurrency)),
+		Amount:      currency.FromUInt64(dbp.ReceiverAmount, currency.ParseCurrency(dbp.SenderCurrency)),
 	})
 	if err != nil {
 		return nil, err

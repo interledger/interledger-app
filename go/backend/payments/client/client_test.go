@@ -7,70 +7,193 @@ import (
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/client"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
-	"gotest.tools/assert"
 )
+
+type Assertions struct {
+	PaymentState            payments.State
+	SendTransactionState    transactions.State
+	SendTransfers           []AssertTransfer
+	ReceiveTransactionState transactions.State
+	ReceiveTransfers        []AssertTransfer
+}
+
+type AssertTransfer struct {
+	TransferType transactions.TransferType
+	State        transactions.State
+}
 
 func TestClient(t *testing.T) {
 	env.SetEnv(t, "local")
 	ctx := context.Background()
 	b := NewTestBackends(t)
 
+	pc := client.New(b)
 	sendWalletID, sendLinkedAccount := createTestWallet(t, b)
 	receiveWalletID, receiveLinkedAccount := createTestWallet(t, b)
 
-	pc := client.New(b)
-	p, err := pc.Create(ctx, payments.CreateArgs{
-		Sender: payments.Identity{
-			Type:       payments.IdentityTypeWalletID,
-			Identifier: sendWalletID,
+	cases := []struct {
+		Name       string
+		Args       payments.CreateArgs
+		Assertions Assertions
+	}{
+		{
+			Name: "Golden path",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendLinkedAccount,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveLinkedAccount,
+				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitCard,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeCreditCard,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransactionState: transactions.StateCompleted,
+			},
 		},
-		SenderAccount: sendLinkedAccount,
-		Receiver: payments.Identity{
-			Type:       payments.IdentityTypeWalletID,
-			Identifier: receiveWalletID,
+		{
+			Name: "Pull from card fails",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendLinkedAccount,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveLinkedAccount,
+				SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("USD")),
+				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateFailed,
+				SendTransactionState: transactions.StateFailed,
+				SendTransfers:        []AssertTransfer{},
+				ReceiveTransfers:     []AssertTransfer{},
+			},
 		},
-		ReceiverAccount: receiveLinkedAccount,
-		SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
-		ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
-	})
-	require.NoError(t, err)
-
-	// generate 3DS session
-	threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
-		Amount:  p.SenderAmount,
-		OrderID: p.ID,
-		CardID:  sendLinkedAccount,
-	})
-	require.NoError(t, err)
-
-	p, err = pc.Update(ctx, payments.UpdateArgs{
-		ID:        p.ID,
-		ThreeDSID: threeDSSession.ID,
-	})
-	require.NoError(t, err)
-
-	p, requiredActions, err := pc.Confirm(ctx, p.ID)
-	require.NoError(t, err)
-	require.Empty(t, requiredActions)
-
-	for {
-		if b.env.IsWorkflowCompleted() {
-			break
-		}
+		{
+			Name: "Push to card fails",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendLinkedAccount,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveLinkedAccount,
+				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				ReceiverAmount:  currency.FromUInt64(666, currency.ParseCurrency("USD")),
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateFailed,
+				SendTransactionState: transactions.StateFailed,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitCard,
+						State:        transactions.StateCompleted,
+					},
+					{
+						TransferType: transactions.TransferTypeCreditCard,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransfers: []AssertTransfer{},
+			},
+		},
 	}
-	require.NoError(t, b.env.GetWorkflowError())
 
-	payment, err := pc.Lookup(ctx, p.ID)
-	require.NoError(t, err)
-	assert.Equal(t, payments.StateCompleted, payment.State)
+	for _, tc := range cases {
+		t.Run(tc.Name, func(st *testing.T) {
+			b.RestoreTemporalEnv()
+			p, err := pc.Create(ctx, tc.Args)
+			require.NoError(st, err)
+			// generate 3DS session
+			threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
+				Amount:  tc.Args.SenderAmount,
+				OrderID: p.ID,
+				CardID:  sendLinkedAccount,
+			})
+			require.NoError(st, err)
+
+			p, err = pc.Update(ctx, payments.UpdateArgs{
+				ID:        p.ID,
+				ThreeDSID: threeDSSession.ID,
+			})
+			require.NoError(st, err)
+
+			p, requiredActions, err := pc.Confirm(ctx, p.ID)
+			require.NoError(st, err)
+			require.Empty(st, requiredActions)
+
+			for {
+				if b.env.IsWorkflowCompleted() {
+					break
+				}
+			}
+			require.NoError(st, b.env.GetWorkflowError())
+
+			payment, err := pc.Lookup(ctx, p.ID)
+			require.NoError(st, err)
+			assert.Equal(st, tc.Assertions.PaymentState, payment.State)
+
+			sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
+			require.NoError(st, err)
+			assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
+			sendTransfers := []AssertTransfer{}
+			for _, tr := range sendTransaction.Transfers {
+				sendTransfers = append(sendTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
+			}
+			assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
+
+			if tc.Assertions.ReceiveTransactionState != "" {
+				recvTransaction, err := b.Transactions().GetTransaction(ctx, receiveWalletID, p.ReceiveTransactionID)
+				require.NoError(st, err)
+				assert.Equal(st, tc.Assertions.ReceiveTransactionState, recvTransaction.State)
+				recvTransfers := []AssertTransfer{}
+				for _, tr := range recvTransaction.Transfers {
+					recvTransfers = append(recvTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
+				}
+				assert.ElementsMatch(st, tc.Assertions.ReceiveTransfers, recvTransfers)
+			} else {
+				assert.Empty(st, p.ReceiveTransactionID)
+			}
+		})
+	}
 }
 
 /*

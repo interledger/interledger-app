@@ -68,20 +68,10 @@ func NewTestBackends(t *testing.T) *TestBackends {
 		email: em,
 	}
 
-	testSuite := &testsuite.WorkflowTestSuite{}
-	env := testSuite.NewTestWorkflowEnvironment()
-	env.RegisterActivity(ops.NewActivity(b))
-	env.RegisterWorkflow(ops.PaymentWorkflow)
-	env.RegisterWorkflow(ops.PayinWorkflow)
-	env.RegisterWorkflow(ops.PayoutWorkflow)
-	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
-	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
-	b.env = env
-
 	tp := temporal_mock.NewMockClient(ctrl)
 	tp.EXPECT().ExecuteWorkflow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(arg1 interface{}, arg2 interface{}, arg3 interface{}, arg4 ...interface{}) (*workflow.Execution, error) {
 		require.Len(t, arg4, 1)
-		env.ExecuteWorkflow(ops.PaymentWorkflow, arg4[0].(string))
+		b.env.ExecuteWorkflow(ops.PaymentWorkflow, arg4[0].(string))
 
 		return nil, nil
 	}).AnyTimes()
@@ -92,6 +82,19 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	b.tabapay = tc
 
 	return b
+}
+
+func (b *TestBackends) RestoreTemporalEnv() {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+	env.RegisterActivity(ops.NewActivity(b))
+	env.RegisterWorkflow(ops.PaymentWorkflow)
+	env.RegisterWorkflow(ops.PayinWorkflow)
+	env.RegisterWorkflow(ops.PayoutWorkflow)
+	env.RegisterWorkflow(ops.RollbackPayInWorkflow)
+	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
+	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
+	b.env = env
 }
 
 func (b *TestBackends) Twilio() twilio.Service {
