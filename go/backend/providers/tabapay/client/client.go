@@ -63,7 +63,7 @@ func (ob *opsBackends) Temporal() temporal.Client {
 func New(args NewClientArgs, b Backends) (*Client, error) {
 	var externalClient external.Client
 	if env.IsLocal() {
-		externalClient = mock_client.SetupDevMock()
+		externalClient = mock_client.SetupDevMock(nil)
 	} else {
 		var err error
 		externalClient, err = external_client.New(external_client.NewClientArgs{
