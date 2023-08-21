@@ -37,7 +37,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 				TransactionID: uuid.NewString(),
 				Network:       "Mastercard",
 				NetworkRC:     "111",
-				Status:        "FAIL",
+				Status:        string(external.TransactionStatusError),
 				ApprovalCode:  "2",
 			}, nil
 		}
@@ -47,7 +47,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 			TransactionID: uuid.NewString(),
 			Network:       "Mastercard",
 			NetworkRC:     "000",
-			Status:        "OK",
+			Status:        string(external.TransactionStatusOk),
 			ApprovalCode:  "2",
 		}, nil
 	})
@@ -63,7 +63,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 			ReferenceID: uuid.NewString(),
 			Network:     "Mastercard",
 			NetworkRC:   "000",
-			Status:      "OK",
+			Status:      string(external.TransactionStatusOk),
 			Originally:  "OK",
 			Amount:      amt,
 			AmountUSD:   amt,
@@ -116,7 +116,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		Enrolled:               "YES",
 		ProcessorTransactionID: uuid.NewString(),
 		DsTransactionID:        uuid.NewString(),
-		Status:                 "OK",
+		Status:                 string(external.TransactionStatusOk),
 		ECI:                    "05|02",
 	}, nil).AnyTimes()
 
@@ -125,7 +125,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		EC:         "OK",
 		Version3DS: "1",
 		Enrolled:   "true",
-		Status:     "VALID",
+		Status:     string(external.TransactionStatusOk),
 	}, nil).AnyTimes()
 
 	return cl
