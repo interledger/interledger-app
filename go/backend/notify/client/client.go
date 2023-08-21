@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/pusher/pusher-http-go/v5"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/notify/ops"
@@ -16,6 +17,14 @@ type client struct {
 }
 
 func New(b Backends, pusherClientUrl string) notify.Client {
+	if pusherClientUrl == "" {
+		log.Info("no pusherClientURL specified.")
+		return &client{
+			b: &opsBackends{
+				Backends: b,
+			},
+		}
+	}
 
 	pc, err := pusher.ClientFromURL(pusherClientUrl)
 	if err != nil {

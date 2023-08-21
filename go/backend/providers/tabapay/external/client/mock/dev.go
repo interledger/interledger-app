@@ -14,7 +14,12 @@ var txIDAmounts map[string]string
 
 func SetupDevMock(t *testing.T) *MockClient {
 	txIDAmounts = make(map[string]string)
-	ctrl := gomock.NewController(t)
+	var ctrl *gomock.Controller
+	if t == nil {
+		ctrl = gomock.NewController(nil)
+	} else {
+		ctrl = gomock.NewController(t)
+	}
 	cl := NewMockClient(ctrl)
 
 	cl.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).Return(&external.CreateAccountResponse{
@@ -50,7 +55,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 			Status:        string(external.TransactionStatusOk),
 			ApprovalCode:  "2",
 		}, nil
-	})
+	}).AnyTimes()
 
 	cl.EXPECT().RetrieveTransaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*external.RetrieveTransactionResponse, error) {
 		amt := "10.00"
