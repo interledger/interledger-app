@@ -542,9 +542,13 @@ func ReverseTransaction(ctx context.Context, b Backends, id string, isSettled bo
 		deleteType = external.DeleteTypeReversal
 	}
 
-	err := b.External().DeleteTransaction(ctx, id, deleteType)
+	resp, err := b.External().DeleteTransaction(ctx, id, deleteType)
 	if err != nil {
 		return fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
-	return err
+	if resp.SC == http.StatusMultiStatus {
+		return fmt.Errorf("%w Received 207 from tabapay. EC=%s, Status=%s", tabapay.ErrInternal, resp.EC, resp.Status)
+	}
+
+	return nil
 }

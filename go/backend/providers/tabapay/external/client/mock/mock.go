@@ -81,11 +81,12 @@ func (mr *MockClientMockRecorder) CreateTransaction(ctx, args interface{}) *gomo
 }
 
 // DeleteTransaction mocks base method.
-func (m *MockClient) DeleteTransaction(ctx context.Context, id string, deleteType external.DeleteType) error {
+func (m *MockClient) DeleteTransaction(ctx context.Context, id string, deleteType external.DeleteType) (*external.DeleteTransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteTransaction", ctx, id, deleteType)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*external.DeleteTransactionResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // DeleteTransaction indicates an expected call of DeleteTransaction.
