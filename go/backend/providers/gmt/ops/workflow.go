@@ -137,7 +137,7 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 	txState := transactions.StatePending
 	if strings.EqualFold(tr.Status, "Hold") {
 		txState = transactions.StateOnHold
-		err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, args.FromTransactionID, txState).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.GMTUpdateTransactionState, args.FromTransactionID, txState).Get(ctx, nil)
 		if err != nil {
 			logger.Error("error updating transaction state to on hold", "Error", err)
 			return nil, err
@@ -245,13 +245,13 @@ func ACH2ACHTransferWorkflow(ctx workflow.Context, args providers.TransfersArgs)
 		// If the transaction was OnHold then gets Released so it's back to pending
 		if notify.Status == external.TransactionStatusReleased {
 			// update send and receive transfer state.
-			err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, args.FromTransactionID, transactions.StatePending).Get(ctx, nil)
+			err = workflow.ExecuteActivity(ctx, a.GMTUpdateTransactionState, args.FromTransactionID, transactions.StatePending).Get(ctx, nil)
 			if err != nil {
 				logger.Error("error updating transaction state to pending", "Error", err)
 				return nil, err
 			}
 
-			err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, recvTrxID, transactions.StatePending).Get(ctx, nil)
+			err = workflow.ExecuteActivity(ctx, a.GMTUpdateTransactionState, recvTrxID, transactions.StatePending).Get(ctx, nil)
 			if err != nil {
 				logger.Error("error updating transaction state to pending", "Error", err)
 				return nil, err
