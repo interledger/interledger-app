@@ -1337,5 +1337,44 @@ func GMTComplianceChecksWorkflow(ctx workflow.Context, paymentID string) error {
 }
 
 func GMTNotifyCompleted(ctx workflow.Context, paymentID string) error {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+
+	// Insert GMT TX
+	var gmtTransaction TransactionResp
+	err := workflow.ExecuteActivity(ctx, a.PaymentGMTTransaction, paymentID).Get(ctx, &gmtTransaction)
+	if err != nil {
+		logger.Error("failed to insert gmt transaction", "err", err)
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SaveReceipt, gmtTransaction).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to save gmt transaction receipt", "err", err)
+		return err
+	}
+
+	// GMT has a 5 min rollback period, wait and then update the state machines
+	_ = workflow.Sleep(ctx, time.Minute*5)
+
+	// Notify GMT of completed card transaction. Their state machine goes from "created" -> "transmitted" -> "paid" so we need to do 2 updates
+	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StatePending).Get(ctx, nil)
+	if err != nil {
+		logger.Warn("failed to update card transaction on gmt", "err", err)
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateCardTransactionStatus, gmtTransaction.ID, transactions.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to update card transaction on gmt", "err", err)
+		return err
+	}
+
 	return nil
 }
