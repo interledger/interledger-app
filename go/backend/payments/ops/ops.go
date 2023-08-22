@@ -17,7 +17,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, created_at, updated_at`
 
 type dbPayment struct {
 	ID                   string                `db:"id"`
@@ -42,6 +42,7 @@ type dbPayment struct {
 	OTP                  sql.NullString        `db:"action_otp"`
 	CreatedAt            time.Time             `db:"created_at"`
 	UpdatedAt            time.Time             `db:"updated_at"`
+	IPAddress            sql.NullString        `db:"ip_address"`
 }
 
 func transformPayment(db dbPayment) *payments.Payment {
@@ -66,6 +67,7 @@ func transformPayment(db dbPayment) *payments.Payment {
 		ReceiveTransactionID: db.ReceiveTransactionID.String,
 		UpdatedAt:            db.UpdatedAt,
 		Note:                 db.Note.String,
+		IPAddress:            db.IPAddress.String,
 	}
 }
 
@@ -123,6 +125,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("action_three_ds_required", true).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
 		Value("action_otp_required", p.RequiresOTP).
+		Value("ip_address", sql.NullString{String: p.IPAddress, Valid: b.Validator().Var(p.IPAddress, "ip_addr") == nil}).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -223,6 +226,10 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 
 	if payment.ThreeDSRequired && payment.ThreeDSID.String == "" {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeThreeDS)
+	}
+
+	if payment.IPAddress.String == "" {
+		requiredActions = append(requiredActions, payments.RequiredActionTypeIPAddress)
 	}
 
 	return requiredActions
@@ -334,6 +341,13 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 			Valid:  true,
 		}
 		noop = false
+	}
+	if args.IPAddress != "" && args.IPAddress != payment.IPAddress.String && b.Validator().Var(args.IPAddress, "ip_addr") == nil {
+		noop = false
+		payment.IPAddress = sql.NullString{
+			String: args.IPAddress,
+			Valid:  true,
+		}
 	}
 	if noop {
 		return transformPayment(*payment), nil

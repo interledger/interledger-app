@@ -337,6 +337,7 @@ message UpdatePaymentRequest {
   optional string senderAccount = 5; // Linked Account ID
   optional string receiverAccount = 6; // Linked Account ID
   optional string threeDSID = 7;
+  optional string ipAddress = 8;
 }
 
 message Payment {
@@ -363,6 +364,7 @@ message CreatePaymentRequest {
   optional string senderAccount = 5; // Linked Account ID
   optional string receiverAccount = 6; // Linked Account ID
   optional string note = 7;
+  optional string ipAddress = 8;
 }
 
 message GetCardDetailsRequest {

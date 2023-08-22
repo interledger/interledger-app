@@ -55,6 +55,7 @@ func TestSetPaymentState(t *testing.T) {
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
 		SenderAccount:   uuid.NewString(),
 		ReceiverAccount: uuid.NewString(),
+		IPAddress:       "193.9.4.6",
 	})
 	require.NoError(t, err)
 

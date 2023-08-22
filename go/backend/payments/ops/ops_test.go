@@ -57,6 +57,7 @@ func TestCreate(t *testing.T) {
 				SenderAccount:   uuid.NewString(),
 				ReceiverAccount: uuid.NewString(),
 				Note:            "This is a NOTE!!!",
+				IPAddress:       "193.9.4.6",
 			},
 			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS},
 			err:     nil,
@@ -75,7 +76,7 @@ func TestCreate(t *testing.T) {
 				SenderAmount:   currency.FromFloat64(51, currency.USD),
 				ReceiverAmount: currency.FromFloat64(50, currency.USD),
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeSenderAccount},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress},
 			err:     nil,
 		},
 	}
@@ -98,6 +99,7 @@ func TestCreate(t *testing.T) {
 			assert.Equal(t, tc.args.SenderAmount.Format(), p.SenderAmount.Format())
 			assert.Equal(t, tc.args.ReceiverAmount.Format(), p.ReceiverAmount.Format())
 			assert.Equal(t, tc.args.Note, p.Note)
+			assert.Equal(t, tc.args.IPAddress, p.IPAddress)
 			assert.Len(t, p.RequiredActions, len(tc.actions))
 			for _, ra := range tc.actions {
 				assert.Contains(t, p.RequiredActions, ra)
@@ -134,6 +136,7 @@ func TestSetState(t *testing.T) {
 		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
 		SenderAccount:   uuid.NewString(),
 		ReceiverAccount: uuid.NewString(),
+		IPAddress:       "193.9.4.6",
 	})
 	require.NoError(t, err)
 
@@ -171,6 +174,7 @@ func TestGetRequiredActions(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeThreeDS)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeIPAddress)
 }
 
 func TestConfirm(t *testing.T) {
@@ -193,6 +197,7 @@ func TestConfirm(t *testing.T) {
 			Identifier: walletID,
 		},
 		RequiresOTP: true,
+		IPAddress:   "193.9.4.6",
 	})
 	require.NoError(t, err)
 	paymentID := p.ID

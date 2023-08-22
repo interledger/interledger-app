@@ -2068,6 +2068,10 @@ table "payments" {
     null = true
     type = text
   }
+  column "ip_address" {
+    null = true
+    type = text
+  }
   column "created_at" {
     null    = false
     type    = timestamp

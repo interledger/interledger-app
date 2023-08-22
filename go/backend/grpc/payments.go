@@ -181,6 +181,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		ReceiverAmount:  currency.FromPB(req.ReceiverAmount),
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
+		IPAddress:       req.GetIpAddress(),
 	}
 
 	p, err := s.b.Payments().Create(ctx, args)
@@ -210,6 +211,7 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		ThreeDSID:       req.GetThreeDSID(),
+		IPAddress:       req.GetIpAddress(),
 	}
 
 	p, err := s.b.Payments().Update(ctx, args)

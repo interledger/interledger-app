@@ -15,6 +15,7 @@ type CreateArgs struct {
 	ReceiverAccount string `validate:"omitempty,uuid"`
 	Note            string
 	RequiresOTP     bool
+	IPAddress       string `validate:"omitempty,ip_addr"`
 }
 
 type UpdateArgs struct {
@@ -27,6 +28,7 @@ type UpdateArgs struct {
 	ThreeDSID       string
 	OTP             string
 	Note            string
+	IPAddress       string
 }
 
 type Payment struct {
@@ -43,6 +45,7 @@ type Payment struct {
 	ReceiveTransactionID string
 	RequiredActions      []RequiredActionType
 	Note                 string
+	IPAddress            string
 	UpdatedAt            time.Time
 }
 
@@ -58,6 +61,7 @@ const (
 	RequiredActionTypeSenderAmount       RequiredActionType = 5
 	RequiredActionTypeReceiverAmount     RequiredActionType = 6
 	RequiredActionTypeOTP                RequiredActionType = 7
+	RequiredActionTypeIPAddress          RequiredActionType = 8
 )
 
 //go:generate stringer -type=IdentityType -trimprefix=IdentityType
