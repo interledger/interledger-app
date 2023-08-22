@@ -23,3 +23,6 @@ then
 	kubectl apply -k $ROOIBOS_DIR/coredns/envs/local
 	kubectl --namespace=kube-system rollout restart deployment/coredns
 fi
+
+RED="\033[1;31m"
+echo -e "${RED}Add fynbos.test mail.fynbos.test auth.fynbos.test local.fynbos.me crdb.fynbos.test kratos.fynbos.test kratos-admin.fynbos.test to your hosts file."
