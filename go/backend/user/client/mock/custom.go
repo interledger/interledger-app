@@ -14,13 +14,17 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var _ user.Client = MockClient{}
+var _ user.Client = &MockClient{}
 
 type MockClient struct {
 	WalletUser map[string]string
 }
 
-func (mc MockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
+func (mc *MockClient) MapUserWallet(_ context.Context, userID, walletID string) {
+	mc.WalletUser[walletID] = userID
+}
+
+func (mc *MockClient) GetUser(_ context.Context, userID string) (*user.User, error) {
 	return &user.User{
 		ID:          userID,
 		Email:       "info@fynbos.com",
@@ -29,7 +33,7 @@ func (mc MockClient) GetUser(_ context.Context, userID string) (*user.User, erro
 
 }
 
-func (mc MockClient) ListAllUsers(ctx context.Context, pagination db.Pagination) ([]user.User, error) {
+func (mc *MockClient) ListAllUsers(ctx context.Context, pagination db.Pagination) ([]user.User, error) {
 	var res []user.User
 	for _, uid := range mc.WalletUser {
 		res = append(res, user.User{
@@ -42,7 +46,7 @@ func (mc MockClient) ListAllUsers(ctx context.Context, pagination db.Pagination)
 	return res, nil
 }
 
-func (mc MockClient) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
+func (mc *MockClient) ListUsers(ctx context.Context, walletID string) ([]user.User, error) {
 	uid, ok := mc.WalletUser[walletID]
 	if !ok {
 		return nil, user.ErrNoUserFound
