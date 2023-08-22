@@ -15,7 +15,6 @@ import (
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/urfave/cli/v2"
 	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -60,25 +59,23 @@ func MakeUser(b Backends) cli.ActionFunc {
 		password := base64.StdEncoding.EncodeToString(buf)
 		activeState := kratos.IdentityState("active")
 		ctx := context.WithValue(cCtx.Context, kratos.ContextServerIndex, 1)
-		req := b.Kratos().V0alpha2Api.AdminCreateIdentity(ctx).
-			AdminCreateIdentityBody(kratos.AdminCreateIdentityBody{
-				Credentials: &kratos.AdminIdentityImportCredentials{
-					Password: &kratos.AdminCreateIdentityImportCredentialsPassword{
-						Config: &kratos.AdminCreateIdentityImportCredentialsPasswordConfig{
-							Password: &password,
-						},
+		identity, response, err := b.Kratos().IdentityApi.CreateIdentity(ctx).CreateIdentityBody(kratos.CreateIdentityBody{
+			Credentials: &kratos.IdentityWithCredentials{
+				Password: &kratos.IdentityWithCredentialsPassword{
+					Config: &kratos.IdentityWithCredentialsPasswordConfig{
+						Password: &password,
 					},
 				},
-				Traits: map[string]interface{}{
-					"email":       cCtx.String("email"),
-					"firstName":   cCtx.String("firstName"),
-					"lastName":    cCtx.String("lastName"),
-					"countryCode": cCtx.String("country"),
-					"phone":       fmt.Sprintf("+2782%d", phone),
-				},
-				State: &activeState,
-			})
-		identity, response, err := req.Execute()
+			},
+			Traits: map[string]interface{}{
+				"email":       cCtx.String("email"),
+				"firstName":   cCtx.String("firstName"),
+				"lastName":    cCtx.String("lastName"),
+				"countryCode": cCtx.String("country"),
+				"phone":       fmt.Sprintf("+2782%d", phone),
+			},
+			State: &activeState,
+		}).Execute()
 		if err != nil {
 			return err
 		}
@@ -86,32 +83,14 @@ func MakeUser(b Backends) cli.ActionFunc {
 			return fmt.Errorf("Kratos statusCode: %d", response.StatusCode)
 		}
 
-		userID := identity.Id
-		signupID, err := b.Signup().SetUserData(cCtx.Context, signup.UserDataArgs{
-			ID:          userID,
-			FirstName:   cCtx.String("firstName"),
-			LastName:    cCtx.String("lastName"),
-			Email:       cCtx.String("email"),
-			CountryCode: cCtx.String("country"),
-		})
+		address, err := wallets.ParseAddress(fmt.Sprintf("https://fynbos.test/%s", cCtx.String("firstName")))
 		if err != nil {
 			return err
 		}
-		err = b.Signup().SetMobileNumber(cCtx.Context, signup.MobileNumberArgs{
-			ID:           signupID,
-			MobileNumber: fmt.Sprintf("+2782%d", phone),
-			OTP:          "123456",
-		})
-		if err != nil {
-			return err
-		}
-		err = b.Signup().Complete(cCtx.Context, signupID, userID)
-		if err != nil {
-			return err
-		}
-
 		wallet, err := b.Wallets().Create(cCtx.Context, wallets.CreateArgs{
-			UserID: userID,
+			UserID:    identity.Id,
+			Name:      cCtx.String("firstName"),
+			Addresses: []wallets.Address{address},
 		})
 		if err != nil {
 			return err
@@ -119,8 +98,9 @@ func MakeUser(b Backends) cli.ActionFunc {
 
 		log.Info(
 			"Created user",
-			zap.String("userID", userID),
+			zap.String("userID", identity.Id),
 			zap.String("walletID", wallet.ID),
+			zap.String("walletAddress", address.String()),
 			zap.String("email", cCtx.String("email")),
 			zap.String("password", password),
 		)
@@ -147,6 +127,11 @@ func MakeUser(b Backends) cli.ActionFunc {
 				},
 				IPAddress: "10.10.10.10",
 			})
+			if err != nil {
+				return err
+			}
+
+			err = b.KYC().SetKYCStatus(cCtx.Context, wallet.ID, kyc.StatusLevel1)
 			if err != nil {
 				return err
 			}
