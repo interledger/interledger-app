@@ -1,9 +1,10 @@
 package main
 
 import (
-	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 	"log"
 	"os"
+
+	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 
 	"gitlab.com/fynbos/backend/images"
 	images_client "gitlab.com/fynbos/backend/images/client"
@@ -74,10 +75,10 @@ func main() {
 				Usage:   "make new resources",
 				Subcommands: []*cli.Command{
 					{
-						Name:   "user",
-						Usage:  "create a new Fynbos user",
-						Flags:  actions.MakeUserFlags,
-						Action: actions.MakeUser(b),
+						Name:   "wallet",
+						Usage:  "create a new Fynbos user and wallet",
+						Flags:  actions.MakeWalletFlags,
+						Action: actions.MakeWallet(b),
 					},
 					{
 						Name:   "ed25519_key_pair",
@@ -131,7 +132,7 @@ func (b *backends) Transactions() transactions.Client {
 
 func (b *backends) DB() *sqlx.DB {
 	if b.db == nil {
-		db, err := sqlx.Connect("postgres", "postgres://roach:roach@localhost:26257/backend")
+		db, err := sqlx.Connect("postgres", "postgres://roach:roach@crdb.fynbos.test:26256/backend")
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -146,11 +147,11 @@ func (b *backends) Kratos() *kratos.APIClient {
 		b.kratos = kratos.NewAPIClient(&kratos.Configuration{
 			Servers: kratos.ServerConfigurations{
 				{
-					URL:         "http://localhost:4433",
+					URL:         "https://kratos.fynbos.test",
 					Description: "Public Kratos",
 				},
 				{
-					URL:         "http://localhost:4434",
+					URL:         "https://kratos-admin.fynbos.test",
 					Description: "Admin Kratos",
 				},
 			},
@@ -168,7 +169,7 @@ func (b *backends) Validator() *validator.Validate {
 
 func (b *backends) Users() user.Client {
 	if b.user == nil {
-		b.user = user_client.New(b, "http://localhost:4433", "http://localhost:4434")
+		b.user = user_client.New(b, "https://kratos.fynbos.test", "https://kratos-admin.fynbos.test")
 	}
 	return b.user
 }

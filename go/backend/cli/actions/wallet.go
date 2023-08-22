@@ -9,9 +9,12 @@ import (
 	"net/http"
 	"time"
 
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/wallets"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/google/uuid"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/urfave/cli/v2"
 	"gitlab.com/fynbos/backend/kyc"
@@ -19,7 +22,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var MakeUserFlags = []cli.Flag{
+var MakeWalletFlags = []cli.Flag{
 	&cli.StringFlag{
 		Name:  "email",
 		Usage: "`<email>` of the user",
@@ -46,9 +49,15 @@ var MakeUserFlags = []cli.Flag{
 		Usage:   "adds dummy kyc data to user",
 		Value:   false,
 	},
+	&cli.BoolFlag{
+		Name:    "linkedaccount",
+		Aliases: []string{"l"},
+		Usage:   "adds a send and receive enabled linked account to the wallet",
+		Value:   false,
+	},
 }
 
-func MakeUser(b Backends) cli.ActionFunc {
+func MakeWallet(b Backends) cli.ActionFunc {
 	return func(cCtx *cli.Context) error {
 		phone := 10_000_000 - rand.Int63n(999) // faker E164Phonenumber format is not accepted
 		buf := make([]byte, 32)
@@ -135,6 +144,31 @@ func MakeUser(b Backends) cli.ActionFunc {
 			if err != nil {
 				return err
 			}
+		}
+
+		if cCtx.Bool("linkedaccount") {
+			la, err := b.LinkedAccounts().Create(cCtx.Context, &linkedaccounts.CreateArgs{
+				WalletID:   wallet.ID,
+				Name:       "default",
+				Nickname:   "Default",
+				Provider:   tabapay.ProviderName,
+				ProviderID: uuid.NewString(),
+				CanSend:    true,
+				CanReceive: true,
+				Type:       tabapay.TypeCard,
+			})
+			if err != nil {
+				return err
+			}
+
+			log.Info(
+				"Created linked account.",
+				zap.String("id", la.ID),
+				zap.Bool("canSend", la.CanSend),
+				zap.Bool("canReceive", la.CanReceive),
+				zap.String("provider", tabapay.ProviderName),
+				zap.String("providerID", la.ProviderID),
+			)
 		}
 
 		return nil
