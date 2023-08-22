@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/providers/gmt/external/client"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/gmt/external/client"
 
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
