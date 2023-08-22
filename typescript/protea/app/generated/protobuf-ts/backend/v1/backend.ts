@@ -632,6 +632,10 @@ export interface UpdatePaymentRequest {
      * @generated from protobuf field: optional string threeDSID = 7;
      */
     threeDSID?: string;
+    /**
+     * @generated from protobuf field: optional string ipAddress = 8;
+     */
+    ipAddress?: string;
 }
 /**
  * @generated from protobuf message backend.v1.Payment
@@ -722,6 +726,10 @@ export interface CreatePaymentRequest {
      * @generated from protobuf field: optional string note = 7;
      */
     note?: string;
+    /**
+     * @generated from protobuf field: optional string ipAddress = 8;
+     */
+    ipAddress?: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetCardDetailsRequest
@@ -4141,7 +4149,8 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
             { no: 4, name: "note", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "senderAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "receiverAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "threeDSID", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 7, name: "threeDSID", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<UpdatePaymentRequest>): UpdatePaymentRequest {
@@ -4177,6 +4186,9 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
                 case /* optional string threeDSID */ 7:
                     message.threeDSID = reader.string();
                     break;
+                case /* optional string ipAddress */ 8:
+                    message.ipAddress = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4210,6 +4222,9 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
         /* optional string threeDSID = 7; */
         if (message.threeDSID !== undefined)
             writer.tag(7, WireType.LengthDelimited).string(message.threeDSID);
+        /* optional string ipAddress = 8; */
+        if (message.ipAddress !== undefined)
+            writer.tag(8, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -4369,7 +4384,8 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
             { no: 4, name: "receiverIdentityType", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 5, name: "senderAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "receiverAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "note", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 7, name: "note", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreatePaymentRequest>): CreatePaymentRequest {
@@ -4405,6 +4421,9 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
                 case /* optional string note */ 7:
                     message.note = reader.string();
                     break;
+                case /* optional string ipAddress */ 8:
+                    message.ipAddress = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -4438,6 +4457,9 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
         /* optional string note = 7; */
         if (message.note !== undefined)
             writer.tag(7, WireType.LengthDelimited).string(message.note);
+        /* optional string ipAddress = 8; */
+        if (message.ipAddress !== undefined)
+            writer.tag(8, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

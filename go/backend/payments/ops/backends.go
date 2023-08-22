@@ -76,6 +76,9 @@ func (t TestBackends) Users() user.Client {
 }
 
 func (t TestBackends) Validator() *validator.Validate {
+	if t.val == nil {
+		t.val = validator.New()
+	}
 	return t.val
 }
 

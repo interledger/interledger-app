@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/backend/providers/tabapay"
-
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
@@ -205,10 +204,9 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 	}
 
 	ipAddress := senderID.IPAddress
-	// TODO: Add IP address to the payment
-	/*if args.IPAddress != "" {
-		ipAddress = args.IPAddress
-	}*/
+	if p.IPAddress != "" {
+		ipAddress = p.IPAddress
+	}
 
 	gender := "Male"
 	if senderID.Gender == kyc.GenderFemale {
