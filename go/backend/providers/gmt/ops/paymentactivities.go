@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/kyc"
@@ -120,7 +122,6 @@ func (a *Activity) PaymentCompliance(ctx context.Context, paymentID string) (*Co
 	if err != nil {
 		return nil, err
 	}
-	gmtSender.SenderTrackingNumber = p.SendTransactionID
 
 	gmtReceiver, err := receiverFromWallet(ctx, a.b, receiverAcc.WalletID)
 	if err != nil {
@@ -249,6 +250,7 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		SenderZip:                   senderID.Address.ZipCode,
 		SenderCountryNationallity:   senderID.Nationality,
 		SenderPOB:                   senderID.PlaceOfBirth,
+		SenderTrackingNumber:        p.SendTransactionID,
 	}
 
 	if !exceeds {
@@ -290,4 +292,97 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 	}
 
 	return sender, nil
+}
+
+func (a *Activity) PaymentGMTTransaction(ctx context.Context, paymentID string) (*TransactionResp, error) {
+	p, err := a.b.Payments().Lookup(ctx, paymentID)
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	receiverAcc, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	receiverKYC, err := a.b.KYC().GetIndividualDetails(ctx, receiverAcc.WalletID)
+	if errors.Is(err, kyc.ErrNoKYCInfo) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	gmtSender, err := senderFromPayment(ctx, a.b, paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	gmtReceiver, err := receiverFromWallet(ctx, a.b, receiverAcc.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	// We are paying out to a card, so use the last 4 digits as the bank account. The Mask for the linked account is the Last 4 digits in Tabapay
+	var bankAccNum string
+	if receiverAcc.Provider == tabapay.ProviderName {
+		bankAccNum = strings.TrimSpace(strings.ReplaceAll(receiverAcc.Mask, "*", ""))
+	}
+
+	res, err := a.ext.InsertTransaction(ctx, external.InsertTransaction{
+		Sender:   gmtSender,
+		Receiver: gmtReceiver,
+		Transfer: &external.WsTransferInfo{
+			AmountToReceive:       p.ReceiverAmount.Float64(),
+			CorrespondentCode:     "USCD",
+			BankAccount:           bankAccNum,
+			DestinationCurrency:   p.ReceiverAmount.Currency.String(),
+			ExchangeRate:          1,
+			Fee:                   0,
+			MTSID:                 a.mts,
+			OfficeCode:            "0",
+			NetAmount:             p.SenderAmount.Float64(),
+			OriginalCurrency:      p.SenderAmount.Currency.String(),
+			OriginalPaymentMethod: "DEBIT", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
+			ReceiverCity:          receiverKYC.Address.City,
+			ReceiverState:         receiverKYC.Address.State,
+			SenderID:              gmtSender.SenderId,
+			ServicioCodigo:        "BD",
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Check status for actual failures
+	if res.Error == 999 || // Required fields missing
+		res.Error == 1000 || // Invalid User
+		res.Error == 1002 || // Cannot find or insert sender
+		res.Error == 1003 || // Cannot find or insert receiver
+		res.Error == 2000 || // Amount over limit
+		res.Error == 2001 || // Compliance fields missing
+		res.Error == 2002 || // Fields missing for validation
+		res.Error == 2003 { // Sender or receiver blocked
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("error code (%d) Message (%s)", res.Error, res.Message), "external", nil)
+	}
+
+	if res.Error != 0 {
+		return nil, fmt.Errorf("error code (%d) Message (%s)", res.Error, res.Message)
+	}
+
+	return &TransactionResp{
+		ID:         res.Password,
+		ReceiptRef: res.Receipt,
+		Status:     res.Status,
+		Licence:    res.Receipt_License,
+		RTR:        res.Receipt_RTR_EN,
+		ErrorMsg:   res.Receipt_Error_EN,
+		Contact:    res.Status,
+	}, nil
 }
