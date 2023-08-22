@@ -22,7 +22,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 	cl.EXPECT().OfacVerification(gomock.Any(), gomock.Any()).Return(&external.WsOfac{Error: 0}, nil).AnyTimes()
 
 	cl.EXPECT().ComplianceCheck(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, args external.ComplianceCheck) (*external.WsResponse, error) {
-		if args.Transfer.AmountToReceive == 12.2 {
+		if args.Transfer.AmountToReceive == 12.22 {
 			return &external.WsResponse{Error: 1000, Message: "Invalid User NonRetryable error"}, nil
 		}
 		return &external.WsResponse{Error: 0, SenderID: rand.Int31(), ReceiverID: rand.Int31()}, nil

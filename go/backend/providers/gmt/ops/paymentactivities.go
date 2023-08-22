@@ -117,7 +117,7 @@ func (a *Activity) PaymentCompliance(ctx context.Context, paymentID string) (*Co
 		return nil, err
 	}
 
-	gmtSender, err := senderFromPayment(ctx, a.b, senderWallet.ID)
+	gmtSender, err := senderFromPayment(ctx, a.b, paymentID)
 	if err != nil {
 		return nil, err
 	}

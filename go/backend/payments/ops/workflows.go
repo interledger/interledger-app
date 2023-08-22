@@ -30,8 +30,14 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
 	})
 
+	err := workflow.ExecuteActivity(ctx, a.SetPaymentStateProcessing, id).Get(ctx, nil)
+	if err != nil {
+		logger.Error("Failed to set payment state to processing. paymentID=", id, "err", err)
+		return err
+	}
+
 	// OFAC and compliance checks
-	err := workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, id).Get(ctx, nil)
+	err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, id).Get(childCtx, nil)
 	if err != nil {
 		logger.Error("GMT compliance failed for payment", "payment_id", id, "error", err)
 		innerErr := workflow.ExecuteActivity(ctx, a.SetPaymentStateFailed, id).Get(ctx, nil)
@@ -41,12 +47,6 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		}
 
 		return nil
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SetPaymentStateProcessing, id).Get(ctx, nil)
-	if err != nil {
-		logger.Error("Failed to set payment state to processing. paymentID=", id, "err", err)
-		return err
 	}
 
 	// launch payout and payin workflows in parallel
@@ -114,7 +114,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	}
 
 	var we workflow.Execution
-	err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTNotifyCompleted, id).GetChildWorkflowExecution().Get(ctx, &we)
+	err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTNotifyCompleted, id).GetChildWorkflowExecution().Get(childCtx, &we)
 	// Child workflow execution has started. We can return and GMT will carry-on on its own
 	if err != nil {
 		logger.Error("Failed to notify GMT of completed payment", "err", err)
