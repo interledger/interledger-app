@@ -31,7 +31,7 @@ func (a *Activity) AddTransactionTransfer(ctx context.Context, trxID string, arg
 	return a.b.Transactions().AddTransfers(ctx, trxID, args)
 }
 
-func (a *Activity) UpdateTransactionState(ctx context.Context, trxID string, state transactions.State) error {
+func (a *Activity) GMTUpdateTransactionState(ctx context.Context, trxID string, state transactions.State) error {
 	return a.b.Transactions().SetTransactionState(ctx, trxID, state)
 }
 
