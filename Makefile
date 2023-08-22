@@ -29,3 +29,6 @@ buildgo:
 tiltup:
 	@echo "Running tilt"
 	tilt up -f ./dev/tilt/Tiltfile
+
+localwallet:
+	FYNBOS_ENV=local go run go/backend/cli/dev/main.go make wallet -k -l
