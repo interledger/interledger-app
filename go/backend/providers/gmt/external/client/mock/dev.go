@@ -11,7 +11,12 @@ import (
 )
 
 func SetupDevMock(t *testing.T) *MockClient {
-	ctrl := gomock.NewController(t)
+	var ctrl *gomock.Controller
+	if t == nil {
+		ctrl = gomock.NewController(nil)
+	} else {
+		ctrl = gomock.NewController(t)
+	}
 	cl := NewMockClient(ctrl)
 
 	cl.EXPECT().OfacVerification(gomock.Any(), gomock.Any()).Return(&external.WsOfac{Error: 0}, nil).AnyTimes()
