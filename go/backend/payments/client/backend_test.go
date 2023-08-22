@@ -3,6 +3,17 @@ package client_test
 import (
 	"context"
 	"testing"
+	"time"
+
+	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
+
+	limits_client "gitlab.com/fynbos/backend/limits/client"
+
+	payments_client "gitlab.com/fynbos/backend/payments/client"
+
+	"gitlab.com/fynbos/backend/limits"
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/mx"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -18,7 +29,6 @@ import (
 	"gitlab.com/fynbos/backend/keys"
 	keys_client "gitlab.com/fynbos/backend/keys/client"
 	"gitlab.com/fynbos/backend/kyc"
-	kyc_client "gitlab.com/fynbos/backend/kyc/client"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccount_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/notify"
@@ -52,6 +62,7 @@ type TestBackends struct {
 	user     *user_client.MockClient
 	temporal temporal_client.Client
 	env      *testsuite.TestWorkflowEnvironment
+	kyc      kyc.Client
 }
 
 func NewTestBackends(t *testing.T) *TestBackends {
@@ -81,6 +92,34 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	require.NoError(t, err)
 	b.tabapay = tc
 
+	kc := kyc_mock.NewMockClient(ctrl)
+	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
+		return &kyc.IndividualDetails{
+			WalletID:     walletID,
+			FirstName:    "Test",
+			LastName:     "McTestFace",
+			CountryCode:  "US",
+			PlaceOfBirth: "US",
+			Nationality:  "US",
+			Gender:       kyc.GenderMale,
+			DateOfBirth:  time.Date(1990, time.April, 1, 0, 0, 0, 0, time.UTC),
+			Address: &kyc.Address{
+				Line1:       "Lincon",
+				Line2:       "Nebraska",
+				Building:    "",
+				Apartment:   "",
+				City:        "Tallens",
+				State:       "US-MO",
+				ZipCode:     "9010",
+				CountryCode: "US",
+				PlaceID:     "",
+			},
+			IPAddress: "198.0.0.1",
+		}, nil
+	}).AnyTimes()
+
+	b.kyc = kc
+
 	return b
 }
 
@@ -92,6 +131,7 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.PayinWorkflow)
 	env.RegisterWorkflow(ops.PayoutWorkflow)
 	env.RegisterWorkflow(ops.RollbackPayInWorkflow)
+	env.RegisterActivity(gmt_ops.NewActivity(b))
 	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
 	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
 	b.env = env
@@ -110,11 +150,7 @@ func (b *TestBackends) Analytics() analytics.Client {
 }
 
 func (b *TestBackends) KYC() kyc.Client {
-	c, err := kyc_client.New(b, "", "")
-	if err != nil {
-		panic("Can't initialise kyc client")
-	}
-	return c
+	return b.kyc
 }
 
 func (b *TestBackends) Transactions() transactions.Client {
@@ -175,4 +211,16 @@ func (b *TestBackends) Email() email.Client {
 
 func (b *TestBackends) Wallets() wallets.Client {
 	return wallet_client.New(b)
+}
+
+func (b *TestBackends) MX() mx.Client {
+	return nil
+}
+
+func (b *TestBackends) Limits() limits.Client {
+	return limits_client.New(b)
+}
+
+func (b *TestBackends) Payments() payments.Client {
+	return payments_client.New(b)
 }

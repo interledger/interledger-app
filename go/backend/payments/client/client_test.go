@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
@@ -61,6 +62,7 @@ func TestClient(t *testing.T) {
 				ReceiverAccount: receiveLinkedAccount,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				IPAddress:       "192.36.8.4",
 			},
 			Assertions: Assertions{
 				PaymentState:         payments.StateCompleted,
@@ -95,6 +97,7 @@ func TestClient(t *testing.T) {
 				ReceiverAccount: receiveLinkedAccount,
 				SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				IPAddress:       "192.36.8.4",
 			},
 			Assertions: Assertions{
 				PaymentState:         payments.StateFailed,
@@ -118,6 +121,7 @@ func TestClient(t *testing.T) {
 				ReceiverAccount: receiveLinkedAccount,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(666, currency.ParseCurrency("USD")),
+				IPAddress:       "192.36.8.4",
 			},
 			Assertions: Assertions{
 				PaymentState:         payments.StateFailed,
@@ -133,6 +137,27 @@ func TestClient(t *testing.T) {
 					},
 				},
 				ReceiveTransfers: []AssertTransfer{},
+			},
+		},
+		{
+			Name: "Compliance fails",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendLinkedAccount,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveLinkedAccount,
+				SenderAmount:    currency.FromUInt64(1222, currency.ParseCurrency("USD")),
+				ReceiverAmount:  currency.FromUInt64(1222, currency.ParseCurrency("USD")),
+				IPAddress:       "192.36.8.4",
+			},
+			Assertions: Assertions{
+				PaymentState: payments.StateFailed,
 			},
 		},
 	}
@@ -164,21 +189,27 @@ func TestClient(t *testing.T) {
 				if b.env.IsWorkflowCompleted() {
 					break
 				}
+				// Just so we don't spin on IsWorkflowCompleted
+				time.Sleep(100 * time.Millisecond)
 			}
 			require.NoError(st, b.env.GetWorkflowError())
 
-			payment, err := pc.Lookup(ctx, p.ID)
+			p, err = pc.Lookup(ctx, p.ID)
 			require.NoError(st, err)
-			assert.Equal(st, tc.Assertions.PaymentState, payment.State)
+			assert.Equal(st, tc.Assertions.PaymentState, p.State)
 
-			sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
-			require.NoError(st, err)
-			assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
-			sendTransfers := []AssertTransfer{}
-			for _, tr := range sendTransaction.Transfers {
-				sendTransfers = append(sendTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
+			if tc.Assertions.SendTransactionState != "" {
+				sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
+				require.NoError(st, err)
+				assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
+				sendTransfers := []AssertTransfer{}
+				for _, tr := range sendTransaction.Transfers {
+					sendTransfers = append(sendTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
+				}
+				assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
+			} else {
+				assert.Empty(st, p.SendTransactionID)
 			}
-			assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
 
 			if tc.Assertions.ReceiveTransactionState != "" {
 				recvTransaction, err := b.Transactions().GetTransaction(ctx, receiveWalletID, p.ReceiveTransactionID)
