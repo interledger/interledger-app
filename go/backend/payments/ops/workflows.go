@@ -145,7 +145,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 	// Create the outgoing transaction
 	var txID string
-	err := workflow.ExecuteActivity(ctx, a.CreatePayInTransaction, paymentID).Get(ctx, txID)
+	err := workflow.ExecuteActivity(ctx, a.CreatePayInTransaction, paymentID).Get(ctx, &txID)
 	if err != nil {
 		return err
 	}
@@ -358,7 +358,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 
 	// Create the incoming transaction
 	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, accountTX.ID).Get(ctx, txID)
+	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, accountTX.ID).Get(ctx, &txID)
 	if err != nil {
 		return err
 	}
