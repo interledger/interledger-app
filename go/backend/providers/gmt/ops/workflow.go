@@ -1303,6 +1303,36 @@ func NotifyGMTCard2CardWorkflow(ctx workflow.Context, args providers.TransfersAr
 }
 
 func GMTComplianceChecksWorkflow(ctx workflow.Context, paymentID string) error {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+
+	err := workflow.ExecuteActivity(ctx, a.CheckPaymentSenderOFAC, paymentID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.CheckPaymentReceiverOFAC, paymentID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var cr ComplianceResp
+	err = workflow.ExecuteActivity(ctx, a.PaymentCompliance, paymentID).Get(ctx, &cr)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.UpdateSendRecvUser, cr).Get(ctx, nil)
+	if err != nil {
+		logger.Error("failed to upsert gmt send recv user", "err", err)
+		return err
+	}
 	return nil
 }
 

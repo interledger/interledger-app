@@ -3,6 +3,12 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/identities"
+
+	"gitlab.com/fynbos/backend/wallets"
+
+	"gitlab.com/fynbos/backend/payments"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -33,12 +39,27 @@ type Backends interface {
 	Tabapay() tabapay.Client
 	Keys() keys.Client
 	Limits() limits.Client
+	Payments() payments.Client
+	Wallets() wallets.Client
+	Identities() identities.Client
 }
 
 type testBackends struct {
 	db *sqlx.DB
 	ac analytics.Client
 	kc keys.Client
+}
+
+func (t testBackends) Identities() identities.Client {
+	return nil
+}
+
+func (t testBackends) Wallets() wallets.Client {
+	return nil
+}
+
+func (t testBackends) Payments() payments.Client {
+	return nil
 }
 
 func (t testBackends) Limits() limits.Client {

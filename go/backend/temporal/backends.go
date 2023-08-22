@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/openpayments"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -52,4 +53,5 @@ type Backends interface {
 	Wallets() wallets.Client
 	Features() features.Client
 	Twilio() twilio.Service
+	Payments() payments.Client
 }

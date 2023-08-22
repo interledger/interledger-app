@@ -33,6 +33,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	// OFAC and compliance checks
 	err := workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, id).Get(ctx, nil)
 	if err != nil {
+		logger.Error("GMT compliance failed for payment", "payment_id", id, "error", err)
 		innerErr := workflow.ExecuteActivity(ctx, a.SetPaymentStateFailed, id).Get(ctx, nil)
 		if innerErr != nil {
 			logger.Error("Failed to set payment status to failed. paymentID=", id, "err", innerErr)
