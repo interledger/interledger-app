@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
 )
@@ -45,7 +48,58 @@ type dbPayment struct {
 	IPAddress            sql.NullString        `db:"ip_address"`
 }
 
-func transformPayment(db dbPayment) *payments.Payment {
+func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
+	var resp *wallets.Wallet
+	var err error
+	switch identity.Type {
+	case payments.IdentityTypeWalletID:
+		resp, err = b.Wallets().Get(ctx, identity.Identifier)
+	case payments.IdentityTypeWalletURL:
+		resp, err = b.Wallets().GetFromAddress(ctx, identity.Identifier)
+	case payments.IdentityTypeTwitter:
+		var id *identities.Identity
+		id, err = b.Identities().GetByIdentifier(ctx, identity.Identifier)
+		if err != nil {
+			return nil, err
+		}
+		if strings.EqualFold(string(id.Platform), string(identities.PlatformTwitter)) {
+			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformTwitter, identity.Type)
+		}
+		resp, err = b.Wallets().Get(ctx, id.WalletID)
+	default:
+		return nil, fmt.Errorf("unknown identity type %s", identity.Type)
+	}
+	return resp, err
+}
+
+func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.Payment, error) {
+	var senderWalletID, receiverWalletID string
+	if db.SenderIDType == payments.IdentityTypeWalletID {
+		senderWalletID = db.SenderID
+	} else {
+		senderWallet, err := lookupWallet(ctx, b, payments.Identity{
+			Type:       db.SenderIDType,
+			Identifier: db.SenderID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		senderWalletID = senderWallet.ID
+	}
+
+	if db.ReceiverIDType == payments.IdentityTypeWalletID {
+		receiverWalletID = db.ReceiverID
+	} else if db.ReceiverIDType.Valid() {
+		receiverWallet, err := lookupWallet(ctx, b, payments.Identity{
+			Type:       db.ReceiverIDType,
+			Identifier: db.ReceiverID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		receiverWalletID = receiverWallet.ID
+	}
+
 	return &payments.Payment{
 		ID:       db.ID,
 		PublicID: db.PublicID,
@@ -53,10 +107,12 @@ func transformPayment(db dbPayment) *payments.Payment {
 		Sender: payments.Identity{
 			Type:       db.SenderIDType,
 			Identifier: db.SenderID,
+			WalletID:   senderWalletID,
 		},
 		Receiver: payments.Identity{
 			Type:       db.ReceiverIDType,
 			Identifier: db.ReceiverID,
+			WalletID:   receiverWalletID,
 		},
 		SenderAmount:         currency.FromUInt64(db.SenderAmount, currency.ParseCurrency(db.SenderCurrency)),
 		ReceiverAmount:       currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
@@ -68,7 +124,7 @@ func transformPayment(db dbPayment) *payments.Payment {
 		UpdatedAt:            db.UpdatedAt,
 		Note:                 db.Note.String,
 		IPAddress:            db.IPAddress.String,
-	}
+	}, nil
 }
 
 func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) {
@@ -90,7 +146,7 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 		return nil, err
 	}
 
-	return transformPayment(*dbp), nil
+	return transformPayment(ctx, b, *dbp)
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -350,7 +406,7 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		}
 	}
 	if noop {
-		return transformPayment(*payment), nil
+		return transformPayment(ctx, b, *payment)
 	}
 
 	payment.UpdatedAt = time.Now()
@@ -377,5 +433,5 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	return transformPayment(ret), nil
+	return transformPayment(ctx, b, ret)
 }

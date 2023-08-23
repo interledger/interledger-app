@@ -3,13 +3,9 @@ package ops
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
 
-	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/sdk/temporal"
 )
 
@@ -38,17 +34,9 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
-	senderWallet, err := lookupWallet(ctx, a.b, payment.Sender)
-	if err != nil {
-		return err
-	}
-	a.b.Email().SendPaymentSentEmailV2(ctx, senderWallet.ID, payment)
+	a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
 
-	receiverWallet, err := lookupWallet(ctx, a.b, payment.Sender)
-	if err != nil {
-		return err
-	}
-	a.b.Email().SendPaymentReceivedEmailV2(ctx, receiverWallet.ID, payment)
+	a.b.Email().SendPaymentReceivedEmailV2(ctx, payment.Receiver.WalletID, payment)
 
 	return nil
 }
@@ -82,37 +70,9 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
-	senderWallet, err := lookupWallet(ctx, a.b, payment.Sender)
-	if err != nil {
-		return err
-	}
-	a.b.Email().SendPaymentFailedEmail(ctx, senderWallet.ID)
+	a.b.Email().SendPaymentFailedEmail(ctx, payment.Sender.WalletID)
 
 	return nil
-}
-
-func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
-	var resp *wallets.Wallet
-	var err error
-	switch identity.Type {
-	case payments.IdentityTypeWalletID:
-		resp, err = b.Wallets().Get(ctx, identity.Identifier)
-	case payments.IdentityTypeWalletURL:
-		resp, err = b.Wallets().GetFromAddress(ctx, identity.Identifier)
-	case payments.IdentityTypeTwitter:
-		var id *identities.Identity
-		id, err = b.Identities().GetByIdentifier(ctx, identity.Identifier)
-		if err != nil {
-			return nil, err
-		}
-		if strings.EqualFold(string(id.Platform), string(identities.PlatformTwitter)) {
-			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformTwitter, identity.Type)
-		}
-		resp, err = b.Wallets().Get(ctx, id.WalletID)
-	default:
-		return nil, fmt.Errorf("unknown identity type %s", identity.Type)
-	}
-	return resp, err
 }
 
 func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (bool, error) {
@@ -125,12 +85,8 @@ func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (b
 	if p.ReceiveTransactionID == "" || p.SendTransactionID == "" {
 		return false, nil
 	}
-	senderWallet, err := lookupWallet(ctx, a.b, p.Sender)
-	if err != nil {
-		return false, err
-	}
 
-	senderTx, err := a.b.Transactions().GetTransaction(ctx, senderWallet.ID, p.SendTransactionID)
+	senderTx, err := a.b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
 	if err != nil {
 		return false, err
 	}
@@ -139,12 +95,7 @@ func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (b
 		return false, nil
 	}
 
-	receiverWallet, err := lookupWallet(ctx, a.b, p.Receiver)
-	if err != nil {
-		return false, err
-	}
-
-	receiveTx, err := a.b.Transactions().GetTransaction(ctx, receiverWallet.ID, p.ReceiveTransactionID)
+	receiveTx, err := a.b.Transactions().GetTransaction(ctx, p.Receiver.WalletID, p.ReceiveTransactionID)
 	if err != nil {
 		return false, err
 	}

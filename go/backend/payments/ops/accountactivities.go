@@ -110,12 +110,7 @@ func (a *Activity) RollbackPullFromAccount(ctx context.Context, paymentID string
 		return err
 	}
 
-	senderWallet, err := lookupWallet(ctx, a.b, p.Sender)
-	if err != nil {
-		return err
-	}
-
-	tx, err := a.b.Transactions().GetTransaction(ctx, senderWallet.ID, p.SendTransactionID)
+	tx, err := a.b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
 	if err != nil {
 		return err
 	}
