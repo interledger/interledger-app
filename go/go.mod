@@ -55,6 +55,7 @@ require (
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.31.0
+	gopkg.in/stretchr/testify.v1 v1.2.2
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
 )
