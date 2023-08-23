@@ -167,6 +167,15 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
+	// check that does not exceed kyc limits.
+	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromPB(req.SenderAmount))
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if exceedsLimits {
+		return nil, FailedPreconditionError(string(limitType))
+	}
+
 	args := payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
@@ -198,9 +207,20 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	_, err = s.b.Wallets().ForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	// check that does not exceed kyc limits.
+	if req.SenderAmount != nil {
+		exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromPB(req.GetSenderAmount()))
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		if exceedsLimits {
+			return nil, FailedPreconditionError(string(limitType))
+		}
 	}
 
 	args := payments.UpdateArgs{
@@ -247,12 +267,26 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	_, err = s.b.Wallets().ForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	p, _, err := s.b.Payments().Confirm(ctx, req.Id)
+	p, err := s.b.Payments().Lookup(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	// check that does not exceed kyc limits.
+	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, p.SenderAmount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if exceedsLimits {
+		return nil, FailedPreconditionError(string(limitType))
+	}
+
+	p, _, err = s.b.Payments().Confirm(ctx, req.Id)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
