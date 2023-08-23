@@ -23,7 +23,7 @@ import { Label } from '~/components/Label'
 import { usePayStore } from '~/lib/usePayStore'
 import type { loader } from '~/routes/pay/route'
 
-export function Confirm() {
+export function ConfirmWithOpenPayments() {
   const { csrfToken } = useLoaderData<typeof loader>()
   const confirm = useFetcher()
   const otpFetcher = useFetcher()

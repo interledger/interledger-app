@@ -42,8 +42,8 @@ import {
   getWalletInfo
 } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
-import { Amount } from '~/routes/pay/Amount'
-import { Confirm } from '~/routes/pay/Confirm'
+import { AmountWithOpenPayments } from '~/routes/pay/Amount'
+import { ConfirmWithOpenPayments } from '~/routes/pay/Confirm'
 import { Search } from '~/routes/pay/Search'
 
 export async function loader({ request }: LoaderArgs) {
@@ -260,8 +260,8 @@ export default function Page() {
   return (
     <>
       {step === PayStep.SEARCH && <Search />}
-      {step === PayStep.AMOUNT && <Amount />}
-      {step === PayStep.CONFIRM && <Confirm />}
+      {step === PayStep.AMOUNT && <AmountWithOpenPayments />}
+      {step === PayStep.CONFIRM && <ConfirmWithOpenPayments />}
     </>
   )
 }
@@ -286,55 +286,148 @@ function mapper(field: fieldErrorsMap): 'address' | 'amount' | null {
   }
 }
 
-export async function action({ request }: ActionArgs) {
-  const form = await request.formData()
-  const formName = (await form.get('formName')) as string
-
+export async function action(args: ActionArgs) {
+  const formName = (await args.request.clone().formData()).get(
+    'formName'
+  ) as string
   if (formName === 'quote') {
-    const amount = form.get('amount') as string
-    const note = form.get('note') as string
-    const walletUrl = form.get('walletUrl') as string
-    const accountId = form.get('accountId') as string
-    const type = form.get('type') as string
-    const identity = form.get('identity') as string
-    const identityType = form.get('identityType') as string
-    const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
+    return openpaymentsQuoteAction(args)
+  } else if (formName === 'confirm') {
+    return openPaymentsConfirmAction(args)
+  } else {
+    throw json(
+      { title: "Submitted a form that doesn't exist" },
+      {
+        status: 400
+      }
+    )
+  }
+}
 
-    const expiresAt = {
-      seconds: `${Math.floor(DateTime.now().plus({ hour: 1 }).toSeconds())}`,
-      nanos: 0
-    }
+async function openpaymentsQuoteAction({ request }: ActionArgs) {
+  const form = await request.formData()
+  const amount = form.get('amount') as string
+  const note = form.get('note') as string
+  const walletUrl = form.get('walletUrl') as string
+  const accountId = form.get('accountId') as string
+  const type = form.get('type') as string
+  const identity = form.get('identity') as string
+  const identityType = form.get('identityType') as string
+  const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
 
-    const fieldErrors = {
-      form: '',
-      amount: '',
-      address: '',
-      linkedAccount: '',
-      note: ''
-    }
+  const expiresAt = {
+    seconds: `${Math.floor(DateTime.now().plus({ hour: 1 }).toSeconds())}`,
+    nanos: 0
+  }
 
-    if (amountToSubmit == 'NaN') {
-      fieldErrors.amount = 'Amount is required.'
+  const fieldErrors = {
+    form: '',
+    amount: '',
+    address: '',
+    linkedAccount: '',
+    note: ''
+  }
+
+  if (amountToSubmit == 'NaN') {
+    fieldErrors.amount = 'Amount is required.'
+    return error(request, { errors: { ...fieldErrors } })
+  }
+
+  let walletInfo = await getWalletInfo(request)
+
+  const response = await openPaymentsClient
+    .createQuote(
+      {
+        sendPaymentPointer: walletInfo.url,
+        receivePaymentPointer: walletUrl,
+        description: note,
+        amount: {
+          amount: amountToSubmit,
+          asset: 'USD',
+          assetScale: 2
+        },
+        expiresAt,
+        sendLinkedAccount: accountId,
+        identityType,
+        identity
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(response)) {
+    if (response.code == Code.INVALID_ARGUMENT) {
+      for (let violation of (response as GrpcError).details[0]
+        .fieldViolations) {
+        const field = mapper(violation.field as fieldErrorsMap)
+        if (field != null) fieldErrors[field] = violation.description
+      }
       return error(request, { errors: { ...fieldErrors } })
-    }
+    } else if (response.code == Code.FAILED_PRECONDITION) {
+      switch (response.message as quoteLimitError) {
+        case 'Failed precondition: LimitTransaction':
+          fieldErrors['amount'] = 'Exceeds per transaction limit.'
+          break
+        case 'Failed precondition: LimitDaily':
+          fieldErrors['amount'] = 'Exceeds daily limit.'
+          break
+        case 'Failed precondition: LimitMonthly':
+          fieldErrors['amount'] = 'Exceeds monthly limit.'
+          break
+        case 'Failed precondition: Limit6Monthly':
+          fieldErrors['amount'] = 'Exceeds rolling 6 month limit.'
+          break
+        default:
+          fieldErrors['amount'] = 'Exceeds account limit.'
+      }
+      return error(request, { errors: { ...fieldErrors } })
+    } else
+      return error(
+        request,
+        { errors: { ...fieldErrors } },
+        { action: 'Contact support' }
+      )
+  }
 
-    let walletInfo = await getWalletInfo(request)
+  const data = {
+    errors: { ...fieldErrors },
+    quoteId: response.response.id,
+    requiresOTP: response.response.requiresOTP,
+    type
+  }
 
+  return json(data)
+}
+
+async function openPaymentsConfirmAction({ request }: ActionArgs) {
+  const form = await request.formData()
+  await validateCSRFToken(request, form)
+  const serviceAgreement = form.get('serviceAgreement') as string
+  const quoteId = form.get('quoteId') as string
+  const otp = form.get('otp') as string
+  const fieldErrors = {
+    form: '',
+    serviceAgreement: ''
+  }
+
+  if (serviceAgreement == null) {
+    fieldErrors.serviceAgreement = 'You are required to authorize to continue.'
+    return error(request, { errors: { ...fieldErrors } })
+  }
+
+  const quoteIdParam = quoteId.split('/').at(-1)
+
+  if (otp) {
     const response = await openPaymentsClient
-      .createQuote(
+      .setQuoteOTP(
         {
-          sendPaymentPointer: walletInfo.url,
-          receivePaymentPointer: walletUrl,
-          description: note,
-          amount: {
-            amount: amountToSubmit,
-            asset: 'USD',
-            assetScale: 2
-          },
-          expiresAt,
-          sendLinkedAccount: accountId,
-          identityType,
-          identity
+          quoteID: quoteIdParam as string,
+          otp
         },
         {
           meta: {
@@ -344,101 +437,15 @@ export async function action({ request }: ActionArgs) {
       )
       .then((v) => v)
       .catch(StatusError)
-
     if (isGrpcError(response)) {
-      if (response.code == Code.INVALID_ARGUMENT) {
-        for (let violation of (response as GrpcError).details[0]
-          .fieldViolations) {
-          const field = mapper(violation.field as fieldErrorsMap)
-          if (field != null) fieldErrors[field] = violation.description
-        }
-        return error(request, { errors: { ...fieldErrors } })
-      } else if (response.code == Code.FAILED_PRECONDITION) {
-        switch (response.message as quoteLimitError) {
-          case 'Failed precondition: LimitTransaction':
-            fieldErrors['amount'] = 'Exceeds per transaction limit.'
-            break
-          case 'Failed precondition: LimitDaily':
-            fieldErrors['amount'] = 'Exceeds daily limit.'
-            break
-          case 'Failed precondition: LimitMonthly':
-            fieldErrors['amount'] = 'Exceeds monthly limit.'
-            break
-          case 'Failed precondition: Limit6Monthly':
-            fieldErrors['amount'] = 'Exceeds rolling 6 month limit.'
-            break
-          default:
-            fieldErrors['amount'] = 'Exceeds account limit.'
-        }
-        return error(request, { errors: { ...fieldErrors } })
-      } else
-        return error(
-          request,
-          { errors: { ...fieldErrors } },
-          { action: 'Contact support' }
-        )
+      return error(
+        request,
+        { errors: { ...fieldErrors } },
+        { action: 'Contact support' }
+      )
     }
-
-    const data = {
-      errors: { ...fieldErrors },
-      quoteId: response.response.id,
-      requiresOTP: response.response.requiresOTP,
-      type
-    }
-
-    return json(data)
   }
 
-  if (formName === 'confirm') {
-    await validateCSRFToken(request, form)
-    const serviceAgreement = form.get('serviceAgreement') as string
-    const quoteId = form.get('quoteId') as string
-    const otp = form.get('otp') as string
-    const fieldErrors = {
-      form: '',
-      serviceAgreement: ''
-    }
-
-    if (serviceAgreement == null) {
-      fieldErrors.serviceAgreement =
-        'You are required to authorize to continue.'
-      return error(request, { errors: { ...fieldErrors } })
-    }
-
-    const quoteIdParam = quoteId.split('/').at(-1)
-
-    if (otp) {
-      const response = await openPaymentsClient
-        .setQuoteOTP(
-          {
-            quoteID: quoteIdParam as string,
-            otp
-          },
-          {
-            meta: {
-              cookies: String(request.headers.get('cookie')) || ''
-            }
-          }
-        )
-        .then((v) => v)
-        .catch(StatusError)
-      if (isGrpcError(response)) {
-        return error(
-          request,
-          { errors: { ...fieldErrors } },
-          { action: 'Contact support' }
-        )
-      }
-    }
-
-    // TODO: Bank payments should just create outgoing payment here
-    return redirect(`/pay/3ds?quoteId=${quoteIdParam}&init=`)
-  }
-
-  throw json(
-    { title: "Submitted a form that doesn't exist" },
-    {
-      status: 400
-    }
-  )
+  // TODO: Bank payments should just create outgoing payment here
+  return redirect(`/pay/3ds?quoteId=${quoteIdParam}&init=`)
 }
