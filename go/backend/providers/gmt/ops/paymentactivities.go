@@ -7,13 +7,11 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 	"gitlab.com/fynbos/backend/providers/tabapay"
-	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
@@ -28,12 +26,7 @@ func (a *Activity) CheckPaymentSenderOFAC(ctx context.Context, paymentID string)
 		return err
 	}
 
-	senderWallet, err := lookupWallet(ctx, a.b, p.Sender)
-	if err != nil {
-		return err
-	}
-
-	err = a.CheckWalletOFAC(ctx, senderWallet.ID)
+	err = a.CheckWalletOFAC(ctx, p.Sender.WalletID)
 	if err != nil {
 		return err
 	}
@@ -50,12 +43,7 @@ func (a *Activity) CheckPaymentReceiverOFAC(ctx context.Context, paymentID strin
 		return err
 	}
 
-	receiverWallet, err := lookupWallet(ctx, a.b, p.Receiver)
-	if err != nil {
-		return err
-	}
-
-	err = a.CheckWalletOFAC(ctx, receiverWallet.ID)
+	err = a.CheckWalletOFAC(ctx, p.Receiver.WalletID)
 	if err != nil {
 		return err
 	}
@@ -63,40 +51,11 @@ func (a *Activity) CheckPaymentReceiverOFAC(ctx context.Context, paymentID strin
 	return nil
 }
 
-func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
-	var resp *wallets.Wallet
-	var err error
-	switch identity.Type {
-	case payments.IdentityTypeWalletID:
-		resp, err = b.Wallets().Get(ctx, identity.Identifier)
-	case payments.IdentityTypeWalletURL:
-		resp, err = b.Wallets().GetFromAddress(ctx, identity.Identifier)
-	case payments.IdentityTypeTwitter:
-		var id *identities.Identity
-		id, err = b.Identities().GetByIdentifier(ctx, identity.Identifier)
-		if err != nil {
-			return nil, err
-		}
-		if strings.EqualFold(string(id.Platform), string(identities.PlatformTwitter)) {
-			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformTwitter, identity.Type)
-		}
-		resp, err = b.Wallets().Get(ctx, id.WalletID)
-	default:
-		return nil, fmt.Errorf("unknown identity type %s", identity.Type)
-	}
-	return resp, err
-}
-
 func (a *Activity) PaymentCompliance(ctx context.Context, paymentID string) (*ComplianceResp, error) {
 	p, err := a.b.Payments().Lookup(ctx, paymentID)
 	if errors.Is(err, payments.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	senderWallet, err := lookupWallet(ctx, a.b, p.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -165,9 +124,9 @@ func (a *Activity) PaymentCompliance(ctx context.Context, paymentID string) (*Co
 
 	return &ComplianceResp{
 		SenderID:         int64(res.SenderID),
-		SenderWalletID:   senderWallet.ID,
+		SenderWalletID:   p.Sender.WalletID,
 		ReceiverID:       int64(res.ReceiverID),
-		ReceiverWalletID: receiverAcc.WalletID,
+		ReceiverWalletID: p.Receiver.WalletID,
 	}, nil
 }
 
@@ -180,12 +139,7 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		return nil, err
 	}
 
-	senderWallet, err := lookupWallet(ctx, b, p.Sender)
-	if err != nil {
-		return nil, err
-	}
-
-	senderID, err := b.KYC().GetIndividualDetails(ctx, senderWallet.ID)
+	senderID, err := b.KYC().GetIndividualDetails(ctx, p.Sender.WalletID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
 	}
@@ -193,12 +147,12 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		return nil, err
 	}
 
-	senderUsers, err := b.Users().ListUsers(ctx, senderWallet.ID)
+	senderUsers, err := b.Users().ListUsers(ctx, p.Sender.WalletID)
 	if err != nil {
 		return nil, err
 	}
 
-	sid, err := getSenderID(ctx, b, senderWallet.ID)
+	sid, err := getSenderID(ctx, b, p.Sender.WalletID)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +167,7 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		gender = "Female"
 	}
 
-	exceeds, err := b.Limits().ExceedsGMTLimits(ctx, senderWallet.ID, p.SenderAmount)
+	exceeds, err := b.Limits().ExceedsGMTLimits(ctx, p.Sender.WalletID, p.SenderAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +209,7 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		return sender, nil
 	}
 
-	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, senderWallet.ID)
+	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, p.Sender.WalletID)
 	if err != nil {
 		return nil, err
 	}

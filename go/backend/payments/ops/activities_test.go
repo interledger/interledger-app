@@ -40,6 +40,9 @@ func TestSetPaymentState(t *testing.T) {
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+		ID: walletID,
+	}, nil).AnyTimes()
 	a := ops.NewActivity(b)
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{

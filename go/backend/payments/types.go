@@ -82,6 +82,7 @@ func (i IdentityType) Valid() bool {
 type Identity struct {
 	Type       IdentityType `validate:"omitempty,gt=0,lt=4"`
 	Identifier string
+	WalletID   string
 }
 
 func (i *Identity) IsEmpty() bool {
