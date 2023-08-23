@@ -25,7 +25,7 @@ import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 import type { loader } from './route'
 
-export function Amount() {
+export function AmountWithOpenPayments() {
   const { csrfToken } = useLoaderData<typeof loader>()
 
   const accounts = useFetcher()
