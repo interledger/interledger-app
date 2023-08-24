@@ -1,24 +1,10 @@
-import type { CallOptions, ConnectError, Transport } from '@bufbuild/connect'
-import { makeAnyClient } from '@bufbuild/connect'
-import { createGrpcTransport } from '@bufbuild/connect-node'
-import type {
-  Message,
-  MethodInfo,
-  MethodInfoBiDiStreaming,
-  MethodInfoClientStreaming,
-  MethodInfoServerStreaming,
-  MethodInfoUnary,
-  PartialMessage,
-  ServiceType
-} from '@bufbuild/protobuf'
-import { MethodKind } from '@bufbuild/protobuf'
-import { redirect } from '@remix-run/node'
-import { route } from 'routes-gen'
-import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
-import { BadRequest } from '~/generated/connect/google/rpc/error_details_pb'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import type { GrpcError } from '~/lib/proto.server'
-import { codeMapping, isGrpcError } from '~/lib/proto.server'
+import type {CallOptions, Transport} from '@bufbuild/connect'
+import {ConnectError, makeAnyClient} from '@bufbuild/connect'
+import {createGrpcTransport} from '@bufbuild/connect-node'
+import type {Message, MethodInfo, MethodInfoUnary, PartialMessage, ServiceType} from '@bufbuild/protobuf'
+import {MethodKind} from '@bufbuild/protobuf'
+import {BackendService} from '~/generated/connect/backend/v1/backend_connect'
+import {Result} from "true-myth";
 
 const BACKEND_GRPC_URL = 'http://backend.backend:443'
 
@@ -49,26 +35,14 @@ if (process.env.NODE_ENV === 'production') {
 
 export type PromiseCustomClient<T extends ServiceType> = {
   [P in keyof T['methods']]: T['methods'][P] extends MethodInfoUnary<
-    infer I,
-    infer O
-  >
+      infer I,
+      infer O
+    >
     ? (
-        input: PartialMessage<I>,
-        request?: Request,
-        options?: CallOptions
-      ) => Promise<O>
-    : T['methods'][P] extends MethodInfoServerStreaming<infer I, infer O>
-    ? (request: PartialMessage<I>, options?: CallOptions) => AsyncIterable<O>
-    : T['methods'][P] extends MethodInfoClientStreaming<infer I, infer O>
-    ? (
-        request: AsyncIterable<PartialMessage<I>>,
-        options?: CallOptions
-      ) => Promise<O>
-    : T['methods'][P] extends MethodInfoBiDiStreaming<infer I, infer O>
-    ? (
-        request: AsyncIterable<PartialMessage<I>>,
-        options?: CallOptions
-      ) => AsyncIterable<O>
+      request: Request,
+      input: PartialMessage<I>,
+      options?: CallOptions
+    ) => Promise<Result<O, ConnectError>>
     : never
 }
 
@@ -94,17 +68,17 @@ export function createCustomClient<T extends ServiceType>(
  * UnaryFn is the method signature for a unary method of a PromiseClient.
  */
 type UnaryFn<I extends Message<I>, O extends Message<O>> = (
+  request: Request,
   input: PartialMessage<I>,
-  request?: Request,
   options?: CallOptions
-) => Promise<O | GrpcError>
+) => Promise<Result<O, ConnectError>>
 
 function createUnaryFn<I extends Message<I>, O extends Message<O>>(
   transport: Transport,
   service: ServiceType,
   method: MethodInfo<I, O>
 ): UnaryFn<I, O> {
-  return async function (input, request?: Request, options?: CallOptions) {
+  return async function (request: Request, input: PartialMessage<I>, options?: CallOptions) {
     if (request) {
       const cookies = String(request.headers.get('cookie'))
       options = {
@@ -116,7 +90,7 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
       }
     }
 
-    const response = await transport
+    return await transport
       .unary(
         service,
         method,
@@ -124,39 +98,22 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
         options?.timeoutMs,
         options?.headers,
         input
-      )
-      .catch((err) => StatusConnectError(err))
+      ).then((res) => {
+        options?.onHeader(res.header)
+        options?.onTrailer(res.trailer)
 
-    if (isGrpcError(response)) return response
-
-    options?.onHeader?.(response.header)
-    options?.onTrailer?.(response.trailer)
-
-    return response.message
+        return Result.ok(res.message)
+      }).catch((err) => {
+        return Result.err(intoConnectError(err))
+      })
   }
 }
 
-function StatusConnectError(err: ConnectError): GrpcError {
-  switch (codeMapping(err.code.toString())) {
-    case Code.UNAUTHENTICATED:
-      throw redirect(route('/login'))
-  }
 
-  const details = err.findDetails(BadRequest)
+function intoConnectError(err: unknown): ConnectError {
+  const connectError = ConnectError.from(err)
 
-  if (details) {
-    return {
-      code: err.code,
-      message: err.message,
-      details
-    }
-  }
-
-  return {
-    code: codeMapping(err.code.toString()),
-    message: err.message || 'Status without details.',
-    details: []
-  }
+  return connectError
 }
 
-export { grpcConnectClient, StatusConnectError }
+export {grpcConnectClient}
