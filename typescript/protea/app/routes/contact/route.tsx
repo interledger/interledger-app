@@ -1,5 +1,4 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
@@ -16,10 +15,10 @@ import {
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { grpcConnectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
 import { getContactRoute } from '~/lib/marketing.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { isGrpcError } from '~/lib/proto.server'
+import {redirect} from "@remix-run/node";
+import {error} from "~/lib/error.server";
+import {BadRequest} from "~/generated/connect/google/rpc/error_details_pb";
 
 export async function loader({ request }: LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
@@ -206,26 +205,25 @@ export async function action({ request }: ActionArgs) {
     description: ''
   }
 
-  let response = await grpcConnectClient.createSupportTicket(
-    {
-      description: description,
-      firstName: firstName,
-      lastName: lastName,
-      email: email
-    },
-    request
-  )
+  let res = await grpcConnectClient.createSupportTicket(request, {
+    description: description,
+    firstName: firstName,
+    lastName: lastName,
+    email: email
+  })
 
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
+  if (res.isErr()) {
+    if (res.error.code == 3) {
+      const errDetails = res.error.findDetails(BadRequest)
+
+      for (let violation of errDetails[0].fieldViolations) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return error(request, { errors: { ...fieldErrors } })
+      return error(request, { errors: { ...fieldErrors} })
     } else return error(request, { errors: { ...fieldErrors } }, {})
   }
+  res.value
 
   return redirect('/contact/success')
 }

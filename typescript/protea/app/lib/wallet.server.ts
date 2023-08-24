@@ -334,7 +334,7 @@ export async function getWalletContacts(
   request: Request,
   input: PartialMessage<ListContactsRequest>
 ): Promise<getWalletContactsResponse> {
-  const res = await grpcConnectClient.listContacts(input, request)
+  const res = await grpcConnectClient.listContacts(request, input)
 
   if (isGrpcError(res)) {
     throw json({}, httpMapping(res.code))
