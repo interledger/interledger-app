@@ -187,7 +187,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		},
 		SenderAmount:    currency.FromPB(req.SenderAmount),
 		SenderAccount:   req.GetSenderAccount(),
-		ReceiverAmount:  currency.FromPB(req.ReceiverAmount),
+		ReceiverAmount:  currency.FromPB(req.SenderAmount), // TODO: calculate receive amount
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		IPAddress:       req.GetIpAddress(),
@@ -224,13 +224,18 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 	}
 
 	args := payments.UpdateArgs{
-		ID:              req.Id,
-		SenderAmount:    currency.FromPB(req.GetSenderAmount()),
-		SenderAccount:   req.GetSenderAccount(),
-		ReceiverAmount:  currency.FromPB(req.GetReceiverAmount()),
+		ID:             req.Id,
+		SenderAmount:   currency.FromPB(req.GetSenderAmount()),
+		SenderAccount:  req.GetSenderAccount(),
+		ReceiverAmount: currency.FromPB(req.GetSenderAmount()), // TODO: calculate receive amount
+		Receiver: payments.Identity{
+			Type:       payments.IdentityType(req.GetReceiverIdentityType()),
+			Identifier: req.GetReceiverIdentity(),
+		},
 		ReceiverAccount: req.GetReceiverAccount(),
-		Note:            req.GetNote(),
-		ThreeDSID:       req.GetThreeDSID(),
+		Note:      req.GetNote(),
+		ThreeDSID: req.GetThreeDSID(),
+		OTP:       req.GetOtp(),
 		IPAddress:       req.GetIpAddress(),
 	}
 
