@@ -48,8 +48,13 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderArgs) {
-  await getUserSession(request)
+export async function loader(args: LoaderArgs) {
+  await getUserSession(args.request)
+  
+  return openPayments3DSLoader(args)
+}
+
+async function openPayments3DSLoader({ request }: LoaderArgs) {
   const url = new URL(request.url)
 
   const quoteId = url.searchParams.get('quoteId')
@@ -112,13 +117,17 @@ function cleanupSongbirdScript(script: ScriptElt) {
   }
 
   if (typeof window !== 'undefined' && (window as any).Cardinal) {
-    ;(window as any).Cardinal.off('payments.setupComplete')
-    ;(window as any).Cardinal.off('payments.validated')
+    ; (window as any).Cardinal.off('payments.setupComplete')
+      ; (window as any).Cardinal.off('payments.validated')
     delete (window as any).Cardinal
   }
 }
 
 export default function Page() {
+  return <OpenPaymentsThreeDSPage />
+}
+
+function OpenPaymentsThreeDSPage() {
   const loaderData = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
