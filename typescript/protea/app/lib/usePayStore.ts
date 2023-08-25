@@ -23,6 +23,9 @@ interface PayState {
   amount: string
   displayAmount: string
   note: string
+
+  // payment engine fields
+  paymentId: string
 }
 
 interface PayActions {
@@ -35,6 +38,9 @@ interface PayActions {
   setAccount: (account: FormattedLinkedAccount) => void
   setQuote: (id: string, requiresOTP: boolean) => void
   reset: () => void
+
+  // payment engine fields
+  setPayment: (id: string, requiresOTP: boolean) => void
 }
 
 const payInitialState = {
@@ -46,7 +52,10 @@ const payInitialState = {
   account: null,
   amount: '',
   displayAmount: '$ 0.00',
-  note: ''
+  note: '',
+
+  // payment engine fields
+  paymentId: ''
 }
 
 export const usePayStore = create<PayState & PayActions>()((set) => ({
@@ -72,7 +81,10 @@ export const usePayStore = create<PayState & PayActions>()((set) => ({
   setNote: (note) => set((state) => ({ note })),
   setAccount: (account) => set((state) => ({ account })),
   setQuote: (id, requiresOTP) => set((state) => ({ quoteId: id, requiresOTP })),
-  reset: () => set((state) => ({ ...payInitialState }))
+  reset: () => set((state) => ({ ...payInitialState })),
+
+  // payment engine fields
+  setPayment: (id, requiresOTP) => set((state) => ({ paymentId: id, requiresOTP }))
 }))
 
 // sendPaymentPointer: string; - don't need this in the store

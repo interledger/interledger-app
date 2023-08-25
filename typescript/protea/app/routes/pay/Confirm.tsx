@@ -24,7 +24,7 @@ import { usePayStore } from '~/lib/usePayStore'
 import type { loader } from '~/routes/pay/route'
 
 export function ConfirmWithOpenPayments() {
-  const { csrfToken } = useLoaderData<typeof loader>()
+  const { csrfToken, fynbosEnv } = useLoaderData<typeof loader>()
   const confirm = useFetcher()
   const otpFetcher = useFetcher()
 
@@ -35,6 +35,7 @@ export function ConfirmWithOpenPayments() {
     useState<boolean>(false)
 
   const [
+    paymentId,
     address,
     account,
     displayAmount,
@@ -43,6 +44,7 @@ export function ConfirmWithOpenPayments() {
     quoteId,
     requiresOTP
   ] = usePayStore((state) => [
+    state.paymentId,
     state.address,
     state.account,
     state.displayAmount,
@@ -94,10 +96,18 @@ export function ConfirmWithOpenPayments() {
         name='csrfToken'
         type='hidden'
       />
+
+      {/* TODO: delete quoteId input when payment engine integration successful*/}
       <input
         form='pay-confirm'
         defaultValue={quoteId}
         name='quoteId'
+        type='hidden'
+      />
+      <input
+        form='pay-confirm'
+        defaultValue={paymentId}
+        name='paymentId'
         type='hidden'
       />
       <Card>
@@ -191,7 +201,7 @@ export function ConfirmWithOpenPayments() {
         <Button
           form='pay-confirm'
           name='formName'
-          value='confirm'
+          value={fynbosEnv === 'prod' ? 'confirm' : 'confirmPayment'}
           type='submit'
         >
           Confirm payment
@@ -287,7 +297,7 @@ export function ConfirmWithOpenPayments() {
           <TextButton
             form='pay-confirm'
             name='formName'
-            value='confirm'
+            value={fynbosEnv === 'prod' ? 'confirm' : 'confirmPayment'}
             type='submit'
           >
             Verify
