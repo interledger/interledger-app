@@ -84,7 +84,8 @@ export const usePayStore = create<PayState & PayActions>()((set) => ({
   reset: () => set((state) => ({ ...payInitialState })),
 
   // payment engine fields
-  setPayment: (id, requiresOTP) => set((state) => ({ paymentId: id, requiresOTP }))
+  setPayment: (id, requiresOTP) =>
+    set((state) => ({ paymentId: id, requiresOTP }))
 }))
 
 // sendPaymentPointer: string; - don't need this in the store

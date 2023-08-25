@@ -57,7 +57,7 @@ export async function loader(args: LoaderArgs) {
     return openPayments3DSLoader(args)
   }
 
-  return paymentsEngine3DSLoader(args)  
+  return paymentsEngine3DSLoader(args)
 }
 
 async function openPayments3DSLoader({ request }: LoaderArgs) {
@@ -116,7 +116,7 @@ async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
     let threeDSInit = await grpcClient
       .init3DS(
         {
-          paymentID: paymentId,
+          paymentID: paymentId
         },
         {
           meta: {
@@ -134,7 +134,7 @@ async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
       initJWT: threeDSInit.response.jwt,
       threeDsId: threeDSInit.response.id,
       songbirdURL: threeDSInit.response.songbirdURL,
-      fynbosEnv: process.env.FYNBOS_ENV,
+      fynbosEnv: process.env.FYNBOS_ENV
     })
   }
 
@@ -144,7 +144,7 @@ async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
     initJWT: '',
     threeDsId: '',
     songbirdURL: '',
-    fynbosEnv: process.env.FYNBOS_ENV,
+    fynbosEnv: process.env.FYNBOS_ENV
   })
 }
 
@@ -169,8 +169,8 @@ function cleanupSongbirdScript(script: ScriptElt) {
   }
 
   if (typeof window !== 'undefined' && (window as any).Cardinal) {
-    ; (window as any).Cardinal.off('payments.setupComplete')
-      ; (window as any).Cardinal.off('payments.validated')
+    ;(window as any).Cardinal.off('payments.setupComplete')
+    ;(window as any).Cardinal.off('payments.validated')
     delete (window as any).Cardinal
   }
 }
@@ -178,12 +178,12 @@ function cleanupSongbirdScript(script: ScriptElt) {
 export default function Page() {
   const loaderData = useLoaderData<typeof loader>()
 
-  return <>
-    <LoadingShapes />
-    {
-      loaderData.fynbosEnv === 'local' ? <DevThreeDSPage /> : <ThreeDSPage />
-    }
-  </>
+  return (
+    <>
+      <LoadingShapes />
+      {loaderData.fynbosEnv === 'local' ? <DevThreeDSPage /> : <ThreeDSPage />}
+    </>
+  )
 }
 
 function DevThreeDSPage() {
@@ -210,10 +210,15 @@ function DevThreeDSPage() {
         replace: true
       }
     )
-  }, [searchParams])
+  }, [
+    searchParams,
+    setSearchParams,
+    loaderData.csrfToken,
+    loaderData.paymentId,
+    submit
+  ])
 
-  return <>
-  </>
+  return <></>
 }
 
 function ThreeDSPage() {
@@ -267,7 +272,7 @@ function ThreeDSPage() {
       let actionUrl = `${route('/pay/3ds')}?quoteId=${quoteId}`
       if (paymentId) {
         actionUrl = `${route('/pay/3ds')}?paymentId=${paymentId}`
-      } 
+      }
 
       cardinalRef.current = (window as any).Cardinal
       cardinalRef.current.configure({
