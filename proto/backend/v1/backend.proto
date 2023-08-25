@@ -294,6 +294,7 @@ service BackendService {
   rpc OnboardGMTUser(Empty) returns (Empty);
 
   // Tabapay 3DS
+  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
   rpc Init3DS(Init3DSRequest) returns (Init3DSResponse);
   rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
   rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
@@ -336,8 +337,11 @@ message UpdatePaymentRequest {
   optional string note = 4;
   optional string senderAccount = 5; // Linked Account ID
   optional string receiverAccount = 6; // Linked Account ID
-  optional string threeDSID = 7;
-  optional string ipAddress = 8;
+  optional string receiverIdentity = 7;
+  optional int32 receiverIdentityType = 8; // 1 - Twitter, 2 - WalletID, 3 - WalletURL
+  optional string threeDSID = 9;
+  optional string otp = 10;
+  optional string ipAddress = 11;
 }
 
 message Payment {
@@ -440,8 +444,12 @@ message CreateCardRequest {
   string tokenID = 1;
 }
 
-message Init3DSRequest {
+message InitQuote3DSRequest {
   string quoteID = 1;
+}
+
+message Init3DSRequest {
+  string paymentID = 1;
 }
 
 message Init3DSResponse {
