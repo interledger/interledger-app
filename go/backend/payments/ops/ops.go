@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
@@ -165,6 +166,41 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 	return transformPayment(ctx, b, *dbp)
 }
 
+func accountCanSend(ctx context.Context, b Backends, accountID string) (bool, error) {
+	if accountID == "" {
+		return false, nil
+	}
+	acc, err := b.LinkedAccounts().Get(ctx, accountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return acc.CanSend, nil
+}
+
+func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity) (string, error) {
+	if id.IsEmpty() || !id.Type.Valid() {
+		return "", nil
+	}
+
+	wallet, err := lookupWallet(ctx, b, id)
+	if err != nil {
+		return "", err
+	}
+
+	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, wallet.ID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	return la.ID, nil
+}
+
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
 // is not of type WalletID, then the walletID will be looked up and used as the `Sender`.
 func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
@@ -178,6 +214,16 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
+	canSend, err := accountCanSend(ctx, b, p.SenderAccount)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	defaultRecvAcc := p.ReceiverAccount
+	if p.ReceiverAccount == "" {
+		defaultRecvAcc, _ = defaultReceiveAccount(ctx, b, p.Receiver)
+	}
+
 	// TODO Calculate more actions required
 	id := uuid.NewString()
 	stmt, args, err := db.NewInsert("payments").
@@ -188,12 +234,12 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("sender_id_type", payments.IdentityTypeWalletID).
 		Value("sender_amount", p.SenderAmount.Value).
 		Value("sender_currency", p.SenderAmount.Currency).
-		Value("sender_account", sql.NullString{String: p.SenderAccount, Valid: p.SenderAccount != ""}).
+		Value("sender_account", sql.NullString{String: p.SenderAccount, Valid: p.SenderAccount != "" && canSend}).
 		Value("receiver_id", p.Receiver.Identifier).
 		Value("receiver_id_type", p.Receiver.Type).
 		Value("receiver_amount", p.ReceiverAmount.Value).
 		Value("receiver_currency", p.ReceiverAmount.Currency).
-		Value("receiver_account", sql.NullString{String: p.ReceiverAccount, Valid: p.ReceiverAccount != ""}).
+		Value("receiver_account", sql.NullString{String: defaultRecvAcc, Valid: defaultRecvAcc != ""}).
 		Value("action_three_ds_required", true).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
 		Value("action_otp_required", p.RequiresOTP).
@@ -253,6 +299,15 @@ func setStateTX(ctx context.Context, tx *sqlx.Tx, id string, state payments.Stat
 
 func setReceiveTransactionID(ctx context.Context, b Backends, paymentID, txID string) error {
 	_, err := b.DB().ExecContext(ctx, "UPDATE payments SET receive_transaction_id=$1 WHERE id=$2", txID, paymentID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func setReceiveAccount(ctx context.Context, b Backends, paymentID, accountID string) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE payments SET receiver_account=$1 WHERE id=$2", accountID, paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -444,8 +499,12 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		noop = false
 	}
 	if args.SenderAccount != "" && args.SenderAccount != payment.SenderAccount.String {
+		canSend, err := accountCanSend(ctx, b, args.SenderAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
 		payment.SenderAccount.String = args.SenderAccount
-		payment.SenderAccount.Valid = true
+		payment.SenderAccount.Valid = canSend
 		noop = false
 	}
 
