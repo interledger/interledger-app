@@ -967,13 +967,22 @@ export interface CreateCardRequest {
     tokenID: string;
 }
 /**
- * @generated from protobuf message backend.v1.Init3DSRequest
+ * @generated from protobuf message backend.v1.InitQuote3DSRequest
  */
-export interface Init3DSRequest {
+export interface InitQuote3DSRequest {
     /**
      * @generated from protobuf field: string quoteID = 1;
      */
     quoteID: string;
+}
+/**
+ * @generated from protobuf message backend.v1.Init3DSRequest
+ */
+export interface Init3DSRequest {
+    /**
+     * @generated from protobuf field: string paymentID = 1;
+     */
+    paymentID: string;
 }
 /**
  * @generated from protobuf message backend.v1.Init3DSResponse
@@ -5205,20 +5214,20 @@ class CreateCardRequest$Type extends MessageType<CreateCardRequest> {
  */
 export const CreateCardRequest = new CreateCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class Init3DSRequest$Type extends MessageType<Init3DSRequest> {
+class InitQuote3DSRequest$Type extends MessageType<InitQuote3DSRequest> {
     constructor() {
-        super("backend.v1.Init3DSRequest", [
+        super("backend.v1.InitQuote3DSRequest", [
             { no: 1, name: "quoteID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<Init3DSRequest>): Init3DSRequest {
+    create(value?: PartialMessage<InitQuote3DSRequest>): InitQuote3DSRequest {
         const message = { quoteID: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<Init3DSRequest>(this, message, value);
+            reflectionMergePartial<InitQuote3DSRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Init3DSRequest): Init3DSRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: InitQuote3DSRequest): InitQuote3DSRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -5237,10 +5246,57 @@ class Init3DSRequest$Type extends MessageType<Init3DSRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: Init3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: InitQuote3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string quoteID = 1; */
         if (message.quoteID !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.quoteID);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.InitQuote3DSRequest
+ */
+export const InitQuote3DSRequest = new InitQuote3DSRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Init3DSRequest$Type extends MessageType<Init3DSRequest> {
+    constructor() {
+        super("backend.v1.Init3DSRequest", [
+            { no: 1, name: "paymentID", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Init3DSRequest>): Init3DSRequest {
+        const message = { paymentID: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Init3DSRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Init3DSRequest): Init3DSRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string paymentID */ 1:
+                    message.paymentID = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Init3DSRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string paymentID = 1; */
+        if (message.paymentID !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.paymentID);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -10225,6 +10281,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetMXWidget", options: {}, I: Empty, O: MXWidgetResponse },
     { name: "CreateMXBankAccounts", options: {}, I: CreateMXBankAccountsRequest, O: CreateMXBankAccountsResponse },
     { name: "OnboardGMTUser", options: {}, I: Empty, O: Empty },
+    { name: "InitQuote3DS", options: {}, I: InitQuote3DSRequest, O: Init3DSResponse },
     { name: "Init3DS", options: {}, I: Init3DSRequest, O: Init3DSResponse },
     { name: "Lookup3DS", options: {}, I: Lookup3DSRequest, O: Lookup3DSResponse },
     { name: "Authenticate3DS", options: {}, I: Authenticate3DSRequest, O: Authenticate3DSResponse },

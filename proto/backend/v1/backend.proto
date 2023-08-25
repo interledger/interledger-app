@@ -294,6 +294,7 @@ service BackendService {
   rpc OnboardGMTUser(Empty) returns (Empty);
 
   // Tabapay 3DS
+  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
   rpc Init3DS(Init3DSRequest) returns (Init3DSResponse);
   rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
   rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
@@ -443,8 +444,12 @@ message CreateCardRequest {
   string tokenID = 1;
 }
 
-message Init3DSRequest {
+message InitQuote3DSRequest {
   string quoteID = 1;
+}
+
+message Init3DSRequest {
+  string paymentID = 1;
 }
 
 message Init3DSResponse {
