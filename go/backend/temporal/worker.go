@@ -59,10 +59,10 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
-	w.RegisterActivity(payments_workflows.RollbackPayInWorkflow)
-	w.RegisterActivity(payments_workflows.PayinWorkflow)
-	w.RegisterActivity(payments_workflows.PayoutWorkflow)
-	w.RegisterActivity(payments_workflows.PaymentWorkflow)
+	w.RegisterWorkflow(payments_workflows.RollbackPayInWorkflow)
+	w.RegisterWorkflow(payments_workflows.PayinWorkflow)
+	w.RegisterWorkflow(payments_workflows.PayoutWorkflow)
+	w.RegisterWorkflow(payments_workflows.PaymentWorkflow)
 
 	return w, nil
 }
