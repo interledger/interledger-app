@@ -331,15 +331,16 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
   }
 
   if (otp) {
-    const rpc = await grpcClient.updatePayment(
-      {
-        id: paymentId,
-        otp: otp,
-      },
-      {
-        meta: { cookies: String(request.headers.get('cookie')) }
-      }
-    )
+    const rpc = await grpcClient
+      .updatePayment(
+        {
+          id: paymentId,
+          otp: otp
+        },
+        {
+          meta: { cookies: String(request.headers.get('cookie')) }
+        }
+      )
       .then((v) => v)
       .catch(StatusError)
     if (isGrpcError(rpc)) {
@@ -379,23 +380,24 @@ export async function updatePaymentAction({ request }: ActionArgs) {
 
   const clientIpAddress = getClientIP(request)
   if (!paymentId) {
-    let rpc = await grpcClient.createPayment(
-      {
-        receiverIdentity: walletUrl,
-        receiverIdentityType: 3,
-        note,
-        senderAccount: accountId,
-        senderAmount: {
-          amount: amountToSubmit,
-          assetScale: 2,
-          asset: 'USD'
+    let rpc = await grpcClient
+      .createPayment(
+        {
+          receiverIdentity: walletUrl,
+          receiverIdentityType: 3,
+          note,
+          senderAccount: accountId,
+          senderAmount: {
+            amount: amountToSubmit,
+            assetScale: 2,
+            asset: 'USD'
+          },
+          ipAddress: clientIpAddress
         },
-        ipAddress: clientIpAddress
-      },
-      {
-        meta: { cookies: String(request.headers.get('cookie')) }
-      }
-    )
+        {
+          meta: { cookies: String(request.headers.get('cookie')) }
+        }
+      )
       .then((v) => v)
       .catch(StatusError)
     if (isGrpcError(rpc)) {
@@ -438,24 +440,25 @@ export async function updatePaymentAction({ request }: ActionArgs) {
     })
   }
 
-  let rpc = await grpcClient.updatePayment(
-    {
-      id: paymentId,
-      receiverIdentity: walletUrl,
-      receiverIdentityType: 3,
-      note,
-      senderAccount: accountId,
-      senderAmount: {
-        amount: amountToSubmit,
-        assetScale: 2,
-        asset: 'USD'
+  let rpc = await grpcClient
+    .updatePayment(
+      {
+        id: paymentId,
+        receiverIdentity: walletUrl,
+        receiverIdentityType: 3,
+        note,
+        senderAccount: accountId,
+        senderAmount: {
+          amount: amountToSubmit,
+          assetScale: 2,
+          asset: 'USD'
+        },
+        ipAddress: clientIpAddress
       },
-      ipAddress: clientIpAddress
-    },
-    {
-      meta: { cookies: String(request.headers.get('cookie')) }
-    }
-  )
+      {
+        meta: { cookies: String(request.headers.get('cookie')) }
+      }
+    )
     .then((v) => v)
     .catch(StatusError)
   if (isGrpcError(rpc)) {
