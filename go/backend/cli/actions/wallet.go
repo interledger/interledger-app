@@ -2,8 +2,6 @@ package actions
 
 import (
 	"context"
-	cryptorand "crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -60,12 +58,7 @@ var MakeWalletFlags = []cli.Flag{
 func MakeWallet(b Backends) cli.ActionFunc {
 	return func(cCtx *cli.Context) error {
 		phone := 10_000_000 - rand.Int63n(999) // faker E164Phonenumber format is not accepted
-		buf := make([]byte, 32)
-		_, err := cryptorand.Read(buf)
-		if err != nil {
-			return err
-		}
-		password := base64.StdEncoding.EncodeToString(buf)
+		password := "fynboslocal"
 		activeState := kratos.IdentityState("active")
 		ctx := context.WithValue(cCtx.Context, kratos.ContextServerIndex, 1)
 		identity, response, err := b.Kratos().IdentityApi.CreateIdentity(ctx).CreateIdentityBody(kratos.CreateIdentityBody{

@@ -176,6 +176,11 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 	if senderID.Address != nil {
 		address = senderID.Address.String()
 	}
+
+	trackingNumber := p.SendTransactionID
+	if trackingNumber == "" {
+		trackingNumber = p.ID
+	}
 	sender := &external.WsSender{
 		SenderAddress:               address,
 		SenderAddressStreet:         senderID.Address.Apartment,
@@ -202,7 +207,7 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		SenderZip:                   senderID.Address.ZipCode,
 		SenderCountryNationallity:   senderID.Nationality,
 		SenderPOB:                   senderID.PlaceOfBirth,
-		SenderTrackingNumber:        p.SendTransactionID,
+		SenderTrackingNumber:        trackingNumber,
 	}
 
 	if !exceeds {
