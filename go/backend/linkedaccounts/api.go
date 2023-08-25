@@ -13,11 +13,12 @@ type Client interface {
 	Delete(ctx context.Context, id string) error
 	MarkNotDeleted(ctx context.Context, id string) (*LinkedAccount, error)
 	GetByProviderID(ctx context.Context, args GetByProviderIDArgs) (*LinkedAccount, error)
-	ListByWalletId(ctx context.Context, walletId string) ([]LinkedAccount, error)
+	ListByWalletId(ctx context.Context, walletID string) ([]LinkedAccount, error)
 	ListMXBankAccounts(ctx context.Context) ([]LinkedAccount, error)
 	ListByProviderID(ctx context.Context, provider, providerID string) ([]LinkedAccount, error)
 	SetNickname(ctx context.Context, id, nickname string) (*LinkedAccount, error)
 	Requires3DS(ctx context.Context, id string) (bool, error)
+	GetDefaultReceive(ctx context.Context, walletID string) (*LinkedAccount, error)
 
 	CreateReviews(ctx context.Context, args []CreateReviewArgs) ([]Review, error)
 	GetReview(ctx context.Context, id string) (*Review, error)

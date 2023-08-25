@@ -140,6 +140,21 @@ func (mr *MockClientMockRecorder) GetByProviderID(ctx, args interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProviderID", reflect.TypeOf((*MockClient)(nil).GetByProviderID), ctx, args)
 }
 
+// GetDefaultReceive mocks base method.
+func (m *MockClient) GetDefaultReceive(ctx context.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDefaultReceive", ctx, walletID)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDefaultReceive indicates an expected call of GetDefaultReceive.
+func (mr *MockClientMockRecorder) GetDefaultReceive(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefaultReceive", reflect.TypeOf((*MockClient)(nil).GetDefaultReceive), ctx, walletID)
+}
+
 // GetReview mocks base method.
 func (m *MockClient) GetReview(ctx context.Context, id string) (*linkedaccounts.Review, error) {
 	m.ctrl.T.Helper()
@@ -171,18 +186,18 @@ func (mr *MockClientMockRecorder) ListByProviderID(ctx, provider, providerID int
 }
 
 // ListByWalletId mocks base method.
-func (m *MockClient) ListByWalletId(ctx context.Context, walletId string) ([]linkedaccounts.LinkedAccount, error) {
+func (m *MockClient) ListByWalletId(ctx context.Context, walletID string) ([]linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByWalletId", ctx, walletId)
+	ret := m.ctrl.Call(m, "ListByWalletId", ctx, walletID)
 	ret0, _ := ret[0].([]linkedaccounts.LinkedAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByWalletId indicates an expected call of ListByWalletId.
-func (mr *MockClientMockRecorder) ListByWalletId(ctx, walletId interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ListByWalletId(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByWalletId", reflect.TypeOf((*MockClient)(nil).ListByWalletId), ctx, walletId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByWalletId", reflect.TypeOf((*MockClient)(nil).ListByWalletId), ctx, walletID)
 }
 
 // ListIncompleteReviews mocks base method.

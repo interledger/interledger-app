@@ -4,6 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
@@ -32,8 +38,10 @@ func TestSetPaymentState(t *testing.T) {
 		Em:  email_mock.NewMockClient(ctrl),
 		Ic:  id_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{
 		WalletID: walletID,
 	}, nil).AnyTimes()

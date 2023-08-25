@@ -63,14 +63,35 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID, externalID st
 }
 
 func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef string) (*tabapay.Transaction, error) {
-
-	dbp, err := getPayment(ctx, a.b, paymentID)
+	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Check if the receiving account is configured else lookup default
+	accountID := p.ReceiverAccount
+	if p.ReceiverAccount == "" {
+		accountID, err = defaultReceiveAccount(ctx, a.b, p.Receiver)
+		if err != nil {
+			if errors.Is(err, linkedaccounts.ErrNotFound) {
+				return nil, temporal.NewNonRetryableApplicationError("Default linked card not found.", "ErrNotFound", err)
+			}
+			return nil, err
+		}
+
+		// Set the linked account ID on the payment
+		err = setReceiveAccount(ctx, a.b, paymentID, accountID)
+		if err != nil {
+			return nil, err
+		}
+
+		p, err = Lookup(ctx, a.b, paymentID)
+		if err != nil {
+			return nil, err
+		}
+	}
 	// fetch the linked account
-	linkedCard, err := a.b.LinkedAccounts().Get(ctx, dbp.ReceiverAccount.String)
+	linkedCard, err := a.b.LinkedAccounts().Get(ctx, accountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError("Linked card not found.", "ErrNotFound", err)
 	}
@@ -86,7 +107,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 		WalletID:    linkedCard.WalletID,
 		ProviderID:  linkedCard.ProviderID,
 		ReferenceID: externalRef,
-		Amount:      currency.FromUInt64(dbp.ReceiverAmount, currency.ParseCurrency(dbp.SenderCurrency)),
+		Amount:      p.ReceiverAmount,
 	})
 	if err != nil {
 		return nil, err

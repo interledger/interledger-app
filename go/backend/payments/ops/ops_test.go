@@ -2,7 +2,12 @@ package ops_test
 
 import (
 	"context"
+	"errors"
 	"testing"
+
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -33,8 +38,11 @@ func TestCreate(t *testing.T) {
 		DBC: db.MigrateTestDB(t, ctx),
 		Ic:  identity_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
+	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
@@ -123,8 +131,10 @@ func TestSetState(t *testing.T) {
 		DBC: db.MigrateTestDB(t, ctx),
 		Ic:  identity_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
@@ -200,11 +210,11 @@ func TestConfirm(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	txID := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{}, nil).AnyTimes()
 	b.Txc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
@@ -267,8 +277,10 @@ func TestUpdate(t *testing.T) {
 	b := &ops.TestBackends{
 		DBC: db.MigrateTestDB(t, ctx),
 		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
 		ID: walletID,
