@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -289,6 +290,29 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 	}
 	if exceedsLimits {
 		return nil, FailedPreconditionError(string(limitType))
+	}
+
+	// TODO: remove after barnard's PR is in
+	if p.ReceiverAccount == "" {
+		las, err := s.b.LinkedAccounts().ListByWalletId(ctx, p.Receiver.WalletID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		var receiveLA *linkedaccounts.LinkedAccount
+		for _, la := range las {
+			if la.CanReceive {
+				receiveLA = &la
+				break
+			}
+		}
+
+		if receiveLA != nil {
+			_, _ = s.b.Payments().Update(ctx, payments.UpdateArgs{
+				ID:              p.ID,
+				ReceiverAccount: receiveLA.ID,
+			})
+		}
 	}
 
 	p, _, err = s.b.Payments().Confirm(ctx, req.Id)
