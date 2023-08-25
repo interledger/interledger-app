@@ -26,7 +26,8 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Executing payment", "id", id)
 	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		Namespace:         "payments",
+		// TODO: configure temporal infra to handle multiple namespaces
+		// Namespace:         "payments",
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
 	})
 
@@ -53,8 +54,9 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	selector := workflow.NewSelector(ctx)
 
 	childPayInCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID:            fmt.Sprintf(payinWorkflowFmt, id),
-		Namespace:             "payments",
+		WorkflowID: fmt.Sprintf(payinWorkflowFmt, id),
+		// TODO: configure temporal infra to handle multiple namespaces
+		// Namespace:         "payments",
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_TERMINATE,
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	})
@@ -68,8 +70,9 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	})
 
 	childPayoutCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID:            fmt.Sprintf(payoutWorkflowFmt, id),
-		Namespace:             "payments",
+		WorkflowID: fmt.Sprintf(payoutWorkflowFmt, id),
+		// TODO: configure temporal infra to handle multiple namespaces
+		// Namespace:         "payments",
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_TERMINATE,
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	})
@@ -241,7 +244,8 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 	// Payout was unsuccessful. Rollback the account pull
 	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		Namespace:         "payments",
+		// TODO: configure temporal infra to handle multiple namespaces
+		// Namespace:         "payments",
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
 	})
 

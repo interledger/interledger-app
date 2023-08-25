@@ -233,9 +233,9 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 			Identifier: req.GetReceiverIdentity(),
 		},
 		ReceiverAccount: req.GetReceiverAccount(),
-		Note:      req.GetNote(),
-		ThreeDSID: req.GetThreeDSID(),
-		OTP:       req.GetOtp(),
+		Note:            req.GetNote(),
+		ThreeDSID:       req.GetThreeDSID(),
+		OTP:             req.GetOtp(),
 		IPAddress:       req.GetIpAddress(),
 	}
 
