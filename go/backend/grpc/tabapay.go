@@ -8,6 +8,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	http_log "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -69,8 +70,8 @@ func (s *rpcService) CreateCard(
 	return transformLinkedAccount(la), nil
 }
 
-func (s *rpcService) Init3DS(
-	ctx context.Context, req *backendv1.Init3DSRequest,
+func (s *rpcService) InitQuote3DS(
+	ctx context.Context, req *backendv1.InitQuote3DSRequest,
 ) (*backendv1.Init3DSResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -110,6 +111,63 @@ func (s *rpcService) Init3DS(
 		Amount:  quote.SendAmount,
 		OrderID: orderID,
 		CardID:  fromLinkedAcc.ProviderID,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &backendv1.Init3DSResponse{
+		Id:                  init3DS.ID,
+		Jwt:                 init3DS.JWT,
+		DeviceCollectionURL: init3DS.DeviceCollectionURL,
+		SongbirdURL:         tabapay.GetSongbirdURL(),
+	}, nil
+}
+
+func (s *rpcService) Init3DS(
+	ctx context.Context, req *backendv1.Init3DSRequest,
+) (*backendv1.Init3DSResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	payment, err := s.b.Payments().Lookup(ctx, req.GetPaymentID())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	fromLinkedAcc, err := s.b.LinkedAccounts().Get(ctx, payment.SenderAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if fromLinkedAcc.WalletID != w.ID {
+		return nil, NotFoundError("Payment not found.")
+	}
+	if !linkedaccounts.Requires3DS(fromLinkedAcc) {
+		return nil, InternalError("3DS not supported.")
+	}
+
+	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
+		Context: fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID),
+	})
+	init3DS, err := s.b.Tabapay().Init3DS(newCtx, tabapay.Init3DSArgs{
+		Amount:  payment.SenderAmount,
+		OrderID: payment.ID, // TODO: should this be the publicID?
+		CardID:  fromLinkedAcc.ProviderID,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	_, err = s.b.Payments().Update(ctx, payments.UpdateArgs{
+		ID:        payment.ID,
+		ThreeDSID: init3DS.ID,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)

@@ -56,7 +56,7 @@ type CreateTransactionArgs struct {
 	GrantID                 string
 	LinkedAccountTitle      string
 	DestinationIdentity     string
-	DestinationIdentityType string `validate:"omitempty,oneof=twitter wallet WalletID"`
+	DestinationIdentityType string `validate:"omitempty,oneof=twitter wallet WalletID WalletURL"`
 	Reference               string
 }
 
