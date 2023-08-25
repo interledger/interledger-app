@@ -57,7 +57,7 @@ export async function loader(args: LoaderArgs) {
     return openPayments3DSLoader(args)
   }
 
-  return paymentsEngine3DSLoader(args)  
+  return paymentsEngine3DSLoader(args)
 }
 
 async function openPayments3DSLoader({ request }: LoaderArgs) {
@@ -116,7 +116,7 @@ async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
     let threeDSInit = await grpcClient
       .init3DS(
         {
-          paymentID: paymentId,
+          paymentID: paymentId
         },
         {
           meta: {
@@ -134,7 +134,7 @@ async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
       initJWT: threeDSInit.response.jwt,
       threeDsId: threeDSInit.response.id,
       songbirdURL: threeDSInit.response.songbirdURL,
-      fynbosEnv: process.env.FYNBOS_ENV,
+      fynbosEnv: process.env.FYNBOS_ENV
     })
   }
 
@@ -144,7 +144,7 @@ async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
     initJWT: '',
     threeDsId: '',
     songbirdURL: '',
-    fynbosEnv: process.env.FYNBOS_ENV,
+    fynbosEnv: process.env.FYNBOS_ENV
   })
 }
 
@@ -169,54 +169,27 @@ function cleanupSongbirdScript(script: ScriptElt) {
   }
 
   if (typeof window !== 'undefined' && (window as any).Cardinal) {
-    ; (window as any).Cardinal.off('payments.setupComplete')
-      ; (window as any).Cardinal.off('payments.validated')
+    ;(window as any).Cardinal.off('payments.setupComplete')
+    ;(window as any).Cardinal.off('payments.validated')
     delete (window as any).Cardinal
   }
 }
 
 export default function Page() {
   const loaderData = useLoaderData<typeof loader>()
-  const [songbirdURL, setSongbirdURL] = useState<string>('')
-  const [initJWT, setInitJWT] = useState<string>('')
-  const [threeDsId, setThreeDsId] = useState<string>('')
-  const [fynbosEnv, setFynbosEnv] = useState<string>('')
-  const [quoteId, setQuoteId] = useState<string>('')
-  const [paymentId, setPaymentId] = useState<string>('')
-  const csrfTokenRef = useRef<string>('')
-  useEffect(() => {
-    if (loaderData.songbirdURL) {
-      setSongbirdURL(loaderData.songbirdURL)
-    }
-    if (loaderData.initJWT) {
-      setInitJWT(loaderData.initJWT)
-    }
-    if (loaderData.threeDsId) {
-      setThreeDsId(loaderData.threeDsId)
-    }
-    if (loaderData.csrfToken) {
-      csrfTokenRef.current = loaderData.csrfToken
-    }
-    if (loaderData.fynbosEnv) {
-      setFynbosEnv(loaderData.fynbosEnv)
-    }
-    if (loaderData.quoteId) {
-      setQuoteId(loaderData.quoteId)
-    }
-    if (loaderData.paymentId) {
-      setPaymentId(loaderData.paymentId)
-    }
-  }, [loaderData])
-
-  return <>
-    <LoadingShapes />
-    {
-      loaderData.fynbosEnv === 'local' ? <DevThreeDSPage {...loaderData} /> : <ThreeDSPage {...loaderData} />
-    }
-  </>
+  return (
+    <>
+      <LoadingShapes />
+      {loaderData.fynbosEnv === 'local' ? (
+        <DevThreeDSPage {...loaderData} />
+      ) : (
+        <ThreeDSPage {...loaderData} />
+      )}
+    </>
+  )
 }
 
-function DevThreeDSPage(args: threeDsProps) {  
+function DevThreeDSPage(args: threeDsProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const submit = useSubmit()
   useEffect(() => {
@@ -239,10 +212,9 @@ function DevThreeDSPage(args: threeDsProps) {
         replace: true
       }
     )
-  }, [searchParams])
+  }, [searchParams, args.csrfToken, args.paymentId, setSearchParams, submit])
 
-  return <>
-  </>
+  return <></>
 }
 
 type threeDsProps = {
@@ -275,7 +247,7 @@ function ThreeDSPage(args: threeDsProps) {
       let actionUrl = `${route('/pay/3ds')}?quoteId=${args.quoteId}`
       if (args.paymentId) {
         actionUrl = `${route('/pay/3ds')}?paymentId=${args.paymentId}`
-      } 
+      }
 
       cardinalRef.current = (window as any).Cardinal
       cardinalRef.current.configure({
@@ -347,13 +319,7 @@ function ThreeDSPage(args: threeDsProps) {
         return prev
       })
     }
-  }, [
-    state,
-    submit,
-    args,
-    searchParams,
-    setSearchParams
-  ])
+  }, [state, submit, args, searchParams, setSearchParams])
 
   const showIssuerChallenge = () => {
     setShowingIssuerChallenge(true)

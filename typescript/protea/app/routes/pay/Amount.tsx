@@ -23,7 +23,7 @@ import {
 import { Label } from '~/components/Label'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
-import type { loader, updatePaymentAction } from './route'
+import type { loader } from './route'
 
 export function AmountWithOpenPayments() {
   const { csrfToken } = useLoaderData<typeof loader>()
@@ -430,7 +430,8 @@ export const Amount = () => {
       address?.identifier,
       address?.identifierType,
       address?.walletUrl,
-      paymentId
+      paymentId,
+      csrfToken
     ]
   )
 
@@ -554,9 +555,13 @@ export const Amount = () => {
 
   useEffect(() => {
     if (paymentFetcher.data?.payment) {
-      let requiredActions = paymentFetcher.data.payment?.requiredActions as Array<number>
+      let requiredActions = paymentFetcher.data.payment
+        ?.requiredActions as Array<number>
       const requiredActionOTP = 7
-      setPayment(paymentFetcher.data?.payment?.id, requiredActions.includes(requiredActionOTP))
+      setPayment(
+        paymentFetcher.data?.payment?.id,
+        requiredActions.includes(requiredActionOTP)
+      )
     }
     if (
       paymentFetcher.data?.type == 'submitting' &&
