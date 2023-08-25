@@ -605,6 +605,7 @@ const (
 	BackendService_GetMXWidget_FullMethodName                 = "/backend.v1.BackendService/GetMXWidget"
 	BackendService_CreateMXBankAccounts_FullMethodName        = "/backend.v1.BackendService/CreateMXBankAccounts"
 	BackendService_OnboardGMTUser_FullMethodName              = "/backend.v1.BackendService/OnboardGMTUser"
+	BackendService_InitQuote3DS_FullMethodName                = "/backend.v1.BackendService/InitQuote3DS"
 	BackendService_Init3DS_FullMethodName                     = "/backend.v1.BackendService/Init3DS"
 	BackendService_Lookup3DS_FullMethodName                   = "/backend.v1.BackendService/Lookup3DS"
 	BackendService_Authenticate3DS_FullMethodName             = "/backend.v1.BackendService/Authenticate3DS"
@@ -696,6 +697,7 @@ type BackendServiceClient interface {
 	// GMT
 	OnboardGMTUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	// Tabapay 3DS
+	InitQuote3DS(ctx context.Context, in *InitQuote3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error)
 	Init3DS(ctx context.Context, in *Init3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error)
 	Lookup3DS(ctx context.Context, in *Lookup3DSRequest, opts ...grpc.CallOption) (*Lookup3DSResponse, error)
 	Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error)
@@ -1212,6 +1214,15 @@ func (c *backendServiceClient) OnboardGMTUser(ctx context.Context, in *Empty, op
 	return out, nil
 }
 
+func (c *backendServiceClient) InitQuote3DS(ctx context.Context, in *InitQuote3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error) {
+	out := new(Init3DSResponse)
+	err := c.cc.Invoke(ctx, BackendService_InitQuote3DS_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) Init3DS(ctx context.Context, in *Init3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error) {
 	out := new(Init3DSResponse)
 	err := c.cc.Invoke(ctx, BackendService_Init3DS_FullMethodName, in, out, opts...)
@@ -1421,6 +1432,7 @@ type BackendServiceServer interface {
 	// GMT
 	OnboardGMTUser(context.Context, *Empty) (*Empty, error)
 	// Tabapay 3DS
+	InitQuote3DS(context.Context, *InitQuote3DSRequest) (*Init3DSResponse, error)
 	Init3DS(context.Context, *Init3DSRequest) (*Init3DSResponse, error)
 	Lookup3DS(context.Context, *Lookup3DSRequest) (*Lookup3DSResponse, error)
 	Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error)
@@ -1608,6 +1620,9 @@ func (UnimplementedBackendServiceServer) CreateMXBankAccounts(context.Context, *
 }
 func (UnimplementedBackendServiceServer) OnboardGMTUser(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OnboardGMTUser not implemented")
+}
+func (UnimplementedBackendServiceServer) InitQuote3DS(context.Context, *InitQuote3DSRequest) (*Init3DSResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InitQuote3DS not implemented")
 }
 func (UnimplementedBackendServiceServer) Init3DS(context.Context, *Init3DSRequest) (*Init3DSResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Init3DS not implemented")
@@ -2638,6 +2653,24 @@ func _BackendService_OnboardGMTUser_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_InitQuote3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitQuote3DSRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).InitQuote3DS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_InitQuote3DS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).InitQuote3DS(ctx, req.(*InitQuote3DSRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_Init3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Init3DSRequest)
 	if err := dec(in); err != nil {
@@ -3130,6 +3163,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OnboardGMTUser",
 			Handler:    _BackendService_OnboardGMTUser_Handler,
+		},
+		{
+			MethodName: "InitQuote3DS",
+			Handler:    _BackendService_InitQuote3DS_Handler,
 		},
 		{
 			MethodName: "Init3DS",
