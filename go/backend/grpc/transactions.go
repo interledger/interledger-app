@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -129,13 +130,19 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 
 	amt := tx.Amount.Format()
 	title := tx.DestinationIdentity
-	if tx.Type == transactions.TransactionTypeOpenPaymentIncoming {
+	if tx.Type == transactions.TransactionTypeOpenPaymentIncoming || tx.Type == transactions.TransactionTypeIncoming {
 		title = tx.Source
 		w, _ := b.Wallets().GetFromAddress(ctx, tx.Source)
 		// We don't care about errors, we'll use the source/full wallet address as the fallback
 		if w != nil {
 			title = w.Name
 		}
+	}
+
+	// transform identity types to twitter/wallet for the frontend
+	destinationIdentityType := tx.DestinationIdentityType
+	if destinationIdentityType == payments.IdentityTypeWalletID.String() || destinationIdentityType == payments.IdentityTypeWalletURL.String() {
+		destinationIdentityType = "wallet"
 	}
 
 	// Remove https if it exists
@@ -162,7 +169,7 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 		AccountTitle:            tx.LinkedAccountTitle,
 		Reference:               tx.Reference,
 		DestinationIdentity:     tx.DestinationIdentity,
-		DestinationIdentityType: tx.DestinationIdentityType,
+		DestinationIdentityType: destinationIdentityType,
 		RefundState:             refundState,
 	}
 }
