@@ -351,8 +351,35 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
     }
   }
 
-  // TODO: Bank payments should just create outgoing payment here
-  return redirect(`/pay/3ds?paymentId=${paymentId}&init=`)
+  const rpc = await grpcClient
+    .confirmPayment(
+      {
+        id: paymentId
+      },
+      {
+        meta: { cookies: String(request.headers.get('cookie')) }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    if (
+      rpc.code === Code.FAILED_PRECONDITION &&
+      rpc.message === 'Failed precondition: Err3DSRequired'
+    ) {
+      return redirect(`/pay/3ds?paymentId=${paymentId}&init=`)
+    }
+    return error(
+      request,
+      { errors: { ...fieldErrors } },
+      { action: 'Contact support' }
+    )
+  }
+
+  return redirectWithSnackbar(request, route('/'), {
+    message: 'Payment created successfully.',
+    icon: 'close'
+  })
 }
 
 export async function updatePaymentAction({ request }: ActionArgs) {
