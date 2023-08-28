@@ -23,7 +23,7 @@ import {
 import { Label } from '~/components/Label'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
-import type { loader } from './route'
+import type { loader, updatePaymentAction } from './route'
 
 export function AmountWithOpenPayments() {
   const { csrfToken } = useLoaderData<typeof loader>()
@@ -369,9 +369,9 @@ export function AmountWithOpenPayments() {
 export const Amount = () => {
   const { csrfToken } = useLoaderData<typeof loader>()
 
-  const accounts = useFetcher()
-  const paymentFetcher = useFetcher()
-  const publicWalletInfoFetcher = useFetcher()
+  const accounts = useFetcher<typeof loader>()
+  const paymentFetcher = useFetcher<typeof updatePaymentAction>()
+  const publicWalletInfoFetcher = useFetcher<typeof loader>()
 
   const [showDialog, setShowDialog] = useState<boolean>(false)
 

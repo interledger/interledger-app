@@ -44,7 +44,7 @@ import {
 } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 import { Amount, AmountWithOpenPayments } from '~/routes/pay/Amount'
-import { ConfirmWithOpenPayments } from '~/routes/pay/Confirm'
+import { Confirm } from '~/routes/pay/Confirm'
 import { Search } from '~/routes/pay/Search'
 
 export async function loader({ request }: LoaderArgs) {
@@ -265,9 +265,8 @@ export default function Page() {
       {step === PayStep.AMOUNT && fynbosEnv === 'prod' && (
         <AmountWithOpenPayments />
       )}
-      {step === PayStep.CONFIRM && <ConfirmWithOpenPayments />}
-
-      {step === PayStep.AMOUNT && <Amount />}
+      {step === PayStep.AMOUNT && fynbosEnv !== 'prod' && <Amount />}
+      {step === PayStep.CONFIRM && <Confirm />}
     </>
   )
 }
@@ -375,7 +374,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
 
   if (amountToSubmit == 'NaN') {
     fieldErrors.amount = 'Amount is required.'
-    return error(request, { errors: { ...fieldErrors } })
+    return error(request, { errors: { ...fieldErrors }, payment: null, type })
   }
 
   const clientIpAddress = getClientIP(request)
@@ -406,7 +405,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
           const field = mapper(violation.field as fieldErrorsMap)
           if (field != null) fieldErrors[field] = violation.description
         }
-        return error(request, { errors: fieldErrors })
+        return error(request, { errors: fieldErrors, payment: null, type })
       } else if (rpc.code == Code.FAILED_PRECONDITION) {
         switch (rpc.message as quoteLimitError) {
           case 'Failed precondition: LimitTransaction':
@@ -424,11 +423,11 @@ export async function updatePaymentAction({ request }: ActionArgs) {
           default:
             fieldErrors['amount'] = 'Exceeds account limit.'
         }
-        return error(request, { errors: fieldErrors })
+        return error(request, { errors: fieldErrors, payment: null, type })
       } else
         return error(
           request,
-          { errors: fieldErrors },
+          { errors: fieldErrors, payment: null, type },
           { action: 'Contact support' }
         )
     }
@@ -467,7 +466,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
         const field = mapper(violation.field as fieldErrorsMap)
         if (field != null) fieldErrors[field] = violation.description
       }
-      return error(request, { errors: fieldErrors })
+      return error(request, { errors: fieldErrors, payment: null, type })
     } else if (rpc.code == Code.FAILED_PRECONDITION) {
       switch (rpc.message as quoteLimitError) {
         case 'Failed precondition: LimitTransaction':
@@ -485,11 +484,11 @@ export async function updatePaymentAction({ request }: ActionArgs) {
         default:
           fieldErrors['amount'] = 'Exceeds account limit.'
       }
-      return error(request, { errors: fieldErrors })
+      return error(request, { errors: fieldErrors, payment: null, type })
     } else
       return error(
         request,
-        { errors: fieldErrors },
+        { errors: fieldErrors, payment: null, type },
         { action: 'Contact support' }
       )
   }

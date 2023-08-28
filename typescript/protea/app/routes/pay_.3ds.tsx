@@ -192,10 +192,13 @@ function DevThreeDSPage() {
   const submit = useSubmit()
   useEffect(() => {
     if (searchParams.has('init')) {
-      setSearchParams((prev: URLSearchParams) => {
-        prev.delete('init')
-        return prev
-      })
+      setSearchParams(
+        (prev: URLSearchParams) => {
+          prev.delete('init')
+          return prev
+        },
+        { replace: true }
+      )
     }
 
     submit(
@@ -339,10 +342,13 @@ function ThreeDSPage() {
         jwt: initJWT
       })
       // remove the init param so the loader doesn't initialise another 3DS session on subsequent calls.
-      setSearchParams((prev: URLSearchParams) => {
-        prev.delete('init')
-        return prev
-      })
+      setSearchParams(
+        (prev: URLSearchParams) => {
+          prev.delete('init')
+          return prev
+        },
+        { replace: true }
+      )
     }
   }, [
     initJWT,
