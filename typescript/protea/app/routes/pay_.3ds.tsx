@@ -48,8 +48,19 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderArgs) {
-  await getUserSession(request)
+export async function loader(args: LoaderArgs) {
+  await getUserSession(args.request)
+  const url = new URL(args.request.url)
+  const quoteId = url.searchParams.get('quoteId')
+
+  if (quoteId) {
+    return openPayments3DSLoader(args)
+  }
+
+  return paymentsEngine3DSLoader(args)
+}
+
+async function openPayments3DSLoader({ request }: LoaderArgs) {
   const url = new URL(request.url)
 
   const quoteId = url.searchParams.get('quoteId')
@@ -59,7 +70,7 @@ export async function loader({ request }: LoaderArgs) {
   const isInit = url.searchParams.has('init')
   if (isInit) {
     let threeDSInit = await grpcClient
-      .init3DS(
+      .initQuote3DS(
         {
           quoteID: quoteId
         },
@@ -78,12 +89,58 @@ export async function loader({ request }: LoaderArgs) {
       initJWT: threeDSInit.response.jwt,
       threeDsId: threeDSInit.response.id,
       songbirdURL: threeDSInit.response.songbirdURL,
-      fynbosEnv: process.env.FYNBOS_ENV
+      fynbosEnv: process.env.FYNBOS_ENV,
+      paymentId: ''
     })
   }
 
   return jsonWithCSRF(request, {
     quoteId,
+    initJWT: '',
+    threeDsId: '',
+    songbirdURL: '',
+    fynbosEnv: process.env.FYNBOS_ENV,
+    paymentId: ''
+  })
+}
+
+async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
+  const url = new URL(request.url)
+
+  const paymentId = url.searchParams.get('paymentId')
+
+  if (!paymentId) throw json({}, httpMapping(Code.INVALID_ARGUMENT))
+
+  const isInit = url.searchParams.has('init')
+  if (isInit) {
+    let threeDSInit = await grpcClient
+      .init3DS(
+        {
+          paymentID: paymentId
+        },
+        {
+          meta: {
+            cookies: String(request.headers.get('cookie'))
+          }
+        }
+      )
+      .then((v) => v)
+      .catch(StatusError)
+    if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
+
+    return jsonWithCSRF(request, {
+      paymentId,
+      quoteId: '',
+      initJWT: threeDSInit.response.jwt,
+      threeDsId: threeDSInit.response.id,
+      songbirdURL: threeDSInit.response.songbirdURL,
+      fynbosEnv: process.env.FYNBOS_ENV
+    })
+  }
+
+  return jsonWithCSRF(request, {
+    paymentId,
+    quoteId: '',
     initJWT: '',
     threeDsId: '',
     songbirdURL: '',
@@ -120,6 +177,55 @@ function cleanupSongbirdScript(script: ScriptElt) {
 
 export default function Page() {
   const loaderData = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      <LoadingShapes />
+      {loaderData.fynbosEnv === 'local' ? <DevThreeDSPage /> : <ThreeDSPage />}
+    </>
+  )
+}
+
+function DevThreeDSPage() {
+  const loaderData = useLoaderData<typeof loader>()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const submit = useSubmit()
+  useEffect(() => {
+    if (searchParams.has('init')) {
+      setSearchParams(
+        (prev: URLSearchParams) => {
+          prev.delete('init')
+          return prev
+        },
+        { replace: true }
+      )
+    }
+
+    submit(
+      {
+        name: 'confirm',
+        paymentId: loaderData.paymentId,
+        csrfToken: loaderData.csrfToken
+      },
+      {
+        action: `${route('/pay/3ds')}?paymentId=${loaderData.paymentId}`,
+        method: 'POST',
+        replace: true
+      }
+    )
+  }, [
+    searchParams,
+    setSearchParams,
+    loaderData.csrfToken,
+    loaderData.paymentId,
+    submit
+  ])
+
+  return <></>
+}
+
+function ThreeDSPage() {
+  const loaderData = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
   let cardinalRef = useRef<any>(null)
@@ -132,6 +238,7 @@ export default function Page() {
   const [threeDsId, setThreeDsId] = useState<string>('')
   const [fynbosEnv, setFynbosEnv] = useState<string>('')
   const [quoteId, setQuoteId] = useState<string>('')
+  const [paymentId, setPaymentId] = useState<string>('')
   const csrfTokenRef = useRef<string>('')
   const state = useScript(songbirdURL, cleanupSongbirdScript)
   useEffect(() => {
@@ -153,6 +260,9 @@ export default function Page() {
     if (loaderData.quoteId) {
       setQuoteId(loaderData.quoteId)
     }
+    if (loaderData.paymentId) {
+      setPaymentId(loaderData.paymentId)
+    }
   }, [loaderData])
 
   useEffect(() => {
@@ -162,6 +272,11 @@ export default function Page() {
       cardinalRef.current === null &&
       searchParams.has('init')
     ) {
+      let actionUrl = `${route('/pay/3ds')}?quoteId=${quoteId}`
+      if (paymentId) {
+        actionUrl = `${route('/pay/3ds')}?paymentId=${paymentId}`
+      }
+
       cardinalRef.current = (window as any).Cardinal
       cardinalRef.current.configure({
         logging: {
@@ -181,10 +296,11 @@ export default function Page() {
             language: navigator.language,
             userAgent: navigator.userAgent,
             quoteId,
+            paymentId: paymentId,
             csrfToken: csrfTokenRef.current
           },
           {
-            action: `${route('/pay/3ds')}?quoteId=${quoteId}`,
+            action: actionUrl,
             method: 'POST',
             replace: true
           }
@@ -205,10 +321,11 @@ export default function Page() {
                   threeDsId,
                   jwt,
                   quoteId,
+                  paymentId,
                   csrfToken: csrfTokenRef.current
                 },
                 {
-                  action: `${route('/pay/3ds')}?quoteId=${quoteId}`,
+                  action: actionUrl,
                   method: 'POST',
                   replace: true
                 }
@@ -225,10 +342,13 @@ export default function Page() {
         jwt: initJWT
       })
       // remove the init param so the loader doesn't initialise another 3DS session on subsequent calls.
-      setSearchParams((prev: URLSearchParams) => {
-        prev.delete('init')
-        return prev
-      })
+      setSearchParams(
+        (prev: URLSearchParams) => {
+          prev.delete('init')
+          return prev
+        },
+        { replace: true }
+      )
     }
   }, [
     initJWT,
@@ -238,7 +358,8 @@ export default function Page() {
     fynbosEnv,
     quoteId,
     searchParams,
-    setSearchParams
+    setSearchParams,
+    paymentId
   ])
 
   const showIssuerChallenge = () => {
@@ -261,7 +382,6 @@ export default function Page() {
 
   return (
     <>
-      <LoadingShapes />
       {actionData?.challengeURL && !threeDSError && (
         <>
           <Card>
@@ -301,7 +421,6 @@ export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const formName = form.get('name')
   const threeDSID = form.get('threeDsId') as string
-  const quoteId = form.get('quoteId') as string
 
   await validateCSRFToken(request, form)
 
@@ -380,33 +499,56 @@ export async function action({ request }: ActionArgs) {
     }
   }
 
-  const clientIpAddress = getClientIP(request)
-  let payment = await openPaymentsClient
-    .createOutgoingPayment(
-      {
-        threeDSID,
-        quoteID: quoteId,
-        ipAddress: clientIpAddress,
-        // deprecated but still required by client..
-        idempotencyKey: '',
-        identity: '',
-        identityType: '',
-        description: '',
-        externalRef: ''
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
+  const quoteId = form.get('quoteId') as string
+  if (quoteId) {
+    const clientIpAddress = getClientIP(request)
+    let payment = await openPaymentsClient
+      .createOutgoingPayment(
+        {
+          threeDSID,
+          quoteID: quoteId,
+          ipAddress: clientIpAddress,
+          // deprecated but still required by client..
+          idempotencyKey: '',
+          identity: '',
+          identityType: '',
+          description: '',
+          externalRef: ''
+        },
+        {
+          meta: {
+            cookies: String(request.headers.get('cookie')) || ''
+          }
         }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(payment)) {
-    return error(request, data, {
-      message: 'There was an error processing your payment.',
-      action: 'Contact support'
-    })
+      )
+      .then((v) => v)
+      .catch(StatusError)
+    if (isGrpcError(payment)) {
+      return error(request, data, {
+        message: 'There was an error processing your payment.',
+        action: 'Contact support'
+      })
+    }
+  } else {
+    let payment = await grpcClient
+      .confirmPayment(
+        {
+          id: form.get('paymentId') as string
+        },
+        {
+          meta: {
+            cookies: String(request.headers.get('cookie')) || ''
+          }
+        }
+      )
+      .then((v) => v)
+      .catch(StatusError)
+    if (isGrpcError(payment)) {
+      return error(request, data, {
+        message: 'There was an error processing your payment.',
+        action: 'Contact support'
+      })
+    }
   }
 
   return redirectWithSnackbar(request, route('/'), {

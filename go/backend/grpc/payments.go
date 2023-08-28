@@ -2,11 +2,13 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -187,7 +189,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		},
 		SenderAmount:    currency.FromPB(req.SenderAmount),
 		SenderAccount:   req.GetSenderAccount(),
-		ReceiverAmount:  currency.FromPB(req.ReceiverAmount),
+		ReceiverAmount:  currency.FromPB(req.SenderAmount), // TODO: calculate receive amount
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		IPAddress:       req.GetIpAddress(),
@@ -224,13 +226,18 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 	}
 
 	args := payments.UpdateArgs{
-		ID:              req.Id,
-		SenderAmount:    currency.FromPB(req.GetSenderAmount()),
-		SenderAccount:   req.GetSenderAccount(),
-		ReceiverAmount:  currency.FromPB(req.GetReceiverAmount()),
+		ID:             req.Id,
+		SenderAmount:   currency.FromPB(req.GetSenderAmount()),
+		SenderAccount:  req.GetSenderAccount(),
+		ReceiverAmount: currency.FromPB(req.GetSenderAmount()), // TODO: calculate receive amount
+		Receiver: payments.Identity{
+			Type:       payments.IdentityType(req.GetReceiverIdentityType()),
+			Identifier: req.GetReceiverIdentity(),
+		},
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		ThreeDSID:       req.GetThreeDSID(),
+		OTP:             req.GetOtp(),
 		IPAddress:       req.GetIpAddress(),
 	}
 
@@ -286,7 +293,39 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 		return nil, FailedPreconditionError(string(limitType))
 	}
 
-	p, _, err = s.b.Payments().Confirm(ctx, req.Id)
+	// TODO: remove after barnard's PR is in
+	if p.ReceiverAccount == "" {
+		las, err := s.b.LinkedAccounts().ListByWalletId(ctx, p.Receiver.WalletID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		var receiveLA *linkedaccounts.LinkedAccount
+		for _, la := range las {
+			if la.CanReceive {
+				receiveLA = &la
+				break
+			}
+		}
+
+		if receiveLA != nil {
+			_, _ = s.b.Payments().Update(ctx, payments.UpdateArgs{
+				ID:              p.ID,
+				ReceiverAccount: receiveLA.ID,
+			})
+		}
+	}
+
+	p, requiredActions, err := s.b.Payments().Confirm(ctx, req.Id)
+	if errors.Is(err, payments.ErrRequiredActions) {
+		for _, action := range requiredActions {
+			// TODO: refactor to return array of required actions. Only signal 3DS to frontend for now.
+			switch action {
+			case payments.RequiredActionTypeThreeDS:
+				return nil, FailedPreconditionError("Err3DSRequired")
+			}
+		}
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
