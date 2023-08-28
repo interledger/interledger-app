@@ -1,5 +1,3 @@
-import type { ConnectError } from '@bufbuild/connect'
-import type { PartialMessage } from '@bufbuild/protobuf'
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
@@ -15,8 +13,6 @@ import {
   TextArea,
   TextField
 } from '~/components'
-import type { CreateSupportTicketRequest } from '~/generated/connect/backend/v1/backend_pb'
-import { BadRequest } from '~/generated/connect/google/rpc/error_details_pb'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { grpcConnectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
@@ -37,7 +33,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data, params }: any) {
+export function meta({ data }: any) {
   return {
     ...toRemixMeta(data.contactRoute.seoMeta),
     'twitter:url': 'https://fynbos.app/contact',
@@ -172,30 +168,6 @@ export default function Page() {
   )
 }
 
-function fieldValidationMapper(
-  input: PartialMessage<CreateSupportTicketRequest>,
-  error: ConnectError
-): { [p: string]: string } {
-  const violations = error.findDetails(BadRequest)[0].fieldViolations
-
-  const fieldNames = Object.entries(input).map(([key, value]) => [
-    key.charAt(0).toUpperCase() + key.slice(1),
-    value
-  ])
-
-  let fieldErrors: { [p: string]: string } = {}
-
-  for (let violation of violations) {
-    for (let [key, value] of fieldNames) {
-      if (key === violation.field) {
-        return Object.assign(fieldErrors, { [value]: violation.description })
-      }
-    }
-  }
-
-  return fieldErrors
-}
-
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
@@ -205,12 +177,12 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
-    form: '',
+  const generalFieldErrors = {
+    id: '',
     firstName: '',
     lastName: '',
-    email: '',
-    description: ''
+    description: '',
+    email: ''
   }
 
   let res = await grpcConnectClient.createSupportTicket(request, {
@@ -221,19 +193,32 @@ export async function action({ request }: ActionArgs) {
   })
 
   if (R.isErr(res)) {
-    if (res.error.code == 3) {
-      const fieldErrors = fieldValidationMapper(
-        {
-          firstName: 'firstName',
-          lastName: 'lastName',
-          email: 'email',
-          description: 'description'
-        },
-        res.error
-      )
+    const fieldErrors = res.error.findViolations(
+      {
+        firstName: 'firstName',
+        lastName: 'lastName',
+        description: 'description',
+        email: 'email'
+      },
+      generalFieldErrors
+    )
 
-      return error(request, { errors: { ...fieldErrors } })
-    } else return error(request, { errors: { ...fieldErrors } }, {})
+    return error(request, { errors: { ...fieldErrors } })
+  }
+
+  let res2 = await grpcConnectClient.getAgreement(request, {
+    id: '1'
+  })
+
+  if (R.isErr(res2)) {
+    const fieldErrors = res2.error.findViolations(
+      {
+        id: 'id'
+      },
+      generalFieldErrors
+    )
+
+    return error(request, { errors: { ...fieldErrors } })
   }
 
   return redirect('/contact/success')

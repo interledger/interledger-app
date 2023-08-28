@@ -1,5 +1,5 @@
 import type { CallOptions, Transport } from '@bufbuild/connect'
-import { ConnectError, makeAnyClient } from '@bufbuild/connect'
+import { Code, ConnectError, makeAnyClient } from '@bufbuild/connect'
 import { createGrpcTransport } from '@bufbuild/connect-node'
 import type {
   Message,
@@ -10,6 +10,7 @@ import type {
 } from '@bufbuild/protobuf'
 import { MethodKind } from '@bufbuild/protobuf'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
+import { BadRequest } from '~/generated/connect/google/rpc/error_details_pb'
 import type { Result } from './result.server'
 import * as R from './result.server'
 
@@ -49,7 +50,7 @@ export type PromiseCustomClient<T extends ServiceType> = {
         request: Request,
         input: PartialMessage<I>,
         options?: CallOptions
-      ) => Promise<Result<ConnectError, O>>
+      ) => Promise<Result<ExtConnectError<I>, O>>
     : never
 }
 
@@ -78,7 +79,7 @@ type UnaryFn<I extends Message<I>, O extends Message<O>> = (
   request: Request,
   input: PartialMessage<I>,
   options?: CallOptions
-) => Promise<Result<ConnectError, O>>
+) => Promise<Result<ExtConnectError<I>, O>>
 
 function createUnaryFn<I extends Message<I>, O extends Message<O>>(
   transport: Transport,
@@ -117,15 +118,81 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
         return R.ok(res.message)
       })
       .catch((err) => {
-        return R.err(intoConnectError(err))
+        return R.err(ExtConnectError.from<I>(err))
       })
   }
 }
 
-function intoConnectError(err: unknown): CustomConnectError {
-  return ConnectError.from(err)
+class ExtConnectError<I extends Message<I>> extends ConnectError {
+  static from<T extends Message<T>>(
+    reason: unknown,
+    code = Code.Unknown
+  ): ExtConnectError<T> {
+    if (reason instanceof ConnectError) {
+      // @ts-ignore
+      const details: Message[] = reason.details
+
+      return new ExtConnectError(
+        reason.message,
+        reason.code,
+        reason.metadata,
+        details,
+        reason.cause
+      )
+    }
+    if (reason instanceof Error) {
+      if (reason.name == 'AbortError') {
+        return new ExtConnectError<T>(reason.message, Code.Canceled)
+      }
+      return new ExtConnectError<T>(
+        reason.message,
+        code,
+        undefined,
+        undefined,
+        reason
+      )
+    }
+    return new ExtConnectError<T>(
+      String(reason),
+      code,
+      undefined,
+      undefined,
+      reason
+    )
+  }
+
+  findViolations<E>(
+    input: PartialMessage<I>,
+    optFieldErrors?: E
+  ): (E extends undefined ? PartialMessage<I> : E) {
+    const violations = this.findDetails(BadRequest)[0].fieldViolations
+    const fieldNames: { [p: string]: string } = {}
+    const fieldErrors: PartialMessage<I> = {}
+
+    Object.entries(input).forEach(([key, value]) =>
+      Object.assign(fieldNames, {
+        [key.charAt(0).toUpperCase() + key.slice(1)]: String(value)
+      })
+    ) // TODO: handle nested fields if needed
+
+    violations?.forEach((violation) => {
+      const fieldName = fieldNames[violation.field]
+      if (!fieldName) {
+        throw new Error(
+          `Field ${violation.field} not found in field names: ${JSON.stringify(
+            fieldNames
+          )}`
+        )
+      }
+      return Object.assign(fieldErrors, { [fieldName]: violation.description })
+    })
+
+    if (optFieldErrors) {
+      Object.assign(fieldErrors, optFieldErrors)
+    }
+
+    return fieldErrors as E extends undefined ? PartialMessage<I> : E
+  }
 }
 
-class CustomConnectError extends ConnectError {}
-
-export { grpcConnectClient, intoConnectError }
+export { grpcConnectClient }
