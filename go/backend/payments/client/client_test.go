@@ -157,7 +157,8 @@ func TestClient(t *testing.T) {
 				IPAddress:       "192.36.8.4",
 			},
 			Assertions: Assertions{
-				PaymentState: payments.StateFailed,
+				PaymentState:         payments.StateFailed,
+				SendTransactionState: transactions.StateFailed,
 			},
 		},
 	}
@@ -198,18 +199,14 @@ func TestClient(t *testing.T) {
 			require.NoError(st, err)
 			assert.Equal(st, tc.Assertions.PaymentState, p.State)
 
-			if tc.Assertions.SendTransactionState != "" {
-				sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
-				require.NoError(st, err)
-				assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
-				sendTransfers := []AssertTransfer{}
-				for _, tr := range sendTransaction.Transfers {
-					sendTransfers = append(sendTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
-				}
-				assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
-			} else {
-				assert.Empty(st, p.SendTransactionID)
+			sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
+			require.NoError(st, err)
+			assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
+			sendTransfers := []AssertTransfer{}
+			for _, tr := range sendTransaction.Transfers {
+				sendTransfers = append(sendTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
 			}
+			assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
 
 			if tc.Assertions.ReceiveTransactionState != "" {
 				recvTransaction, err := b.Transactions().GetTransaction(ctx, receiveWalletID, p.ReceiveTransactionID)

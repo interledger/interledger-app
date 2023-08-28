@@ -47,6 +47,12 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 			return innerErr
 		}
 
+		innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, id, transactions.StateFailed).Get(ctx, nil)
+		if innerErr != nil {
+			logger.Error("Failed to set transaction status to failed. paymentID=", id, "err", innerErr)
+			return innerErr
+		}
+
 		return nil
 	}
 
@@ -154,21 +160,9 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 	logger := workflow.GetLogger(ctx)
 
-	// Create the outgoing transaction
-	var txID string
-	err := workflow.ExecuteActivity(ctx, a.CreatePayInTransaction, paymentID).Get(ctx, &txID)
-	if err != nil {
-		return err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SetSendTransactionID, paymentID, txID).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
 	// TODO: decouple this from tabapay.
 	var externalRef string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 		return tabapay.NewReferenceID()
 	}).Get(&externalRef)
 	if err != nil {
@@ -222,7 +216,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 	if !tabapay.IsSuccessfulTransaction(accountTX) {
 		// Mark transaction as a failure and stop the workflow
-		return workflow.ExecuteActivity(ctx, a.UpdateTransactionState, txID, transactions.StateFailed).Get(ctx, nil)
+		return workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 	}
 
 	err = workflow.ExecuteActivity(accountsCtx, a.AddPayInTransfer, paymentID, accountTX.ID).Get(ctx, nil)
@@ -243,10 +237,10 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 	if signal.PayOutSuccess {
 		// Mark transaction as a success
-		return workflow.ExecuteActivity(ctx, a.UpdateTransactionState, txID, transactions.StateCompleted).Get(ctx, nil)
+		return workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateCompleted).Get(ctx, nil)
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, txID, transactions.StateFailed).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -374,13 +368,13 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		return err
 	}
 
-	// TODO: should we do 2-phase for the payout transaction?
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionState, txID, transactions.StateCompleted).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetReceiveTransactionID, paymentID, txID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SetReceiveTransactionID, paymentID, txID).Get(ctx, nil)
+	// TODO: should we do 2-phase for the payout transaction?
+	err = workflow.ExecuteActivity(ctx, a.UpdatePayoutTransactionState, paymentID, transactions.StateCompleted).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
