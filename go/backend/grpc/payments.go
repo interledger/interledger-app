@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -315,7 +316,16 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 		}
 	}
 
-	p, _, err = s.b.Payments().Confirm(ctx, req.Id)
+	p, requiredActions, err := s.b.Payments().Confirm(ctx, req.Id)
+	if errors.Is(err, payments.ErrRequiredActions) {
+		for _, action := range requiredActions {
+			// TODO: refactor to return array of required actions. Only signal 3DS to frontend for now.
+			switch action {
+			case payments.RequiredActionTypeThreeDS:
+				return nil, FailedPreconditionError("Err3DSRequired")
+			}
+		}
+	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
