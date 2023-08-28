@@ -72,6 +72,7 @@ func TestCreatePaymentWorkflowComplianceCheckFailure(t *testing.T) {
 	paymentID := uuid.NewString()
 	env.OnWorkflow(gmt_workflows.GMTComplianceChecksWorkflow, mock.Anything, mock.Anything).Return(errors.New("Failed compliance"))
 	env.OnActivity(a.SetPaymentStateProcessing, mock.Anything, mock.Anything).Return(assertPaymentID(t, paymentID))
+	env.OnActivity(a.UpdatePayInTransactionState, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	env.OnWorkflow(ops.PayinWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
 	env.OnWorkflow(ops.PayoutWorkflow, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
 	env.OnWorkflow(gmt_workflows.GMTNotifyCompleted, mock.Anything, mock.Anything).Return(assertWorkflowPaymentID(t, paymentID))
@@ -86,6 +87,7 @@ func TestCreatePaymentWorkflowComplianceCheckFailure(t *testing.T) {
 	env.AssertNumberOfCalls(t, "PayoutWorkflow", 0)
 	env.AssertNumberOfCalls(t, "GMTNotifyCompleted", 0)
 	env.AssertNumberOfCalls(t, "SetPaymentStateFailed", 1)
+	env.AssertNumberOfCalls(t, "UpdatePayInTransactionState", 1)
 	env.AssertNumberOfCalls(t, "SetPaymentStateComplete", 0)
 }
 

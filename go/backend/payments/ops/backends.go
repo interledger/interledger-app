@@ -3,6 +3,10 @@ package ops
 import (
 	"testing"
 
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
 	"gitlab.com/fynbos/backend/transactions"
@@ -50,11 +54,12 @@ type TestBackends struct {
 	Em  *email_mock.MockClient
 	Wc  *wallets_mock.MockClient
 	Ic  *id_mock.MockClient
+	Lac *linkedaccounts_mock.MockClient
+	Txc *transactions_mock.MockClient
 }
 
 func (t TestBackends) Transactions() transactions.Client {
-	//TODO implement me
-	panic("implement me")
+	return t.Txc
 }
 
 func (t TestBackends) Tabapay() tabapay.Client {
@@ -63,8 +68,7 @@ func (t TestBackends) Tabapay() tabapay.Client {
 }
 
 func (t TestBackends) LinkedAccounts() linkedaccounts.Client {
-	//TODO implement me
-	panic("implement me")
+	return t.Lac
 }
 
 func (t TestBackends) Identities() identities.Client {

@@ -10,11 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
@@ -140,6 +143,19 @@ func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) 
 	return &res, nil
 }
 
+func getPaymentTX(ctx context.Context, tx *sqlx.Tx, id string) (*dbPayment, error) {
+	var res dbPayment
+	err := tx.GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 OR public_id=$2", cols), id, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
 func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, error) {
 	dbp, err := getPayment(ctx, b, id)
 	if err != nil {
@@ -215,10 +231,21 @@ func SetState(ctx context.Context, b Backends, id string, state payments.State) 
 	return nil
 }
 
-func setSendTransactionID(ctx context.Context, b Backends, paymentID, txID string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE payments SET send_transaction_id=$1 WHERE id=$2", txID, paymentID)
+func setStateTX(ctx context.Context, tx *sqlx.Tx, id string, state payments.State) error {
+	p, err := getPaymentTX(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	if !p.State.CanTransitionTo(state) {
+		return fmt.Errorf("%w id=%s current state=%s, proposed state=%s", payments.ErrInvalidStateTransition, id, p.State, state)
+	}
+
+	result, err := tx.ExecContext(ctx, "UPDATE payments SET state=$1 WHERE id=$2 AND state=$3;", state, p.ID, p.State)
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return fmt.Errorf("%w Failed to update state. id=%s, proposed state=%s", payments.ErrInternal, id, state)
 	}
 
 	return nil
@@ -300,13 +327,60 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 		return nil, requiredActions, payments.ErrRequiredActions
 	}
 
-	err = SetState(ctx, b, id, payments.StateConfirmed)
+	// Lookup in case they used the public ID
+	dbp, err := Lookup(ctx, b, id)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Lookup in case they used the public ID
-	dbp, err := getPayment(ctx, b, id)
+	receiverWallet, err := lookupWallet(ctx, b, dbp.Receiver)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	senderWallet, err := lookupWallet(ctx, b, dbp.Sender)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, dbp.SenderAccount)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Do all precursor operations in single TX so we don't get inconsistent state.
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		err := setStateTX(ctx, tx, id, payments.StateConfirmed)
+		if err != nil {
+			return err
+		}
+
+		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
+			WalletID:                senderWallet.ID,
+			ForeignID:               dbp.ID,
+			ForeignType:             transactions.TransactionTypeOutgoing,
+			Provider:                transactions.ProviderPaymentsEngine,
+			State:                   transactions.StatePending,
+			Note:                    dbp.Note,
+			Source:                  senderWallet.AddressString(),
+			Destination:             receiverWallet.AddressString(),
+			Amount:                  dbp.SenderAmount,
+			LinkedAccountTitle:      la.Title(),
+			DestinationIdentity:     dbp.Receiver.Identifier,
+			DestinationIdentityType: dbp.Receiver.Type.String(),
+			Reference:               dbp.Note,
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.ExecContext(ctx, "UPDATE payments SET send_transaction_id=$1 WHERE id=$2", txID, dbp.ID)
+		if err != nil {
+			return fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, nil, err
 	}

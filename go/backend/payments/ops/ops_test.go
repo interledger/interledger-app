@@ -8,14 +8,16 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 	identity_mock "gitlab.com/fynbos/backend/identities/client/mock"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	temporal_client "go.temporal.io/sdk/client"
@@ -193,12 +195,17 @@ func TestConfirm(t *testing.T) {
 		DBC: db.MigrateTestDB(t, ctx),
 		Tp:  temporal_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
+		Txc: transactions_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	txID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{}, nil).AnyTimes()
+	b.Txc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -248,6 +255,7 @@ func TestConfirm(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, requiredActions)
 	assert.Equal(t, payments.StateConfirmed, p.State)
+	assert.Equal(t, txID, p.SendTransactionID)
 }
 
 func TestUpdate(t *testing.T) {
