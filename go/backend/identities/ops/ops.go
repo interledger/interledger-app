@@ -79,7 +79,7 @@ func Add(ctx context.Context, b Backends, args identities.AddArgs) (*identities.
 	}
 
 	err = p.GenerateImages(ctx, &platforms.GenerateImagesArgs{
-		Identifier:    "@" + c.Claim.Identifier,
+		Identifier:    c.Claim.Identifier,
 		SignatureHash: c.SignatureHash,
 		WalletURL:     strings.TrimPrefix(c.Claim.Wallet, "https://"),
 	})

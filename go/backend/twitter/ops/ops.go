@@ -149,7 +149,7 @@ func PostTweet(ctx context.Context, b Backends, id string, text string) (*twitte
 	return tweet, nil
 }
 
-func PublishTweetProof(ctx context.Context, b Backends, id string) error {
+func PublishTweetProof(ctx context.Context, b Backends, id string) (string, error) {
 	workflowOptions := temporal.StartWorkflowOptions{
 		ID:                       "publish-tweet-proof" + id,
 		TaskQueue:                "backend",
@@ -157,12 +157,18 @@ func PublishTweetProof(ctx context.Context, b Backends, id string) error {
 		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_ALLOW_DUPLICATE_FAILED_ONLY,
 	}
 
-	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.PublishTwitterProofWorkflow, id)
+	workflow, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.PublishTwitterProofWorkflow, id)
 	if err != nil {
-		return fmt.Errorf("%w %s", twitter.ErrInternal, err)
+		return "", fmt.Errorf("%w %s", twitter.ErrInternal, err)
 	}
 
-	return nil
+	var tweetUrl string
+	err = workflow.Get(ctx, &tweetUrl)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", twitter.ErrInternal, err)
+	}
+
+	return tweetUrl, nil
 }
 
 func GetTweet(ctx context.Context, b Backends, id string) (*twitter.Tweet, error) {

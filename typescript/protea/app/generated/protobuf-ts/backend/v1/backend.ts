@@ -2106,6 +2106,10 @@ export interface Identity {
      * @generated from protobuf field: string wallet_id = 13;
      */
     walletId: string;
+    /**
+     * @generated from protobuf field: optional string txt_record = 14;
+     */
+    txtRecord?: string;
 }
 /**
  * @generated from protobuf message backend.v1.IdentityVerificationInstructions
@@ -2237,15 +2241,6 @@ export interface GetIdentityResponse {
     identity?: Identity;
 }
 /**
- * @generated from protobuf message backend.v1.VerifyTwitterRequest
- */
-export interface VerifyTwitterRequest {
-    /**
-     * @generated from protobuf field: string identity_id = 1;
-     */
-    identityId: string;
-}
-/**
  * @generated from protobuf message backend.v1.GetIdentityBySignatureHashRequest
  */
 export interface GetIdentityBySignatureHashRequest {
@@ -2283,6 +2278,33 @@ export interface GetPaymentAddressResponse {
      * @generated from protobuf field: bool canSendToAddress = 4;
      */
     canSendToAddress: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.CreateDNSIdentityRequest
+ */
+export interface CreateDNSIdentityRequest {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreateDNSIdentityResponse
+ */
+export interface CreateDNSIdentityResponse {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.VerifyIdentityRequest
+ */
+export interface VerifyIdentityRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class PaginationRequest$Type extends MessageType<PaginationRequest> {
@@ -9282,7 +9304,8 @@ class Identity$Type extends MessageType<Identity> {
             { no: 10, name: "ctime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 11, name: "public", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 12, name: "verified_at", kind: "message", T: () => Timestamp },
-            { no: 13, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 13, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "txt_record", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Identity>): Identity {
@@ -9336,6 +9359,9 @@ class Identity$Type extends MessageType<Identity> {
                 case /* string wallet_id */ 13:
                     message.walletId = reader.string();
                     break;
+                case /* optional string txt_record */ 14:
+                    message.txtRecord = reader.string();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -9387,6 +9413,9 @@ class Identity$Type extends MessageType<Identity> {
         /* string wallet_id = 13; */
         if (message.walletId !== "")
             writer.tag(13, WireType.LengthDelimited).string(message.walletId);
+        /* optional string txt_record = 14; */
+        if (message.txtRecord !== undefined)
+            writer.tag(14, WireType.LengthDelimited).string(message.txtRecord);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9997,53 +10026,6 @@ class GetIdentityResponse$Type extends MessageType<GetIdentityResponse> {
  */
 export const GetIdentityResponse = new GetIdentityResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class VerifyTwitterRequest$Type extends MessageType<VerifyTwitterRequest> {
-    constructor() {
-        super("backend.v1.VerifyTwitterRequest", [
-            { no: 1, name: "identity_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<VerifyTwitterRequest>): VerifyTwitterRequest {
-        const message = { identityId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<VerifyTwitterRequest>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VerifyTwitterRequest): VerifyTwitterRequest {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string identity_id */ 1:
-                    message.identityId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: VerifyTwitterRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string identity_id = 1; */
-        if (message.identityId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.identityId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.VerifyTwitterRequest
- */
-export const VerifyTwitterRequest = new VerifyTwitterRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class GetIdentityBySignatureHashRequest$Type extends MessageType<GetIdentityBySignatureHashRequest> {
     constructor() {
         super("backend.v1.GetIdentityBySignatureHashRequest", [
@@ -10205,6 +10187,147 @@ class GetPaymentAddressResponse$Type extends MessageType<GetPaymentAddressRespon
  * @generated MessageType for protobuf message backend.v1.GetPaymentAddressResponse
  */
 export const GetPaymentAddressResponse = new GetPaymentAddressResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateDNSIdentityRequest$Type extends MessageType<CreateDNSIdentityRequest> {
+    constructor() {
+        super("backend.v1.CreateDNSIdentityRequest", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateDNSIdentityRequest>): CreateDNSIdentityRequest {
+        const message = { url: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateDNSIdentityRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDNSIdentityRequest): CreateDNSIdentityRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateDNSIdentityRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateDNSIdentityRequest
+ */
+export const CreateDNSIdentityRequest = new CreateDNSIdentityRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateDNSIdentityResponse$Type extends MessageType<CreateDNSIdentityResponse> {
+    constructor() {
+        super("backend.v1.CreateDNSIdentityResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateDNSIdentityResponse>): CreateDNSIdentityResponse {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateDNSIdentityResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDNSIdentityResponse): CreateDNSIdentityResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateDNSIdentityResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateDNSIdentityResponse
+ */
+export const CreateDNSIdentityResponse = new CreateDNSIdentityResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
+    constructor() {
+        super("backend.v1.VerifyIdentityRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<VerifyIdentityRequest>): VerifyIdentityRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<VerifyIdentityRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VerifyIdentityRequest): VerifyIdentityRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: VerifyIdentityRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.VerifyIdentityRequest
+ */
+export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.OpenPaymentService
  */
@@ -10274,6 +10397,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SetIdentityPublic", options: {}, I: SetIdentityPublicRequest, O: Identity },
     { name: "GetIdentity", options: {}, I: GetIdentityRequest, O: GetIdentityResponse },
     { name: "GetIdentityBySignatureHash", options: {}, I: GetIdentityBySignatureHashRequest, O: GetIdentityResponse },
+    { name: "VerifyIdentity", options: {}, I: VerifyIdentityRequest, O: Empty },
     { name: "KYCStatus", options: {}, I: Empty, O: KYCStatusResponse },
     { name: "SetKYCStatusPending", options: {}, I: Empty, O: Empty },
     { name: "StartKYC", options: {}, I: Empty, O: Empty },
@@ -10290,7 +10414,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
     { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },
-    { name: "VerifyTwitter", options: {}, I: VerifyTwitterRequest, O: Empty },
+    { name: "CreateDNSIdentity", options: {}, I: CreateDNSIdentityRequest, O: CreateDNSIdentityResponse },
     { name: "GetPaymentAddress", options: {}, I: GetPaymentAddressRequest, O: GetPaymentAddressResponse },
     { name: "CreatePayment", options: {}, I: CreatePaymentRequest, O: Payment },
     { name: "UpdatePayment", options: {}, I: UpdatePaymentRequest, O: Payment },
