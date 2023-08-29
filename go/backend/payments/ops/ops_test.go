@@ -5,10 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"gitlab.com/fynbos/backend/linkedaccounts"
-	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-	"gitlab.com/fynbos/backend/providers/tabapay"
-
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -21,6 +17,7 @@ import (
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
