@@ -30,7 +30,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
 
 	w.RegisterActivity(gmt_workflows.NewActivity(b))
-	w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow)
+	// w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow) // disabled until we support ACH
 	w.RegisterWorkflow(gmt_workflows.OnboardUserWorkflow)
 	w.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
 	w.RegisterWorkflow(gmt_workflows.Card2ACHTransferWorkflow)
