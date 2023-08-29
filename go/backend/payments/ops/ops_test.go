@@ -36,6 +36,7 @@ func TestCreate(t *testing.T) {
 		Ic:  identity_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),
 		Lac: linkedaccounts_mock.NewMockClient(ctrl),
+		Txc: transactions_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
@@ -45,6 +46,7 @@ func TestCreate(t *testing.T) {
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes() // Require OTP
 	cases := []struct {
 		name    string
 		args    payments.CreateArgs
@@ -69,7 +71,7 @@ func TestCreate(t *testing.T) {
 				Note:            "This is a NOTE!!!",
 				IPAddress:       "193.9.4.6",
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeOTP},
 			err:     nil,
 		},
 		{
@@ -86,7 +88,7 @@ func TestCreate(t *testing.T) {
 				SenderAmount:   currency.FromFloat64(51, currency.USD),
 				ReceiverAmount: currency.FromFloat64(50, currency.USD),
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress, payments.RequiredActionTypeOTP},
 			err:     nil,
 		},
 	}
@@ -129,6 +131,7 @@ func TestSetState(t *testing.T) {
 		Ic:  identity_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),
 		Lac: linkedaccounts_mock.NewMockClient(ctrl),
+		Txc: transactions_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
@@ -137,6 +140,7 @@ func TestSetState(t *testing.T) {
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes() // No OTP
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -177,7 +181,6 @@ func TestGetRequiredActions(t *testing.T) {
 			Type:       payments.IdentityTypeWalletID,
 			Identifier: walletID,
 		},
-		RequiresOTP: true,
 	})
 	require.NoError(t, err)
 
@@ -213,14 +216,14 @@ func TestConfirm(t *testing.T) {
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().CreateTransactionTx(gomock.Any(), gomock.Any(), gomock.Any()).Return(txID, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
 			Identifier: walletID,
 		},
-		RequiresOTP: true,
-		IPAddress:   "193.9.4.6",
+		IPAddress: "193.9.4.6",
 	})
 	require.NoError(t, err)
 	paymentID := p.ID

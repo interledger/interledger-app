@@ -213,7 +213,32 @@ func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity
 	if err != nil {
 		return "", fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
+
 	return la.ID, nil
+}
+
+func requiresOTP(ctx context.Context, b Backends, sender, receiver payments.Identity) (bool, error) {
+	// Default to requiring
+	if receiver.IsEmpty() || !receiver.Type.Valid() {
+		return true, nil
+	}
+
+	senderWallet, err := lookupWallet(ctx, b, sender)
+	if err != nil {
+		return false, err
+	}
+
+	receiverWallet, err := lookupWallet(ctx, b, receiver)
+	if err != nil {
+		return false, err
+	}
+
+	hasTx, err := b.Transactions().GetHasTransacted(ctx, senderWallet.ID, receiverWallet.AddressString())
+	if err != nil {
+		return false, err
+	}
+
+	return !hasTx, nil
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -244,6 +269,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		defaultRecvAcc, _ = defaultReceiveAccount(ctx, b, p.Receiver)
 	}
 
+	requireOTP, err := requiresOTP(ctx, b, p.Sender, p.Receiver)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
 	// TODO Calculate more actions required
 	id := uuid.NewString()
 	stmt, args, err := db.NewInsert("payments").
@@ -262,7 +292,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_account", sql.NullString{String: defaultRecvAcc, Valid: defaultRecvAcc != ""}).
 		Value("action_three_ds_required", true).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
-		Value("action_otp_required", p.RequiresOTP).
+		Value("action_otp_required", requireOTP).
 		Value("ip_address", sql.NullString{String: p.IPAddress, Valid: b.Validator().Var(p.IPAddress, "ip_addr") == nil}).
 		GetStatement()
 	if err != nil {

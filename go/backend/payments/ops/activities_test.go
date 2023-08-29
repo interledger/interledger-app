@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -39,6 +41,7 @@ func TestSetPaymentState(t *testing.T) {
 		Ic:  id_mock.NewMockClient(ctrl),
 		Wc:  wallets_mock.NewMockClient(ctrl),
 		Lac: linkedaccounts_mock.NewMockClient(ctrl),
+		Txc: transactions_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified}, nil).AnyTimes()
@@ -51,6 +54,7 @@ func TestSetPaymentState(t *testing.T) {
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
 		ID: walletID,
 	}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes() // No OTP
 	a := ops.NewActivity(b)
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{

@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 
+	"gitlab.com/fynbos/backend/twilio"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -204,7 +206,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 }
 
 func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentRequest) (*pb.Payment, error) {
-	_, err := s.b.Users().UserForContext(ctx)
+	u, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
@@ -222,6 +224,19 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		}
 		if exceedsLimits {
 			return nil, FailedPreconditionError(string(limitType))
+		}
+	}
+
+	if req.GetOtp() != "" {
+		vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+			PhoneNumber: u.PhoneNumber,
+			Code:        req.GetOtp(),
+		})
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		if !vc.IsValid() {
+			return nil, NewValidationError("otp", "Invalid OTP")
 		}
 	}
 
