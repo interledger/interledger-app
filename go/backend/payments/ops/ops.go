@@ -181,6 +181,21 @@ func accountCanSend(ctx context.Context, b Backends, accountID string) (bool, er
 	return acc.CanSend, nil
 }
 
+func accountCanReceive(ctx context.Context, b Backends, accountID string) (bool, error) {
+	if accountID == "" {
+		return false, nil
+	}
+	acc, err := b.LinkedAccounts().Get(ctx, accountID)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return acc.CanReceive, nil
+}
+
 func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity) (string, error) {
 	if id.IsEmpty() || !id.Type.Valid() {
 		return "", nil
@@ -219,8 +234,13 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
+	canReceive, err := accountCanReceive(ctx, b, p.ReceiverAccount)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
 	defaultRecvAcc := p.ReceiverAccount
-	if p.ReceiverAccount == "" {
+	if p.ReceiverAccount == "" || !canReceive {
 		defaultRecvAcc, _ = defaultReceiveAccount(ctx, b, p.Receiver)
 	}
 
@@ -494,8 +514,12 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		noop = false
 	}
 	if args.ReceiverAccount != "" && args.ReceiverAccount != payment.ReceiverAccount.String {
+		canReceive, err := accountCanReceive(ctx, b, args.ReceiverAccount)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
 		payment.ReceiverAccount.String = args.ReceiverAccount
-		payment.ReceiverAccount.Valid = true
+		payment.ReceiverAccount.Valid = canReceive
 		noop = false
 	}
 	if args.SenderAccount != "" && args.SenderAccount != payment.SenderAccount.String {
