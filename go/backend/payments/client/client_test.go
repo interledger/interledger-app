@@ -179,6 +179,7 @@ func TestClient(t *testing.T) {
 			p, err = pc.Update(ctx, payments.UpdateArgs{
 				ID:        p.ID,
 				ThreeDSID: threeDSSession.ID,
+				OTP:       "123456",
 			})
 			require.NoError(st, err)
 

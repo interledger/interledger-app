@@ -14,7 +14,6 @@ type CreateArgs struct {
 	ReceiverAmount  currency.Amount
 	ReceiverAccount string `validate:"omitempty,uuid"`
 	Note            string
-	RequiresOTP     bool
 	IPAddress       string `validate:"omitempty,ip_addr"`
 }
 

@@ -3,33 +3,23 @@ package ops
 import (
 	"testing"
 
-	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
-
-	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
-
-	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
-
-	"gitlab.com/fynbos/backend/transactions"
-
-	"gitlab.com/fynbos/backend/providers/tabapay"
-
-	"gitlab.com/fynbos/backend/linkedaccounts"
-
-	"gitlab.com/fynbos/backend/identities"
-	temporal "go.temporal.io/sdk/client"
-
-	"gitlab.com/fynbos/backend/email"
-	email_mock "gitlab.com/fynbos/backend/email/client/mock"
-	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
-	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/wallets"
-
-	"gitlab.com/fynbos/backend/user"
-
-	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/email"
+	email_mock "gitlab.com/fynbos/backend/email/client/mock"
+	"gitlab.com/fynbos/backend/identities"
+	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/providers/tabapay"
+	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
+	"gitlab.com/fynbos/backend/transactions"
+	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/backend/wallets"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
+	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
