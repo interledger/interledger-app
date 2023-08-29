@@ -180,7 +180,7 @@ func (a *DNSActivity) GetDNSIdentity(ctx context.Context, id string) (identities
 }
 
 func (a *DNSActivity) CheckTXTRecords(ctx context.Context, domain string, proof []byte) error {
-	txtRecords, err := net.LookupTXT(domain)
+	txtRecords, err := net.LookupTXT("_fynbos." + domain)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
