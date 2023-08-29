@@ -124,14 +124,14 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 
 	// don't set parent close policy
 	childNotifyCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: fmt.Sprintf(payinWorkflowFmt, id),
+		WorkflowID: fmt.Sprintf(gmtNotifyCompleteFmt, id),
 		// TODO: configure temporal infra to handle multiple namespaces
 		// Namespace:         "payments",
-		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_UNSPECIFIED, // allow child workflow to continue running
+		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON, // allow child workflow to continue running
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	})
 	var we workflow.Execution
-	err = workflow.ExecuteChildWorkflow(childNotifyCtx, gmt_workflows.GMTNotifyCompleted, id).GetChildWorkflowExecution().Get(childCtx, &we)
+	err = workflow.ExecuteChildWorkflow(childNotifyCtx, gmt_workflows.GMTNotifyCompleted, id).GetChildWorkflowExecution().Get(childNotifyCtx, &we)
 	// Child workflow execution has started. We can return and GMT will carry-on on its own
 	if err != nil {
 		logger.Error("Failed to notify GMT of completed payment", "err", err)
@@ -261,9 +261,10 @@ type PaySignal struct {
 }
 
 const (
-	signalChanName    = "payment_signals"
-	payinWorkflowFmt  = "payment_pay_in_%s"
-	payoutWorkflowFmt = "payment_pay_out_%s"
+	signalChanName       = "payment_signals"
+	payinWorkflowFmt     = "payment_pay_in_%s"
+	payoutWorkflowFmt    = "payment_pay_out_%s"
+	gmtNotifyCompleteFmt = "payment_gmt_notify_complete_%s"
 )
 
 func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
