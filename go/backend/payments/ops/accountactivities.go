@@ -7,6 +7,7 @@ import (
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/log"
@@ -80,12 +81,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 		}
 
 		// Set the linked account ID on the payment
-		err = setReceiveAccount(ctx, a.b, paymentID, accountID)
-		if err != nil {
-			return nil, err
-		}
-
-		p, err = Lookup(ctx, a.b, paymentID)
+		p, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: accountID})
 		if err != nil {
 			return nil, err
 		}

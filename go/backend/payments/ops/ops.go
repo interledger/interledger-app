@@ -326,15 +326,6 @@ func setReceiveTransactionID(ctx context.Context, b Backends, paymentID, txID st
 	return nil
 }
 
-func setReceiveAccount(ctx context.Context, b Backends, paymentID, accountID string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE payments SET receiver_account=$1 WHERE id=$2", accountID, paymentID)
-	if err != nil {
-		return fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	return nil
-}
-
 /*
 GetRequiredActions checks that the payment has the following:
 
@@ -480,23 +471,35 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 	return payment, nil, nil
 }
 
+// Update does validation on all fields that can be set from outside of the payments engine and the calls internal update functionality.
 func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payments.Payment, error) {
 	payment, err := getPayment(ctx, b, args.ID)
 	if err != nil {
 		return nil, err
 	}
-	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.Currency.Valid() {
-		return nil, fmt.Errorf("%w Sender amount currency is invalid.", payments.ErrInvalidAmount)
-	}
-	if !args.ReceiverAmount.IsEmpty() && !args.ReceiverAmount.Currency.Valid() {
-		return nil, fmt.Errorf("%w Receiver amount currency is invalid.", payments.ErrInvalidAmount)
-	}
-	if !args.Receiver.IsEmpty() && !args.Receiver.Type.Valid() {
-		return nil, fmt.Errorf("%w Receiver is invalid.", payments.ErrInvalidIdentifier)
-	}
 
 	if payment.State != payments.StateCreated {
 		return nil, fmt.Errorf("%w Cannot update payment in state (%s)", payments.ErrInvalidState, payment.State)
+	}
+
+	return update(ctx, b, args)
+}
+
+// update performs minimal validation and updates a payment. This is only available internally to the payments engine
+// where updates can be made to the payment regardless of the state of the payment.
+func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payments.Payment, error) {
+	payment, err := getPayment(ctx, b, args.ID)
+	if err != nil {
+		return nil, err
+	}
+	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.Currency.Valid() {
+		return nil, fmt.Errorf("%w Sender amount currency is invalid", payments.ErrInvalidAmount)
+	}
+	if !args.ReceiverAmount.IsEmpty() && !args.ReceiverAmount.Currency.Valid() {
+		return nil, fmt.Errorf("%w Receiver amount currency is invalid", payments.ErrInvalidAmount)
+	}
+	if !args.Receiver.IsEmpty() && !args.Receiver.Type.Valid() {
+		return nil, fmt.Errorf("%w Receiver is invalid", payments.ErrInvalidIdentifier)
 	}
 
 	noop := true
