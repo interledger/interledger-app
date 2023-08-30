@@ -1,7 +1,6 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSearchParams } from '@remix-run/react'
-import { DateTime } from 'luxon'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -26,12 +25,7 @@ import { error } from '~/lib/error.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  isGrpcError,
-  openPaymentsClient
-} from '~/lib/proto.server'
+import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
@@ -39,11 +33,10 @@ import {
   getFeatures,
   getKycStatus,
   getLinkedAccounts,
-  getPublicWalletInfo,
-  getWalletInfo
+  getPublicWalletInfo
 } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
-import { Amount, AmountWithOpenPayments } from '~/routes/pay/Amount'
+import { Amount } from '~/routes/pay/Amount'
 import { Confirm } from '~/routes/pay/Confirm'
 import { Search } from '~/routes/pay/Search'
 
@@ -169,8 +162,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { address, features, sendAccounts, fynbosEnv } =
-    useLoaderData<typeof loader>()
+  const { address, features, sendAccounts } = useLoaderData<typeof loader>()
   const [params, setSearchParams] = useSearchParams()
   const [setAddress, step, setStep, reset] = usePayStore((state) => [
     state.setAddress,
@@ -262,16 +254,13 @@ export default function Page() {
   return (
     <>
       {step === PayStep.SEARCH && <Search />}
-      {step === PayStep.AMOUNT && fynbosEnv === 'prod' && (
-        <AmountWithOpenPayments />
-      )}
-      {step === PayStep.AMOUNT && fynbosEnv !== 'prod' && <Amount />}
+      {step === PayStep.AMOUNT && <Amount />}
       {step === PayStep.CONFIRM && <Confirm />}
     </>
   )
 }
 
-type quoteLimitError =
+type paymentLimitError =
   | 'Failed precondition: LimitTransaction'
   | 'Failed precondition: LimitDaily'
   | 'Failed precondition: LimitMonthly'
@@ -295,11 +284,7 @@ export async function action(args: ActionArgs) {
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string
-  if (formName === 'quote') {
-    return openpaymentsQuoteAction(args)
-  } else if (formName === 'confirm') {
-    return openPaymentsConfirmAction(args)
-  } else if (formName === 'updatePayment') {
+  if (formName === 'updatePayment') {
     return updatePaymentAction(args)
   } else if (formName === 'confirmPayment') {
     return confirmPaymentAction(args)
@@ -434,7 +419,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
         }
         return error(request, { errors: fieldErrors, payment: null, type })
       } else if (rpc.code == Code.FAILED_PRECONDITION) {
-        switch (rpc.message as quoteLimitError) {
+        switch (rpc.message as paymentLimitError) {
           case 'Failed precondition: LimitTransaction':
             fieldErrors['amount'] = 'Exceeds per transaction limit.'
             break
@@ -495,7 +480,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
       }
       return error(request, { errors: fieldErrors, payment: null, type })
     } else if (rpc.code == Code.FAILED_PRECONDITION) {
-      switch (rpc.message as quoteLimitError) {
+      switch (rpc.message as paymentLimitError) {
         case 'Failed precondition: LimitTransaction':
           fieldErrors['amount'] = 'Exceeds per transaction limit.'
           break
@@ -525,150 +510,4 @@ export async function updatePaymentAction({ request }: ActionArgs) {
     type,
     errors: fieldErrors
   })
-}
-
-async function openpaymentsQuoteAction({ request }: ActionArgs) {
-  const form = await request.formData()
-  const amount = form.get('amount') as string
-  const note = form.get('note') as string
-  const walletUrl = form.get('walletUrl') as string
-  const accountId = form.get('accountId') as string
-  const type = form.get('type') as string
-  const identity = form.get('identity') as string
-  const identityType = form.get('identityType') as string
-  const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
-
-  const expiresAt = {
-    seconds: `${Math.floor(DateTime.now().plus({ hour: 1 }).toSeconds())}`,
-    nanos: 0
-  }
-
-  const fieldErrors = {
-    form: '',
-    amount: '',
-    address: '',
-    linkedAccount: '',
-    note: ''
-  }
-
-  if (amountToSubmit == 'NaN') {
-    fieldErrors.amount = 'Amount is required.'
-    return error(request, { errors: { ...fieldErrors } })
-  }
-
-  let walletInfo = await getWalletInfo(request)
-
-  const response = await openPaymentsClient
-    .createQuote(
-      {
-        sendPaymentPointer: walletInfo.url,
-        receivePaymentPointer: walletUrl,
-        description: note,
-        amount: {
-          amount: amountToSubmit,
-          asset: 'USD',
-          assetScale: 2
-        },
-        expiresAt,
-        sendLinkedAccount: accountId,
-        identityType,
-        identity
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-
-  if (isGrpcError(response)) {
-    if (response.code == Code.INVALID_ARGUMENT) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else if (response.code == Code.FAILED_PRECONDITION) {
-      switch (response.message as quoteLimitError) {
-        case 'Failed precondition: LimitTransaction':
-          fieldErrors['amount'] = 'Exceeds per transaction limit.'
-          break
-        case 'Failed precondition: LimitDaily':
-          fieldErrors['amount'] = 'Exceeds daily limit.'
-          break
-        case 'Failed precondition: LimitMonthly':
-          fieldErrors['amount'] = 'Exceeds monthly limit.'
-          break
-        case 'Failed precondition: Limit6Monthly':
-          fieldErrors['amount'] = 'Exceeds rolling 6 month limit.'
-          break
-        default:
-          fieldErrors['amount'] = 'Exceeds account limit.'
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
-  }
-
-  const data = {
-    errors: { ...fieldErrors },
-    quoteId: response.response.id,
-    requiresOTP: response.response.requiresOTP,
-    type
-  }
-
-  return json(data)
-}
-
-async function openPaymentsConfirmAction({ request }: ActionArgs) {
-  const form = await request.formData()
-  await validateCSRFToken(request, form)
-  const serviceAgreement = form.get('serviceAgreement') as string
-  const quoteId = form.get('quoteId') as string
-  const otp = form.get('otp') as string
-  const fieldErrors = {
-    form: '',
-    serviceAgreement: ''
-  }
-
-  if (serviceAgreement == null) {
-    fieldErrors.serviceAgreement = 'You are required to authorize to continue.'
-    return error(request, { errors: { ...fieldErrors } })
-  }
-
-  const quoteIdParam = quoteId.split('/').at(-1)
-
-  if (otp) {
-    const response = await openPaymentsClient
-      .setQuoteOTP(
-        {
-          quoteID: quoteIdParam as string,
-          otp
-        },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie')) || ''
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(response)) {
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
-    }
-  }
-
-  // TODO: Bank payments should just create outgoing payment here
-  return redirect(`/pay/3ds?quoteId=${quoteIdParam}&init=`)
 }
