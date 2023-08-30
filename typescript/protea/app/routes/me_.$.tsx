@@ -244,8 +244,8 @@ export default function Page() {
           </>
         )}
         {paymentPointerParam.includes('fynbos.me/adrian') && (
-          <CardContent>
-            <Label>LinkedIn</Label>
+          <>
+            <Label className='mt-4'>LinkedIn</Label>
             <AnchorRouter
               className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
               to='https://www.linkedin.com/in/adrianhopebailie/'
@@ -258,11 +258,11 @@ export default function Page() {
                 <Icon>navigate_next</Icon>
               </div>
             </AnchorRouter>
-          </CardContent>
+          </>
         )}
         {paymentPointerParam.includes('fynbos.me/matt') && (
-          <CardContent>
-            <Label>LinkedIn</Label>
+          <>
+            <Label className='mt-4'>LinkedIn</Label>
             <AnchorRouter
               className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
               to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
@@ -275,7 +275,7 @@ export default function Page() {
                 <Icon>navigate_next</Icon>
               </div>
             </AnchorRouter>
-          </CardContent>
+          </>
         )}
       </Card>
       <Form
