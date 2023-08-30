@@ -10,7 +10,10 @@ export async function fetchAndSanitizeHTML(url: string): Promise<string> {
 
   const rawHTML = await response.text()
 
-  // Use JSDOM to parse the HTML string because DOMParser is not available in Node.js
+  return sanitizeHTML(rawHTML)
+}
+
+export function sanitizeHTML(rawHTML: string): string {
   const parser = new JSDOM(rawHTML)
 
   const purify = DOMPurify(parser.window)
