@@ -19,162 +19,6 @@ service OpenPaymentService {
   rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
   rpc PaymentPointerExists(PaymentPointerExistsRequest) returns (PaymentPointerExistsResponse);
   rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
-  rpc CreateQuote(CreateQuoteRequest) returns (Quote);
-  rpc LookupQuote(LookupQuoteRequest) returns (Quote);
-  rpc SetQuoteOTP(SetQuoteOTPRequest) returns (Quote);
-  rpc CreateIncomingPayment(CreateIncomingPaymentRequest) returns (IncomingPayment);
-  rpc LookupIncomingPayment(LookupIncomingPaymentRequest) returns (IncomingPayment);
-  rpc PreCheckOutgoingPayment(PreCheckOutgoingPaymentRequest) returns (PreCheckOutgoingPaymentResponse);
-  rpc CreateOutgoingPayment(CreateOutgoingPaymentRequest) returns (OutgoingPayment);
-  rpc LookupOutgoingPayment(LookupOutgoingPaymentRequest) returns (OutgoingPayment);
-  rpc CanSendToPaymentPointer(CanSendToPaymentPointerRequest) returns (CanSendToPaymentPointerResponse);
-}
-
-message CanSendToPaymentPointerRequest {
-  string paymentPointer = 1;
-}
-
-message CanSendToPaymentPointerResponse {
-  bool canSend = 1;
-}
-
-message Transaction {
-  string id = 1;
-  string type = 2;
-  Amount amount = 3;
-  string source = 4;
-  string destination = 5;
-  google.protobuf.Timestamp timestamp = 6;
-  string state = 7;
-  repeated Transfer transfers = 8;
-  string foreignId = 9;
-
-  // Display
-  string title = 10;
-  string formattedAmount = 11;
-  string formattedTime = 12;
-  string formattedDate = 13;
-  string subtotal = 14;
-  string fees = 15;
-  string accountTitle = 16;
-  string reference = 17;
-  string destinationIdentity = 18;
-  string destinationIdentityType = 19;
-  string refundState = 20; // NA , PENDING , COMPLETE
-}
-
-message ListTransactionsResponse {
-  repeated Transaction transactions = 1;
-  string nextPageToken = 2;
-}
-
-message Amount {
-  uint64 amount = 1;
-  string asset = 2;
-  int32 assetScale = 3;
-}
-
-message LookupOutgoingPaymentRequest {
-  string id = 1;
-}
-
-message ThreeDS {
-  string id = 1;
-  string jwt = 2;
-  string deviceCollectionURL = 3;
-  string songbirdURL = 4;
-}
-
-message OutgoingPayment {
-  string id = 1;
-  string paymentPointer = 2;
-  string toPaymentPointer = 11;
-  bool failed = 3;
-  string receiver = 4;
-  Amount sendAmount = 5;
-  Amount receiveAmount = 6;
-  Amount sentAmount = 7;
-  string description = 8;
-  google.protobuf.Timestamp createdAt = 9;
-  google.protobuf.Timestamp updatedAt = 10;
-}
-
-message PreCheckOutgoingPaymentRequest {
-  string quoteID = 1;
-}
-
-message PreCheckOutgoingPaymentResponse {
-  bool exceedsLimits = 1;
-  string limitType = 2; // ANNUAL, MONTHLY, DAILY, HOLD (MAX BALANCE)
-  bool insufficientBalance = 3;
-}
-
-message CreateOutgoingPaymentRequest {
-  string quoteID = 1;
-  string description = 2 [deprecated=true];
-  string externalRef = 3 [deprecated=true];
-  string ipAddress = 4;
-  string idempotencyKey = 5 [deprecated=true];
-  string threeDSID = 6;
-  string identity = 7 [deprecated=true];
-  string identityType = 8 [deprecated=true];
-}
-
-message LookupIncomingPaymentRequest {
-  string id = 1;
-}
-
-message CreateIncomingPaymentRequest {
-  string paymentPointer = 1;
-  optional Amount amount = 2;
-  string reference = 3;
-  google.protobuf.Timestamp expiresAt = 4;
-}
-
-message IncomingPayment {
-  string id = 1;
-  string paymentPointer = 2;
-  string fromPaymentPointer = 10;
-  optional Amount incomingAmount = 3;
-  optional Amount receivedAmount = 4;
-  bool completed = 5;
-  string externalRef = 6;
-  google.protobuf.Timestamp expiresAt = 7;
-  google.protobuf.Timestamp createdAt = 8;
-  google.protobuf.Timestamp updatedAt = 9;
-}
-
-message LookupQuoteRequest {
-  string id = 1;
-}
-
-message SetQuoteOTPRequest {
-  string quoteID = 1;
-  string otp = 2;
-}
-
-message CreateQuoteRequest {
-  string sendPaymentPointer = 1;
-  string receivePaymentPointer = 2;
-  Amount amount = 3;
-  google.protobuf.Timestamp expiresAt = 4;
-  string description = 5;
-  optional string sendLinkedAccount = 6;
-  string identity = 7;
-  string identityType = 8;
-  optional string otp = 9;
-}
-
-message Quote {
-  string id = 1;
-  string paymentPointer = 2;
-  string receiver = 3;
-  Amount sendAmount = 4;
-  Amount receiveAmount = 5;
-  google.protobuf.Timestamp expiresAt = 6;
-  google.protobuf.Timestamp createdAt = 7;
-  bool requiresOTP = 8;
-  bool otpComplete = 9;
 }
 
 message PaymentPointerExistsRequest {
@@ -320,6 +164,42 @@ service BackendService {
 
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
+}
+
+message Amount {
+  uint64 amount = 1;
+  string asset = 2;
+  int32 assetScale = 3;
+}
+
+message Transaction {
+  string id = 1;
+  string type = 2;
+  Amount amount = 3;
+  string source = 4;
+  string destination = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string state = 7;
+  repeated Transfer transfers = 8;
+  string foreignId = 9;
+
+  // Display
+  string title = 10;
+  string formattedAmount = 11;
+  string formattedTime = 12;
+  string formattedDate = 13;
+  string subtotal = 14;
+  string fees = 15;
+  string accountTitle = 16;
+  string reference = 17;
+  string destinationIdentity = 18;
+  string destinationIdentityType = 19;
+  string refundState = 20; // NA , PENDING , COMPLETE
+}
+
+message ListTransactionsResponse {
+  repeated Transaction transactions = 1;
+  string nextPageToken = 2;
 }
 
 message ConfirmPaymentRequest {

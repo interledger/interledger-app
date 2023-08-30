@@ -23,15 +23,6 @@ const (
 	OpenPaymentService_GetPaymentPointer_FullMethodName         = "/backend.v1.OpenPaymentService/GetPaymentPointer"
 	OpenPaymentService_PaymentPointerExists_FullMethodName      = "/backend.v1.OpenPaymentService/PaymentPointerExists"
 	OpenPaymentService_ListWalletPaymentPointers_FullMethodName = "/backend.v1.OpenPaymentService/ListWalletPaymentPointers"
-	OpenPaymentService_CreateQuote_FullMethodName               = "/backend.v1.OpenPaymentService/CreateQuote"
-	OpenPaymentService_LookupQuote_FullMethodName               = "/backend.v1.OpenPaymentService/LookupQuote"
-	OpenPaymentService_SetQuoteOTP_FullMethodName               = "/backend.v1.OpenPaymentService/SetQuoteOTP"
-	OpenPaymentService_CreateIncomingPayment_FullMethodName     = "/backend.v1.OpenPaymentService/CreateIncomingPayment"
-	OpenPaymentService_LookupIncomingPayment_FullMethodName     = "/backend.v1.OpenPaymentService/LookupIncomingPayment"
-	OpenPaymentService_PreCheckOutgoingPayment_FullMethodName   = "/backend.v1.OpenPaymentService/PreCheckOutgoingPayment"
-	OpenPaymentService_CreateOutgoingPayment_FullMethodName     = "/backend.v1.OpenPaymentService/CreateOutgoingPayment"
-	OpenPaymentService_LookupOutgoingPayment_FullMethodName     = "/backend.v1.OpenPaymentService/LookupOutgoingPayment"
-	OpenPaymentService_CanSendToPaymentPointer_FullMethodName   = "/backend.v1.OpenPaymentService/CanSendToPaymentPointer"
 )
 
 // OpenPaymentServiceClient is the client API for OpenPaymentService service.
@@ -42,15 +33,6 @@ type OpenPaymentServiceClient interface {
 	GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error)
 	PaymentPointerExists(ctx context.Context, in *PaymentPointerExistsRequest, opts ...grpc.CallOption) (*PaymentPointerExistsResponse, error)
 	ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error)
-	CreateQuote(ctx context.Context, in *CreateQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
-	LookupQuote(ctx context.Context, in *LookupQuoteRequest, opts ...grpc.CallOption) (*Quote, error)
-	SetQuoteOTP(ctx context.Context, in *SetQuoteOTPRequest, opts ...grpc.CallOption) (*Quote, error)
-	CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
-	LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error)
-	PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error)
-	CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
-	LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error)
-	CanSendToPaymentPointer(ctx context.Context, in *CanSendToPaymentPointerRequest, opts ...grpc.CallOption) (*CanSendToPaymentPointerResponse, error)
 }
 
 type openPaymentServiceClient struct {
@@ -97,87 +79,6 @@ func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context
 	return out, nil
 }
 
-func (c *openPaymentServiceClient) CreateQuote(ctx context.Context, in *CreateQuoteRequest, opts ...grpc.CallOption) (*Quote, error) {
-	out := new(Quote)
-	err := c.cc.Invoke(ctx, OpenPaymentService_CreateQuote_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) LookupQuote(ctx context.Context, in *LookupQuoteRequest, opts ...grpc.CallOption) (*Quote, error) {
-	out := new(Quote)
-	err := c.cc.Invoke(ctx, OpenPaymentService_LookupQuote_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) SetQuoteOTP(ctx context.Context, in *SetQuoteOTPRequest, opts ...grpc.CallOption) (*Quote, error) {
-	out := new(Quote)
-	err := c.cc.Invoke(ctx, OpenPaymentService_SetQuoteOTP_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) CreateIncomingPayment(ctx context.Context, in *CreateIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error) {
-	out := new(IncomingPayment)
-	err := c.cc.Invoke(ctx, OpenPaymentService_CreateIncomingPayment_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) LookupIncomingPayment(ctx context.Context, in *LookupIncomingPaymentRequest, opts ...grpc.CallOption) (*IncomingPayment, error) {
-	out := new(IncomingPayment)
-	err := c.cc.Invoke(ctx, OpenPaymentService_LookupIncomingPayment_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) PreCheckOutgoingPayment(ctx context.Context, in *PreCheckOutgoingPaymentRequest, opts ...grpc.CallOption) (*PreCheckOutgoingPaymentResponse, error) {
-	out := new(PreCheckOutgoingPaymentResponse)
-	err := c.cc.Invoke(ctx, OpenPaymentService_PreCheckOutgoingPayment_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) CreateOutgoingPayment(ctx context.Context, in *CreateOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error) {
-	out := new(OutgoingPayment)
-	err := c.cc.Invoke(ctx, OpenPaymentService_CreateOutgoingPayment_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) LookupOutgoingPayment(ctx context.Context, in *LookupOutgoingPaymentRequest, opts ...grpc.CallOption) (*OutgoingPayment, error) {
-	out := new(OutgoingPayment)
-	err := c.cc.Invoke(ctx, OpenPaymentService_LookupOutgoingPayment_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) CanSendToPaymentPointer(ctx context.Context, in *CanSendToPaymentPointerRequest, opts ...grpc.CallOption) (*CanSendToPaymentPointerResponse, error) {
-	out := new(CanSendToPaymentPointerResponse)
-	err := c.cc.Invoke(ctx, OpenPaymentService_CanSendToPaymentPointer_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // OpenPaymentServiceServer is the server API for OpenPaymentService service.
 // All implementations should embed UnimplementedOpenPaymentServiceServer
 // for forward compatibility
@@ -186,15 +87,6 @@ type OpenPaymentServiceServer interface {
 	GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error)
 	PaymentPointerExists(context.Context, *PaymentPointerExistsRequest) (*PaymentPointerExistsResponse, error)
 	ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error)
-	CreateQuote(context.Context, *CreateQuoteRequest) (*Quote, error)
-	LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error)
-	SetQuoteOTP(context.Context, *SetQuoteOTPRequest) (*Quote, error)
-	CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error)
-	LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error)
-	PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error)
-	CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error)
-	LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error)
-	CanSendToPaymentPointer(context.Context, *CanSendToPaymentPointerRequest) (*CanSendToPaymentPointerResponse, error)
 }
 
 // UnimplementedOpenPaymentServiceServer should be embedded to have forward compatible implementations.
@@ -212,33 +104,6 @@ func (UnimplementedOpenPaymentServiceServer) PaymentPointerExists(context.Contex
 }
 func (UnimplementedOpenPaymentServiceServer) ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListWalletPaymentPointers not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) CreateQuote(context.Context, *CreateQuoteRequest) (*Quote, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateQuote not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) LookupQuote(context.Context, *LookupQuoteRequest) (*Quote, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LookupQuote not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) SetQuoteOTP(context.Context, *SetQuoteOTPRequest) (*Quote, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetQuoteOTP not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) CreateIncomingPayment(context.Context, *CreateIncomingPaymentRequest) (*IncomingPayment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateIncomingPayment not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) LookupIncomingPayment(context.Context, *LookupIncomingPaymentRequest) (*IncomingPayment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LookupIncomingPayment not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) PreCheckOutgoingPayment(context.Context, *PreCheckOutgoingPaymentRequest) (*PreCheckOutgoingPaymentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PreCheckOutgoingPayment not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) CreateOutgoingPayment(context.Context, *CreateOutgoingPaymentRequest) (*OutgoingPayment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateOutgoingPayment not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) LookupOutgoingPayment(context.Context, *LookupOutgoingPaymentRequest) (*OutgoingPayment, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LookupOutgoingPayment not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) CanSendToPaymentPointer(context.Context, *CanSendToPaymentPointerRequest) (*CanSendToPaymentPointerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CanSendToPaymentPointer not implemented")
 }
 
 // UnsafeOpenPaymentServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -324,168 +189,6 @@ func _OpenPaymentService_ListWalletPaymentPointers_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OpenPaymentService_CreateQuote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateQuoteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).CreateQuote(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_CreateQuote_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).CreateQuote(ctx, req.(*CreateQuoteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_LookupQuote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LookupQuoteRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).LookupQuote(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_LookupQuote_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).LookupQuote(ctx, req.(*LookupQuoteRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_SetQuoteOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetQuoteOTPRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).SetQuoteOTP(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_SetQuoteOTP_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).SetQuoteOTP(ctx, req.(*SetQuoteOTPRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_CreateIncomingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateIncomingPaymentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).CreateIncomingPayment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_CreateIncomingPayment_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).CreateIncomingPayment(ctx, req.(*CreateIncomingPaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_LookupIncomingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LookupIncomingPaymentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).LookupIncomingPayment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_LookupIncomingPayment_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).LookupIncomingPayment(ctx, req.(*LookupIncomingPaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_PreCheckOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PreCheckOutgoingPaymentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).PreCheckOutgoingPayment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_PreCheckOutgoingPayment_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).PreCheckOutgoingPayment(ctx, req.(*PreCheckOutgoingPaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_CreateOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateOutgoingPaymentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).CreateOutgoingPayment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_CreateOutgoingPayment_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).CreateOutgoingPayment(ctx, req.(*CreateOutgoingPaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_LookupOutgoingPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LookupOutgoingPaymentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).LookupOutgoingPayment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_LookupOutgoingPayment_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).LookupOutgoingPayment(ctx, req.(*LookupOutgoingPaymentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_CanSendToPaymentPointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CanSendToPaymentPointerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).CanSendToPaymentPointer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_CanSendToPaymentPointer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).CanSendToPaymentPointer(ctx, req.(*CanSendToPaymentPointerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // OpenPaymentService_ServiceDesc is the grpc.ServiceDesc for OpenPaymentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -508,42 +211,6 @@ var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListWalletPaymentPointers",
 			Handler:    _OpenPaymentService_ListWalletPaymentPointers_Handler,
-		},
-		{
-			MethodName: "CreateQuote",
-			Handler:    _OpenPaymentService_CreateQuote_Handler,
-		},
-		{
-			MethodName: "LookupQuote",
-			Handler:    _OpenPaymentService_LookupQuote_Handler,
-		},
-		{
-			MethodName: "SetQuoteOTP",
-			Handler:    _OpenPaymentService_SetQuoteOTP_Handler,
-		},
-		{
-			MethodName: "CreateIncomingPayment",
-			Handler:    _OpenPaymentService_CreateIncomingPayment_Handler,
-		},
-		{
-			MethodName: "LookupIncomingPayment",
-			Handler:    _OpenPaymentService_LookupIncomingPayment_Handler,
-		},
-		{
-			MethodName: "PreCheckOutgoingPayment",
-			Handler:    _OpenPaymentService_PreCheckOutgoingPayment_Handler,
-		},
-		{
-			MethodName: "CreateOutgoingPayment",
-			Handler:    _OpenPaymentService_CreateOutgoingPayment_Handler,
-		},
-		{
-			MethodName: "LookupOutgoingPayment",
-			Handler:    _OpenPaymentService_LookupOutgoingPayment_Handler,
-		},
-		{
-			MethodName: "CanSendToPaymentPointer",
-			Handler:    _OpenPaymentService_CanSendToPaymentPointer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
