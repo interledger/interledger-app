@@ -27,8 +27,7 @@ import {
   StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  openPaymentsClient
+  isGrpcError
 } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { ScriptElt } from '~/lib/useScript'
@@ -48,65 +47,9 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader(args: LoaderArgs) {
-  await getUserSession(args.request)
-  const url = new URL(args.request.url)
-  const quoteId = url.searchParams.get('quoteId')
-
-  if (quoteId) {
-    return openPayments3DSLoader(args)
-  }
-
-  return paymentsEngine3DSLoader(args)
-}
-
-async function openPayments3DSLoader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderArgs) {
+  await getUserSession(request)
   const url = new URL(request.url)
-
-  const quoteId = url.searchParams.get('quoteId')
-
-  if (!quoteId) throw json({}, httpMapping(Code.INVALID_ARGUMENT))
-
-  const isInit = url.searchParams.has('init')
-  if (isInit) {
-    let threeDSInit = await grpcClient
-      .initQuote3DS(
-        {
-          quoteID: quoteId
-        },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie'))
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
-
-    return jsonWithCSRF(request, {
-      quoteId,
-      initJWT: threeDSInit.response.jwt,
-      threeDsId: threeDSInit.response.id,
-      songbirdURL: threeDSInit.response.songbirdURL,
-      fynbosEnv: process.env.FYNBOS_ENV,
-      paymentId: ''
-    })
-  }
-
-  return jsonWithCSRF(request, {
-    quoteId,
-    initJWT: '',
-    threeDsId: '',
-    songbirdURL: '',
-    fynbosEnv: process.env.FYNBOS_ENV,
-    paymentId: ''
-  })
-}
-
-async function paymentsEngine3DSLoader({ request }: LoaderArgs) {
-  const url = new URL(request.url)
-
   const paymentId = url.searchParams.get('paymentId')
 
   if (!paymentId) throw json({}, httpMapping(Code.INVALID_ARGUMENT))
@@ -237,7 +180,6 @@ function ThreeDSPage() {
   const [initJWT, setInitJWT] = useState<string>('')
   const [threeDsId, setThreeDsId] = useState<string>('')
   const [fynbosEnv, setFynbosEnv] = useState<string>('')
-  const [quoteId, setQuoteId] = useState<string>('')
   const [paymentId, setPaymentId] = useState<string>('')
   const csrfTokenRef = useRef<string>('')
   const state = useScript(songbirdURL, cleanupSongbirdScript)
@@ -257,9 +199,6 @@ function ThreeDSPage() {
     if (loaderData.fynbosEnv) {
       setFynbosEnv(loaderData.fynbosEnv)
     }
-    if (loaderData.quoteId) {
-      setQuoteId(loaderData.quoteId)
-    }
     if (loaderData.paymentId) {
       setPaymentId(loaderData.paymentId)
     }
@@ -272,11 +211,7 @@ function ThreeDSPage() {
       cardinalRef.current === null &&
       searchParams.has('init')
     ) {
-      let actionUrl = `${route('/pay/3ds')}?quoteId=${quoteId}`
-      if (paymentId) {
-        actionUrl = `${route('/pay/3ds')}?paymentId=${paymentId}`
-      }
-
+      let actionUrl = `${route('/pay/3ds')}?paymentId=${paymentId}`
       cardinalRef.current = (window as any).Cardinal
       cardinalRef.current.configure({
         logging: {
@@ -295,7 +230,6 @@ function ThreeDSPage() {
             timezone: String(new Date(Date.now()).getTimezoneOffset()),
             language: navigator.language,
             userAgent: navigator.userAgent,
-            quoteId,
             paymentId: paymentId,
             csrfToken: csrfTokenRef.current
           },
@@ -320,7 +254,6 @@ function ThreeDSPage() {
                   name: 'authenticate',
                   threeDsId,
                   jwt,
-                  quoteId,
                   paymentId,
                   csrfToken: csrfTokenRef.current
                 },
@@ -356,7 +289,6 @@ function ThreeDSPage() {
     threeDsId,
     submit,
     fynbosEnv,
-    quoteId,
     searchParams,
     setSearchParams,
     paymentId
@@ -499,56 +431,24 @@ export async function action({ request }: ActionArgs) {
     }
   }
 
-  const quoteId = form.get('quoteId') as string
-  if (quoteId) {
-    const clientIpAddress = getClientIP(request)
-    let payment = await openPaymentsClient
-      .createOutgoingPayment(
-        {
-          threeDSID,
-          quoteID: quoteId,
-          ipAddress: clientIpAddress,
-          // deprecated but still required by client..
-          idempotencyKey: '',
-          identity: '',
-          identityType: '',
-          description: '',
-          externalRef: ''
-        },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie')) || ''
-          }
+  let payment = await grpcClient
+    .confirmPayment(
+      {
+        id: form.get('paymentId') as string
+      },
+      {
+        meta: {
+          cookies: String(request.headers.get('cookie')) || ''
         }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(payment)) {
-      return error(request, data, {
-        message: 'There was an error processing your payment.',
-        action: 'Contact support'
-      })
-    }
-  } else {
-    let payment = await grpcClient
-      .confirmPayment(
-        {
-          id: form.get('paymentId') as string
-        },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie')) || ''
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(payment)) {
-      return error(request, data, {
-        message: 'There was an error processing your payment.',
-        action: 'Contact support'
-      })
-    }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(payment)) {
+    return error(request, data, {
+      message: 'There was an error processing your payment.',
+      action: 'Contact support'
+    })
   }
 
   return redirectWithSnackbar(request, route('/'), {
