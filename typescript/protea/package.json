@@ -51,6 +51,7 @@
     "react-dom": "18.2.0",
     "rehype-slug": "^5.1.0",
     "routes-gen": "^0.6.0",
+    "shiki": "^0.14.3",
     "uuid": "^9.0.0",
     "zustand": "^4.3.9"
   },
