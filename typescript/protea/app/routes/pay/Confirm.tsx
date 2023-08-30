@@ -41,7 +41,6 @@ export function Confirm() {
     displayAmount,
     note,
     publicWalletInfo,
-    quoteId,
     requiresOTP
   ] = usePayStore((state) => [
     state.paymentId,
@@ -50,7 +49,6 @@ export function Confirm() {
     state.displayAmount,
     state.note,
     state.publicWalletInfo,
-    state.quoteId,
     state.requiresOTP
   ])
 
@@ -97,13 +95,6 @@ export function Confirm() {
         type='hidden'
       />
 
-      {/* TODO: delete quoteId input when payment engine integration successful*/}
-      <input
-        form='pay-confirm'
-        defaultValue={quoteId}
-        name='quoteId'
-        type='hidden'
-      />
       <input
         form='pay-confirm'
         defaultValue={paymentId}
@@ -201,7 +192,7 @@ export function Confirm() {
         <Button
           form='pay-confirm'
           name='formName'
-          value={fynbosEnv === 'prod' ? 'confirm' : 'confirmPayment'}
+          value='confirmPayment'
           type='submit'
         >
           Confirm payment
@@ -297,7 +288,7 @@ export function Confirm() {
           <TextButton
             form='pay-confirm'
             name='formName'
-            value={fynbosEnv === 'prod' ? 'confirm' : 'confirmPayment'}
+            value='confirmPayment'
             type='submit'
           >
             Verify

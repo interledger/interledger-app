@@ -17,14 +17,11 @@ interface PayState {
   address: SearchResult | null
   // Amount page
   publicWalletInfo: PublicWalletInfo | null
-  quoteId: string
   requiresOTP: boolean
   account: FormattedLinkedAccount | null
   amount: string
   displayAmount: string
   note: string
-
-  // payment engine fields
   paymentId: string
 }
 
@@ -36,7 +33,6 @@ interface PayActions {
   setNote: (note: string) => void
   setPublicWalletInfo: (walletInfo: PublicWalletInfo) => void
   setAccount: (account: FormattedLinkedAccount) => void
-  setQuote: (id: string, requiresOTP: boolean) => void
   reset: () => void
 
   // payment engine fields
@@ -47,14 +43,11 @@ const payInitialState = {
   step: PayStep.SEARCH,
   address: null,
   publicWalletInfo: null,
-  quoteId: '',
   requiresOTP: false,
   account: null,
   amount: '',
   displayAmount: '$ 0.00',
   note: '',
-
-  // payment engine fields
   paymentId: ''
 }
 
@@ -80,7 +73,6 @@ export const usePayStore = create<PayState & PayActions>()((set) => ({
     set((state) => ({ publicWalletInfo: walletInfo })),
   setNote: (note) => set((state) => ({ note })),
   setAccount: (account) => set((state) => ({ account })),
-  setQuote: (id, requiresOTP) => set((state) => ({ quoteId: id, requiresOTP })),
   reset: () => set((state) => ({ ...payInitialState })),
 
   // payment engine fields
