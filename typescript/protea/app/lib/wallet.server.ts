@@ -474,7 +474,7 @@ export async function getLinkedIdentities(
 export async function getPublicLinkedIdentities(
   request: Request,
   walletId: string
-): Promise<Array<Identity>> {
+): Promise<Record<string, Identity[]>> {
   const response = await grpcClient
     .listPublicIdentities({
       walletId
@@ -485,7 +485,17 @@ export async function getPublicLinkedIdentities(
     throw json({}, httpMapping(response.code))
   }
 
-  return response.response.identities
+  return response.response.identities.reduce(
+    (acc, identity) => {
+      if (!acc[identity.platform]) {
+        acc[identity.platform] = []
+      }
+      acc[identity.platform].push(identity)
+      return acc
+    },
+
+    {} as Record<string, Identity[]>
+  )
 }
 
 export async function getIdentity(
@@ -570,7 +580,8 @@ export async function verifyTwitterIdentity(
 ): Promise<void> {
   const cookie = String(request.headers.get('cookie'))
   const response = await grpcClient
-    .verifyIdentity({
+    .verifyIdentity(
+      {
         id
       },
       {
