@@ -19,10 +19,10 @@ import {
   Icon,
   IconButton,
   LoadingShapes,
-  MarketingRouter,
   Router,
   SnackbarStage
 } from '~/components'
+import { ContentRouter, Prose } from '~/components/Content'
 import { DocsNavDrawer } from '~/components/Scaffold/Docs'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
@@ -157,7 +157,8 @@ export function Scaffold() {
     <div
       className={clsx(
         'relative inset-0 flex min-h-screen flex-col',
-        layout === Layouts.Marketing && 'bg-mk-page'
+        (layout === Layouts.Marketing || layout === Layouts.Docs) &&
+          'bg-mk-page'
       )}
     >
       {layout === Layouts.Wallet && (
@@ -194,7 +195,11 @@ export function Scaffold() {
           </NavDrawer.List>
         </NavDrawerRoot>
       )}
-      {layout === Layouts.Docs && <DocsNavDrawer />}
+      {layout === Layouts.Docs && (
+        <NavDrawerRoot>
+          <DocsNavDrawer />
+        </NavDrawerRoot>
+      )}
       <header
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
@@ -205,7 +210,7 @@ export function Scaffold() {
           layout === Layouts.Wallet &&
             'h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
           layout === Layouts.Docs &&
-            'h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
+            'h-16 bg-mk-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
       >
         {layout === Layouts.Marketing && (
@@ -387,7 +392,7 @@ export function Scaffold() {
                   {footer.column1Title}
                 </h3>
                 {footer.column1.map((link, index) => (
-                  <MarketingRouter
+                  <ContentRouter
                     key={link.id + 'FooterLink'}
                     to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
@@ -399,7 +404,7 @@ export function Scaffold() {
                   {footer.column2Title}
                 </h3>
                 {footer.column2.map((link, index) => (
-                  <MarketingRouter
+                  <ContentRouter
                     key={link.id + 'FooterLink'}
                     to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
@@ -411,7 +416,7 @@ export function Scaffold() {
                   {footer.column3Title}
                 </h3>
                 {footer.column3.map((link, index) => (
-                  <MarketingRouter
+                  <ContentRouter
                     key={link.id + 'FooterLink'}
                     to={link}
                     className='mt-1 text-disabled first-of-type:mt-4'
@@ -434,11 +439,11 @@ export function Scaffold() {
               })}
             </div>
             <div className='mt-6 flex w-full items-center justify-between'>
-              <div className='prose prose-sm prose-invert prose-a:rounded prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus'>
+              <Prose className='prose-sm prose-p:text-on-color'>
                 {footer.legalText && (
                   <StructuredText data={footer.legalText.value} />
                 )}
-              </div>
+              </Prose>
             </div>
           </div>
         )}

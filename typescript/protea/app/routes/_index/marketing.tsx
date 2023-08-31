@@ -1,5 +1,5 @@
 import { useLoaderData } from '@remix-run/react'
-import { MarketingPageWithSections } from '~/components'
+import { MarketingPageWithSections } from '~/components/Content'
 
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import type { loader } from './route'

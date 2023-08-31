@@ -4,13 +4,8 @@ import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
-import {
-  Chip,
-  ChipColor,
-  Layouts,
-  MarketingPageWithSections,
-  Router
-} from '~/components'
+import { Chip, ChipColor, Layouts, Router } from '~/components'
+import { MarketingPageWithSections } from '~/components/Content'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
 import { getBlogRoute } from '~/lib/marketing.server'
