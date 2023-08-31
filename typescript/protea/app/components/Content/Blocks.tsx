@@ -236,25 +236,40 @@ export function HeroContentRecordComponent({
 // }
 
 type Segment = {
-  val: string
+  text: string
   animated: boolean
+  index: number
 }
 
-function getSegments(str: string, iterations: HeroContentRecord[]): Segment[] {
-  console.log('content', JSON.stringify(iterations))
+function getSegments(title: string, iterations: HeroContentRecord[], type: 'title' | 'body'): Segment[] {
+  const segments: Segment[] = []
+  let lastIndex = 0, count = 0
 
-  // TODO pickup here
-  const segments: { start: number; end: number; text: string }[] = []
-  iterations?.forEach((iteration, i) => {
-    const start = str?.indexOf(iteration.title as string) ?? 0
+  for (const iteration of iterations) {
+    const start = title?.indexOf(iteration[type] as string)
+    const end = start + (iteration[type] as string).length
+
+    if (start == -1) continue
+
+    if (start > lastIndex) {
+      segments.push({
+        animated: false,
+        index: -1,
+        text: title.slice(lastIndex, start)
+      })
+    }
+
     segments.push({
-      start: start,
-      end: start + (iteration.title as string).length,
-      text: iteration.title as string
+      animated: true,
+      index: count,
+      text: iteration[type] as string
     })
-  })
+    count++
+    lastIndex = end
+  }
+
   console.log('segments', segments)
-  return [{ val: 'test', animated: false }]
+  return segments
 }
 
 export function HomeHeroTitle({
@@ -277,30 +292,30 @@ export function HomeHeroTitle({
   })
   console.log('segments', segments)
 
-  /**
-   * content {
-   *   id: '122272899',
-   *   title: 'Connect. Verify. Transact with certainty.',
-   *   iterations: [
-   *     {
-   *       id: '122272895',
-   *       title: 'Connect.'
-   *     },
-   *     {
-   *       id: '122272896',
-   *       title: 'Verify.'
-   *     },
-   *     {
-   *       id: '122272897',
-   *       title: 'Transact'
-   *     },
-   *     {
-   *       id: '122272898',
-   *       title: 'certainty.'
-   *     }
-   *   ],
-   * }
-   */
+
+    // let content = {
+    //   id: '122272899',
+    //   title: 'Connect. Verify. Transact with certainty.',
+    //   iterations: [
+    //     {
+    //       id: '122272895',
+    //       title: 'Connect.'
+    //     },
+    //     {
+    //       id: '122272896',
+    //       title: 'Verify.'
+    //     },
+    //     {
+    //       id: '122272897',
+    //       title: 'Transact'
+    //     },
+    //     {
+    //       id: '122272898',
+    //       title: 'certainty.'
+    //     }
+    //   ],
+    // }
+
 }
 
 function TitleSegment({
@@ -341,13 +356,9 @@ export function HomeHeroContentRecordComponent({
   console.log('content', content)
   const [active, setActive] = useState<number>(0)
 
-  const titleSegments = useMemo(() => {
-    return getSegments(content.title as string, content.iterations)
-  }, [active, content.iterations, content.title])
+  const titleSegments =  getSegments(content.title as string, content.iterations, 'title')
+  const bodySegments = getSegments(content.body as string, content.iterations, 'body')
 
-  const bodySegments = useMemo(() => {
-    return getSegments(content.body as string, content.iterations)
-  }, [active, content.body, content.iterations])
 
   useEffect(() => {
     const interval: NodeJS.Timeout = setInterval(() => {
@@ -376,6 +387,19 @@ export function HomeHeroContentRecordComponent({
       </AnimatePresence>
       <div className='flex w-full flex-col space-y-8 lg:w-1/2'>
         <div className='font-display text-5xl font-bold'>
+          {titleSegments.map((segment, index) => {
+            if (segment.animated) {
+              return (
+                <TitleSegment key={segment.text + 'active' + index} active={active} index={segment.index}>
+                  {segment.text}
+                </TitleSegment>
+              )
+            } 
+              return (
+                <span key={segment.text + 'inactive' + index}>
+                  {segment.text}
+                </span>)
+          })}
           <TitleSegment active={active} index={2}>
             This is the first index
           </TitleSegment>
