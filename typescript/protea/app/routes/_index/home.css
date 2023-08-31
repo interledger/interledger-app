@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --title-default: theme('colors.slate.900');
+    --title-one: theme('colors.indigo.500');
+    --title-two: theme('colors.orange.500');
+    --title-three: theme('colors.purple.500');
+    --title-four: theme('colors.yellow.400');
+    --background-default: #ffffff00;
+    --background-one: theme('colors.indigo.100');
+    --background-two: theme('colors.orange.100');
+    --background-three: theme('colors.purple.100');
+    --background-four: theme('colors.yellow.100');
+  }
+
+  .theme-dark {
+    --title-default: theme('colors.white');
+    --title-one: theme('colors.indigo.500');
+    --title-two: theme('colors.orange.500');
+    --title-three: theme('colors.purple.500');
+    --title-four: theme('colors.yellow.400');
+    --background-default: #00000000;
+    --background-one: theme('colors.indigo.900');
+    --background-two: theme('colors.orange.900');
+    --background-three: theme('colors.purple.900');
+    --background-four: theme('colors.yellow.900');
+  }
+
+  @media (prefers-color-scheme: dark) {
+    /* This is a duplicate of the dark theme */
+    .theme-system {
+      --title-default: theme('colors.white');
+      --title-one: theme('colors.indigo.500');
+      --title-two: theme('colors.orange.500');
+      --title-three: theme('colors.purple.500');
+      --title-four: theme('colors.yellow.400');
+      --background-default: #00000000;
+      --background-one: theme('colors.indigo.900');
+      --background-two: theme('colors.orange.900');
+      --background-three: theme('colors.purple.900');
+      --background-four: theme('colors.yellow.900');
+    }
+  }
+}
