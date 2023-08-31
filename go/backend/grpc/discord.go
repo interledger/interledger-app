@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/discord"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/proto/backend/v1"
@@ -21,9 +20,7 @@ func (r *rpcService) CreateDiscordAuthURL(ctx context.Context, req *backend.Empt
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	state := uuid.NewString()
 	url, err := r.b.Discord().CreateAuthURL(ctx, discord.CreateAuthURLArgs{
-		State:    state,
 		Scopes:   []string{"identity"},
 		WalletID: wallet.ID,
 	})
