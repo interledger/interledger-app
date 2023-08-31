@@ -2516,6 +2516,7 @@ export type LinkRecord = RecordInterface & {
   button?: Maybe<Scalars['BooleanType']>;
   displayText?: Maybe<Scalars['String']>;
   id: Scalars['ItemId'];
+  target?: Maybe<Scalars['BooleanType']>;
   url?: Maybe<Scalars['String']>;
 };
 

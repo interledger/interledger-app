@@ -146,7 +146,11 @@ export const DocsNavDrawer: FC<NavDrawerRootProps> = ({ onClick }) => {
   return (
     <NavDrawer.List>
       <div className='relative mb-8 ml-1 flex items-center space-x-4'>
-        <IconButton onClick={onClick} aria-label='Close menu'>
+        <IconButton
+          className='lg:hidden'
+          onClick={onClick}
+          aria-label='Close menu'
+        >
           menu_open
         </IconButton>
         <Router to={route('/')} aria-label='Fynbos logo'>

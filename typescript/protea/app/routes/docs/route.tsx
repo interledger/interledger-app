@@ -13,10 +13,10 @@ export async function loader({ request }: LoaderArgs) {
     throw json(null, { status: 404, statusText: 'Not found' })
 
   const { allDocs } = await getAllDocs()
-  if (!allDocs || !allDocs[0].slug)
+  if (!allDocs || (allDocs.length > 0 && !allDocs[0].slug))
     throw json(null, { status: 404, statusText: 'Not found' })
 
-  const slug = allDocs[0].slug
+  const slug = allDocs[0].slug as string
 
   const url = new URL(request.url)
 
@@ -37,9 +37,8 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data, params }: any) {
+export function meta() {
   return {
-    // ...toRemixMeta(data.allDocs.seoMeta),
     'twitter:url': 'https://fynbos.app/docs',
     'og:url': 'https://fynbos.app/docs'
   }
