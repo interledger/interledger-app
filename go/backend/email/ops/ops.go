@@ -248,6 +248,12 @@ func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, pa
 		return
 	}
 
+	receiverWallet, err := b.Wallets().Get(ctx, payment.Receiver.WalletID)
+	if err != nil {
+		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
+		return
+	}
+
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
@@ -267,7 +273,7 @@ func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, pa
 			{
 				"table": []map[string]interface{}{
 					{"label": "Total amount", "text": payment.SenderAmount.Format(), "large": true},
-					{"label": "To", "text": payment.Receiver.Identifier},
+					{"label": "To", "text": receiverWallet.Name},
 					{"label": "Date", "text": payment.UpdatedAt.Format("02 Jan 2006")},
 				},
 			},
@@ -330,6 +336,12 @@ func SendPaymentReceivedEmailV2(ctx context.Context, b Backends, walletID string
 		return
 	}
 
+	senderWallet, err := b.Wallets().Get(ctx, payment.Sender.WalletID)
+	if err != nil {
+		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
+		return
+	}
+
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
@@ -349,7 +361,7 @@ func SendPaymentReceivedEmailV2(ctx context.Context, b Backends, walletID string
 			{
 				"table": []map[string]interface{}{
 					{"label": "Total amount", "text": payment.ReceiverAmount.Format(), "large": true},
-					{"label": "From", "text": payment.Sender.Identifier},
+					{"label": "From", "text": senderWallet.Name},
 					{"label": "Date", "text": payment.UpdatedAt.Format("02 Jan 2006")},
 				},
 			},
