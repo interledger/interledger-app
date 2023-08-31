@@ -17,7 +17,6 @@ var _ external.Client = &client{}
 type (
 	client struct {
 		oauthConfig *oauth2.Config
-		bearerToken string
 		web         *http.Client
 	}
 

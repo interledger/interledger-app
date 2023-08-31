@@ -85,7 +85,7 @@ func MakeWallet(b Backends) cli.ActionFunc {
 			return fmt.Errorf("Kratos statusCode: %d", response.StatusCode)
 		}
 
-		address, err := wallets.ParseAddress(fmt.Sprintf("https://fynbos.test/%s", cCtx.String("firstName")))
+		address, err := wallets.ParseAddress(fmt.Sprintf("https://local.fynbos.me/%s", cCtx.String("firstName")))
 		if err != nil {
 			return err
 		}
