@@ -157,12 +157,12 @@ export default function Page() {
             </div>
           </Card>
         )}
-        {linkedIdentities.dns && (
+        {linkedIdentities.domain && (
           <Card>
             <CardHeader>
               <CardTitle>Domain</CardTitle>
             </CardHeader>
-            {linkedIdentities.dns.map((identity) => (
+            {linkedIdentities.domain.map((identity) => (
               <CardLink
                 key={identity.id}
                 className='mt-2 flex items-center justify-between first-of-type:mt-4'
@@ -201,7 +201,7 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {!linkedIdentities.dns && kycStatus == KycStatus.Approved && (
+        {!linkedIdentities.domain && kycStatus == KycStatus.Approved && (
           <Card>
             <div className='flex items-center space-x-4'>
               <CardIcon>

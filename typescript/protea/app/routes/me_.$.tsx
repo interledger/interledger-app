@@ -218,10 +218,10 @@ export default function Page() {
             ))}
           </>
         )}
-        {identities.dns && (
+        {identities.domain && (
           <>
             <Label className='mt-4'>Domain</Label>
-            {identities.dns.map((identity) => (
+            {identities.domain.map((identity) => (
               <CardLink
                 key={identity.id}
                 className='items-center justify-between'

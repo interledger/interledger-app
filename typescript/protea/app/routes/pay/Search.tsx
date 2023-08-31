@@ -122,6 +122,9 @@ export function Search() {
                           {subResult.identifierType == 'twitter' && (
                             <TwitterIcon />
                           )}
+                          {subResult.identifierType == 'domain' && (
+                            <Icon>captive_portal</Icon>
+                          )}
                           <span className='text-medium'>
                             {subResult.identifier}
                           </span>
