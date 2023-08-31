@@ -7,6 +7,7 @@ import { Fragment, useEffect } from 'react'
 type ListItemProps = {
   children?: ReactNode
   to: string
+  key?: string
 }
 
 const ListItem: FC<ListItemProps> = ({ children, to }) => {
@@ -18,7 +19,7 @@ const ListItem: FC<ListItemProps> = ({ children, to }) => {
     >
       {({ isActive }) => (
         <li className='relative flex w-56 items-center rounded-xl p-4'>
-          <span className='z-10'>{children}</span>
+          <span className='z-10 truncate'>{children}</span>
           {isActive && (
             <motion.div
               className='absolute -ml-4 h-full w-full rounded-xl bg-nav-active'
