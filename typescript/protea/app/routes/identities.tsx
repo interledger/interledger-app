@@ -134,7 +134,7 @@ export default function Page() {
                 className='rounded text-sm font-medium text-primary'
                 to={route('/connect/twitter')}
               >
-                Connect another twitter identity
+                Connect another Twitter identity
               </Router>
             </CardContent>
           </Card>
@@ -196,7 +196,7 @@ export default function Page() {
                 className='rounded text-sm font-medium text-primary'
                 to={route('/connect/domain')}
               >
-                Connect another domain
+                Connect another domain identity
               </Router>
             </CardContent>
           </Card>
@@ -213,7 +213,7 @@ export default function Page() {
                   className='text-sm font-medium text-primary'
                   to={route('/connect/domain')}
                 >
-                  Connect a domain
+                  Connect a domain identity
                 </Router>
               </div>
             </div>

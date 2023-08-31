@@ -376,12 +376,6 @@ function Domain() {
               <CardTitle>Domain details</CardTitle>
             </CardHeader>
             <CardContent>
-              <img
-                className='max-w-[310px]'
-                loading='lazy'
-                alt='Identity card'
-                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
-              />
               <div className='mt-4 flex w-full flex-col space-y-1'>
                 <span className='text-weak'>Hostname</span>
                 <span className='font-medium'>{hostName}</span>
@@ -559,12 +553,6 @@ function Domain() {
           <Card>
             <CardContent>
               <p>Your domain verification has failed. Please try again.</p>
-              <img
-                className='mt-4 max-w-[310px]'
-                loading='lazy'
-                alt='Identity card'
-                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
-              />
             </CardContent>
           </Card>
           <div className='flex w-full space-x-2'>
@@ -590,12 +578,6 @@ function Domain() {
                 Your domain verification is pending. We will notify you once
                 verified.
               </p>
-              <img
-                className='mt-4 max-w-[310px]'
-                loading='lazy'
-                alt='Identity card'
-                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
-              />
             </CardContent>
           </Card>
           <OutlineButton
