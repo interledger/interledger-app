@@ -33,7 +33,6 @@ export async function loader({ request, params }: LoaderArgs) {
     },
     identity: {
       ...identity,
-      identifierWithPrefix: '@' + identity.identifier,
       walletUrlWithoutProtocol: removeProtocol(wallet.publicName),
       verifiedAt: DateTime.fromSeconds(
         parseInt(identity.verifiedAt?.seconds ?? '')
@@ -44,11 +43,24 @@ export async function loader({ request, params }: LoaderArgs) {
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  const metaContent = {
-    title: `${data.identity.identifierWithPrefix} has verified they are a real person`,
-    description:
-      'Fynbos has verified that this person is real and this is the public proof of their twitter identity.'
-  }
+  const metaContent = (() => {
+    switch (data.identity.platform) {
+      case 'twitter':
+        return {
+          title: `@${data.identity.identifier} has verified they are a real person`,
+          description:
+            'Fynbos has verified that this person is real and this is the public proof of their twitter identity.'
+        }
+      case 'domain':
+        return {
+          title: `${data.identity.identifier} is connected to a real person`,
+          description:
+            'Fynbos has verified that this domain connected to a real person and this is the public proof of their domain identity.'
+        }
+      default:
+        return {}
+    }
+  })()
 
   return {
     title: metaContent.title,
@@ -70,6 +82,14 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: (match) => `/me/${match.data.identity.walletUrlWithoutProtocol}`,
+      title: (match) => {
+        switch (match.data.identity.platform) {
+          case 'twitter':
+            return `@${match.data.identity.identifier}`
+          case 'domain':
+            return match.data.identity.identifier
+        }
+      },
       actions: (match) =>
         match.data.identity.state == 'verified' ? (
           <Chip color={ChipColor.green}>Verified</Chip>
@@ -79,15 +99,64 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { identity, wallet, isUser } = useLoaderData<typeof loader>()
+  const { identity, isUser } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      {identity.platform == 'twitter' && <Twitter />}
+      {identity.platform == 'domain' && <Domain />}
+      {!isUser && (
+        <Card>
+          <CardHeader>
+            <CardTitle>What is Fynbos?</CardTitle>
+          </CardHeader>
+          <CardContent className='flex flex-col space-y-4'>
+            <p className='text-medium'>
+              Fynbos is a digital wallet for verifying identities, paying
+              contacts, and building trust.
+            </p>
+            <Router
+              className='text-sm font-medium text-primary'
+              to={route('/signup')}
+            >
+              Get your own identity card
+            </Router>
+          </CardContent>
+        </Card>
+      )}
+      <Form
+        id='me'
+        action={`/me/${identity.walletUrlWithoutProtocol}`}
+        method='post'
+        className='hidden'
+      />
+      <input
+        form='me'
+        value={'paymentPointer'}
+        name='paymentPointer'
+        type='hidden'
+      />
+    </>
+  )
+}
+
+function Twitter() {
+  const { identity, isUser } = useLoaderData<typeof loader>()
 
   return (
     <>
       {identity.state == 'verified' && (
         <Card>
+          <CardHeader>
+            <CardTitle>Twitter verification</CardTitle>
+          </CardHeader>
           <CardContent>
             <p>
-              {wallet.publicName} has linked their Fynbos wallet to Twitter.
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              has linked their Fynbos wallet to Twitter.
             </p>
             <p className='mt-4'>
               This identity card shows that
@@ -96,7 +165,7 @@ export default function Page() {
                 className='text-primary'
               >
                 {' '}
-                {identity.identifierWithPrefix}{' '}
+                @{identity.identifier}{' '}
               </AnchorRouter>
               is the same person as
               <AnchorRouter to={identity.wallet} className='text-primary'>
@@ -127,41 +196,61 @@ export default function Page() {
           </CardContent>
         </Card>
       )}
-      <Form
-        id='me'
-        action={`/me/${identity.walletUrlWithoutProtocol}`}
-        method='post'
-        className='hidden'
-      />
-      <input
-        form='me'
-        value={'paymentPointer'}
-        name='paymentPointer'
-        type='hidden'
-      />
       {isUser && (
         <Button form='me' type='submit'>
-          Pay {identity.identifierWithPrefix}
+          Pay @{identity.identifier}
         </Button>
       )}
-      {!isUser && (
+    </>
+  )
+}
+
+function Domain() {
+  const { identity, isUser } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      {identity.state == 'verified' && (
         <Card>
           <CardHeader>
-            <CardTitle>What is Fynbos?</CardTitle>
+            <CardTitle>Domain verification</CardTitle>
           </CardHeader>
-          <CardContent className='flex flex-col space-y-4'>
-            <p className='text-medium'>
-              Fynbos is a digital wallet for verifying identities, paying
-              contacts, and building trust.
+          <CardContent>
+            <p>
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              has linked their domain to their Fynbos wallet.
             </p>
-            <Router
-              className='text-sm font-medium text-primary'
-              to={route('/signup')}
-            >
-              Get your own identity card
-            </Router>
+            <p className='mt-4'>
+              This identity card shows that
+              <AnchorRouter to={identity.identifier} className='text-primary'>
+                {' '}
+                {identity.identifier}{' '}
+              </AnchorRouter>
+              is connected to
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              who Fynbos have verified is a real person.
+            </p>
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-medium'>Hostname</span>
+              <span className='font-medium'>_fynbos.{identity.identifier}</span>
+            </div>
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-medium'>Code</span>
+              <span className='font-medium'>{identity.signatureHash}</span>
+            </div>
           </CardContent>
         </Card>
+      )}
+      {isUser && (
+        <Button form='me' type='submit'>
+          Pay {identity.identifier}
+        </Button>
       )}
     </>
   )
