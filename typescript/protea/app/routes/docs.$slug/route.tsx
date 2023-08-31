@@ -7,16 +7,10 @@ import { isCode } from 'datocms-structured-text-utils'
 import type { FC, ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
-import {
-  Image,
-  StructuredText,
-  renderNodeRule,
-  toRemixMeta
-} from 'react-datocms'
+import { Image, StructuredText, toRemixMeta } from 'react-datocms'
 import { getHighlighter, renderToHtml } from 'shiki'
 import type { ApplicationProps } from '~/components'
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
@@ -25,13 +19,18 @@ import {
   Router,
   WalletGrid
 } from '~/components'
+import {
+  Prose,
+  renderCodeNodeRule,
+  renderLinkNodeRule
+} from '~/components/Content'
 import { useDocsStore } from '~/components/Scaffold/Docs/useDocsStore'
 import type {
   DocRecord,
   InlineImageRecord,
   InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
-import { sanitizeHTML } from '~/lib/fetchAndSanitizeHTML'
+import { sanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
 import { getCurrentDocPage } from '~/lib/marketing.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -62,12 +61,12 @@ export async function loader({ request, params }: LoaderArgs) {
               renderToHtml(tokens, {
                 elements: {
                   pre: ({ children }) =>
-                    `<pre class='-mx-2 flex rounded-xl bg-nav p-1 last:-mb-2'>${children}</pre>`,
+                    `<pre class='flex rounded-xl bg-nav p-1'>${children}</pre>`,
                   code: ({ children }) =>
                     `<code class='language-${child.language} flex w-full min-w-max flex-col'>${children}</code>`,
                   line: ({ children, index }) =>
                     `<span class='${clsx(
-                      'w-full px-3',
+                      'w-full px-2',
                       child.highlight?.includes(index) &&
                         'rounded-lg bg-nav-active',
                       // Has highlight above
@@ -113,13 +112,13 @@ export default function Page() {
   const { doc } = useLoaderData<typeof loader>()
   return (
     <WalletGrid>
-      <GridColumn className='col-span-full'>
+      <GridColumn className='col-span-full max-w-prose'>
         {doc &&
           doc.sections &&
           doc.sections.length > 0 &&
           doc.sections.map((section) => {
             return (
-              <Card key={section.id}>
+              <div key={section.id} className='flex w-full flex-col'>
                 {section.title && (
                   <CardHeader>
                     <SectionTitle
@@ -132,10 +131,10 @@ export default function Page() {
                   </CardHeader>
                 )}
                 <CardContent>
-                  <Prose>
+                  <Prose className='prose-p:leading-6'>
                     <StructuredText
                       data={section.content as any}
-                      customNodeRules={[renderCodeNodeRule]}
+                      customNodeRules={[renderCodeNodeRule, renderLinkNodeRule]}
                       renderBlock={({ record }) => {
                         switch (record.__typename) {
                           case 'InlineImageRecord':
@@ -211,29 +210,13 @@ export default function Page() {
                     />
                   </Prose>
                 </CardContent>
-              </Card>
+              </div>
             )
           })}
       </GridColumn>
     </WalletGrid>
   )
 }
-
-const renderCodeNodeRule = renderNodeRule(isCode, ({ node, key }) => {
-  return <div key={key} dangerouslySetInnerHTML={{ __html: node.code }} />
-})
-
-// const renderLinkNodeRule = renderNodeRule(isLink, ({ node, key }) => {
-//   return (
-//     <AnchorRouter key={key} to={node.url}>
-//       {node.children.map((child, index) => {
-//         return (
-//           <span key={index} dangerouslySetInnerHTML={{ __html: child.value }} />
-//         )
-//       })}
-//     </AnchorRouter>
-//   )
-// })
 
 type SectionTitleProps = {
   id: string
@@ -256,17 +239,5 @@ const SectionTitle: FC<SectionTitleProps> = ({ id, docId, slug, children }) => {
         {children}
       </CardTitle>
     </Router>
-  )
-}
-
-type ProseProps = {
-  children?: ReactNode
-}
-
-const Prose: FC<ProseProps> = ({ children }) => {
-  return (
-    <div className='prose-p prose prose-slate max-w-none dark:prose-invert prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:rounded prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider'>
-      {children}
-    </div>
   )
 }
