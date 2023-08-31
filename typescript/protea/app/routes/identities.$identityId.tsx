@@ -107,7 +107,7 @@ export default function Page() {
       />
       <input form='identity' value={csrfToken} name='csrfToken' type='hidden' />
       {identity.platform == 'twitter' && <Twitter />}
-      {identity.platform == 'dns' && <Domain />}
+      {identity.platform == 'domain' && <Domain />}
     </>
   )
 }
