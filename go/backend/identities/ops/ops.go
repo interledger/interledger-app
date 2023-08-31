@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/notify"
 	"sort"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/notify"
 
 	"gitlab.com/fynbos/backend/wallets"
 
