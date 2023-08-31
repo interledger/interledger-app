@@ -1,7 +1,6 @@
 import { Tab } from '@headlessui/react'
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { AnimatePresence, motion, useAnimate } from 'framer-motion'
 import {
   Fragment,
   useCallback,
@@ -10,19 +9,15 @@ import {
   useRef,
   useState
 } from 'react'
+import type { ResponsiveImageType } from 'react-datocms'
+import { Image, StructuredText } from 'react-datocms'
 import {
   AnchorRouter,
-  ButtonRouter,
   FynbosIcon,
   LinkedInIcon,
-  Router,
-  Shape,
   TwitterIcon
 } from '~/components'
-
-import { isLink } from 'datocms-structured-text-utils'
-import type { ResponsiveImageType } from 'react-datocms'
-import { Image, renderNodeRule, StructuredText } from 'react-datocms'
+import { Prose } from '~/components/Content'
 import type {
   CtaContentRecord,
   FeatureBlocksContentRecord,
@@ -30,169 +25,19 @@ import type {
   HeaderContentRecord,
   HeroContentRecord,
   HomeHeroContentRecord,
-  LinkRecord,
-  SectionRecord,
   ShowcaseContentRecord,
   StoryContentRecord,
   TeamContentRecord,
   TextContentRecord
 } from '~/generated/dato-cms-graphql'
+import { ContentRouter } from './ContentRouter'
+import { renderLinkNodeRule } from './renderNodeRules'
 
-// TODO github.com/datocms/react-datocms/blob/master/docs/structured-text.md#override-default-rendering-of-nodes
-
-type MarketingPageWithSectionsProps = {
-  section: SectionRecord
-  children?: ReactNode
-}
-export function MarketingPageWithSections({
-  section,
-  children
-}: MarketingPageWithSectionsProps) {
-  return (
-    <div
-      key={section.id + 'MarketingPageWithSections'}
-      className='group w-full overflow-hidden even:rounded-2xl even:bg-mk-section'
-    >
-      <div className='flex w-full group-first:hidden group-even:hidden'>
-        <Shape radius='rounded-l-full' color='bg-mk-section' width='w-20' />
-        <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
-        <Shape radius='rounded-full' color='bg-transparent' width='w-20' />
-        <Shape radius='rounded-full' color='bg-mk-section' width='w-20' />
-      </div>
-      <div className='relative mx-auto flex w-full max-w-[59rem] flex-col items-center py-20'>
-        {section.content.map((content, index) => {
-          switch (content.__typename) {
-            case 'CtaContentRecord':
-              return (
-                <CtaContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'FeatureBlocksContentRecord':
-              return (
-                <FeatureBlocksContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'FeatureContentRecord':
-              return (
-                <FeatureContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'HeaderContentRecord':
-              return (
-                <HeaderContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'HeroContentRecord':
-              return (
-                <HeroContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'HomeHeroContentRecord':
-              return (
-                <HomeHeroContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'ShowcaseContentRecord':
-              return (
-                <ShowcaseContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'StoryContentRecord':
-              return (
-                <StoryContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'TeamContentRecord':
-              return (
-                <TeamContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            case 'TextContentRecord':
-              return (
-                <TextContentRecordComponent
-                  key={content.__typename + index}
-                  content={content}
-                />
-              )
-            default:
-              return <Fragment key={'children' + index}>{children}</Fragment>
-          }
-        })}
-      </div>
-      <div className='flex w-full justify-end group-first:hidden group-even:hidden'>
-        <Shape radius='rounded-tl-full' color='bg-mk-section' width='w-20' />
-        <Shape radius='rounded-tr-full' color='bg-mk-section' width='w-20' />
-        <Shape radius='rounded-br-full' color='bg-mk-section' width='w-20' />
-        <Shape radius='rounded-tr-full' color='bg-mk-section' width='w-20' />
-      </div>
-    </div>
-  )
-}
-
-type MarketingRouterProps = {
-  className?: string
-  to: LinkRecord
-  shrink?: boolean
-}
-
-function sanitizeCMSLinks(to?: string) {
-  return {
-    internal: to?.startsWith('https://fynbos.app'),
-    toUrl: to?.replace('https://fynbos.app', '') ?? ''
-  }
-}
-
-export function MarketingRouter({
-  to,
-  shrink,
-  className
-}: MarketingRouterProps) {
-  let { toUrl, internal } = sanitizeCMSLinks(to.url as string)
-  if (to.button) {
-    return (
-      <ButtonRouter
-        to={toUrl}
-        shrink={shrink}
-        className={clsx('h-20 px-20', className)}
-      >
-        {to.displayText}
-      </ButtonRouter>
-    )
-  } else {
-    if (internal) {
-      return (
-        <Router to={toUrl} className={className}>
-          {to.displayText}
-        </Router>
-      )
-    }
-    return (
-      <AnchorRouter to={toUrl} className={className}>
-        {to.displayText}
-      </AnchorRouter>
-    )
-  }
-}
-
-function CtaContentRecordComponent({ content }: { content: CtaContentRecord }) {
+export function CtaContentRecordComponent({
+  content
+}: {
+  content: CtaContentRecord
+}) {
   return (
     <div
       key={content.id}
@@ -222,14 +67,14 @@ function CtaContentRecordComponent({ content }: { content: CtaContentRecord }) {
         <h2 className='text-4xl font-medium'>{content.title}</h2>
         <p className='text-2xl text-medium'>{content.body}</p>
         {content.button.length > 0 && (
-          <MarketingRouter shrink to={content.button[0]} />
+          <ContentRouter shrink to={content.button[0]} />
         )}
       </div>
     </div>
   )
 }
 
-function FeatureBlocksContentRecordComponent({
+export function FeatureBlocksContentRecordComponent({
   content
 }: {
   content: FeatureBlocksContentRecord
@@ -255,7 +100,7 @@ function FeatureBlocksContentRecordComponent({
   )
 }
 
-function FeatureContentRecordComponent({
+export function FeatureContentRecordComponent({
   content
 }: {
   content: FeatureContentRecord
@@ -289,7 +134,7 @@ function FeatureContentRecordComponent({
   )
 }
 
-function HeaderContentRecordComponent({
+export function HeaderContentRecordComponent({
   content
 }: {
   content: HeaderContentRecord
@@ -315,7 +160,7 @@ function HeaderContentRecordComponent({
   )
 }
 
-function HeroContentRecordComponent({
+export function HeroContentRecordComponent({
   content
 }: {
   content: HeroContentRecord
@@ -375,90 +220,133 @@ function HeroContentRecordComponent({
   )
 }
 
+// type Segment = {
+//   val: string
+//   active: boolean
+// }
+//
+// function getSegments(str: string, search: string): Segment[] {
+//   const index = str.indexOf(search)
+//   const length = search.length
+//   return [
+//     { val: index > 0 ? str.slice(0, index) + ' ' : '', active: false },
+//     { val: str.slice(index, index + length), active: true },
+//     { val: ' ' + str.slice(index + length), active: false }
+//   ]
+// }
+
 type Segment = {
   val: string
-  active: boolean
-}
-function getSegments(str: string, search: string): Segment[] {
-  const index = str.indexOf(search)
-  const length = search.length
-  return [
-    { val: index > 0 ? str.slice(0, index) + ' ' : '', active: false },
-    { val: str.slice(index, index + length), active: true },
-    { val: ' ' + str.slice(index + length), active: false }
-  ]
+  animated: boolean
 }
 
-function HomeHeroContentRecordComponent({
+function getSegments(str: string, iterations: HeroContentRecord[]): Segment[] {
+  console.log('content', JSON.stringify(iterations))
+
+  // TODO pickup here
+  const segments: { start: number; end: number; text: string }[] = []
+  iterations?.forEach((iteration, i) => {
+    const start = str?.indexOf(iteration.title as string) ?? 0
+    segments.push({
+      start: start,
+      end: start + (iteration.title as string).length,
+      text: iteration.title as string
+    })
+  })
+  console.log('segments', segments)
+  return [{ val: 'test', animated: false }]
+}
+
+export function HomeHeroTitle({
+  content,
+  isDark
+}: {
+  content: HomeHeroContentRecord
+  isDark: boolean
+}) {
+  console.log('content', JSON.stringify(content))
+
+  const segments: { start: number; end: number; text: string }[] = []
+  content.iterations?.forEach((iteration, i) => {
+    const start = content.title?.indexOf(iteration.title as string) ?? 0
+    segments.push({
+      start: start,
+      end: start + (iteration.title as string).length,
+      text: iteration.title as string
+    })
+  })
+  console.log('segments', segments)
+
+  /**
+   * content {
+   *   id: '122272899',
+   *   title: 'Connect. Verify. Transact with certainty.',
+   *   iterations: [
+   *     {
+   *       id: '122272895',
+   *       title: 'Connect.'
+   *     },
+   *     {
+   *       id: '122272896',
+   *       title: 'Verify.'
+   *     },
+   *     {
+   *       id: '122272897',
+   *       title: 'Transact'
+   *     },
+   *     {
+   *       id: '122272898',
+   *       title: 'certainty.'
+   *     }
+   *   ],
+   * }
+   */
+}
+
+function TitleSegment({
+  active,
+  index,
+  children
+}: {
+  active: number
+  index: number
+  children: string
+}) {
+  const [scope, animate] = useAnimate()
+
+  const activeColors = [
+    'var(--title-one)',
+    'var(--title-two)',
+    'var(--title-three)',
+    'var(--title-four)'
+  ]
+  const activeColor = activeColors[index]
+
+  useEffect(() => {
+    animate(
+      scope.current,
+      { color: active == index ? activeColor : 'var(--title-default)' },
+      { duration: 0.6 }
+    )
+  }, [active, activeColor, animate, index, scope])
+
+  return <motion.span ref={scope}>{children}</motion.span>
+}
+
+export function HomeHeroContentRecordComponent({
   content
 }: {
   content: HomeHeroContentRecord
 }) {
-  // TODO Upgrade to pull theme once thats done
-  const theme = 'system'
-  // const { theme } = useLoaderData<typeof loader>()
+  console.log('content', content)
   const [active, setActive] = useState<number>(0)
 
-  // We do this because framer doesn't animate values from classes
-  const currentTheme: 'dark' | 'light' = useMemo(() => {
-    // if (theme === 'dark' || theme === 'light') return theme
-    if (typeof window !== 'undefined' && theme === 'system') {
-      const prefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)'
-      ).matches
-      return prefersDark ? 'dark' : 'light'
-    }
-    return 'light'
-  }, [theme])
-
-  const hightlightTitleDefault = {
-    dark: 'rgba(255, 255, 255, 1)',
-    light: 'rgba(15, 23, 42, 1)'
-  }
-
-  const highlightTitle = [
-    'rgba(99, 102, 241, 1)',
-    'rgba(249, 115, 22, 1)',
-    'rgba(168, 85, 247, 1)',
-    'rgba(250, 204, 21, 1)'
-  ]
-
-  const hightlightBodyDefault = {
-    dark: 'rgba(2, 6, 23, 1)',
-    light: 'rgba(255, 255, 255, 1)'
-  }
-
-  const highlightBody = [
-    {
-      dark: 'rgba(49, 46, 129, 1)',
-      light: 'rgba(224, 231, 255, 1)'
-    },
-    {
-      dark: 'rgba(124, 45, 18, 1)',
-      light: 'rgba(255, 237, 213, 1)'
-    },
-    {
-      dark: 'rgba(88, 28, 135, 1)',
-      light: 'rgba(243, 232, 255, 1)'
-    },
-    {
-      dark: 'rgba(113, 63, 18, 1)',
-      light: 'rgba(254, 249, 195, 1)'
-    }
-  ]
-
   const titleSegments = useMemo(() => {
-    return getSegments(
-      content.title as string,
-      content.iterations[active].title as string
-    )
+    return getSegments(content.title as string, content.iterations)
   }, [active, content.iterations, content.title])
 
   const bodySegments = useMemo(() => {
-    return getSegments(
-      content.body as string,
-      content.iterations[active].body as string
-    )
+    return getSegments(content.body as string, content.iterations)
   }, [active, content.body, content.iterations])
 
   useEffect(() => {
@@ -488,86 +376,72 @@ function HomeHeroContentRecordComponent({
       </AnimatePresence>
       <div className='flex w-full flex-col space-y-8 lg:w-1/2'>
         <div className='font-display text-5xl font-bold'>
-          <AnimatePresence mode='wait'>
-            {titleSegments.map((segment, index) => {
-              if (segment.active) {
-                return (
-                  <motion.span
-                    key={segment.val + 'active' + index}
-                    initial={{ color: hightlightTitleDefault[currentTheme] }}
-                    animate={{
-                      color: highlightTitle[active],
-                      transition: { duration: 0.15 }
-                    }}
-                    exit={{ color: hightlightTitleDefault[currentTheme] }}
-                    className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 text-strong selection:bg-transparent'
-                  >
-                    {segment.val}
-                  </motion.span>
-                )
-              } else
-                return (
-                  <motion.span key={segment.val + 'inactive' + index}>
-                    {segment.val}
-                  </motion.span>
-                )
-            })}
-          </AnimatePresence>
+          <TitleSegment active={active} index={2}>
+            This is the first index
+          </TitleSegment>
+
+          {/*<AnimatePresence mode='wait'>*/}
+          {/*  {titleSegments.map((segment, index) => {*/}
+          {/*    if (segment.active) {*/}
+          {/*      return (*/}
+          {/*        <motion.span*/}
+          {/*          key={segment.val + 'active' + index}*/}
+          {/*          initial={{ color: hightlightTitleDefault[currentTheme] }}*/}
+          {/*          animate={{*/}
+          {/*            color: highlightTitle[active],*/}
+          {/*            transition: { duration: 0.15 }*/}
+          {/*          }}*/}
+          {/*          exit={{ color: hightlightTitleDefault[currentTheme] }}*/}
+          {/*          className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 text-strong selection:bg-transparent'*/}
+          {/*        >*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*    } else*/}
+          {/*      return (*/}
+          {/*        <motion.span key={segment.val + 'inactive' + index}>*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*  })}*/}
+          {/*</AnimatePresence>*/}
         </div>
         <div className='text-xl text-medium'>
-          <AnimatePresence mode='wait'>
-            {bodySegments.map((segment, index) => {
-              if (segment.active) {
-                return (
-                  <motion.span
-                    key={segment.val + 'active' + index}
-                    initial={{
-                      backgroundColor: hightlightBodyDefault[currentTheme]
-                    }}
-                    animate={{
-                      backgroundColor: highlightBody[active][currentTheme],
-                      transition: { duration: 0.15 }
-                    }}
-                    exit={{
-                      backgroundColor: hightlightBodyDefault[currentTheme]
-                    }}
-                    className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 selection:bg-transparent'
-                  >
-                    {segment.val}
-                  </motion.span>
-                )
-              } else
-                return (
-                  <motion.span key={segment.val + 'inactive' + index}>
-                    {segment.val}
-                  </motion.span>
-                )
-            })}
-          </AnimatePresence>
+          {/*<AnimatePresence mode='wait'>*/}
+          {/*  {bodySegments.map((segment, index) => {*/}
+          {/*    if (segment.active) {*/}
+          {/*      return (*/}
+          {/*        <motion.span*/}
+          {/*          key={segment.val + 'active' + index}*/}
+          {/*          initial={{*/}
+          {/*            backgroundColor: hightlightBodyDefault[currentTheme]*/}
+          {/*          }}*/}
+          {/*          animate={{*/}
+          {/*            backgroundColor: highlightBody[active][currentTheme],*/}
+          {/*            transition: { duration: 0.15 }*/}
+          {/*          }}*/}
+          {/*          exit={{*/}
+          {/*            backgroundColor: hightlightBodyDefault[currentTheme]*/}
+          {/*          }}*/}
+          {/*          className='-mx-1 -my-1 rounded-lg box-decoration-clone px-1 py-1 selection:bg-transparent'*/}
+          {/*        >*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*    } else*/}
+          {/*      return (*/}
+          {/*        <motion.span key={segment.val + 'inactive' + index}>*/}
+          {/*          {segment.val}*/}
+          {/*        </motion.span>*/}
+          {/*      )*/}
+          {/*  })}*/}
+          {/*</AnimatePresence>*/}
         </div>
         {content.button.length > 0 && (
-          <MarketingRouter shrink to={content.button[0]} />
+          <ContentRouter shrink to={content.button[0]} />
         )}
       </div>
       <AnimatePresence mode='wait'>
-        {/*<motion.img*/}
-        {/*  key={content.iterations[active]?.imageMobile?.url + 'imageMobile'}*/}
-        {/*  src={content.iterations[active]?.imageMobile?.url}*/}
-        {/*  initial={{ opacity: 0 }}*/}
-        {/*  animate={{ opacity: 1, transition: { duration: 0.15 } }}*/}
-        {/*  exit={{ opacity: 0 }}*/}
-        {/*  className='block w-full dark:hidden lg:hidden'*/}
-        {/*/>*/}
-        {/*<motion.img*/}
-        {/*  key={*/}
-        {/*    content.iterations[active]?.imageDarkMobile?.url + 'imageDarkMobile'*/}
-        {/*  }*/}
-        {/*  src={content.iterations[active]?.imageDarkMobile?.url}*/}
-        {/*  initial={{ opacity: 0 }}*/}
-        {/*  animate={{ opacity: 1, transition: { duration: 0.15 } }}*/}
-        {/*  exit={{ opacity: 0 }}*/}
-        {/*  className='hidden w-full dark:block lg:hidden'*/}
-        {/*/>*/}
         <motion.img
           alt='Hero image'
           key={content.iterations[active]?.image?.url + 'image'}
@@ -591,7 +465,11 @@ function HomeHeroContentRecordComponent({
   )
 }
 
-function ShowCaseDesktop({ content }: { content: ShowcaseContentRecord }) {
+export function ShowCaseDesktop({
+  content
+}: {
+  content: ShowcaseContentRecord
+}) {
   let [selectedIndex, setSelectedIndex] = useState(0)
 
   let onChange = useCallback(
@@ -675,7 +553,11 @@ function ShowCaseDesktop({ content }: { content: ShowcaseContentRecord }) {
   )
 }
 
-function ShowCaseMobile({ content }: { content: ShowcaseContentRecord }) {
+export function ShowCaseMobile({
+  content
+}: {
+  content: ShowcaseContentRecord
+}) {
   let [activeIndex, setActiveIndex] = useState(0)
   let slideContainerRef = useRef<HTMLDivElement>(null)
   let slideRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -779,7 +661,7 @@ function ShowCaseMobile({ content }: { content: ShowcaseContentRecord }) {
   )
 }
 
-function ShowcaseContentRecordComponent({
+export function ShowcaseContentRecordComponent({
   content
 }: {
   content: ShowcaseContentRecord
@@ -792,7 +674,7 @@ function ShowcaseContentRecordComponent({
   )
 }
 
-function StoryContentRecordComponent({
+export function StoryContentRecordComponent({
   content
 }: {
   content: StoryContentRecord
@@ -829,79 +711,29 @@ function StoryContentRecordComponent({
       </div>
       <div className='col-span-full w-full items-start lg:col-span-4'>
         <div className='text-2xl text-medium'>
-          <span className='prose prose-slate max-w-none dark:prose-invert prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-p:text-lg prose-p:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6 prose-p:lg:text-2xl'>
+          <Prose className='max-w-none prose-p:text-lg prose-p:font-medium prose-p:lg:text-2xl'>
             <StructuredText
               data={content.blurb?.value}
-              customNodeRules={[
-                renderNodeRule(isLink, ({ node, children }) => {
-                  // TODO handle target blank
-                  let { toUrl, internal } = sanitizeCMSLinks(node.url as string)
-                  if (internal) {
-                    return (
-                      <Router
-                        key={node.url}
-                        to={toUrl}
-                        className={'text-primary'}
-                      >
-                        {children}
-                      </Router>
-                    )
-                  }
-                  return (
-                    <AnchorRouter
-                      key={node.url}
-                      to={toUrl}
-                      className={'text-primary'}
-                    >
-                      {children}
-                    </AnchorRouter>
-                  )
-                })
-              ]}
+              customNodeRules={[renderLinkNodeRule]}
             />
-          </span>
+          </Prose>
         </div>
       </div>
       <div className='col-span-full lg:col-span-8'>
         <div className='text-2xl text-medium'>
-          <span className='prose prose-slate max-w-none dark:prose-invert prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-p:text-lg prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6 prose-p:lg:text-2xl'>
+          <Prose className='max-w-none prose-p:text-lg prose-p:lg:text-2xl'>
             <StructuredText
               data={content.bodyText?.value}
-              customNodeRules={[
-                renderNodeRule(isLink, ({ node, children }) => {
-                  // TODO handle target blank
-                  let { toUrl, internal } = sanitizeCMSLinks(node.url as string)
-                  if (internal) {
-                    return (
-                      <Router
-                        key={node.url}
-                        to={toUrl}
-                        className={'text-primary'}
-                      >
-                        {children}
-                      </Router>
-                    )
-                  }
-                  return (
-                    <AnchorRouter
-                      key={node.url}
-                      to={toUrl}
-                      className={'text-primary'}
-                    >
-                      {children}
-                    </AnchorRouter>
-                  )
-                })
-              ]}
+              customNodeRules={[renderLinkNodeRule]}
             />
-          </span>
+          </Prose>
         </div>
       </div>
     </div>
   )
 }
 
-function TeamContentRecordComponent({
+export function TeamContentRecordComponent({
   content
 }: {
   content: TeamContentRecord
@@ -975,7 +807,7 @@ function TeamContentRecordComponent({
   )
 }
 
-function TextContentRecordComponent({
+export function TextContentRecordComponent({
   content
 }: {
   content: TextContentRecord
@@ -992,47 +824,20 @@ function TextContentRecordComponent({
         <h2 className='font-display text-4xl font-medium'>{content.title}</h2>
       )}
       {content.bodyText && (
-        <span
+        <Prose
           className={clsx(
-            'prose prose-slate max-w-none dark:prose-invert ',
-            content.textStandard && '',
-            !content.textStandard && 'prose-p:text-lg prose-p:lg:text-2xl',
-            'prose-h1:font-display prose-h1:font-medium prose-h2:font-display prose-h2:font-medium prose-h3:font-display prose-h3:font-medium prose-h4:font-display prose-h4:font-medium prose-h5:font-display prose-h5:font-medium prose-h6:font-display prose-h6:font-medium prose-a:text-primary prose-a:no-underline prose-a:focus-visible:outline-2 prose-a:focus-visible:outline-focus prose-blockquote:border-0 prose-blockquote:p-0 prose-blockquote:text-3xl prose-blockquote:font-normal prose-blockquote:not-italic prose-code:font-normal prose-code:tracking-wider prose-pre:rounded-xl prose-pre:bg-slate-800 prose-pre:p-4 prose-pre:pb-6'
+            'max-w-none',
+            !content.textStandard && 'prose-p:text-lg prose-p:lg:text-2xl'
           )}
         >
           <StructuredText
             data={content.bodyText.value}
-            customNodeRules={[
-              renderNodeRule(isLink, ({ node, children }) => {
-                // TODO handle target blank
-                let { toUrl, internal } = sanitizeCMSLinks(node.url as string)
-                if (internal) {
-                  return (
-                    <Router
-                      key={node.url}
-                      to={toUrl}
-                      className={'text-primary'}
-                    >
-                      {children}
-                    </Router>
-                  )
-                }
-                return (
-                  <AnchorRouter
-                    key={node.url}
-                    to={toUrl}
-                    className={'text-primary'}
-                  >
-                    {children}
-                  </AnchorRouter>
-                )
-              })
-            ]}
+            customNodeRules={[renderLinkNodeRule]}
           />
-        </span>
+        </Prose>
       )}
       {content.button.length > 0 && (
-        <MarketingRouter shrink to={content.button[0]} />
+        <ContentRouter shrink to={content.button[0]} />
       )}
     </div>
   )

@@ -8,11 +8,11 @@ import {
   AnchorRouter,
   Icon,
   Layouts,
-  MarketingPageWithSections,
   OutlineButton,
   TextArea,
   TextField
 } from '~/components'
+import { MarketingPageWithSections } from '~/components/Content'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error } from '~/lib/error.server'
