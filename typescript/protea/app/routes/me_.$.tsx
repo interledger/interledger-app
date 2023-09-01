@@ -12,7 +12,8 @@ import clsx from 'clsx'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image } from 'react-datocms'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
+import type {
+  ApplicationProps} from '~/components';
 import {
   AnchorRouter,
   Button,
@@ -26,6 +27,7 @@ import {
   CardTitle,
   Chip,
   ChipColor,
+  DiscordIcon,
   FynbosIcon,
   Icon,
   Layouts,
@@ -207,6 +209,31 @@ export default function Page() {
                 <div className='flex space-x-3'>
                   <TwitterIcon />
                   <span>@{identity.identifier}</span>
+                </div>
+                <div className='flex space-x-3'>
+                  {identity.state == 'verified' && (
+                    <Chip color={ChipColor.green}>Verified</Chip>
+                  )}
+                  <Icon>navigate_next</Icon>
+                </div>
+              </CardLink>
+            ))}
+          </>
+        )}
+        {identities.discord && (
+          <>
+            <Label className='mt-4'>Discord</Label>
+            {identities.discord.map((identity) => (
+              <CardLink
+                key={identity.id}
+                className='items-center justify-between'
+                to={route('/me/identities/:identityId', {
+                  identityId: identity.signatureHash
+                })}
+              >
+                <div className='flex space-x-3'>
+                  <DiscordIcon />
+                  <span>{identity.identifier}</span>
                 </div>
                 <div className='flex space-x-3'>
                   {identity.state == 'verified' && (
