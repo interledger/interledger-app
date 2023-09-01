@@ -40,6 +40,7 @@ declare module "routes-gen" {
     "/settings/keys": Record<string, never>;
     "/waitlist": Record<string, never>;
     "/contact": Record<string, never>;
+    "/discord": Record<string, never>;
     "/support": Record<string, never>;
     "/": Record<string, never>;
     "/logout": Record<string, never>;
@@ -49,6 +50,7 @@ declare module "routes-gen" {
     "/about": Record<string, never>;
     "/legal": Record<string, never>;
     "/login": Record<string, never>;
+    "/slack": Record<string, never>;
     "/blog": Record<string, never>;
     "/docs": Record<string, never>;
     "/docs/:slug": { "slug": string };
@@ -97,6 +99,7 @@ declare module "routes-gen" {
       | ["/settings/keys"]
       | ["/waitlist"]
       | ["/contact"]
+      | ["/discord"]
       | ["/support"]
       | ["/"]
       | ["/logout"]
@@ -106,6 +109,7 @@ declare module "routes-gen" {
       | ["/about"]
       | ["/legal"]
       | ["/login"]
+      | ["/slack"]
       | ["/blog"]
       | ["/docs"]
       | ["/docs/:slug", RouteParams["/docs/:slug"]]
