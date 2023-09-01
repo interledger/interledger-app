@@ -13,6 +13,7 @@ declare module "routes-gen" {
     "/recovery/password": Record<string, never>;
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
+    "/connect/discord": Record<string, never>;
     "/connect/twitter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
@@ -72,6 +73,7 @@ declare module "routes-gen" {
       | ["/recovery/password"]
       | ["/settings/password"]
       | ["/waitlist/success"]
+      | ["/connect/discord"]
       | ["/connect/twitter"]
       | ["/contact/success"]
       | ["/login/challenge"]

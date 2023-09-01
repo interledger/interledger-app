@@ -99,6 +99,9 @@ type StartArgs struct {
 	TwitterClientSecret        string
 	TwitterRedirectURL         string
 	TwitterBearerToken         string
+	DiscordClientID            string
+	DiscordClientSecret        string
+	DiscordRedirectURL         string
 }
 
 func ParseStartArgs() (*StartArgs, error) {
@@ -271,5 +274,8 @@ func ParseStartArgs() (*StartArgs, error) {
 		TabapayBearerToken:         os.Getenv("TABAPAY_BEARER_TOKEN"),
 		TabapaySettlementAccountID: os.Getenv("TABAPAY_SETTLEMENT_ACCOUNT_ID"),
 		BasisTheoryApiKey:          os.Getenv("BASISTHEORY_API_KEY"),
+		DiscordClientID:            os.Getenv("DISCORD_CLIENT_ID"),
+		DiscordClientSecret:        os.Getenv("DISCORD_CLIENT_SECRET"),
+		DiscordRedirectURL:         os.Getenv("DISCORD_REDIRECT_URL"),
 	}, nil
 }

@@ -108,6 +108,7 @@ export default function Page() {
       <input form='identity' value={csrfToken} name='csrfToken' type='hidden' />
       {identity.platform == 'twitter' && <Twitter />}
       {identity.platform == 'domain' && <Domain />}
+      {identity.platform == 'discord' && <Discord />}
     </>
   )
 }
@@ -621,6 +622,110 @@ function Domain() {
           <span className='text-medium'>
             Are you sure you want to remove the domain card? This action cannot
             be undone.
+          </span>
+
+          <div className='flex w-full justify-end space-x-6 pt-2'>
+            <TextButton
+              type='button'
+              className='!text-medium'
+              onClick={() => setShowDialog(false)}
+            >
+              Cancel
+            </TextButton>
+            <TextButton
+              name='formName'
+              className='!text-error'
+              value='delete'
+              form='identity'
+              type='submit'
+            >
+              Remove card
+            </TextButton>
+          </div>
+        </CardContent>
+      </Dialog>
+    </>
+  )
+}
+
+function Discord() {
+  const { identity, publicName, walletInfo } = useLoaderData<typeof loader>()
+  const [showDialog, setShowDialog] = useState<boolean>(false)
+
+  const fetcher = useFetcher()
+  const _onChangeSwitch = useCallback<{
+    (formName: string, publish: boolean): void
+  }>(
+    (formName, publish) => {
+      fetcher.submit(
+        { formName, publish: publish.toString() },
+        { method: 'post' }
+      )
+    },
+    [fetcher]
+  )
+
+  return (
+    <>
+      <>
+        <Card>
+          <CardHeader>
+            <CardTitle>Discord</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <img
+              className='max-w-[310px]'
+              loading='lazy'
+              alt='Identity card'
+              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
+            />
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Verification date</span>
+              <span className='font-medium'>{identity.verifiedAt}</span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <Label className='mt-2'>Public profile</Label>
+          <CardLink
+            to={`/me/${walletInfo.formattedURL}`}
+            className='items-center justify-between bg-nav'
+          >
+            <div className='flex space-x-3'>
+              <Icon>contact_page</Icon>
+              <span>{publicName}</span>
+            </div>
+            <Icon>navigate_next</Icon>
+          </CardLink>
+          <CardContent>
+            <div className='flex items-center justify-between'>
+              <span className='text-sm'>
+                Show Discord handle on your Fynbos public profile
+              </span>
+              <Switch
+                checked={identity.public}
+                disabled={false}
+                onChange={() => _onChangeSwitch('publish', !identity.public)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+        <OutlineButton
+          className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
+          type='button'
+          onClick={() => setShowDialog(true)}
+        >
+          Delete
+        </OutlineButton>
+      </>
+      <Dialog open={showDialog} setOpen={setShowDialog}>
+        <CardHeader>
+          <h1 className='text-xl font-medium'>Remove Discord ID card</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            Are you sure you want to remove the Discord identity card? This
+            action cannot be undone.
           </span>
 
           <div className='flex w-full justify-end space-x-6 pt-2'>
