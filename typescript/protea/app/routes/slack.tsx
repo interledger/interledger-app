@@ -6,11 +6,11 @@ import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { getWalletRoute } from '~/lib/marketing.server'
+import { getSlackRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const { walletRoute, footer } = await getWalletRoute()
-  return json({ walletRoute, footer })
+  const { slackRoute, footer } = await getSlackRoute()
+  return json({ slackRoute, footer })
 }
 
 export const handle: ApplicationProps = {
@@ -23,17 +23,17 @@ export const handle: ApplicationProps = {
 
 export function meta({ data, params }: any) {
   return {
-    ...toRemixMeta(data.walletRoute.seoMeta),
-    'twitter:url': 'https://fynbos.app/wallet',
-    'og:url': 'https://fynbos.app/wallet'
+    ...toRemixMeta(data.slackRoute.seoMeta),
+    'twitter:url': 'https://fynbos.app/slack',
+    'og:url': 'https://fynbos.app/slack'
   }
 }
 
 export default function Page() {
-  const { walletRoute } = useLoaderData<typeof loader>()
+  const { slackRoute } = useLoaderData<typeof loader>()
   return (
     <>
-      {walletRoute?.body.map((section) => (
+      {slackRoute?.body.map((section) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}
