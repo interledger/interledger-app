@@ -248,7 +248,7 @@ function Domain() {
             </div>
             <div className='mt-4 flex w-full flex-col space-y-1'>
               <span className='text-medium'>Code</span>
-              <span className='font-medium'>{identity.signatureHash}</span>
+              <span className='font-medium break-all'>{identity.signatureHash}</span>
             </div>
           </CardContent>
         </Card>

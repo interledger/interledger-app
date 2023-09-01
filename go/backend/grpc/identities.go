@@ -127,7 +127,7 @@ func (s *rpcService) GetIdentityBySignatureHash(ctx context.Context, req *pb.Get
 	sigHashBase64 := req.GetSignatureHash()
 	sigHash, err := base64.URLEncoding.DecodeString(sigHashBase64)
 	if err != nil {
-		return nil, toGRPCError(err)
+		return nil, NotFoundError(fmt.Sprintf("invalid signature hash: %s", sigHashBase64))
 	}
 
 	id, err := s.b.Identities().GetBySignatureHash(ctx, sigHash)
