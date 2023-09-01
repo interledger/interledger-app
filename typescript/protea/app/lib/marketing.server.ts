@@ -4,6 +4,7 @@ import type {
   QueryAllBlogPostsArgs,
   QueryAllPeopleArgs,
   QueryBlogPostArgs,
+  QueryDocArgs,
   QueryLegalPageArgs
 } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
@@ -59,6 +60,107 @@ export const getAboutRoute = async () => {
     .catch((error) => {
       console.log(error)
       return { aboutRoute: null, footer: null }
+    })
+}
+
+export const getAllDocs = async () => {
+  return apolloClient
+    .query<{
+      allDocs: Query['allDocs']
+    }>({
+      query: gql`
+        query GetRouteContent {
+          allDocs {
+            id
+            slug
+            title
+            sections {
+              id
+              title
+              slug
+            }
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { allDocs: null }
+    })
+}
+
+export const getCurrentDocPage = async (variables: QueryDocArgs) => {
+  return apolloClient
+    .query<{ doc: Query['doc']; footer: Query['footer'] }, QueryDocArgs>({
+      query: gql`
+        ${RESPONSIVE_IMAGE}
+        ${FOOTER}
+        query GetCurrentDocQuery($filter: DocModelFilter) {
+          doc(filter: $filter) {
+            id
+            title
+            slug
+            _status
+            sections {
+              id
+              title
+              slug
+              content {
+                value
+                blocks {
+                  __typename
+                  ... on InlineImageRecord {
+                    id
+                    altText
+                    image {
+                      ...ResponsiveImage
+                    }
+                    imageMobile {
+                      ...ResponsiveImage
+                    }
+                    imageDark {
+                      ...ResponsiveImage
+                    }
+                    imageDarkMobile {
+                      ...ResponsiveImage
+                    }
+                  }
+                  ... on InlineVideoRecord {
+                    id
+                    video {
+                      provider
+                      providerUid
+                      thumbnailUrl
+                      title
+                      url
+                    }
+                  }
+                }
+              }
+            }
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+            title
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { doc: null, footer: null }
     })
 }
 
@@ -249,6 +351,7 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
       return { blogPost: null, footer: null }
     })
 }
+
 export const getPerson = async (variables: QueryAllPeopleArgs) => {
   return apolloClient
     .query<{ person: Query['person'] }, QueryAllPeopleArgs>({
@@ -320,6 +423,79 @@ export const getContactRoute = async () => {
     .catch((error) => {
       console.log(error)
       return { contactRoute: null, footer: null }
+    })
+}
+
+export const getDiscordRoute = async () => {
+  return apolloClient
+    .query<{
+      discordRoute: Query['discordRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetDiscordRouteContent {
+          discordRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { discordRoute: null, footer: null }
+    })
+}
+export const getSlackRoute = async () => {
+  return apolloClient
+    .query<{
+      slackRoute: Query['slackRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetSlackRouteContent {
+          slackRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { slackRoute: null, footer: null }
     })
 }
 

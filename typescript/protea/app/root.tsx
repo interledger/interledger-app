@@ -17,11 +17,12 @@ import {
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
-import { AnchorRouter, Error, Scaffold } from '~/components'
+import { AnchorRouter, Error } from '~/components'
+import { Scaffold } from '~/components/Scaffold'
+import { hasUserSession } from '~/lib/kratos.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import styles from '~/styles/app.css'
-import { hasUserSession } from './lib/kratos.server'
 
 const metaContent = {
   title: 'Fynbos',
