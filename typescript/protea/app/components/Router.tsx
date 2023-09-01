@@ -1,7 +1,7 @@
 import { Link } from '@remix-run/react'
 import type { RemixLinkProps } from '@remix-run/react/dist/components'
 import clsx from 'clsx'
-import type { ReactNode, RefAttributes } from 'react'
+import type { AnchorHTMLAttributes, ReactNode, RefAttributes } from 'react'
 import { forwardRef } from 'react'
 
 /**
@@ -14,16 +14,6 @@ import { forwardRef } from 'react'
  * - ActionButton -
  * - FloatingActionButton
  */
-
-/**
- * Potentially type to as a route instead of string so it can't be used without typing
- */
-
-type RouterProps = {
-  className?: string
-  to: string
-  children?: ReactNode
-}
 
 /**
  * Exposes the remix Link as a styled version.
@@ -52,7 +42,9 @@ export const Router = forwardRef<
 
 Router.displayName = 'Router'
 
-type ButtonRouterProps = {
+interface ButtonRouterProps
+  extends RemixLinkProps,
+    RefAttributes<HTMLAnchorElement> {
   className?: string
   to: string
   children?: ReactNode
@@ -88,6 +80,14 @@ export const ButtonRouter = forwardRef<any, ButtonRouterProps>(
 
 ButtonRouter.displayName = 'ButtonRouter'
 
+interface RouterProps
+  extends AnchorHTMLAttributes<HTMLAnchorElement>,
+    RefAttributes<HTMLAnchorElement> {
+  className?: string
+  to: string
+  children?: ReactNode
+}
+
 /**
  * Exposes a headless anchor tag that will route to `to`,
  * and can be wrapped around a styled button for accessibility.
@@ -97,7 +97,6 @@ ButtonRouter.displayName = 'ButtonRouter'
  * @param rest The props passed through to the anchor tag.
  */
 export const AnchorRouter = forwardRef<any, RouterProps>(
-  // TODO make extend <a>
   ({ className, children, to, ...rest }, ref) => {
     return (
       <a
@@ -107,6 +106,7 @@ export const AnchorRouter = forwardRef<any, RouterProps>(
           'rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus',
           className
         )}
+        rel='noreferrer'
         {...rest}
       >
         {children}
