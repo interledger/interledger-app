@@ -2763,8 +2763,6 @@ export type Query = {
   _allLegalPagesMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
   _allPeopleMeta: CollectionMetadata;
-  /** Returns meta information regarding a record collection */
-  _allSlackRoutesMeta: CollectionMetadata;
   /** Returns meta information regarding an assets collection */
   _allUploadsMeta: CollectionMetadata;
   /** Returns the single instance record */
@@ -2779,8 +2777,6 @@ export type Query = {
   allLegalPages: Array<LegalPageRecord>;
   /** Returns a collection of records */
   allPeople: Array<PersonRecord>;
-  /** Returns a collection of records */
-  allSlackRoutes: Array<SlackRouteRecord>;
   /** Returns a collection of assets */
   allUploads: Array<FileField>;
   /** Returns a specific record */
@@ -2803,7 +2799,7 @@ export type Query = {
   legalRoute?: Maybe<LegalRouteRecord>;
   /** Returns a specific record */
   person?: Maybe<PersonRecord>;
-  /** Returns a specific record */
+  /** Returns the single instance record */
   slackRoute?: Maybe<SlackRouteRecord>;
   /** Returns a specific asset */
   upload?: Maybe<FileField>;
@@ -2836,13 +2832,6 @@ export type Query_AllLegalPagesMetaArgs = {
 /** The query root for this schema */
 export type Query_AllPeopleMetaArgs = {
   filter?: InputMaybe<PersonModelFilter>;
-  locale?: InputMaybe<SiteLocale>;
-};
-
-
-/** The query root for this schema */
-export type Query_AllSlackRoutesMetaArgs = {
-  filter?: InputMaybe<SlackRouteModelFilter>;
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -2908,17 +2897,6 @@ export type QueryAllPeopleArgs = {
   first?: InputMaybe<Scalars['IntType']>;
   locale?: InputMaybe<SiteLocale>;
   orderBy?: InputMaybe<Array<InputMaybe<PersonModelOrderBy>>>;
-  skip?: InputMaybe<Scalars['IntType']>;
-};
-
-
-/** The query root for this schema */
-export type QueryAllSlackRoutesArgs = {
-  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
-  filter?: InputMaybe<SlackRouteModelFilter>;
-  first?: InputMaybe<Scalars['IntType']>;
-  locale?: InputMaybe<SiteLocale>;
-  orderBy?: InputMaybe<Array<InputMaybe<SlackRouteModelOrderBy>>>;
   skip?: InputMaybe<Scalars['IntType']>;
 };
 
@@ -3015,9 +2993,7 @@ export type QueryPersonArgs = {
 /** The query root for this schema */
 export type QuerySlackRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
-  filter?: InputMaybe<SlackRouteModelFilter>;
   locale?: InputMaybe<SiteLocale>;
-  orderBy?: InputMaybe<Array<InputMaybe<SlackRouteModelOrderBy>>>;
 };
 
 
@@ -3211,42 +3187,6 @@ export type SiteGlobalSeoArgs = {
 
 export enum SiteLocale {
   En = 'en'
-}
-
-export type SlackRouteModelFilter = {
-  AND?: InputMaybe<Array<InputMaybe<SlackRouteModelFilter>>>;
-  OR?: InputMaybe<Array<InputMaybe<SlackRouteModelFilter>>>;
-  _createdAt?: InputMaybe<CreatedAtFilter>;
-  _firstPublishedAt?: InputMaybe<PublishedAtFilter>;
-  _isValid?: InputMaybe<BooleanFilter>;
-  _publicationScheduledAt?: InputMaybe<PublishedAtFilter>;
-  _publishedAt?: InputMaybe<PublishedAtFilter>;
-  _status?: InputMaybe<StatusFilter>;
-  _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
-  _updatedAt?: InputMaybe<UpdatedAtFilter>;
-  id?: InputMaybe<ItemIdFilter>;
-  seoMeta?: InputMaybe<SeoFilter>;
-};
-
-export enum SlackRouteModelOrderBy {
-  CreatedAtAsc = '_createdAt_ASC',
-  CreatedAtDesc = '_createdAt_DESC',
-  FirstPublishedAtAsc = '_firstPublishedAt_ASC',
-  FirstPublishedAtDesc = '_firstPublishedAt_DESC',
-  IsValidAsc = '_isValid_ASC',
-  IsValidDesc = '_isValid_DESC',
-  PublicationScheduledAtAsc = '_publicationScheduledAt_ASC',
-  PublicationScheduledAtDesc = '_publicationScheduledAt_DESC',
-  PublishedAtAsc = '_publishedAt_ASC',
-  PublishedAtDesc = '_publishedAt_DESC',
-  StatusAsc = '_status_ASC',
-  StatusDesc = '_status_DESC',
-  UnpublishingScheduledAtAsc = '_unpublishingScheduledAt_ASC',
-  UnpublishingScheduledAtDesc = '_unpublishingScheduledAt_DESC',
-  UpdatedAtAsc = '_updatedAt_ASC',
-  UpdatedAtDesc = '_updatedAt_DESC',
-  IdAsc = 'id_ASC',
-  IdDesc = 'id_DESC'
 }
 
 /** Record of type Slack route (slack_route) */
