@@ -176,7 +176,7 @@ func identityToPB(identity *identities.Identity, walletURL string) *pb.Identity 
 	base64SignatureHash := base64.URLEncoding.EncodeToString(identity.SignatureHash)
 
 	var TxtRecord string
-	if identity.Platform == identities.PlatformDNS {
+	if identity.Platform == identities.PlatformDomain {
 		TxtRecord = fmt.Sprintf("_fynbos.%s=%s", identity.Identifier, base64SignatureHash)
 	}
 

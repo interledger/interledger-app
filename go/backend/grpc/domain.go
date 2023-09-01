@@ -10,10 +10,10 @@ import (
 	"strings"
 )
 
-func (s *rpcService) CreateDNSIdentity(
+func (s *rpcService) CreateDomainIdentity(
 	ctx context.Context,
-	request *backendv1.CreateDNSIdentityRequest,
-) (*backendv1.CreateDNSIdentityResponse, error) {
+	request *backendv1.CreateDomainIdentityRequest,
+) (*backendv1.CreateDomainIdentityResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -31,7 +31,7 @@ func (s *rpcService) CreateDNSIdentity(
 
 	identity, err := s.b.Identities().Add(ctx, identities.AddArgs{
 		WalletID:   wallet.ID,
-		Platform:   identities.PlatformDNS,
+		Platform:   identities.PlatformDomain,
 		Identifier: domain,
 	})
 	if err != nil {
@@ -41,7 +41,7 @@ func (s *rpcService) CreateDNSIdentity(
 		return nil, toGRPCError(err)
 	}
 
-	return &backendv1.CreateDNSIdentityResponse{
+	return &backendv1.CreateDomainIdentityResponse{
 		Id: identity.ID,
 	}, nil
 }

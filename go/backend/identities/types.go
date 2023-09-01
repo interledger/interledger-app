@@ -45,7 +45,7 @@ type Platform string
 
 const (
 	PlatformTwitter Platform = "twitter"
-	PlatformDNS     Platform = "domain"
+	PlatformDomain  Platform = "domain"
 )
 
 /*

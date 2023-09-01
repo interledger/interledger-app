@@ -16,30 +16,30 @@ import (
 	"time"
 )
 
-type dnsPlatform struct {
+type domainPlatform struct {
 	platform identities.Platform
 	b        Backends
 }
 
-func newDNSPlatform(b Backends, platform identities.Platform) *dnsPlatform {
-	return &dnsPlatform{
+func newDomainPlatform(b Backends, platform identities.Platform) *domainPlatform {
+	return &domainPlatform{
 		platform: platform,
 		b:        b,
 	}
 }
 
-func (dnsp *dnsPlatform) VerifyWorkflow() interface{} {
-	return DNSVerifyWorkflow
+func (dp *domainPlatform) VerifyWorkflow() interface{} {
+	return DomainVerifyWorkflow
 }
 
-func (dnsp *dnsPlatform) VerifyInstructions(ctx context.Context, args *VerifyInstructionsArgs) (string, error) {
+func (dp *domainPlatform) VerifyInstructions(ctx context.Context, args *VerifyInstructionsArgs) (string, error) {
 	return "", nil
 }
 
-func (dnsp *dnsPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
+func (dp *domainPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
 	sigHashBase64 := base64.URLEncoding.EncodeToString(args.SignatureHash)
 
-	img, err := dnsp.b.Images().GenerateDomainIdentity(ctx, args.WalletURL, args.Identifier)
+	img, err := dp.b.Images().GenerateDomainIdentity(ctx, args.WalletURL, args.Identifier)
 	if err != nil {
 		return err
 	}
@@ -68,8 +68,8 @@ func (dnsp *dnsPlatform) GenerateImages(ctx context.Context, args *GenerateImage
 	return nil
 }
 
-func (dnsp *dnsPlatform) GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error) {
-	walletKeys, err := dnsp.b.Keys().List(ctx, args.WalletID)
+func (dp *domainPlatform) GenerateSignedClaim(ctx context.Context, args *SignedClaimArgs) (*GeneratedSignedClaim, error) {
+	walletKeys, err := dp.b.Keys().List(ctx, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -87,14 +87,14 @@ func (dnsp *dnsPlatform) GenerateSignedClaim(ctx context.Context, args *SignedCl
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, "no custodial key found")
 	}
 
-	wallet, err := dnsp.b.Wallets().Get(ctx, args.WalletID)
+	wallet, err := dp.b.Wallets().Get(ctx, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	claim := identities.Claim{
 		Wallet:     wallet.AddressString(),
-		Type:       "dns",
+		Type:       string(identities.PlatformDomain),
 		Identifier: args.Identifier,
 		Kid:        signingKey.ID,
 		Ctime:      time.Now().Unix(),
@@ -106,7 +106,7 @@ func (dnsp *dnsPlatform) GenerateSignedClaim(ctx context.Context, args *SignedCl
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	signature, err := dnsp.b.Keys().Sign(ctx, signingKey.ID, args.WalletID, jsonClaim)
+	signature, err := dp.b.Keys().Sign(ctx, signingKey.ID, args.WalletID, jsonClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -122,8 +122,8 @@ func (dnsp *dnsPlatform) GenerateSignedClaim(ctx context.Context, args *SignedCl
 	}, nil
 }
 
-func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) {
-	var a *DNSActivity
+func DomainVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) {
+	var a *DomainActivity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
@@ -135,22 +135,22 @@ func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("DNSVerifyWorkflow started", "id", id, "proof", domain)
+	logger.Info("DomainVerifyWorkflow started", "id", id, "proof", domain)
 
-	err := workflow.ExecuteActivity(ctx, a.UpdateDNSIdentityState, id, identities.StatePending, "").Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.UpdateDomainIdentityState, id, identities.StatePending, "").Get(ctx, nil)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	var identity identities.Identity
-	err = workflow.ExecuteActivity(ctx, a.GetDNSIdentity, id).Get(ctx, &identity)
+	err = workflow.ExecuteActivity(ctx, a.GetDomainIdentity, id).Get(ctx, &identity)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.CheckTXTRecords, identity.Identifier, identity.SignatureHash).Get(ctx, nil)
 	if err != nil && errors.Is(err, identities.ErrNotFound) {
-		err = workflow.ExecuteActivity(ctx, a.UpdateDNSIdentityState, id, identities.StateUnverified, domain).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.UpdateDomainIdentityState, id, identities.StateUnverified, domain).Get(ctx, nil)
 		if err != nil {
 			return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 		}
@@ -161,7 +161,7 @@ func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) 
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateDNSIdentityState, id, identities.StateVerified, domain).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateDomainIdentityState, id, identities.StateVerified, domain).Get(ctx, nil)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -169,21 +169,21 @@ func DNSVerifyWorkflow(ctx workflow.Context, id, domain string) (string, error) 
 	return "", nil
 }
 
-type DNSActivityBackends interface {
+type DomainActivityBackends interface {
 	Identities() identities.Client
 }
 
-type DNSActivity struct {
-	b DNSActivityBackends
+type DomainActivity struct {
+	b DomainActivityBackends
 }
 
-func NewDNSActivity(b DNSActivityBackends) *DNSActivity {
-	return &DNSActivity{
+func NewDomainActivity(b DomainActivityBackends) *DomainActivity {
+	return &DomainActivity{
 		b: b,
 	}
 }
 
-func (a *DNSActivity) GetDNSIdentity(ctx context.Context, id string) (identities.Identity, error) {
+func (a *DomainActivity) GetDomainIdentity(ctx context.Context, id string) (identities.Identity, error) {
 	identity, err := a.b.Identities().Get(ctx, id)
 	if err != nil {
 		return identities.Identity{}, fmt.Errorf("%w %s", identities.ErrInternal, err)
@@ -192,7 +192,7 @@ func (a *DNSActivity) GetDNSIdentity(ctx context.Context, id string) (identities
 	return *identity, nil
 }
 
-func (a *DNSActivity) CheckTXTRecords(ctx context.Context, domain string, proof []byte) error {
+func (a *DomainActivity) CheckTXTRecords(ctx context.Context, domain string, proof []byte) error {
 	txtRecords, err := net.LookupTXT("_fynbos." + domain)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
@@ -212,7 +212,7 @@ func (a *DNSActivity) CheckTXTRecords(ctx context.Context, domain string, proof 
 	return fmt.Errorf("%w %s", identities.ErrNotFound, "no matching TXT record found")
 }
 
-func (a *DNSActivity) UpdateDNSIdentityState(ctx context.Context, id string, state identities.State, proof string) error {
+func (a *DomainActivity) UpdateDomainIdentityState(ctx context.Context, id string, state identities.State, proof string) error {
 	err := a.b.Identities().UpdateState(ctx, id, state, proof)
 	if err != nil {
 		return fmt.Errorf("%w %s", identities.ErrInternal, err)
