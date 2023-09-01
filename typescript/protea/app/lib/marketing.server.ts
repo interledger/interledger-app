@@ -426,6 +426,79 @@ export const getContactRoute = async () => {
     })
 }
 
+export const getDiscordRoute = async () => {
+  return apolloClient
+    .query<{
+      discordRoute: Query['discordRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetDiscordRouteContent {
+          discordRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { discordRoute: null, footer: null }
+    })
+}
+export const getSlackRoute = async () => {
+  return apolloClient
+    .query<{
+      slackRoute: Query['slackRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetSlackRouteContent {
+          slackRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { slackRoute: null, footer: null }
+    })
+}
+
 export const getLegalRoute = async () => {
   return apolloClient
     .query<{
