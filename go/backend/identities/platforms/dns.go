@@ -39,14 +39,27 @@ func (dnsp *dnsPlatform) VerifyInstructions(ctx context.Context, args *VerifyIns
 func (dnsp *dnsPlatform) GenerateImages(ctx context.Context, args *GenerateImagesArgs) error {
 	sigHashBase64 := base64.URLEncoding.EncodeToString(args.SignatureHash)
 
-	img, err := dnsp.b.Images().GenerateWebsiteIdentity(ctx, args.WalletURL, args.Identifier)
+	img, err := dnsp.b.Images().GenerateDomainIdentity(ctx, args.WalletURL, args.Identifier)
 	if err != nil {
 		return err
 	}
 	err = cdn.Put(ctx, cdn.PutArgs{
 		Data:        img,
 		ContentType: "image/png",
-		Path:        "identities/" + sigHashBase64 + "/website.png",
+		Path:        "identities/" + sigHashBase64 + "/domain.png",
+	})
+	if err != nil {
+		return err
+	}
+
+	imgOG, err := dp.b.Images().GenerateDomainIdentityOG(ctx, args.WalletURL, args.Identifier)
+	if err != nil {
+		return err
+	}
+	err = cdn.Put(ctx, cdn.PutArgs{
+		Data:        imgOG,
+		ContentType: "image/png",
+		Path:        "identities/" + sigHashBase64 + "/domain-og.png",
 	})
 	if err != nil {
 		return err
