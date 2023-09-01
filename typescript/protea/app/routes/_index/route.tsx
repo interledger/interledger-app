@@ -1,4 +1,4 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LinksFunction, LoaderArgs } from '@remix-run/node'
 import { defer } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
@@ -25,6 +25,7 @@ import {
   getWalletInfo
 } from '~/lib/wallet.server'
 import { AppPage } from './app'
+import styles from './home.css'
 import { MarketingPage } from './marketing'
 
 export enum KycStatus {
@@ -36,6 +37,10 @@ export enum KycStatus {
   InReview = 5,
   Level1 = 6,
   Level2 = 7
+}
+
+export const links: LinksFunction = () => {
+  return [{ rel: 'stylesheet', href: styles }]
 }
 
 export async function loader({ request }: LoaderArgs) {
