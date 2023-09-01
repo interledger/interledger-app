@@ -2156,6 +2156,10 @@ table "discord_connections" {
     null = false
     type = text
   }
+  column "global_name" {
+    null = false
+    type = text
+  }
   column "client_id" {
     null = false
     type = text

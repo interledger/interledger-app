@@ -36,7 +36,6 @@ type (
 	NewClientArgs struct {
 		ClientID      string
 		ClientSecret  string
-		BearerToken   string
 		RedirectURL   string
 		AuthEndpoint  string
 		TokenEndpoint string
@@ -58,7 +57,6 @@ func New(b Backends, args *NewClientArgs) *Client {
 		AuthEndpoint:  args.AuthEndpoint,
 		TokenEndpoint: args.TokenEndpoint,
 		ClientSecret:  args.ClientSecret,
-		BearerToken:   args.BearerToken,
 	})
 
 	return &Client{

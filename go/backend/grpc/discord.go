@@ -21,7 +21,7 @@ func (r *rpcService) CreateDiscordAuthURL(ctx context.Context, req *backend.Empt
 	}
 
 	url, err := r.b.Discord().CreateAuthURL(ctx, discord.CreateAuthURLArgs{
-		Scopes:   []string{"identity"},
+		Scopes:   []string{"identify", "guilds"},
 		WalletID: wallet.ID,
 	})
 	if err != nil {
