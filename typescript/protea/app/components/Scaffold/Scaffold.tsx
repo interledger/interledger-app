@@ -23,6 +23,7 @@ import {
   Router,
   SnackbarStage
 } from '~/components'
+import { DocsNavDrawer } from '~/components/Scaffold/Docs'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import {
   ConnectDomainStep,
@@ -200,6 +201,7 @@ export function Scaffold() {
           </NavDrawer.List>
         </NavDrawerRoot>
       )}
+      {layout === Layouts.Docs && <DocsNavDrawer />}
       <header
         className={clsx(
           'sticky top-0 z-40 flex w-full select-none items-center justify-start space-x-4 p-4',
@@ -209,7 +211,8 @@ export function Scaffold() {
             'mx-auto h-16 select-none bg-page sm:mt-[5.5rem] sm:max-w-[29rem]',
           layout === Layouts.Wallet &&
             'h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]',
-          layout === Layouts.Docs && 'h-[9.5rem] bg-page lg:pl-[15.75rem]'
+          layout === Layouts.Docs &&
+            'h-16 bg-page lg:mt-[5.5rem] lg:pl-[16.25rem]'
         )}
       >
         {layout === Layouts.Marketing && (
@@ -265,7 +268,7 @@ export function Scaffold() {
           </div>
         )}
         {layout !== Layouts.Marketing && (
-          <div className='mx-auto flex w-full items-center sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]'>
+          <div className='mx-auto flex w-full items-center sm:max-w-lg lg:max-w-3xl lg:px-4 xl:max-w-[59rem]'>
             {!scaffold.header.back && (
               <div className='lg:hidden'>
                 <IconButton
@@ -353,7 +356,7 @@ export function Scaffold() {
           layout === Layouts.Focus &&
             'mx-auto w-full gap-y-4 px-4 sm:max-w-[29rem] sm:px-0',
           layout === Layouts.Wallet && 'mb-32 w-full px-4 lg:pl-[16.25rem]',
-          layout === Layouts.Docs && 'w-full px-4 lg:pl-[16.25rem]'
+          layout === Layouts.Docs && 'mb-32 w-full px-4 lg:pl-[16.25rem]'
         )}
       >
         <Outlet />
@@ -365,9 +368,8 @@ export function Scaffold() {
             'mx-auto mb-8 flex max-w-[80rem] rounded-2xl bg-mk-footer',
           layout === Layouts.Focus &&
             'mx-auto flex w-full items-center gap-x-3 px-4 py-6 sm:max-w-[29rem] sm:px-0',
-          layout === Layouts.Wallet &&
-            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex',
-          layout === Layouts.Docs && 'z-50 flex w-56 items-center gap-x-3 px-4'
+          (layout === Layouts.Wallet || layout === Layouts.Docs) &&
+            'fixed bottom-0 z-50 hidden w-56 items-center gap-x-3 px-4 py-6 lg:flex'
         )}
       >
         {layout !== Layouts.Marketing && (
@@ -498,6 +500,41 @@ export function Scaffold() {
                   Privacy &amp; Terms
                 </Router>
               </footer>
+            </>
+          )}
+
+          {layout === Layouts.Docs && (
+            <>
+              <DocsNavDrawer onClick={() => setOpenNavModal(!openNavModal)} />
+              <NavDrawer.List>
+                {!isUser && (
+                  <div className='flex flex-col space-y-2'>
+                    <Router
+                      className='flex h-11 w-full items-center justify-center'
+                      to={route('/login')}
+                    >
+                      <span className='font-medium text-medium'>Log in</span>
+                    </Router>
+                    {isSignupGated && (
+                      <ButtonRouter className='h-11' to={route('/waitlist')}>
+                        Join the waitlist
+                      </ButtonRouter>
+                    )}
+                    {!isSignupGated && (
+                      <ButtonRouter className='h-11' to={route('/signup')}>
+                        Sign up
+                      </ButtonRouter>
+                    )}
+                  </div>
+                )}
+                {isUser && (
+                  <div className='flex flex-col space-y-2'>
+                    <ButtonRouter className='h-11' to={route('/')}>
+                      Go to app
+                    </ButtonRouter>
+                  </div>
+                )}
+              </NavDrawer.List>
             </>
           )}
           {layout === Layouts.Marketing && (
