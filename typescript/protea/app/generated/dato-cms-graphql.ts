@@ -298,6 +298,33 @@ export type DateFilter = {
   neq?: InputMaybe<Scalars['Date']>;
 };
 
+/** Record of type Discord route (discord_route) */
+export type DiscordRouteRecord = RecordInterface & {
+  __typename?: 'DiscordRouteRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body: Array<SectionRecord>;
+  id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
+};
+
+
+/** Record of type Discord route (discord_route) */
+export type DiscordRouteRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export type DocModelFilter = {
   AND?: InputMaybe<Array<InputMaybe<DocModelFilter>>>;
   OR?: InputMaybe<Array<InputMaybe<DocModelFilter>>>;
@@ -2736,6 +2763,8 @@ export type Query = {
   _allLegalPagesMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
   _allPeopleMeta: CollectionMetadata;
+  /** Returns meta information regarding a record collection */
+  _allSlackRoutesMeta: CollectionMetadata;
   /** Returns meta information regarding an assets collection */
   _allUploadsMeta: CollectionMetadata;
   /** Returns the single instance record */
@@ -2750,6 +2779,8 @@ export type Query = {
   allLegalPages: Array<LegalPageRecord>;
   /** Returns a collection of records */
   allPeople: Array<PersonRecord>;
+  /** Returns a collection of records */
+  allSlackRoutes: Array<SlackRouteRecord>;
   /** Returns a collection of assets */
   allUploads: Array<FileField>;
   /** Returns a specific record */
@@ -2758,6 +2789,8 @@ export type Query = {
   blogRoute?: Maybe<BlogRouteRecord>;
   /** Returns the single instance record */
   contactRoute?: Maybe<ContactRouteRecord>;
+  /** Returns the single instance record */
+  discordRoute?: Maybe<DiscordRouteRecord>;
   /** Returns a specific record */
   doc?: Maybe<DocRecord>;
   /** Returns the single instance record */
@@ -2770,6 +2803,8 @@ export type Query = {
   legalRoute?: Maybe<LegalRouteRecord>;
   /** Returns a specific record */
   person?: Maybe<PersonRecord>;
+  /** Returns a specific record */
+  slackRoute?: Maybe<SlackRouteRecord>;
   /** Returns a specific asset */
   upload?: Maybe<FileField>;
   /** Returns the single instance record */
@@ -2801,6 +2836,13 @@ export type Query_AllLegalPagesMetaArgs = {
 /** The query root for this schema */
 export type Query_AllPeopleMetaArgs = {
   filter?: InputMaybe<PersonModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type Query_AllSlackRoutesMetaArgs = {
+  filter?: InputMaybe<SlackRouteModelFilter>;
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -2871,6 +2913,17 @@ export type QueryAllPeopleArgs = {
 
 
 /** The query root for this schema */
+export type QueryAllSlackRoutesArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<SlackRouteModelFilter>;
+  first?: InputMaybe<Scalars['IntType']>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<SlackRouteModelOrderBy>>>;
+  skip?: InputMaybe<Scalars['IntType']>;
+};
+
+
+/** The query root for this schema */
 export type QueryAllUploadsArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   filter?: InputMaybe<UploadFilter>;
@@ -2899,6 +2952,13 @@ export type QueryBlogRouteArgs = {
 
 /** The query root for this schema */
 export type QueryContactRouteArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type QueryDiscordRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
@@ -2949,6 +3009,15 @@ export type QueryPersonArgs = {
   filter?: InputMaybe<PersonModelFilter>;
   locale?: InputMaybe<SiteLocale>;
   orderBy?: InputMaybe<Array<InputMaybe<PersonModelOrderBy>>>;
+};
+
+
+/** The query root for this schema */
+export type QuerySlackRouteArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<SlackRouteModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<SlackRouteModelOrderBy>>>;
 };
 
 
@@ -3143,6 +3212,69 @@ export type SiteGlobalSeoArgs = {
 export enum SiteLocale {
   En = 'en'
 }
+
+export type SlackRouteModelFilter = {
+  AND?: InputMaybe<Array<InputMaybe<SlackRouteModelFilter>>>;
+  OR?: InputMaybe<Array<InputMaybe<SlackRouteModelFilter>>>;
+  _createdAt?: InputMaybe<CreatedAtFilter>;
+  _firstPublishedAt?: InputMaybe<PublishedAtFilter>;
+  _isValid?: InputMaybe<BooleanFilter>;
+  _publicationScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _publishedAt?: InputMaybe<PublishedAtFilter>;
+  _status?: InputMaybe<StatusFilter>;
+  _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _updatedAt?: InputMaybe<UpdatedAtFilter>;
+  id?: InputMaybe<ItemIdFilter>;
+  seoMeta?: InputMaybe<SeoFilter>;
+};
+
+export enum SlackRouteModelOrderBy {
+  CreatedAtAsc = '_createdAt_ASC',
+  CreatedAtDesc = '_createdAt_DESC',
+  FirstPublishedAtAsc = '_firstPublishedAt_ASC',
+  FirstPublishedAtDesc = '_firstPublishedAt_DESC',
+  IsValidAsc = '_isValid_ASC',
+  IsValidDesc = '_isValid_DESC',
+  PublicationScheduledAtAsc = '_publicationScheduledAt_ASC',
+  PublicationScheduledAtDesc = '_publicationScheduledAt_DESC',
+  PublishedAtAsc = '_publishedAt_ASC',
+  PublishedAtDesc = '_publishedAt_DESC',
+  StatusAsc = '_status_ASC',
+  StatusDesc = '_status_DESC',
+  UnpublishingScheduledAtAsc = '_unpublishingScheduledAt_ASC',
+  UnpublishingScheduledAtDesc = '_unpublishingScheduledAt_DESC',
+  UpdatedAtAsc = '_updatedAt_ASC',
+  UpdatedAtDesc = '_updatedAt_DESC',
+  IdAsc = 'id_ASC',
+  IdDesc = 'id_DESC'
+}
+
+/** Record of type Slack route (slack_route) */
+export type SlackRouteRecord = RecordInterface & {
+  __typename?: 'SlackRouteRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body: Array<SectionRecord>;
+  id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
+};
+
+
+/** Record of type Slack route (slack_route) */
+export type SlackRouteRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
 
 /** Specifies how to filter Slug fields */
 export type SlugFilter = {
