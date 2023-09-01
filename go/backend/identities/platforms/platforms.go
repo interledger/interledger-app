@@ -43,8 +43,8 @@ func Get(b Backends, platform identities.Platform) (Platform, error) {
 	switch platform {
 	case identities.PlatformTwitter:
 		return newTwitter(b, platform), nil
-	case identities.PlatformDNS:
-		return newDNSPlatform(b, platform), nil
+	case identities.PlatformDomain:
+		return newDomainPlatform(b, platform), nil
 	}
 
 	return nil, fmt.Errorf("unknown platform: %s", platform)

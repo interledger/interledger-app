@@ -2280,18 +2280,18 @@ export interface GetPaymentAddressResponse {
     canSendToAddress: boolean;
 }
 /**
- * @generated from protobuf message backend.v1.CreateDNSIdentityRequest
+ * @generated from protobuf message backend.v1.CreateDomainIdentityRequest
  */
-export interface CreateDNSIdentityRequest {
+export interface CreateDomainIdentityRequest {
     /**
      * @generated from protobuf field: string url = 1;
      */
     url: string;
 }
 /**
- * @generated from protobuf message backend.v1.CreateDNSIdentityResponse
+ * @generated from protobuf message backend.v1.CreateDomainIdentityResponse
  */
-export interface CreateDNSIdentityResponse {
+export interface CreateDomainIdentityResponse {
     /**
      * @generated from protobuf field: string id = 1;
      */
@@ -10188,20 +10188,20 @@ class GetPaymentAddressResponse$Type extends MessageType<GetPaymentAddressRespon
  */
 export const GetPaymentAddressResponse = new GetPaymentAddressResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CreateDNSIdentityRequest$Type extends MessageType<CreateDNSIdentityRequest> {
+class CreateDomainIdentityRequest$Type extends MessageType<CreateDomainIdentityRequest> {
     constructor() {
-        super("backend.v1.CreateDNSIdentityRequest", [
+        super("backend.v1.CreateDomainIdentityRequest", [
             { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CreateDNSIdentityRequest>): CreateDNSIdentityRequest {
+    create(value?: PartialMessage<CreateDomainIdentityRequest>): CreateDomainIdentityRequest {
         const message = { url: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CreateDNSIdentityRequest>(this, message, value);
+            reflectionMergePartial<CreateDomainIdentityRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDNSIdentityRequest): CreateDNSIdentityRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDomainIdentityRequest): CreateDomainIdentityRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -10220,7 +10220,7 @@ class CreateDNSIdentityRequest$Type extends MessageType<CreateDNSIdentityRequest
         }
         return message;
     }
-    internalBinaryWrite(message: CreateDNSIdentityRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: CreateDomainIdentityRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string url = 1; */
         if (message.url !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.url);
@@ -10231,24 +10231,24 @@ class CreateDNSIdentityRequest$Type extends MessageType<CreateDNSIdentityRequest
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.CreateDNSIdentityRequest
+ * @generated MessageType for protobuf message backend.v1.CreateDomainIdentityRequest
  */
-export const CreateDNSIdentityRequest = new CreateDNSIdentityRequest$Type();
+export const CreateDomainIdentityRequest = new CreateDomainIdentityRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CreateDNSIdentityResponse$Type extends MessageType<CreateDNSIdentityResponse> {
+class CreateDomainIdentityResponse$Type extends MessageType<CreateDomainIdentityResponse> {
     constructor() {
-        super("backend.v1.CreateDNSIdentityResponse", [
+        super("backend.v1.CreateDomainIdentityResponse", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CreateDNSIdentityResponse>): CreateDNSIdentityResponse {
+    create(value?: PartialMessage<CreateDomainIdentityResponse>): CreateDomainIdentityResponse {
         const message = { id: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CreateDNSIdentityResponse>(this, message, value);
+            reflectionMergePartial<CreateDomainIdentityResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDNSIdentityResponse): CreateDNSIdentityResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDomainIdentityResponse): CreateDomainIdentityResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -10267,7 +10267,7 @@ class CreateDNSIdentityResponse$Type extends MessageType<CreateDNSIdentityRespon
         }
         return message;
     }
-    internalBinaryWrite(message: CreateDNSIdentityResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: CreateDomainIdentityResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
@@ -10278,9 +10278,9 @@ class CreateDNSIdentityResponse$Type extends MessageType<CreateDNSIdentityRespon
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.CreateDNSIdentityResponse
+ * @generated MessageType for protobuf message backend.v1.CreateDomainIdentityResponse
  */
-export const CreateDNSIdentityResponse = new CreateDNSIdentityResponse$Type();
+export const CreateDomainIdentityResponse = new CreateDomainIdentityResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
     constructor() {
@@ -10414,7 +10414,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListFeatures", options: {}, I: Empty, O: Features },
     { name: "CreateTwitterAuthURL", options: {}, I: Empty, O: CreateTwitterAuthURLResponse },
     { name: "TwitterCallback", options: {}, I: TwitterCallbackRequest, O: TwitterCallbackResponse },
-    { name: "CreateDNSIdentity", options: {}, I: CreateDNSIdentityRequest, O: CreateDNSIdentityResponse },
+    { name: "CreateDomainIdentity", options: {}, I: CreateDomainIdentityRequest, O: CreateDomainIdentityResponse },
     { name: "GetPaymentAddress", options: {}, I: GetPaymentAddressRequest, O: GetPaymentAddressResponse },
     { name: "CreatePayment", options: {}, I: CreatePaymentRequest, O: Payment },
     { name: "UpdatePayment", options: {}, I: UpdatePaymentRequest, O: Payment },

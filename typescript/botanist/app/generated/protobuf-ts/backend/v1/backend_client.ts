@@ -11,8 +11,8 @@ import type { Payment } from "./backend";
 import type { CreatePaymentRequest } from "./backend";
 import type { GetPaymentAddressResponse } from "./backend";
 import type { GetPaymentAddressRequest } from "./backend";
-import type { CreateDNSIdentityResponse } from "./backend";
-import type { CreateDNSIdentityRequest } from "./backend";
+import type { CreateDomainIdentityResponse } from "./backend";
+import type { CreateDomainIdentityRequest } from "./backend";
 import type { TwitterCallbackResponse } from "./backend";
 import type { TwitterCallbackRequest } from "./backend";
 import type { CreateTwitterAuthURLResponse } from "./backend";
@@ -583,9 +583,9 @@ export interface IBackendServiceClient {
     /**
      * DNS Identities
      *
-     * @generated from protobuf rpc: CreateDNSIdentity(backend.v1.CreateDNSIdentityRequest) returns (backend.v1.CreateDNSIdentityResponse);
+     * @generated from protobuf rpc: CreateDomainIdentity(backend.v1.CreateDomainIdentityRequest) returns (backend.v1.CreateDomainIdentityResponse);
      */
-    createDNSIdentity(input: CreateDNSIdentityRequest, options?: RpcOptions): UnaryCall<CreateDNSIdentityRequest, CreateDNSIdentityResponse>;
+    createDomainIdentity(input: CreateDomainIdentityRequest, options?: RpcOptions): UnaryCall<CreateDomainIdentityRequest, CreateDomainIdentityResponse>;
     /**
      * Payments
      *
@@ -1113,11 +1113,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     /**
      * DNS Identities
      *
-     * @generated from protobuf rpc: CreateDNSIdentity(backend.v1.CreateDNSIdentityRequest) returns (backend.v1.CreateDNSIdentityResponse);
+     * @generated from protobuf rpc: CreateDomainIdentity(backend.v1.CreateDomainIdentityRequest) returns (backend.v1.CreateDomainIdentityResponse);
      */
-    createDNSIdentity(input: CreateDNSIdentityRequest, options?: RpcOptions): UnaryCall<CreateDNSIdentityRequest, CreateDNSIdentityResponse> {
+    createDomainIdentity(input: CreateDomainIdentityRequest, options?: RpcOptions): UnaryCall<CreateDomainIdentityRequest, CreateDomainIdentityResponse> {
         const method = this.methods[64], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CreateDNSIdentityRequest, CreateDNSIdentityResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<CreateDomainIdentityRequest, CreateDomainIdentityResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * Payments

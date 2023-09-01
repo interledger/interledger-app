@@ -81,7 +81,7 @@ export async function action({ request }: ActionArgs) {
   const domainName = form.get('domainName') as string
 
   const response = await grpcClient
-    .createDNSIdentity(
+    .createDomainIdentity(
       {
         url: domainName
       },
