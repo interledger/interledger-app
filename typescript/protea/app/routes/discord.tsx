@@ -6,11 +6,11 @@ import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { getAboutRoute } from '~/lib/marketing.server'
+import { getDiscordRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
-  const { aboutRoute, footer } = await getAboutRoute()
-  return json({ aboutRoute, footer })
+  const { discordRoute, footer } = await getDiscordRoute()
+  return json({ discordRoute, footer })
 }
 
 export const handle: ApplicationProps = {
@@ -23,17 +23,17 @@ export const handle: ApplicationProps = {
 
 export function meta({ data, params }: any) {
   return {
-    ...toRemixMeta(data.aboutRoute.seoMeta),
-    'twitter:url': 'https://fynbos.app/about',
-    'og:url': 'https://fynbos.app/about'
+    ...toRemixMeta(data.discordRoute.seoMeta),
+    'twitter:url': 'https://fynbos.app/discord',
+    'og:url': 'https://fynbos.app/discord'
   }
 }
 
 export default function Page() {
-  const { aboutRoute } = useLoaderData<typeof loader>()
+  const { discordRoute } = useLoaderData<typeof loader>()
   return (
     <>
-      {aboutRoute?.body.map((section) => (
+      {discordRoute?.body.map((section) => (
         <MarketingPageWithSections
           key={section.id}
           section={section as SectionRecord}
