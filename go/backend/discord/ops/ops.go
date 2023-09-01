@@ -58,8 +58,8 @@ func CreateConnection(ctx context.Context, b Backends, args discord.CreateConnec
 
 	var connection discord.Connection
 	query := `
-		INSERT INTO discord_connections (user_id, wallet_id, access_token, refresh_token, token_type, scopes, username, expiry, client_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO discord_connections (user_id, wallet_id, access_token, refresh_token, token_type, scopes, username, expiry, client_id, global_name)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		ON CONFLICT (user_id, wallet_id) 
 		DO UPDATE SET 
 			access_token = EXCLUDED.access_token,
@@ -67,12 +67,13 @@ func CreateConnection(ctx context.Context, b Backends, args discord.CreateConnec
 			token_type = EXCLUDED.token_type,
 			scopes = EXCLUDED.scopes,
 			username = EXCLUDED.username,
+			global_name = EXCLUDED.global_name,
 			expiry = EXCLUDED.expiry,
 			updated_at = NOW()
 		RETURNING *;
 	`
 	err = b.DB().GetContext(ctx, &connection, query,
-		user.ID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, pq.Array(authorization.Scopes), user.Username, token.Expiry, authorization.ClientID)
+		user.ID, authorization.WalletID, token.AccessToken, token.RefreshToken, token.TokenType, pq.Array(authorization.Scopes), user.Username, token.Expiry, authorization.ClientID, user.GlobalName)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", discord.ErrInternal, err)
 	}

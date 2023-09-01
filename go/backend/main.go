@@ -225,7 +225,7 @@ func start(args *cli.StartArgs) {
 		ClientSecret:  args.DiscordClientSecret,
 		AuthEndpoint:  "https://discord.com/oauth2/authorize",
 		TokenEndpoint: "https://discord.com/api/oauth2/token",
-		RedirectURL:   args.DiscordClientSecret,
+		RedirectURL:   args.DiscordRedirectURL,
 	})
 
 	b.auth = authorisation_client.New(b)

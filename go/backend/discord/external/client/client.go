@@ -23,7 +23,6 @@ type (
 	NewClientArgs struct {
 		ClientID      string
 		ClientSecret  string
-		BearerToken   string
 		AuthEndpoint  string
 		TokenEndpoint string
 		RedirectURL   string
@@ -43,7 +42,6 @@ func New(args *NewClientArgs) *client {
 
 	return &client{
 		oauthConfig: oauthConfig,
-		bearerToken: args.BearerToken,
 		web:         otelhttp.DefaultClient,
 	}
 }
@@ -60,7 +58,7 @@ func (c *client) CreateToken(ctx context.Context, args *external.CreateTokenArgs
 
 func (c *client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*discord.User, error) {
 	reqCtx := context.WithValue(ctx, oauth2.HTTPClient, c.web)
-	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, "https://discord.com/oauth2/@me", nil)
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, "https://discord.com/api/oauth2/@me", nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not create request: %v", err)
 	}
@@ -73,11 +71,12 @@ func (c *client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*d
 	var jsonBody map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&jsonBody)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode twitter user: %v", err)
+		return nil, fmt.Errorf("could not decode discord user: %v", err)
 	}
 
 	return &discord.User{
-		ID:       jsonBody["data"].(map[string]interface{})["id"].(string),
-		Username: jsonBody["data"].(map[string]interface{})["username"].(string),
+		ID:         jsonBody["user"].(map[string]interface{})["id"].(string),
+		Username:   jsonBody["user"].(map[string]interface{})["username"].(string),
+		GlobalName: jsonBody["user"].(map[string]interface{})["global_name"].(string),
 	}, nil
 }
