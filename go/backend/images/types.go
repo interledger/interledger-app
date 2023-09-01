@@ -8,6 +8,7 @@ import (
 type Assets struct {
 	Twitter      image.Image
 	TwitterOG    image.Image
+	Domain       image.Image
 	InterMedium  *truetype.Font
 	InterRegular *truetype.Font
 }

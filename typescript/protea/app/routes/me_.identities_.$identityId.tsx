@@ -49,13 +49,13 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
         return {
           title: `@${data.identity.identifier} has verified they are a real person`,
           description:
-            'Fynbos has verified that this person is real and this is the public proof of their twitter identity.'
+            'Fynbos has verified that this person is real and this is the public proof of their Twitter identity.'
         }
       case 'domain':
         return {
           title: `${data.identity.identifier} is connected to a real person`,
           description:
-            'Fynbos has verified that this domain connected to a real person and this is the public proof of their domain identity.'
+            'Fynbos has verified that this domain is connected to a real person and this is the public proof of their domain identity.'
         }
       default:
         return {}
@@ -68,10 +68,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     'og:title': metaContent.title,
     'og:url': 'https://fynbos.app/me/identities/' + data.identity.signatureHash,
     'og:description': metaContent.description,
-    'og:image': `https://cdn.fynbos.app/identities/${data.identity.signatureHash}/twitter-og.png`,
+    'og:image': `https://cdn.fynbos.app/identities/${data.identity.signatureHash}/${data.identity.platform}-og.png`,
     'twitter:url':
       'https://fynbos.app/me/identities/' + data.identity.signatureHash,
-    'twitter:image': `https://cdn.fynbos.app/identities/${data.identity.signatureHash}/twitter-og.png`,
+    'twitter:image': `https://cdn.fynbos.app/identities/${data.identity.signatureHash}/${data.identity.platform}-og.png`,
     'twitter:title': metaContent.title,
     'twitter:description': metaContent.description
   }
@@ -235,6 +235,12 @@ function Domain() {
                 {identity.walletUrlWithoutProtocol}{' '}
               </AnchorRouter>
               who Fynbos have verified is a real person.
+              <img
+                className='mt-4 max-w-[310px]'
+                loading='lazy'
+                alt='Identity card'
+                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
+              />
             </p>
             <div className='mt-4 flex w-full flex-col space-y-1'>
               <span className='text-medium'>Hostname</span>

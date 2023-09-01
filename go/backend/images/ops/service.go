@@ -64,12 +64,12 @@ func GenerateTwitterOGImage(_ context.Context, a images.Assets, _ Backends, wall
 	return buf.Bytes(), nil
 }
 
-func GenerateWebsiteImage(_ context.Context, a images.Assets, _ Backends, walletUrl, identifier string) ([]byte, error) {
+func GenerateDomainImage(_ context.Context, a images.Assets, _ Backends, walletUrl, identifier string) ([]byte, error) {
 	var W = 620
 	var H = 400
 	dc := gg.NewContext(W, H)
 
-	dc.DrawImage(a.Twitter, 0, 0)
+	dc.DrawImage(a.Domain, 0, 0)
 	dc.SetHexColor("#0F172A")
 	dc.SetFontFace(truetype.NewFace(a.InterMedium, &truetype.Options{
 		Size: 40,

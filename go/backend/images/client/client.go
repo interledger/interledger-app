@@ -41,8 +41,8 @@ func (c client) GenerateTwitterIdentityOG(ctx context.Context, walletUrl, identi
 	return ops.GenerateTwitterOGImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
-func (c client) GenerateWebsiteIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
-	return ops.GenerateWebsiteImage(ctx, c.a, c.b, walletUrl, identifier)
+func (c client) GenerateDomainIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	return ops.GenerateDomainImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
 func loadAssets() (*images.Assets, error) {
@@ -51,6 +51,10 @@ func loadAssets() (*images.Assets, error) {
 		return nil, err
 	}
 	twitterImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/og-template.png")
+	if err != nil {
+		return nil, err
+	}
+	domainImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/domain/template.png")
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +72,7 @@ func loadAssets() (*images.Assets, error) {
 	return &images.Assets{
 		Twitter:      twitterImg,
 		TwitterOG:    twitterImgOG,
+		Domain:       domainImg,
 		InterMedium:  fontMedium,
 		InterRegular: fontRegular,
 	}, nil
