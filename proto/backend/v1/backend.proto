@@ -155,8 +155,8 @@ service BackendService {
   rpc CreateTwitterAuthURL(Empty) returns (CreateTwitterAuthURLResponse);
   rpc TwitterCallback(TwitterCallbackRequest) returns (TwitterCallbackResponse);
 
-  // DNS Identities
-  rpc CreateDNSIdentity(CreateDNSIdentityRequest) returns (CreateDNSIdentityResponse);
+  // Domain Identities
+  rpc CreateDomainIdentity(CreateDomainIdentityRequest) returns (CreateDomainIdentityResponse);
 
   // Payments
   rpc GetPaymentAddress(GetPaymentAddressRequest) returns (GetPaymentAddressResponse);
@@ -805,11 +805,11 @@ message GetPaymentAddressResponse {
   bool canSendToAddress = 4;
 }
 
-message CreateDNSIdentityRequest {
+message CreateDomainIdentityRequest {
   string url = 1;
 }
 
-message CreateDNSIdentityResponse {
+message CreateDomainIdentityResponse {
   string id = 1;
 }
 
