@@ -193,30 +193,59 @@ export default function Page() {
           <span className='text-medium'>{walletAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
         </CardButton>
-        {identities.length > 0 && <Label className='mt-4'>Twitter</Label>}
-        {identities.map((identity) => (
-          <CardLink
-            key={identity.id}
-            className='items-center justify-between'
-            to={route('/me/identities/:identityId', {
-              identityId: identity.signatureHash
-            })}
-          >
-            <div className='flex space-x-3'>
-              <TwitterIcon />
-              <span>@{identity.identifier}</span>
-            </div>
-            <div className='flex space-x-3'>
-              {identity.state == 'verified' && (
-                <Chip color={ChipColor.green}>Verified</Chip>
-              )}
-              <Icon>navigate_next</Icon>
-            </div>
-          </CardLink>
-        ))}
+        {identities.twitter && (
+          <>
+            <Label className='mt-4'>Twitter</Label>
+            {identities.twitter.map((identity) => (
+              <CardLink
+                key={identity.id}
+                className='items-center justify-between'
+                to={route('/me/identities/:identityId', {
+                  identityId: identity.signatureHash
+                })}
+              >
+                <div className='flex space-x-3'>
+                  <TwitterIcon />
+                  <span>@{identity.identifier}</span>
+                </div>
+                <div className='flex space-x-3'>
+                  {identity.state == 'verified' && (
+                    <Chip color={ChipColor.green}>Verified</Chip>
+                  )}
+                  <Icon>navigate_next</Icon>
+                </div>
+              </CardLink>
+            ))}
+          </>
+        )}
+        {identities.domain && (
+          <>
+            <Label className='mt-4'>Domain</Label>
+            {identities.domain.map((identity) => (
+              <CardLink
+                key={identity.id}
+                className='items-center justify-between'
+                to={route('/me/identities/:identityId', {
+                  identityId: identity.signatureHash
+                })}
+              >
+                <div className='flex space-x-3'>
+                  <Icon>captive_portal</Icon>
+                  <span>{identity.identifier}</span>
+                </div>
+                <div className='flex space-x-3'>
+                  {identity.state == 'verified' && (
+                    <Chip color={ChipColor.green}>Verified</Chip>
+                  )}
+                  <Icon>navigate_next</Icon>
+                </div>
+              </CardLink>
+            ))}
+          </>
+        )}
         {paymentPointerParam.includes('fynbos.me/adrian') && (
-          <CardContent>
-            <Label>LinkedIn</Label>
+          <>
+            <Label className='mt-4'>LinkedIn</Label>
             <AnchorRouter
               className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
               to='https://www.linkedin.com/in/adrianhopebailie/'
@@ -229,11 +258,11 @@ export default function Page() {
                 <Icon>navigate_next</Icon>
               </div>
             </AnchorRouter>
-          </CardContent>
+          </>
         )}
         {paymentPointerParam.includes('fynbos.me/matt') && (
-          <CardContent>
-            <Label>LinkedIn</Label>
+          <>
+            <Label className='mt-4'>LinkedIn</Label>
             <AnchorRouter
               className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
               to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
@@ -246,7 +275,7 @@ export default function Page() {
                 <Icon>navigate_next</Icon>
               </div>
             </AnchorRouter>
-          </CardContent>
+          </>
         )}
       </Card>
       <Form
@@ -318,7 +347,7 @@ export function ErrorBoundary() {
                 This is not yet a registered wallet address.
               </p>
             </CardContent>
-            <div className='m-2 mt-0 flex items-center justify-between rounded-xl bg-nav p-3'>
+            <div className='flex items-center justify-between rounded-xl bg-nav p-3'>
               {params['*'] && (params['*'] as string)}
               <Chip color={ChipColor.green}>Available</Chip>
             </div>

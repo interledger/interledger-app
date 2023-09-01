@@ -34,6 +34,36 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// GenerateDomainIdentity mocks base method.
+func (m *MockClient) GenerateDomainIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateDomainIdentity", ctx, walletUrl, identifier)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateDomainIdentity indicates an expected call of GenerateDomainIdentity.
+func (mr *MockClientMockRecorder) GenerateDomainIdentity(ctx, walletUrl, identifier interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDomainIdentity", reflect.TypeOf((*MockClient)(nil).GenerateDomainIdentity), ctx, walletUrl, identifier)
+}
+
+// GenerateDomainIdentityOG mocks base method.
+func (m *MockClient) GenerateDomainIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateDomainIdentityOG", ctx, walletUrl, identifier)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateDomainIdentityOG indicates an expected call of GenerateDomainIdentityOG.
+func (mr *MockClientMockRecorder) GenerateDomainIdentityOG(ctx, walletUrl, identifier interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDomainIdentityOG", reflect.TypeOf((*MockClient)(nil).GenerateDomainIdentityOG), ctx, walletUrl, identifier)
+}
+
 // GenerateTwitterIdentity mocks base method.
 func (m *MockClient) GenerateTwitterIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
 	m.ctrl.T.Helper()

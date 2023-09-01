@@ -9,6 +9,7 @@ import {
   AnchorRouter,
   Button,
   Card,
+  CardButton,
   CardContent,
   CardHeader,
   CardIcon,
@@ -29,6 +30,7 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import {
   deleteTwitterIdentity,
   getIdentity,
@@ -86,15 +88,32 @@ export const handle: ApplicationProps = {
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Settings | Edit public name'
+    title: 'Identities'
   }
 }
 
 export default function Page() {
-  const { identity, publicName, walletInfo, csrfToken, pusherArgs } =
-    useLoaderData<typeof loader>()
+  const { identity, csrfToken, pusherArgs } = useLoaderData<typeof loader>()
 
   usePusher(pusherArgs, ['identity'])
+
+  return (
+    <>
+      <Form
+        id='identity'
+        action={route('/identities/:identityId', { identityId: identity.id })}
+        method='post'
+        className='hidden'
+      />
+      <input form='identity' value={csrfToken} name='csrfToken' type='hidden' />
+      {identity.platform == 'twitter' && <Twitter />}
+      {identity.platform == 'domain' && <Domain />}
+    </>
+  )
+}
+
+function Twitter() {
+  const { identity, publicName, walletInfo } = useLoaderData<typeof loader>()
 
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
@@ -113,13 +132,6 @@ export default function Page() {
 
   return (
     <>
-      <Form
-        id='identity'
-        action={route('/identities/:identityId', { identityId: identity.id })}
-        method='post'
-        className='hidden'
-      />
-      <input form='identity' value={csrfToken} name='csrfToken' type='hidden' />
       {identity.state == 'verified' && (
         <>
           <Card>
@@ -305,6 +317,310 @@ export default function Page() {
           <span className='text-medium'>
             Are you sure you want to remove the Twitter identity card? This
             action cannot be undone.
+          </span>
+
+          <div className='flex w-full justify-end space-x-6 pt-2'>
+            <TextButton
+              type='button'
+              className='!text-medium'
+              onClick={() => setShowDialog(false)}
+            >
+              Cancel
+            </TextButton>
+            <TextButton
+              name='formName'
+              className='!text-error'
+              value='delete'
+              form='identity'
+              type='submit'
+            >
+              Remove card
+            </TextButton>
+          </div>
+        </CardContent>
+      </Dialog>
+    </>
+  )
+}
+
+function Domain() {
+  const { identity, publicName, walletInfo } = useLoaderData<typeof loader>()
+
+  const hostName =
+    identity.txtRecord?.substring(0, identity.txtRecord.indexOf('=')) || ''
+  const code =
+    identity.txtRecord?.substring(identity.txtRecord.indexOf('=') + 1) || ''
+  const [showDialog, setShowDialog] = useState<boolean>(false)
+
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
+  const fetcher = useFetcher()
+  const _onChangeSwitch = useCallback<{
+    (formName: string, publish: boolean): void
+  }>(
+    (formName, publish) => {
+      fetcher.submit(
+        { formName, publish: publish.toString() },
+        { method: 'post' }
+      )
+    },
+    [fetcher]
+  )
+
+  return (
+    <>
+      {identity.state == 'verified' && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Domain details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <img
+                className='max-w-[310px]'
+                loading='lazy'
+                alt='Identity card'
+                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
+              />
+              <div className='mt-4 flex w-full flex-col space-y-1'>
+                <span className='text-weak'>Hostname</span>
+                <span className='font-medium'>{hostName}</span>
+              </div>
+              <div className='mt-4 flex w-full flex-col space-y-1'>
+                <span className='text-weak'>Code</span>
+                <span className='font-medium'>{code}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <div className='flex items-start space-x-4'>
+                <CardIcon className='!bg-error'>
+                  <Icon className='text-error'>exclamation</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-1'>
+                  <h3 className='font-medium text-medium'>Please note</h3>
+                  <p className='text-sm text-medium'>
+                    Do not delete the TXT record at your DNS provider. Doing so
+                    will result in your identity no longer being verified by
+                    Fynbos.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <Label className='mt-2'>Public profile</Label>
+            <CardLink
+              to={`/me/${walletInfo.formattedURL}`}
+              className='items-center justify-between bg-nav'
+            >
+              <div className='flex space-x-3'>
+                <Icon>contact_page</Icon>
+                <span>{publicName}</span>
+              </div>
+              <Icon>navigate_next</Icon>
+            </CardLink>
+            <CardContent>
+              <div className='flex items-center justify-between'>
+                <span className='text-sm'>
+                  Show domain on your Fynbos public profile
+                </span>
+                <Switch
+                  checked={identity.public}
+                  disabled={false}
+                  onChange={() => _onChangeSwitch('publish', !identity.public)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+          <OutlineButton
+            className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
+            type='button'
+            onClick={() => setShowDialog(true)}
+          >
+            Delete
+          </OutlineButton>
+        </>
+      )}
+      {identity.state === 'unverified' && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Domain details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>
+                To prove ownership of the domain, please create a TXT record in
+                your DNS configuration using the following details:
+              </p>
+              <p>
+                It may take up to 72 hours to propagate, we will notify you once
+                complete.
+              </p>
+              <img
+                className='mt-4 max-w-[310px]'
+                loading='lazy'
+                alt='Identity card'
+                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
+              />
+            </CardContent>
+            <Label className='mt-2'>Hostname</Label>
+            <CardButton
+              noHover
+              type='button'
+              onClick={() => {
+                if (typeof navigator.clipboard == 'undefined') {
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    canShow: true
+                  })
+                } else
+                  navigator.clipboard.writeText(hostName).then(
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-host-name-success',
+                        message: 'Hostname copied to clipboard.',
+                        icon: 'close',
+                        canShow: true
+                      })
+                    },
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-to-clipboard-fail',
+                        message: "Couldn't copy to clipboard.",
+                        icon: 'close',
+                        canShow: true
+                      })
+                    }
+                  )
+              }}
+              className='items-center justify-between'
+            >
+              <span className='font-medium text-medium'>{hostName}</span>
+              <Icon className='text-medium'>content_copy</Icon>
+            </CardButton>
+            <Label className='mt-2'>Code</Label>
+            <CardButton
+              noHover
+              type='button'
+              onClick={() => {
+                if (typeof navigator.clipboard == 'undefined') {
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    canShow: true
+                  })
+                } else
+                  navigator.clipboard.writeText(code).then(
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-code-success',
+                        message: 'Code copied to clipboard.',
+                        icon: 'close',
+                        canShow: true
+                      })
+                    },
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-to-clipboard-fail',
+                        message: "Couldn't copy to clipboard.",
+                        icon: 'close',
+                        canShow: true
+                      })
+                    }
+                  )
+              }}
+              className='items-center justify-between text-start'
+            >
+              <span className='break-all font-medium text-medium'>{code}</span>
+              <Icon className='ml-4 text-medium'>content_copy</Icon>
+            </CardButton>
+          </Card>
+          <div className='flex w-full space-x-2'>
+            <OutlineButton
+              shrink
+              className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
+              type='button'
+              onClick={() => setShowDialog(true)}
+            >
+              Delete
+            </OutlineButton>
+            <Button
+              name='formName'
+              value='verify'
+              form='identity'
+              type='submit'
+            >
+              Verify domain
+            </Button>
+          </div>
+        </>
+      )}
+      {identity.state == 'failed' && (
+        <>
+          <Card>
+            <CardContent>
+              <p>Your domain verification has failed. Please try again.</p>
+              <img
+                className='mt-4 max-w-[310px]'
+                loading='lazy'
+                alt='Identity card'
+                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
+              />
+            </CardContent>
+          </Card>
+          <div className='flex w-full space-x-2'>
+            <OutlineButton
+              shrink
+              className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
+              type='button'
+              onClick={() => setShowDialog(true)}
+            >
+              Delete
+            </OutlineButton>
+            <Button name='formName' value='retry' form='identity' type='submit'>
+              Retry
+            </Button>
+          </div>
+        </>
+      )}
+      {identity.state == 'pending' && (
+        <>
+          <Card>
+            <CardContent>
+              <p>
+                Your domain verification is pending. We will notify you once
+                verified.
+              </p>
+              <img
+                className='mt-4 max-w-[310px]'
+                loading='lazy'
+                alt='Identity card'
+                src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/domain.png`}
+              />
+            </CardContent>
+          </Card>
+          <OutlineButton
+            className='!text-error outline-error hover:!text-red-800 hover:outline-red-800 focus-visible:outline-red-800'
+            type='button'
+            onClick={() => setShowDialog(true)}
+          >
+            Delete
+          </OutlineButton>
+        </>
+      )}
+      <Dialog open={showDialog} setOpen={setShowDialog}>
+        <CardHeader>
+          <h1 className='text-xl font-medium'>Remove domain card</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            Are you sure you want to remove the domain card? This action cannot
+            be undone.
           </span>
 
           <div className='flex w-full justify-end space-x-6 pt-2'>

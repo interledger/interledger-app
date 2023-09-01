@@ -358,6 +358,7 @@ export const Amount = () => {
                 <div className='flex space-x-2'>
                   {identity.platform == 'twitter' && <TwitterIcon />}
                   {identity.platform == 'linkedin' && <LinkedInIcon />}
+                  {identity.platform == 'domain' && <Icon>captive_portal</Icon>}
                   <span>{identity.identifier}</span>
                 </div>
                 {identity.state == 'verified' && (

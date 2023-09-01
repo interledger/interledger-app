@@ -64,7 +64,7 @@ func (tp *twitterPlatform) GenerateSignedClaim(ctx context.Context, args *Signed
 
 	claim := identities.Claim{
 		Wallet:     wallet.AddressString(),
-		Type:       "twitter",
+		Type:       string(identities.PlatformTwitter),
 		Identifier: args.Identifier,
 		Kid:        signingKey.ID,
 		Ctime:      time.Now().Unix(),
@@ -163,6 +163,8 @@ func NewTwitterActivity(b TwitterActivityBackends) *TwitterActivity {
 	return &TwitterActivity{b: b}
 }
 
+// proof input doesn't matter because it's being redeclared in the workflow, it's just to make platform interface happy
+// this can be changed in the future
 func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, error) {
 	var a *TwitterActivity
 	ao := workflow.ActivityOptions{
@@ -173,14 +175,19 @@ func TwitterVerifyWorkflow(ctx workflow.Context, id, proof string) (string, erro
 	logger := workflow.GetLogger(ctx)
 	logger.Info("VerifyWorkflow for twitter platform started", "id", id, "proof", proof)
 
+	err := workflow.ExecuteActivity(ctx, a.PublishTweetProof, id).Get(ctx, &proof)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
 	var tweetProof TweetProof
-	err := workflow.ExecuteActivity(ctx, a.FetchTweetProof, proof).Get(ctx, &tweetProof)
+	err = workflow.ExecuteActivity(ctx, a.FetchTweetProof, proof).Get(ctx, &tweetProof)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
 
 	var identity identities.Identity
-	err = workflow.ExecuteActivity(ctx, a.GetIdentity, id).Get(ctx, &identity)
+	err = workflow.ExecuteActivity(ctx, a.GetTwitterIdentity, id).Get(ctx, &identity)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}
@@ -233,7 +240,7 @@ func (a *TwitterActivity) FetchTweetProof(ctx context.Context, proofUrl string) 
 	}, nil
 }
 
-func (a *TwitterActivity) GetIdentity(ctx context.Context, id string) (identities.Identity, error) {
+func (a *TwitterActivity) GetTwitterIdentity(ctx context.Context, id string) (identities.Identity, error) {
 	identity, err := a.b.Identities().Get(ctx, id)
 	if err != nil {
 		return identities.Identity{}, fmt.Errorf("%w %s", identities.ErrInternal, err)
@@ -276,6 +283,15 @@ func (a *TwitterActivity) VerifyTwitter(ctx context.Context, id, proof string) e
 	}
 
 	return nil
+}
+
+func (a *TwitterActivity) PublishTweetProof(ctx context.Context, identityID string) (string, error) {
+	tweetUrl, err := a.b.Twitter().PublishTweetProof(ctx, identityID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return tweetUrl, nil
 }
 
 // TODO: better parsing

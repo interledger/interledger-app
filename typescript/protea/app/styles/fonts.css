@@ -4,7 +4,7 @@
   font-weight: 400;
   font-display: block;
   /* There is a variable version, but it's 2.1MB so we use the static version. */
-  src: url('https://cdn.fynbos.app/fonts/material-symbols-outlined-static.woff2')
+  src: url('https://cdn.fynbos.app/fonts/materialsymbolsoutlined/v132/Regular.woff2')
     format('woff2');
 }
 /* cyrillic-ext */
