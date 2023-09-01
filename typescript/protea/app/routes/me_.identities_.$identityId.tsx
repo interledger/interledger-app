@@ -104,6 +104,7 @@ export default function Page() {
   return (
     <>
       {identity.platform == 'twitter' && <Twitter />}
+      {identity.platform == 'discord' && <Discord />}
       {identity.platform == 'domain' && <Domain />}
       {!isUser && (
         <Card>
@@ -205,6 +206,62 @@ function Twitter() {
   )
 }
 
+function Discord() {
+  const { identity, isUser } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      {identity.state == 'verified' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Discord verification</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              has linked their Fynbos wallet to Discord.
+            </p>
+            <p className='mt-4'>
+              This identity card shows that
+              <AnchorRouter
+                to={`https://twitter.com/${identity.identifier}`}
+                className='text-primary'
+              >
+                {' '}
+                {identity.identifier}{' '}
+              </AnchorRouter>
+              is the same person as
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              who Fynbos have verified is a real person.
+            </p>
+            <img
+              className='mt-4 max-w-[310px]'
+              loading='lazy'
+              alt='Identity card'
+              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/discord.png`}
+            />
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-medium'>Verification date</span>
+              <span className='font-medium'>{identity.verifiedAt}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {isUser && (
+        <Button form='me' type='submit'>
+          Pay {identity.identifier}
+        </Button>
+      )}
+    </>
+  )
+}
+
 function Domain() {
   const { identity, isUser } = useLoaderData<typeof loader>()
 
@@ -248,7 +305,9 @@ function Domain() {
             </div>
             <div className='mt-4 flex w-full flex-col space-y-1'>
               <span className='text-medium'>Code</span>
-              <span className='font-medium break-all'>{identity.signatureHash}</span>
+              <span className='break-all font-medium'>
+                {identity.signatureHash}
+              </span>
             </div>
           </CardContent>
         </Card>
