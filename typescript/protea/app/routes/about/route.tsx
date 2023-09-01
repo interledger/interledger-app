@@ -3,7 +3,8 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
-import { Layouts, MarketingPageWithSections } from '~/components'
+import { Layouts } from '~/components'
+import { MarketingPageWithSections } from '~/components/Content'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { getAboutRoute } from '~/lib/marketing.server'
 
@@ -13,7 +14,7 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
+  layout: Layouts.Marketing,
   scaffold: {
     header: {},
     footer: (match) => match.data.footer
