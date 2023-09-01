@@ -12,6 +12,7 @@ import {
   Chip,
   ChipColor,
   Dialog,
+  DiscordIcon,
   FynbosIcon,
   Icon,
   LinkedInIcon,
@@ -256,6 +257,9 @@ export const Amount = () => {
             {address?.identifierType === 'twitter' && (
               <TwitterIcon height='h-12' />
             )}
+            {address?.identifierType === 'discord' && (
+              <DiscordIcon height='h-12' />
+            )}
           </div>
         </CardContent>
         <Label className='mt-2'>Payment to</Label>
@@ -358,6 +362,7 @@ export const Amount = () => {
                 <div className='flex space-x-2'>
                   {identity.platform == 'twitter' && <TwitterIcon />}
                   {identity.platform == 'linkedin' && <LinkedInIcon />}
+                  {identity.platform == 'discord' && <DiscordIcon />}
                   {identity.platform == 'domain' && <Icon>captive_portal</Icon>}
                   <span>{identity.identifier}</span>
                 </div>

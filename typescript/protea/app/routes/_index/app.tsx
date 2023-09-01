@@ -14,6 +14,7 @@ import {
   CardTitle,
   Chip,
   ChipColor,
+  DiscordIcon,
   FynbosIcon,
   GridColumn,
   Icon,
@@ -209,6 +210,11 @@ export function AppPage() {
                       transaction.state != 'Failed' &&
                       transaction.destinationIdentityType == 'twitter' && (
                         <TwitterIcon />
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'discord' && (
+                        <DiscordIcon />
                       )}
                     <div className='flex flex-col space-y-1'>
                       <span className='text-medium'>{transaction.title}</span>

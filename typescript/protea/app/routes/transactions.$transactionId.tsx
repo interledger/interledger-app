@@ -14,6 +14,7 @@ import {
   Chip,
   ChipColor,
   Dialog,
+  DiscordIcon,
   FynbosIcon,
   Icon,
   Layouts,
@@ -126,6 +127,7 @@ export default function Page() {
                 <div className='flex space-x-2'>
                   {identity.platform == 'twitter' && <TwitterIcon />}
                   {identity.platform == 'linkedin' && <LinkedInIcon />}
+                  {identity.platform == 'discord' && <DiscordIcon />}
                   <span>{identity.identifier}</span>
                 </div>
                 {identity.state == 'verified' && (
@@ -317,6 +319,7 @@ function Incoming({ openDialog }: { openDialog: () => void }) {
             </h2>
             {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
             {transaction.icon === 'twitter' && <TwitterIcon height='h-12' />}
+            {transaction.icon === 'discord' && <DiscordIcon height='h-12' />}
           </div>
         </CardContent>
         <Label className='mt-2'>Payment from</Label>

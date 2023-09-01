@@ -22,6 +22,7 @@ import {
   CardTitle,
   Chip,
   ChipColor,
+  DiscordIcon,
   Fab,
   FynbosIcon,
   GridColumn,
@@ -287,6 +288,11 @@ export default function Page() {
                       transaction.state != 'Failed' &&
                       transaction.destinationIdentityType == 'twitter' && (
                         <TwitterIcon />
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'discord' && (
+                        <DiscordIcon />
                       )}
                     <div className='flex w-full flex-col space-y-1'>
                       <span className='truncate text-medium'>

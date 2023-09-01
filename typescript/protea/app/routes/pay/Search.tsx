@@ -9,6 +9,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  DiscordIcon,
   FynbosIcon,
   Icon,
   TextField,
@@ -121,6 +122,9 @@ export function Search() {
                           )}
                           {subResult.identifierType == 'twitter' && (
                             <TwitterIcon />
+                          )}
+                          {subResult.identifierType == 'discord' && (
+                            <DiscordIcon />
                           )}
                           {subResult.identifierType == 'domain' && (
                             <Icon>captive_portal</Icon>

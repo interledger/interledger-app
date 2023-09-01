@@ -12,6 +12,7 @@ import {
   CardTitle,
   Chip,
   ChipColor,
+  DiscordIcon,
   Fab,
   FaceBookIcon,
   GithubIcon,
@@ -152,6 +153,68 @@ export default function Page() {
                   to={route('/connect/twitter')}
                 >
                   Connect a Twitter identity
+                </Router>
+              </div>
+            </div>
+          </Card>
+        )}
+        {linkedIdentities.discord && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Discord</CardTitle>
+            </CardHeader>
+            {linkedIdentities.discord.map((identity) => (
+              <CardLink
+                key={identity.id}
+                className='mt-2 flex items-center justify-between first-of-type:mt-4'
+                to={route('/identities/:identityId', {
+                  identityId: identity.id
+                })}
+              >
+                <div className='flex space-x-3'>
+                  <DiscordIcon />
+                  <span>{identity.identifier}</span>
+                </div>
+                <div className='flex items-center space-x-3'>
+                  {identity.state == 'verified' && (
+                    <Chip color={ChipColor.green}>Verified</Chip>
+                  )}
+                  {identity.state == 'unverified' && (
+                    <Chip color={ChipColor.yellow}>Unverified</Chip>
+                  )}
+                  {identity.state == 'failed' && (
+                    <Chip color={ChipColor.red}>Failed</Chip>
+                  )}
+                  {identity.state == 'pending' && (
+                    <Chip color={ChipColor.orange}>Pending</Chip>
+                  )}
+                  <Icon>navigate_next</Icon>
+                </div>
+              </CardLink>
+            ))}
+            <CardContent>
+              <Router
+                className='rounded text-sm font-medium text-primary'
+                to={route('/connect/discord')}
+              >
+                Connect another discord identity
+              </Router>
+            </CardContent>
+          </Card>
+        )}
+        {!linkedIdentities.discord && kycStatus == KycStatus.Approved && (
+          <Card>
+            <div className='flex items-center space-x-4'>
+              <CardIcon>
+                <DiscordIcon />
+              </CardIcon>
+              <div className='flex flex-col space-y-1'>
+                <h3 className='font-medium text-medium'>Discord</h3>
+                <Router
+                  className='text-sm font-medium text-primary'
+                  to={route('/connect/discord')}
+                >
+                  Connect a Discord identity
                 </Router>
               </div>
             </div>
