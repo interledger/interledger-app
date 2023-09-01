@@ -243,8 +243,8 @@ type Segment = {
 
 function getSegments(title: string, iterations: HeroContentRecord[], type: 'title' | 'body'): Segment[] {
   const segments: Segment[] = []
-  let lastIndex = 0, count = 0
 
+  let lastIndex = 0, count = 0
   for (const iteration of iterations) {
     const start = title?.indexOf(iteration[type] as string)
     const end = start + (iteration[type] as string).length
