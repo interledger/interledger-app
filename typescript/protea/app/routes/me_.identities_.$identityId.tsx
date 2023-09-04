@@ -275,7 +275,10 @@ function Domain() {
             </p>
             <p className='mt-4'>
               This identity card shows that
-              <AnchorRouter to={identity.identifier} className='text-primary'>
+              <AnchorRouter
+                to={`https://${identity.identifier}`}
+                className='text-primary'
+              >
                 {' '}
                 {identity.identifier}{' '}
               </AnchorRouter>
