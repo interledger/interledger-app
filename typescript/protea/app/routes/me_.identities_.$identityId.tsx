@@ -57,8 +57,18 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
           description:
             'Fynbos has verified that this domain is connected to a real person and this is the public proof of their domain identity.'
         }
+      case 'discord':
+        return {
+          title: `@${data.identity.identifier} has verified they are a real person`,
+          description:
+            'Fynbos has verified that this person is real and this is the public proof of their Discord identity.'
+        }
       default:
-        return {}
+        return {
+          title: `@${data.identity.identifier} has verified they are a real person`,
+          description:
+            'Fynbos has verified that this person is real and this is the public proof of their identity.'
+        }
     }
   })()
 
