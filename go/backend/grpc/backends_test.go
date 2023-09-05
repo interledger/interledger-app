@@ -8,6 +8,7 @@ import (
 
 	"gitlab.com/fynbos/backend/discord"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/slack"
 
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/twitter"
@@ -101,6 +102,10 @@ type TestContainer struct {
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
 	dynamicforms       *dynamicforms_mock.MockClient
+}
+
+func (t TestContainer) Slack() slack.Client {
+	return nil
 }
 
 func (t TestContainer) Discord() discord.Client {
