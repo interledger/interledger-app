@@ -115,6 +115,7 @@ export default function Page() {
     <>
       {identity.platform == 'twitter' && <Twitter />}
       {identity.platform == 'discord' && <Discord />}
+      {identity.platform == 'slack' && <Slack />}
       {identity.platform == 'domain' && <Domain />}
       {!isUser && (
         <Card>
@@ -248,6 +249,55 @@ function Discord() {
               loading='lazy'
               alt='Identity card'
               src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/discord.png`}
+            />
+            <div className='mt-4 flex w-full flex-col space-y-1'>
+              <span className='text-medium'>Verification date</span>
+              <span className='font-medium'>{identity.verifiedAt}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {isUser && (
+        <Button form='me' type='submit'>
+          Pay {identity.identifier}
+        </Button>
+      )}
+    </>
+  )
+}
+
+function Slack() {
+  const { identity, isUser } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      {identity.state == 'verified' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Slack verification</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              has linked their Fynbos wallet to Slack.
+            </p>
+            <p className='mt-4'>
+              This identity card shows that {identity.identifier} is the same
+              person as
+              <AnchorRouter to={identity.wallet} className='text-primary'>
+                {' '}
+                {identity.walletUrlWithoutProtocol}{' '}
+              </AnchorRouter>
+              who Fynbos have verified is a real person.
+            </p>
+            <img
+              className='mt-4 max-w-[310px]'
+              loading='lazy'
+              alt='Identity card'
+              src={`https://cdn.fynbos.app/identities/${identity.signatureHash}/slack.png`}
             />
             <div className='mt-4 flex w-full flex-col space-y-1'>
               <span className='text-medium'>Verification date</span>
