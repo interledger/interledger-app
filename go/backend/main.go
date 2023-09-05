@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/dynamicforms"
 	"net"
 	"net/http"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"gitlab.com/fynbos/backend/dynamicforms"
 
 	"gitlab.com/fynbos/backend/slack"
 
