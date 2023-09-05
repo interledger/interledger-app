@@ -738,6 +738,221 @@ export type FooterRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
+/** Block of type Form landing (form_landing) */
+export type FormLandingRecord = RecordInterface & {
+  __typename?: 'FormLandingRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  id: Scalars['ItemId'];
+  steps: Array<FormLandingStepRecord>;
+};
+
+
+/** Block of type Form landing (form_landing) */
+export type FormLandingRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Form landing step (form_landing_step) */
+export type FormLandingStepRecord = RecordInterface & {
+  __typename?: 'FormLandingStepRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  shapes?: Maybe<FileField>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Block of type Form landing step (form_landing_step) */
+export type FormLandingStepRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+export type FormModelFilter = {
+  AND?: InputMaybe<Array<InputMaybe<FormModelFilter>>>;
+  OR?: InputMaybe<Array<InputMaybe<FormModelFilter>>>;
+  _createdAt?: InputMaybe<CreatedAtFilter>;
+  _firstPublishedAt?: InputMaybe<PublishedAtFilter>;
+  _isValid?: InputMaybe<BooleanFilter>;
+  _publicationScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _publishedAt?: InputMaybe<PublishedAtFilter>;
+  _status?: InputMaybe<StatusFilter>;
+  _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _updatedAt?: InputMaybe<UpdatedAtFilter>;
+  id?: InputMaybe<ItemIdFilter>;
+  requireAuth?: InputMaybe<BooleanFilter>;
+  seoMeta?: InputMaybe<SeoFilter>;
+  slug?: InputMaybe<SlugFilter>;
+  title?: InputMaybe<StringFilter>;
+};
+
+export enum FormModelOrderBy {
+  CreatedAtAsc = '_createdAt_ASC',
+  CreatedAtDesc = '_createdAt_DESC',
+  FirstPublishedAtAsc = '_firstPublishedAt_ASC',
+  FirstPublishedAtDesc = '_firstPublishedAt_DESC',
+  IsValidAsc = '_isValid_ASC',
+  IsValidDesc = '_isValid_DESC',
+  PublicationScheduledAtAsc = '_publicationScheduledAt_ASC',
+  PublicationScheduledAtDesc = '_publicationScheduledAt_DESC',
+  PublishedAtAsc = '_publishedAt_ASC',
+  PublishedAtDesc = '_publishedAt_DESC',
+  StatusAsc = '_status_ASC',
+  StatusDesc = '_status_DESC',
+  UnpublishingScheduledAtAsc = '_unpublishingScheduledAt_ASC',
+  UnpublishingScheduledAtDesc = '_unpublishingScheduledAt_DESC',
+  UpdatedAtAsc = '_updatedAt_ASC',
+  UpdatedAtDesc = '_updatedAt_DESC',
+  IdAsc = 'id_ASC',
+  IdDesc = 'id_DESC',
+  RequireAuthAsc = 'requireAuth_ASC',
+  RequireAuthDesc = 'requireAuth_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
+}
+
+/** Record of type Form (form) */
+export type FormRecord = RecordInterface & {
+  __typename?: 'FormRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  id: Scalars['ItemId'];
+  requireAuth?: Maybe<Scalars['BooleanType']>;
+  sections: Array<FormSectionRecord>;
+  seoMeta?: Maybe<SeoField>;
+  slug?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Record of type Form (form) */
+export type FormRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+export type FormSectionModelContentField = FormLandingRecord | FormSelectRecord | FormTextRecord;
+
+/** Block of type Form section (form_section) */
+export type FormSectionRecord = RecordInterface & {
+  __typename?: 'FormSectionRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  buttonText?: Maybe<Scalars['String']>;
+  content: Array<FormSectionModelContentField>;
+  description?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+};
+
+
+/** Block of type Form section (form_section) */
+export type FormSectionRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Form select (form_select) */
+export type FormSelectRecord = RecordInterface & {
+  __typename?: 'FormSelectRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  fieldName?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  label?: Maybe<Scalars['String']>;
+  options?: Maybe<Scalars['String']>;
+  required?: Maybe<Scalars['BooleanType']>;
+};
+
+
+/** Block of type Form select (form_select) */
+export type FormSelectRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Block of type Form text (form_text) */
+export type FormTextRecord = RecordInterface & {
+  __typename?: 'FormTextRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  fieldName?: Maybe<Scalars['String']>;
+  fieldType?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  label?: Maybe<Scalars['String']>;
+  required?: Maybe<Scalars['BooleanType']>;
+};
+
+
+/** Block of type Form text (form_text) */
+export type FormTextRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export type GlobalSeoField = {
   __typename?: 'GlobalSeoField';
   facebookPageUrl?: Maybe<Scalars['String']>;
@@ -2760,6 +2975,8 @@ export type Query = {
   /** Returns meta information regarding a record collection */
   _allDocsMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
+  _allFormsMeta: CollectionMetadata;
+  /** Returns meta information regarding a record collection */
   _allLegalPagesMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
   _allPeopleMeta: CollectionMetadata;
@@ -2773,6 +2990,8 @@ export type Query = {
   allBlogPosts: Array<BlogPostRecord>;
   /** Returns a collection of records */
   allDocs: Array<DocRecord>;
+  /** Returns a collection of records */
+  allForms: Array<FormRecord>;
   /** Returns a collection of records */
   allLegalPages: Array<LegalPageRecord>;
   /** Returns a collection of records */
@@ -2791,6 +3010,8 @@ export type Query = {
   doc?: Maybe<DocRecord>;
   /** Returns the single instance record */
   footer?: Maybe<FooterRecord>;
+  /** Returns a specific record */
+  form?: Maybe<FormRecord>;
   /** Returns the single instance record */
   homeRoute?: Maybe<HomeRouteRecord>;
   /** Returns a specific record */
@@ -2818,6 +3039,13 @@ export type Query_AllBlogPostsMetaArgs = {
 /** The query root for this schema */
 export type Query_AllDocsMetaArgs = {
   filter?: InputMaybe<DocModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type Query_AllFormsMetaArgs = {
+  filter?: InputMaybe<FormModelFilter>;
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -2875,6 +3103,17 @@ export type QueryAllDocsArgs = {
   first?: InputMaybe<Scalars['IntType']>;
   locale?: InputMaybe<SiteLocale>;
   orderBy?: InputMaybe<Array<InputMaybe<DocModelOrderBy>>>;
+  skip?: InputMaybe<Scalars['IntType']>;
+};
+
+
+/** The query root for this schema */
+export type QueryAllFormsArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<FormModelFilter>;
+  first?: InputMaybe<Scalars['IntType']>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<FormModelOrderBy>>>;
   skip?: InputMaybe<Scalars['IntType']>;
 };
 
@@ -2955,6 +3194,15 @@ export type QueryDocArgs = {
 export type QueryFooterArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type QueryFormArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<FormModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<FormModelOrderBy>>>;
 };
 
 

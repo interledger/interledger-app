@@ -1,21 +1,33 @@
 import { Tab } from '@headlessui/react'
+import { useParams } from '@remix-run/react'
 import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion, useAnimate } from 'framer-motion'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image, StructuredText } from 'react-datocms'
+import type { SelectOptions } from '~/components'
 import {
   AnchorRouter,
+  Card,
+  CardContent,
   FynbosIcon,
   LinkedInIcon,
+  Select,
+  TextArea,
+  TextField,
   TwitterIcon
 } from '~/components'
-import { Prose } from '~/components/Content'
+import { ContentRouter, Prose } from '~/components/Content'
 import type {
   CtaContentRecord,
   FeatureBlocksContentRecord,
   FeatureContentRecord,
+  FormLandingRecord,
+  FormLandingStepRecord,
+  FormSectionRecord,
+  FormSelectRecord,
+  FormTextRecord,
   HeaderContentRecord,
   HeroContentRecord,
   HomeHeroContentRecord,
@@ -24,7 +36,6 @@ import type {
   TeamContentRecord,
   TextContentRecord
 } from '~/generated/dato-cms-graphql'
-import { ContentRouter } from './ContentRouter'
 import { renderLinkNodeRule } from './renderNodeRules'
 
 export function CtaContentRecordComponent({
@@ -846,9 +857,173 @@ export function TextContentRecordComponent({
           />
         </Prose>
       )}
-      {content.button.length > 0 && (
-        <ContentRouter shrink to={content.button[0]} />
-      )}
+      {content.button.length > 0 &&
+        content.button.map((button, index) => (
+          <ContentRouter key={button.id} shrink to={button} />
+        ))}
     </div>
+  )
+}
+
+export function FormSectionRecordComponent({
+  content
+}: {
+  content: FormSectionRecord
+}) {
+  return (
+    <Card key={content.id} className={clsx('')}>
+      {content.description && (
+        <CardContent>
+          <p className='text-medium'>{content.description}</p>
+        </CardContent>
+      )}
+      {content.content.map((content, index) => {
+        switch (content.__typename) {
+          case 'FormLandingRecord':
+            return (
+              <FormLandingRecordComponent
+                key={content.__typename + index}
+                content={content}
+              />
+            )
+          case 'FormTextRecord':
+            return (
+              <FormTextRecordComponent
+                key={content.__typename + index}
+                content={content}
+              />
+            )
+          case 'FormSelectRecord':
+            return (
+              <FormSelectRecordComponent
+                key={content.__typename + index}
+                content={content}
+              />
+            )
+          default:
+            return (
+              <Fragment key={'children' + index}>
+                Tried rendering a form field that doesn't exist
+              </Fragment>
+            )
+        }
+      })}
+    </Card>
+  )
+}
+
+export function FormLandingRecordComponent({
+  content
+}: {
+  content: FormLandingRecord
+}) {
+  return (
+    <CardContent key={content.id}>
+      {content.steps.map((step, index) => {
+        switch (step.__typename) {
+          case 'FormLandingStepRecord':
+            return (
+              <FormLandingStepRecordComponent
+                key={step.__typename + index}
+                content={step}
+              />
+            )
+          default:
+            return (
+              <Fragment key={'children' + index}>
+                Tried rendering a form step that doesn't exist
+              </Fragment>
+            )
+        }
+      })}
+    </CardContent>
+  )
+}
+
+export function FormLandingStepRecordComponent({
+  content
+}: {
+  content: FormLandingStepRecord
+}) {
+  return (
+    <div key={content.id} className='mt-10 flex items-start first-of-type:mt-2'>
+      <img
+        alt='Decorative shapes'
+        className='h-8 w-16 flex-none'
+        src={content.shapes?.url}
+      />
+      <div className='ml-5'>
+        <h3 className='mb-1 font-medium text-strong'>{content.title}</h3>
+        <p className='text-xs text-medium'>{content.body}</p>
+      </div>
+    </div>
+  )
+}
+
+export function FormTextRecordComponent({
+  content
+}: {
+  content: FormTextRecord
+}) {
+  const { slug } = useParams()
+  return content.fieldType == 'area' ? (
+    <TextArea
+      key={content.id}
+      id={content.id}
+      form={`dynamic-${slug}`}
+      label={content.label || ''}
+      name={content.fieldName || content.id}
+      required={content.required}
+      className='mt-4'
+    />
+  ) : (
+    <TextField
+      key={content.id}
+      id={content.id}
+      form={`dynamic-${slug}`}
+      label={content.label || ''}
+      name={content.fieldName || content.id}
+      required={content.required}
+      type={content.fieldType as 'text' | 'number'}
+      className='mt-4'
+    />
+  )
+}
+
+export function FormSelectRecordComponent({
+  content
+}: {
+  content: FormSelectRecord
+}) {
+  const options =
+    content.options?.split(',').map((option) => ({
+      id: option,
+      name: option
+    })) || []
+
+  const { slug } = useParams()
+  const [value, setValue] = useState<SelectOptions>(options[0])
+
+  const _onChangeSelect = useCallback((event: SelectOptions) => {
+    setValue(event)
+  }, [])
+
+  return (
+    <>
+      <Select
+        id={content.id}
+        label={content.label || ''}
+        key={content.id}
+        value={value}
+        options={options}
+        onChange={_onChangeSelect}
+      />
+      <input
+        type='hidden'
+        name={content.fieldName || content.id}
+        value={value?.name}
+        form={`dynamic-${slug}`}
+      />
+    </>
   )
 }

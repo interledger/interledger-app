@@ -29,6 +29,7 @@ import {
   ConnectDomainStep,
   useConnectDomainStore
 } from '~/lib/useConnectDomainStore'
+import { useFormStore } from '~/lib/useFormStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
@@ -98,6 +99,10 @@ export function Scaffold() {
   ])
 
   const [signupStep, signupStepBack] = useSignupStore((state) => [
+    state.step,
+    state.stepBack
+  ])
+  const [formStep, formStepBack] = useFormStore((state) => [
     state.step,
     state.stepBack
   ])
@@ -303,6 +308,12 @@ export function Scaffold() {
                       signupStepBack()
                       navigate(-1)
                     } else signupStepBack()
+                  } else if (scaffold.header.back === 'form') {
+                    console.log('formStep', formStep)
+                    if (formStep == 0) {
+                      formStepBack()
+                      navigate(-1)
+                    } else formStepBack()
                   } else if (scaffold.header.back === 'connect-domain') {
                     if (connectDomainStep == ConnectDomainStep.LANDING) {
                       connectDomainStepBack()

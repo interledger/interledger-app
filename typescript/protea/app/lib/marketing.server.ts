@@ -5,6 +5,7 @@ import type {
   QueryAllPeopleArgs,
   QueryBlogPostArgs,
   QueryDocArgs,
+  QueryFormArgs,
   QueryLegalPageArgs
 } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
@@ -161,6 +162,72 @@ export const getCurrentDocPage = async (variables: QueryDocArgs) => {
     .catch((error) => {
       console.log(error)
       return { doc: null, footer: null }
+    })
+}
+
+export const getCurrentFormPage = async (variables: QueryFormArgs) => {
+  return apolloClient
+    .query<{ form: Query['form'] }, QueryFormArgs>({
+      query: gql`
+        query GetCurrentFormQuery($filter: FormModelFilter) {
+          form(filter: $filter) {
+            id
+            title
+            slug
+            requireAuth
+            _status
+            sections {
+              id
+              ... on FormSectionRecord {
+                description
+                content {
+                  ... on FormLandingRecord {
+                    id
+                    steps {
+                      ... on FormLandingStepRecord {
+                        id
+                        title
+                        body
+                        shapes {
+                          url
+                        }
+                      }
+                    }
+                  }
+                  ... on FormTextRecord {
+                    id
+                    label
+                    fieldName
+                    fieldType
+                    required
+                  }
+                  ... on FormSelectRecord {
+                    id
+                    label
+                    fieldName
+                    options
+                    required
+                  }
+                }
+                buttonText
+              }
+            }
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { form: null }
     })
 }
 
