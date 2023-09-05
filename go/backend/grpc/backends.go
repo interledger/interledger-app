@@ -25,6 +25,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/signup"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/supporttickets"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
@@ -68,4 +69,5 @@ type Backends interface {
 	Payments() payments.Client
 	Discord() discord.Client
 	DynamicForms() dynamicforms.Client
+	Slack() slack.Client
 }
