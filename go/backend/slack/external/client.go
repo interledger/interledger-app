@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 )
@@ -38,7 +40,7 @@ func New() (Client, error) {
 		ClientID:     getEnvDefault("SLACK_CLIENT_ID", "2317468772181.5841878200565"),
 		ClientSecret: getEnvDefault("SLACK_CLIENT_ID", "e0705d863bc2726505cd175b65cc12d9"),
 		Endpoint:     provider.Endpoint(),
-		RedirectURL:  getEnvDefault("SLACK_REDIRECT_URL", ""),
+		RedirectURL:  getEnvDefault("SLACK_REDIRECT_URL", env.GetUrl()+"/connect/slack"),
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
