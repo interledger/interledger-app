@@ -21,6 +21,7 @@ type Connection struct {
 	TokenType    string         `db:"token_type"`
 	Scopes       pq.StringArray `db:"scopes"`
 	Username     string         `db:"username"`
+	TeamID       string         `db:"team_id"`
 	TeamName     string         `db:"team_name"`
 	TeamDomain   string         `db:"team_domain"`
 	Expiry       time.Time      `db:"expiry"`
