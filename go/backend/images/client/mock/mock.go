@@ -94,6 +94,36 @@ func (mr *MockClientMockRecorder) GenerateDomainIdentityOG(ctx, walletUrl, ident
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDomainIdentityOG", reflect.TypeOf((*MockClient)(nil).GenerateDomainIdentityOG), ctx, walletUrl, identifier)
 }
 
+// GenerateSlackIdentity mocks base method.
+func (m *MockClient) GenerateSlackIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateSlackIdentity", ctx, walletUrl, identifier)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateSlackIdentity indicates an expected call of GenerateSlackIdentity.
+func (mr *MockClientMockRecorder) GenerateSlackIdentity(ctx, walletUrl, identifier interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateSlackIdentity", reflect.TypeOf((*MockClient)(nil).GenerateSlackIdentity), ctx, walletUrl, identifier)
+}
+
+// GenerateSlackIdentityOG mocks base method.
+func (m *MockClient) GenerateSlackIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateSlackIdentityOG", ctx, walletUrl, identifier)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateSlackIdentityOG indicates an expected call of GenerateSlackIdentityOG.
+func (mr *MockClientMockRecorder) GenerateSlackIdentityOG(ctx, walletUrl, identifier interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateSlackIdentityOG", reflect.TypeOf((*MockClient)(nil).GenerateSlackIdentityOG), ctx, walletUrl, identifier)
+}
+
 // GenerateTwitterIdentity mocks base method.
 func (m *MockClient) GenerateTwitterIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
 	m.ctrl.T.Helper()
