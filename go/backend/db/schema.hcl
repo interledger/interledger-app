@@ -2234,6 +2234,126 @@ table "dynamic_forms" {
   }
 }
 
+table "slack_authorizations" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "client_id" {
+    null = false
+    type = text
+  }
+  column "nonce" {
+    null = false
+    type = text
+  }
+  column "state" {
+    null = false
+    type = text
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
+  column "redirect_url" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "slack_auth_state_ind" {
+    unique  = true
+    columns = [column.state]
+  }
+}
+
+table "slack_connections" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "user_id" {
+    null = false
+    type = text
+  }
+  column "username" {
+    null = false
+    type = text
+  }
+  column "team_name" {
+    null = false
+    type = text
+  }
+  column "team_domain" {
+    null = false
+    type = text
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
+  column "client_id" {
+    null = false
+    type = text
+  }
+  column "access_token" {
+    null = false
+    type = text
+  }
+  column "refresh_token" {
+    null = false
+    type = text
+  }
+  column "expiry" {
+    null = false
+    type = timestamp
+  }
+  column "token_type" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "slack_wallet_user_team_ind" {
+    unique  = true
+    columns = [column.wallet_id, column.user_id, column.team_domain]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
