@@ -2311,6 +2311,10 @@ table "slack_connections" {
     null = false
     type = text
   }
+  column "team_id" {
+    null = false
+    type = text
+  }
   column "scopes" {
     null = false
     type = sql("text[]")

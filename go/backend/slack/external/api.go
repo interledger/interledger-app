@@ -17,4 +17,5 @@ type User struct {
 	Username   string `json:"name"`
 	TeamName   string `json:"https://slack.com/team_name"`
 	TeamDomain string `json:"https://slack.com/team_domain"`
+	TeamID     string `json:"https://slack.com/team_id"`
 }

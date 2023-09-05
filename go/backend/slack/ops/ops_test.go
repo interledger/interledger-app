@@ -101,6 +101,7 @@ func TestCreateConnection(t *testing.T) {
 		Username:   "batman",
 		TeamName:   "fynbos",
 		TeamDomain: "fynbosdev",
+		TeamID:     "team_id",
 	}, nil).Times(1)
 
 	authURL, err := ops.CreateAuthURL(ctx, b, uuid.NewString())
@@ -126,4 +127,5 @@ func TestCreateConnection(t *testing.T) {
 	assert.Equal(t, "refresh_token", con.RefreshToken)
 	assert.Equal(t, "user_id", con.UserID)
 	assert.Equal(t, "batman", con.Username)
+	assert.Equal(t, "team_id", con.TeamID)
 }
