@@ -2,6 +2,7 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { CreateDynamicFormRequest } from "./backend";
 import type { CreateDiscordAuthURLResponse } from "./backend";
 import type { DiscordCallbackResponse } from "./backend";
 import type { DiscordCallbackRequest } from "./backend";
@@ -514,6 +515,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: CreateDiscordAuthURL(backend.v1.Empty) returns (backend.v1.CreateDiscordAuthURLResponse);
      */
     createDiscordAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateDiscordAuthURLResponse>;
+    /**
+     * Dynamic Forms
+     *
+     * @generated from protobuf rpc: CreateDynamicForm(backend.v1.CreateDynamicFormRequest) returns (backend.v1.Empty);
+     */
+    createDynamicForm(input: CreateDynamicFormRequest, options?: RpcOptions): UnaryCall<CreateDynamicFormRequest, Empty>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1080,5 +1087,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     createDiscordAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateDiscordAuthURLResponse> {
         const method = this.methods[72], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, CreateDiscordAuthURLResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Dynamic Forms
+     *
+     * @generated from protobuf rpc: CreateDynamicForm(backend.v1.CreateDynamicFormRequest) returns (backend.v1.Empty);
+     */
+    createDynamicForm(input: CreateDynamicFormRequest, options?: RpcOptions): UnaryCall<CreateDynamicFormRequest, Empty> {
+        const method = this.methods[73], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreateDynamicFormRequest, Empty>("unary", this._transport, method, opt, input);
     }
 }
