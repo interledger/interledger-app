@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/dynamicforms"
 	"net"
 	"net/http"
 	"os"
@@ -37,6 +38,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/discord"
 	discord_client "gitlab.com/fynbos/backend/discord/client"
+	dynamicforms_client "gitlab.com/fynbos/backend/dynamicforms/client"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
 	"gitlab.com/fynbos/backend/features"
@@ -227,6 +229,8 @@ func start(args *cli.StartArgs) {
 		TokenEndpoint: "https://discord.com/api/oauth2/token",
 		RedirectURL:   args.DiscordRedirectURL,
 	})
+
+	b.dynamicforms = dynamicforms_client.New(b)
 
 	b.auth = authorisation_client.New(b)
 
@@ -591,6 +595,11 @@ type backends struct {
 	wallet         wallets.Client
 	payment        payments.Client
 	discord        discord.Client
+	dynamicforms   dynamicforms.Client
+}
+
+func (b backends) DynamicForms() dynamicforms.Client {
+	return b.dynamicforms
 }
 
 func (b backends) Discord() discord.Client {

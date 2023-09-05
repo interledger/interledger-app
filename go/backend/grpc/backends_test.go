@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"fmt"
+	"gitlab.com/fynbos/backend/dynamicforms"
 	"net"
 	"testing"
 
@@ -47,6 +48,7 @@ import (
 	"gitlab.com/fynbos/backend/admin/auth"
 	"gitlab.com/fynbos/backend/agreements"
 	agreements_mock "gitlab.com/fynbos/backend/agreements/client/mock"
+	dynamicforms_mock "gitlab.com/fynbos/backend/dynamicforms/client/mock"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/healthcheck"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -98,10 +100,15 @@ type TestContainer struct {
 	basistheory        *bt_mock.MockClient
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
+	dynamicforms       *dynamicforms_mock.MockClient
 }
 
 func (t TestContainer) Discord() discord.Client {
 	return nil
+}
+
+func (t TestContainer) DynamicForms() dynamicforms.Client {
+	return t.dynamicforms
 }
 
 func (t TestContainer) Payments() payments.Client {
@@ -256,6 +263,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		keys:               keys_mock.NewMockClient(ctrl),
 		TwitterClient:      twitter_mock.NewMockClient(ctrl),
 		walletImpl:         wallets_mock.NewMockClient(ctrl),
+		dynamicforms:       dynamicforms_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

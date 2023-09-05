@@ -171,6 +171,9 @@ service BackendService {
   // Discord
   rpc DiscordCallback(DiscordCallbackRequest) returns (DiscordCallbackResponse);
   rpc CreateDiscordAuthURL(Empty) returns (CreateDiscordAuthURLResponse);
+
+  // Dynamic Forms
+  rpc CreateDynamicForm(CreateDynamicFormRequest) returns (Empty);
 }
 
 message Amount {
@@ -832,4 +835,9 @@ message CreateDomainIdentityResponse {
 
 message VerifyIdentityRequest {
   string id = 1;
+}
+
+message CreateDynamicFormRequest {
+  string form_id = 1;
+  string data = 2;
 }
