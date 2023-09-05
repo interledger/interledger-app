@@ -2,6 +2,9 @@ package main
 
 import (
 	limits_client "gitlab.com/fynbos/backend/limits/client"
+	"gitlab.com/fynbos/log"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.uber.org/zap"
 
 	payments_client "gitlab.com/fynbos/backend/payments/client"
 
@@ -11,6 +14,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	"github.com/uptrace/opentelemetry-go-extra/otelsqlx"
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
 	"gitlab.com/fynbos/backend/email"
@@ -31,6 +36,7 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
+	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	"gitlab.com/fynbos/backend/vault"
 	"gitlab.com/fynbos/backend/wallets"
 	wallet_client "gitlab.com/fynbos/backend/wallets/client"
@@ -38,7 +44,25 @@ import (
 )
 
 func NewBackends(env *Environment) *Backends {
-	return &Backends{}
+	db, err := otelsqlx.Connect("postgres", env.DbURL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	if err != nil {
+		log.Fatal("Failed to initialize db client.", zap.Error(err))
+	}
+
+	return &Backends{
+		db:   db,
+		user: user_mock.NewMock(),
+	}
+}
+
+func CloseBackends(b *Backends) {
+	if b == nil {
+		return
+	}
+
+	if b.db != nil {
+		_ = b.db.Close()
+	}
 }
 
 type Backends struct {
