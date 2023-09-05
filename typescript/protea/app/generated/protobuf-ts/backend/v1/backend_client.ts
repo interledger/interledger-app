@@ -2,6 +2,9 @@
 // @generated from protobuf file "backend/v1/backend.proto" (package "backend.v1", syntax proto3)
 // tslint:disable
 import { BackendService } from "./backend";
+import type { SlackCallbackResponse } from "./backend";
+import type { SlackCallbackRequest } from "./backend";
+import type { CreateSlackAuthURLResponse } from "./backend";
 import type { CreateDynamicFormRequest } from "./backend";
 import type { CreateDiscordAuthURLResponse } from "./backend";
 import type { DiscordCallbackResponse } from "./backend";
@@ -521,6 +524,16 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: CreateDynamicForm(backend.v1.CreateDynamicFormRequest) returns (backend.v1.Empty);
      */
     createDynamicForm(input: CreateDynamicFormRequest, options?: RpcOptions): UnaryCall<CreateDynamicFormRequest, Empty>;
+    /**
+     * Slack
+     *
+     * @generated from protobuf rpc: CreateSlackAuthURL(backend.v1.Empty) returns (backend.v1.CreateSlackAuthURLResponse);
+     */
+    createSlackAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateSlackAuthURLResponse>;
+    /**
+     * @generated from protobuf rpc: SlackCallback(backend.v1.SlackCallbackRequest) returns (backend.v1.SlackCallbackResponse);
+     */
+    slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1096,5 +1109,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     createDynamicForm(input: CreateDynamicFormRequest, options?: RpcOptions): UnaryCall<CreateDynamicFormRequest, Empty> {
         const method = this.methods[73], opt = this._transport.mergeOptions(options);
         return stackIntercept<CreateDynamicFormRequest, Empty>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Slack
+     *
+     * @generated from protobuf rpc: CreateSlackAuthURL(backend.v1.Empty) returns (backend.v1.CreateSlackAuthURLResponse);
+     */
+    createSlackAuthURL(input: Empty, options?: RpcOptions): UnaryCall<Empty, CreateSlackAuthURLResponse> {
+        const method = this.methods[74], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, CreateSlackAuthURLResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SlackCallback(backend.v1.SlackCallbackRequest) returns (backend.v1.SlackCallbackResponse);
+     */
+    slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse> {
+        const method = this.methods[75], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SlackCallbackRequest, SlackCallbackResponse>("unary", this._transport, method, opt, input);
     }
 }
