@@ -9,18 +9,18 @@ import (
 	"gitlab.com/fynbos/proto/backend/v1"
 )
 
-func (r *rpcService) CreateDiscordAuthURL(ctx context.Context, req *backend.Empty) (*backend.CreateDiscordAuthURLResponse, error) {
-	_, err := r.b.Users().UserForContext(ctx)
+func (s *rpcService) CreateDiscordAuthURL(ctx context.Context, req *backend.Empty) (*backend.CreateDiscordAuthURLResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wallet, err := r.b.Wallets().ForContext(ctx)
+	wallet, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	url, err := r.b.Discord().CreateAuthURL(ctx, discord.CreateAuthURLArgs{
+	url, err := s.b.Discord().CreateAuthURL(ctx, discord.CreateAuthURLArgs{
 		Scopes:   []string{"identify", "guilds"},
 		WalletID: wallet.ID,
 	})
@@ -33,8 +33,8 @@ func (r *rpcService) CreateDiscordAuthURL(ctx context.Context, req *backend.Empt
 	}, nil
 }
 
-func (r *rpcService) DiscordCallback(ctx context.Context, req *backend.DiscordCallbackRequest) (*backend.DiscordCallbackResponse, error) {
-	connection, err := r.b.Discord().CreateConnection(ctx, discord.CreateConnectionArgs{
+func (s *rpcService) DiscordCallback(ctx context.Context, req *backend.DiscordCallbackRequest) (*backend.DiscordCallbackResponse, error) {
+	connection, err := s.b.Discord().CreateConnection(ctx, discord.CreateConnectionArgs{
 		AuthCode: req.GetCode(),
 		State:    req.GetState(),
 	})
@@ -42,7 +42,7 @@ func (r *rpcService) DiscordCallback(ctx context.Context, req *backend.DiscordCa
 		return nil, toGRPCError(err)
 	}
 
-	id, err := r.b.Identities().Add(ctx, identities.AddArgs{
+	id, err := s.b.Identities().Add(ctx, identities.AddArgs{
 		WalletID:   connection.WalletID,
 		Platform:   identities.PlatformDiscord,
 		Identifier: connection.Username,
@@ -55,7 +55,7 @@ func (r *rpcService) DiscordCallback(ctx context.Context, req *backend.DiscordCa
 		return nil, InternalError("Error adding identity.")
 	}
 
-	err = r.b.Identities().UpdateState(ctx, id.ID, identities.StateVerified, "")
+	err = s.b.Identities().UpdateState(ctx, id.ID, identities.StateVerified, "")
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
