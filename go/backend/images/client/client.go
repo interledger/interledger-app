@@ -58,6 +58,14 @@ func (c client) GenerateDiscordIdentityOG(ctx context.Context, walletUrl, identi
 	return ops.GenerateDiscordOGImage(ctx, c.a, c.b, walletUrl, identifier)
 }
 
+func (c client) GenerateSlackIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	return ops.GenerateSlackImage(ctx, c.a, c.b, walletUrl, identifier)
+}
+
+func (c client) GenerateSlackIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error) {
+	return ops.GenerateSlackOGImage(ctx, c.a, c.b, walletUrl, identifier)
+}
+
 func loadAssets() (*images.Assets, error) {
 	twitterImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/template.png")
 	if err != nil {
@@ -85,6 +93,15 @@ func loadAssets() (*images.Assets, error) {
 		return nil, err
 	}
 
+	slackImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/slack/template.png")
+	if err != nil {
+		return nil, err
+	}
+	slackImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/slack/og-template.png")
+	if err != nil {
+		return nil, err
+	}
+
 	fontMedium, err := loadFontFromURL("https://cdn.fynbos.app/fonts/inter/v12/Medium-Desktop.ttf")
 	if err != nil {
 		return nil, err
@@ -104,6 +121,8 @@ func loadAssets() (*images.Assets, error) {
 		DiscordOG:    discordImgOG,
 		InterMedium:  fontMedium,
 		InterRegular: fontRegular,
+		Slack:        slackImg,
+		SlackOG:      slackImgOG,
 	}, nil
 }
 
