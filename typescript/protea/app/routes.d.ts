@@ -14,6 +14,7 @@ declare module "routes-gen" {
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
     "/connect/discord": Record<string, never>;
+    "/connect/slack": Record<string, never>;
     "/connect/twitter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
@@ -75,6 +76,7 @@ declare module "routes-gen" {
       | ["/settings/password"]
       | ["/waitlist/success"]
       | ["/connect/discord"]
+      | ["/connect/slack"]
       | ["/connect/twitter"]
       | ["/contact/success"]
       | ["/login/challenge"]
