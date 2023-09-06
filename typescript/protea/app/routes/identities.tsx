@@ -22,6 +22,7 @@ import {
   Layouts,
   LinkedInIcon,
   Router,
+  SlackIcon,
   TwitterIcon,
   WalletGrid,
   WalletShapes
@@ -234,7 +235,7 @@ export default function Page() {
                 })}
               >
                 <div className='flex space-x-3'>
-                  <DiscordIcon />
+                  <SlackIcon />
                   <span>{identity.identifier}</span>
                 </div>
                 <div className='flex items-center space-x-3'>
@@ -268,10 +269,10 @@ export default function Page() {
           <Card>
             <div className='flex items-center space-x-4'>
               <CardIcon>
-                <DiscordIcon />
+                <SlackIcon />
               </CardIcon>
               <div className='flex flex-col space-y-1'>
-                <h3 className='font-medium text-medium'>Discord</h3>
+                <h3 className='font-medium text-medium'>Slack</h3>
                 <Router
                   className='text-sm font-medium text-primary'
                   to={route('/connect/slack')}
