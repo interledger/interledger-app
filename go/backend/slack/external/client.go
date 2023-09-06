@@ -38,7 +38,7 @@ func New() (Client, error) {
 
 	conf := &oauth2.Config{
 		ClientID:     getEnvDefault("SLACK_CLIENT_ID", "2317468772181.5841878200565"),
-		ClientSecret: getEnvDefault("SLACK_CLIENT_ID", "e0705d863bc2726505cd175b65cc12d9"),
+		ClientSecret: getEnvDefault("SLACK_CLIENT_SECRET", "e0705d863bc2726505cd175b65cc12d9"),
 		Endpoint:     provider.Endpoint(),
 		RedirectURL:  getEnvDefault("SLACK_REDIRECT_URL", env.GetUrl()+"/connect/slack"),
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
@@ -74,8 +74,4 @@ func (c client) CreateUserToken(ctx context.Context, authCode string) (*oauth2.T
 	}
 
 	return oauth2Token, &user, nil
-}
-
-func (c client) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*User, error) {
-	return nil, fmt.Errorf("not implemented")
 }

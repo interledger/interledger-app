@@ -9,7 +9,6 @@ import (
 type Client interface {
 	GetConfig() *oauth2.Config
 	CreateUserToken(ctx context.Context, authCode string) (*oauth2.Token, *User, error)
-	GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*User, error)
 }
 
 type User struct {

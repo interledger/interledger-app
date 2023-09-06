@@ -52,21 +52,6 @@ func (mr *MockClientMockRecorder) CreateUserToken(ctx, authCode interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserToken", reflect.TypeOf((*MockClient)(nil).CreateUserToken), ctx, authCode)
 }
 
-// GetAuthorizedUser mocks base method.
-func (m *MockClient) GetAuthorizedUser(ctx context.Context, token *oauth2.Token) (*external.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAuthorizedUser", ctx, token)
-	ret0, _ := ret[0].(*external.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAuthorizedUser indicates an expected call of GetAuthorizedUser.
-func (mr *MockClientMockRecorder) GetAuthorizedUser(ctx, token interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthorizedUser", reflect.TypeOf((*MockClient)(nil).GetAuthorizedUser), ctx, token)
-}
-
 // GetConfig mocks base method.
 func (m *MockClient) GetConfig() *oauth2.Config {
 	m.ctrl.T.Helper()
