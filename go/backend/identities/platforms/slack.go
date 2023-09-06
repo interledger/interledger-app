@@ -48,7 +48,7 @@ func (s *slackPlatform) GenerateSignedClaim(ctx context.Context, args *SignedCla
 
 	claim := identities.Claim{
 		Wallet:     wallet.AddressString(),
-		Type:       "slack",
+		Type:       string(identities.PlatformSlack),
 		Identifier: args.Identifier,
 		Kid:        signingKey.ID,
 		Ctime:      time.Now().Unix(),
