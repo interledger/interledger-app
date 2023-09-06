@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/dynamicforms"
 	"net"
 	"net/http"
 	"os"
@@ -12,6 +11,10 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"gitlab.com/fynbos/backend/dynamicforms"
+
+	"gitlab.com/fynbos/backend/slack"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
@@ -75,6 +78,7 @@ import (
 	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
+	slack_client "gitlab.com/fynbos/backend/slack/client"
 	"gitlab.com/fynbos/backend/statements"
 	statements_client "gitlab.com/fynbos/backend/statements/client"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -231,6 +235,11 @@ func start(args *cli.StartArgs) {
 	})
 
 	b.dynamicforms = dynamicforms_client.New(b)
+
+	b.slack, err = slack_client.New(b)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	b.auth = authorisation_client.New(b)
 
@@ -532,6 +541,11 @@ func startWorker(args *cli.StartArgs) {
 	}
 	b.vault = vc
 
+	b.slack, err = slack_client.New(b)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	b.keys = keys_client.New(b)
 
 	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
@@ -596,10 +610,16 @@ type backends struct {
 	payment        payments.Client
 	discord        discord.Client
 	dynamicforms   dynamicforms.Client
+	slack          slack.Client
 }
 
 func (b backends) DynamicForms() dynamicforms.Client {
 	return b.dynamicforms
+
+}
+
+func (b backends) Slack() slack.Client {
+	return b.slack
 }
 
 func (b backends) Discord() discord.Client {

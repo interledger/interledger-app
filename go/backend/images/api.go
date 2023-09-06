@@ -9,4 +9,6 @@ type Client interface {
 	GenerateDomainIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error)
 	GenerateDiscordIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error)
 	GenerateDiscordIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error)
+	GenerateSlackIdentity(ctx context.Context, walletUrl, identifier string) ([]byte, error)
+	GenerateSlackIdentityOG(ctx context.Context, walletUrl, identifier string) ([]byte, error)
 }
