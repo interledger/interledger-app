@@ -1,0 +1,20 @@
+include:
+  - //////.gitlab-refs.yaml
+
+variables:
+  DISCORDBOT_PATH: $CI_PROJECT_DIR/go/discordbot
+  DISCORDBOT_REPO: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot
+  DISCORDBOT_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
+
+build_discordbot:
+  interruptible: true
+  tags:
+    - hetzner
+  image:
+    name: registry.gitlab.com/fynbos/fynbos/debian-runner-base:13295664
+  before_script:
+    - docker login -u AWS -p $(aws ecr get-login-password --profile shared --region eu-west-1) 823058932981.dkr.ecr.eu-west-1.amazonaws.com
+    - cd $DISCORDBOT_PATH/../
+  script:
+    - docker build -t "823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot:${DISCORDBOT_IMAGE_HASH}" -f discordbot/Dockerfile .
+    - docker push "823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot:${DISCORDBOT_IMAGE_HASH}"
