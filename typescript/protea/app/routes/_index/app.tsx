@@ -19,6 +19,7 @@ import {
   GridColumn,
   Icon,
   Router,
+  SlackIcon,
   TwitterIcon,
   WalletGrid
 } from '~/components'
@@ -215,6 +216,11 @@ export function AppPage() {
                       transaction.state != 'Failed' &&
                       transaction.destinationIdentityType == 'discord' && (
                         <DiscordIcon />
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'slack' && (
+                        <SlackIcon />
                       )}
                     <div className='flex flex-col space-y-1'>
                       <span className='text-medium'>{transaction.title}</span>

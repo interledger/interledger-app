@@ -13,6 +13,8 @@ type Assets struct {
 	DomainOG     image.Image
 	Discord      image.Image
 	DiscordOG    image.Image
+	Slack        image.Image
+	SlackOG      image.Image
 	InterMedium  *truetype.Font
 	InterRegular *truetype.Font
 }

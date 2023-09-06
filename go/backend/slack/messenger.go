@@ -2,9 +2,10 @@ package slack
 
 import (
 	"context"
-	"gitlab.com/fynbos/env"
 	"os"
 	"sync"
+
+	"gitlab.com/fynbos/env"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 

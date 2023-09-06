@@ -29,6 +29,7 @@ import {
   Icon,
   Layouts,
   Router,
+  SlackIcon,
   TwitterIcon,
   WalletGrid,
   WalletShapes
@@ -293,6 +294,11 @@ export default function Page() {
                       transaction.state != 'Failed' &&
                       transaction.destinationIdentityType == 'discord' && (
                         <DiscordIcon />
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'slack' && (
+                        <SlackIcon />
                       )}
                     <div className='flex w-full flex-col space-y-1'>
                       <span className='truncate text-medium'>

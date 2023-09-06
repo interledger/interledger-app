@@ -47,6 +47,7 @@ const (
 	PlatformTwitter Platform = "twitter"
 	PlatformDomain  Platform = "domain"
 	PlatformDiscord Platform = "discord"
+	PlatformSlack   Platform = "slack"
 )
 
 /*

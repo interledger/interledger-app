@@ -284,10 +284,10 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 		return dbRes, nil
 	}
 
-	// Lookup twitter and other external identities.
+	// Lookup twitter and other external identities. (Not Slack)
 	err = b.DB().SelectContext(ctx, &dbRes, `SELECT wallet_id, identifier, platform as identifier_type, similarity(identifier, $1) as rank
                FROM identities
-               WHERE wallet_id<>$3 AND public = true AND state = 'verified' AND identifier ILIKE $2 ORDER BY RANK DESC LIMIT 100`, term, "%"+term+"%", walletID)
+               WHERE wallet_id<>$3 AND public = true AND state = 'verified' AND identifier ILIKE $2 AND platform<>$4 ORDER BY RANK DESC LIMIT 100`, term, "%"+term+"%", walletID, identities.PlatformSlack)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 

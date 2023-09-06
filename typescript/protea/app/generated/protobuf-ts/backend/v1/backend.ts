@@ -122,6 +122,37 @@ export interface PaymentPointer {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.SlackCallbackRequest
+ */
+export interface SlackCallbackRequest {
+    /**
+     * @generated from protobuf field: string state = 1;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: string code = 2;
+     */
+    code: string;
+}
+/**
+ * @generated from protobuf message backend.v1.SlackCallbackResponse
+ */
+export interface SlackCallbackResponse {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.CreateSlackAuthURLResponse
+ */
+export interface CreateSlackAuthURLResponse {
+    /**
+     * @generated from protobuf field: string url = 1;
+     */
+    url: string;
+}
+/**
  * @generated from protobuf message backend.v1.Amount
  */
 export interface Amount {
@@ -2431,6 +2462,154 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SlackCallbackRequest$Type extends MessageType<SlackCallbackRequest> {
+    constructor() {
+        super("backend.v1.SlackCallbackRequest", [
+            { no: 1, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SlackCallbackRequest>): SlackCallbackRequest {
+        const message = { state: "", code: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SlackCallbackRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SlackCallbackRequest): SlackCallbackRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string state */ 1:
+                    message.state = reader.string();
+                    break;
+                case /* string code */ 2:
+                    message.code = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SlackCallbackRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string state = 1; */
+        if (message.state !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.state);
+        /* string code = 2; */
+        if (message.code !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.code);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SlackCallbackRequest
+ */
+export const SlackCallbackRequest = new SlackCallbackRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SlackCallbackResponse$Type extends MessageType<SlackCallbackResponse> {
+    constructor() {
+        super("backend.v1.SlackCallbackResponse", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SlackCallbackResponse>): SlackCallbackResponse {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SlackCallbackResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SlackCallbackResponse): SlackCallbackResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SlackCallbackResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SlackCallbackResponse
+ */
+export const SlackCallbackResponse = new SlackCallbackResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreateSlackAuthURLResponse$Type extends MessageType<CreateSlackAuthURLResponse> {
+    constructor() {
+        super("backend.v1.CreateSlackAuthURLResponse", [
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreateSlackAuthURLResponse>): CreateSlackAuthURLResponse {
+        const message = { url: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreateSlackAuthURLResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateSlackAuthURLResponse): CreateSlackAuthURLResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string url */ 1:
+                    message.url = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreateSlackAuthURLResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string url = 1; */
+        if (message.url !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.url);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreateSlackAuthURLResponse
+ */
+export const CreateSlackAuthURLResponse = new CreateSlackAuthURLResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Amount$Type extends MessageType<Amount> {
     constructor() {
@@ -9254,5 +9433,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SearchWallets", options: {}, I: SearchWalletsRequest, O: SearchWalletsResponse },
     { name: "DiscordCallback", options: {}, I: DiscordCallbackRequest, O: DiscordCallbackResponse },
     { name: "CreateDiscordAuthURL", options: {}, I: Empty, O: CreateDiscordAuthURLResponse },
-    { name: "CreateDynamicForm", options: {}, I: CreateDynamicFormRequest, O: Empty }
+    { name: "CreateDynamicForm", options: {}, I: CreateDynamicFormRequest, O: Empty },
+    { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
+    { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse }
 ]);
