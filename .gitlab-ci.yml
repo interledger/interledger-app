@@ -48,6 +48,7 @@ trigger_deploy_dev_eu1:
     - cd rooibos
     - git checkout -b gitlabcd/deploy-eu1-dev-$CI_COMMIT_SHORT_SHA
     - (cd backend/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA)
+    - (cd backend/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/discord=823058932981.dkr.ecr.eu-west-1.amazonaws.com/discordbot:$CI_COMMIT_SHORT_SHA)
     - (cd protea/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA)
     - (cd botanist/envs/dev-eu1 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist=823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:$CI_COMMIT_SHORT_SHA)
     - git commit -am "Dev EU1 image update for ${CI_COMMIT_SHORT_SHA}"
@@ -78,6 +79,7 @@ trigger_deploy_prod_use2:
     - cd rooibos
     - git checkout -b gitlabcd/deploy-prod-use2-$CI_COMMIT_SHORT_SHA
     - (cd backend/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend=823058932981.dkr.ecr.eu-west-1.amazonaws.com/backend:$CI_COMMIT_SHORT_SHA)
+    - (cd backend/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/discord=823058932981.dkr.ecr.eu-west-1.amazonaws.com/discord:$CI_COMMIT_SHORT_SHA)
     - (cd protea/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea=823058932981.dkr.ecr.eu-west-1.amazonaws.com/protea:$CI_COMMIT_SHORT_SHA)
     - (cd botanist/envs/prod-use2 && kustomize edit set image 823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist=823058932981.dkr.ecr.eu-west-1.amazonaws.com/botanist:$CI_COMMIT_SHORT_SHA)
     - git commit -am "Prod USE2 image update for ${CI_COMMIT_SHORT_SHA}"
