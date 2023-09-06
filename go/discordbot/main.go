@@ -9,6 +9,7 @@ import (
 
 	"github.com/Netflix/go-env"
 	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/discordbot/cmd"
 	"gitlab.com/fynbos/log"
@@ -16,6 +17,14 @@ import (
 )
 
 func main() {
+	envFile := os.Getenv("ENV_FILE")
+	if envFile != "" {
+		err := godotenv.Load(envFile)
+		if err != nil {
+			log.Fatal("Error loading .env file", zap.Error(err))
+		}
+	}
+
 	var environment Environment
 	_, err := env.UnmarshalFromEnviron(&environment)
 	if err != nil {
