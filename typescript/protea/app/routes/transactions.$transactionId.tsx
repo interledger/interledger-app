@@ -19,6 +19,7 @@ import {
   Icon,
   Layouts,
   LinkedInIcon,
+  SlackIcon,
   TextButton,
   TwitterIcon
 } from '~/components'
@@ -128,6 +129,7 @@ export default function Page() {
                   {identity.platform == 'twitter' && <TwitterIcon />}
                   {identity.platform == 'linkedin' && <LinkedInIcon />}
                   {identity.platform == 'discord' && <DiscordIcon />}
+                  {identity.platform == 'slack' && <SlackIcon />}
                   <span>{identity.identifier}</span>
                 </div>
                 {identity.state == 'verified' && (
@@ -320,6 +322,7 @@ function Incoming({ openDialog }: { openDialog: () => void }) {
             {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
             {transaction.icon === 'twitter' && <TwitterIcon height='h-12' />}
             {transaction.icon === 'discord' && <DiscordIcon height='h-12' />}
+            {transaction.icon === 'slack' && <SlackIcon height='h-12' />}
           </div>
         </CardContent>
         <Label className='mt-2'>Payment from</Label>

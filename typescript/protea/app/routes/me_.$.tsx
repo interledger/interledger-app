@@ -32,6 +32,7 @@ import {
   Layouts,
   LinkedInIcon,
   Router,
+  SlackIcon,
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -232,6 +233,31 @@ export default function Page() {
               >
                 <div className='flex space-x-3'>
                   <DiscordIcon />
+                  <span>{identity.identifier}</span>
+                </div>
+                <div className='flex space-x-3'>
+                  {identity.state == 'verified' && (
+                    <Chip color={ChipColor.green}>Verified</Chip>
+                  )}
+                  <Icon>navigate_next</Icon>
+                </div>
+              </CardLink>
+            ))}
+          </>
+        )}
+        {identities.slack && (
+          <>
+            <Label className='mt-4'>Slack</Label>
+            {identities.slack.map((identity) => (
+              <CardLink
+                key={identity.id}
+                className='items-center justify-between'
+                to={route('/me/identities/:identityId', {
+                  identityId: identity.signatureHash
+                })}
+              >
+                <div className='flex space-x-3'>
+                  <SlackIcon />
                   <span>{identity.identifier}</span>
                 </div>
                 <div className='flex space-x-3'>
