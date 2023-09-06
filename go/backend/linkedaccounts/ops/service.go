@@ -257,6 +257,21 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string) (*linke
 	return nil, fmt.Errorf("%w no receive account configured", linkedaccounts.ErrNotFound)
 }
 
+func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	lal, err := ListByWalletId(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, la := range lal {
+		if la.CanSend && la.State == linkedaccounts.Verified && la.Provider == tabapay.ProviderName {
+			return &la, nil
+		}
+	}
+
+	return nil, fmt.Errorf("%w no send account configured", linkedaccounts.ErrNotFound)
+}
+
 func ListMXBankAccounts(ctx context.Context, b Backends) ([]linkedaccounts.LinkedAccount, error) {
 	var linkedAccounts []linkedaccounts.LinkedAccount
 	err := b.DB().SelectContext(

@@ -6,7 +6,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -65,19 +64,8 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		}
 	}
 
-	las, err := b.LinkedAccounts().ListByWalletId(ctx, w.ID)
+	sendLA, err := b.LinkedAccounts().GetDefaultSend(ctx, w.ID)
 	if err != nil {
-		newPaymentActionRequired(s, i, fmt.Sprintf("Add a linked account to pay %s", receiverUsername), "Add", fmt.Sprintf("%s/connect/card", fynbos_env.GetUrl()))
-		return
-	}
-	var sendLA *linkedaccounts.LinkedAccount
-	for _, la := range las {
-		if la.CanSend && la.State == linkedaccounts.Verified {
-			sendLA = &la
-			break
-		}
-	}
-	if sendLA == nil {
 		newPaymentActionRequired(s, i, fmt.Sprintf("Add a send enabled linked account to pay %s", receiverUsername), "Add", fmt.Sprintf("%s/connect/card", fynbos_env.GetUrl()))
 		return
 	}
