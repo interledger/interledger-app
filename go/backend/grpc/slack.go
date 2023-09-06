@@ -30,16 +30,6 @@ func (s *rpcService) CreateSlackAuthURL(ctx context.Context, _ *pb.Empty) (*pb.C
 }
 
 func (s *rpcService) SlackCallback(ctx context.Context, req *pb.SlackCallbackRequest) (*pb.SlackCallbackResponse, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	_, err = s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
 	con, err := s.b.Slack().CreateConnection(ctx, slack.CreateConnectionArgs{
 		AuthCode: req.Code,
 		State:    req.State,
@@ -53,12 +43,11 @@ func (s *rpcService) SlackCallback(ctx context.Context, req *pb.SlackCallbackReq
 		Platform:   identities.PlatformSlack,
 		Identifier: fmt.Sprintf("%s / %s", con.TeamName, con.Username),
 	})
-
 	if err != nil {
 		if errors.Is(err, identities.ErrAlreadyExists) {
 			return nil, AlreadyExistsError("Identity already exists.")
 		}
-		return nil, InternalError("Error adding identity.")
+		return nil, toGRPCError(err)
 	}
 
 	err = s.b.Identities().UpdateState(ctx, id.ID, identities.StateVerified, "")

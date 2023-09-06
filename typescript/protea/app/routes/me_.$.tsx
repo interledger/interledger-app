@@ -32,6 +32,7 @@ import {
   Layouts,
   LinkedInIcon,
   Router,
+  SlackIcon,
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -256,7 +257,7 @@ export default function Page() {
                 })}
               >
                 <div className='flex space-x-3'>
-                  <DiscordIcon />
+                  <SlackIcon />
                   <span>{identity.identifier}</span>
                 </div>
                 <div className='flex space-x-3'>
