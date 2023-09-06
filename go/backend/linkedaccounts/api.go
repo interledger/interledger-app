@@ -19,6 +19,7 @@ type Client interface {
 	SetNickname(ctx context.Context, id, nickname string) (*LinkedAccount, error)
 	Requires3DS(ctx context.Context, id string) (bool, error)
 	GetDefaultReceive(ctx context.Context, walletID string) (*LinkedAccount, error)
+	GetDefaultSend(ctx context.Context, walletID string) (*LinkedAccount, error)
 
 	CreateReviews(ctx context.Context, args []CreateReviewArgs) ([]Review, error)
 	GetReview(ctx context.Context, id string) (*Review, error)

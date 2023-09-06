@@ -99,6 +99,10 @@ func (c client) GetDefaultReceive(ctx context.Context, walletID string) (*linked
 	return ops.GetDefaultReceive(ctx, c.b, walletID)
 }
 
+func (c client) GetDefaultSend(ctx context.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	return ops.GetDefaultSend(ctx, c.b, walletID)
+}
+
 func (c client) Delete(ctx context.Context, id string) error {
 	return ops.Delete(ctx, c.b, id)
 }
