@@ -20,3 +20,5 @@ typescript/**/node_modules
 
 # test migrations
 testmigrations
+
+.env
