@@ -155,6 +155,21 @@ func (mr *MockClientMockRecorder) GetDefaultReceive(ctx, walletID interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefaultReceive", reflect.TypeOf((*MockClient)(nil).GetDefaultReceive), ctx, walletID)
 }
 
+// GetDefaultSend mocks base method.
+func (m *MockClient) GetDefaultSend(ctx context.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDefaultSend", ctx, walletID)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDefaultSend indicates an expected call of GetDefaultSend.
+func (mr *MockClientMockRecorder) GetDefaultSend(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDefaultSend", reflect.TypeOf((*MockClient)(nil).GetDefaultSend), ctx, walletID)
+}
+
 // GetReview mocks base method.
 func (m *MockClient) GetReview(ctx context.Context, id string) (*linkedaccounts.Review, error) {
 	m.ctrl.T.Helper()
