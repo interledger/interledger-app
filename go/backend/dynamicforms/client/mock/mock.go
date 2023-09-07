@@ -6,9 +6,11 @@ package mock
 
 import (
 	context "context"
+	io "io"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	db "gitlab.com/fynbos/backend/db"
 	dynamicforms "gitlab.com/fynbos/backend/dynamicforms"
 )
 
@@ -48,4 +50,33 @@ func (m *MockClient) Create(ctx context.Context, args *dynamicforms.CreateFormAr
 func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClient)(nil).Create), ctx, args)
+}
+
+// ExportFormResults mocks base method.
+func (m *MockClient) ExportFormResults(ctx context.Context, formID string, writer io.Writer) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExportFormResults", ctx, formID, writer)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ExportFormResults indicates an expected call of ExportFormResults.
+func (mr *MockClientMockRecorder) ExportFormResults(ctx, formID, writer interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportFormResults", reflect.TypeOf((*MockClient)(nil).ExportFormResults), ctx, formID, writer)
+}
+
+// ListFormCounts mocks base method.
+func (m *MockClient) ListFormCounts(ctx context.Context, page db.Pagination) ([]dynamicforms.FormCount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListFormCounts", ctx, page)
+	ret0, _ := ret[0].([]dynamicforms.FormCount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListFormCounts indicates an expected call of ListFormCounts.
+func (mr *MockClientMockRecorder) ListFormCounts(ctx, page interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFormCounts", reflect.TypeOf((*MockClient)(nil).ListFormCounts), ctx, page)
 }
