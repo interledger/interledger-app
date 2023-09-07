@@ -805,6 +805,7 @@ export type FormModelFilter = {
   _updatedAt?: InputMaybe<UpdatedAtFilter>;
   id?: InputMaybe<ItemIdFilter>;
   requireAuth?: InputMaybe<BooleanFilter>;
+  returnTo?: InputMaybe<SlugFilter>;
   seoMeta?: InputMaybe<SeoFilter>;
   slug?: InputMaybe<SlugFilter>;
   title?: InputMaybe<StringFilter>;
@@ -853,6 +854,7 @@ export type FormRecord = RecordInterface & {
   _updatedAt: Scalars['DateTime'];
   id: Scalars['ItemId'];
   requireAuth?: Maybe<Scalars['BooleanType']>;
+  returnTo?: Maybe<Scalars['String']>;
   sections: Array<FormSectionRecord>;
   seoMeta?: Maybe<SeoField>;
   slug?: Maybe<Scalars['String']>;
@@ -2980,6 +2982,8 @@ export type Query = {
   _allLegalPagesMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
   _allPeopleMeta: CollectionMetadata;
+  /** Returns meta information regarding a record collection */
+  _allThankYousMeta: CollectionMetadata;
   /** Returns meta information regarding an assets collection */
   _allUploadsMeta: CollectionMetadata;
   /** Returns the single instance record */
@@ -2996,6 +3000,8 @@ export type Query = {
   allLegalPages: Array<LegalPageRecord>;
   /** Returns a collection of records */
   allPeople: Array<PersonRecord>;
+  /** Returns a collection of records */
+  allThankYous: Array<ThankYouRecord>;
   /** Returns a collection of assets */
   allUploads: Array<FileField>;
   /** Returns a specific record */
@@ -3022,6 +3028,8 @@ export type Query = {
   person?: Maybe<PersonRecord>;
   /** Returns the single instance record */
   slackRoute?: Maybe<SlackRouteRecord>;
+  /** Returns a specific record */
+  thankYou?: Maybe<ThankYouRecord>;
   /** Returns a specific asset */
   upload?: Maybe<FileField>;
   /** Returns the single instance record */
@@ -3060,6 +3068,13 @@ export type Query_AllLegalPagesMetaArgs = {
 /** The query root for this schema */
 export type Query_AllPeopleMetaArgs = {
   filter?: InputMaybe<PersonModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type Query_AllThankYousMetaArgs = {
+  filter?: InputMaybe<ThankYouModelFilter>;
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -3136,6 +3151,17 @@ export type QueryAllPeopleArgs = {
   first?: InputMaybe<Scalars['IntType']>;
   locale?: InputMaybe<SiteLocale>;
   orderBy?: InputMaybe<Array<InputMaybe<PersonModelOrderBy>>>;
+  skip?: InputMaybe<Scalars['IntType']>;
+};
+
+
+/** The query root for this schema */
+export type QueryAllThankYousArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<ThankYouModelFilter>;
+  first?: InputMaybe<Scalars['IntType']>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<ThankYouModelOrderBy>>>;
   skip?: InputMaybe<Scalars['IntType']>;
 };
 
@@ -3242,6 +3268,15 @@ export type QueryPersonArgs = {
 export type QuerySlackRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type QueryThankYouArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<ThankYouModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<ThankYouModelOrderBy>>>;
 };
 
 
@@ -3663,6 +3698,7 @@ export type TextContentRecord = RecordInterface & {
   bodyText?: Maybe<TextContentModelBodyTextField>;
   button: Array<LinkRecord>;
   id: Scalars['ItemId'];
+  image?: Maybe<FileField>;
   textCentered?: Maybe<Scalars['BooleanType']>;
   textStandard?: Maybe<Scalars['BooleanType']>;
   title?: Maybe<Scalars['String']>;
@@ -3671,6 +3707,75 @@ export type TextContentRecord = RecordInterface & {
 
 /** Block of type Text content (text_content) */
 export type TextContentRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+export type ThankYouModelFilter = {
+  AND?: InputMaybe<Array<InputMaybe<ThankYouModelFilter>>>;
+  OR?: InputMaybe<Array<InputMaybe<ThankYouModelFilter>>>;
+  _createdAt?: InputMaybe<CreatedAtFilter>;
+  _firstPublishedAt?: InputMaybe<PublishedAtFilter>;
+  _isValid?: InputMaybe<BooleanFilter>;
+  _publicationScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _publishedAt?: InputMaybe<PublishedAtFilter>;
+  _status?: InputMaybe<StatusFilter>;
+  _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _updatedAt?: InputMaybe<UpdatedAtFilter>;
+  id?: InputMaybe<ItemIdFilter>;
+  seoMeta?: InputMaybe<SeoFilter>;
+  slug?: InputMaybe<SlugFilter>;
+  title?: InputMaybe<StringFilter>;
+};
+
+export enum ThankYouModelOrderBy {
+  CreatedAtAsc = '_createdAt_ASC',
+  CreatedAtDesc = '_createdAt_DESC',
+  FirstPublishedAtAsc = '_firstPublishedAt_ASC',
+  FirstPublishedAtDesc = '_firstPublishedAt_DESC',
+  IsValidAsc = '_isValid_ASC',
+  IsValidDesc = '_isValid_DESC',
+  PublicationScheduledAtAsc = '_publicationScheduledAt_ASC',
+  PublicationScheduledAtDesc = '_publicationScheduledAt_DESC',
+  PublishedAtAsc = '_publishedAt_ASC',
+  PublishedAtDesc = '_publishedAt_DESC',
+  StatusAsc = '_status_ASC',
+  StatusDesc = '_status_DESC',
+  UnpublishingScheduledAtAsc = '_unpublishingScheduledAt_ASC',
+  UnpublishingScheduledAtDesc = '_unpublishingScheduledAt_DESC',
+  UpdatedAtAsc = '_updatedAt_ASC',
+  UpdatedAtDesc = '_updatedAt_DESC',
+  IdAsc = 'id_ASC',
+  IdDesc = 'id_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
+}
+
+/** Record of type Thank you (thank_you) */
+export type ThankYouRecord = RecordInterface & {
+  __typename?: 'ThankYouRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body: Array<SectionRecord>;
+  id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
+  slug?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Record of type Thank you (thank_you) */
+export type ThankYouRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
