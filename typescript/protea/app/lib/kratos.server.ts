@@ -39,13 +39,17 @@ export async function getUserSession(request: Request): Promise<Session> {
     headers: request.headers
   })
 
+  const url = new URL(request.url)
+  url.searchParams.set('returnTo', url.pathname)
+
   switch (session.status) {
     case 401:
     case 500:
-      throw redirect(route('/login'))
+      throw redirect(route('/login') + url.search)
     case 403:
     case 422: // Need to complete 2FA.
-      throw redirect(route('/login') + '?aal=aal2')
+      url.searchParams.set('aal', 'aal2')
+      throw redirect(route('/login') + url.search)
   }
 
   return session.json()
