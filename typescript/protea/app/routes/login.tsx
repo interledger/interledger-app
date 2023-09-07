@@ -52,7 +52,7 @@ export async function loader({ request }: LoaderArgs) {
   } else {
     // Otherwise we initialize it
     const flowRes = await fetch(
-      `${KRATOS_URL}/self-service/login/browser?${url.searchParams}`,
+      `${KRATOS_URL}/self-service/login/browser${url.search}`,
       { headers: { Accept: 'application/json' } }
     )
     flow = await flowRes.json()
@@ -60,9 +60,11 @@ export async function loader({ request }: LoaderArgs) {
     headers = trimHeaders(flowRes.headers, ['set-cookie'])
   }
 
+  const returnTo = url.searchParams.get('returnTo')
+
   return json(
     {
-      returnTo: flow.ui.returnTo,
+      returnTo: returnTo ?? flow.ui.returnTo,
       flowId: flow.id,
       csrfToken: getCsrfTokenFromFlow(flow),
       isSignupGated: IS_SIGNUP_GATED
@@ -110,7 +112,7 @@ export default function Page() {
       <input
         form='login'
         defaultValue={returnTo}
-        name='return_to'
+        name='returnTo'
         type='hidden'
       />
       <Card>
@@ -174,7 +176,7 @@ export async function action({ request }: ActionArgs) {
   const email = form.get('email')
   const password = form.get('password')
   const flowId = form.get('flow_id')
-  const returnTo = form.get('return_to')?.toString()
+  const returnTo = form.get('returnTo')?.toString()
 
   const fieldErrors = {
     form: '',
