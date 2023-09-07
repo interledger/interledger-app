@@ -25,6 +25,8 @@ service Backend {
   rpc GetLinkedAccountReview(GetLinkedAccountReviewRequest) returns (LinkedAccountReview);
   rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns(LinkedAccountReview);
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
+  rpc ListDynamicFormCounts(PaginationRequest) returns (ListDynamicFormCountsResponse);
+  rpc ExportDynamicForm(ExportDynamicFormRequest) returns (stream ExportDynamicFormResponse);
 }
 
 message Empty {}
@@ -218,4 +220,22 @@ message WaitlistSignup {
   bool can_signup = 5;
   string mug_id = 6;
   string country_code = 7;
+}
+
+message DynamicFormCount {
+  string form_id = 1;
+  int32 form_count = 2;
+}
+
+message ListDynamicFormCountsResponse {
+  repeated DynamicFormCount dynamic_form_counts = 1;
+  string next_page_token = 2;
+}
+
+message ExportDynamicFormRequest {
+  string form_id = 1;
+}
+
+message ExportDynamicFormResponse {
+  bytes chunk = 1;
 }

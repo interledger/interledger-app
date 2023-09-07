@@ -1,6 +1,7 @@
 package ops_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/dgryski/trifles/uuid"
@@ -12,6 +13,7 @@ import (
 )
 
 func TestCreateDynamicForm(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	b := &TestBackends{
@@ -35,4 +37,73 @@ func TestCreateDynamicForm(t *testing.T) {
 	assert.Equal(t, "testForm", form.FormID)
 	assert.Equal(t, jsonData, form.Data)
 	assert.Equal(t, walletID, form.WalletID)
+}
+
+func TestListDynamicFroms(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	b := &TestBackends{
+		Db: db.MigrateTestDB(t, ctx),
+	}
+
+	testForms := []dynamicforms.CreateFormArgs{
+		{
+			FormID:   "testForm1",
+			FormData: `{ "test1": "data" }`,
+		},
+		{
+			FormID:   "testForm1",
+			FormData: `{ "test2": "data" }`,
+		},
+		{
+			FormID:   "testForm3",
+			FormData: `{ "test3": "data" }`,
+		},
+	}
+
+	for _, form := range testForms {
+		_, err := ops.CreateForm(ctx, b, &form)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	formCounts, err := ops.ListFormCounts(ctx, b, db.Pagination{})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(formCounts))
+}
+
+func TestExportFormResults(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	b := &TestBackends{
+		Db: db.MigrateTestDB(t, ctx),
+	}
+
+	testForms := []dynamicforms.CreateFormArgs{
+		{
+			FormID:   "testForm1",
+			FormData: `{ "test1": "data" }`,
+		},
+		{
+			FormID:   "testForm1",
+			FormData: `{ "test2": "data" }`,
+		},
+		{
+			FormID:   "testForm3",
+			FormData: `{ "test3": { "test4": "data" } }`,
+		},
+	}
+	for _, form := range testForms {
+		_, err := ops.CreateForm(ctx, b, &form)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	buf := &bytes.Buffer{}
+	err := ops.ExportFormResults(ctx, b, "testForm1", buf)
+
+	assert.NoError(t, err)
 }

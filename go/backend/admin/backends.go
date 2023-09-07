@@ -4,6 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/admin/auth"
+	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/kyc"
@@ -28,4 +29,5 @@ type Backends interface {
 	Transactions() transactions.Client
 	Features() features.Client
 	Wallets() wallets.Client
+	DynamicForms() dynamicforms.Client
 }

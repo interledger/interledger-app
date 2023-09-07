@@ -107,7 +107,10 @@ export default function Page() {
                           onClick={() => {
                             let formData = new FormData()
                             formData.append('reviewID', review.id)
-                            formData.append('newState', LinkedAccountReviewState.Verified)
+                            formData.append(
+                              'newState',
+                              LinkedAccountReviewState.Verified
+                            )
                             submit(formData, {
                               action: route('/reviews'),
                               method: 'POST'

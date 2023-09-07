@@ -584,6 +584,50 @@ export interface WaitlistSignup {
      */
     countryCode: string;
 }
+/**
+ * @generated from protobuf message backend.admin.v1.DynamicFormCount
+ */
+export interface DynamicFormCount {
+    /**
+     * @generated from protobuf field: string form_id = 1;
+     */
+    formId: string;
+    /**
+     * @generated from protobuf field: int32 form_count = 2;
+     */
+    formCount: number;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListDynamicFormCountsResponse
+ */
+export interface ListDynamicFormCountsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.DynamicFormCount dynamic_form_counts = 1;
+     */
+    dynamicFormCounts: DynamicFormCount[];
+    /**
+     * @generated from protobuf field: string next_page_token = 2;
+     */
+    nextPageToken: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ExportDynamicFormRequest
+ */
+export interface ExportDynamicFormRequest {
+    /**
+     * @generated from protobuf field: string form_id = 1;
+     */
+    formId: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ExportDynamicFormResponse
+ */
+export interface ExportDynamicFormResponse {
+    /**
+     * @generated from protobuf field: bytes chunk = 1;
+     */
+    chunk: Uint8Array;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class Empty$Type extends MessageType<Empty> {
     constructor() {
@@ -2505,6 +2549,208 @@ class WaitlistSignup$Type extends MessageType<WaitlistSignup> {
  * @generated MessageType for protobuf message backend.admin.v1.WaitlistSignup
  */
 export const WaitlistSignup = new WaitlistSignup$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class DynamicFormCount$Type extends MessageType<DynamicFormCount> {
+    constructor() {
+        super("backend.admin.v1.DynamicFormCount", [
+            { no: 1, name: "form_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "form_count", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<DynamicFormCount>): DynamicFormCount {
+        const message = { formId: "", formCount: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<DynamicFormCount>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: DynamicFormCount): DynamicFormCount {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string form_id */ 1:
+                    message.formId = reader.string();
+                    break;
+                case /* int32 form_count */ 2:
+                    message.formCount = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: DynamicFormCount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string form_id = 1; */
+        if (message.formId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.formId);
+        /* int32 form_count = 2; */
+        if (message.formCount !== 0)
+            writer.tag(2, WireType.Varint).int32(message.formCount);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.DynamicFormCount
+ */
+export const DynamicFormCount = new DynamicFormCount$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListDynamicFormCountsResponse$Type extends MessageType<ListDynamicFormCountsResponse> {
+    constructor() {
+        super("backend.admin.v1.ListDynamicFormCountsResponse", [
+            { no: 1, name: "dynamic_form_counts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => DynamicFormCount },
+            { no: 2, name: "next_page_token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListDynamicFormCountsResponse>): ListDynamicFormCountsResponse {
+        const message = { dynamicFormCounts: [], nextPageToken: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListDynamicFormCountsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListDynamicFormCountsResponse): ListDynamicFormCountsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.DynamicFormCount dynamic_form_counts */ 1:
+                    message.dynamicFormCounts.push(DynamicFormCount.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string next_page_token */ 2:
+                    message.nextPageToken = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListDynamicFormCountsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.DynamicFormCount dynamic_form_counts = 1; */
+        for (let i = 0; i < message.dynamicFormCounts.length; i++)
+            DynamicFormCount.internalBinaryWrite(message.dynamicFormCounts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string next_page_token = 2; */
+        if (message.nextPageToken !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nextPageToken);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListDynamicFormCountsResponse
+ */
+export const ListDynamicFormCountsResponse = new ListDynamicFormCountsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ExportDynamicFormRequest$Type extends MessageType<ExportDynamicFormRequest> {
+    constructor() {
+        super("backend.admin.v1.ExportDynamicFormRequest", [
+            { no: 1, name: "form_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ExportDynamicFormRequest>): ExportDynamicFormRequest {
+        const message = { formId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ExportDynamicFormRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ExportDynamicFormRequest): ExportDynamicFormRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string form_id */ 1:
+                    message.formId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ExportDynamicFormRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string form_id = 1; */
+        if (message.formId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.formId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ExportDynamicFormRequest
+ */
+export const ExportDynamicFormRequest = new ExportDynamicFormRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ExportDynamicFormResponse$Type extends MessageType<ExportDynamicFormResponse> {
+    constructor() {
+        super("backend.admin.v1.ExportDynamicFormResponse", [
+            { no: 1, name: "chunk", kind: "scalar", T: 12 /*ScalarType.BYTES*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ExportDynamicFormResponse>): ExportDynamicFormResponse {
+        const message = { chunk: new Uint8Array(0) };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ExportDynamicFormResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ExportDynamicFormResponse): ExportDynamicFormResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* bytes chunk */ 1:
+                    message.chunk = reader.bytes();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ExportDynamicFormResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* bytes chunk = 1; */
+        if (message.chunk.length)
+            writer.tag(1, WireType.LengthDelimited).bytes(message.chunk);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ExportDynamicFormResponse
+ */
+export const ExportDynamicFormResponse = new ExportDynamicFormResponse$Type();
 /**
  * @generated ServiceType for protobuf service backend.admin.v1.Backend
  */
@@ -2522,5 +2768,7 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListIncompleteLinkedAccountReviews", options: {}, I: PaginationRequest, O: LinkedAccountReviews },
     { name: "GetLinkedAccountReview", options: {}, I: GetLinkedAccountReviewRequest, O: LinkedAccountReview },
     { name: "CompleteLinkedAccountReview", options: {}, I: CompleteLinkedAccountReviewRequest, O: LinkedAccountReview },
-    { name: "GetLinkedAccount", options: {}, I: GetLinkedAccountRequest, O: LinkedAccount }
+    { name: "GetLinkedAccount", options: {}, I: GetLinkedAccountRequest, O: LinkedAccount },
+    { name: "ListDynamicFormCounts", options: {}, I: PaginationRequest, O: ListDynamicFormCountsResponse },
+    { name: "ExportDynamicForm", serverStreaming: true, options: {}, I: ExportDynamicFormRequest, O: ExportDynamicFormResponse }
 ]);

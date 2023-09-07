@@ -1,5 +1,7 @@
 declare module "routes-gen" {
   export type RouteParams = {
+    "/dynamic-forms": Record<string, never>;
+    "/dynamic-forms/:id.csv": { "id": string };
     "/review/:id": { "id": string };
     "/review/:id/details": { "id": string };
     "/wallet/:id": { "id": string };
@@ -16,6 +18,8 @@ declare module "routes-gen" {
 
   export function route<
     T extends
+      | ["/dynamic-forms"]
+      | ["/dynamic-forms/:id.csv", RouteParams["/dynamic-forms/:id.csv"]]
       | ["/review/:id", RouteParams["/review/:id"]]
       | ["/review/:id/details", RouteParams["/review/:id/details"]]
       | ["/wallet/:id", RouteParams["/wallet/:id"]]

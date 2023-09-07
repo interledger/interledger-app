@@ -26,6 +26,9 @@ export function AdminLayout() {
             <NavDrawer.ListItem to={route('/reviews')}>
               Reviews
             </NavDrawer.ListItem>
+            <NavDrawer.ListItem to={route('/dynamic-forms')}>
+              Forms
+            </NavDrawer.ListItem>
           </NavDrawer.List>
           <footer className='flex w-full space-x-3 pl-4 pb-2'>
             <span className='text-xs font-medium text-medium'>
