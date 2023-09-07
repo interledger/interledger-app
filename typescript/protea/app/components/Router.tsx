@@ -80,6 +80,27 @@ export const ButtonRouter = forwardRef<any, ButtonRouterProps>(
 
 ButtonRouter.displayName = 'ButtonRouter'
 
+export const OutlineButtonRouter = forwardRef<any, ButtonRouterProps>(
+  ({ className, children, to, shrink, ...rest }, ref) => {
+    return (
+      <Link
+        ref={ref}
+        to={to}
+        className={clsx(
+          'flex h-12 w-full items-center justify-center rounded-full border border-transparent px-10 font-medium text-primary outline outline-2 -outline-offset-2 outline-blue-500 hover:text-primary-hover hover:outline-hover focus-visible:bg-container-primary',
+          shrink ? 'sm:max-w-fit' : '',
+          className
+        )}
+        {...rest}
+      >
+        {children}
+      </Link>
+    )
+  }
+)
+
+OutlineButtonRouter.displayName = 'OutlineButtonRouter'
+
 interface RouterProps
   extends AnchorHTMLAttributes<HTMLAnchorElement>,
     RefAttributes<HTMLAnchorElement> {
