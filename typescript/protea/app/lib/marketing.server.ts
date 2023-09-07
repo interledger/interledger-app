@@ -6,7 +6,8 @@ import type {
   QueryBlogPostArgs,
   QueryDocArgs,
   QueryFormArgs,
-  QueryLegalPageArgs
+  QueryLegalPageArgs,
+  QueryThankYouArgs
 } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
 
@@ -175,6 +176,7 @@ export const getCurrentFormPage = async (variables: QueryFormArgs) => {
             title
             slug
             requireAuth
+            returnTo
             _status
             sections {
               id
@@ -190,6 +192,8 @@ export const getCurrentFormPage = async (variables: QueryFormArgs) => {
                         body
                         shapes {
                           url
+                          height
+                          width
                         }
                       }
                     }
@@ -228,6 +232,49 @@ export const getCurrentFormPage = async (variables: QueryFormArgs) => {
     .catch((error) => {
       console.log(error)
       return { form: null }
+    })
+}
+
+export const getCurrentThankYouPage = async (variables: QueryThankYouArgs) => {
+  return apolloClient
+    .query<
+      {
+        thankYou: Query['thankYou']
+        footer: Query['footer']
+      },
+      QueryThankYouArgs
+    >({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetCurrentThankYouQuery($filter: ThankYouModelFilter) {
+          thankYou(filter: $filter) {
+            id
+            title
+            slug
+            _status
+            body {
+              ...Section
+            }
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { thankYou: null, footer: null }
     })
 }
 
@@ -270,9 +317,13 @@ export const getBlogRoute = async (variables?: QueryAllBlogPostsArgs) => {
             _status
             shapes {
               url
+              height
+              width
             }
             shapesMobile {
               url
+              height
+              width
             }
             authors {
               name
@@ -390,9 +441,13 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
             }
             shapes {
               url
+              height
+              width
             }
             shapesMobile {
               url
+              height
+              width
             }
             description
             date
@@ -723,6 +778,8 @@ export const FOOTER = gql`
     logo {
       id
       url
+      height
+      width
     }
     column1Title
     column1 {
@@ -751,6 +808,8 @@ export const FOOTER = gql`
       icon {
         id
         url
+        height
+        width
       }
     }
   }
@@ -773,10 +832,14 @@ export const SECTION = gql`
         image {
           id
           url
+          height
+          width
         }
         imageDark {
           id
           url
+          height
+          width
         }
       }
       ... on FeatureBlocksContentRecord {
@@ -785,6 +848,8 @@ export const SECTION = gql`
           image {
             id
             url
+            height
+            width
           }
           title
           direction
@@ -799,10 +864,14 @@ export const SECTION = gql`
         image {
           id
           url
+          height
+          width
         }
         imageMobile {
           id
           url
+          height
+          width
         }
         rowReverse
       }
@@ -812,6 +881,8 @@ export const SECTION = gql`
         shapes {
           id
           url
+          height
+          width
         }
       }
       ... on HeroContentRecord {
@@ -827,18 +898,26 @@ export const SECTION = gql`
         image {
           id
           url
+          height
+          width
         }
         imageDark {
           id
           url
+          height
+          width
         }
         imageMobile {
           id
           url
+          height
+          width
         }
         imageDarkMobile {
           id
           url
+          height
+          width
         }
       }
       ... on HomeHeroContentRecord {
@@ -858,22 +937,32 @@ export const SECTION = gql`
           image {
             id
             url
+            height
+            width
           }
           imageDark {
             id
             url
+            height
+            width
           }
           imageMobile {
             id
             url
+            height
+            width
           }
           imageDarkMobile {
             id
             url
+            height
+            width
           }
           mobileShape {
             id
             url
+            height
+            width
           }
         }
       }
@@ -887,10 +976,14 @@ export const SECTION = gql`
           image {
             id
             url
+            height
+            width
           }
           imageDark {
             id
             url
+            height
+            width
           }
         }
       }
@@ -906,10 +999,14 @@ export const SECTION = gql`
         image {
           id
           url
+          height
+          width
         }
         imageDark {
           id
           url
+          height
+          width
         }
       }
       ... on TeamContentRecord {
@@ -918,10 +1015,14 @@ export const SECTION = gql`
         image {
           id
           url
+          height
+          width
         }
         imageDark {
           id
           url
+          height
+          width
         }
         people {
           id
@@ -940,6 +1041,11 @@ export const SECTION = gql`
       ... on TextContentRecord {
         id
         title
+        image {
+          height
+          width
+          url
+        }
         bodyText {
           value
         }
