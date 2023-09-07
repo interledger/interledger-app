@@ -4,6 +4,10 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ExportDynamicFormResponse } from "./backend";
+import type { ExportDynamicFormRequest } from "./backend";
+import type { ServerStreamingCall } from "@protobuf-ts/runtime-rpc";
+import type { ListDynamicFormCountsResponse } from "./backend";
 import type { LinkedAccount } from "./backend";
 import type { GetLinkedAccountRequest } from "./backend";
 import type { CompleteLinkedAccountReviewRequest } from "./backend";
@@ -91,6 +95,14 @@ export interface IBackendClient {
      * @generated from protobuf rpc: GetLinkedAccount(backend.admin.v1.GetLinkedAccountRequest) returns (backend.admin.v1.LinkedAccount);
      */
     getLinkedAccount(input: GetLinkedAccountRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountRequest, LinkedAccount>;
+    /**
+     * @generated from protobuf rpc: ListDynamicFormCounts(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListDynamicFormCountsResponse);
+     */
+    listDynamicFormCounts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListDynamicFormCountsResponse>;
+    /**
+     * @generated from protobuf rpc: ExportDynamicForm(backend.admin.v1.ExportDynamicFormRequest) returns (stream backend.admin.v1.ExportDynamicFormResponse);
+     */
+    exportDynamicForm(input: ExportDynamicFormRequest, options?: RpcOptions): ServerStreamingCall<ExportDynamicFormRequest, ExportDynamicFormResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -198,5 +210,19 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     getLinkedAccount(input: GetLinkedAccountRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountRequest, LinkedAccount> {
         const method = this.methods[13], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListDynamicFormCounts(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListDynamicFormCountsResponse);
+     */
+    listDynamicFormCounts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListDynamicFormCountsResponse> {
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        return stackIntercept<PaginationRequest, ListDynamicFormCountsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ExportDynamicForm(backend.admin.v1.ExportDynamicFormRequest) returns (stream backend.admin.v1.ExportDynamicFormResponse);
+     */
+    exportDynamicForm(input: ExportDynamicFormRequest, options?: RpcOptions): ServerStreamingCall<ExportDynamicFormRequest, ExportDynamicFormResponse> {
+        const method = this.methods[15], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ExportDynamicFormRequest, ExportDynamicFormResponse>("serverStreaming", this._transport, method, opt, input);
     }
 }

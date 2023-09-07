@@ -37,6 +37,8 @@ type BackendClient interface {
 	GetLinkedAccountReview(ctx context.Context, in *GetLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
 	CompleteLinkedAccountReview(ctx context.Context, in *CompleteLinkedAccountReviewRequest, opts ...grpc.CallOption) (*LinkedAccountReview, error)
 	GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	ListDynamicFormCounts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListDynamicFormCountsResponse, error)
+	ExportDynamicForm(ctx context.Context, in *ExportDynamicFormRequest, opts ...grpc.CallOption) (Backend_ExportDynamicFormClient, error)
 }
 
 type backendClient struct {
@@ -173,6 +175,47 @@ func (c *backendClient) GetLinkedAccount(ctx context.Context, in *GetLinkedAccou
 	return out, nil
 }
 
+func (c *backendClient) ListDynamicFormCounts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListDynamicFormCountsResponse, error) {
+	out := new(ListDynamicFormCountsResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListDynamicFormCounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) ExportDynamicForm(ctx context.Context, in *ExportDynamicFormRequest, opts ...grpc.CallOption) (Backend_ExportDynamicFormClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Backend_ServiceDesc.Streams[0], "/backend.admin.v1.Backend/ExportDynamicForm", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &backendExportDynamicFormClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Backend_ExportDynamicFormClient interface {
+	Recv() (*ExportDynamicFormResponse, error)
+	grpc.ClientStream
+}
+
+type backendExportDynamicFormClient struct {
+	grpc.ClientStream
+}
+
+func (x *backendExportDynamicFormClient) Recv() (*ExportDynamicFormResponse, error) {
+	m := new(ExportDynamicFormResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -191,6 +234,8 @@ type BackendServer interface {
 	GetLinkedAccountReview(context.Context, *GetLinkedAccountReviewRequest) (*LinkedAccountReview, error)
 	CompleteLinkedAccountReview(context.Context, *CompleteLinkedAccountReviewRequest) (*LinkedAccountReview, error)
 	GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error)
+	ListDynamicFormCounts(context.Context, *PaginationRequest) (*ListDynamicFormCountsResponse, error)
+	ExportDynamicForm(*ExportDynamicFormRequest, Backend_ExportDynamicFormServer) error
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -238,6 +283,12 @@ func (UnimplementedBackendServer) CompleteLinkedAccountReview(context.Context, *
 }
 func (UnimplementedBackendServer) GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccount not implemented")
+}
+func (UnimplementedBackendServer) ListDynamicFormCounts(context.Context, *PaginationRequest) (*ListDynamicFormCountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDynamicFormCounts not implemented")
+}
+func (UnimplementedBackendServer) ExportDynamicForm(*ExportDynamicFormRequest, Backend_ExportDynamicFormServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportDynamicForm not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -503,6 +554,45 @@ func _Backend_GetLinkedAccount_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ListDynamicFormCounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListDynamicFormCounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ListDynamicFormCounts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListDynamicFormCounts(ctx, req.(*PaginationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_ExportDynamicForm_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportDynamicFormRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(BackendServer).ExportDynamicForm(m, &backendExportDynamicFormServer{stream})
+}
+
+type Backend_ExportDynamicFormServer interface {
+	Send(*ExportDynamicFormResponse) error
+	grpc.ServerStream
+}
+
+type backendExportDynamicFormServer struct {
+	grpc.ServerStream
+}
+
+func (x *backendExportDynamicFormServer) Send(m *ExportDynamicFormResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -566,7 +656,17 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetLinkedAccount",
 			Handler:    _Backend_GetLinkedAccount_Handler,
 		},
+		{
+			MethodName: "ListDynamicFormCounts",
+			Handler:    _Backend_ListDynamicFormCounts_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ExportDynamicForm",
+			Handler:       _Backend_ExportDynamicForm_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "backend/admin/v1/backend.proto",
 }

@@ -462,3 +462,54 @@ export async function CompleteLinkedAccountReview(
     throw json({}, httpMapping(rpc.code))
   }
 }
+
+export async function ListDynamicFormCounts(
+  request: Request,
+  page: PaginationRequest
+) {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .listDynamicFormCounts(page, {
+      meta: {
+        cookies: cookie || ''
+      }
+    })
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response.dynamicFormCounts
+}
+
+export async function ExportDynamicFormResult(
+  request: Request,
+  formId: string
+) {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = grpcClient.exportDynamicForm(
+    { formId },
+    {
+      meta: {
+        cookies: cookie || ''
+      }
+    }
+  )
+
+  const chunks = []
+  try {
+    for await (let message of rpc.responses) {
+      chunks.push(message.chunk)
+    }
+  } catch (err) {
+    if (isGrpcError(rpc) && rpc.message !== 'EOF') {
+      throw json({}, httpMapping(rpc.code))
+    }
+  }
+
+  const blob = new Blob(chunks, { type: 'text/csv' })
+
+  return blob
+}
