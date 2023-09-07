@@ -2,9 +2,17 @@ package ops
 
 import (
 	"context"
+	"database/sql"
+	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/dynamicforms"
+	"io"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 func CreateForm(ctx context.Context, b Backends, args *dynamicforms.CreateFormArgs) (*dynamicforms.Form, error) {
@@ -29,4 +37,150 @@ func CreateForm(ctx context.Context, b Backends, args *dynamicforms.CreateFormAr
 	}
 
 	return &form, nil
+}
+
+func ListFormCounts(ctx context.Context, b Backends, _ db.Pagination) ([]dynamicforms.FormCount, error) {
+	var forms []dynamicforms.FormCount
+
+	err := b.DB().SelectContext(ctx, &forms, "SELECT form_id, COUNT(*) FROM dynamic_forms GROUP BY form_id")
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", dynamicforms.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", dynamicforms.ErrInternal, err)
+	}
+
+	return forms, nil
+}
+
+func ExportFormResults(ctx context.Context, b Backends, formID string, writer io.Writer) error {
+	var formResps []string
+
+	err := b.DB().SelectContext(ctx, &formResps, "SELECT data FROM dynamic_forms WHERE form_id = $1", formID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("%w %s", dynamicforms.ErrNotFound, err)
+	}
+	if err != nil {
+		return fmt.Errorf("%w %s", dynamicforms.ErrInternal, err)
+	}
+
+	var jsonStrings []string
+	for _, jsonString := range formResps {
+		formResp, err := strconv.Unquote(jsonString)
+		if err != nil {
+			return fmt.Errorf("%w %s %s", dynamicforms.ErrInternal, err, formResp)
+		}
+
+		jsonStrings = append(jsonStrings, formResp)
+	}
+
+	jsonStringArray := "[" + strings.Join(jsonStrings, ",") + "]"
+
+	err = jsonToCSV(strings.NewReader(jsonStringArray), writer)
+	if err != nil {
+		return fmt.Errorf("%w %s", dynamicforms.ErrInternal, err)
+	}
+
+	return nil
+}
+
+// https://github.com/yukithm/json2csv
+func jsonToCSV(r io.Reader, w io.Writer) error {
+	dec := json.NewDecoder(r)
+
+	var data interface{}
+
+	if err := dec.Decode(&data); err != nil {
+		return fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	var rows []map[string]string
+
+	switch value := data.(type) {
+	case []interface{}:
+		for i := range value {
+			rows = append(rows, topLevelObject(value[i]))
+		}
+	default:
+		rows = append(rows, topLevelObject(value))
+	}
+
+	columns := make(map[string]string)
+	for i := range rows {
+		for col := range rows[i] {
+			columns[col] = col
+		}
+	}
+	var colRecord []string
+	for c := range columns {
+		colRecord = append(colRecord, c)
+	}
+	sort.Strings(colRecord)
+
+	cw := csv.NewWriter(w)
+
+	if err := cw.Write(colRecord); err != nil {
+		return fmt.Errorf("failed to write CSV header: %w", err)
+	}
+
+	for i := range rows {
+		record := make([]string, 0, len(columns))
+		for _, col := range colRecord {
+			record = append(record, rows[i][col])
+		}
+		if err := cw.Write(record); err != nil {
+			return fmt.Errorf("failed to write CSV row: %w", err)
+		}
+
+	}
+
+	cw.Flush()
+
+	return nil
+}
+
+func topLevelObject(object interface{}) map[string]string {
+	values := make(map[string]string)
+
+	switch value := object.(type) {
+	case string:
+		values["text"] = value
+	case map[string]interface{}:
+		flattenObject("", values, value)
+	case float64:
+		values["number"] = strconv.FormatFloat(value, 'f', -1, 64)
+	case []interface{}:
+		addValue("", values, value)
+	}
+
+	return values
+}
+
+func flattenObject(path string, values map[string]string, obj map[string]interface{}) {
+	for k, v := range obj {
+		p := k
+		if path != "" {
+			p = path + "." + k
+		}
+		addValue(p, values, v)
+	}
+}
+
+func addValue(path string, values map[string]string, v interface{}) {
+	switch value := v.(type) {
+	case string:
+		values[path] = value
+	case map[string]interface{}:
+		flattenObject(path, values, value)
+	case float64:
+		values[path] = strconv.FormatFloat(value, 'f', -1, 64)
+	case []interface{}:
+		for i := range value {
+			p := strconv.Itoa(i)
+			if path != "" {
+				p = path + "." + p
+			}
+			addValue(p, values, value[i])
+		}
+	}
 }
