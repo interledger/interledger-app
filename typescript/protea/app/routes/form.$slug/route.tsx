@@ -24,7 +24,8 @@ export async function loader({ request, params }: LoaderArgs) {
 
   if (!form) throw json(null, { status: 404, statusText: 'Not found' })
 
-  if (form.requireAuth && !hasUserSession(request)) throw redirect('/login')
+  if (form.requireAuth && !hasUserSession(request))
+    throw redirect(`/login?returnTo=/form/${params.slug}`)
 
   return jsonWithCSRF(request, { form })
 }
@@ -80,6 +81,12 @@ export default function Page() {
         name='csrfToken'
         type='hidden'
       />
+      <input
+        form={`dynamic-${slug}`}
+        defaultValue={form.returnTo || '/'}
+        name='returnTo'
+        type='hidden'
+      />
       {form.sections.map((section, index, allSections) => (
         <div
           key={section.id}
@@ -108,9 +115,12 @@ export async function action({ request, params }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
+  const returnTo = form.get('returnTo') as string
+
   let data: Record<string, string> = {}
   form.forEach((value, key) => {
-    if (typeof value === 'string' && key !== 'csrfToken') data[key] = value
+    if (typeof value === 'string' && key !== 'csrfToken' && key !== 'returnTo')
+      data[key] = value
   })
 
   const response = grpcClient.createDynamicForm(
@@ -125,6 +135,9 @@ export async function action({ request, params }: ActionArgs) {
     }
   )
   if (isGrpcError(response)) throw json({}, httpMapping(response.code))
+
+  if (returnTo !== '/')
+    return redirect(route('/thank-you/:slug', { slug: returnTo }))
 
   return redirectWithSnackbar(request, route('/'), {
     message: 'Form submitted successfully'

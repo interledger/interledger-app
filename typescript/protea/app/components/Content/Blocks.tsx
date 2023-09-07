@@ -841,6 +841,20 @@ export function TextContentRecordComponent({
         'flex flex-col items-center space-y-6 px-4 py-20 lg:px-0'
       )}
     >
+      {content.image && (
+        <AnimatePresence>
+          <motion.img
+            alt='Image'
+            key={content.image?.url + 'image'}
+            src={content.image?.url}
+            height={content.image?.height}
+            width={content.image?.width}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.15 } }}
+            exit={{ opacity: 0 }}
+          />
+        </AnimatePresence>
+      )}
       {content.title && (
         <h2 className='font-display text-4xl font-medium'>{content.title}</h2>
       )}
@@ -857,10 +871,18 @@ export function TextContentRecordComponent({
           />
         </Prose>
       )}
-      {content.button.length > 0 &&
-        content.button.map((button, index) => (
-          <ContentRouter key={button.id} shrink to={button} />
-        ))}
+      {content.button.length > 0 && (
+        <div className='flex flex-col items-center space-y-4 md:flex-row md:space-x-4 md:space-y-0'>
+          {content.button.map((button, index) => (
+            <ContentRouter
+              key={button.id}
+              shrink
+              outline={index == 0} // Max two buttons :shrug:
+              to={button}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
