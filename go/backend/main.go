@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/slack/bot"
+
 	"gitlab.com/fynbos/backend/dynamicforms"
 
 	"gitlab.com/fynbos/backend/slack"
@@ -261,6 +263,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
+	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
 
