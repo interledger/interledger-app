@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 func CreateForm(ctx context.Context, b Backends, args *dynamicforms.CreateFormArgs) (*dynamicforms.Form, error) {
@@ -85,6 +86,7 @@ func ExportFormResults(ctx context.Context, b Backends, formID string, writer io
 }
 
 // https://github.com/yukithm/json2csv
+// modified to make column names more readable
 func jsonToCSV(r io.Reader, w io.Writer) error {
 	dec := json.NewDecoder(r)
 
@@ -113,7 +115,7 @@ func jsonToCSV(r io.Reader, w io.Writer) error {
 	}
 	var colRecord []string
 	for c := range columns {
-		colRecord = append(colRecord, c)
+		colRecord = append(colRecord, slugToSentence(c))
 	}
 	sort.Strings(colRecord)
 
@@ -183,4 +185,11 @@ func addValue(path string, values map[string]string, v interface{}) {
 			addValue(p, values, value[i])
 		}
 	}
+}
+
+func slugToSentence(slug string) string {
+	sentence := strings.ReplaceAll(slug, "-", " ")
+	runes := []rune(sentence)
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
 }
