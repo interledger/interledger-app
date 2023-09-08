@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/dynamicforms"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 	"io"
 	"sort"
 	"strconv"
@@ -35,6 +37,10 @@ func CreateForm(ctx context.Context, b Backends, args *dynamicforms.CreateFormAr
 	err = b.DB().GetContext(ctx, &form, "INSERT INTO dynamic_forms(form_id, data, wallet_id) VALUES($1, $2, $3) RETURNING id, form_id, data, wallet_id", args.FormID, jsonData, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w failed to create form: %w", dynamicforms.ErrInternal, err)
+	}
+
+	if env.IsProd() {
+		slack.SendToChannel(ctx, slack.ChannelNotifyForms, "Fynbot", fmt.Sprintf(":incoming_envelope: New Form Submission: %s", args.FormID))
 	}
 
 	return &form, nil
