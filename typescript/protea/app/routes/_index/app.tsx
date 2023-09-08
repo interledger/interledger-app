@@ -209,17 +209,17 @@ export function AppPage() {
                       )}
                     {transaction.state != 'Pending' &&
                       transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'twitter' && (
+                      transaction.destinationIdentityType == 'Twitter' && (
                         <TwitterIcon />
                       )}
                     {transaction.state != 'Pending' &&
                       transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'discord' && (
+                      transaction.destinationIdentityType == 'Discord' && (
                         <DiscordIcon />
                       )}
                     {transaction.state != 'Pending' &&
                       transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'slack' && (
+                      transaction.destinationIdentityType == 'Slack' && (
                         <SlackIcon />
                       )}
                     <div className='flex flex-col space-y-1'>
