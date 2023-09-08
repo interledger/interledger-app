@@ -45,7 +45,7 @@ func TestCreateTransaction(t *testing.T) {
 					Currency: currency.USD,
 					Scale:    2,
 				},
-				DestinationIdentityType: "twitter",
+				DestinationIdentityType: "Twitter",
 				DestinationIdentity:     "@elon",
 				LinkedAccountTitle:      "VISA XXX123",
 			},
@@ -242,7 +242,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 				Source:                  "$fynbos.me/alice",
 				Destination:             "$fynbos.me/bob",
 				LinkedAccountTitle:      "VISA XXXX 1234",
-				DestinationIdentityType: "twitter",
+				DestinationIdentityType: "Twitter",
 				DestinationIdentity:     "@elon",
 				Amount: currency.Amount{
 					Value:    1000,
