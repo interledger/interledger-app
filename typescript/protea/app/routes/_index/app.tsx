@@ -26,18 +26,12 @@ import {
 import { Label } from '~/components/Label'
 import { usePusher } from '~/lib/usePusher'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import type { loader } from './route'
+import type { appLoader } from './route'
 import { KycStatus } from './route'
 
 export function AppPage() {
-  const {
-    walletInfo,
-    features,
-
-    transactions,
-    kycStatus,
-    pusherArgs
-  } = useLoaderData<typeof loader>()
+  const { walletInfo, features, transactions, kycStatus, pusherArgs } =
+    useLoaderData<typeof appLoader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
@@ -258,7 +252,7 @@ export function AppPage() {
 }
 
 function CTACards() {
-  const { features, walletInfo } = useLoaderData<typeof loader>()
+  const { features, walletInfo } = useLoaderData<typeof appLoader>()
 
   return (
     <>
