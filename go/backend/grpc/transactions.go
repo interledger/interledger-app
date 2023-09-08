@@ -141,7 +141,10 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 
 	// transform identity types to twitter/wallet for the frontend
 	destinationIdentityType := tx.DestinationIdentityType
-	if destinationIdentityType == payments.IdentityTypeWalletID.String() || destinationIdentityType == payments.IdentityTypeWalletURL.String() {
+	if destinationIdentityType == payments.IdentityTypeWalletID.String() ||
+		destinationIdentityType == payments.IdentityTypeWalletURL.String() ||
+		tx.Type == transactions.TransactionTypeOpenPaymentIncoming ||
+		tx.Type == transactions.TransactionTypeIncoming {
 		destinationIdentityType = "wallet"
 	}
 
