@@ -10,8 +10,19 @@ export function useSegment(apiKey: string) {
   const location = useLocation()
   if (!global.__segmentClient && apiKey && apiKey != '') {
     global.__segmentClient = AnalyticsBrowser.load(
-      { writeKey: apiKey },
-      { initialPageview: false }
+      {
+        writeKey: apiKey,
+        cdnURL: 'https://s.fynbos.app'
+      },
+      {
+        initialPageview: false,
+        integrations: {
+          'Segment.io': {
+            apiHost: 's.fynbos.app/v1',
+            protocol: 'https' // optional
+          }
+        }
+      }
     )
   }
 
