@@ -2,8 +2,6 @@ import { useLocation } from '@remix-run/react'
 import { AnalyticsBrowser } from '@segment/analytics-next'
 import { useEffect } from 'react'
 
-let segmentClient: AnalyticsBrowser
-
 declare global {
   var __segmentClient: AnalyticsBrowser | undefined
 }
