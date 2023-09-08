@@ -1,5 +1,8 @@
 import type { CallOptions, Transport } from '@bufbuild/connect'
-import { ConnectError, makeAnyClient } from '@bufbuild/connect'
+import {
+  ConnectError as BufConnectError,
+  makeAnyClient
+} from '@bufbuild/connect'
 import { createGrpcTransport } from '@bufbuild/connect-node'
 import type {
   Message,
@@ -10,6 +13,7 @@ import type {
 } from '@bufbuild/protobuf'
 import { MethodKind } from '@bufbuild/protobuf'
 import { BackendService } from '~/generated/connect/backend/v1/backend_connect'
+import { ConnectError } from '~/lib/error.server'
 
 const BACKEND_GRPC_URL = 'http://backend.backend:443'
 
@@ -125,7 +129,7 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
         return response.message
       })
       .catch((err) => {
-        return ConnectError.from(err)
+        return new ConnectError(request, BufConnectError.from(err))
       })
   }
 }

@@ -1,14 +1,37 @@
+import { Code } from '@bufbuild/connect'
+import type { ConnectError as BufConnectError } from '@bufbuild/connect/dist/types/connect-error'
 import type { TypedResponse } from '@remix-run/node'
-import { json } from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
 import { captureMessage } from '@sentry/remix'
+import { route } from 'routes-gen'
+import type {
+  BadRequest_FieldViolation,
+  PreconditionFailure_Violation
+} from '~/generated/connect/google/rpc/error_details_pb'
+import {
+  BadRequest,
+  PreconditionFailure
+} from '~/generated/connect/google/rpc/error_details_pb'
 import { flashSnackbar } from '~/lib/snackbar.server'
 import type { SnackbarType } from '~/lib/useScaffoldStore'
 
 type JsonWithErrorFunction = <
-  Data extends object | null | (object & { errors: object & { form: string } })
+  Data extends
+    | null
+    | (Record<string, unknown> & Record<'errors', Record<string, string>>)
 >(
   request: Request,
   data: Data,
+  snackbar?: Partial<SnackbarType>,
+  init?: number | ResponseInit
+) => Promise<TypedResponse<(Data & object) | (Data & null)>>
+
+type JsonWithConnectErrorFunction = <
+  Data extends Record<string, unknown> &
+    Record<'errors', Record<string, string>>
+>(
+  data: Data,
+  mapping?: Partial<Data['errors']>,
   snackbar?: Partial<SnackbarType>,
   init?: number | ResponseInit
 ) => Promise<TypedResponse<(Data & object) | (Data & null)>>
@@ -29,10 +52,17 @@ export const error: JsonWithErrorFunction = async (
   init
 ) => {
   let responseInit = typeof init === 'number' ? { status: init } : init
-  const url = new URL(request.url)
   const newHeaders = new Headers(responseInit?.headers)
 
-  if (data && 'errors' in data && 'form' in data.errors && data.errors.form) {
+  if (
+    data &&
+    'errors' in data &&
+    typeof data.errors === 'object' &&
+    data.errors &&
+    'form' in data.errors &&
+    data.errors.form &&
+    typeof data.errors.form === 'string'
+  ) {
     snackbar = {
       ...snackbar,
       message: data.errors.form
@@ -50,14 +80,6 @@ export const error: JsonWithErrorFunction = async (
     newHeaders.append('Set-Cookie', cookie)
   }
 
-  captureMessage('Invalid form submission', {
-    extra: {
-      url: url.pathname,
-      message:
-        snackbar?.message || 'There was a general error with the request.'
-    }
-  })
-
   if (typeof data !== 'object') {
     throw json(
       {},
@@ -73,4 +95,174 @@ export const error: JsonWithErrorFunction = async (
     headers: newHeaders,
     status: 400
   })
+}
+
+/**
+ * ConnectError is an extension of the ConnectError from @bufbuild/connect.
+ *
+ * It doesn't explicitly extend the class, because we don't need all the
+ * properties and methods it provides.
+ *
+ * https://github.com/connectrpc/connect-es/blob/main/packages/connect/src/connect-error.ts
+ */
+export class ConnectError {
+  readonly _request: Request
+  readonly _err: BufConnectError
+  readonly code: Code
+  // The HTTP status code for this error.
+  readonly status: ResponseInit | undefined
+  readonly errorResponse: Response | undefined
+
+  violations: PreconditionFailure_Violation[] = []
+  fieldViolations: BadRequest_FieldViolation[] = []
+
+  constructor(request: Request, err: BufConnectError) {
+    this._request = request
+    this._err = err
+    this.code = err.code
+
+    const mappedStatus = httpMapping(err.code)
+    this.status = mappedStatus
+    this.errorResponse = json({}, mappedStatus)
+
+    const url = new URL(request.url)
+
+    captureMessage('Error received in connect client', {
+      extra: {
+        url: url.pathname,
+        code: err.code,
+        cause: err.cause
+      }
+    })
+
+    if (err.code === Code.Unauthenticated) {
+      url.searchParams.set('returnTo', url.pathname)
+
+      throw redirect(route('/login') + url.search)
+    }
+
+    // If Code.FailedPrecondition, store violations
+    if (err.code === Code.FailedPrecondition) {
+      this.violations = err
+        .findDetails(PreconditionFailure)
+        .reduce(
+          (accumulator: PreconditionFailure_Violation[], currentValue) => {
+            currentValue.violations.forEach((val) => accumulator.push(val))
+            return accumulator
+          },
+          []
+        )
+    }
+
+    // If Code.BadRequest, store fieldViolations
+    if (err.code === Code.InvalidArgument) {
+      this.fieldViolations = err
+        .findDetails(BadRequest)
+        .reduce((accumulator: BadRequest_FieldViolation[], currentValue) => {
+          currentValue.fieldViolations.forEach((val) => accumulator.push(val))
+          return accumulator
+        }, [])
+    }
+  }
+
+  /**
+   * Helper to return error (function above) with mapped field errors.
+   * @param data
+   * @param mapping
+   * @param snackbar
+   * @param init
+   */
+  public error: JsonWithConnectErrorFunction = async (
+    data,
+    mapping,
+    snackbar,
+    init
+  ) => {
+    data.errors = this.fieldErrors(data.errors, mapping)
+    return error(this._request, data, snackbar, init)
+  }
+
+  /**
+   * Returns a new object with the BadRequest_FieldViolations mapped to the passed in fieldErrors.
+   * @param fieldErrors
+   * @param mapping An object that allows overriding fieldErrors with a different key. This is useful when the field name on the backend is different from the key in the fieldErrors object.
+   */
+  private fieldErrors<T extends Record<string, string>>(
+    fieldErrors: T,
+    mapping?: Partial<T>
+  ): T {
+    if (this.fieldViolations.length == 0) return fieldErrors
+
+    const fieldNames: Record<string, string> = {}
+
+    Object.keys(fieldErrors).forEach(
+      (key) => (fieldNames[key.toLowerCase()] = key)
+    )
+
+    if (mapping) {
+      Object.entries(mapping).forEach(
+        ([key, value]) => (fieldNames[value.toLowerCase()] = key)
+      )
+    }
+
+    return this.fieldViolations.reduce((accumulator, current) => {
+      let fieldName = fieldNames[current.field.toLowerCase()]
+      if (fieldName) {
+        ;(accumulator as Record<string, string>)[fieldName] =
+          current.description
+      }
+      return accumulator
+    }, fieldErrors)
+  }
+}
+
+/**
+ * httpMapping maps the grpc error code to an HTTP status code.
+ * @param code Connect error code
+ */
+function httpMapping(code: Code): ResponseInit | undefined {
+  switch (code) {
+    case Code.InvalidArgument:
+    case Code.FailedPrecondition:
+    case Code.OutOfRange:
+      return { status: 400, statusText: 'Bad Request' }
+    case Code.Unauthenticated:
+      return { status: 401, statusText: 'Unauthorized' }
+    case Code.PermissionDenied:
+      return { status: 403, statusText: 'Forbidden' }
+    case Code.NotFound:
+      return { status: 404, statusText: 'Not Found' }
+    case Code.AlreadyExists:
+    case Code.Aborted:
+      return { status: 409, statusText: 'Conflict' }
+    case Code.ResourceExhausted:
+      return { status: 429, statusText: 'Too Many Requests' }
+    case Code.Canceled:
+      return { status: 499, statusText: 'Client Closed Request' }
+    case Code.Unknown:
+    case Code.Internal:
+    case Code.DataLoss:
+      return { status: 500, statusText: 'Internal Server Error' }
+    case Code.Unimplemented:
+      return { status: 501, statusText: 'Not Implemented' }
+    case Code.Unavailable:
+      return { status: 503, statusText: 'Service Unavailable' }
+    case Code.DeadlineExceeded:
+      return { status: 504, statusText: 'Gateway Timeout' }
+  }
+}
+
+/**
+ * Type guard for ConnectError
+ * @param response The response from the grpc call using the connect client.
+ */
+export function isConnectError(response: unknown): response is ConnectError {
+  // NOTE `response instanceof ConnectError` doesn't work here because the class
+  //  is only instantiated once when the grpc client is created.
+  return (
+    (response as ConnectError).code !== undefined &&
+    (response as ConnectError).status !== undefined &&
+    (response as ConnectError)._err !== undefined &&
+    (response as ConnectError)._request !== undefined
+  )
 }

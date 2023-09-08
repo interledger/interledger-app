@@ -184,7 +184,7 @@ export async function action({ request }: ActionArgs) {
     .catch(StatusError)
 
   if (isGrpcError(resp)) {
-    return error(request, {}, { action: 'Contact support' })
+    return error(request, null, { action: 'Contact support' })
   }
 
   return redirect(resp.url)
