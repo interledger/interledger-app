@@ -12,7 +12,6 @@ import type {
   CreateCardRequest,
   GetPublicWalletDetailsResponse,
   Identity,
-  IndividualKYCResponse,
   LinkedAccount,
   ListContactsRequest,
   ListContactsResponse,
@@ -55,27 +54,6 @@ export async function getFeatures(request: Request): Promise<Features> {
   if (isConnectError(response)) throw response.errorResponse
 
   return response
-}
-
-export async function getKycDetails(
-  request: Request
-): Promise<IndividualKYCResponse> {
-  const response = await grpcClient
-    .getIndividualKYC(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
-
-  return response.response
 }
 
 export async function getWalletId(request: Request): Promise<string> {
