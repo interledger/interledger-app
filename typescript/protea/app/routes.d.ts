@@ -14,12 +14,12 @@ declare module "routes-gen" {
     "/settings/password": Record<string, never>;
     "/waitlist/success": Record<string, never>;
     "/connect/discord": Record<string, never>;
-    "/connect/slack": Record<string, never>;
     "/connect/twitter": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
     "/connect/domain": Record<string, never>;
+    "/connect/slack": Record<string, never>;
     "/wallet-address": Record<string, never>;
     "/connect/bank": Record<string, never>;
     "/connect/card": Record<string, never>;
@@ -76,12 +76,12 @@ declare module "routes-gen" {
       | ["/settings/password"]
       | ["/waitlist/success"]
       | ["/connect/discord"]
-      | ["/connect/slack"]
       | ["/connect/twitter"]
       | ["/contact/success"]
       | ["/login/challenge"]
       | ["/personal-details"]
       | ["/connect/domain"]
+      | ["/connect/slack"]
       | ["/wallet-address"]
       | ["/connect/bank"]
       | ["/connect/card"]
