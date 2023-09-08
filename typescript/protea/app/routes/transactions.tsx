@@ -287,17 +287,17 @@ export default function Page() {
                       )}
                     {transaction.state != 'Pending' &&
                       transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'twitter' && (
+                      transaction.destinationIdentityType == 'Twitter' && (
                         <TwitterIcon />
                       )}
                     {transaction.state != 'Pending' &&
                       transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'discord' && (
+                      transaction.destinationIdentityType == 'Discord' && (
                         <DiscordIcon />
                       )}
                     {transaction.state != 'Pending' &&
                       transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'slack' && (
+                      transaction.destinationIdentityType == 'Slack' && (
                         <SlackIcon />
                       )}
                     <div className='flex w-full flex-col space-y-1'>
