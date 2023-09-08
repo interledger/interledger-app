@@ -2356,6 +2356,9 @@ table "slack_connections" {
     unique  = true
     columns = [column.wallet_id, column.user_id, column.team_domain]
   }
+  index "slack_user_team_ind" {
+    columns = [column.user_id, column.team_domain]
+  }
 }
 
 table "atlas_schema_history" {
