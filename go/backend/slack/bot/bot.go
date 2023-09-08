@@ -14,9 +14,11 @@ import (
 
 	ext_slack "github.com/slack-go/slack"
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -175,14 +177,8 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 			}
 
 			p, err := b.Payments().Create(r.Context(), payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletURL,
-					Identifier: senderWallet.AddressString(),
-				},
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletURL,
-					Identifier: receiverWallet.AddressString(),
-				},
+				Sender:          getIdentity(r.Context(), b, senderWallet, senderConnection),
+				Receiver:        getIdentity(r.Context(), b, receiverWallet, receiverConnection),
 				SenderAmount:    amt,
 				SenderAccount:   senderAcc.ID,
 				ReceiverAmount:  amt,
@@ -217,6 +213,31 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func getIdentity(ctx context.Context, b Backends, w *wallets.Wallet, con *slack.Connection) payments.Identity {
+	resp := payments.Identity{
+		Type:       payments.IdentityTypeWalletURL,
+		Identifier: w.AddressString(),
+	}
+
+	id, err := b.Identities().GetByIdentifier(ctx, con.Identifier())
+	// Possibly because the user changed their slack alias since linking their identity.
+	if err != nil {
+		log.Warn("slackbot: failed to get slack identity from identities service, falling back to wallet URL",
+			zap.Error(err), zap.String("wallet_id", w.ID), zap.String("connection_id", con.ID))
+		return resp
+	}
+	if id.Platform != identities.PlatformSlack || id.WalletID != w.ID {
+		log.Warn("slackbot: mismatch from connection to identity, falling back to wallet URL",
+			zap.Error(err), zap.String("wallet_id", w.ID), zap.String("connection_id", con.ID))
+		return resp
+	}
+
+	return payments.Identity{
+		Type:       payments.IdentityTypeSlack,
+		Identifier: con.Identifier(),
 	}
 }
 
