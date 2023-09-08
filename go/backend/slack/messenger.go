@@ -25,6 +25,7 @@ const (
 	ChannelNotifyGMT    Channel = "C05A6PKHVUY"
 	ChannelNotifyReview Channel = "C05KABR3Z8U"
 	ChannelNotifyEvents Channel = "C05L0Q20RJ9"
+	ChannelNotifyForms  Channel = "C05RA9HSNKG"
 )
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
