@@ -16,6 +16,7 @@ import {
 } from '~/components'
 import type {
   Features,
+  Payment,
   PublicWalletInfo,
   SearchResult
 } from '~/generated/protobuf-ts/backend/v1/backend'
@@ -25,13 +26,19 @@ import { error } from '~/lib/error.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
+import {
+  StatusError,
+  grpcClient,
+  httpMapping,
+  isGrpcError
+} from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 import {
   getFeatures,
   getKycStatus,
+  getLinkedAccount,
   getLinkedAccounts,
   getPublicWalletInfo
 } from '~/lib/wallet.server'
@@ -43,12 +50,18 @@ import { Search } from '~/routes/pay/Search'
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
 
+  const paymentId = url.searchParams.get('paymentId')
+  if (paymentId) {
+    return loadPayment(request, paymentId)
+  }
+
   let results: SearchResult[] = []
   let address: SearchResult | null = null
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PublicWalletInfo | null = null
   let phoneMask: string = ''
   let features: Features | null = null
+  let payment: Payment | null = null
 
   if (url.search == '') {
     const { kycStatus } = await getKycStatus(request)
@@ -144,7 +157,48 @@ export async function loader({ request }: LoaderArgs) {
     sendAccounts,
     phoneMask,
     publicWalletInfo,
-    fynbosEnv: process.env.FYNBOS_ENV
+    fynbosEnv: process.env.FYNBOS_ENV,
+    payment
+  })
+}
+
+async function loadPayment(request: Request, id: string) {
+  let results: SearchResult[] = []
+  let address: SearchResult | null = null
+  let sendAccounts: FormattedLinkedAccount[] = []
+  let publicWalletInfo: PublicWalletInfo | null = null
+  let phoneMask: string = ''
+  let features: Features | null = null
+  let payment: Payment | null = null
+
+  let rpc = await grpcClient
+    .getPayment(
+      { id },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  address = null // to avoid useEffect race condition
+  payment = rpc.response
+  publicWalletInfo = await getPublicWalletInfo(
+    request,
+    payment.receiverWalletUrl
+  )
+  sendAccounts[0] = await getLinkedAccount(request, payment.senderAccount)
+
+  return jsonWithCSRF(request, {
+    features,
+    results,
+    address,
+    sendAccounts,
+    phoneMask,
+    publicWalletInfo,
+    fynbosEnv: process.env.FYNBOS_ENV,
+    payment
   })
 }
 
@@ -161,14 +215,43 @@ export const meta: MetaFunction = () => {
   }
 }
 
+export function getPaymentIdentityType(identityEnum: number) {
+  switch (identityEnum) {
+    case 1:
+      return 'Twitter'
+    case 4:
+      return 'Slack'
+    case 5:
+      return 'Discord'
+    default:
+      return 'wallet'
+  }
+}
+
 export default function Page() {
-  const { address, features, sendAccounts } = useLoaderData<typeof loader>()
+  const { address, features, sendAccounts, payment, publicWalletInfo } =
+    useLoaderData<typeof loader>()
   const [params, setSearchParams] = useSearchParams()
-  const [setAddress, step, setStep, reset] = usePayStore((state) => [
+  const [
+    setAddress,
+    step,
+    setStep,
+    reset,
+    setPayment,
+    setNote,
+    setAccount,
+    setPublicWalletInfo,
+    setAmount
+  ] = usePayStore((state) => [
     state.setAddress,
     state.step,
     state.setStep,
-    state.reset
+    state.reset,
+    state.setPayment,
+    state.setNote,
+    state.setAccount,
+    state.setPublicWalletInfo,
+    state.setAmount
   ])
 
   useEffect(() => {
@@ -190,6 +273,51 @@ export default function Page() {
       setSearchParams({}, { replace: true })
     }
   }, [address, params, setAddress, setSearchParams, setStep])
+
+  useEffect(() => {
+    if (payment) {
+      const requiresOTP = 7
+      setPayment(payment.id, payment.requiredActions.includes(requiresOTP))
+      setAddress({
+        identifier: payment.receiverIdentity,
+        identifierType: getPaymentIdentityType(payment.receiverIdentityType),
+        walletID: '',
+        walletUrl: '',
+        canSend: true,
+        subResults: []
+      })
+      setNote(payment.note)
+
+      if (sendAccounts && sendAccounts.length > 0) {
+        setAccount(sendAccounts[0])
+      }
+
+      let floatAmount = parseInt(payment.senderAmount?.amount || '0') / 100
+      setAmount(floatAmount.toFixed(2))
+      setSearchParams({}, { replace: true })
+    }
+
+    if (params.get('start') == String(PayStep.CONFIRM)) {
+      setStep(PayStep.CONFIRM)
+    }
+  }, [
+    payment,
+    params,
+    setSearchParams,
+    setStep,
+    sendAccounts,
+    setAmount,
+    setNote,
+    setAddress,
+    setPayment,
+    setAccount
+  ])
+
+  useEffect(() => {
+    if (publicWalletInfo) {
+      setPublicWalletInfo(publicWalletInfo)
+    }
+  }, [publicWalletInfo, setPublicWalletInfo])
 
   if (features && !features.sendEnabled)
     return (

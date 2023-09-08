@@ -353,43 +353,31 @@ export interface Payment {
      */
     state: number; // 1 - Created, 2 - Confirmed, 3 - Processing, 4 - Completed, 5 - Failed
     /**
-     * @generated from protobuf field: string senderIdentity = 4;
+     * @generated from protobuf field: string receiverWalletUrl = 4;
      */
-    senderIdentity: string;
+    receiverWalletUrl: string;
     /**
-     * @generated from protobuf field: int32 senderIdentityType = 5;
-     */
-    senderIdentityType: number; // 1 - Twitter, 2 - WalletID, 3 - WalletURL
-    /**
-     * @generated from protobuf field: string receiverIdentity = 6;
+     * @generated from protobuf field: string receiverIdentity = 5;
      */
     receiverIdentity: string;
     /**
-     * @generated from protobuf field: int32 receiverIdentityType = 7;
+     * @generated from protobuf field: int32 receiverIdentityType = 6;
      */
     receiverIdentityType: number; // 1 - Twitter, 2 - WalletID, 3 - WalletURL
     /**
-     * @generated from protobuf field: backend.v1.Amount senderAmount = 8;
+     * @generated from protobuf field: backend.v1.Amount senderAmount = 7;
      */
     senderAmount?: Amount;
     /**
-     * @generated from protobuf field: backend.v1.Amount receiverAmount = 9;
-     */
-    receiverAmount?: Amount;
-    /**
-     * @generated from protobuf field: string senderAccount = 10;
+     * @generated from protobuf field: string senderAccount = 8;
      */
     senderAccount: string; // Linked Account ID
     /**
-     * @generated from protobuf field: string receiverAccount = 11;
-     */
-    receiverAccount: string; // Linked Account ID
-    /**
-     * @generated from protobuf field: string note = 12;
+     * @generated from protobuf field: string note = 9;
      */
     note: string;
     /**
-     * @generated from protobuf field: repeated int32 requiredActions = 13;
+     * @generated from protobuf field: repeated int32 requiredActions = 10;
      */
     requiredActions: number[]; // 1 - ThreeDS
 }
@@ -3123,20 +3111,17 @@ class Payment$Type extends MessageType<Payment> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "publicID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "state", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 4, name: "senderIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "senderIdentityType", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 6, name: "receiverIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 7, name: "receiverIdentityType", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 8, name: "senderAmount", kind: "message", T: () => Amount },
-            { no: 9, name: "receiverAmount", kind: "message", T: () => Amount },
-            { no: 10, name: "senderAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "receiverAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 12, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 13, name: "requiredActions", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ }
+            { no: 4, name: "receiverWalletUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "receiverIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "receiverIdentityType", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 7, name: "senderAmount", kind: "message", T: () => Amount },
+            { no: 8, name: "senderAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "requiredActions", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: 0, senderIdentity: "", senderIdentityType: 0, receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", receiverAccount: "", note: "", requiredActions: [] };
+        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -3156,34 +3141,25 @@ class Payment$Type extends MessageType<Payment> {
                 case /* int32 state */ 3:
                     message.state = reader.int32();
                     break;
-                case /* string senderIdentity */ 4:
-                    message.senderIdentity = reader.string();
+                case /* string receiverWalletUrl */ 4:
+                    message.receiverWalletUrl = reader.string();
                     break;
-                case /* int32 senderIdentityType */ 5:
-                    message.senderIdentityType = reader.int32();
-                    break;
-                case /* string receiverIdentity */ 6:
+                case /* string receiverIdentity */ 5:
                     message.receiverIdentity = reader.string();
                     break;
-                case /* int32 receiverIdentityType */ 7:
+                case /* int32 receiverIdentityType */ 6:
                     message.receiverIdentityType = reader.int32();
                     break;
-                case /* backend.v1.Amount senderAmount */ 8:
+                case /* backend.v1.Amount senderAmount */ 7:
                     message.senderAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.senderAmount);
                     break;
-                case /* backend.v1.Amount receiverAmount */ 9:
-                    message.receiverAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.receiverAmount);
-                    break;
-                case /* string senderAccount */ 10:
+                case /* string senderAccount */ 8:
                     message.senderAccount = reader.string();
                     break;
-                case /* string receiverAccount */ 11:
-                    message.receiverAccount = reader.string();
-                    break;
-                case /* string note */ 12:
+                case /* string note */ 9:
                     message.note = reader.string();
                     break;
-                case /* repeated int32 requiredActions */ 13:
+                case /* repeated int32 requiredActions */ 10:
                     if (wireType === WireType.LengthDelimited)
                         for (let e = reader.int32() + reader.pos; reader.pos < e;)
                             message.requiredActions.push(reader.int32());
@@ -3211,36 +3187,27 @@ class Payment$Type extends MessageType<Payment> {
         /* int32 state = 3; */
         if (message.state !== 0)
             writer.tag(3, WireType.Varint).int32(message.state);
-        /* string senderIdentity = 4; */
-        if (message.senderIdentity !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.senderIdentity);
-        /* int32 senderIdentityType = 5; */
-        if (message.senderIdentityType !== 0)
-            writer.tag(5, WireType.Varint).int32(message.senderIdentityType);
-        /* string receiverIdentity = 6; */
+        /* string receiverWalletUrl = 4; */
+        if (message.receiverWalletUrl !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.receiverWalletUrl);
+        /* string receiverIdentity = 5; */
         if (message.receiverIdentity !== "")
-            writer.tag(6, WireType.LengthDelimited).string(message.receiverIdentity);
-        /* int32 receiverIdentityType = 7; */
+            writer.tag(5, WireType.LengthDelimited).string(message.receiverIdentity);
+        /* int32 receiverIdentityType = 6; */
         if (message.receiverIdentityType !== 0)
-            writer.tag(7, WireType.Varint).int32(message.receiverIdentityType);
-        /* backend.v1.Amount senderAmount = 8; */
+            writer.tag(6, WireType.Varint).int32(message.receiverIdentityType);
+        /* backend.v1.Amount senderAmount = 7; */
         if (message.senderAmount)
-            Amount.internalBinaryWrite(message.senderAmount, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount receiverAmount = 9; */
-        if (message.receiverAmount)
-            Amount.internalBinaryWrite(message.receiverAmount, writer.tag(9, WireType.LengthDelimited).fork(), options).join();
-        /* string senderAccount = 10; */
+            Amount.internalBinaryWrite(message.senderAmount, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* string senderAccount = 8; */
         if (message.senderAccount !== "")
-            writer.tag(10, WireType.LengthDelimited).string(message.senderAccount);
-        /* string receiverAccount = 11; */
-        if (message.receiverAccount !== "")
-            writer.tag(11, WireType.LengthDelimited).string(message.receiverAccount);
-        /* string note = 12; */
+            writer.tag(8, WireType.LengthDelimited).string(message.senderAccount);
+        /* string note = 9; */
         if (message.note !== "")
-            writer.tag(12, WireType.LengthDelimited).string(message.note);
-        /* repeated int32 requiredActions = 13; */
+            writer.tag(9, WireType.LengthDelimited).string(message.note);
+        /* repeated int32 requiredActions = 10; */
         if (message.requiredActions.length) {
-            writer.tag(13, WireType.LengthDelimited).fork();
+            writer.tag(10, WireType.LengthDelimited).fork();
             for (let i = 0; i < message.requiredActions.length; i++)
                 writer.int32(message.requiredActions[i]);
             writer.join();
