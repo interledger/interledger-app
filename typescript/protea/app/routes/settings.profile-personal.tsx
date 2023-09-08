@@ -6,25 +6,18 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Icon, Layouts, WalletShapes } from '~/components'
 import { Label } from '~/components/Label'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
-import { getKycDetails, getKycStatus } from '~/lib/wallet.server'
+import { connectClient } from '~/lib/connect.server'
+import { isConnectError } from '~/lib/error.server'
+import { getKycStatus } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const kycStatus = await getKycStatus(request)
-  const kycDetails = await getKycDetails(request)
 
-  let countries = await grpcClient
-    .getCountries({})
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(countries)) {
-    throw json({}, httpMapping(countries.code))
-  }
+  const kycDetails = await connectClient.getIndividualKYC(request, {})
+  if (isConnectError(kycDetails)) throw kycDetails.errorResponse
+
+  let countries = await connectClient.getCountries(request, {})
+  if (isConnectError(countries)) throw countries.errorResponse
 
   let gender = {
     icon: '',
@@ -52,9 +45,9 @@ export async function loader({ request }: LoaderArgs) {
     kycDetails,
     gender,
     dateOfBirth: DateTime.fromSeconds(
-      parseInt(kycDetails?.dateOfBirth?.seconds as string)
+      Number(kycDetails?.dateOfBirth?.seconds)
     ).toFormat('dd MMMM yyyy'),
-    country: countries.response.countries.find(
+    country: countries.countries.find(
       (country) => country.id == kycDetails.address?.countryCode
     )?.name
   })
