@@ -71,7 +71,9 @@ const (
 	IdentityTypeTwitter   IdentityType = 1
 	IdentityTypeWalletID  IdentityType = 2
 	IdentityTypeWalletURL IdentityType = 3
-	identityTypeSentinel  IdentityType = 4 // End of range value must be last, no need to public
+	IdentityTypeSlack     IdentityType = 4
+	IdentityTypeDiscord   IdentityType = 5
+	identityTypeSentinel  IdentityType = 6 // End of range value must be last, no need to public
 )
 
 func (i IdentityType) Valid() bool {
@@ -79,7 +81,7 @@ func (i IdentityType) Valid() bool {
 }
 
 type Identity struct {
-	Type       IdentityType `validate:"omitempty,gt=0,lt=4"`
+	Type       IdentityType `validate:"omitempty,gt=0,lt=6"`
 	Identifier string
 	WalletID   string
 }
