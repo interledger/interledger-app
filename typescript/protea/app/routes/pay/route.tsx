@@ -286,7 +286,7 @@ export default function Page() {
         canSend: true,
         subResults: []
       })
-      setNote(payment.note)
+      setNote(payment.note || '')
 
       if (sendAccounts && sendAccounts.length > 0) {
         setAccount(sendAccounts[0])

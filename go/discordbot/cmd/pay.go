@@ -118,7 +118,7 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 						Label:    "Authorize",
 						Style:    discordgo.LinkButton,
 						Disabled: false,
-						URL:      fmt.Sprintf("%s/pay/3ds?paymentId=%s&init=", fynbos_env.GetUrl(), p.ID),
+						URL:      fmt.Sprintf("%s/pay?paymentId=%s&start=2", fynbos_env.GetUrl(), p.ID),
 					},
 				},
 			},
