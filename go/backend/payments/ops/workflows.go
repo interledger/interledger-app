@@ -172,8 +172,14 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	var accountTX tabapay.Transaction
 	err = workflow.ExecuteActivity(accountsCtx, a.PullFromAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
 	if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
+		innerErr := workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
+		if innerErr != nil {
+			logger.Error("Failed to set transaction status to failed. paymentID=", paymentID, "err", innerErr)
+			return innerErr
+		}
+
 		// Signal the Pay Out workflow that the payout has failed, it will know what to do.
-		innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
+		innerErr = workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
 			PaymentID:    paymentID,
 			PayInSuccess: false,
 		}).Get(ctx, nil)
@@ -198,6 +204,12 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 				PayInSuccess: false,
 			}).Get(ctx, nil)
 			if innerErr != nil {
+				return innerErr
+			}
+
+			innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("Failed to set transaction status to failed. paymentID=", paymentID, "err", innerErr)
 				return innerErr
 			}
 
