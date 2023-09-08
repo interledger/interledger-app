@@ -1,14 +1,13 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 
+import { Code } from '@bufbuild/connect'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import {
   ConnectDomainStep,
@@ -57,65 +56,35 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'Domain'
-
-function mapper(field: fieldErrorsMap): 'domainName' | null {
-  switch (field) {
-    case 'Domain':
-      return 'domainName'
-    default:
-      return null
-  }
-}
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
-    domainName: ''
+    domain: ''
   }
 
-  const domainName = form.get('domainName') as string
+  const domain = form.get('domain') as string
 
-  const response = await grpcClient
-    .createDomainIdentity(
-      {
-        url: domainName
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    if (response.code == Code.INVALID_ARGUMENT) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else if (response.code == Code.ALREADY_EXISTS) {
-      fieldErrors['domainName'] = 'Domain is already connected.'
-      return error(request, { errors: { ...fieldErrors } })
-    } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+  const response = await connectClient.createDomainIdentity(request, {
+    url: domain
+  })
+
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    } else if (response.code == Code.AlreadyExists) {
+      errors['domain'] = 'Domain is already connected.'
+      return response.error({ errors })
+    } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(
     request,
     route('/identities/:identityId', {
-      identityId: response.response.id
+      identityId: response.id
     }),
     {
       message: 'Your domain was connected successfully.',
