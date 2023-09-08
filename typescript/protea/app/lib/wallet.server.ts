@@ -17,6 +17,8 @@ import type {
   PublicWalletInfo,
   WalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
+import { connectClient } from '~/lib/connect.server'
+import { isConnectError } from '~/lib/error.server'
 import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
@@ -38,22 +40,11 @@ export const formatAmount = (amount?: Amount): string => {
 export async function getKycStatus(
   request: Request
 ): Promise<KYCStatusResponse> {
-  const response = await grpcClient
-    .kYCStatus(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
+  const response = await connectClient.kYCStatus(request, {})
 
-  return response.response
+  if (isConnectError(response)) throw response.errorResponse
+
+  return response
 }
 
 export async function getFeatures(request: Request): Promise<Features> {
@@ -231,24 +222,11 @@ export async function getLinkedAccount(
 export async function getLinkedAccounts(
   request: Request
 ): Promise<LinkedAccountsResponse> {
-  const cookie = String(request.headers.get('cookie'))
-  const response = await grpcClient
-    .getLinkedAccounts(
-      {},
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
+  const response = await connectClient.getLinkedAccounts(request, {})
 
-  const linkedAccounts =
-    response.response.linkedAccounts.map(formatLinkedAccount)
+  if (isConnectError(response)) throw response.errorResponse
+
+  const linkedAccounts = response.linkedAccounts.map(formatLinkedAccount)
 
   return {
     bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),

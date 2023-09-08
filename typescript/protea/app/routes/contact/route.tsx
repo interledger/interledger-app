@@ -14,11 +14,10 @@ import {
 } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
 import { getContactRoute } from '~/lib/marketing.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
@@ -33,7 +32,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data, params }: any) {
+export function meta({ data }: any) {
   return {
     ...toRemixMeta(data.contactRoute.seoMeta),
     'twitter:url': 'https://fynbos.app/contact',
@@ -168,26 +167,6 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'FirstName' | 'Email' | 'LastName' | 'Description'
-
-function mapper(
-  field: fieldErrorsMap
-): 'firstName' | 'email' | 'lastName' | 'description' | null {
-  switch (field) {
-    case 'Email':
-      return 'email'
-    case 'FirstName':
-      return 'firstName'
-    case 'LastName':
-      return 'lastName'
-    case 'Description':
-      return 'description'
-    default:
-      return null
-  }
-}
-
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
@@ -197,34 +176,22 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     firstName: '',
     lastName: '',
-    email: '',
-    description: ''
+    description: '',
+    email: ''
   }
 
-  let response = await grpcClient
-    .createSupportTicket({
-      description: description,
-      firstName: firstName,
-      lastName: lastName,
-      email: email
-    })
-    .then((v) => v)
-    .catch(StatusError)
+  let response = await connectClient.createSupportTicket(request, {
+    description,
+    firstName,
+    lastName,
+    email
+  })
 
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else return error(request, { errors: { ...fieldErrors } }, {})
-  }
+  if (isConnectError(response)) return response.error({ errors })
 
   return redirect('/contact/success')
 }
