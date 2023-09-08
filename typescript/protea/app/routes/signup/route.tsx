@@ -281,7 +281,7 @@ export async function action({ request }: ActionArgs) {
     )
     if (res.status >= 400) {
       const errs = await kratosErrorMapping(res, fieldErrors)
-      return error(request, errs)
+      return error(request, { errors: errs })
     }
 
     const data = await res.json()

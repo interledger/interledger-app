@@ -410,7 +410,7 @@ export async function action({ request }: ActionArgs) {
             { action: 'Contact support' }
           )
       }
-    } else return error(request, {}, { action: 'Contact support' })
+    } else return error(request, null, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(
