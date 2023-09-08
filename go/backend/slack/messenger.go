@@ -29,6 +29,10 @@ const (
 )
 
 func SendToChannel(ctx context.Context, channel Channel, fromUser, message string) {
+	if channel == ChannelNotifyEvents && !env.IsProd() {
+		return
+	}
+
 	initOnce.Do(func() {
 		api = ext_slack.New(os.Getenv("SLACK_TOKEN"), ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
 	})
@@ -39,10 +43,6 @@ func SendToChannel(ctx context.Context, channel Channel, fromUser, message strin
 	// Create the Slack attachment that we will send to the channel
 	attachment := ext_slack.Attachment{
 		Pretext: message,
-	}
-
-	if channel == ChannelNotifyEvents && !env.IsProd() {
-		return
 	}
 
 	_, _, err := api.PostMessageContext(ctx, string(channel), ext_slack.MsgOptionUsername(fromUser), ext_slack.MsgOptionAttachments(attachment))
