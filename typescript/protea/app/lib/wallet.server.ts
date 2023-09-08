@@ -2,20 +2,22 @@ import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type {
+  Features,
+  KYCStatusResponse,
+  ListTransactionsResponse,
+  WalletInfo
+} from '~/generated/connect/backend/v1/backend_pb'
+import type {
   Amount,
   CreateCardRequest,
-  Features,
   GetPublicWalletDetailsResponse,
   Identity,
   IndividualKYCResponse,
-  KYCStatusResponse,
   LinkedAccount,
   ListContactsRequest,
   ListContactsResponse,
-  ListTransactionsResponse,
   PaginationRequest,
-  PublicWalletInfo,
-  WalletInfo
+  PublicWalletInfo
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
@@ -48,22 +50,11 @@ export async function getKycStatus(
 }
 
 export async function getFeatures(request: Request): Promise<Features> {
-  const response = await grpcClient
-    .listFeatures(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
+  const response = await connectClient.listFeatures(request, {})
 
-  return response.response
+  if (isConnectError(response)) throw response.errorResponse
+
+  return response
 }
 
 export async function getKycDetails(
@@ -88,23 +79,13 @@ export async function getKycDetails(
 }
 
 export async function getWalletId(request: Request): Promise<string> {
-  const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
-    .getCurrentWallet(
-      {},
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
+  let response = await connectClient.getCurrentWallet(request, {})
+
+  if (isConnectError(response)) {
+    throw response.errorResponse
   }
 
-  return response.response.id
+  return response.id
 }
 
 export async function getPublicWalletDetails(
@@ -158,25 +139,15 @@ export async function getPublicWalletInfo(
 }
 
 export async function getWalletInfo(request: Request): Promise<WalletInfo> {
-  const cookie = String(request.headers.get('cookie'))
-  let response = await grpcClient
-    .getWalletInfo(
-      {},
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  } else if (!response.response.hasWalletAddress) {
+  let response = await connectClient.getWalletInfo(request, {})
+
+  if (isConnectError(response)) {
+    throw response.errorResponse
+  } else if (!response.hasWalletAddress) {
     throw redirect(route('/wallet-address'))
   }
 
-  return response.response
+  return response
 }
 
 export type FormattedLinkedAccount = {
@@ -280,23 +251,13 @@ export async function getTransactionsWithPending(
   request: Request,
   input: PaginationRequest
 ): Promise<ListTransactionsResponse> {
-  const cookie = String(request.headers.get('cookie'))
-  return grpcClient
-    .listTransactionsWithPending(input, {
-      meta: {
-        cookies: cookie || ''
-      }
-    })
-    .then((response) => ({
-      ...response.response
-    }))
-    .catch((error) => {
-      const status = StatusError(error)
-      if (isGrpcError(status)) {
-        throw json({}, httpMapping(status.code))
-      }
-      return { nextPageToken: '', transactions: [] }
-    })
+  const response = await connectClient.listTransactionsWithPending(
+    request,
+    input
+  )
+
+  if (isConnectError(response)) throw response.errorResponse
+  return response
 }
 
 type getWalletContactsResponse = {
