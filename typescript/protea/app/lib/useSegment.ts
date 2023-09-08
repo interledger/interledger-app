@@ -12,8 +12,19 @@ export function useSegment(apiKey: string) {
   const location = useLocation()
   if (!global.__segmentClient && apiKey && apiKey != '') {
     global.__segmentClient = AnalyticsBrowser.load(
-      { writeKey: apiKey },
-      { initialPageview: false }
+      {
+        writeKey: apiKey,
+        cdnURL: 'https://segment-proxy.matdabomb.workers.dev'
+      },
+      {
+        initialPageview: false,
+        integrations: {
+          'Segment.io': {
+            apiHost: 'segment-proxy.matdabomb.workers.dev/v1',
+            protocol: 'https' // optional
+          }
+        }
+      }
     )
   }
 
