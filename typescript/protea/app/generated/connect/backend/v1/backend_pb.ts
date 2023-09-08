@@ -925,62 +925,43 @@ export class Payment extends Message<Payment> {
   state = 0;
 
   /**
-   * @generated from field: string senderIdentity = 4;
+   * @generated from field: string receiverWalletUrl = 4;
    */
-  senderIdentity = "";
+  receiverWalletUrl = "";
 
   /**
-   * 1 - Twitter, 2 - WalletID, 3 - WalletURL
-   *
-   * @generated from field: int32 senderIdentityType = 5;
-   */
-  senderIdentityType = 0;
-
-  /**
-   * @generated from field: string receiverIdentity = 6;
+   * @generated from field: string receiverIdentity = 5;
    */
   receiverIdentity = "";
 
   /**
    * 1 - Twitter, 2 - WalletID, 3 - WalletURL
    *
-   * @generated from field: int32 receiverIdentityType = 7;
+   * @generated from field: int32 receiverIdentityType = 6;
    */
   receiverIdentityType = 0;
 
   /**
-   * @generated from field: backend.v1.Amount senderAmount = 8;
+   * @generated from field: backend.v1.Amount senderAmount = 7;
    */
   senderAmount?: Amount;
 
   /**
-   * @generated from field: backend.v1.Amount receiverAmount = 9;
-   */
-  receiverAmount?: Amount;
-
-  /**
    * Linked Account ID
    *
-   * @generated from field: string senderAccount = 10;
+   * @generated from field: string senderAccount = 8;
    */
   senderAccount = "";
 
   /**
-   * Linked Account ID
-   *
-   * @generated from field: string receiverAccount = 11;
-   */
-  receiverAccount = "";
-
-  /**
-   * @generated from field: string note = 12;
+   * @generated from field: string note = 9;
    */
   note = "";
 
   /**
    * 1 - ThreeDS
    *
-   * @generated from field: repeated int32 requiredActions = 13;
+   * @generated from field: repeated int32 requiredActions = 10;
    */
   requiredActions: number[] = [];
 
@@ -995,16 +976,13 @@ export class Payment extends Message<Payment> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "publicID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "state", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 4, name: "senderIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "senderIdentityType", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 6, name: "receiverIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "receiverIdentityType", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 8, name: "senderAmount", kind: "message", T: Amount },
-    { no: 9, name: "receiverAmount", kind: "message", T: Amount },
-    { no: 10, name: "senderAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 11, name: "receiverAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 12, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 13, name: "requiredActions", kind: "scalar", T: 5 /* ScalarType.INT32 */, repeated: true },
+    { no: 4, name: "receiverWalletUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "receiverIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "receiverIdentityType", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 7, name: "senderAmount", kind: "message", T: Amount },
+    { no: 8, name: "senderAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "requiredActions", kind: "scalar", T: 5 /* ScalarType.INT32 */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payment {

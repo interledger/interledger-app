@@ -202,7 +202,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		return nil, toGRPCError(err)
 	}
 
-	return transformPayment(p), nil
+	return transformPayment(ctx, s.b, p)
 }
 
 func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentRequest) (*pb.Payment, error) {
@@ -214,6 +214,13 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
+	}
+	p, err := s.b.Payments().Lookup(ctx, req.Id)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if p.Sender.WalletID != w.ID {
+		return nil, NotFoundError("payment not found")
 	}
 
 	// check that does not exceed kyc limits.
@@ -256,12 +263,12 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		IPAddress:       req.GetIpAddress(),
 	}
 
-	p, err := s.b.Payments().Update(ctx, args)
+	p, err = s.b.Payments().Update(ctx, args)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	return transformPayment(p), nil
+	return transformPayment(ctx, s.b, p)
 }
 
 func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) (*pb.Payment, error) {
@@ -270,7 +277,7 @@ func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) 
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	_, err = s.b.Wallets().ForContext(ctx)
+	w, err := s.b.Wallets().ForContext(ctx)
 	if err != nil {
 		return nil, ForbiddenError("Unauthenticated.")
 	}
@@ -279,8 +286,11 @@ func (s *rpcService) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) 
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+	if p.Sender.WalletID != w.ID {
+		return nil, NotFoundError("payment not found")
+	}
 
-	return transformPayment(p), nil
+	return transformPayment(ctx, s.b, p)
 }
 
 func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentRequest) (*pb.Payment, error) {
@@ -297,6 +307,9 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 	p, err := s.b.Payments().Lookup(ctx, req.Id)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+	if p.Sender.WalletID != w.ID {
+		return nil, NotFoundError("payment not found")
 	}
 
 	// check that does not exceed kyc limits.
@@ -345,29 +358,30 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 		return nil, toGRPCError(err)
 	}
 
-	return transformPayment(p), err
-
+	return transformPayment(ctx, s.b, p)
 }
 
-func transformPayment(p *payments.Payment) *pb.Payment {
+func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb.Payment, error) {
 	var requiredActions []int32
 	for _, ra := range p.RequiredActions {
 		requiredActions = append(requiredActions, int32(ra))
+	}
+
+	receiveWallet, err := b.Wallets().Get(ctx, p.Receiver.WalletID)
+	if err != nil {
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.Payment{
 		Id:                   p.ID,
 		PublicID:             p.PublicID,
 		State:                int32(p.State),
-		SenderIdentity:       p.Sender.Identifier,
-		SenderIdentityType:   int32(p.Sender.Type),
+		ReceiverWalletUrl:    receiveWallet.AddressString(),
 		ReceiverIdentity:     p.Receiver.Identifier,
 		ReceiverIdentityType: int32(p.Receiver.Type),
 		SenderAmount:         p.SenderAmount.ToPB(),
-		ReceiverAmount:       p.ReceiverAmount.ToPB(),
 		SenderAccount:        p.SenderAccount,
-		ReceiverAccount:      p.ReceiverAccount,
 		Note:                 p.Note,
 		RequiredActions:      requiredActions,
-	}
+	}, nil
 }
