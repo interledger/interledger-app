@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
@@ -28,6 +29,14 @@ type Connection struct {
 	ClientID     string         `db:"client_id"`
 	CreatedAt    time.Time      `db:"created_at"`
 	UpdatedAt    time.Time      `db:"updated_at"`
+}
+
+// Identifier returns the identifier to be used in the Identities service
+func (c *Connection) Identifier() string {
+	if c == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s / %s", c.TeamName, c.Username)
 }
 
 type CreateConnectionArgs struct {

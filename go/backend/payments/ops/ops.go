@@ -70,6 +70,26 @@ func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (
 			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformTwitter, identity.Type)
 		}
 		resp, err = b.Wallets().Get(ctx, id.WalletID)
+	case payments.IdentityTypeSlack:
+		var id *identities.Identity
+		id, err = b.Identities().GetByIdentifier(ctx, identity.Identifier)
+		if err != nil {
+			return nil, err
+		}
+		if strings.EqualFold(string(id.Platform), string(identities.PlatformSlack)) {
+			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformSlack, identity.Type)
+		}
+		resp, err = b.Wallets().Get(ctx, id.WalletID)
+	case payments.IdentityTypeDiscord:
+		var id *identities.Identity
+		id, err = b.Identities().GetByIdentifier(ctx, identity.Identifier)
+		if err != nil {
+			return nil, err
+		}
+		if strings.EqualFold(string(id.Platform), string(identities.PlatformDiscord)) {
+			return nil, fmt.Errorf("identifier (%s) type mismatch expected (%s) got (%s)", identity.Identifier, identities.PlatformDiscord, identity.Type)
+		}
+		resp, err = b.Wallets().Get(ctx, id.WalletID)
 	default:
 		return nil, fmt.Errorf("unknown identity type %s", identity.Type)
 	}
