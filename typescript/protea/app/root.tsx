@@ -22,6 +22,7 @@ import { Scaffold } from '~/components/Scaffold'
 import { hasUserSession } from '~/lib/kratos.server'
 import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import { getSnackbar } from '~/lib/snackbar.server'
+import { useSegment } from '~/lib/useSegment'
 import styles from '~/styles/app.css'
 
 const metaContent = {
@@ -114,7 +115,8 @@ export async function loader({ request }: LoaderArgs) {
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,
-      sentryRelease: process.env.SENTRY_RELEASE
+      sentryRelease: process.env.SENTRY_RELEASE,
+      segmentApiKey: process.env.SEGMENT_API_KEY || ''
     }
   })
 }
@@ -122,6 +124,7 @@ export async function loader({ request }: LoaderArgs) {
 function Page() {
   const location = useLocation()
   const loader = useLoaderData()
+  useSegment(loader.env.segmentApiKey)
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 
