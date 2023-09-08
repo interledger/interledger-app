@@ -28,19 +28,19 @@ export function Name() {
           </p>
         </CardContent>
         <TextField
-          id='domainName'
+          id='domain'
           form='connect-domain'
           label='Domain name'
-          name='domainName'
+          name='domain'
           placeholder='example.com'
           type='text'
           className='mt-2'
-          aria-invalid={Boolean(actionData?.errors?.domainName) || undefined}
+          aria-invalid={Boolean(actionData?.errors?.domain) || undefined}
           aria-describedby={
-            actionData?.errors?.domainName ? 'domainName-error' : undefined
+            actionData?.errors?.domain ? 'domain-error' : undefined
           }
           required
-          errorMessage={actionData?.errors?.domainName}
+          errorMessage={actionData?.errors?.domain}
         />
       </Card>
 
