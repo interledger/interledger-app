@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/slack"
@@ -41,7 +40,7 @@ func (s *rpcService) SlackCallback(ctx context.Context, req *pb.SlackCallbackReq
 	id, err := s.b.Identities().Add(ctx, identities.AddArgs{
 		WalletID:   con.WalletID,
 		Platform:   identities.PlatformSlack,
-		Identifier: fmt.Sprintf("%s / %s", con.TeamName, con.Username),
+		Identifier: con.Identifier(),
 	})
 	if err != nil {
 		if errors.Is(err, identities.ErrAlreadyExists) {
