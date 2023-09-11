@@ -19,17 +19,18 @@ import type {
   CardNumberElement as CardNumberElementType,
   CardVerificationCodeElement as CardVerificationCodeElementType
 } from '@basis-theory/basis-theory-react/types'
+import { Code } from '@bufbuild/connect'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import { isGrpcError } from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { createCard, getWalletId } from '~/lib/wallet.server'
+import { getWalletId } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletId = await getWalletId(request)
@@ -355,67 +356,52 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: ''
   }
 
-  let response = await createCard(request, cardToken)
-  if (isGrpcError(response)) {
-    if (response.code == 409 || response.code == 400) {
-      switch (response.message) {
-        case 'Failed precondition: ErrUnsupportedCard':
-          fieldErrors.form =
-            'Your card is unsupported and cannot be connected to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Failed precondition: ErrUnsupportedCountry':
-          fieldErrors.form =
-            'Your country is unsupported and your card cannot be connected to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Already exists: ErrDuplicateCard':
-          fieldErrors.form = 'Your card is already connected to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Failed precondition: ErrMaxCardsAdded':
-          fieldErrors.form =
-            'You have connected the maximum number of cards to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Unavailable: ErrMultiStatus':
-          fieldErrors.form =
-            'We did not receive a response from our card processor.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        default:
-          fieldErrors.form = 'There was an error connecting your card.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
+  let response = await connectClient.createCard(
+    request,
+    { tokenID: cardToken },
+    {
+      timeoutMs: 60 * 1000
+    }
+  )
+
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    } else {
+      if (response.code == Code.AlreadyExists) {
+        errors.form = 'Your card is already connected to Fynbos.'
+      } else if (response.code == Code.FailedPrecondition) {
+        // TODO Refactor this to use the new precondition error handling when merged
+        switch (response._err.message) {
+          case 'Failed precondition: ErrUnsupportedCard':
+            errors.form =
+              'Your card is unsupported and cannot be connected to Fynbos.'
+          case 'Failed precondition: ErrUnsupportedCountry':
+            errors.form =
+              'Your country is unsupported and your card cannot be connected to Fynbos.'
+          case 'Already exists: ErrDuplicateCard':
+            errors.form = 'Your card is already connected to Fynbos.'
+          case 'Failed precondition: ErrMaxCardsAdded':
+            errors.form =
+              'You have connected the maximum number of cards to Fynbos.'
+          case 'Unavailable: ErrMultiStatus':
+            errors.form =
+              'We did not receive a response from our card processor.'
+          default:
+            errors.form = 'There was an error connecting your card.'
+        }
       }
-    } else return error(request, null, { action: 'Contact support' })
+      return response.error({ errors }, {}, { action: 'Contact support' })
+    }
   }
 
   return redirectWithSnackbar(
     request,
-    route('/accounts/:accountId', { accountId: response.response.id }),
+    route('/accounts/:accountId', { accountId: response.id }),
     {
       message: 'New card successfully saved.',
       icon: 'close'
