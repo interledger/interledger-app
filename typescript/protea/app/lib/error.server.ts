@@ -1,5 +1,6 @@
 import { Code } from '@bufbuild/connect'
 import type { ConnectError as BufConnectError } from '@bufbuild/connect/dist/types/connect-error'
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import type { TypedResponse } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { captureMessage } from '@sentry/remix'
@@ -125,8 +126,8 @@ export class ConnectError {
   readonly status: ResponseInit | undefined
   readonly errorResponse: Response | undefined
 
-  violations: PreconditionFailure_Violation[] = []
-  fieldViolations: BadRequest_FieldViolation[] = []
+  violations: PlainMessage<PreconditionFailure_Violation>[] = []
+  fieldViolations: PlainMessage<BadRequest_FieldViolation>[] = []
 
   constructor(request: Request, err: BufConnectError) {
     this._request = request
@@ -158,7 +159,10 @@ export class ConnectError {
       this.violations = err
         .findDetails(PreconditionFailure)
         .reduce(
-          (accumulator: PreconditionFailure_Violation[], currentValue) => {
+          (
+            accumulator: PlainMessage<PreconditionFailure_Violation>[],
+            currentValue
+          ) => {
             currentValue.violations.forEach((val) => accumulator.push(val))
             return accumulator
           },
@@ -170,10 +174,16 @@ export class ConnectError {
     if (err.code === Code.InvalidArgument) {
       this.fieldViolations = err
         .findDetails(BadRequest)
-        .reduce((accumulator: BadRequest_FieldViolation[], currentValue) => {
-          currentValue.fieldViolations.forEach((val) => accumulator.push(val))
-          return accumulator
-        }, [])
+        .reduce(
+          (
+            accumulator: PlainMessage<BadRequest_FieldViolation>[],
+            currentValue
+          ) => {
+            currentValue.fieldViolations.forEach((val) => accumulator.push(val))
+            return accumulator
+          },
+          []
+        )
     }
   }
 
