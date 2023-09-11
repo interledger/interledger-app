@@ -4,11 +4,11 @@ import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
+import { getLinkedAccount } from '~/data/wallet.server'
 import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { getLinkedAccount } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)

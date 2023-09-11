@@ -35,8 +35,8 @@ import {
   WalletShapes
 } from '~/components'
 import { Label } from '~/components/Label'
+import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
 import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
-import { getKycStatus, getTransactionsWithPending } from '~/lib/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 
 /**

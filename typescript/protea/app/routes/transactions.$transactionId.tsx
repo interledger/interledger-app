@@ -24,9 +24,9 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import { getPublicWalletInfo, getTransaction } from '~/data/wallet.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
-import { getPublicWalletInfo, getTransaction } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const transaction = await getTransaction(

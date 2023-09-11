@@ -1,9 +1,9 @@
 import { create } from 'zustand'
+import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import type {
   PublicWalletInfo,
   SearchResult
 } from '~/generated/protobuf-ts/backend/v1/backend'
-import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 
 export enum PayStep {
   SEARCH,

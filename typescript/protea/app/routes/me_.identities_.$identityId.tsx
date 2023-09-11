@@ -16,15 +16,16 @@ import {
   Layouts,
   Router
 } from '~/components'
+import { getIdentityBySignatureHash } from '~/data/identity.server'
+import { getPublicWalletDetails } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
-import { getPublicIdentity, getPublicWalletDetails } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const identity = await getPublicIdentity(request, params.identityId as string)
+  const identity = await getIdentityBySignatureHash(
+    request,
+    params.identityId as string
+  )
   const wallet = await getPublicWalletDetails(request, identity.walletId)
-
-  if (identity.state !== 'verified')
-    throw json({}, { status: 404, statusText: 'Not found' })
 
   const isUser = hasUserSession(request)
   return json({
@@ -35,7 +36,7 @@ export async function loader({ request, params }: LoaderArgs) {
       ...identity,
       walletUrlWithoutProtocol: removeProtocol(wallet.publicName),
       verifiedAt: DateTime.fromSeconds(
-        parseInt(identity.verifiedAt?.seconds ?? '')
+        Number(identity.verifiedAt?.seconds ?? '')
       ).toFormat('dd MMM yyyy')
     },
     isUser
