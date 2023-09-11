@@ -214,6 +214,9 @@ export function HeroContentRecordComponent({
           {content.title}
         </h1>
         <p className='text text-lg text-medium lg:text-2xl'>{content.body}</p>
+        {content.button.length > 0 && (
+          <ContentRouter shrink to={content.button[0]} />
+        )}
       </div>
       <AnimatePresence mode='wait'>
         <motion.img
