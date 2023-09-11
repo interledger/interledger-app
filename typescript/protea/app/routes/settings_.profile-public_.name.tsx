@@ -1,13 +1,12 @@
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { getPublicWalletDetails, getWalletInfo } from '~/lib/wallet.server'
 
@@ -76,57 +75,24 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'Name'
-
-function mapper(field: fieldErrorsMap): 'name' | null {
-  switch (field) {
-    case 'Name':
-      return 'name'
-    default:
-      return null
-  }
-}
-
 export async function action({ request }: ActionArgs) {
-  const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
   const name = form.get('name') as string
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     name: ''
   }
 
-  const response = await grpcClient
-    .setWalletName(
-      {
-        name
-      },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    if (response.code == Code.INVALID_ARGUMENT) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+  const response = await connectClient.setWalletName(request, {
+    name
+  })
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(request, route('/settings/profile-public'), {
