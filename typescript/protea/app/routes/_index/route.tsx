@@ -4,15 +4,15 @@ import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts, WalletShapes } from '~/components'
-import { hasUserSession } from '~/lib/kratos.server'
-import { getHomeRoute } from '~/lib/marketing.server'
-import { getPusherArgs } from '~/lib/pusher.server'
 import {
   getFeatures,
   getKycStatus,
   getTransactionsWithPending,
   getWalletInfo
-} from '~/lib/wallet.server'
+} from '~/data/wallet.server'
+import { hasUserSession } from '~/lib/kratos.server'
+import { getHomeRoute } from '~/lib/marketing.server'
+import { getPusherArgs } from '~/lib/pusher.server'
 import { AppPage } from './app'
 import styles from './home.css'
 import { MarketingPage } from './marketing'
@@ -46,7 +46,9 @@ export async function appLoader({ request }: LoaderArgs) {
   const [walletInfo, transactions, kycStatus, pusherArgs, features] =
     await Promise.all([
       getWalletInfo(request),
-      getTransactionsWithPending(request, { pageSize: 3 }),
+      getTransactionsWithPending(request, {
+        pageSize: 3
+      }),
       getKycStatus(request),
       getPusherArgs(request),
       getFeatures(request)

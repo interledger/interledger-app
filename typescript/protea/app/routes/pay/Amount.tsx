@@ -22,8 +22,8 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
-import type { FormattedLinkedAccount } from '~/lib/wallet.server'
 import type { loader, updatePaymentAction } from './route'
 
 export const Amount = () => {
