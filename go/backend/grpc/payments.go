@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/limits"
 	"net/url"
 	"strings"
 
@@ -177,7 +178,20 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		return nil, toGRPCError(err)
 	}
 	if exceedsLimits {
-		return nil, LimitPreconditionError(limitType)
+		var description string
+		switch limitType {
+		case limits.LimitTypeTransaction:
+			description = "Exceeds per transaction limit."
+		case limits.LimitTypeDaily:
+			description = "Exceeds daily limit."
+		case limits.LimitTypeMonthly:
+			description = "Exceeds monthly limit."
+		case limits.LimitType6Monthly:
+			description = "Exceeds 6 monthly limit."
+		default:
+			description = "Exceeds account limit."
+		}
+		return nil, NewValidationError("amount", description)
 	}
 
 	args := payments.CreateArgs{
@@ -230,7 +244,20 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 			return nil, toGRPCError(err)
 		}
 		if exceedsLimits {
-			return nil, LimitPreconditionError(limitType)
+			var description string
+			switch limitType {
+			case limits.LimitTypeTransaction:
+				description = "Exceeds per transaction limit."
+			case limits.LimitTypeDaily:
+				description = "Exceeds daily limit."
+			case limits.LimitTypeMonthly:
+				description = "Exceeds monthly limit."
+			case limits.LimitType6Monthly:
+				description = "Exceeds 6 monthly limit."
+			default:
+				description = "Exceeds account limit."
+			}
+			return nil, NewValidationError("amount", description)
 		}
 	}
 
@@ -318,7 +345,20 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 		return nil, toGRPCError(err)
 	}
 	if exceedsLimits {
-		return nil, FailedPreconditionError(string(limitType))
+		var description string
+		switch limitType {
+		case limits.LimitTypeTransaction:
+			description = "Exceeds per transaction limit."
+		case limits.LimitTypeDaily:
+			description = "Exceeds daily limit."
+		case limits.LimitTypeMonthly:
+			description = "Exceeds monthly limit."
+		case limits.LimitType6Monthly:
+			description = "Exceeds 6 monthly limit."
+		default:
+			description = "Exceeds account limit."
+		}
+		return nil, NewValidationError("amount", description)
 	}
 
 	// TODO: remove after barnard's PR is in

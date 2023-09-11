@@ -73,6 +73,7 @@ export const Amount = () => {
         {
           formName: 'updatePayment',
           paymentId,
+          note,
           amount,
           accountId: account?.id as string,
           identity: address?.identifier as string,
@@ -84,13 +85,14 @@ export const Amount = () => {
       )
     },
     [
-      paymentFetcher,
       setAmount,
+      paymentFetcher,
+      paymentId,
+      note,
       account?.id,
       address?.identifier,
       address?.identifierType,
       address?.walletUrl,
-      paymentId,
       csrfToken
     ]
   )
@@ -103,6 +105,7 @@ export const Amount = () => {
         {
           formName: 'updatePayment',
           paymentId,
+          note,
           amount,
           accountId: accountId,
           identity: address?.identifier as string,
@@ -114,14 +117,15 @@ export const Amount = () => {
       )
     },
     [
-      csrfToken,
-      paymentFetcher,
       setAccount,
+      paymentFetcher,
+      paymentId,
+      note,
+      amount,
       address?.identifier,
       address?.identifierType,
       address?.walletUrl,
-      amount,
-      paymentId
+      csrfToken
     ]
   )
 

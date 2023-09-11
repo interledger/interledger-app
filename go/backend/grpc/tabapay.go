@@ -34,7 +34,7 @@ func (s *rpcService) CreateCard(
 	}
 
 	if !feats.AddCardsEnabled {
-		return nil, FailedPreconditionError("ErrMaxCardsAdded")
+		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
 	}
 
 	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
@@ -53,9 +53,9 @@ func (s *rpcService) CreateCard(
 		case "ErrDuplicateCard":
 			return nil, AlreadyExistsError("ErrDuplicateCard")
 		case "ErrUnsupportedCard":
-			return nil, FailedPreconditionError("ErrUnsupportedCard")
+			return nil, NewValidationError("CardNumber", "Your card is unsupported and cannot be connected to Fynbos.")
 		case "ErrUnsupportedCountry":
-			return nil, FailedPreconditionError("ErrUnsupportedCountry")
+			return nil, NewValidationError("CardNumber", "Your card originates from an unsupported country and cannot be connected to Fynbos.")
 		case "ErrMultiStatus":
 			return nil, UnavailableError("ErrMultiStatus")
 		}

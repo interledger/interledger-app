@@ -254,7 +254,7 @@ export default function Page() {
         canSend: true,
         subResults: []
       })
-      setNote(payment.note || '')
+      setNote(payment.note)
 
       if (sendAccounts && sendAccounts.length > 0) {
         setAccount(sendAccounts[0])
@@ -356,12 +356,6 @@ export default function Page() {
   )
 }
 
-type paymentLimitError =
-  | 'Failed precondition: LimitTransaction'
-  | 'Failed precondition: LimitDaily'
-  | 'Failed precondition: LimitMonthly'
-  | 'Failed precondition: Limit6Monthly'
-
 export async function action(args: ActionArgs) {
   const formName = (await args.request.clone().formData()).get(
     'formName'
@@ -395,7 +389,7 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
 
   if (serviceAgreement == null) {
     errors.serviceAgreement = 'You are required to authorize to continue.'
-    return error(request, { errors: { ...errors } })
+    return error(request, { errors })
   }
 
   if (otp) {
@@ -414,16 +408,15 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
 
   if (isConnectError(response)) {
     if (
-      response.code === Code.FailedPrecondition
-      // response.message === 'Failed precondition: Err3DSRequired'
+      response.code === Code.FailedPrecondition &&
+      response.violations.findIndex(
+        (violation) =>
+          violation.type === 'Payment' && violation.subject === 'threeDS'
+      ) > -1
     ) {
       return redirect(`/pay/3ds?paymentId=${paymentId}&init=`)
     }
-    return error(
-      request,
-      { errors: { ...errors } },
-      { action: 'Contact support' }
-    )
+    return error(request, { errors }, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(request, route('/'), {
@@ -452,7 +445,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
 
   if (!amountToSubmit) {
     errors.amount = 'Amount is required.'
-    return error(request, { errors: { ...errors }, payment: null, type })
+    return error(request, { errors, payment: null, type })
   }
 
   const clientIpAddress = getClientIP(request)
@@ -472,36 +465,18 @@ export async function updatePaymentAction({ request }: ActionArgs) {
     if (isConnectError(response)) {
       if (response.code == Code.InvalidArgument) {
         return response.error({ errors, payment: null, type })
-      } else if (response.code == Code.FailedPrecondition) {
-        // switch (response.message as paymentLimitError) {
-        //   case 'Failed precondition: LimitTransaction':
-        //     errors['amount'] = 'Exceeds per transaction limit.'
-        //     break
-        //   case 'Failed precondition: LimitDaily':
-        //     errors['amount'] = 'Exceeds daily limit.'
-        //     break
-        //   case 'Failed precondition: LimitMonthly':
-        //     errors['amount'] = 'Exceeds monthly limit.'
-        //     break
-        //   case 'Failed precondition: Limit6Monthly':
-        //     errors['amount'] = 'Exceeds rolling 6 month limit.'
-        //     break
-        //   default:
-        //     errors['amount'] = 'Exceeds account limit.'
-        // }
-        return response.error({ errors: errors, payment: null, type })
-      } else
-        return error(
-          request,
-          { errors: errors, payment: null, type },
-          { action: 'Contact support' }
-        )
+      }
+      return response.error(
+        { errors, payment: null, type },
+        {},
+        { action: 'Contact support' }
+      )
     }
 
     return json({
       payment: response,
       type,
-      errors: errors
+      errors
     })
   }
 
@@ -520,36 +495,18 @@ export async function updatePaymentAction({ request }: ActionArgs) {
   })
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors: errors, payment: null, type })
-    } else if (response.code == Code.FailedPrecondition) {
-      // switch (response.message as paymentLimitError) {
-      //   case 'Failed precondition: LimitTransaction':
-      //     errors['amount'] = 'Exceeds per transaction limit.'
-      //     break
-      //   case 'Failed precondition: LimitDaily':
-      //     errors['amount'] = 'Exceeds daily limit.'
-      //     break
-      //   case 'Failed precondition: LimitMonthly':
-      //     errors['amount'] = 'Exceeds monthly limit.'
-      //     break
-      //   case 'Failed precondition: Limit6Monthly':
-      //     errors['amount'] = 'Exceeds rolling 6 month limit.'
-      //     break
-      //   default:
-      //     errors['amount'] = 'Exceeds account limit.'
-      // }
-      return response.error({ errors: errors, payment: null, type })
-    } else
-      return response.error(
-        { errors: errors, payment: null, type },
-        {},
-        { action: 'Contact support' }
-      )
+      return response.error({ errors, payment: null, type })
+    }
+    return response.error(
+      { errors, payment: null, type },
+      {},
+      { action: 'Contact support' }
+    )
   }
 
   return json({
     payment: response,
     type,
-    errors: errors
+    errors
   })
 }

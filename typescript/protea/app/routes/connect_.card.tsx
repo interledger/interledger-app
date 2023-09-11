@@ -202,7 +202,7 @@ export default function Page() {
           </CardContent>
           <label className='mt-2 block'>
             <span className='ml-2 block text-sm font-medium text-medium'>
-              Card number
+              Card number {fieldErrors.number}
             </span>
             <div
               className={clsx(
@@ -224,7 +224,7 @@ export default function Page() {
               </div>
             </div>
             <AnimatePresence>
-              {fieldErrors.number && (
+              {(fieldErrors.number || actionData?.errors?.number) && (
                 <motion.div
                   animate={{ opacity: 1, y: 0 }}
                   initial={{ opacity: 0, y: -8 }}
@@ -243,7 +243,9 @@ export default function Page() {
                   }}
                   className='h-7 pl-2 pt-2'
                 >
-                  <p className='text-sm text-error'>{fieldErrors.number}</p>
+                  <p className='text-sm text-error'>
+                    {fieldErrors.number || actionData?.errors?.number}
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -357,7 +359,11 @@ export async function action({ request }: ActionArgs) {
   await validateCSRFToken(request, form)
 
   const errors = {
-    form: ''
+    form: '',
+    number: ''
+  }
+  const mapping = {
+    number: 'CardNumber'
   }
 
   let response = await connectClient.createCard(
@@ -370,32 +376,18 @@ export async function action({ request }: ActionArgs) {
 
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors })
+      return response.error({ errors }, mapping)
+    } else if (response.code == Code.AlreadyExists) {
+      errors.form = 'This card is already connected to Fynbos.'
+      return response.error({ errors }, mapping)
     } else {
-      if (response.code == Code.AlreadyExists) {
-        errors.form = 'Your card is already connected to Fynbos.'
-      } else if (response.code == Code.FailedPrecondition) {
-        // TODO Refactor this to use the new precondition error handling when merged
-        switch (response._err.message) {
-          case 'Failed precondition: ErrUnsupportedCard':
-            errors.form =
-              'Your card is unsupported and cannot be connected to Fynbos.'
-          case 'Failed precondition: ErrUnsupportedCountry':
-            errors.form =
-              'Your country is unsupported and your card cannot be connected to Fynbos.'
-          case 'Already exists: ErrDuplicateCard':
-            errors.form = 'Your card is already connected to Fynbos.'
-          case 'Failed precondition: ErrMaxCardsAdded':
-            errors.form =
-              'You have connected the maximum number of cards to Fynbos.'
-          case 'Unavailable: ErrMultiStatus':
-            errors.form =
-              'We did not receive a response from our card processor.'
-          default:
-            errors.form = 'There was an error connecting your card.'
-        }
+      if (response.code == Code.Unavailable) {
+        errors.form = 'We did not receive a response from our card processor.'
       }
-      return response.error({ errors }, {}, { action: 'Contact support' })
+      if (errors.form == '') {
+        errors.form = 'There was an error connecting your card.'
+      }
+      return response.error({ errors }, mapping, { action: 'Contact support' })
     }
   }
 

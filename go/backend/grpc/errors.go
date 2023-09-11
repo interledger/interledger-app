@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
 
 	"gitlab.com/fynbos/env"
@@ -159,7 +158,7 @@ func PaymentPreconditionError(preconditions []payments.RequiredActionType) error
 
 	for _, condition := range preconditions {
 		v := &errdetails.PreconditionFailure_Violation{
-			Type: "ErrRequiredAction",
+			Type: "Payment",
 		}
 		switch condition {
 		case payments.RequiredActionTypeIPAddress:
@@ -197,39 +196,6 @@ func PaymentPreconditionError(preconditions []payments.RequiredActionType) error
 	st, err := st.WithDetails(p)
 	if err != nil {
 		log.Error("failed to encode payment precondition error", zap.Error(err))
-		return status.Error(codes.Internal, "Internal server error: precondition error")
-	}
-
-	return st.Err()
-}
-
-func LimitPreconditionError(limitType limits.LimitType) error {
-	st := status.New(codes.FailedPrecondition, "Failed precondition")
-	p := &errdetails.PreconditionFailure{}
-
-	v := &errdetails.PreconditionFailure_Violation{
-		Type: "ErrLimitExceeded",
-	}
-	switch limitType {
-	case limits.LimitTypeTransaction:
-		v.Subject = "transaction"
-		v.Description = "Exceeds per transaction limit"
-	case limits.LimitTypeDaily:
-		v.Subject = "daily"
-		v.Description = "Exceeds daily limit"
-	case limits.LimitTypeMonthly:
-		v.Subject = "monthly"
-		v.Description = "Exceeds monthly limit"
-	case limits.LimitType6Monthly:
-		v.Subject = "6monthly"
-		v.Description = "Exceeds 6 monthly limit"
-	default:
-		log.Error("unknown limit precondition error", zap.String("condition", string(limitType)))
-	}
-
-	st, err := st.WithDetails(p)
-	if err != nil {
-		log.Error("failed to encode limit precondition error", zap.Error(err))
 		return status.Error(codes.Internal, "Internal server error: precondition error")
 	}
 
