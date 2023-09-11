@@ -47,6 +47,13 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		return
 	}
 
+	var discordUsername string
+	if i.User != nil {
+		discordUsername = i.User.Username
+	} else if i.Member != nil {
+		discordUsername = i.Member.User.Username
+	}
+
 	data := i.ApplicationCommandData()
 	w, err := b.Wallets().ForContext(ctx)
 	if err != nil {
@@ -75,23 +82,20 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		newPaymentFailedMessage(s, i, fmt.Sprintf("%s has not linked their Fynbos wallet.", receiverUsername))
 		return
 	}
-	receiverWallet, err := b.Wallets().Get(ctx, receiver.WalletID)
-	if err != nil {
-		log.Error("Failed to find recipient wallet", zap.String("receiverUsername", receiverUsername))
-		newPaymentFailedMessage(s, i, "We failed to process the payment.")
+
+	if receiver.WalletID == w.ID {
+		newPaymentFailedMessage(s, i, "You cannot create a payment to yourself.")
 		return
 	}
 
 	p, err := b.Payments().Create(ctx, payments.CreateArgs{
 		Sender: payments.Identity{
-			Type:       payments.IdentityTypeWalletURL,
-			Identifier: w.AddressString(),
-			WalletID:   w.ID,
+			Type:       payments.IdentityTypeDiscord,
+			Identifier: discordUsername,
 		},
 		Receiver: payments.Identity{
-			Type:       payments.IdentityTypeWalletURL,
-			Identifier: receiverWallet.AddressString(),
-			WalletID:   receiverWallet.ID,
+			Type:       payments.IdentityTypeDiscord,
+			Identifier: receiverUsername,
 		},
 		ReceiverAmount: currency.FromFloat64(amount, currency.USD),
 		SenderAmount:   currency.FromFloat64(amount, currency.USD),

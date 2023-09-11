@@ -192,13 +192,7 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 				return
 			}
 
-			authURL := fmt.Sprintf("%s/pay/3ds?paymentId=%s&init=", env.GetUrl(), p.ID)
-			for _, ra := range p.RequiredActions {
-				if ra == payments.RequiredActionTypeOTP {
-					// TODO: set auth URL to OTP page
-					log.Debug("Pyament should go to OTP page, please configure")
-				}
-			}
+			authURL := fmt.Sprintf("%s/pay?paymentId=%s&start=2", env.GetUrl(), p.ID)
 
 			data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("Your payment to %s requires your authorization %s", receiverSlackID, authURL)})
 			if err != nil {

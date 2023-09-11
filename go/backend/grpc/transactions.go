@@ -132,11 +132,11 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 	title := tx.DestinationIdentity
 	if tx.Type == transactions.TransactionTypeOpenPaymentIncoming || tx.Type == transactions.TransactionTypeIncoming {
 		title = tx.Source
-		w, _ := b.Wallets().GetFromAddress(ctx, title)
-		// We don't care about errors, we'll use the source/destination/full wallet address as the fallback
-		if w != nil {
-			title = w.Name
-		}
+	}
+	w, _ := b.Wallets().GetFromAddress(ctx, title)
+	// We don't care about errors, we'll use the source/destination/full wallet address as the fallback
+	if w != nil {
+		title = w.Name
 	}
 
 	// transform identity types to twitter/wallet for the frontend
