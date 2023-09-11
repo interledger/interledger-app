@@ -1,18 +1,16 @@
-import type { FinishedUnaryCall } from '@protobuf-ts/runtime-rpc'
 import { json, redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type {
   Features,
   KYCStatusResponse,
+  LinkedAccount,
   ListTransactionsResponse,
   WalletInfo
 } from '~/generated/connect/backend/v1/backend_pb'
 import type {
   Amount,
-  CreateCardRequest,
   GetPublicWalletDetailsResponse,
   Identity,
-  LinkedAccount,
   ListContactsRequest,
   ListContactsResponse,
   PaginationRequest,
@@ -20,7 +18,6 @@ import type {
 } from '~/generated/protobuf-ts/backend/v1/backend'
 import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
-import type { GrpcError } from '~/lib/proto.server'
 import {
   StatusError,
   grpcClient,
@@ -147,25 +144,13 @@ export async function getLinkedAccount(
   request: Request,
   id: string
 ): Promise<FormattedLinkedAccount> {
-  const cookie = String(request.headers.get('cookie'))
-  const response = await grpcClient
-    .getLinkedAccount(
-      {
-        id
-      },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
+  const response = await connectClient.getLinkedAccount(request, {
+    id
+  })
 
-  return formatLinkedAccount(response.response)
+  if (isConnectError(response)) throw response.errorResponse
+
+  return formatLinkedAccount(response)
 }
 
 export async function getLinkedAccounts(
@@ -335,25 +320,6 @@ export async function getTransaction(
         })
       }
     })
-}
-
-export async function createCard(
-  request: Request,
-  tokenID: string
-): Promise<GrpcError | FinishedUnaryCall<CreateCardRequest, LinkedAccount>> {
-  const cookie = String(request.headers.get('cookie'))
-  return grpcClient
-    .createCard(
-      { tokenID },
-      {
-        meta: {
-          cookies: cookie || ''
-        },
-        timeout: 60 * 1000
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
 }
 
 export async function getLinkedIdentities(
