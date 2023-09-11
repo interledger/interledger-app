@@ -1,5 +1,6 @@
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
@@ -15,16 +16,10 @@ import {
   Layouts,
   TextField
 } from '~/components'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
-import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
 
 type Country = {
   id: string
@@ -33,14 +28,11 @@ type Country = {
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
-  let response = await grpcClient
-    .getCountries({})
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
-  const countries = response.response.countries
+  let response = await connectClient.getCountries(request, {})
+
+  if (isConnectError(response)) throw response.errorResponse
+
+  const countries = response.countries
 
   const url = new URL(request.url)
   const mugId = url.searchParams.get('mug')
@@ -50,16 +42,13 @@ export async function loader({ request }: LoaderArgs) {
 
   let isMugAvailable = false
   if (mugId != null) {
-    let response = await grpcClient
-      .isMugAvailable({
-        mugId: mugId
-      })
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(response)) {
-      throw json({}, httpMapping(response.code))
-    }
-    isMugAvailable = response.response.available
+    let response = await connectClient.isMugAvailable(request, {
+      mugId: mugId
+    })
+
+    if (isConnectError(response)) throw response.errorResponse
+
+    isMugAvailable = response.available
   }
 
   return jsonWithCSRF(request, {
@@ -261,20 +250,6 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'CountryCode' | 'Email'
-
-function mapper(field: fieldErrorsMap): 'countryCode' | 'email' | null {
-  switch (field) {
-    case 'CountryCode':
-      return 'countryCode'
-    case 'Email':
-      return 'email'
-    default:
-      return null
-  }
-}
-
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const fullName = form.get('fullName') as string
@@ -285,38 +260,25 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     fullName: '',
     countryCode: '',
     email: ''
   }
 
-  let response = await grpcClient
-    .joinWaitlist({
-      email,
-      countryCode: country,
-      fullName,
-      betaOptIn: betaOptIn != null,
-      mugId
-    })
-    .then((v) => v)
-    .catch(StatusError)
+  let response = await connectClient.joinWaitlist(request, {
+    email,
+    countryCode: country,
+    fullName,
+    betaOptIn: betaOptIn != null,
+    mugId
+  })
 
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirect(route('/waitlist/success'))
