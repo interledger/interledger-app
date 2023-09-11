@@ -121,7 +121,7 @@ func jsonToCSV(r io.Reader, w io.Writer) error {
 	}
 	var colRecord []string
 	for c := range columns {
-		colRecord = append(colRecord, slugToSentence(c))
+		colRecord = append(colRecord, c)
 	}
 	sort.Strings(colRecord)
 
@@ -177,10 +177,12 @@ func flattenObject(path string, values map[string]string, obj map[string]interfa
 func addValue(path string, values map[string]string, v interface{}) {
 	switch value := v.(type) {
 	case string:
+		path = slugToSentence(path)
 		values[path] = value
 	case map[string]interface{}:
 		flattenObject(path, values, value)
 	case float64:
+		path = slugToSentence(path)
 		values[path] = strconv.FormatFloat(value, 'f', -1, 64)
 	case []interface{}:
 		for i := range value {
