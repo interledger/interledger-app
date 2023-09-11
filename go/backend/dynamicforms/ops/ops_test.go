@@ -84,11 +84,11 @@ func TestExportFormResults(t *testing.T) {
 	testForms := []dynamicforms.CreateFormArgs{
 		{
 			FormID:   "testForm1",
-			FormData: `{ "test1": "data" }`,
+			FormData: `{ "name": "Omer" }`,
 		},
 		{
 			FormID:   "testForm1",
-			FormData: `{ "test2": "data" }`,
+			FormData: `{ "name": "Matt" }`,
 		},
 		{
 			FormID:   "testForm3",
@@ -106,4 +106,5 @@ func TestExportFormResults(t *testing.T) {
 	err := ops.ExportFormResults(ctx, b, "testForm1", buf)
 
 	assert.NoError(t, err)
+	assert.Equal(t, buf.String(), "Name\nOmer\nMatt\n")
 }
