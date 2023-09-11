@@ -7,7 +7,6 @@ import { Fab, Layouts, WalletShapes } from '~/components'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getHomeRoute } from '~/lib/marketing.server'
 import { getPusherArgs } from '~/lib/pusher.server'
-import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import {
   getFeatures,
   getKycStatus,
@@ -59,8 +58,7 @@ export async function appLoader({ request }: LoaderArgs) {
     transactions: transactions.transactions,
     kycStatus: kycStatus.kycStatus,
     pusherArgs,
-    features,
-    isSignupGated: IS_SIGNUP_GATED
+    features
   })
 }
 
@@ -70,8 +68,7 @@ export async function marketingLoader() {
   return json({
     isUser: false,
     homeRoute,
-    footer,
-    isSignupGated: IS_SIGNUP_GATED
+    footer
   })
 }
 
