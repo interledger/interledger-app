@@ -5,11 +5,14 @@ go 1.19
 require (
 	github.com/99designs/gqlgen v0.17.2
 	github.com/AlecAivazis/survey/v2 v2.3.6
+	github.com/Netflix/go-env v0.0.0-20220526054621-78278af1949d
+	github.com/bwmarrin/discordgo v0.27.1
 	github.com/bxcodec/faker/v3 v3.6.0
 	github.com/clbanning/mxj v1.8.4
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38
 	github.com/coreos/go-oidc/v3 v3.1.0
+	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48
 	github.com/dunglas/httpsfv v1.0.1
 	github.com/fogleman/gg v1.3.0
 	github.com/getsentry/sentry-go v0.22.0
@@ -61,8 +64,6 @@ require (
 )
 
 require (
-	github.com/Netflix/go-env v0.0.0-20220526054621-78278af1949d // indirect
-	github.com/bwmarrin/discordgo v0.27.1 // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.2.1 // indirect
