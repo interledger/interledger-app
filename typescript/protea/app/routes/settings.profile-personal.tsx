@@ -6,9 +6,9 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Icon, Layouts, WalletShapes } from '~/components'
 import { Label } from '~/components/Label'
+import { getKycStatus } from '~/data/wallet.server'
 import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
-import { getKycStatus } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const kycStatus = await getKycStatus(request)

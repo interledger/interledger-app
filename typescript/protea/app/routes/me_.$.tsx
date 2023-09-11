@@ -36,6 +36,8 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import { getPublicIdentities } from '~/data/identity.server'
+import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
 import {
@@ -46,11 +48,6 @@ import {
 } from '~/lib/proto.server'
 import { PayStep } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import {
-  getPublicLinkedIdentities,
-  getPublicWalletDetails,
-  getWalletInfo
-} from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletAddressParam = params['*'] as string
@@ -81,10 +78,7 @@ export async function loader({ request, params }: LoaderArgs) {
     return redirect(walletAddress.url)
 
   const wallet = await getPublicWalletDetails(request, walletAddress.walletID)
-  const identities = await getPublicLinkedIdentities(
-    request,
-    walletAddress.walletID
-  )
+  const identities = await getPublicIdentities(request, walletAddress.walletID)
 
   let editable = false
   const isUser = hasUserSession(request)
