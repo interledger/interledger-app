@@ -26,7 +26,6 @@ import {
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
-import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -66,8 +65,7 @@ export async function loader({ request }: LoaderArgs) {
     {
       returnTo: returnTo ?? flow.ui.returnTo,
       flowId: flow.id,
-      csrfToken: getCsrfTokenFromFlow(flow),
-      isSignupGated: IS_SIGNUP_GATED
+      csrfToken: getCsrfTokenFromFlow(flow)
     },
     {
       headers: headers ?? undefined
@@ -90,8 +88,7 @@ export const meta: MetaFunction = () => {
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
-  const { csrfToken, isSignupGated, flowId, returnTo } =
-    useLoaderData<typeof loader>()
+  const { csrfToken, flowId, returnTo } = useLoaderData<typeof loader>()
   const searchParams = useSearchParams()
 
   return (
@@ -155,16 +152,9 @@ export default function Page() {
       </Button>
       <p className='text-center text-sm font-medium text-medium'>
         New to Fynbos?{' '}
-        {isSignupGated && (
-          <Router className='text-primary' to={route('/waitlist')}>
-            Join waitlist
-          </Router>
-        )}
-        {!isSignupGated && (
-          <Router className='text-primary' to={route('/signup')}>
-            Sign up
-          </Router>
-        )}
+        <Router className='text-primary' to={route('/signup')}>
+          Sign up
+        </Router>
       </p>
     </>
   )
