@@ -20,7 +20,6 @@ import type { ReactNode } from 'react'
 import { AnchorRouter, Error } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { hasUserSession } from '~/lib/kratos.server'
-import { IS_SIGNUP_GATED } from '~/lib/signupCheck.server'
 import { getSnackbar } from '~/lib/snackbar.server'
 import { useSegment } from '~/lib/useSegment'
 import styles from '~/styles/app.css'
@@ -111,7 +110,6 @@ export async function loader({ request }: LoaderArgs) {
   return json({
     isUser,
     snackbar,
-    isSignupGated: IS_SIGNUP_GATED,
     env: {
       fynbosEnv: process.env.FYNBOS_ENV,
       sentryDsn: process.env.SENTRY_DSN,

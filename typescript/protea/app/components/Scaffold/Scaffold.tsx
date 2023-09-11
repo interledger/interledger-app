@@ -111,7 +111,6 @@ export function Scaffold() {
   )
 
   const isUser = matches[0]?.data.isUser
-  const isSignupGated = matches[0]?.data.isSignupGated
 
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
   let currentMatch = matches[matches.length - 1]
@@ -253,18 +252,9 @@ export function Scaffold() {
                   <Router to={route('/login')}>
                     <span className='text-sm font-medium'>Log in</span>
                   </Router>
-                  {isSignupGated && (
-                    <Router to={route('/waitlist')}>
-                      <span className='text-sm font-medium'>
-                        Join the waitlist
-                      </span>
-                    </Router>
-                  )}
-                  {!isSignupGated && (
-                    <Router to={route('/signup')}>
-                      <span className='text-sm font-medium'>Sign up</span>
-                    </Router>
-                  )}
+                  <Router to={route('/signup')}>
+                    <span className='text-sm font-medium'>Sign up</span>
+                  </Router>
                 </div>
               )}
               {isUser && (
@@ -531,16 +521,9 @@ export function Scaffold() {
                     >
                       <span className='font-medium text-medium'>Log in</span>
                     </Router>
-                    {isSignupGated && (
-                      <ButtonRouter className='h-11' to={route('/waitlist')}>
-                        Join the waitlist
-                      </ButtonRouter>
-                    )}
-                    {!isSignupGated && (
-                      <ButtonRouter className='h-11' to={route('/signup')}>
-                        Sign up
-                      </ButtonRouter>
-                    )}
+                    <ButtonRouter className='h-11' to={route('/signup')}>
+                      Sign up
+                    </ButtonRouter>
                   </div>
                 )}
                 {isUser && (
@@ -595,16 +578,9 @@ export function Scaffold() {
                     >
                       <span className='font-medium text-medium'>Log in</span>
                     </Router>
-                    {isSignupGated && (
-                      <ButtonRouter className='h-11' to={route('/waitlist')}>
-                        Join the waitlist
-                      </ButtonRouter>
-                    )}
-                    {!isSignupGated && (
-                      <ButtonRouter className='h-11' to={route('/signup')}>
-                        Sign up
-                      </ButtonRouter>
-                    )}
+                    <ButtonRouter className='h-11' to={route('/signup')}>
+                      Sign up
+                    </ButtonRouter>
                   </div>
                 )}
                 {isUser && (
