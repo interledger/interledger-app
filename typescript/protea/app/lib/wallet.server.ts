@@ -504,18 +504,3 @@ export async function setTwitterIdentityPublic(
     throw json({}, httpMapping(response.code))
   }
 }
-
-export async function setKYCStatusPending(request: Request): Promise<void> {
-  const cookie = String(request.headers.get('cookie'))
-  await grpcClient
-    .setKYCStatusPending(
-      {},
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-}
