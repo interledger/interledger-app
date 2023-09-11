@@ -23,7 +23,8 @@ type JsonWithErrorFunction = <
   request: Request,
   data: Data,
   snackbar?: Partial<SnackbarType>,
-  init?: number | ResponseInit
+  init?: number | ResponseInit,
+  isConnectError?: boolean
 ) => Promise<TypedResponse<(Data & object) | (Data & null)>>
 
 type JsonWithConnectErrorFunction = <
@@ -44,15 +45,26 @@ type JsonWithConnectErrorFunction = <
  * @param data
  * @param snackbar - Whether to show a snackbar on the client. Will use fieldErrors.form if set.
  * @param init
+ * @param isConnectError - Whether the error is a ConnectError. This is used to determine whether to log the error to Sentry.
  */
 export const error: JsonWithErrorFunction = async (
   request,
   data,
   snackbar,
-  init
+  init,
+  isConnectError = false
 ) => {
   let responseInit = typeof init === 'number' ? { status: init } : init
   const newHeaders = new Headers(responseInit?.headers)
+
+  if (!isConnectError) {
+    const url = new URL(request.url)
+    captureMessage('Non GRPC error returned to user', {
+      extra: {
+        url: url.pathname
+      }
+    })
+  }
 
   if (
     data &&
@@ -179,7 +191,7 @@ export class ConnectError {
     init
   ) => {
     data.errors = this.fieldErrors(data.errors, mapping)
-    return error(this._request, data, snackbar, init)
+    return error(this._request, data, snackbar, init, true)
   }
 
   /**
