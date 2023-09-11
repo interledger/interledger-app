@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
 
 	"gitlab.com/fynbos/env"
@@ -150,6 +151,89 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 
 	// Default to Internal error if not validation error.
 	return status.Error(codes.Internal, "Internal server error: Validation error")
+}
+
+func PaymentPreconditionError(preconditions []payments.RequiredActionType) error {
+	st := status.New(codes.FailedPrecondition, "Failed precondition")
+	p := &errdetails.PreconditionFailure{}
+
+	for _, condition := range preconditions {
+		v := &errdetails.PreconditionFailure_Violation{
+			Type: "ErrRequiredAction",
+		}
+		switch condition {
+		case payments.RequiredActionTypeIPAddress:
+			v.Subject = "ipAddress"
+			v.Description = "An ip address is required"
+		case payments.RequiredActionTypeOTP:
+			v.Subject = "otp"
+			v.Description = "OTP is required"
+		case payments.RequiredActionTypeSenderAmount:
+			v.Subject = "senderAmount"
+			v.Description = "Amount is required"
+		case payments.RequiredActionTypeSenderAccount:
+			v.Subject = "senderAccount"
+			v.Description = "Account is required"
+		case payments.RequiredActionTypeSenderIdentifier:
+			v.Subject = "senderIdentifier"
+			v.Description = "Sender is required"
+		case payments.RequiredActionTypeReceiverAmount:
+			v.Subject = "receiverAmount"
+			v.Description = "Amount is required"
+		case payments.RequiredActionTypeReceiverIdentifier:
+			v.Subject = "receiverIdentifier"
+			v.Description = "Recipient is required"
+		case payments.RequiredActionTypeThreeDS:
+			v.Subject = "threeDS"
+			v.Description = "3DS is required"
+		default:
+			log.Error("unknown payment precondition error", zap.String("condition", condition.String()))
+			continue
+		}
+
+		p.Violations = append(p.Violations, v)
+	}
+
+	st, err := st.WithDetails(p)
+	if err != nil {
+		log.Error("failed to encode payment precondition error", zap.Error(err))
+		return status.Error(codes.Internal, "Internal server error: precondition error")
+	}
+
+	return st.Err()
+}
+
+func LimitPreconditionError(limitType limits.LimitType) error {
+	st := status.New(codes.FailedPrecondition, "Failed precondition")
+	p := &errdetails.PreconditionFailure{}
+
+	v := &errdetails.PreconditionFailure_Violation{
+		Type: "ErrLimitExceeded",
+	}
+	switch limitType {
+	case limits.LimitTypeTransaction:
+		v.Subject = "transaction"
+		v.Description = "Exceeds per transaction limit"
+	case limits.LimitTypeDaily:
+		v.Subject = "daily"
+		v.Description = "Exceeds daily limit"
+	case limits.LimitTypeMonthly:
+		v.Subject = "monthly"
+		v.Description = "Exceeds monthly limit"
+	case limits.LimitType6Monthly:
+		v.Subject = "6monthly"
+		v.Description = "Exceeds 6 monthly limit"
+	default:
+		log.Error("unknown limit precondition error", zap.String("condition", string(limitType)))
+	}
+
+	st, err := st.WithDetails(p)
+	if err != nil {
+		log.Error("failed to encode limit precondition error", zap.Error(err))
+		return status.Error(codes.Internal, "Internal server error: precondition error")
+	}
+
+	return st.Err()
 }
 
 // Validation error will build an immutable error representing the status of the response.

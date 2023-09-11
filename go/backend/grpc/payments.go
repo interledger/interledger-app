@@ -177,7 +177,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		return nil, toGRPCError(err)
 	}
 	if exceedsLimits {
-		return nil, FailedPreconditionError(string(limitType))
+		return nil, LimitPreconditionError(limitType)
 	}
 
 	args := payments.CreateArgs{
@@ -230,7 +230,7 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 			return nil, toGRPCError(err)
 		}
 		if exceedsLimits {
-			return nil, FailedPreconditionError(string(limitType))
+			return nil, LimitPreconditionError(limitType)
 		}
 	}
 
@@ -346,13 +346,7 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 
 	p, requiredActions, err := s.b.Payments().Confirm(ctx, req.Id)
 	if errors.Is(err, payments.ErrRequiredActions) {
-		for _, action := range requiredActions {
-			// TODO: refactor to return array of required actions. Only signal 3DS to frontend for now.
-			switch action {
-			case payments.RequiredActionTypeThreeDS:
-				return nil, FailedPreconditionError("Err3DSRequired")
-			}
-		}
+		return nil, PaymentPreconditionError(requiredActions)
 	}
 	if err != nil {
 		return nil, toGRPCError(err)
