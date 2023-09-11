@@ -1,3 +1,4 @@
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -12,11 +13,9 @@ import {
   TextArea,
   TextField
 } from '~/components'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -175,45 +174,12 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap =
-  | 'ApplicationName'
-  | 'PublicKey'
-  | 'DailyLimit'
-  | 'MonthlyLimit'
-  | 'OverallLimit'
-
-function mapper(
-  field: fieldErrorsMap
-):
-  | 'applicationName'
-  | 'publicKey'
-  | 'dailyLimit'
-  | 'monthlyLimit'
-  | 'overallLimit'
-  | null {
-  switch (field) {
-    case 'ApplicationName':
-      return 'applicationName'
-    case 'PublicKey':
-      return 'publicKey'
-    case 'DailyLimit':
-      return 'dailyLimit'
-    case 'MonthlyLimit':
-      return 'monthlyLimit'
-    case 'OverallLimit':
-      return 'overallLimit'
-    default:
-      return null
-  }
-}
-
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     applicationName: '',
     publicKey: '',
@@ -222,56 +188,36 @@ export async function action({ request }: ActionArgs) {
     overallLimit: ''
   }
 
-  const response = await grpcClient
-    .createConnection(
-      {
-        applicationName: form.get('applicationName') as string,
-        publicKey: form.get('publicKey') as string,
-        dailyLimit: {
-          amount: String(
-            Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
-          ),
-          asset: 'USD',
-          assetScale: 2
-        },
-        monthlyLimit: {
-          amount: String(
-            Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
-          ),
-          asset: 'USD',
-          assetScale: 2
-        },
-        overallLimit: {
-          amount: String(
-            Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
-          ),
-          asset: 'USD',
-          assetScale: 2
-        }
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
+  const response = await connectClient.createConnection(request, {
+    applicationName: form.get('applicationName') as string,
+    publicKey: form.get('publicKey') as string,
+    dailyLimit: {
+      amount: BigInt(
+        Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
+      ),
+      asset: 'USD',
+      assetScale: 2
+    },
+    monthlyLimit: {
+      amount: BigInt(
+        Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
+      ),
+      asset: 'USD',
+      assetScale: 2
+    },
+    overallLimit: {
+      amount: BigInt(
+        Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
+      ),
+      asset: 'USD',
+      assetScale: 2
+    }
+  })
 
-  if (isGrpcError(response)) {
-    if (response.code == Code.INVALID_ARGUMENT) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(request, route('/settings/keys'), {
