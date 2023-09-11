@@ -4,11 +4,11 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
+import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
 import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { getPublicWalletDetails, getWalletInfo } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const walletInfo = await getWalletInfo(request)

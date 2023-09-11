@@ -13,7 +13,7 @@ import {
   WalletShapes
 } from '~/components'
 import { Label } from '~/components/Label'
-import { getPublicWalletDetails, getWalletInfo } from '~/lib/wallet.server'
+import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const walletInfo = await getWalletInfo(request)

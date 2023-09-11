@@ -1,3 +1,5 @@
+import { Code } from '@bufbuild/connect'
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useSearchParams } from '@remix-run/react'
@@ -14,34 +16,27 @@ import {
   Layouts,
   Router
 } from '~/components'
-import type {
-  Features,
-  Payment,
-  PublicWalletInfo,
-  SearchResult
-} from '~/generated/protobuf-ts/backend/v1/backend'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import { getClientIP } from '~/lib/ip.server'
-import { getUserSession } from '~/lib/kratos.server'
-import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { PayStep, usePayStore } from '~/lib/usePayStore'
-import type { FormattedLinkedAccount } from '~/lib/wallet.server'
+import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import {
   getFeatures,
   getKycStatus,
   getLinkedAccount,
   getLinkedAccounts,
   getPublicWalletInfo
-} from '~/lib/wallet.server'
+} from '~/data/wallet.server'
+import type {
+  Features,
+  Payment,
+  PublicWalletInfo,
+  SearchResult
+} from '~/generated/connect/backend/v1/backend_pb'
+import { connectClient } from '~/lib/connect.server'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { error, isConnectError } from '~/lib/error.server'
+import { getClientIP } from '~/lib/ip.server'
+import { getUserSession } from '~/lib/kratos.server'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { KycStatus } from '~/routes/_index/route'
 import { Amount } from '~/routes/pay/Amount'
 import { Confirm } from '~/routes/pay/Confirm'
@@ -55,8 +50,8 @@ export async function loader({ request }: LoaderArgs) {
     return loadPayment(request, paymentId)
   }
 
-  let results: SearchResult[] = []
-  let address: SearchResult | null = null
+  let results: PlainMessage<SearchResult>[] = []
+  let address: PlainMessage<SearchResult> | null = null
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PublicWalletInfo | null = null
   let phoneMask: string = ''
@@ -94,44 +89,25 @@ export async function loader({ request }: LoaderArgs) {
 
   const term = url.searchParams.get('term')
   if (term) {
-    const response = await grpcClient
-      .searchWallets(
-        { term },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie')) || ''
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
+    const response = await connectClient.searchWallets(request, { term })
 
-    if (!isGrpcError(response)) {
-      results = response.response.results
-    }
+    if (!isConnectError(response)) results = response.results
   }
 
   const walletAddressParam = url.searchParams.get('address')
   if (walletAddressParam) {
     // TODO: refactor this to return a SearchResult
-    const response = await grpcClient
-      .getPaymentAddress(
-        { address: walletAddressParam },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie')) || ''
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (!isGrpcError(response)) {
+    const response = await connectClient.getPaymentAddress(request, {
+      address: walletAddressParam
+    })
+
+    if (!isConnectError(response)) {
       address = {
         walletID: '',
-        walletUrl: response.response.walletUrl,
-        canSend: response.response.canSendToAddress,
-        identifier: response.response.handle,
-        identifierType: response.response.type,
+        walletUrl: response.walletUrl,
+        canSend: response.canSendToAddress,
+        identifier: response.handle,
+        identifierType: response.type,
         subResults: []
       }
     }
@@ -169,21 +145,13 @@ async function loadPayment(request: Request, id: string) {
   let publicWalletInfo: PublicWalletInfo | null = null
   let phoneMask: string = ''
   let features: Features | null = null
-  let payment: Payment | null = null
 
-  let rpc = await grpcClient
-    .getPayment(
-      { id },
-      { meta: { cookies: String(request.headers.get('cookie')) } }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
-  }
+  let payment = await connectClient.getPayment(request, { id })
+
+  if (isConnectError(payment)) throw payment.errorResponse
 
   address = null // to avoid useEffect race condition
-  payment = rpc.response
+
   publicWalletInfo = await getPublicWalletInfo(
     request,
     payment.receiverWalletUrl
@@ -394,24 +362,11 @@ type paymentLimitError =
   | 'Failed precondition: LimitMonthly'
   | 'Failed precondition: Limit6Monthly'
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'url' | 'amount'
-
-function mapper(field: fieldErrorsMap): 'address' | 'amount' | null {
-  switch (field) {
-    case 'url':
-      return 'address'
-    case 'amount':
-      return 'amount'
-    default:
-      return null
-  }
-}
-
 export async function action(args: ActionArgs) {
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string
+
   if (formName === 'updatePayment') {
     return updatePaymentAction(args)
   } else if (formName === 'confirmPayment') {
@@ -432,59 +387,41 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
   const serviceAgreement = form.get('serviceAgreement') as string
   const paymentId = form.get('paymentId') as string
   const otp = form.get('otp') as string
-  const fieldErrors = {
+
+  const errors = {
     form: '',
     serviceAgreement: ''
   }
 
   if (serviceAgreement == null) {
-    fieldErrors.serviceAgreement = 'You are required to authorize to continue.'
-    return error(request, { errors: { ...fieldErrors } })
+    errors.serviceAgreement = 'You are required to authorize to continue.'
+    return error(request, { errors: { ...errors } })
   }
 
   if (otp) {
-    const rpc = await grpcClient
-      .updatePayment(
-        {
-          id: paymentId,
-          otp: otp
-        },
-        {
-          meta: { cookies: String(request.headers.get('cookie')) }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(rpc)) {
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+    const response = await connectClient.updatePayment(request, {
+      id: paymentId,
+      otp: otp
+    })
+    if (isConnectError(response)) {
+      return response.error({ errors }, {}, { action: 'Contact support' })
     }
   }
 
-  const rpc = await grpcClient
-    .confirmPayment(
-      {
-        id: paymentId
-      },
-      {
-        meta: { cookies: String(request.headers.get('cookie')) }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(rpc)) {
+  const response = await connectClient.confirmPayment(request, {
+    id: paymentId
+  })
+
+  if (isConnectError(response)) {
     if (
-      rpc.code === Code.FAILED_PRECONDITION &&
-      rpc.message === 'Failed precondition: Err3DSRequired'
+      response.code === Code.FailedPrecondition
+      // response.message === 'Failed precondition: Err3DSRequired'
     ) {
       return redirect(`/pay/3ds?paymentId=${paymentId}&init=`)
     }
     return error(
       request,
-      { errors: { ...fieldErrors } },
+      { errors: { ...errors } },
       { action: 'Contact support' }
     )
   }
@@ -503,8 +440,9 @@ export async function updatePaymentAction({ request }: ActionArgs) {
   const accountId = form.get('accountId') as string
   const type = form.get('type') as string
   const walletUrl = form.get('walletUrl') as string
-  const amountToSubmit = String(Math.floor(parseFloat(amount) * 100))
-  const fieldErrors = {
+  const amountToSubmit = Math.floor(parseFloat(amount) * 100)
+
+  const errors = {
     form: '',
     amount: '',
     address: '',
@@ -512,130 +450,106 @@ export async function updatePaymentAction({ request }: ActionArgs) {
     note: ''
   }
 
-  if (amountToSubmit == 'NaN') {
-    fieldErrors.amount = 'Amount is required.'
-    return error(request, { errors: { ...fieldErrors }, payment: null, type })
+  if (!amountToSubmit) {
+    errors.amount = 'Amount is required.'
+    return error(request, { errors: { ...errors }, payment: null, type })
   }
 
   const clientIpAddress = getClientIP(request)
   if (!paymentId) {
-    let rpc = await grpcClient
-      .createPayment(
-        {
-          receiverIdentity: walletUrl,
-          receiverIdentityType: 3,
-          note,
-          senderAccount: accountId,
-          senderAmount: {
-            amount: amountToSubmit,
-            assetScale: 2,
-            asset: 'USD'
-          },
-          ipAddress: clientIpAddress
-        },
-        {
-          meta: { cookies: String(request.headers.get('cookie')) }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(rpc)) {
-      if (rpc.code == Code.INVALID_ARGUMENT) {
-        for (let violation of (rpc as GrpcError).details[0].fieldViolations) {
-          const field = mapper(violation.field as fieldErrorsMap)
-          if (field != null) fieldErrors[field] = violation.description
-        }
-        return error(request, { errors: fieldErrors, payment: null, type })
-      } else if (rpc.code == Code.FAILED_PRECONDITION) {
-        switch (rpc.message as paymentLimitError) {
-          case 'Failed precondition: LimitTransaction':
-            fieldErrors['amount'] = 'Exceeds per transaction limit.'
-            break
-          case 'Failed precondition: LimitDaily':
-            fieldErrors['amount'] = 'Exceeds daily limit.'
-            break
-          case 'Failed precondition: LimitMonthly':
-            fieldErrors['amount'] = 'Exceeds monthly limit.'
-            break
-          case 'Failed precondition: Limit6Monthly':
-            fieldErrors['amount'] = 'Exceeds rolling 6 month limit.'
-            break
-          default:
-            fieldErrors['amount'] = 'Exceeds account limit.'
-        }
-        return error(request, { errors: fieldErrors, payment: null, type })
+    let response = await connectClient.createPayment(request, {
+      receiverIdentity: walletUrl,
+      receiverIdentityType: 3,
+      note,
+      senderAccount: accountId,
+      senderAmount: {
+        amount: BigInt(amountToSubmit),
+        assetScale: 2,
+        asset: 'USD'
+      },
+      ipAddress: clientIpAddress
+    })
+    if (isConnectError(response)) {
+      if (response.code == Code.InvalidArgument) {
+        return response.error({ errors, payment: null, type })
+      } else if (response.code == Code.FailedPrecondition) {
+        // switch (response.message as paymentLimitError) {
+        //   case 'Failed precondition: LimitTransaction':
+        //     errors['amount'] = 'Exceeds per transaction limit.'
+        //     break
+        //   case 'Failed precondition: LimitDaily':
+        //     errors['amount'] = 'Exceeds daily limit.'
+        //     break
+        //   case 'Failed precondition: LimitMonthly':
+        //     errors['amount'] = 'Exceeds monthly limit.'
+        //     break
+        //   case 'Failed precondition: Limit6Monthly':
+        //     errors['amount'] = 'Exceeds rolling 6 month limit.'
+        //     break
+        //   default:
+        //     errors['amount'] = 'Exceeds account limit.'
+        // }
+        return response.error({ errors: errors, payment: null, type })
       } else
         return error(
           request,
-          { errors: fieldErrors, payment: null, type },
+          { errors: errors, payment: null, type },
           { action: 'Contact support' }
         )
     }
 
     return json({
-      payment: rpc.response,
+      payment: response,
       type,
-      errors: fieldErrors
+      errors: errors
     })
   }
 
-  let rpc = await grpcClient
-    .updatePayment(
-      {
-        id: paymentId,
-        receiverIdentity: walletUrl,
-        receiverIdentityType: 3,
-        note,
-        senderAccount: accountId,
-        senderAmount: {
-          amount: amountToSubmit,
-          assetScale: 2,
-          asset: 'USD'
-        },
-        ipAddress: clientIpAddress
-      },
-      {
-        meta: { cookies: String(request.headers.get('cookie')) }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(rpc)) {
-    if (rpc.code == Code.INVALID_ARGUMENT) {
-      for (let violation of (rpc as GrpcError).details[0].fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: fieldErrors, payment: null, type })
-    } else if (rpc.code == Code.FAILED_PRECONDITION) {
-      switch (rpc.message as paymentLimitError) {
-        case 'Failed precondition: LimitTransaction':
-          fieldErrors['amount'] = 'Exceeds per transaction limit.'
-          break
-        case 'Failed precondition: LimitDaily':
-          fieldErrors['amount'] = 'Exceeds daily limit.'
-          break
-        case 'Failed precondition: LimitMonthly':
-          fieldErrors['amount'] = 'Exceeds monthly limit.'
-          break
-        case 'Failed precondition: Limit6Monthly':
-          fieldErrors['amount'] = 'Exceeds rolling 6 month limit.'
-          break
-        default:
-          fieldErrors['amount'] = 'Exceeds account limit.'
-      }
-      return error(request, { errors: fieldErrors, payment: null, type })
+  let response = await connectClient.updatePayment(request, {
+    id: paymentId,
+    receiverIdentity: walletUrl,
+    receiverIdentityType: 3,
+    note,
+    senderAccount: accountId,
+    senderAmount: {
+      amount: BigInt(amountToSubmit),
+      assetScale: 2,
+      asset: 'USD'
+    },
+    ipAddress: clientIpAddress
+  })
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors: errors, payment: null, type })
+    } else if (response.code == Code.FailedPrecondition) {
+      // switch (response.message as paymentLimitError) {
+      //   case 'Failed precondition: LimitTransaction':
+      //     errors['amount'] = 'Exceeds per transaction limit.'
+      //     break
+      //   case 'Failed precondition: LimitDaily':
+      //     errors['amount'] = 'Exceeds daily limit.'
+      //     break
+      //   case 'Failed precondition: LimitMonthly':
+      //     errors['amount'] = 'Exceeds monthly limit.'
+      //     break
+      //   case 'Failed precondition: Limit6Monthly':
+      //     errors['amount'] = 'Exceeds rolling 6 month limit.'
+      //     break
+      //   default:
+      //     errors['amount'] = 'Exceeds account limit.'
+      // }
+      return response.error({ errors: errors, payment: null, type })
     } else
-      return error(
-        request,
-        { errors: fieldErrors, payment: null, type },
+      return response.error(
+        { errors: errors, payment: null, type },
+        {},
         { action: 'Contact support' }
       )
   }
 
   return json({
-    payment: rpc.response,
+    payment: response,
     type,
-    errors: fieldErrors
+    errors: errors
   })
 }
