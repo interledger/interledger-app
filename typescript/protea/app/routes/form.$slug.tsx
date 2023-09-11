@@ -10,10 +10,11 @@ import type { ApplicationProps } from '~/components'
 import { Button, Layouts } from '~/components'
 import { FormSectionRecordComponent } from '~/components/Content'
 import type { FormSectionRecord } from '~/generated/dato-cms-graphql'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { isConnectError } from '~/lib/error.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getCurrentFormPage } from '~/lib/marketing.server'
-import { grpcClient, httpMapping, isGrpcError } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useFormStore } from '~/lib/useFormStore'
 
@@ -110,7 +111,6 @@ export default function Page() {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
@@ -123,18 +123,12 @@ export async function action({ request, params }: ActionArgs) {
       data[key] = value
   })
 
-  const response = grpcClient.createDynamicForm(
-    {
-      formId: params.slug as string,
-      data: JSON.stringify(data)
-    },
-    {
-      meta: {
-        cookies: cookie || ''
-      }
-    }
-  )
-  if (isGrpcError(response)) throw json({}, httpMapping(response.code))
+  const response = connectClient.createDynamicForm(request, {
+    formId: params.slug as string,
+    data: JSON.stringify(data)
+  })
+
+  if (isConnectError(response)) throw response.errorResponse
 
   if (returnTo !== '/')
     return redirect(route('/thank-you/:slug', { slug: returnTo }))
