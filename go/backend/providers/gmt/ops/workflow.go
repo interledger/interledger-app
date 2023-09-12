@@ -1309,6 +1309,9 @@ func GMTComplianceChecksWorkflow(ctx workflow.Context, paymentID string) error {
 		StartToCloseTimeout: 20 * time.Minute,
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
+	ctx = workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("paymentID=%s", paymentID),
+	})
 
 	logger := workflow.GetLogger(ctx)
 
