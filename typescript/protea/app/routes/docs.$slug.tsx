@@ -25,13 +25,13 @@ import {
   renderLinkNodeRule
 } from '~/components/Content'
 import { useDocsStore } from '~/components/Scaffold/Docs/useDocsStore'
+import { getCurrentDocPage } from '~/data/content.server'
 import type {
   DocRecord,
   InlineImageRecord,
   InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
 import { sanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
-import { getCurrentDocPage } from '~/lib/marketing.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   if (process.env.FYNBOS_ENV == 'prod')

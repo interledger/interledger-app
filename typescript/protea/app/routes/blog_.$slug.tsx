@@ -15,6 +15,7 @@ import type { ResponsiveImageType } from 'react-datocms'
 import { Image, StructuredText, toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
 import { Prose } from '~/components/Content'
+import { getCurrentBlogPost } from '~/data/content.server'
 import type {
   BlogPostRecord,
   InlineImageRecord,
@@ -22,7 +23,6 @@ import type {
   InlineTwitterEmbedRecord,
   InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
-import { getCurrentBlogPost } from '~/lib/marketing.server'
 
 export function meta({ data, params }: any) {
   return {
