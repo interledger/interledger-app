@@ -6,9 +6,9 @@ import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Chip, ChipColor, Layouts, Router } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
+import { getBlogRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
-import { getBlogRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { blogRoute, allBlogPosts, footer } = await getBlogRoute({

@@ -7,8 +7,8 @@ import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { StructuredText, toRemixMeta } from 'react-datocms'
 import { Prose } from '~/components/Content'
+import { getCurrentLegalPage } from '~/data/content.server'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
-import { getCurrentLegalPage } from '~/lib/marketing.server'
 
 export function meta({ data, params }: any) {
   return {

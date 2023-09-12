@@ -36,12 +36,12 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import { getPerson } from '~/data/content.server'
 import { getPublicIdentities } from '~/data/identity.server'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
-import { getPerson } from '~/lib/marketing.server'
 import { PayStep } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
