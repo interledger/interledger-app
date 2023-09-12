@@ -27,6 +27,26 @@ service Backend {
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
   rpc ListDynamicFormCounts(PaginationRequest) returns (ListDynamicFormCountsResponse);
   rpc ExportDynamicForm(ExportDynamicFormRequest) returns (stream ExportDynamicFormResponse);
+  rpc ListExternalApiCalls(ListExternalApiCallsRequest) returns (ListExternalApiCallsResponse);
+}
+
+message ListExternalApiCallsRequest {
+  string paymentId = 1;
+}
+
+message ExternalApiCall {
+  string id = 1;
+  string provider = 2;
+  string context = 3;
+  string method = 4;
+  string requestBody = 5;
+  string requestPath = 6;
+  string responseBody = 7;
+  string responseStatus = 8;
+}
+
+message ListExternalApiCallsResponse {
+  repeated ExternalApiCall list = 1;
 }
 
 message Empty {}

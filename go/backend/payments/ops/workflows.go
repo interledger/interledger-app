@@ -5,6 +5,7 @@ import (
 	"time"
 
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
@@ -152,6 +153,9 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		},
 	}
 	accountsCtx := workflow.WithActivityOptions(ctx, accountsAO)
+	accountsCtx = workflow.WithValue(accountsCtx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("paymentID=%s", paymentID),
+	})
 
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Minute,
@@ -291,6 +295,9 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		},
 	}
 	accountsCtx := workflow.WithActivityOptions(ctx, accountsAO)
+	accountsCtx = workflow.WithValue(accountsCtx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("paymentID=%s", paymentID),
+	})
 
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Minute,
@@ -408,6 +415,9 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 			InitialInterval:    time.Minute * 10,
 			MaximumInterval:    time.Hour,
 		},
+	})
+	ctx = workflow.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+		Context: fmt.Sprintf("paymentID=%s", paymentID),
 	})
 
 	err := workflow.ExecuteActivity(ctx, a.RollbackPullFromAccount, paymentID).Get(ctx, nil)

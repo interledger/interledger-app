@@ -7,6 +7,159 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.ListExternalApiCallsRequest
+ */
+export class ListExternalApiCallsRequest extends Message<ListExternalApiCallsRequest> {
+  /**
+   * @generated from field: string paymentId = 1;
+   */
+  paymentId = "";
+
+  constructor(data?: PartialMessage<ListExternalApiCallsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ListExternalApiCallsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "paymentId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListExternalApiCallsRequest {
+    return new ListExternalApiCallsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListExternalApiCallsRequest {
+    return new ListExternalApiCallsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListExternalApiCallsRequest {
+    return new ListExternalApiCallsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListExternalApiCallsRequest | PlainMessage<ListExternalApiCallsRequest> | undefined, b: ListExternalApiCallsRequest | PlainMessage<ListExternalApiCallsRequest> | undefined): boolean {
+    return proto3.util.equals(ListExternalApiCallsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.ExternalApiCall
+ */
+export class ExternalApiCall extends Message<ExternalApiCall> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string provider = 2;
+   */
+  provider = "";
+
+  /**
+   * @generated from field: string context = 3;
+   */
+  context = "";
+
+  /**
+   * @generated from field: string method = 4;
+   */
+  method = "";
+
+  /**
+   * @generated from field: string requestBody = 5;
+   */
+  requestBody = "";
+
+  /**
+   * @generated from field: string requestPath = 6;
+   */
+  requestPath = "";
+
+  /**
+   * @generated from field: string responseBody = 7;
+   */
+  responseBody = "";
+
+  /**
+   * @generated from field: string responseStatus = 8;
+   */
+  responseStatus = "";
+
+  constructor(data?: PartialMessage<ExternalApiCall>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ExternalApiCall";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "context", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "method", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "requestBody", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "requestPath", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "responseBody", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "responseStatus", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExternalApiCall {
+    return new ExternalApiCall().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExternalApiCall {
+    return new ExternalApiCall().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExternalApiCall {
+    return new ExternalApiCall().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExternalApiCall | PlainMessage<ExternalApiCall> | undefined, b: ExternalApiCall | PlainMessage<ExternalApiCall> | undefined): boolean {
+    return proto3.util.equals(ExternalApiCall, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.ListExternalApiCallsResponse
+ */
+export class ListExternalApiCallsResponse extends Message<ListExternalApiCallsResponse> {
+  /**
+   * @generated from field: repeated backend.admin.v1.ExternalApiCall list = 1;
+   */
+  list: ExternalApiCall[] = [];
+
+  constructor(data?: PartialMessage<ListExternalApiCallsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ListExternalApiCallsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "list", kind: "message", T: ExternalApiCall, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListExternalApiCallsResponse {
+    return new ListExternalApiCallsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListExternalApiCallsResponse {
+    return new ListExternalApiCallsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListExternalApiCallsResponse {
+    return new ListExternalApiCallsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListExternalApiCallsResponse | PlainMessage<ListExternalApiCallsResponse> | undefined, b: ListExternalApiCallsResponse | PlainMessage<ListExternalApiCallsResponse> | undefined): boolean {
+    return proto3.util.equals(ListExternalApiCallsResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.Empty
  */
 export class Empty extends Message<Empty> {

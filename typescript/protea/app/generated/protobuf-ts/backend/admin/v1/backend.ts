@@ -3,17 +3,72 @@
 // tslint:disable
 import { Empty as Empty$ } from "../../../google/protobuf/empty";
 import { ServiceType } from "@protobuf-ts/runtime-rpc";
-import { WireType } from "@protobuf-ts/runtime";
 import type { BinaryWriteOptions } from "@protobuf-ts/runtime";
 import type { IBinaryWriter } from "@protobuf-ts/runtime";
-import { UnknownFieldHandler } from "@protobuf-ts/runtime";
+import { WireType } from "@protobuf-ts/runtime";
 import type { BinaryReadOptions } from "@protobuf-ts/runtime";
 import type { IBinaryReader } from "@protobuf-ts/runtime";
+import { UnknownFieldHandler } from "@protobuf-ts/runtime";
 import type { PartialMessage } from "@protobuf-ts/runtime";
 import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
+/**
+ * @generated from protobuf message backend.admin.v1.ListExternalApiCallsRequest
+ */
+export interface ListExternalApiCallsRequest {
+    /**
+     * @generated from protobuf field: string paymentId = 1;
+     */
+    paymentId: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ExternalApiCall
+ */
+export interface ExternalApiCall {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string provider = 2;
+     */
+    provider: string;
+    /**
+     * @generated from protobuf field: string context = 3;
+     */
+    context: string;
+    /**
+     * @generated from protobuf field: string method = 4;
+     */
+    method: string;
+    /**
+     * @generated from protobuf field: string requestBody = 5;
+     */
+    requestBody: string;
+    /**
+     * @generated from protobuf field: string requestPath = 6;
+     */
+    requestPath: string;
+    /**
+     * @generated from protobuf field: string responseBody = 7;
+     */
+    responseBody: string;
+    /**
+     * @generated from protobuf field: string responseStatus = 8;
+     */
+    responseStatus: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListExternalApiCallsResponse
+ */
+export interface ListExternalApiCallsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.ExternalApiCall list = 1;
+     */
+    list: ExternalApiCall[];
+}
 /**
  * @generated from protobuf message backend.admin.v1.Empty
  */
@@ -628,6 +683,196 @@ export interface ExportDynamicFormResponse {
      */
     chunk: Uint8Array;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class ListExternalApiCallsRequest$Type extends MessageType<ListExternalApiCallsRequest> {
+    constructor() {
+        super("backend.admin.v1.ListExternalApiCallsRequest", [
+            { no: 1, name: "paymentId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ListExternalApiCallsRequest>): ListExternalApiCallsRequest {
+        const message = { paymentId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListExternalApiCallsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListExternalApiCallsRequest): ListExternalApiCallsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string paymentId */ 1:
+                    message.paymentId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListExternalApiCallsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string paymentId = 1; */
+        if (message.paymentId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.paymentId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListExternalApiCallsRequest
+ */
+export const ListExternalApiCallsRequest = new ListExternalApiCallsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ExternalApiCall$Type extends MessageType<ExternalApiCall> {
+    constructor() {
+        super("backend.admin.v1.ExternalApiCall", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "context", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "method", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "requestBody", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "requestPath", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "responseBody", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "responseStatus", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ExternalApiCall>): ExternalApiCall {
+        const message = { id: "", provider: "", context: "", method: "", requestBody: "", requestPath: "", responseBody: "", responseStatus: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ExternalApiCall>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ExternalApiCall): ExternalApiCall {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string provider */ 2:
+                    message.provider = reader.string();
+                    break;
+                case /* string context */ 3:
+                    message.context = reader.string();
+                    break;
+                case /* string method */ 4:
+                    message.method = reader.string();
+                    break;
+                case /* string requestBody */ 5:
+                    message.requestBody = reader.string();
+                    break;
+                case /* string requestPath */ 6:
+                    message.requestPath = reader.string();
+                    break;
+                case /* string responseBody */ 7:
+                    message.responseBody = reader.string();
+                    break;
+                case /* string responseStatus */ 8:
+                    message.responseStatus = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ExternalApiCall, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string provider = 2; */
+        if (message.provider !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.provider);
+        /* string context = 3; */
+        if (message.context !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.context);
+        /* string method = 4; */
+        if (message.method !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.method);
+        /* string requestBody = 5; */
+        if (message.requestBody !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.requestBody);
+        /* string requestPath = 6; */
+        if (message.requestPath !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.requestPath);
+        /* string responseBody = 7; */
+        if (message.responseBody !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.responseBody);
+        /* string responseStatus = 8; */
+        if (message.responseStatus !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.responseStatus);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ExternalApiCall
+ */
+export const ExternalApiCall = new ExternalApiCall$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListExternalApiCallsResponse$Type extends MessageType<ListExternalApiCallsResponse> {
+    constructor() {
+        super("backend.admin.v1.ListExternalApiCallsResponse", [
+            { no: 1, name: "list", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => ExternalApiCall }
+        ]);
+    }
+    create(value?: PartialMessage<ListExternalApiCallsResponse>): ListExternalApiCallsResponse {
+        const message = { list: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListExternalApiCallsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListExternalApiCallsResponse): ListExternalApiCallsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.ExternalApiCall list */ 1:
+                    message.list.push(ExternalApiCall.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListExternalApiCallsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.ExternalApiCall list = 1; */
+        for (let i = 0; i < message.list.length; i++)
+            ExternalApiCall.internalBinaryWrite(message.list[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListExternalApiCallsResponse
+ */
+export const ListExternalApiCallsResponse = new ListExternalApiCallsResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Empty$Type extends MessageType<Empty> {
     constructor() {
@@ -2770,5 +3015,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "CompleteLinkedAccountReview", options: {}, I: CompleteLinkedAccountReviewRequest, O: LinkedAccountReview },
     { name: "GetLinkedAccount", options: {}, I: GetLinkedAccountRequest, O: LinkedAccount },
     { name: "ListDynamicFormCounts", options: {}, I: PaginationRequest, O: ListDynamicFormCountsResponse },
-    { name: "ExportDynamicForm", serverStreaming: true, options: {}, I: ExportDynamicFormRequest, O: ExportDynamicFormResponse }
+    { name: "ExportDynamicForm", serverStreaming: true, options: {}, I: ExportDynamicFormRequest, O: ExportDynamicFormResponse },
+    { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse }
 ]);

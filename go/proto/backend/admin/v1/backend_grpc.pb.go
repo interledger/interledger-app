@@ -36,6 +36,7 @@ const (
 	Backend_GetLinkedAccount_FullMethodName                   = "/backend.admin.v1.Backend/GetLinkedAccount"
 	Backend_ListDynamicFormCounts_FullMethodName              = "/backend.admin.v1.Backend/ListDynamicFormCounts"
 	Backend_ExportDynamicForm_FullMethodName                  = "/backend.admin.v1.Backend/ExportDynamicForm"
+	Backend_ListExternalApiCalls_FullMethodName               = "/backend.admin.v1.Backend/ListExternalApiCalls"
 )
 
 // BackendClient is the client API for Backend service.
@@ -58,6 +59,7 @@ type BackendClient interface {
 	GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	ListDynamicFormCounts(ctx context.Context, in *PaginationRequest, opts ...grpc.CallOption) (*ListDynamicFormCountsResponse, error)
 	ExportDynamicForm(ctx context.Context, in *ExportDynamicFormRequest, opts ...grpc.CallOption) (Backend_ExportDynamicFormClient, error)
+	ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error)
 }
 
 type backendClient struct {
@@ -235,6 +237,15 @@ func (x *backendExportDynamicFormClient) Recv() (*ExportDynamicFormResponse, err
 	return m, nil
 }
 
+func (c *backendClient) ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error) {
+	out := new(ListExternalApiCallsResponse)
+	err := c.cc.Invoke(ctx, Backend_ListExternalApiCalls_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -255,6 +266,7 @@ type BackendServer interface {
 	GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error)
 	ListDynamicFormCounts(context.Context, *PaginationRequest) (*ListDynamicFormCountsResponse, error)
 	ExportDynamicForm(*ExportDynamicFormRequest, Backend_ExportDynamicFormServer) error
+	ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -308,6 +320,9 @@ func (UnimplementedBackendServer) ListDynamicFormCounts(context.Context, *Pagina
 }
 func (UnimplementedBackendServer) ExportDynamicForm(*ExportDynamicFormRequest, Backend_ExportDynamicFormServer) error {
 	return status.Errorf(codes.Unimplemented, "method ExportDynamicForm not implemented")
+}
+func (UnimplementedBackendServer) ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListExternalApiCalls not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -612,6 +627,24 @@ func (x *backendExportDynamicFormServer) Send(m *ExportDynamicFormResponse) erro
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Backend_ListExternalApiCalls_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListExternalApiCallsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListExternalApiCalls(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_ListExternalApiCalls_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListExternalApiCalls(ctx, req.(*ListExternalApiCallsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -678,6 +711,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListDynamicFormCounts",
 			Handler:    _Backend_ListDynamicFormCounts_Handler,
+		},
+		{
+			MethodName: "ListExternalApiCalls",
+			Handler:    _Backend_ListExternalApiCalls_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
