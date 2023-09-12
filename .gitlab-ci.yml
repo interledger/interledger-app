@@ -8,7 +8,6 @@ include:
   - local: go/discordbot/.gitlab-ci.yml
   - local: go/.gitlab-ci.yml
   - local: typescript/**/.gitlab-ci.yml
-  - local: typescript/protea/.chromatic.gitlab-ci.yml
   - local: infra/gitlab/runner-image/.gitlab-ci.yml
 
 variables:
