@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	"strconv"
 
 	"gitlab.com/fynbos/env"
 
@@ -13,7 +12,6 @@ import (
 
 type MigrationArgs struct {
 	ConnectionString string
-	UsdLedgerID      uint32
 	KratosUrl        string
 	LogLevel         string
 	LogOutputPath    string
@@ -38,23 +36,8 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 		logOutputPath = "stderr"
 	}
 
-	usdLedgerIDString := os.Getenv("USD_LEDGER_ID")
-	if usdLedgerIDString == "" {
-		return nil, errors.New("USD ledger code not specified.")
-	}
-	usdLedgerID, err := strconv.ParseUint(usdLedgerIDString, 10, 16)
-	if err != nil {
-		return nil, errors.New("USD_LEDGER_ID must be a uint16.")
-	}
-
-	noopEquityAccount := os.Getenv("NOOP_EQUITY_ACCOUNT_ID")
-	if noopEquityAccount == "" {
-		return nil, errors.New("NOOP_EQUITY_ACCOUNT_ID is required.")
-	}
-
 	return &MigrationArgs{
 		ConnectionString: dbUrl,
-		UsdLedgerID:      uint32(usdLedgerID),
 		KratosUrl:        kratosUrl,
 		LogLevel:         logLevel,
 		LogOutputPath:    logOutputPath,
@@ -68,15 +51,10 @@ type StartArgs struct {
 	DbConnectionString         string
 	KratosUrl                  string
 	KratosAdminUrl             string
-	UsdLedgerID                uint32
 	LogLevel                   string
 	LogOutputPath              string
-	MachnetClientID            string
-	MachnetClientSecret        string
-	MachnetWebhookSecret       string
 	MxClientID                 string
 	MxApiKey                   string
-	RafikiGraphqlUrl           string
 	TemporalUrl                string
 	TwilioSid                  string
 	TwilioSecret               string
@@ -148,22 +126,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	logOutputPath := os.Getenv("LOG_OUTPUT_PATH")
 	if logOutputPath == "" {
 		logOutputPath = "stderr"
-	}
-	usdLedgerIDString := os.Getenv("USD_LEDGER_ID")
-	if usdLedgerIDString == "" {
-		return nil, errors.New("USD ledger code not specified.")
-	}
-	usdLedgerID, err := strconv.ParseUint(usdLedgerIDString, 10, 32)
-	if err != nil {
-		return nil, errors.New("USD_LEDGER_ID must be a uint16.")
-	}
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	rafikiGraphqlUrl := os.Getenv("RAFIKI_GRAPHQL_URL")
-	if rafikiGraphqlUrl == "" {
-		return nil, errors.New("text RAFIKI_GRAPHQL_URL is required.")
 	}
 
 	temporalUrl := os.Getenv("TEMPORAL_URL")
@@ -243,15 +205,10 @@ func ParseStartArgs() (*StartArgs, error) {
 		DbConnectionString:         dbUrl,
 		KratosUrl:                  kratosUrl,
 		KratosAdminUrl:             kratosAdminUrl,
-		UsdLedgerID:                uint32(usdLedgerID),
 		LogLevel:                   logLevel,
 		LogOutputPath:              logOutputPath,
-		MachnetClientID:            os.Getenv("MACHNET_CLIENT_ID"),
-		MachnetClientSecret:        os.Getenv("MACHNET_CLIENT_SECRET"),
-		MachnetWebhookSecret:       os.Getenv("MACHNET_WEBHOOK_SECRET"),
 		MxClientID:                 os.Getenv("MX_CLIENT_ID"),
 		MxApiKey:                   os.Getenv("MX_API_KEY"),
-		RafikiGraphqlUrl:           rafikiGraphqlUrl,
 		TemporalUrl:                temporalUrl,
 		TwilioSid:                  TwilioSid,
 		TwilioSecret:               TwilioSecret,
