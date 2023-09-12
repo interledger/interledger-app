@@ -5,8 +5,8 @@ import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
+import { getAboutRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { getAboutRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { aboutRoute, footer } = await getAboutRoute()
