@@ -12,9 +12,9 @@ import {
   LoadingShapes,
   Shape
 } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderArgs) {
   let code = url.searchParams.get('code')
 
   if (state && code) {
-    let response = await connectClient.twitterCallback(request, {
+    let response = await grpc.twitterCallback(request, {
       state: state.toString(),
       code: code.toString()
     })
@@ -161,7 +161,7 @@ export async function action({ request }: ActionArgs) {
     form: ''
   }
 
-  let response = await connectClient.createTwitterAuthURL(request, {})
+  let response = await grpc.createTwitterAuthURL(request, {})
 
   if (isConnectError(response)) {
     return response.error({ errors }, {}, { action: 'Contact support' })

@@ -3,9 +3,9 @@ import type { ActionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
-import { connectClient } from '~/lib/connect.server'
 import { validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
 
 export async function action({ request }: ActionArgs) {
@@ -59,7 +59,7 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
-  let response = await connectClient.sendPhoneVerification(request, {
+  let response = await grpc.sendPhoneVerification(request, {
     to: phoneNumber
   })
 

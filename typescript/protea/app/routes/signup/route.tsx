@@ -8,9 +8,9 @@ import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { trimHeaders } from '~/lib/headers.server'
 import {
   KRATOS_URL,
@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderArgs) {
 
   await requireNoUserSession(request)
 
-  let response = await connectClient.getCountries(request, {})
+  let response = await grpc.getCountries(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
@@ -156,7 +156,7 @@ export async function detailsAction({ request }: ActionArgs) {
     )
   }
 
-  let response = await connectClient.setSignupUserData(request, {
+  let response = await grpc.setSignupUserData(request, {
     firstName,
     lastName,
     countryCode: country,
@@ -191,7 +191,7 @@ export async function otpAction({ request }: ActionArgs) {
   const otp = form.get('otp') as string
   const phone = form.get('phone') as string
 
-  const response = await connectClient.setSignupMobileNumber(request, {
+  const response = await grpc.setSignupMobileNumber(request, {
     id,
     mobile: phone,
     otp: otp
@@ -269,7 +269,7 @@ export async function passwordAction({ request }: ActionArgs) {
 
   // Mark signup complete
   // TODO: also handle via kratos webhook, add retry here and error handling
-  await connectClient.completeSignup(request, {
+  await grpc.completeSignup(request, {
     id,
     userId: successData.identity.id
   })

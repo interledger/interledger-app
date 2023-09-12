@@ -38,8 +38,8 @@ import {
 import { Label } from '~/components/Label'
 import { getPublicIdentities } from '~/data/identity.server'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
-import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
 import { PayStep } from '~/lib/usePayStore'
@@ -60,7 +60,7 @@ export async function loader({ request, params }: LoaderArgs) {
     })
   }
 
-  const response = await connectClient.getPublicWalletInfo(request, {
+  const response = await grpc.getPublicWalletInfo(request, {
     walletAddress: walletAddressParam
   })
 

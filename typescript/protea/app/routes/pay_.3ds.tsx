@@ -18,9 +18,9 @@ import {
   Layouts,
   LoadingShapes
 } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
@@ -48,7 +48,7 @@ export async function loader({ request }: LoaderArgs) {
 
   const isInit = url.searchParams.has('init')
   if (isInit) {
-    let response = await connectClient.init3DS(request, {
+    let response = await grpc.init3DS(request, {
       paymentID: paymentId
     })
 
@@ -351,7 +351,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (formName === 'lookup') {
-    const response = await connectClient.lookup3DS(request, {
+    const response = await grpc.lookup3DS(request, {
       threeDSID,
       colorDepth: String(form.get('colorDepth')) || '',
       header: String(request.headers.get('Accept')),
@@ -387,7 +387,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (formName === 'authenticate') {
-    const response = await connectClient.authenticate3DS(request, {
+    const response = await grpc.authenticate3DS(request, {
       threeDSID,
       jwt: form.get('jwt') as string
     })
@@ -404,7 +404,7 @@ export async function action({ request }: ActionArgs) {
     }
   }
 
-  const response = await connectClient.confirmPayment(request, {
+  const response = await grpc.confirmPayment(request, {
     id: form.get('paymentId') as string
   })
 
