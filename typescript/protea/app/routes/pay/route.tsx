@@ -392,20 +392,20 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
     return error(request, { errors })
   }
 
-  if (otp) {
-    const response = await grpc.updatePayment(request, {
-      id: paymentId,
-      otp: otp
-    })
-    if (isConnectError(response)) {
-      return response.error({ errors }, {}, { action: 'Contact support' })
-    }
+  const clientIpAddress = getClientIP(request)
+
+  let response = await grpc.updatePayment(request, {
+    id: paymentId,
+    otp: otp,
+    ipAddress: clientIpAddress
+  })
+  if (isConnectError(response)) {
+    return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
-  const response = await grpc.confirmPayment(request, {
+  response = await grpc.confirmPayment(request, {
     id: paymentId
   })
-
   if (isConnectError(response)) {
     if (
       response.code === Code.FailedPrecondition &&
