@@ -1,5 +1,5 @@
 import type { ActionArgs, LoaderArgs } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
@@ -13,13 +13,8 @@ import {
   Shape
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -38,23 +33,14 @@ export async function loader({ request }: LoaderArgs) {
   let code = url.searchParams.get('code')
 
   if (state && code) {
-    let resp = await grpcClient.discordCallback(
-      {
-        state: state.toString(),
-        code: code.toString()
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
+    let response = await grpc.discordCallback(request, {
+      state: state.toString(),
+      code: code.toString()
+    })
 
-    if (isGrpcError(resp)) {
-      throw json({}, httpMapping(resp.code))
-    }
+    if (isConnectError(response)) throw response.errorResponse
 
-    return jsonWithCSRF(request, { id: resp.response.id })
+    return jsonWithCSRF(request, { id: response.id })
   } else {
     return jsonWithCSRF(request, { id: null })
   }
@@ -149,21 +135,15 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  let resp = await grpcClient
-    .createDiscordAuthURL(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((resp) => resp.response)
-    .catch(StatusError)
-
-  if (isGrpcError(resp)) {
-    return error(request, null, { action: 'Contact support' })
+  const errors = {
+    form: ''
   }
 
-  return redirect(resp.url)
+  let response = await grpc.createDiscordAuthURL(request, {})
+
+  if (isConnectError(response)) {
+    return response.error({ errors }, {}, { action: 'Contact support' })
+  }
+
+  return redirect(response.url)
 }

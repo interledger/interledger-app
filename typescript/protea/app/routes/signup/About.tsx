@@ -11,7 +11,7 @@ import {
   Icon,
   TextField
 } from '~/components'
-import type { Country } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader } from './route'
 

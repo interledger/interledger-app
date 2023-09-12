@@ -19,17 +19,18 @@ import type {
   CardNumberElement as CardNumberElementType,
   CardVerificationCodeElement as CardVerificationCodeElementType
 } from '@basis-theory/basis-theory-react/types'
+import { Code } from '@bufbuild/connect'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
+import { getWalletId } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import { isGrpcError } from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { createCard, getWalletId } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletId = await getWalletId(request)
@@ -201,7 +202,7 @@ export default function Page() {
           </CardContent>
           <label className='mt-2 block'>
             <span className='ml-2 block text-sm font-medium text-medium'>
-              Card number
+              Card number {fieldErrors.number}
             </span>
             <div
               className={clsx(
@@ -223,7 +224,7 @@ export default function Page() {
               </div>
             </div>
             <AnimatePresence>
-              {fieldErrors.number && (
+              {(fieldErrors.number || actionData?.errors?.number) && (
                 <motion.div
                   animate={{ opacity: 1, y: 0 }}
                   initial={{ opacity: 0, y: -8 }}
@@ -242,7 +243,9 @@ export default function Page() {
                   }}
                   className='h-7 pl-2 pt-2'
                 >
-                  <p className='text-sm text-error'>{fieldErrors.number}</p>
+                  <p className='text-sm text-error'>
+                    {fieldErrors.number || actionData?.errors?.number}
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -355,67 +358,42 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
-    form: ''
+  const errors = {
+    form: '',
+    number: ''
+  }
+  const mapping = {
+    number: 'CardNumber'
   }
 
-  let response = await createCard(request, cardToken)
-  if (isGrpcError(response)) {
-    if (response.code == 409 || response.code == 400) {
-      switch (response.message) {
-        case 'Failed precondition: ErrUnsupportedCard':
-          fieldErrors.form =
-            'Your card is unsupported and cannot be connected to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Failed precondition: ErrUnsupportedCountry':
-          fieldErrors.form =
-            'Your country is unsupported and your card cannot be connected to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Already exists: ErrDuplicateCard':
-          fieldErrors.form = 'Your card is already connected to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Failed precondition: ErrMaxCardsAdded':
-          fieldErrors.form =
-            'You have connected the maximum number of cards to Fynbos.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        case 'Unavailable: ErrMultiStatus':
-          fieldErrors.form =
-            'We did not receive a response from our card processor.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
-        default:
-          fieldErrors.form = 'There was an error connecting your card.'
-          return error(
-            request,
-            { errors: { ...fieldErrors } },
-            { action: 'Contact support' }
-          )
+  let response = await grpc.createCard(
+    request,
+    { tokenID: cardToken },
+    {
+      timeoutMs: 60 * 1000
+    }
+  )
+
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors }, mapping)
+    } else if (response.code == Code.AlreadyExists) {
+      errors.form = 'This card is already connected to Fynbos.'
+      return response.error({ errors }, mapping)
+    } else {
+      if (response.code == Code.Unavailable) {
+        errors.form = 'We did not receive a response from our card processor.'
       }
-    } else return error(request, null, { action: 'Contact support' })
+      if (errors.form == '') {
+        errors.form = 'There was an error connecting your card.'
+      }
+      return response.error({ errors }, mapping, { action: 'Contact support' })
+    }
   }
 
   return redirectWithSnackbar(
     request,
-    route('/accounts/:accountId', { accountId: response.response.id }),
+    route('/accounts/:accountId', { accountId: response.id }),
     {
       message: 'New card successfully saved.',
       icon: 'close'

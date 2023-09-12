@@ -1,24 +1,12 @@
-// The field names given by the backend for field violations
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { CountryCode, ParseError } from 'libphonenumber-js'
 import { parsePhoneNumberWithError } from 'libphonenumber-js'
 import { validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
+import { error, isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
-
-type fieldErrorsMap = 'To'
-
-function mapper(field: fieldErrorsMap): 'phone' | null {
-  switch (field) {
-    case 'To':
-      return 'phone'
-    default:
-      return null
-  }
-}
 
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
@@ -30,10 +18,13 @@ export async function action({ request }: ActionArgs) {
   // If the phone is missing we assume the user has a session and we can get it from there.
   const validation = form.has('phone')
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     country: '',
     phone: ''
+  }
+  const mapping = {
+    phone: 'To'
   }
 
   let phoneNumber = ''
@@ -47,17 +38,17 @@ export async function action({ request }: ActionArgs) {
     } catch (err) {
       switch ((err as ParseError).message) {
         case 'NOT_A_NUMBER':
-          fieldErrors.phone = 'Phone number is invalid.'
-          return error(request, { errors: { ...fieldErrors } })
+          errors.phone = 'Phone number is invalid.'
+          return error(request, { errors })
         case 'INVALID_COUNTRY':
-          fieldErrors.phone = 'Country is invalid.'
-          return error(request, { errors: { ...fieldErrors } })
+          errors.phone = 'Country is invalid.'
+          return error(request, { errors })
         case 'TOO_SHORT':
-          fieldErrors.phone = 'Phone number is too short.'
-          return error(request, { errors: { ...fieldErrors } })
+          errors.phone = 'Phone number is too short.'
+          return error(request, { errors })
         case 'TOO_LONG':
-          fieldErrors.phone = 'Phone number is too long.'
-          return error(request, { errors: { ...fieldErrors } })
+          errors.phone = 'Phone number is too long.'
+          return error(request, { errors })
         default:
           throw err
       }
@@ -68,27 +59,15 @@ export async function action({ request }: ActionArgs) {
     )
   }
 
-  let response = await grpcClient
-    .sendPhoneVerification({
-      to: phoneNumber
-    })
-    .then((v) => v)
-    .catch(StatusError)
+  let response = await grpc.sendPhoneVerification(request, {
+    to: phoneNumber
+  })
 
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors }, mapping)
     } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+      return response.error({ errors }, mapping, { action: 'Contact support' })
   }
 
   return json({ phone: phoneNumber, success: true })

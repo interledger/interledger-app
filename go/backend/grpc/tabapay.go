@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
-
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -34,7 +32,7 @@ func (s *rpcService) CreateCard(
 	}
 
 	if !feats.AddCardsEnabled {
-		return nil, FailedPreconditionError("ErrMaxCardsAdded")
+		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
 	}
 
 	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
@@ -53,9 +51,9 @@ func (s *rpcService) CreateCard(
 		case "ErrDuplicateCard":
 			return nil, AlreadyExistsError("ErrDuplicateCard")
 		case "ErrUnsupportedCard":
-			return nil, FailedPreconditionError("ErrUnsupportedCard")
+			return nil, NewValidationError("CardNumber", "Your card is unsupported and cannot be connected to Fynbos.")
 		case "ErrUnsupportedCountry":
-			return nil, FailedPreconditionError("ErrUnsupportedCountry")
+			return nil, NewValidationError("CardNumber", "Your card originates from an unsupported country and cannot be connected to Fynbos.")
 		case "ErrMultiStatus":
 			return nil, UnavailableError("ErrMultiStatus")
 		}
@@ -68,60 +66,6 @@ func (s *rpcService) CreateCard(
 	}
 
 	return transformLinkedAccount(la), nil
-}
-
-func (s *rpcService) InitQuote3DS(
-	ctx context.Context, req *backendv1.InitQuote3DSRequest,
-) (*backendv1.Init3DSResponse, error) {
-	_, err := s.b.Users().UserForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	w, err := s.b.Wallets().ForContext(ctx)
-	if err != nil {
-		return nil, UnauthenticatedError("Unauthenticated.")
-	}
-
-	quote, err := s.b.OpenPayments().GetQuote(ctx, req.GetQuoteID())
-	if err != nil {
-		return nil, InternalError("Quote not found.")
-	}
-	orderID := quote.ID
-	idxSlash := strings.LastIndex(quote.ID, "/")
-	if idxSlash > 0 {
-		orderID = orderID[idxSlash+1:]
-	}
-
-	fromLinkedAcc, err := s.b.LinkedAccounts().Get(ctx, quote.FromLinkedAccount)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-	if fromLinkedAcc.WalletID != w.ID {
-		return nil, NotFoundError("Quote not found.")
-	}
-	if !linkedaccounts.Requires3DS(fromLinkedAcc) {
-		return nil, InternalError("3DS not supported.")
-	}
-
-	newCtx := context.WithValue(ctx, http_log.ContextKey, &http_log.Metadata{
-		Context: fmt.Sprintf("linkedAccountID=%s", fromLinkedAcc.ID),
-	})
-	init3DS, err := s.b.Tabapay().Init3DS(newCtx, tabapay.Init3DSArgs{
-		Amount:  quote.SendAmount,
-		OrderID: orderID,
-		CardID:  fromLinkedAcc.ProviderID,
-	})
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &backendv1.Init3DSResponse{
-		Id:                  init3DS.ID,
-		Jwt:                 init3DS.JWT,
-		DeviceCollectionURL: init3DS.DeviceCollectionURL,
-		SongbirdURL:         tabapay.GetSongbirdURL(),
-	}, nil
 }
 
 func (s *rpcService) Init3DS(

@@ -152,6 +152,56 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 	return status.Error(codes.Internal, "Internal server error: Validation error")
 }
 
+func PaymentPreconditionError(preconditions []payments.RequiredActionType) error {
+	st := status.New(codes.FailedPrecondition, "Failed precondition")
+	p := &errdetails.PreconditionFailure{}
+
+	for _, condition := range preconditions {
+		v := &errdetails.PreconditionFailure_Violation{
+			Type: "Payment",
+		}
+		switch condition {
+		case payments.RequiredActionTypeIPAddress:
+			v.Subject = "ipAddress"
+			v.Description = "An ip address is required"
+		case payments.RequiredActionTypeOTP:
+			v.Subject = "otp"
+			v.Description = "OTP is required"
+		case payments.RequiredActionTypeSenderAmount:
+			v.Subject = "senderAmount"
+			v.Description = "Amount is required"
+		case payments.RequiredActionTypeSenderAccount:
+			v.Subject = "senderAccount"
+			v.Description = "Account is required"
+		case payments.RequiredActionTypeSenderIdentifier:
+			v.Subject = "senderIdentifier"
+			v.Description = "Sender is required"
+		case payments.RequiredActionTypeReceiverAmount:
+			v.Subject = "receiverAmount"
+			v.Description = "Amount is required"
+		case payments.RequiredActionTypeReceiverIdentifier:
+			v.Subject = "receiverIdentifier"
+			v.Description = "Recipient is required"
+		case payments.RequiredActionTypeThreeDS:
+			v.Subject = "threeDS"
+			v.Description = "3DS is required"
+		default:
+			log.Error("unknown payment precondition error", zap.String("condition", condition.String()))
+			continue
+		}
+
+		p.Violations = append(p.Violations, v)
+	}
+
+	st, err := st.WithDetails(p)
+	if err != nil {
+		log.Error("failed to encode payment precondition error", zap.Error(err))
+		return status.Error(codes.Internal, "Internal server error: precondition error")
+	}
+
+	return st.Err()
+}
+
 // Validation error will build an immutable error representing the status of the response.
 func InternalError(message string) error {
 	return status.Error(codes.Internal, "Internal server error: "+message)
