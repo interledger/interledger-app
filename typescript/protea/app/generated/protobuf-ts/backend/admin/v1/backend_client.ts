@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ListExternalApiCallsResponse } from "./backend";
+import type { ListExternalApiCallsRequest } from "./backend";
 import type { ExportDynamicFormResponse } from "./backend";
 import type { ExportDynamicFormRequest } from "./backend";
 import type { ServerStreamingCall } from "@protobuf-ts/runtime-rpc";
@@ -103,6 +105,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ExportDynamicForm(backend.admin.v1.ExportDynamicFormRequest) returns (stream backend.admin.v1.ExportDynamicFormResponse);
      */
     exportDynamicForm(input: ExportDynamicFormRequest, options?: RpcOptions): ServerStreamingCall<ExportDynamicFormRequest, ExportDynamicFormResponse>;
+    /**
+     * @generated from protobuf rpc: ListExternalApiCalls(backend.admin.v1.ListExternalApiCallsRequest) returns (backend.admin.v1.ListExternalApiCallsResponse);
+     */
+    listExternalApiCalls(input: ListExternalApiCallsRequest, options?: RpcOptions): UnaryCall<ListExternalApiCallsRequest, ListExternalApiCallsResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -224,5 +230,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     exportDynamicForm(input: ExportDynamicFormRequest, options?: RpcOptions): ServerStreamingCall<ExportDynamicFormRequest, ExportDynamicFormResponse> {
         const method = this.methods[15], opt = this._transport.mergeOptions(options);
         return stackIntercept<ExportDynamicFormRequest, ExportDynamicFormResponse>("serverStreaming", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListExternalApiCalls(backend.admin.v1.ListExternalApiCallsRequest) returns (backend.admin.v1.ListExternalApiCallsResponse);
+     */
+    listExternalApiCalls(input: ListExternalApiCallsRequest, options?: RpcOptions): UnaryCall<ListExternalApiCallsRequest, ListExternalApiCallsResponse> {
+        const method = this.methods[16], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListExternalApiCallsRequest, ListExternalApiCallsResponse>("unary", this._transport, method, opt, input);
     }
 }

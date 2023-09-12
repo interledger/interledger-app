@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportDynamicFormRequest, ExportDynamicFormResponse, Features, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListDynamicFormCountsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, WalletDetails } from "./backend_pb.js";
+import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportDynamicFormRequest, ExportDynamicFormResponse, Features, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListDynamicFormCountsResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, WalletDetails } from "./backend_pb.js";
 
 /**
  * @generated from service backend.admin.v1.Backend
@@ -155,6 +155,15 @@ export const Backend = {
       I: ExportDynamicFormRequest,
       O: ExportDynamicFormResponse,
       kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.ListExternalApiCalls
+     */
+    listExternalApiCalls: {
+      name: "ListExternalApiCalls",
+      I: ListExternalApiCallsRequest,
+      O: ListExternalApiCallsResponse,
+      kind: MethodKind.Unary,
     },
   }
 } as const;

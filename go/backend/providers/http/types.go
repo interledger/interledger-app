@@ -30,7 +30,7 @@ var ContextKey = &contextKey{"httplog_metadata"}
 
 const insertFields = "provider, context, request_body, request_path, response_body, response_status, method"
 
-// const fields = "id, provider, context, request_body, request_path, response_body, response_status, created_at"
+const Fields = "id, provider, context, request_body, request_path, response_body, response_status, created_at"
 
 type LogRecord struct {
 	ID             string    `db:"id"`
