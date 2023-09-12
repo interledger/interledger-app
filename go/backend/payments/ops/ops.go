@@ -157,8 +157,39 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.
 }
 
 func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) {
+	dbID, err := uuid.Parse(id)
+	if err != nil {
+		return getPaymentByPublicID(ctx, b, id)
+	}
+
 	var res dbPayment
-	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 OR public_id=$2", cols), id, id)
+	err = b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1;", cols), dbID.String())
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
+func getPaymentByPublicID(ctx context.Context, b Backends, publicID string) (*dbPayment, error) {
+	var res dbPayment
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE public_id=$1", cols), publicID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
+func getPaymentByPublicIDTx(ctx context.Context, tx *sqlx.Tx, publicID string) (*dbPayment, error) {
+	var res dbPayment
+	err := tx.GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE public_id=$1", cols), publicID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, payments.ErrNotFound
 	}
@@ -170,8 +201,13 @@ func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) 
 }
 
 func getPaymentTX(ctx context.Context, tx *sqlx.Tx, id string) (*dbPayment, error) {
+	dbID, err := uuid.Parse(id)
+	if err != nil {
+		return getPaymentByPublicIDTx(ctx, tx, id)
+	}
+
 	var res dbPayment
-	err := tx.GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 OR public_id=$2", cols), id, id)
+	err = tx.GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1;", cols), dbID.String())
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, payments.ErrNotFound
 	}
