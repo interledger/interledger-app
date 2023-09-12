@@ -1,2 +1,1 @@
-find ../typescript/protea/app/generated/protobuf-ts/ -type f -name '*.client.ts' -exec sh -c 'x="{}"; mv "$x" "${x%.client.ts}_client.ts"' \;
 find ../typescript/botanist/app/generated/protobuf-ts/ -type f -name '*.client.ts' -exec sh -c 'x="{}"; mv "$x" "${x%.client.ts}_client.ts"' \;
