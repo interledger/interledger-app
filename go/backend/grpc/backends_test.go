@@ -25,14 +25,12 @@ import (
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
 	"gitlab.com/fynbos/backend/identities"
-	openpayments_mock "gitlab.com/fynbos/backend/openpayments/client/mock"
 
 	"gitlab.com/fynbos/backend/limits"
 	limit_mock "gitlab.com/fynbos/backend/limits/client/mock"
 
 	"gitlab.com/fynbos/backend/analytics"
 	analytics_client "gitlab.com/fynbos/backend/analytics/client"
-	"gitlab.com/fynbos/backend/openpayments"
 
 	"gitlab.com/fynbos/backend/authorisation"
 	auth_mock "gitlab.com/fynbos/backend/authorisation/client/mock"
@@ -93,7 +91,6 @@ type TestContainer struct {
 	TransactionsClient *transactions_mock.MockClient
 	AnalyticsClient    analytics.Client
 	ContactsClient     *contacts_mock.MockClient
-	OPClient           *openpayments_mock.MockClient
 	authorisation      *auth_mock.MockInternalClient
 	limits             *limit_mock.MockClient
 	mx                 *mx_mock.MockClient
@@ -150,10 +147,6 @@ func (t TestContainer) Identities() identities.Client {
 
 func (t TestContainer) Limits() limits.Client {
 	return t.limits
-}
-
-func (t TestContainer) OpenPayments() openpayments.Client {
-	return t.OPClient
 }
 
 func (t TestContainer) Authorisation() authorisation.InternalClient {
@@ -261,7 +254,6 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		TransactionsClient: transactions_mock.NewMockClient(ctrl),
 		AnalyticsClient:    analytics_client.New(nil, ""),
 		ContactsClient:     contacts_mock.NewMockClient(ctrl),
-		OPClient:           openpayments_mock.NewMockClient(ctrl),
 		authorisation:      auth_mock.NewMockInternalClient(ctrl),
 		limits:             limit_mock.NewMockClient(ctrl),
 		mx:                 mx_mock.NewMockClient(ctrl),
