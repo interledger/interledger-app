@@ -36,21 +36,14 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import { getPublicIdentities } from '~/data/identity.server'
+import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
+import { connectClient } from '~/lib/connect.server'
+import { isConnectError } from '~/lib/error.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getPerson } from '~/lib/marketing.server'
-import {
-  StatusError,
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient
-} from '~/lib/proto.server'
 import { PayStep } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import {
-  getPublicLinkedIdentities,
-  getPublicWalletDetails,
-  getWalletInfo
-} from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletAddressParam = params['*'] as string
@@ -67,30 +60,25 @@ export async function loader({ request, params }: LoaderArgs) {
     })
   }
 
-  const response = await openPaymentsClient
-    .getPaymentPointer({ url: walletAddressParam })
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
+  const response = await connectClient.getPublicWalletInfo(request, {
+    walletAddress: walletAddressParam
+  })
 
-  const walletAddress = response.response
+  if (isConnectError(response)) throw response.errorResponse
+
+  const walletAddress = response
 
   if (request.headers.get('Content-type') == 'application/json')
-    return redirect(walletAddress.url)
+    return redirect(walletAddress.address)
 
   const wallet = await getPublicWalletDetails(request, walletAddress.walletID)
-  const identities = await getPublicLinkedIdentities(
-    request,
-    walletAddress.walletID
-  )
+  const identities = await getPublicIdentities(request, walletAddress.walletID)
 
   let editable = false
   const isUser = hasUserSession(request)
   if (isUser) {
     const walletPaymentPointer = await getWalletInfo(request)
-    if (walletPaymentPointer.formattedURL == walletAddress.formatted)
+    if (walletPaymentPointer.formattedURL == walletAddress.shortAddress)
       editable = true
   }
 
@@ -100,8 +88,7 @@ export async function loader({ request, params }: LoaderArgs) {
     editable,
     wallet,
     identities,
-    walletAddress: walletAddress.url.replace(/(http(s)?:\/\/)/i, ''),
-    paymentPointer: walletAddress,
+    walletAddress: walletAddress,
     paymentPointerParam: walletAddressParam
   })
 }
@@ -119,8 +106,8 @@ export default function Page() {
     isUser,
     wallet,
     identities,
+
     walletAddress,
-    paymentPointer,
     paymentPointerParam
   } = useLoaderData<typeof loader>()
 
@@ -171,7 +158,7 @@ export default function Page() {
                 canShow: true
               })
             } else
-              navigator.clipboard.writeText(walletAddress).then(
+              navigator.clipboard.writeText(walletAddress.address).then(
                 () => {
                   pushSnackbar({
                     id: 'copy-wallet-address-success',
@@ -192,7 +179,7 @@ export default function Page() {
           }}
           className='items-center justify-between'
         >
-          <span className='text-medium'>{walletAddress}</span>
+          <span className='text-medium'>{walletAddress.shortAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
         </CardButton>
         {identities.twitter && (
@@ -338,7 +325,7 @@ export default function Page() {
       />
       <input
         form='me'
-        value={paymentPointer.formatted}
+        value={walletAddress.shortAddress}
         name='paymentPointer'
         type='hidden'
       />

@@ -50,282 +50,6 @@ export class PaginationRequest extends Message<PaginationRequest> {
 }
 
 /**
- * @generated from message backend.v1.PaymentPointerExistsRequest
- */
-export class PaymentPointerExistsRequest extends Message<PaymentPointerExistsRequest> {
-  /**
-   * @generated from field: string url = 1;
-   */
-  url = "";
-
-  constructor(data?: PartialMessage<PaymentPointerExistsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.PaymentPointerExistsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentPointerExistsRequest {
-    return new PaymentPointerExistsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentPointerExistsRequest {
-    return new PaymentPointerExistsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentPointerExistsRequest {
-    return new PaymentPointerExistsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: PaymentPointerExistsRequest | PlainMessage<PaymentPointerExistsRequest> | undefined, b: PaymentPointerExistsRequest | PlainMessage<PaymentPointerExistsRequest> | undefined): boolean {
-    return proto3.util.equals(PaymentPointerExistsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.PaymentPointerExistsResponse
- */
-export class PaymentPointerExistsResponse extends Message<PaymentPointerExistsResponse> {
-  /**
-   * @generated from field: bool exists = 1;
-   */
-  exists = false;
-
-  constructor(data?: PartialMessage<PaymentPointerExistsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.PaymentPointerExistsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "exists", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentPointerExistsResponse {
-    return new PaymentPointerExistsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentPointerExistsResponse {
-    return new PaymentPointerExistsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentPointerExistsResponse {
-    return new PaymentPointerExistsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: PaymentPointerExistsResponse | PlainMessage<PaymentPointerExistsResponse> | undefined, b: PaymentPointerExistsResponse | PlainMessage<PaymentPointerExistsResponse> | undefined): boolean {
-    return proto3.util.equals(PaymentPointerExistsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.GetPaymentPointerRequest
- */
-export class GetPaymentPointerRequest extends Message<GetPaymentPointerRequest> {
-  /**
-   * @generated from field: string url = 1;
-   */
-  url = "";
-
-  constructor(data?: PartialMessage<GetPaymentPointerRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.GetPaymentPointerRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPaymentPointerRequest {
-    return new GetPaymentPointerRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPaymentPointerRequest {
-    return new GetPaymentPointerRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPaymentPointerRequest {
-    return new GetPaymentPointerRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetPaymentPointerRequest | PlainMessage<GetPaymentPointerRequest> | undefined, b: GetPaymentPointerRequest | PlainMessage<GetPaymentPointerRequest> | undefined): boolean {
-    return proto3.util.equals(GetPaymentPointerRequest, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.ListWalletPaymentPointersResponse
- */
-export class ListWalletPaymentPointersResponse extends Message<ListWalletPaymentPointersResponse> {
-  /**
-   * @generated from field: repeated backend.v1.PaymentPointer pointers = 1;
-   */
-  pointers: PaymentPointer[] = [];
-
-  constructor(data?: PartialMessage<ListWalletPaymentPointersResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.ListWalletPaymentPointersResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "pointers", kind: "message", T: PaymentPointer, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWalletPaymentPointersResponse {
-    return new ListWalletPaymentPointersResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWalletPaymentPointersResponse {
-    return new ListWalletPaymentPointersResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWalletPaymentPointersResponse {
-    return new ListWalletPaymentPointersResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListWalletPaymentPointersResponse | PlainMessage<ListWalletPaymentPointersResponse> | undefined, b: ListWalletPaymentPointersResponse | PlainMessage<ListWalletPaymentPointersResponse> | undefined): boolean {
-    return proto3.util.equals(ListWalletPaymentPointersResponse, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.CreatePaymentPointerRequest
- */
-export class CreatePaymentPointerRequest extends Message<CreatePaymentPointerRequest> {
-  /**
-   * @generated from field: string url = 1;
-   */
-  url = "";
-
-  /**
-   * @generated from field: string asset = 2;
-   */
-  asset = "";
-
-  /**
-   * @generated from field: int32 assetScale = 3;
-   */
-  assetScale = 0;
-
-  /**
-   * @generated from field: string alias = 4;
-   */
-  alias = "";
-
-  constructor(data?: PartialMessage<CreatePaymentPointerRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.CreatePaymentPointerRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "asset", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "assetScale", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 4, name: "alias", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePaymentPointerRequest {
-    return new CreatePaymentPointerRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePaymentPointerRequest {
-    return new CreatePaymentPointerRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePaymentPointerRequest {
-    return new CreatePaymentPointerRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreatePaymentPointerRequest | PlainMessage<CreatePaymentPointerRequest> | undefined, b: CreatePaymentPointerRequest | PlainMessage<CreatePaymentPointerRequest> | undefined): boolean {
-    return proto3.util.equals(CreatePaymentPointerRequest, a, b);
-  }
-}
-
-/**
- * @generated from message backend.v1.PaymentPointer
- */
-export class PaymentPointer extends Message<PaymentPointer> {
-  /**
-   * @generated from field: string url = 1;
-   */
-  url = "";
-
-  /**
-   * @generated from field: string asset = 2;
-   */
-  asset = "";
-
-  /**
-   * @generated from field: int32 assetScale = 3;
-   */
-  assetScale = 0;
-
-  /**
-   * @generated from field: string alias = 4;
-   */
-  alias = "";
-
-  /**
-   * @generated from field: string walletID = 5;
-   */
-  walletID = "";
-
-  /**
-   * @generated from field: string formatted = 6;
-   */
-  formatted = "";
-
-  /**
-   * @generated from field: string legalName = 7;
-   */
-  legalName = "";
-
-  constructor(data?: PartialMessage<PaymentPointer>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.PaymentPointer";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "asset", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "assetScale", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 4, name: "alias", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "formatted", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "legalName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentPointer {
-    return new PaymentPointer().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentPointer {
-    return new PaymentPointer().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentPointer {
-    return new PaymentPointer().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: PaymentPointer | PlainMessage<PaymentPointer> | undefined, b: PaymentPointer | PlainMessage<PaymentPointer> | undefined): boolean {
-    return proto3.util.equals(PaymentPointer, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.Empty
  */
 export class Empty extends Message<Empty> {
@@ -4432,6 +4156,135 @@ export class LimitAmount extends Message<LimitAmount> {
 
   static equals(a: LimitAmount | PlainMessage<LimitAmount> | undefined, b: LimitAmount | PlainMessage<LimitAmount> | undefined): boolean {
     return proto3.util.equals(LimitAmount, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.WalletAddressExistsRequest
+ */
+export class WalletAddressExistsRequest extends Message<WalletAddressExistsRequest> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<WalletAddressExistsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.WalletAddressExistsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletAddressExistsRequest {
+    return new WalletAddressExistsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WalletAddressExistsRequest {
+    return new WalletAddressExistsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WalletAddressExistsRequest {
+    return new WalletAddressExistsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WalletAddressExistsRequest | PlainMessage<WalletAddressExistsRequest> | undefined, b: WalletAddressExistsRequest | PlainMessage<WalletAddressExistsRequest> | undefined): boolean {
+    return proto3.util.equals(WalletAddressExistsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.WalletAddressExistsResponse
+ */
+export class WalletAddressExistsResponse extends Message<WalletAddressExistsResponse> {
+  /**
+   * @generated from field: bool exists = 1;
+   */
+  exists = false;
+
+  constructor(data?: PartialMessage<WalletAddressExistsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.WalletAddressExistsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "exists", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletAddressExistsResponse {
+    return new WalletAddressExistsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WalletAddressExistsResponse {
+    return new WalletAddressExistsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WalletAddressExistsResponse {
+    return new WalletAddressExistsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WalletAddressExistsResponse | PlainMessage<WalletAddressExistsResponse> | undefined, b: WalletAddressExistsResponse | PlainMessage<WalletAddressExistsResponse> | undefined): boolean {
+    return proto3.util.equals(WalletAddressExistsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.CreateWalletAddressRequest
+ */
+export class CreateWalletAddressRequest extends Message<CreateWalletAddressRequest> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  /**
+   * @generated from field: string asset = 2;
+   */
+  asset = "";
+
+  /**
+   * @generated from field: int32 assetScale = 3;
+   */
+  assetScale = 0;
+
+  /**
+   * @generated from field: string alias = 4;
+   */
+  alias = "";
+
+  constructor(data?: PartialMessage<CreateWalletAddressRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreateWalletAddressRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "asset", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "assetScale", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 4, name: "alias", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateWalletAddressRequest {
+    return new CreateWalletAddressRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateWalletAddressRequest {
+    return new CreateWalletAddressRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateWalletAddressRequest {
+    return new CreateWalletAddressRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateWalletAddressRequest | PlainMessage<CreateWalletAddressRequest> | undefined, b: CreateWalletAddressRequest | PlainMessage<CreateWalletAddressRequest> | undefined): boolean {
+    return proto3.util.equals(CreateWalletAddressRequest, a, b);
   }
 }
 

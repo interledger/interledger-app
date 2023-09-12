@@ -1,15 +1,14 @@
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { getLinkedAccount } from '~/data/wallet.server'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { getLinkedAccount } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
@@ -79,58 +78,31 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'Nickname'
-
-function mapper(field: fieldErrorsMap): 'name' | null {
-  switch (field) {
-    case 'Nickname':
-      return 'name'
-    default:
-      return null
-  }
-}
-
 export async function action({ request, params }: ActionArgs) {
-  const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
   const nickname = form.get('name') as string
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     name: ''
   }
+  const mapping = {
+    name: 'Nickname'
+  }
 
-  const response = await grpcClient
-    .setNicknameLinkedAccount(
-      {
-        id: params.accountId as string,
-        nickname
-      },
-      {
-        meta: {
-          cookies: cookie || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    if (response.code == Code.INVALID_ARGUMENT) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
+  const response = await connectClient.setNicknameLinkedAccount(request, {
+    id: params.accountId as string,
+    nickname
+  })
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors }, mapping)
     } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+      return response.error({ errors }, mapping, {
+        action: 'Contact support'
+      })
   }
 
   return redirectWithSnackbar(

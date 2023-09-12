@@ -11,8 +11,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Avatar, Card, CardButton, CardContent, Layouts } from '~/components'
-import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
-import { getWalletContacts } from '~/lib/wallet.server'
+import type { ListContactsResponse } from '~/generated/connect/backend/v1/backend_pb'
+import { connectClient } from '~/lib/connect.server'
+import { isConnectError } from '~/lib/error.server'
 
 /**
  * Allows us to change the searchParams without revalidating the pages data
@@ -44,10 +45,11 @@ export async function loader({ request }: LoaderArgs) {
    * This allows us to pull all necessary data when navigating back to this page.
    */
   for (let i = 0; i < pages; i++) {
-    const { contacts, nextPageToken } = await getWalletContacts(
-      request,
-      pageInfo
-    )
+    const response = await connectClient.listContacts(request, pageInfo)
+    if (isConnectError(response)) throw response.errorResponse
+
+    const { contacts, nextPageToken } = response
+
     pageInfo.pageToken = nextPageToken
     allContacts = [...allContacts, ...contacts]
     if (nextPageToken == '') break

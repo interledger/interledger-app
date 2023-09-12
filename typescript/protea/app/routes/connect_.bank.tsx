@@ -1,20 +1,15 @@
 import * as widgetSdk from '@mxenabled/web-widget-sdk'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { useLoaderData, useRevalidator, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Dialog, Layouts, Shape } from '~/components'
+import { getFeatures } from '~/data/wallet.server'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
-import { getFeatures } from '~/lib/wallet.server'
+import { isConnectError } from '~/lib/error.server'
 
 export async function loader({ request }: LoaderArgs) {
   // TODO Add colorScheme option once theme is in the users session
@@ -24,20 +19,11 @@ export async function loader({ request }: LoaderArgs) {
     throw redirect(route('/'))
   }
 
-  let rpc = await grpcClient
-    .getMXWidget(
-      {},
-      {
-        meta: { cookies: String(request.headers.get('cookie')) }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(rpc)) {
-    throw json({}, httpMapping(rpc.code))
-  }
+  let response = await connectClient.getMXWidget(request, {})
 
-  return jsonWithCSRF(request, { url: rpc.response.url })
+  if (isConnectError(response)) throw response.errorResponse
+
+  return jsonWithCSRF(request, { url: response.url })
 }
 
 export const handle: ApplicationProps = {
@@ -134,24 +120,19 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  let rpc = await grpcClient
-    .createMXBankAccounts(
-      {
-        memberGuid: form.get('memberGuid') as string,
-        sessionGuid: form.get('sessionGuid') as string,
-        userGuid: form.get('userGuid') as string
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie'))
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
+  const errors = {
+    form: ''
+  }
 
-  if (isGrpcError(rpc)) {
-    return error(request, null, { action: 'Contact support' })
+  let response = await connectClient.createMXBankAccounts(request, {
+    memberGuid: form.get('memberGuid') as string,
+    sessionGuid: form.get('sessionGuid') as string,
+    userGuid: form.get('userGuid') as string
+  })
+
+  if (isConnectError(response)) {
+    errors.form = 'Failed to connect bank account.'
+    return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirect(route('/accounts'))

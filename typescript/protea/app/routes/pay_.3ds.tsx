@@ -18,17 +18,11 @@ import {
   Layouts,
   LoadingShapes
 } from '~/components'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
+import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
@@ -50,33 +44,22 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export async function loader({ request }: LoaderArgs) {
   await getUserSession(request)
   const url = new URL(request.url)
-  const paymentId = url.searchParams.get('paymentId')
-
-  if (!paymentId) throw json({}, httpMapping(Code.INVALID_ARGUMENT))
+  const paymentId = url.searchParams.get('paymentId') as string
 
   const isInit = url.searchParams.has('init')
   if (isInit) {
-    let threeDSInit = await grpcClient
-      .init3DS(
-        {
-          paymentID: paymentId
-        },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie'))
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(threeDSInit)) throw json({}, httpMapping(threeDSInit.code))
+    let response = await connectClient.init3DS(request, {
+      paymentID: paymentId
+    })
+
+    if (isConnectError(response)) throw response.errorResponse
 
     return jsonWithCSRF(request, {
       paymentId,
       quoteId: '',
-      initJWT: threeDSInit.response.jwt,
-      threeDsId: threeDSInit.response.id,
-      songbirdURL: threeDSInit.response.songbirdURL,
+      initJWT: response.jwt,
+      threeDsId: response.id,
+      songbirdURL: response.songbirdURL,
       fynbosEnv: process.env.FYNBOS_ENV
     })
   }
@@ -368,87 +351,72 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (formName === 'lookup') {
-    let lookup3DS = await grpcClient
-      .lookup3DS(
+    const response = await connectClient.lookup3DS(request, {
+      threeDSID,
+      colorDepth: String(form.get('colorDepth')) || '',
+      header: String(request.headers.get('Accept')),
+      ipAddress: getClientIP(request),
+      javaEnabled: false,
+      javascriptEnabled: true,
+      language: String(form.get('language')),
+      screenHeight: String(form.get('screenHeight')),
+      screenWidth: String(form.get('screenWidth')),
+      timezone: String(form.get('timezone')),
+      userAgent: String(form.get('userAgent'))
+    })
+
+    if (isConnectError(response)) {
+      return response.error(
+        data,
+        {},
         {
-          threeDSID,
-          colorDepth: String(form.get('colorDepth')) || '',
-          header: String(request.headers.get('Accept')),
-          ipAddress: getClientIP(request),
-          javaEnabled: false,
-          javascriptEnabled: true,
-          language: String(form.get('language')),
-          screenHeight: String(form.get('screenHeight')),
-          screenWidth: String(form.get('screenWidth')),
-          timezone: String(form.get('timezone')),
-          userAgent: String(form.get('userAgent'))
-        },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie'))
-          }
+          message: 'There was an error processing your payment.',
+          action: 'Contact support'
         }
       )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(lookup3DS)) {
-      return error(request, data, {
-        message: 'There was an error processing your payment.',
-        action: 'Contact support'
-      })
     }
 
-    if (lookup3DS.response.challengeURL !== '') {
+    if (response.challengeURL !== '') {
       Object.assign(data, {
-        challengeURL: lookup3DS.response.challengeURL,
-        payload: lookup3DS.response.payload,
-        processorTransactionID: lookup3DS.response.processorTransactionID
+        challengeURL: response.challengeURL,
+        payload: response.payload,
+        processorTransactionID: response.processorTransactionID
       })
       return json(data)
     }
   }
 
   if (formName === 'authenticate') {
-    let auth3DS = await grpcClient
-      .authenticate3DS(
+    const response = await connectClient.authenticate3DS(request, {
+      threeDSID,
+      jwt: form.get('jwt') as string
+    })
+
+    if (isConnectError(response)) {
+      return response.error(
+        data,
+        {},
         {
-          threeDSID,
-          jwt: form.get('jwt') as string
-        },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie'))
-          }
+          message: 'There was an error processing your payment.',
+          action: 'Contact support'
         }
       )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(auth3DS)) {
-      return error(request, data, {
-        message: 'There was an error processing your payment.',
-        action: 'Contact support'
-      })
     }
   }
 
-  let payment = await grpcClient
-    .confirmPayment(
+  const response = await connectClient.confirmPayment(request, {
+    id: form.get('paymentId') as string
+  })
+
+  if (isConnectError(response)) {
+    return response.error(
+      data,
+      {},
       {
-        id: form.get('paymentId') as string
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
+        message: 'There was an error processing your payment.',
+        action: 'Contact support'
       }
     )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(payment)) {
-    return error(request, data, {
-      message: 'There was an error processing your payment.',
-      action: 'Contact support'
-    })
   }
 
   return redirectWithSnackbar(request, route('/'), {

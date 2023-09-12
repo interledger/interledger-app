@@ -19,28 +19,18 @@ import {
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { connectClient } from '~/lib/connect.server'
+import { isConnectError } from '~/lib/error.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const cardDetails = await grpcClient
-    .getCardDetails(
-      { id: params.accountId as string },
-      { meta: { cookies: String(request.headers.get('cookie')) || '' } }
-    )
-    .then((v) => v)
-    .catch(StatusError)
+  const card = await connectClient.getCardDetails(request, {
+    id: params.accountId as string
+  })
 
-  if (isGrpcError(cardDetails)) {
-    throw json({}, httpMapping(cardDetails.code))
-  }
+  if (isConnectError(card)) throw card.errorResponse
 
   return json({
-    card: cardDetails.response
+    card
   })
 }
 

@@ -14,46 +14,6 @@ message PaginationRequest {
   optional string pageToken = 2;
 }
 
-service OpenPaymentService {
-  rpc CreatePaymentPointer(CreatePaymentPointerRequest) returns (Empty);
-  rpc GetPaymentPointer(GetPaymentPointerRequest) returns (PaymentPointer);
-  rpc PaymentPointerExists(PaymentPointerExistsRequest) returns (PaymentPointerExistsResponse);
-  rpc ListWalletPaymentPointers(Empty) returns (ListWalletPaymentPointersResponse);
-}
-
-message PaymentPointerExistsRequest {
-  string url = 1;
-}
-
-message PaymentPointerExistsResponse {
-  bool exists = 1;
-}
-
-message GetPaymentPointerRequest {
-  string url = 1;
-}
-
-message ListWalletPaymentPointersResponse {
-  repeated PaymentPointer pointers = 1;
-}
-
-message CreatePaymentPointerRequest {
-  string url = 1;
-  string asset = 2;
-  int32 assetScale = 3;
-  string alias = 4;
-}
-
-message PaymentPointer {
-  string url = 1;
-  string asset = 2;
-  int32 assetScale = 3;
-  string alias = 4;
-  string walletID = 5;
-  string formatted = 6;
-  string legalName = 7;
-}
-
 message Empty {}
 
 service BackendService {
@@ -68,6 +28,8 @@ service BackendService {
   rpc CompleteSignup(CompleteSignupRequest) returns (Empty);
   rpc CreateUserDefaultWallet(CreateUserDefaultWalletRequest) returns (Empty);
   // Wallet
+  rpc CreateWalletAddress(CreateWalletAddressRequest) returns (Empty);
+  rpc WalletAddressExists(WalletAddressExistsRequest) returns (WalletAddressExistsResponse);
   rpc SetWalletName(SetWalletNameRequest) returns (Empty);
   rpc GetWalletInfo(Empty) returns (WalletInfo);
   rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns(PublicWalletInfo);
@@ -139,7 +101,7 @@ service BackendService {
   rpc OnboardGMTUser(Empty) returns (Empty);
 
   // Tabapay 3DS
-  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
+//  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
   rpc Init3DS(Init3DSRequest) returns (Init3DSResponse);
   rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
   rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
@@ -680,6 +642,21 @@ message LimitAmount {
   string remaining = 1;
   string total = 2;
   int32 percentage = 3;
+}
+
+message WalletAddressExistsRequest {
+  string url = 1;
+}
+
+message WalletAddressExistsResponse {
+  bool exists = 1;
+}
+
+message CreateWalletAddressRequest {
+  string url = 1;
+  string asset = 2;
+  int32 assetScale = 3;
+  string alias = 4;
 }
 
 message SetWalletNameRequest {
