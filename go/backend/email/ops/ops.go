@@ -10,7 +10,6 @@ import (
 	"gitlab.com/fynbos/backend/email/sendgrid"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -200,49 +199,6 @@ func SendConnectedAccountDocumentsNeededEmail(ctx context.Context, b Backends, w
 	}
 }
 
-func SendPaymentSentEmail(ctx context.Context, b Backends, walletID, trxID string, op openpayments.OutgoingPayment) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
-	if err != nil {
-		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
-		return
-	}
-
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", trxID)
-	if err != nil {
-		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
-		return
-	}
-
-	table := []map[string]interface{}{
-		{"label": "Total amount", "text": op.SentAmount.Format(), "large": true},
-		{"label": "To", "text": op.ToPaymentPointer},
-	}
-
-	if op.Description != "" {
-		table = append(table, map[string]interface{}{"label": "Note", "text": op.Description})
-	}
-
-	table = append(table, map[string]interface{}{"label": "Date", "text": op.UpdatedAt.Format("02 Jan 2006")})
-
-	err = b.External().SendTemplate(ctx, "Payment sent", sendTo, oneTemplateID, map[string]interface{}{
-		"subject": "Payment sent",
-		"data": []map[string]interface{}{
-			{"paragraph": greeting},
-			{"heading": "Your recent payment was successful"},
-			{
-				"table": table,
-			},
-		},
-		"cta": map[string]interface{}{
-			"text": "View transaction",
-			"url":  txURL,
-		},
-	}, nil)
-	if err != nil {
-		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
-	}
-}
-
 func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, payment *payments.Payment) {
 	if payment == nil {
 		return
@@ -285,49 +241,6 @@ func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, pa
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
-	}
-}
-
-func SendPaymentReceivedEmail(ctx context.Context, b Backends, walletID, trxID string, ip openpayments.IncomingPayment) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
-	if err != nil {
-		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
-		return
-	}
-
-	txURL, err := url.JoinPath(env.GetUrl(), "transactions", trxID)
-	if err != nil {
-		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
-		return
-	}
-
-	table := []map[string]interface{}{
-		{"label": "Total amount", "text": ip.ReceivedAmount.Format(), "large": true},
-		{"label": "From", "text": ip.FromPaymentPointer},
-	}
-
-	if ip.Description != "" {
-		table = append(table, map[string]interface{}{"label": "Note", "text": ip.Description})
-	}
-
-	table = append(table, map[string]interface{}{"label": "Date", "text": ip.UpdatedAt.Format("02 Jan 2006")})
-
-	err = b.External().SendTemplate(ctx, "Payment received", sendTo, oneTemplateID, map[string]interface{}{
-		"subject": "Payment received",
-		"data": []map[string]interface{}{
-			{"paragraph": greeting},
-			{"heading": "You have received a payment"},
-			{
-				"table": table,
-			},
-		},
-		"cta": map[string]interface{}{
-			"text": "View transaction",
-			"url":  txURL,
-		},
-	}, nil)
-	if err != nil {
-		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", trxID))
 	}
 }
 

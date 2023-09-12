@@ -19,7 +19,6 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client/mock"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 )
@@ -30,14 +29,9 @@ type testBackends struct {
 	ac     analytics.Client
 	notify notify.Client
 	user   user.Client
-	op     openpayments.Client
 	kc     keys.Client
 	kyc    *kyc_mock.MockClient
 	wc     wallets.Client
-}
-
-func (t testBackends) OpenPayments() openpayments.Client {
-	return t.op
 }
 
 func (t testBackends) Validator() *validator.Validate {
