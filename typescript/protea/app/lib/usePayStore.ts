@@ -1,9 +1,10 @@
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { create } from 'zustand'
 import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import type {
   PublicWalletInfo,
   SearchResult
-} from '~/generated/protobuf-ts/backend/v1/backend'
+} from '~/generated/connect/backend/v1/backend_pb'
 
 export enum PayStep {
   SEARCH,
@@ -14,9 +15,9 @@ export enum PayStep {
 interface PayState {
   step: PayStep
   // Search page
-  address: SearchResult | null
+  address: PlainMessage<SearchResult> | null
   // Amount page
-  publicWalletInfo: PublicWalletInfo | null
+  publicWalletInfo: PlainMessage<PublicWalletInfo> | null
   requiresOTP: boolean
   account: FormattedLinkedAccount | null
   amount: string
@@ -28,10 +29,10 @@ interface PayState {
 interface PayActions {
   setStep: (step: PayStep) => void
   stepBack: () => void
-  setAddress: (address: SearchResult) => void
+  setAddress: (address: PlainMessage<SearchResult>) => void
   setAmount: (amount: string) => void
   setNote: (note: string) => void
-  setPublicWalletInfo: (walletInfo: PublicWalletInfo) => void
+  setPublicWalletInfo: (walletInfo: PlainMessage<PublicWalletInfo>) => void
   setAccount: (account: FormattedLinkedAccount) => void
   reset: () => void
 
