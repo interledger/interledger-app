@@ -2,11 +2,12 @@ package ops
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base32"
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 
@@ -334,11 +335,16 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		p.Type = payments.TypePeer2Peer
 	}
 
+	publicID, err := NewSoftDescriptor(time.Now())
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
 	// TODO Calculate more actions required
 	id := uuid.NewString()
 	stmt, args, err := db.NewInsert("payments").
 		Value("id", id).
-		Value("public_id", "fynbos_"+strconv.Itoa(rand.Int())). // TODO: Generate "pretty" soft id for display
+		Value("public_id", publicID).
 		Value("state", payments.StateCreated).
 		Value("sender_id", senderWallet.ID).
 		Value("sender_id_type", payments.IdentityTypeWalletID).
@@ -765,4 +771,37 @@ func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, er
 	}
 
 	return res, nil
+}
+
+const (
+	geohashBase32Alphabet = "0123456789bcdefghjkmnpqrstuvwxyz"
+	hoursInUnixTimestamp  = 60 * 60
+)
+
+// Generates a soft descriptor to show on the user's card statement.
+// See https://www.notion.so/fynbos/Soft-Descriptors-08b6693f96194f54ba0d62e21efd22d6
+func NewSoftDescriptor(date time.Time) (string, error) {
+	// Generate a random uint64.
+	buffer := make([]byte, 8)
+	_, err := rand.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+	// Put 5 bytes of randomness in first 40 bits of uint64
+	randomNum := binary.BigEndian.Uint64(buffer) << 24
+
+	// Put 20 bits of date in bits 41 - 60 of unit64
+	dateValue := uint64(date.Unix()/hoursInUnixTimestamp) << 4
+
+	// XOR the two values together and convert to a byte slice.
+	binary.BigEndian.PutUint64(buffer, randomNum^dateValue)
+
+	// Create a Geohash Base32 encoder.
+	geohashEncoder := base32.NewEncoding(geohashBase32Alphabet).WithPadding(base32.NoPadding)
+
+	// Encode the buffer as a Base32 string.
+	key := geohashEncoder.EncodeToString(buffer)
+
+	// Trim key to 12 characters, we don't care about the last 4 bits
+	return key[:12], nil
 }
