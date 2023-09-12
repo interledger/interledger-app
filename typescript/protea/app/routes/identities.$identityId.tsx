@@ -28,9 +28,9 @@ import {
 import { Label } from '~/components/Label'
 import { getIdentity } from '~/data/identity.server'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
@@ -864,7 +864,7 @@ export async function action({ request, params }: ActionArgs) {
   let response
   switch (formName) {
     case 'verify':
-      response = await connectClient.verifyIdentity(request, { id: identityId })
+      response = await grpc.verifyIdentity(request, { id: identityId })
       if (isConnectError(response)) throw response.errorResponse
       return jsonWithSnackbar(
         request,
@@ -875,7 +875,7 @@ export async function action({ request, params }: ActionArgs) {
         }
       )
     case 'retry':
-      response = await connectClient.verifyIdentity(request, { id: identityId })
+      response = await grpc.verifyIdentity(request, { id: identityId })
       if (isConnectError(response)) throw response.errorResponse
       return jsonWithSnackbar(
         request,
@@ -886,7 +886,7 @@ export async function action({ request, params }: ActionArgs) {
         }
       )
     case 'publish':
-      response = await connectClient.setIdentityPublic(request, {
+      response = await grpc.setIdentityPublic(request, {
         id: identityId,
         public: publish === 'true'
       })
@@ -900,7 +900,7 @@ export async function action({ request, params }: ActionArgs) {
         }
       )
     case 'delete':
-      response = await connectClient.deleteIdentity(request, { id: identityId })
+      response = await grpc.deleteIdentity(request, { id: identityId })
       if (isConnectError(response)) throw response.errorResponse
       return redirectWithSnackbar(request, route('/identities'), {
         message: 'Identity deleted successfully.',

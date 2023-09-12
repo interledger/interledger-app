@@ -1,13 +1,13 @@
 import { json } from '@remix-run/node'
 import type { Identity } from '~/generated/connect/backend/v1/backend_pb'
-import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export async function getIdentity(
   request: Request,
   id: string
 ): Promise<Identity> {
-  const response = await connectClient.getIdentity(request, {
+  const response = await grpc.getIdentity(request, {
     id
   })
 
@@ -25,7 +25,7 @@ export async function getIdentityBySignatureHash(
   request: Request,
   signatureHash: string
 ): Promise<Identity> {
-  const response = await connectClient.getIdentityBySignatureHash(request, {
+  const response = await grpc.getIdentityBySignatureHash(request, {
     signatureHash
   })
 
@@ -52,7 +52,7 @@ const identitiesReducer = (acc: Identities, identity: Identity) => {
 }
 
 export async function getIdentities(request: Request): Promise<Identities> {
-  const response = await connectClient.listIdentities(request, {})
+  const response = await grpc.listIdentities(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
@@ -63,7 +63,7 @@ export async function getPublicIdentities(
   request: Request,
   walletId: string
 ): Promise<Identities> {
-  const response = await connectClient.listPublicIdentities(request, {
+  const response = await grpc.listPublicIdentities(request, {
     walletId
   })
 

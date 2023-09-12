@@ -30,9 +30,9 @@ import type {
   PublicWalletInfo,
   SearchResult
 } from '~/generated/connect/backend/v1/backend_pb'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
@@ -89,7 +89,7 @@ export async function loader({ request }: LoaderArgs) {
 
   const term = url.searchParams.get('term')
   if (term) {
-    const response = await connectClient.searchWallets(request, { term })
+    const response = await grpc.searchWallets(request, { term })
 
     if (!isConnectError(response)) results = response.results
   }
@@ -97,7 +97,7 @@ export async function loader({ request }: LoaderArgs) {
   const walletAddressParam = url.searchParams.get('address')
   if (walletAddressParam) {
     // TODO: refactor this to return a SearchResult
-    const response = await connectClient.getPaymentAddress(request, {
+    const response = await grpc.getPaymentAddress(request, {
       address: walletAddressParam
     })
 
@@ -146,7 +146,7 @@ async function loadPayment(request: Request, id: string) {
   let phoneMask: string = ''
   let features: Features | null = null
 
-  let payment = await connectClient.getPayment(request, { id })
+  let payment = await grpc.getPayment(request, { id })
 
   if (isConnectError(payment)) throw payment.errorResponse
 
@@ -393,7 +393,7 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
   }
 
   if (otp) {
-    const response = await connectClient.updatePayment(request, {
+    const response = await grpc.updatePayment(request, {
       id: paymentId,
       otp: otp
     })
@@ -402,7 +402,7 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
     }
   }
 
-  const response = await connectClient.confirmPayment(request, {
+  const response = await grpc.confirmPayment(request, {
     id: paymentId
   })
 
@@ -450,7 +450,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
 
   const clientIpAddress = getClientIP(request)
   if (!paymentId) {
-    let response = await connectClient.createPayment(request, {
+    let response = await grpc.createPayment(request, {
       receiverIdentity: walletUrl,
       receiverIdentityType: 3,
       note,
@@ -480,7 +480,7 @@ export async function updatePaymentAction({ request }: ActionArgs) {
     })
   }
 
-  let response = await connectClient.updatePayment(request, {
+  let response = await grpc.updatePayment(request, {
     id: paymentId,
     receiverIdentity: walletUrl,
     receiverIdentityType: 3,

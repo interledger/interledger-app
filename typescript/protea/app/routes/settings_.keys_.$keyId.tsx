@@ -14,9 +14,9 @@ import {
   OutlineButton,
   TextField
 } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -36,13 +36,13 @@ export const meta: MetaFunction = () => {
 }
 
 export async function loader({ request, params }: LoaderArgs) {
-  const connection = await connectClient.getConnection(request, {
+  const connection = await grpc.getConnection(request, {
     id: params.keyId as string
   })
 
   if (isConnectError(connection)) throw connection.errorResponse
 
-  const response = await connectClient.getConnectionLimits(request, {
+  const response = await grpc.getConnectionLimits(request, {
     id: params.keyId as string
   })
 
@@ -201,7 +201,7 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   if (formName === 'delete') {
-    const response = await connectClient.deleteConnection(request, {
+    const response = await grpc.deleteConnection(request, {
       id: params.keyId as string
     })
 
@@ -215,7 +215,7 @@ export async function action({ request, params }: ActionArgs) {
     })
   }
 
-  const response = await connectClient.updateConnectionLimits(request, {
+  const response = await grpc.updateConnectionLimits(request, {
     id: params.keyId as string,
     daily: {
       amount: BigInt(
