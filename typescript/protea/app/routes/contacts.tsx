@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Avatar, Card, CardButton, CardContent, Layouts } from '~/components'
-import type { ListContactsResponse } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { ListContactsResponse } from '~/generated/connect/backend/v1/backend_pb'
 import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
 

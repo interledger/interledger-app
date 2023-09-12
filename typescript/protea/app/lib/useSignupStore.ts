@@ -1,5 +1,6 @@
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { create } from 'zustand'
-import type { Country } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 
 export enum SignupStep {
   LANDING,
@@ -14,16 +15,16 @@ interface SignupState {
   firstName: string
   lastName: string
   email: string
-  country: Country | null
-  countries: Country[]
+  country: PlainMessage<Country> | null
+  countries: PlainMessage<Country>[]
   phone: string
 }
 
 interface SignupActions {
   setStep: (step: SignupStep) => void
   stepBack: () => void
-  setCountry: (country: Country) => void
-  setCountries: (countries: Country[]) => void
+  setCountry: (country: PlainMessage<Country>) => void
+  setCountries: (countries: PlainMessage<Country>[]) => void
   setDetails: (
     id: string,
     firstName: string,
