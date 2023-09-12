@@ -10,9 +10,9 @@ import type { ApplicationProps } from '~/components'
 import { Button, Layouts } from '~/components'
 import { FormSectionRecordComponent } from '~/components/Content'
 import type { FormSectionRecord } from '~/generated/dato-cms-graphql'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getCurrentFormPage } from '~/lib/marketing.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
@@ -123,7 +123,7 @@ export async function action({ request, params }: ActionArgs) {
       data[key] = value
   })
 
-  const response = connectClient.createDynamicForm(request, {
+  const response = grpc.createDynamicForm(request, {
     formId: params.slug as string,
     data: JSON.stringify(data)
   })

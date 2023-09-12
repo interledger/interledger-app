@@ -26,9 +26,9 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, CardContent, Layouts } from '~/components'
 import { getWalletId } from '~/data/wallet.server'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
@@ -366,7 +366,7 @@ export async function action({ request }: ActionArgs) {
     number: 'CardNumber'
   }
 
-  let response = await connectClient.createCard(
+  let response = await grpc.createCard(
     request,
     { tokenID: cardToken },
     {

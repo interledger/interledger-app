@@ -17,9 +17,9 @@ import {
   WalletGrid,
   WalletShapes
 } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
@@ -160,7 +160,7 @@ export async function action({ request }: ActionArgs) {
     description: ''
   }
 
-  let response = await connectClient.createSupportTicket(request, {
+  let response = await grpc.createSupportTicket(request, {
     description,
     firstName,
     lastName,

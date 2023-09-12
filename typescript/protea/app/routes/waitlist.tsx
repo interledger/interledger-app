@@ -16,9 +16,9 @@ import {
   Layouts,
   TextField
 } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
 
 type Country = {
@@ -28,7 +28,7 @@ type Country = {
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
-  let response = await connectClient.getCountries(request, {})
+  let response = await grpc.getCountries(request, {})
 
   if (isConnectError(response)) throw response.errorResponse
 
@@ -42,7 +42,7 @@ export async function loader({ request }: LoaderArgs) {
 
   let isMugAvailable = false
   if (mugId != null) {
-    let response = await connectClient.isMugAvailable(request, {
+    let response = await grpc.isMugAvailable(request, {
       mugId: mugId
     })
 
@@ -267,7 +267,7 @@ export async function action({ request }: ActionArgs) {
     email: ''
   }
 
-  let response = await connectClient.joinWaitlist(request, {
+  let response = await grpc.joinWaitlist(request, {
     email,
     countryCode: country,
     fullName,

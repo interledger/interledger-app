@@ -7,16 +7,16 @@ import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Icon, Layouts, WalletShapes } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus } from '~/data/wallet.server'
-import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export async function loader({ request }: LoaderArgs) {
   const kycStatus = await getKycStatus(request)
 
-  const kycDetails = await connectClient.getIndividualKYC(request, {})
+  const kycDetails = await grpc.getIndividualKYC(request, {})
   if (isConnectError(kycDetails)) throw kycDetails.errorResponse
 
-  let countries = await connectClient.getCountries(request, {})
+  let countries = await grpc.getCountries(request, {})
   if (isConnectError(countries)) throw countries.errorResponse
 
   let gender = {

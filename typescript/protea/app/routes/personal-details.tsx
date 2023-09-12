@@ -4,16 +4,16 @@ import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import { Button, Card, CardContent, Layouts, Shape } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 
 export async function loader({ request }: LoaderArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
-  const response = await connectClient.getPersonaInquiry(request, {
+  const response = await grpc.getPersonaInquiry(request, {
     idempotencyKey: flow.data.idempotencyKey
   })
 
@@ -127,7 +127,7 @@ export default function Page() {
 export async function action({ request }: ActionArgs) {
   await exitFlow(request, flowType.PersonalDetails)
 
-  await connectClient.setKYCStatusPending(request, {})
+  await grpc.setKYCStatusPending(request, {})
 
   return redirectWithSnackbar(request, route('/'), {
     message: 'Personal details captured.',
