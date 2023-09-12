@@ -10,7 +10,6 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
-	openpayments "gitlab.com/fynbos/backend/openpayments"
 	payments "gitlab.com/fynbos/backend/payments"
 )
 
@@ -109,18 +108,6 @@ func (mr *MockClientMockRecorder) SendPaymentFailedEmail(ctx, walletID interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentFailedEmail", reflect.TypeOf((*MockClient)(nil).SendPaymentFailedEmail), ctx, walletID)
 }
 
-// SendPaymentReceivedEmail mocks base method.
-func (m *MockClient) SendPaymentReceivedEmail(ctx context.Context, walletID, trxID string, ip openpayments.IncomingPayment) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendPaymentReceivedEmail", ctx, walletID, trxID, ip)
-}
-
-// SendPaymentReceivedEmail indicates an expected call of SendPaymentReceivedEmail.
-func (mr *MockClientMockRecorder) SendPaymentReceivedEmail(ctx, walletID, trxID, ip interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentReceivedEmail", reflect.TypeOf((*MockClient)(nil).SendPaymentReceivedEmail), ctx, walletID, trxID, ip)
-}
-
 // SendPaymentReceivedEmailV2 mocks base method.
 func (m *MockClient) SendPaymentReceivedEmailV2(ctx context.Context, walletID string, payment *payments.Payment) {
 	m.ctrl.T.Helper()
@@ -131,18 +118,6 @@ func (m *MockClient) SendPaymentReceivedEmailV2(ctx context.Context, walletID st
 func (mr *MockClientMockRecorder) SendPaymentReceivedEmailV2(ctx, walletID, payment interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentReceivedEmailV2", reflect.TypeOf((*MockClient)(nil).SendPaymentReceivedEmailV2), ctx, walletID, payment)
-}
-
-// SendPaymentSentEmail mocks base method.
-func (m *MockClient) SendPaymentSentEmail(ctx context.Context, walletID, trxID string, op openpayments.OutgoingPayment) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendPaymentSentEmail", ctx, walletID, trxID, op)
-}
-
-// SendPaymentSentEmail indicates an expected call of SendPaymentSentEmail.
-func (mr *MockClientMockRecorder) SendPaymentSentEmail(ctx, walletID, trxID, op interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentSentEmail", reflect.TypeOf((*MockClient)(nil).SendPaymentSentEmail), ctx, walletID, trxID, op)
 }
 
 // SendPaymentSentEmailV2 mocks base method.

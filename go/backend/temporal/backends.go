@@ -14,7 +14,6 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -47,7 +46,6 @@ type Backends interface {
 	Keys() keys.Client
 	BasisTheory() basistheory.Client
 	Limits() limits.Client
-	OpenPayments() openpayments.Client
 	Identities() identities.Client
 	Images() images.Client
 	Wallets() wallets.Client
