@@ -268,7 +268,12 @@ export function Scaffold() {
           </div>
         )}
         {layout !== Layouts.Marketing && (
-          <div className='mx-auto flex w-full items-center sm:max-w-lg lg:max-w-3xl lg:px-4 xl:max-w-[59rem]'>
+          <div
+            className={clsx(
+              'mx-auto flex w-full items-center sm:max-w-lg lg:max-w-3xl xl:max-w-[59rem]',
+              layout != Layouts.Focus && 'lg:px-4'
+            )}
+          >
             {!scaffold.header.back && (
               <div className='lg:hidden'>
                 <IconButton
