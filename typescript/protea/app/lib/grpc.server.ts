@@ -17,10 +17,10 @@ import { ConnectError } from '~/lib/error.server'
 
 const BACKEND_GRPC_URL = 'http://backend.backend:443'
 
-let connectClient: PromiseClient<typeof BackendService>
+let grpc: PromiseClient<typeof BackendService>
 
 declare global {
-  var __connectClient: PromiseClient<typeof BackendService> | undefined
+  var __grpcClient: PromiseClient<typeof BackendService> | undefined
 }
 
 const transport = createGrpcTransport({
@@ -32,12 +32,12 @@ const transport = createGrpcTransport({
 // the server with every change, but we want to make sure we don't
 // create a new connection to the Client with every change either.
 if (process.env.NODE_ENV === 'production') {
-  connectClient = createPromiseClient(BackendService, transport)
+  grpc = createPromiseClient(BackendService, transport)
 } else {
-  if (!global.__connectClient) {
-    global.__connectClient = createPromiseClient(BackendService, transport)
+  if (!global.__grpcClient) {
+    global.__grpcClient = createPromiseClient(BackendService, transport)
   }
-  connectClient = global.__connectClient
+  grpc = global.__grpcClient
 }
 
 /**
@@ -134,4 +134,4 @@ function createUnaryFn<I extends Message<I>, O extends Message<O>>(
   }
 }
 
-export { connectClient }
+export { grpc }

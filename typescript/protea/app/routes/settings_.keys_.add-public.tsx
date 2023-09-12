@@ -13,9 +13,9 @@ import {
   TextArea,
   TextField
 } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -188,7 +188,7 @@ export async function action({ request }: ActionArgs) {
     overallLimit: ''
   }
 
-  const response = await connectClient.createConnection(request, {
+  const response = await grpc.createConnection(request, {
     applicationName: form.get('applicationName') as string,
     publicKey: form.get('publicKey') as string,
     dailyLimit: {

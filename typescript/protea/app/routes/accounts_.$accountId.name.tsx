@@ -5,9 +5,9 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Card, Layouts, TextField } from '~/components'
 import { getLinkedAccount } from '~/data/wallet.server'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -92,7 +92,7 @@ export async function action({ request, params }: ActionArgs) {
     name: 'Nickname'
   }
 
-  const response = await connectClient.setNicknameLinkedAccount(request, {
+  const response = await grpc.setNicknameLinkedAccount(request, {
     id: params.accountId as string,
     nickname
   })

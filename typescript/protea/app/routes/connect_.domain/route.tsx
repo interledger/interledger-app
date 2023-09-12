@@ -5,9 +5,9 @@ import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import {
   ConnectDomainStep,
@@ -68,7 +68,7 @@ export async function action({ request }: ActionArgs) {
 
   const domain = form.get('domain') as string
 
-  const response = await connectClient.createDomainIdentity(request, {
+  const response = await grpc.createDomainIdentity(request, {
     url: domain
   })
 

@@ -14,9 +14,9 @@ import {
 } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getContactRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -184,7 +184,7 @@ export async function action({ request }: ActionArgs) {
     email: ''
   }
 
-  let response = await connectClient.createSupportTicket(request, {
+  let response = await grpc.createSupportTicket(request, {
     description,
     firstName,
     lastName,
