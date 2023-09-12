@@ -1,11 +1,13 @@
 package dynamicforms
 
+import "database/sql"
+
 type (
 	Form struct {
-		ID       string      `db:"id"`
-		FormID   string      `db:"form_id"`
-		Data     interface{} `db:"data"`
-		WalletID string      `db:"wallet_id"`
+		ID       string         `db:"id"`
+		FormID   string         `db:"form_id"`
+		Data     interface{}    `db:"data"`
+		WalletID sql.NullString `db:"wallet_id"`
 	}
 	FormCount struct {
 		FormID string `db:"form_id"`
