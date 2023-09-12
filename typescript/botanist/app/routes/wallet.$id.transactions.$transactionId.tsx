@@ -1,15 +1,16 @@
 import type { LoaderArgs } from '@remix-run/node'
 
-import { Error, GridCard, GridCardError } from '~/components'
 import { json } from '@remix-run/node'
 import {
   isRouteErrorResponse,
   useLoaderData,
   useRouteError
 } from '@remix-run/react'
+import { Error, GridCard, GridCardError } from '~/components'
 import {
   GetWalletDetails,
-  GetWalletTransactionDetails
+  GetWalletTransactionDetails,
+  ListExternalApiCalls
 } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -19,21 +20,29 @@ export async function loader({ request, params }: LoaderArgs) {
     params.id as string,
     params.transactionId as string
   )
+  const externalApiLogs = await ListExternalApiCalls(request, transaction?.transaction?.paymentId || '')
 
   return json({
     transaction,
-    wallet
+    wallet,
+    externalApiLogs
   })
 }
 
 export default function Page() {
-  const { transaction } = useLoaderData<typeof loader>()
+  const { transaction, externalApiLogs } = useLoaderData<typeof loader>()
 
   return (
-    <GridCard
-      className='sticky top-4 col-span-full lg:col-span-4'
-      options={transaction}
-    />
+    <>
+      <GridCard
+        className='sticky top-4 col-span-full lg:col-span-4'
+        options={transaction}
+      />
+      <GridCard
+        className='sticky top-4 col-span-full lg:col-span-4'
+        options={externalApiLogs}
+      />
+    </>
   )
 }
 

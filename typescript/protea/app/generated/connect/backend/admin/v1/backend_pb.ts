@@ -1176,6 +1176,11 @@ export class Transaction extends Message<Transaction> {
    */
   timestamp?: Timestamp;
 
+  /**
+   * @generated from field: string paymentId = 9;
+   */
+  paymentId = "";
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1192,6 +1197,7 @@ export class Transaction extends Message<Transaction> {
     { no: 4, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "destination", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "timestamp", kind: "message", T: Timestamp },
+    { no: 9, name: "paymentId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
