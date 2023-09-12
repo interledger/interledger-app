@@ -14,10 +14,10 @@ import type {
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 import type { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
 import {
+  StatusError,
   grpcClient,
   httpMapping,
-  isGrpcError,
-  StatusError
+  isGrpcError
 } from '~/lib/proto.server'
 import type { LinkedAccountReviewState } from '~/lib/types'
 
@@ -87,10 +87,10 @@ export async function GetWalletDetails(
       response.response.gender == 0
         ? 'Unknown'
         : response.response.gender == 1
-        ? 'Male'
-        : response.response.gender == 2
-        ? 'Female'
-        : 'Other',
+          ? 'Male'
+          : response.response.gender == 2
+            ? 'Female'
+            : 'Other',
     dateOfBirth: DateTime.fromSeconds(
       parseInt(response.response.dateOfBirth?.seconds ?? '')
     ).toLocaleString(DateTime.DATETIME_FULL)
@@ -512,4 +512,25 @@ export async function ExportDynamicFormResult(
   const blob = new Blob(chunks, { type: 'text/csv' })
 
   return blob
+}
+
+export async function ListExternalApiCalls(
+  request: Request,
+  paymentId: string
+) {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .listExternalApiCalls({ paymentId }, {
+      meta: {
+        cookies: cookie || ''
+      }
+    })
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response.list
 }

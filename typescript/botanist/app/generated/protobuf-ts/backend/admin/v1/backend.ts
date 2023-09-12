@@ -456,6 +456,10 @@ export interface Transaction {
      * @generated from protobuf field: google.protobuf.Timestamp timestamp = 6;
      */
     timestamp?: Timestamp;
+    /**
+     * @generated from protobuf field: string paymentId = 9;
+     */
+    paymentId: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetUserTransactionsRequest
@@ -2078,11 +2082,12 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 3, name: "amount", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
             { no: 4, name: "source", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 5, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 6, name: "timestamp", kind: "message", T: () => Timestamp }
+            { no: 6, name: "timestamp", kind: "message", T: () => Timestamp },
+            { no: 9, name: "paymentId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { walletID: "", id: "", type: "", asset: "", amount: 0, source: "", destination: "" };
+        const message = { walletID: "", id: "", type: "", asset: "", amount: 0, source: "", destination: "", paymentId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -2116,6 +2121,9 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* google.protobuf.Timestamp timestamp */ 6:
                     message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
+                    break;
+                case /* string paymentId */ 9:
+                    message.paymentId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2153,6 +2161,9 @@ class Transaction$Type extends MessageType<Transaction> {
         /* google.protobuf.Timestamp timestamp = 6; */
         if (message.timestamp)
             Timestamp.internalBinaryWrite(message.timestamp, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* string paymentId = 9; */
+        if (message.paymentId !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.paymentId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

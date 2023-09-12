@@ -178,6 +178,7 @@ message Transaction {
   string source = 4;
   string destination = 5;
   google.protobuf.Timestamp timestamp = 6;
+  string paymentId = 9;
 }
 
 message GetUserTransactionsRequest {
