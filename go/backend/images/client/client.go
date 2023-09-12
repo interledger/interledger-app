@@ -67,11 +67,11 @@ func (c client) GenerateSlackIdentityOG(ctx context.Context, walletUrl, identifi
 }
 
 func loadAssets() (*images.Assets, error) {
-	twitterImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/template.png")
+	twitterImg, err := loadImageFromURL("https://cdn.fynbos.app/identities/twitter/template.png")
 	if err != nil {
 		return nil, err
 	}
-	twitterImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/og-template.png")
+	twitterImgOG, err := loadImageFromURL("https://cdn.fynbos.app/identities/twitter/og-template.png")
 	if err != nil {
 		return nil, err
 	}
