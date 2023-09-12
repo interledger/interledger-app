@@ -4,31 +4,15 @@ import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Layouts, WalletShapes } from '~/components'
-import {
-  StatusError,
-  grpcClient,
-  httpMapping,
-  isGrpcError
-} from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export async function loader({ request }: LoaderArgs) {
-  let connections = await grpcClient
-    .listConnections(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((resp) => resp.response.keys)
-    .catch(StatusError)
+  let response = await grpc.listConnections(request, {})
 
-  if (isGrpcError(connections)) {
-    throw json({}, httpMapping(connections.code))
-  }
+  if (isConnectError(response)) throw response.errorResponse
 
-  return json({ keys: connections })
+  return json({ keys: response.keys })
 }
 
 export const handle: ApplicationProps = {

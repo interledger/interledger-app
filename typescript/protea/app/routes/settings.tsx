@@ -14,7 +14,7 @@ import {
   WalletGrid,
   WalletShapes
 } from '~/components'
-import { getKycStatus } from '~/lib/wallet.server'
+import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {

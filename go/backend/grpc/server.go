@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	user_middleware "gitlab.com/fynbos/backend/user/middleware"
 	wallets_middleware "gitlab.com/fynbos/backend/wallets/middleware"
 	backendv1 "gitlab.com/fynbos/proto/backend/v1"
@@ -25,7 +24,6 @@ func NewServer(b Backends) (*grpc.Server, error) {
 		b: b,
 	})
 
-	backendv1.RegisterOpenPaymentServiceServer(server, open_server.NewGRPCServer(b))
 	grpc_health_v1.RegisterHealthServer(server, b.HealthCheck())
 	reflection.Register(server)
 	return server, nil

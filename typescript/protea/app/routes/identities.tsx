@@ -27,11 +27,12 @@ import {
   WalletGrid,
   WalletShapes
 } from '~/components'
-import { getKycStatus, getLinkedIdentities } from '~/lib/wallet.server'
+import { getIdentities } from '~/data/identity.server'
+import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {
-  const identities = await getLinkedIdentities(request)
+  const identities = await getIdentities(request)
 
   const kycStatus = await getKycStatus(request)
 
