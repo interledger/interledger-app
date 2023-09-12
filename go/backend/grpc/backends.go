@@ -18,7 +18,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
@@ -55,7 +54,6 @@ type Backends interface {
 	Transactions() transactions.Client
 	Authorisation() authorisation.InternalClient
 	Analytics() analytics.Client
-	OpenPayments() openpayments.Client
 	Limits() limits.Client
 	Contacts() contacts.Client
 	Identities() identities.Client

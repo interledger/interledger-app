@@ -65,9 +65,6 @@ import (
 	linked_account_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
-	"gitlab.com/fynbos/backend/openpayments"
-	openpayments_client "gitlab.com/fynbos/backend/openpayments/client"
-	open_server "gitlab.com/fynbos/backend/openpayments/server"
 	"gitlab.com/fynbos/backend/payments"
 	payments_client "gitlab.com/fynbos/backend/payments/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
@@ -265,8 +262,6 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 
-	serveHTTP(&http.Server{Addr: ":" + args.OpenPaymentsPort, Handler: open_server.OpenPaymentsHTTPHandler(b)}, &wg)
-
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
 	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
@@ -294,8 +289,6 @@ func start(args *cli.StartArgs) {
 	}
 
 	b.email = email_client.New(b, args.SendgridAPIKey)
-
-	b.openpayments = openpayments_client.New(b)
 
 	b.transactions = transactions_client.New(b)
 
@@ -497,8 +490,6 @@ func startWorker(args *cli.StartArgs) {
 
 	b.email = email_client.New(b, args.SendgridAPIKey)
 
-	b.openpayments = openpayments_client.New(b)
-
 	b.transactions = transactions_client.New(b)
 
 	b.notify = notify_client.New(b, args.PusherAddr)
@@ -593,7 +584,6 @@ type backends struct {
 	kyc            kyc.Client
 	keys           keys.Client
 	email          email.Client
-	openpayments   openpayments.Client
 	transactions   transactions.Client
 	notify         notify.Client
 	statements     statements.Client
@@ -711,10 +701,6 @@ func (b backends) LinkedAccounts() linkedaccounts.Client {
 
 func (b backends) Email() email.Client {
 	return b.email
-}
-
-func (b backends) OpenPayments() openpayments.Client {
-	return b.openpayments
 }
 
 func (b backends) Notify() notify.Client {

@@ -9,7 +9,6 @@ import (
 	"gitlab.com/fynbos/backend/features"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/openpayments"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
@@ -23,7 +22,6 @@ type Backends interface {
 	Waitlist() waitlist.Client
 	Users() user.Client
 	KYC() kyc.Client
-	OpenPayments() openpayments.Client
 	Email() email.Client
 	LinkedAccounts() linkedaccounts.Client
 	Transactions() transactions.Client
