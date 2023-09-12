@@ -19,205 +19,6 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	OpenPaymentService_CreatePaymentPointer_FullMethodName      = "/backend.v1.OpenPaymentService/CreatePaymentPointer"
-	OpenPaymentService_GetPaymentPointer_FullMethodName         = "/backend.v1.OpenPaymentService/GetPaymentPointer"
-	OpenPaymentService_PaymentPointerExists_FullMethodName      = "/backend.v1.OpenPaymentService/PaymentPointerExists"
-	OpenPaymentService_ListWalletPaymentPointers_FullMethodName = "/backend.v1.OpenPaymentService/ListWalletPaymentPointers"
-)
-
-// OpenPaymentServiceClient is the client API for OpenPaymentService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type OpenPaymentServiceClient interface {
-	CreatePaymentPointer(ctx context.Context, in *CreatePaymentPointerRequest, opts ...grpc.CallOption) (*Empty, error)
-	GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error)
-	PaymentPointerExists(ctx context.Context, in *PaymentPointerExistsRequest, opts ...grpc.CallOption) (*PaymentPointerExistsResponse, error)
-	ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error)
-}
-
-type openPaymentServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewOpenPaymentServiceClient(cc grpc.ClientConnInterface) OpenPaymentServiceClient {
-	return &openPaymentServiceClient{cc}
-}
-
-func (c *openPaymentServiceClient) CreatePaymentPointer(ctx context.Context, in *CreatePaymentPointerRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, OpenPaymentService_CreatePaymentPointer_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) GetPaymentPointer(ctx context.Context, in *GetPaymentPointerRequest, opts ...grpc.CallOption) (*PaymentPointer, error) {
-	out := new(PaymentPointer)
-	err := c.cc.Invoke(ctx, OpenPaymentService_GetPaymentPointer_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) PaymentPointerExists(ctx context.Context, in *PaymentPointerExistsRequest, opts ...grpc.CallOption) (*PaymentPointerExistsResponse, error) {
-	out := new(PaymentPointerExistsResponse)
-	err := c.cc.Invoke(ctx, OpenPaymentService_PaymentPointerExists_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openPaymentServiceClient) ListWalletPaymentPointers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListWalletPaymentPointersResponse, error) {
-	out := new(ListWalletPaymentPointersResponse)
-	err := c.cc.Invoke(ctx, OpenPaymentService_ListWalletPaymentPointers_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// OpenPaymentServiceServer is the server API for OpenPaymentService service.
-// All implementations should embed UnimplementedOpenPaymentServiceServer
-// for forward compatibility
-type OpenPaymentServiceServer interface {
-	CreatePaymentPointer(context.Context, *CreatePaymentPointerRequest) (*Empty, error)
-	GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error)
-	PaymentPointerExists(context.Context, *PaymentPointerExistsRequest) (*PaymentPointerExistsResponse, error)
-	ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error)
-}
-
-// UnimplementedOpenPaymentServiceServer should be embedded to have forward compatible implementations.
-type UnimplementedOpenPaymentServiceServer struct {
-}
-
-func (UnimplementedOpenPaymentServiceServer) CreatePaymentPointer(context.Context, *CreatePaymentPointerRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentPointer not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) GetPaymentPointer(context.Context, *GetPaymentPointerRequest) (*PaymentPointer, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentPointer not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) PaymentPointerExists(context.Context, *PaymentPointerExistsRequest) (*PaymentPointerExistsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PaymentPointerExists not implemented")
-}
-func (UnimplementedOpenPaymentServiceServer) ListWalletPaymentPointers(context.Context, *Empty) (*ListWalletPaymentPointersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListWalletPaymentPointers not implemented")
-}
-
-// UnsafeOpenPaymentServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to OpenPaymentServiceServer will
-// result in compilation errors.
-type UnsafeOpenPaymentServiceServer interface {
-	mustEmbedUnimplementedOpenPaymentServiceServer()
-}
-
-func RegisterOpenPaymentServiceServer(s grpc.ServiceRegistrar, srv OpenPaymentServiceServer) {
-	s.RegisterService(&OpenPaymentService_ServiceDesc, srv)
-}
-
-func _OpenPaymentService_CreatePaymentPointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreatePaymentPointerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).CreatePaymentPointer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_CreatePaymentPointer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).CreatePaymentPointer(ctx, req.(*CreatePaymentPointerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_GetPaymentPointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPaymentPointerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).GetPaymentPointer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_GetPaymentPointer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).GetPaymentPointer(ctx, req.(*GetPaymentPointerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_PaymentPointerExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PaymentPointerExistsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).PaymentPointerExists(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_PaymentPointerExists_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).PaymentPointerExists(ctx, req.(*PaymentPointerExistsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenPaymentService_ListWalletPaymentPointers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenPaymentServiceServer).ListWalletPaymentPointers(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenPaymentService_ListWalletPaymentPointers_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenPaymentServiceServer).ListWalletPaymentPointers(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// OpenPaymentService_ServiceDesc is the grpc.ServiceDesc for OpenPaymentService service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var OpenPaymentService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "backend.v1.OpenPaymentService",
-	HandlerType: (*OpenPaymentServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "CreatePaymentPointer",
-			Handler:    _OpenPaymentService_CreatePaymentPointer_Handler,
-		},
-		{
-			MethodName: "GetPaymentPointer",
-			Handler:    _OpenPaymentService_GetPaymentPointer_Handler,
-		},
-		{
-			MethodName: "PaymentPointerExists",
-			Handler:    _OpenPaymentService_PaymentPointerExists_Handler,
-		},
-		{
-			MethodName: "ListWalletPaymentPointers",
-			Handler:    _OpenPaymentService_ListWalletPaymentPointers_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "backend/v1/backend.proto",
-}
-
-const (
 	BackendService_UpdateIndividualKYC_FullMethodName         = "/backend.v1.BackendService/UpdateIndividualKYC"
 	BackendService_GetIndividualKYC_FullMethodName            = "/backend.v1.BackendService/GetIndividualKYC"
 	BackendService_IsUSPSAddress_FullMethodName               = "/backend.v1.BackendService/IsUSPSAddress"
@@ -226,6 +27,8 @@ const (
 	BackendService_GetSignup_FullMethodName                   = "/backend.v1.BackendService/GetSignup"
 	BackendService_CompleteSignup_FullMethodName              = "/backend.v1.BackendService/CompleteSignup"
 	BackendService_CreateUserDefaultWallet_FullMethodName     = "/backend.v1.BackendService/CreateUserDefaultWallet"
+	BackendService_CreateWalletAddress_FullMethodName         = "/backend.v1.BackendService/CreateWalletAddress"
+	BackendService_WalletAddressExists_FullMethodName         = "/backend.v1.BackendService/WalletAddressExists"
 	BackendService_SetWalletName_FullMethodName               = "/backend.v1.BackendService/SetWalletName"
 	BackendService_GetWalletInfo_FullMethodName               = "/backend.v1.BackendService/GetWalletInfo"
 	BackendService_GetPublicWalletInfo_FullMethodName         = "/backend.v1.BackendService/GetPublicWalletInfo"
@@ -273,7 +76,6 @@ const (
 	BackendService_GetMXWidget_FullMethodName                 = "/backend.v1.BackendService/GetMXWidget"
 	BackendService_CreateMXBankAccounts_FullMethodName        = "/backend.v1.BackendService/CreateMXBankAccounts"
 	BackendService_OnboardGMTUser_FullMethodName              = "/backend.v1.BackendService/OnboardGMTUser"
-	BackendService_InitQuote3DS_FullMethodName                = "/backend.v1.BackendService/InitQuote3DS"
 	BackendService_Init3DS_FullMethodName                     = "/backend.v1.BackendService/Init3DS"
 	BackendService_Lookup3DS_FullMethodName                   = "/backend.v1.BackendService/Lookup3DS"
 	BackendService_Authenticate3DS_FullMethodName             = "/backend.v1.BackendService/Authenticate3DS"
@@ -311,6 +113,8 @@ type BackendServiceClient interface {
 	CompleteSignup(ctx context.Context, in *CompleteSignupRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Wallet
+	CreateWalletAddress(ctx context.Context, in *CreateWalletAddressRequest, opts ...grpc.CallOption) (*Empty, error)
+	WalletAddressExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error)
 	SetWalletName(ctx context.Context, in *SetWalletNameRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetWalletInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WalletInfo, error)
 	GetPublicWalletInfo(ctx context.Context, in *GetPublicWalletInfoRequest, opts ...grpc.CallOption) (*PublicWalletInfo, error)
@@ -371,7 +175,8 @@ type BackendServiceClient interface {
 	// GMT
 	OnboardGMTUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	// Tabapay 3DS
-	InitQuote3DS(ctx context.Context, in *InitQuote3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error)
+	//
+	//	rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
 	Init3DS(ctx context.Context, in *Init3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error)
 	Lookup3DS(ctx context.Context, in *Lookup3DSRequest, opts ...grpc.CallOption) (*Lookup3DSResponse, error)
 	Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error)
@@ -477,6 +282,24 @@ func (c *backendServiceClient) CompleteSignup(ctx context.Context, in *CompleteS
 func (c *backendServiceClient) CreateUserDefaultWallet(ctx context.Context, in *CreateUserDefaultWalletRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, BackendService_CreateUserDefaultWallet_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CreateWalletAddress(ctx context.Context, in *CreateWalletAddressRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_CreateWalletAddress_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) WalletAddressExists(ctx context.Context, in *WalletAddressExistsRequest, opts ...grpc.CallOption) (*WalletAddressExistsResponse, error) {
+	out := new(WalletAddressExistsResponse)
+	err := c.cc.Invoke(ctx, BackendService_WalletAddressExists_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -906,15 +729,6 @@ func (c *backendServiceClient) OnboardGMTUser(ctx context.Context, in *Empty, op
 	return out, nil
 }
 
-func (c *backendServiceClient) InitQuote3DS(ctx context.Context, in *InitQuote3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error) {
-	out := new(Init3DSResponse)
-	err := c.cc.Invoke(ctx, BackendService_InitQuote3DS_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) Init3DS(ctx context.Context, in *Init3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error) {
 	out := new(Init3DSResponse)
 	err := c.cc.Invoke(ctx, BackendService_Init3DS_FullMethodName, in, out, opts...)
@@ -1110,6 +924,8 @@ type BackendServiceServer interface {
 	CompleteSignup(context.Context, *CompleteSignupRequest) (*Empty, error)
 	CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error)
 	// Wallet
+	CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error)
+	WalletAddressExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error)
 	SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error)
 	GetWalletInfo(context.Context, *Empty) (*WalletInfo, error)
 	GetPublicWalletInfo(context.Context, *GetPublicWalletInfoRequest) (*PublicWalletInfo, error)
@@ -1170,7 +986,8 @@ type BackendServiceServer interface {
 	// GMT
 	OnboardGMTUser(context.Context, *Empty) (*Empty, error)
 	// Tabapay 3DS
-	InitQuote3DS(context.Context, *InitQuote3DSRequest) (*Init3DSResponse, error)
+	//
+	//	rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
 	Init3DS(context.Context, *Init3DSRequest) (*Init3DSResponse, error)
 	Lookup3DS(context.Context, *Lookup3DSRequest) (*Lookup3DSResponse, error)
 	Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error)
@@ -1229,6 +1046,12 @@ func (UnimplementedBackendServiceServer) CompleteSignup(context.Context, *Comple
 }
 func (UnimplementedBackendServiceServer) CreateUserDefaultWallet(context.Context, *CreateUserDefaultWalletRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserDefaultWallet not implemented")
+}
+func (UnimplementedBackendServiceServer) CreateWalletAddress(context.Context, *CreateWalletAddressRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateWalletAddress not implemented")
+}
+func (UnimplementedBackendServiceServer) WalletAddressExists(context.Context, *WalletAddressExistsRequest) (*WalletAddressExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WalletAddressExists not implemented")
 }
 func (UnimplementedBackendServiceServer) SetWalletName(context.Context, *SetWalletNameRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetWalletName not implemented")
@@ -1370,9 +1193,6 @@ func (UnimplementedBackendServiceServer) CreateMXBankAccounts(context.Context, *
 }
 func (UnimplementedBackendServiceServer) OnboardGMTUser(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OnboardGMTUser not implemented")
-}
-func (UnimplementedBackendServiceServer) InitQuote3DS(context.Context, *InitQuote3DSRequest) (*Init3DSResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InitQuote3DS not implemented")
 }
 func (UnimplementedBackendServiceServer) Init3DS(context.Context, *Init3DSRequest) (*Init3DSResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Init3DS not implemented")
@@ -1586,6 +1406,42 @@ func _BackendService_CreateUserDefaultWallet_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).CreateUserDefaultWallet(ctx, req.(*CreateUserDefaultWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CreateWalletAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWalletAddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreateWalletAddress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreateWalletAddress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreateWalletAddress(ctx, req.(*CreateWalletAddressRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_WalletAddressExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WalletAddressExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).WalletAddressExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_WalletAddressExists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).WalletAddressExists(ctx, req.(*WalletAddressExistsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2436,24 +2292,6 @@ func _BackendService_OnboardGMTUser_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_InitQuote3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitQuote3DSRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).InitQuote3DS(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: BackendService_InitQuote3DS_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).InitQuote3DS(ctx, req.(*InitQuote3DSRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_Init3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Init3DSRequest)
 	if err := dec(in); err != nil {
@@ -2854,6 +2692,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_CreateUserDefaultWallet_Handler,
 		},
 		{
+			MethodName: "CreateWalletAddress",
+			Handler:    _BackendService_CreateWalletAddress_Handler,
+		},
+		{
+			MethodName: "WalletAddressExists",
+			Handler:    _BackendService_WalletAddressExists_Handler,
+		},
+		{
 			MethodName: "SetWalletName",
 			Handler:    _BackendService_SetWalletName_Handler,
 		},
@@ -3040,10 +2886,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "OnboardGMTUser",
 			Handler:    _BackendService_OnboardGMTUser_Handler,
-		},
-		{
-			MethodName: "InitQuote3DS",
-			Handler:    _BackendService_InitQuote3DS_Handler,
 		},
 		{
 			MethodName: "Init3DS",

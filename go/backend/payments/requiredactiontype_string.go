@@ -16,11 +16,12 @@ func _() {
 	_ = x[RequiredActionTypeSenderAmount-5]
 	_ = x[RequiredActionTypeReceiverAmount-6]
 	_ = x[RequiredActionTypeOTP-7]
+	_ = x[RequiredActionTypeIPAddress-8]
 }
 
-const _RequiredActionType_name = "UnknownThreeDSSenderIdentifierSenderAccountReceiverIdentifierSenderAmountReceiverAmountOTP"
+const _RequiredActionType_name = "UnknownThreeDSSenderIdentifierSenderAccountReceiverIdentifierSenderAmountReceiverAmountOTPIPAddress"
 
-var _RequiredActionType_index = [...]uint8{0, 7, 14, 30, 43, 61, 73, 87, 90}
+var _RequiredActionType_index = [...]uint8{0, 7, 14, 30, 43, 61, 73, 87, 90, 99}
 
 func (i RequiredActionType) String() string {
 	if i < 0 || i >= RequiredActionType(len(_RequiredActionType_index)-1) {
