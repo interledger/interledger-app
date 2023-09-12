@@ -14,15 +14,15 @@ import {
   Layouts,
   TextField
 } from '~/components'
-import { connectClient } from '~/lib/connect.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
-  let response = await connectClient.getWalletInfo(request, {})
+  let response = await grpc.getWalletInfo(request, {})
   if (isConnectError(response)) {
     throw response.errorResponse
   } else if (response.hasWalletAddress) {
@@ -37,7 +37,7 @@ export async function loader({ request }: LoaderArgs) {
     session.identity.traits.firstName + ' ' + session.identity.traits.lastName
 
   while (!usernameIsValid && attempts < 5) {
-    let response = await connectClient.walletAddressExists(request, {
+    let response = await grpc.walletAddressExists(request, {
       url: `https://${PAYMENT_POINTER_BASE}/${username}`
     })
 
@@ -173,7 +173,7 @@ export async function action({ request }: ActionArgs) {
 
   const publicName = username
 
-  let response = await connectClient.walletAddressExists(request, {
+  let response = await grpc.walletAddressExists(request, {
     url: `https://${PAYMENT_POINTER_BASE}/${username}`
   })
   if (isConnectError(response)) {
@@ -190,7 +190,7 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (canSubmit) {
-    let response = await connectClient.createWalletAddress(request, {
+    let response = await grpc.createWalletAddress(request, {
       url: `https://${PAYMENT_POINTER_BASE}/${username}`,
       asset: 'USD',
       assetScale: 2,

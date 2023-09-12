@@ -12,8 +12,8 @@ import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Avatar, Card, CardButton, CardContent, Layouts } from '~/components'
 import type { ListContactsResponse } from '~/generated/connect/backend/v1/backend_pb'
-import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 /**
  * Allows us to change the searchParams without revalidating the pages data
@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderArgs) {
    * This allows us to pull all necessary data when navigating back to this page.
    */
   for (let i = 0; i < pages; i++) {
-    const response = await connectClient.listContacts(request, pageInfo)
+    const response = await grpc.listContacts(request, pageInfo)
     if (isConnectError(response)) throw response.errorResponse
 
     const { contacts, nextPageToken } = response

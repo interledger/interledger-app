@@ -19,11 +19,11 @@ import {
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
-import { connectClient } from '~/lib/connect.server'
 import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const card = await connectClient.getCardDetails(request, {
+  const card = await grpc.getCardDetails(request, {
     id: params.accountId as string
   })
 
