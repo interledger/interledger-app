@@ -36,7 +36,7 @@ func TestCreateDynamicForm(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "testForm", form.FormID)
 	assert.Equal(t, jsonData, form.Data)
-	assert.Equal(t, walletID, form.WalletID)
+	assert.Equal(t, walletID, form.WalletID.String)
 }
 
 func TestListDynamicFroms(t *testing.T) {
