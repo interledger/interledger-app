@@ -25,6 +25,7 @@ declare module "routes-gen" {
     "/connect/bank": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/api/sendOtp": Record<string, never>;
+    "/collectables": Record<string, never>;
     "/transactions": Record<string, never>;
     "/transactions/:transactionId": { "transactionId": string };
     "/blog/:slug": { "slug": string };
@@ -88,6 +89,7 @@ declare module "routes-gen" {
       | ["/connect/bank"]
       | ["/connect/card"]
       | ["/api/sendOtp"]
+      | ["/collectables"]
       | ["/transactions"]
       | ["/transactions/:transactionId", RouteParams["/transactions/:transactionId"]]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
