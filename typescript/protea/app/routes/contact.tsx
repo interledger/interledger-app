@@ -13,11 +13,11 @@ import {
   TextField
 } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
+import { getContactRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-import { getContactRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()

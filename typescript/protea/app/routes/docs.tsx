@@ -6,7 +6,7 @@ import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
 import type { LoaderDocsNav } from '~/components/Scaffold/Docs/useDocsStore'
-import { getAllDocs } from '~/lib/marketing.server'
+import { getAllDocs } from '~/data/content.server'
 
 export async function loader({ request }: LoaderArgs) {
   if (process.env.FYNBOS_ENV == 'prod')

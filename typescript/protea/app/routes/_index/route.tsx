@@ -4,6 +4,7 @@ import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts, WalletShapes } from '~/components'
+import { getHomeRoute } from '~/data/content.server'
 import {
   getFeatures,
   getKycStatus,
@@ -11,7 +12,6 @@ import {
   getWalletInfo
 } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
-import { getHomeRoute } from '~/lib/marketing.server'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { AppPage } from './app'
 import styles from './home.css'

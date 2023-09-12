@@ -6,8 +6,8 @@ import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
+import { getCurrentThankYouPage } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { getCurrentThankYouPage } from '~/lib/marketing.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const { thankYou, footer } = await getCurrentThankYouPage({

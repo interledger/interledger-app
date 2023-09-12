@@ -5,8 +5,8 @@ import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
+import { getCollectablesRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
-import { getCollectablesRoute } from '~/lib/marketing.server'
 
 export async function loader({ request }: LoaderArgs) {
   const { collectablesRoute, footer } = await getCollectablesRoute()
