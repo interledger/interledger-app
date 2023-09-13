@@ -9,9 +9,14 @@ import { getUserSession } from '~/lib/kratos.server'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
+  const len = session.identity.traits.phone.length
+  const phoneMask = session.identity.traits.phone
+    .substring(len - 4, len)
+    .padStart(len, '*')
 
   return json({
-    traits: session.identity.traits
+    phoneMask,
+    email: session.identity.traits.email
   })
 }
 
@@ -34,7 +39,7 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { traits } = useLoaderData<typeof loader>()
+  const { phoneMask, email } = useLoaderData<typeof loader>()
   return (
     <>
       <Card>
@@ -44,7 +49,7 @@ export default function Page() {
             <div className='mt-1 flex w-full justify-between p-3'>
               <div className='flex space-x-3'>
                 <Icon>mail</Icon>
-                <span>{traits.email}</span>
+                <span>{email}</span>
               </div>
             </div>
           </div>
@@ -53,7 +58,7 @@ export default function Page() {
             <div className='mt-1 flex w-full justify-between p-3'>
               <div className='flex space-x-3'>
                 <Icon>call</Icon>
-                <span>{traits.phone}</span>
+                <span>{phoneMask}</span>
               </div>
             </div>
           </div>
