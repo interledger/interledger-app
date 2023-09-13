@@ -126,6 +126,8 @@ export default function Page() {
   const [height, setHeight] = useState(null)
   const [shouldFetch, setShouldFetch] = useState(true)
 
+  const isMobile = typeof document !== 'undefined' && window.innerWidth < 1024
+
   const divHeight = useCallback(
     (node: any) => {
       if (node !== null) {
@@ -267,7 +269,7 @@ export default function Page() {
               <Label>{transactionGroup[0].formattedDate}</Label>
               {transactionGroup.map((transaction) => (
                 <CardLink
-                  preventScrollReset
+                  preventScrollReset={!isMobile}
                   prefetch='none'
                   key={transaction.id}
                   to={route('/transactions/:transactionId', {
