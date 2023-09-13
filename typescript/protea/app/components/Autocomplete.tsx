@@ -100,13 +100,13 @@ export const Autocomplete: FC<AutocompleteProps> = ({
             leaveTo='opacity-0'
             afterLeave={() => onQuery('')}
           >
-            <Combobox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav py-1 shadow-lg focus:outline-none sm:text-sm'>
+            <Combobox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav p-1 shadow-lg focus:outline-none sm:text-sm'>
               {options.length > 0 &&
                 options.map((option, index) => (
                   <Combobox.Option
                     key={index}
                     className={({ active }) =>
-                      `relative flex h-12 cursor-pointer select-none items-center justify-between pl-4 pr-3 ${
+                      `relative flex h-12 cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 ${
                         active ? 'bg-nav-hover' : 'text-medium'
                       }`
                     }
