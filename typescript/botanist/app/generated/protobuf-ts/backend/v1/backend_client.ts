@@ -7,7 +7,7 @@ import { BackendService } from "./backend";
 import type { SlackCallbackResponse } from "./backend";
 import type { SlackCallbackRequest } from "./backend";
 import type { CreateSlackAuthURLResponse } from "./backend";
-import type { CreateDynamicFormRequest } from "./backend";
+import type { SubmitFormRequest } from "./backend";
 import type { CreateDiscordAuthURLResponse } from "./backend";
 import type { DiscordCallbackResponse } from "./backend";
 import type { DiscordCallbackRequest } from "./backend";
@@ -462,9 +462,9 @@ export interface IBackendServiceClient {
     /**
      * Dynamic Forms
      *
-     * @generated from protobuf rpc: CreateDynamicForm(backend.v1.CreateDynamicFormRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: SubmitForm(backend.v1.SubmitFormRequest) returns (backend.v1.Empty);
      */
-    createDynamicForm(input: CreateDynamicFormRequest, options?: RpcOptions): UnaryCall<CreateDynamicFormRequest, Empty>;
+    submitForm(input: SubmitFormRequest, options?: RpcOptions): UnaryCall<SubmitFormRequest, Empty>;
     /**
      * Slack
      *
@@ -1053,11 +1053,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     /**
      * Dynamic Forms
      *
-     * @generated from protobuf rpc: CreateDynamicForm(backend.v1.CreateDynamicFormRequest) returns (backend.v1.Empty);
+     * @generated from protobuf rpc: SubmitForm(backend.v1.SubmitFormRequest) returns (backend.v1.Empty);
      */
-    createDynamicForm(input: CreateDynamicFormRequest, options?: RpcOptions): UnaryCall<CreateDynamicFormRequest, Empty> {
+    submitForm(input: SubmitFormRequest, options?: RpcOptions): UnaryCall<SubmitFormRequest, Empty> {
         const method = this.methods[74], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CreateDynamicFormRequest, Empty>("unary", this._transport, method, opt, input);
+        return stackIntercept<SubmitFormRequest, Empty>("unary", this._transport, method, opt, input);
     }
     /**
      * Slack

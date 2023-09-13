@@ -18,10 +18,10 @@ import (
 	"unicode"
 )
 
-func CreateForm(ctx context.Context, b Backends, args *dynamicforms.CreateFormArgs) (*dynamicforms.Form, error) {
-	var form dynamicforms.Form
+func SubmitForm(ctx context.Context, b Backends, args *dynamicforms.SubmitArgs) (*dynamicforms.Submission, error) {
+	var form dynamicforms.Submission
 
-	jsonData, err := json.Marshal(args.FormData)
+	jsonData, err := json.Marshal(args.Data)
 	if err != nil {
 		return nil, fmt.Errorf("%w failed to marshal form data: %w", dynamicforms.ErrInternal, err)
 	}
@@ -43,8 +43,8 @@ func CreateForm(ctx context.Context, b Backends, args *dynamicforms.CreateFormAr
 	return &form, nil
 }
 
-func ListFormCounts(ctx context.Context, b Backends, _ db.Pagination) ([]dynamicforms.FormCount, error) {
-	var forms []dynamicforms.FormCount
+func ListSubmissionCount(ctx context.Context, b Backends, _ db.Pagination) ([]dynamicforms.SubmissionCount, error) {
+	var forms []dynamicforms.SubmissionCount
 
 	err := b.DB().SelectContext(ctx, &forms, "SELECT form_id, COUNT(*) FROM dynamic_forms GROUP BY form_id")
 	if errors.Is(err, sql.ErrNoRows) {
@@ -57,7 +57,35 @@ func ListFormCounts(ctx context.Context, b Backends, _ db.Pagination) ([]dynamic
 	return forms, nil
 }
 
-func ExportFormResults(ctx context.Context, b Backends, formID string, writer io.Writer) error {
+func ListSubmissions(ctx context.Context, b Backends, formID string) ([]dynamicforms.Submission, error) {
+	var submissions []dynamicforms.Submission
+
+	err := b.DB().SelectContext(ctx, &submissions, "SELECT id, form_id, wallet_id, data, created_at  FROM dynamic_forms WHERE form_id = $1", formID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return submissions, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", dynamicforms.ErrInternal, err)
+	}
+
+	return submissions, nil
+}
+
+func GetSubmission(ctx context.Context, b Backends, id string) (*dynamicforms.Submission, error) {
+	var submission dynamicforms.Submission
+
+	err := b.DB().GetContext(ctx, &submission, "SELECT id, form_id, wallet_id, data, created_at FROM dynamic_forms WHERE id = $1", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", dynamicforms.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", dynamicforms.ErrInternal, err)
+	}
+
+	return &submission, nil
+}
+
+func ExportSubmissions(ctx context.Context, b Backends, formID string, writer io.Writer) error {
 	var formResps []string
 
 	err := b.DB().SelectContext(ctx, &formResps, "SELECT data FROM dynamic_forms WHERE form_id = $1", formID)

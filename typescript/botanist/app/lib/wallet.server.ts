@@ -463,13 +463,13 @@ export async function CompleteLinkedAccountReview(
   }
 }
 
-export async function ListDynamicFormCounts(
+export async function ListFormSubmissionCounts(
   request: Request,
   page: PaginationRequest
 ) {
   const cookie = String(request.headers.get('cookie'))
   let rpc = await grpcClient
-    .listDynamicFormCounts(page, {
+    .listFormSubmissionCounts(page, {
       meta: {
         cookies: cookie || ''
       }
@@ -481,7 +481,7 @@ export async function ListDynamicFormCounts(
     throw json({}, httpMapping(rpc.code))
   }
 
-  return rpc.response.dynamicFormCounts
+  return rpc.response.formSubmissionCounts
 }
 
 export async function ExportDynamicFormResult(
@@ -489,7 +489,7 @@ export async function ExportDynamicFormResult(
   formId: string
 ) {
   const cookie = String(request.headers.get('cookie'))
-  let rpc = grpcClient.exportDynamicForm(
+  let rpc = grpcClient.exportFormSubmissions(
     { formId },
     {
       meta: {
@@ -512,6 +512,60 @@ export async function ExportDynamicFormResult(
   const blob = new Blob(chunks, { type: 'text/csv' })
 
   return blob
+}
+
+export async function ListFormSubmissions(request: Request, formId: string) {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .listFormSubmissions(
+      {
+        formId
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response.formSubmissions.map((submission) => {
+    return {
+      id: submission.id,
+      formId: submission.formId,
+      date: DateTime.fromSeconds(
+        parseInt(submission.timestamp?.seconds ?? '')
+      ).toLocaleString(DateTime.DATETIME_FULL)
+    }
+  })
+}
+
+export async function GetFormSubmissionDetails(request: Request, id: string) {
+  const cookie = String(request.headers.get('cookie'))
+  let rpc = await grpcClient
+    .getFormSubmissionDetails(
+      {
+        id
+      },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
+      }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
 }
 
 export async function ListExternalApiCalls(

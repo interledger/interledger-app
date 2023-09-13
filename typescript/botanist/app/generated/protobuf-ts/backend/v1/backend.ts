@@ -1962,9 +1962,9 @@ export interface VerifyIdentityRequest {
     id: string;
 }
 /**
- * @generated from protobuf message backend.v1.CreateDynamicFormRequest
+ * @generated from protobuf message backend.v1.SubmitFormRequest
  */
-export interface CreateDynamicFormRequest {
+export interface SubmitFormRequest {
     /**
      * @generated from protobuf field: string form_id = 1;
      */
@@ -9027,21 +9027,21 @@ class VerifyIdentityRequest$Type extends MessageType<VerifyIdentityRequest> {
  */
 export const VerifyIdentityRequest = new VerifyIdentityRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class CreateDynamicFormRequest$Type extends MessageType<CreateDynamicFormRequest> {
+class SubmitFormRequest$Type extends MessageType<SubmitFormRequest> {
     constructor() {
-        super("backend.v1.CreateDynamicFormRequest", [
+        super("backend.v1.SubmitFormRequest", [
             { no: 1, name: "form_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "data", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<CreateDynamicFormRequest>): CreateDynamicFormRequest {
+    create(value?: PartialMessage<SubmitFormRequest>): SubmitFormRequest {
         const message = { formId: "", data: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<CreateDynamicFormRequest>(this, message, value);
+            reflectionMergePartial<SubmitFormRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreateDynamicFormRequest): CreateDynamicFormRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SubmitFormRequest): SubmitFormRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -9063,7 +9063,7 @@ class CreateDynamicFormRequest$Type extends MessageType<CreateDynamicFormRequest
         }
         return message;
     }
-    internalBinaryWrite(message: CreateDynamicFormRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: SubmitFormRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string form_id = 1; */
         if (message.formId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.formId);
@@ -9077,9 +9077,9 @@ class CreateDynamicFormRequest$Type extends MessageType<CreateDynamicFormRequest
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.CreateDynamicFormRequest
+ * @generated MessageType for protobuf message backend.v1.SubmitFormRequest
  */
-export const CreateDynamicFormRequest = new CreateDynamicFormRequest$Type();
+export const SubmitFormRequest = new SubmitFormRequest$Type();
 /**
  * @generated ServiceType for protobuf service backend.v1.BackendService
  */
@@ -9158,7 +9158,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SearchWallets", options: {}, I: SearchWalletsRequest, O: SearchWalletsResponse },
     { name: "DiscordCallback", options: {}, I: DiscordCallbackRequest, O: DiscordCallbackResponse },
     { name: "CreateDiscordAuthURL", options: {}, I: Empty, O: CreateDiscordAuthURLResponse },
-    { name: "CreateDynamicForm", options: {}, I: CreateDynamicFormRequest, O: Empty },
+    { name: "SubmitForm", options: {}, I: SubmitFormRequest, O: Empty },
     { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
     { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse }
 ]);

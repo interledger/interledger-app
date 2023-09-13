@@ -6,10 +6,14 @@ import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
 import type { ListExternalApiCallsResponse } from "./backend";
 import type { ListExternalApiCallsRequest } from "./backend";
-import type { ExportDynamicFormResponse } from "./backend";
-import type { ExportDynamicFormRequest } from "./backend";
+import type { FormSubmissionDetails } from "./backend";
+import type { GetFormSubmissionDetailsRequest } from "./backend";
+import type { ListFormSubmissionsResponse } from "./backend";
+import type { ListFormSubmissionsRequest } from "./backend";
+import type { ExportFormSubmissionsResponse } from "./backend";
+import type { ExportFormSubmissionsRequest } from "./backend";
 import type { ServerStreamingCall } from "@protobuf-ts/runtime-rpc";
-import type { ListDynamicFormCountsResponse } from "./backend";
+import type { ListFormSubmissionCountsResponse } from "./backend";
 import type { LinkedAccount } from "./backend";
 import type { GetLinkedAccountRequest } from "./backend";
 import type { CompleteLinkedAccountReviewRequest } from "./backend";
@@ -98,13 +102,21 @@ export interface IBackendClient {
      */
     getLinkedAccount(input: GetLinkedAccountRequest, options?: RpcOptions): UnaryCall<GetLinkedAccountRequest, LinkedAccount>;
     /**
-     * @generated from protobuf rpc: ListDynamicFormCounts(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListDynamicFormCountsResponse);
+     * @generated from protobuf rpc: ListFormSubmissionCounts(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListFormSubmissionCountsResponse);
      */
-    listDynamicFormCounts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListDynamicFormCountsResponse>;
+    listFormSubmissionCounts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListFormSubmissionCountsResponse>;
     /**
-     * @generated from protobuf rpc: ExportDynamicForm(backend.admin.v1.ExportDynamicFormRequest) returns (stream backend.admin.v1.ExportDynamicFormResponse);
+     * @generated from protobuf rpc: ExportFormSubmissions(backend.admin.v1.ExportFormSubmissionsRequest) returns (stream backend.admin.v1.ExportFormSubmissionsResponse);
      */
-    exportDynamicForm(input: ExportDynamicFormRequest, options?: RpcOptions): ServerStreamingCall<ExportDynamicFormRequest, ExportDynamicFormResponse>;
+    exportFormSubmissions(input: ExportFormSubmissionsRequest, options?: RpcOptions): ServerStreamingCall<ExportFormSubmissionsRequest, ExportFormSubmissionsResponse>;
+    /**
+     * @generated from protobuf rpc: ListFormSubmissions(backend.admin.v1.ListFormSubmissionsRequest) returns (backend.admin.v1.ListFormSubmissionsResponse);
+     */
+    listFormSubmissions(input: ListFormSubmissionsRequest, options?: RpcOptions): UnaryCall<ListFormSubmissionsRequest, ListFormSubmissionsResponse>;
+    /**
+     * @generated from protobuf rpc: GetFormSubmissionDetails(backend.admin.v1.GetFormSubmissionDetailsRequest) returns (backend.admin.v1.FormSubmissionDetails);
+     */
+    getFormSubmissionDetails(input: GetFormSubmissionDetailsRequest, options?: RpcOptions): UnaryCall<GetFormSubmissionDetailsRequest, FormSubmissionDetails>;
     /**
      * @generated from protobuf rpc: ListExternalApiCalls(backend.admin.v1.ListExternalApiCallsRequest) returns (backend.admin.v1.ListExternalApiCallsResponse);
      */
@@ -218,24 +230,38 @@ export class BackendClient implements IBackendClient, ServiceInfo {
         return stackIntercept<GetLinkedAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListDynamicFormCounts(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListDynamicFormCountsResponse);
+     * @generated from protobuf rpc: ListFormSubmissionCounts(backend.admin.v1.PaginationRequest) returns (backend.admin.v1.ListFormSubmissionCountsResponse);
      */
-    listDynamicFormCounts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListDynamicFormCountsResponse> {
+    listFormSubmissionCounts(input: PaginationRequest, options?: RpcOptions): UnaryCall<PaginationRequest, ListFormSubmissionCountsResponse> {
         const method = this.methods[14], opt = this._transport.mergeOptions(options);
-        return stackIntercept<PaginationRequest, ListDynamicFormCountsResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<PaginationRequest, ListFormSubmissionCountsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ExportDynamicForm(backend.admin.v1.ExportDynamicFormRequest) returns (stream backend.admin.v1.ExportDynamicFormResponse);
+     * @generated from protobuf rpc: ExportFormSubmissions(backend.admin.v1.ExportFormSubmissionsRequest) returns (stream backend.admin.v1.ExportFormSubmissionsResponse);
      */
-    exportDynamicForm(input: ExportDynamicFormRequest, options?: RpcOptions): ServerStreamingCall<ExportDynamicFormRequest, ExportDynamicFormResponse> {
+    exportFormSubmissions(input: ExportFormSubmissionsRequest, options?: RpcOptions): ServerStreamingCall<ExportFormSubmissionsRequest, ExportFormSubmissionsResponse> {
         const method = this.methods[15], opt = this._transport.mergeOptions(options);
-        return stackIntercept<ExportDynamicFormRequest, ExportDynamicFormResponse>("serverStreaming", this._transport, method, opt, input);
+        return stackIntercept<ExportFormSubmissionsRequest, ExportFormSubmissionsResponse>("serverStreaming", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListFormSubmissions(backend.admin.v1.ListFormSubmissionsRequest) returns (backend.admin.v1.ListFormSubmissionsResponse);
+     */
+    listFormSubmissions(input: ListFormSubmissionsRequest, options?: RpcOptions): UnaryCall<ListFormSubmissionsRequest, ListFormSubmissionsResponse> {
+        const method = this.methods[16], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ListFormSubmissionsRequest, ListFormSubmissionsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetFormSubmissionDetails(backend.admin.v1.GetFormSubmissionDetailsRequest) returns (backend.admin.v1.FormSubmissionDetails);
+     */
+    getFormSubmissionDetails(input: GetFormSubmissionDetailsRequest, options?: RpcOptions): UnaryCall<GetFormSubmissionDetailsRequest, FormSubmissionDetails> {
+        const method = this.methods[17], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetFormSubmissionDetailsRequest, FormSubmissionDetails>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListExternalApiCalls(backend.admin.v1.ListExternalApiCallsRequest) returns (backend.admin.v1.ListExternalApiCallsResponse);
      */
     listExternalApiCalls(input: ListExternalApiCallsRequest, options?: RpcOptions): UnaryCall<ListExternalApiCallsRequest, ListExternalApiCallsResponse> {
-        const method = this.methods[16], opt = this._transport.mergeOptions(options);
+        const method = this.methods[18], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListExternalApiCallsRequest, ListExternalApiCallsResponse>("unary", this._transport, method, opt, input);
     }
 }

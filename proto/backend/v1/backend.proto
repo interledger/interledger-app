@@ -135,7 +135,7 @@ service BackendService {
   rpc CreateDiscordAuthURL(Empty) returns (CreateDiscordAuthURLResponse);
 
   // Dynamic Forms
-  rpc CreateDynamicForm(CreateDynamicFormRequest) returns (Empty);
+  rpc SubmitForm(SubmitFormRequest) returns (Empty);
 
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
@@ -828,7 +828,7 @@ message VerifyIdentityRequest {
   string id = 1;
 }
 
-message CreateDynamicFormRequest {
+message SubmitFormRequest {
   string form_id = 1;
   string data = 2;
 }

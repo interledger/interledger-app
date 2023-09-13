@@ -123,7 +123,7 @@ export async function action({ request, params }: ActionArgs) {
       data[key] = value
   })
 
-  const response = grpc.createDynamicForm(request, {
+  const response = grpc.submitForm(request, {
     formId: params.slug as string,
     data: JSON.stringify(data)
   })

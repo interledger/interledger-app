@@ -2,24 +2,24 @@ import type { LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { Grid, Icon } from '~/components'
-import { ListDynamicFormCounts } from '~/lib/wallet.server'
+import { Grid, Icon, Router } from '~/components'
 import React from 'react'
+import { ListFormSubmissionCounts } from '~/lib/wallet.server'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
   let pageSize = url.searchParams.get('pageSize') || '50'
-  const formCounts = await ListDynamicFormCounts(request, {
+  const subCounts = await ListFormSubmissionCounts(request, {
     pageSize: parseInt(pageSize)
   })
 
   return json({
-    formCounts
+    subCounts
   })
 }
 
 export default function Page() {
-  const { formCounts } = useLoaderData<typeof loader>()
+  const { subCounts } = useLoaderData<typeof loader>()
 
   return (
     <Grid>
@@ -54,21 +54,24 @@ export default function Page() {
                       >
                         Action
                       </th>
+                      <th scope='col' className='relative py-3.5 px-4'>
+                        <span className='sr-only'>Edit</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className='divide-y divide-gray-200 bg-white'>
-                    {formCounts.map((formCount) => (
-                      <tr key={formCount.formId}>
+                    {subCounts.map((subCount) => (
+                      <tr key={subCount.formId}>
                         <td className='p-4 text-sm font-medium text-gray-900'>
-                          {formCount.formId}
+                          {subCount.formId}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {formCount.formCount}
+                          {subCount.submissionCount}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
                           <Link
-                            to={route('/dynamic-forms/:id.csv', {
-                              id: formCount.formId
+                            to={route('/dynamic-form/:id.csv', {
+                              id: subCount.formId
                             })}
                             className='text-primary'
                             reloadDocument
@@ -78,6 +81,17 @@ export default function Page() {
                               <span>Download</span>
                             </span>
                           </Link>
+                        </td>
+                        <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
+                          <Router
+                            to={route('/dynamic-form/:id/submissions', {
+                              id: subCount.formId
+                            })}
+                            className='text-primary'
+                          >
+                            View
+                            <span className='sr-only'>, {subCount.formId}</span>
+                          </Router>
                         </td>
                       </tr>
                     ))}
@@ -89,13 +103,13 @@ export default function Page() {
                         <p className='text-sm text-weak'>
                           Showing <span className='font-medium'>1</span> to{' '}
                           <span className='font-medium'>
-                            {formCounts.length}
+                            {subCounts.length}
                           </span>{' '}
                           of{' '}
                           <span className='font-medium'>
-                            {formCounts.length > 10
+                            {subCounts.length > 10
                               ? 'unknown'
-                              : formCounts.length}
+                              : subCounts.length}
                           </span>{' '}
                           results
                         </p>
