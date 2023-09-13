@@ -175,6 +175,33 @@ export type BooleanFilter = {
   eq?: InputMaybe<Scalars['BooleanType']>;
 };
 
+/** Record of type Collectables route (collectables_route) */
+export type CollectablesRouteRecord = RecordInterface & {
+  __typename?: 'CollectablesRouteRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body: Array<SectionRecord>;
+  id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
+};
+
+
+/** Record of type Collectables route (collectables_route) */
+export type CollectablesRouteRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export type CollectionMetadata = {
   __typename?: 'CollectionMetadata';
   count: Scalars['IntType'];
@@ -3009,6 +3036,8 @@ export type Query = {
   /** Returns the single instance record */
   blogRoute?: Maybe<BlogRouteRecord>;
   /** Returns the single instance record */
+  collectablesRoute?: Maybe<CollectablesRouteRecord>;
+  /** Returns the single instance record */
   contactRoute?: Maybe<ContactRouteRecord>;
   /** Returns the single instance record */
   discordRoute?: Maybe<DiscordRouteRecord>;
@@ -3188,6 +3217,13 @@ export type QueryBlogPostArgs = {
 
 /** The query root for this schema */
 export type QueryBlogRouteArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type QueryCollectablesRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
 };
