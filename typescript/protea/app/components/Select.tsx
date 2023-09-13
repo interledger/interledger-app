@@ -1,7 +1,10 @@
 import { Listbox, Transition } from '@headlessui/react'
+import { Link } from '@remix-run/react'
+import type { RemixLinkProps } from '@remix-run/react/dist/components'
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { FC } from 'react'
-import { Fragment } from 'react'
+import type { FC, ReactNode, RefAttributes } from 'react'
+import { Fragment, forwardRef } from 'react'
 import { Icon } from '.'
 
 export type SelectOptions = {
@@ -21,6 +24,7 @@ interface SelectProps {
   value?: SelectOptions
   options: SelectOptions[]
   onChange(value: SelectOptions): void
+  selectButton?: ReactNode
 }
 
 /**
@@ -37,7 +41,8 @@ export const Select: FC<SelectProps> = ({
   value,
   onChange,
   options,
-  disabled
+  disabled,
+  selectButton
 }) => {
   return (
     <div className={className || 'min-w-full'}>
@@ -93,6 +98,7 @@ export const Select: FC<SelectProps> = ({
                   )}
                 </Listbox.Option>
               ))}
+              {selectButton && selectButton}
             </Listbox.Options>
           </Transition>
         </div>
@@ -128,3 +134,28 @@ export const Select: FC<SelectProps> = ({
 }
 
 Select.displayName = 'Select'
+
+interface SelectRouterProps
+  extends RemixLinkProps,
+    RefAttributes<HTMLAnchorElement> {
+  className?: string
+  to: string
+  children?: ReactNode
+}
+
+export const SelectRouter = forwardRef<any, SelectRouterProps>(
+  ({ className, to, ...props }, ref) => {
+    return (
+      <Link
+        ref={ref}
+        to={to}
+        className={clsx(
+          'relative flex h-12 w-full cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 hover:bg-nav-hover',
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
+SelectRouter.displayName = 'SelectRouter'

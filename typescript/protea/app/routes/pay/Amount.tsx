@@ -1,6 +1,7 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import type { SelectOptions } from '~/components'
 import {
   Button,
@@ -17,6 +18,7 @@ import {
   Icon,
   LinkedInIcon,
   Select,
+  SelectRouter,
   TextButton,
   TextField,
   TwitterIcon
@@ -306,6 +308,11 @@ export const Amount = () => {
           value={account as SelectOptions}
           options={accounts.data?.sendAccounts || []}
           onChange={_onChangeLinkedAccount}
+          selectButton={
+            <SelectRouter to={route('/accounts')}>
+              <span>Connect new account</span> <Icon>add</Icon>
+            </SelectRouter>
+          }
           aria-invalid={
             Boolean(paymentFetcher.data?.errors?.linkedAccount) || undefined
           }
