@@ -584,6 +584,44 @@ export const getDiscordRoute = async () => {
       return { discordRoute: null, footer: null }
     })
 }
+
+export const getCollectablesRoute = async () => {
+  return apolloClient
+    .query<{
+      collectablesRoute: Query['collectablesRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetCollectablesRouteContent {
+          collectablesRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            seoMeta: _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { collectablesRoute: null, footer: null }
+    })
+}
+
 export const getSlackRoute = async () => {
   return apolloClient
     .query<{
