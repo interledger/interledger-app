@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/wallets"
 )
 
@@ -16,4 +17,5 @@ type Backends interface {
 	Notify() notify.Client
 	Email() email.Client
 	KYC() kyc.Client
+	Payments() payments.Client
 }

@@ -230,6 +230,20 @@ func (mr *MockClientMockRecorder) SetTransactionAmountTx(ctx, tx, ID, amount int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionAmountTx", reflect.TypeOf((*MockClient)(nil).SetTransactionAmountTx), ctx, tx, ID, amount)
 }
 
+// SetTransactionDestination mocks base method.
+func (m *MockClient) SetTransactionDestination(ctx context.Context, id, destination string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetTransactionDestination", ctx, id, destination)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTransactionDestination indicates an expected call of SetTransactionDestination.
+func (mr *MockClientMockRecorder) SetTransactionDestination(ctx, id, destination interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionDestination", reflect.TypeOf((*MockClient)(nil).SetTransactionDestination), ctx, id, destination)
+}
+
 // SetTransactionForeignID mocks base method.
 func (m *MockClient) SetTransactionForeignID(ctx context.Context, ID, foreignID string) error {
 	m.ctrl.T.Helper()

@@ -3,8 +3,11 @@ package client_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/identities"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
@@ -161,6 +164,40 @@ func TestClient(t *testing.T) {
 				SendTransactionState: transactions.StateFailed,
 			},
 		},
+		{
+			Name: "Requires account linking",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendLinkedAccount,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeSlack,
+					Identifier: "fynbos / DevTest",
+				},
+				SenderAmount:   currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				ReceiverAmount: currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				IPAddress:      "192.36.8.4",
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitCard,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeCreditCard,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransactionState: transactions.StateCompleted,
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -183,16 +220,31 @@ func TestClient(t *testing.T) {
 			})
 			require.NoError(st, err)
 
+			if tc.Args.Receiver.Type == payments.IdentityTypeSlack {
+				b.env.RegisterDelayedCallback(func() {
+					id, err := b.Identities().Add(ctx, identities.AddArgs{
+						WalletID:   receiveWalletID,
+						Platform:   identities.PlatformSlack,
+						Identifier: tc.Args.Receiver.Identifier,
+					})
+					require.NoError(st, err)
+					err = b.Identities().UpdateState(ctx, id.ID, identities.StateVerified, "")
+					require.NoError(st, err)
+				}, time.Hour)
+
+			}
+
 			p, requiredActions, err := pc.Confirm(ctx, p.ID)
 			require.NoError(st, err)
 			require.Empty(st, requiredActions)
 
 			for {
+				// Just so we don't spin on IsWorkflowCompleted
+				time.Sleep(100 * time.Millisecond)
+
 				if b.env.IsWorkflowCompleted() {
 					break
 				}
-				// Just so we don't spin on IsWorkflowCompleted
-				time.Sleep(100 * time.Millisecond)
 			}
 			require.NoError(st, b.env.GetWorkflowError())
 
@@ -202,6 +254,8 @@ func TestClient(t *testing.T) {
 
 			sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
 			require.NoError(st, err)
+			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://fynbos.test/"))
+			assert.True(st, strings.HasPrefix(sendTransaction.Source, "https://fynbos.test/"))
 			assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
 			sendTransfers := []AssertTransfer{}
 			for _, tr := range sendTransaction.Transfers {
@@ -212,6 +266,8 @@ func TestClient(t *testing.T) {
 			if tc.Assertions.ReceiveTransactionState != "" {
 				recvTransaction, err := b.Transactions().GetTransaction(ctx, receiveWalletID, p.ReceiveTransactionID)
 				require.NoError(st, err)
+				assert.True(st, strings.HasPrefix(recvTransaction.Destination, "https://fynbos.test/"))
+				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://fynbos.test/"))
 				assert.Equal(st, tc.Assertions.ReceiveTransactionState, recvTransaction.State)
 				recvTransfers := []AssertTransfer{}
 				for _, tr := range recvTransaction.Transfers {
