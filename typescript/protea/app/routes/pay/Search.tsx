@@ -110,31 +110,33 @@ export function Search() {
                   {result.identifierType == 'twitter' && <TwitterIcon />}
                   <div className='flex flex-col items-start gap-y-2'>
                     <span className='text-medium'>{result.identifier}</span>
-                    {result.subResults?.map((subResult) => {
-                      return (
-                        <div
-                          key={subResult.walletID + subResult.identifier}
-                          className='flex justify-start gap-x-1'
-                        >
-                          {(subResult.identifierType == 'wallet' ||
-                            subResult.identifierType == 'wallet_url') && (
-                            <FynbosIcon />
-                          )}
-                          {subResult.identifierType == 'twitter' && (
-                            <TwitterIcon />
-                          )}
-                          {subResult.identifierType == 'discord' && (
-                            <DiscordIcon />
-                          )}
-                          {subResult.identifierType == 'domain' && (
-                            <Icon>captive_portal</Icon>
-                          )}
-                          <span className='text-medium'>
-                            {subResult.identifier}
-                          </span>
-                        </div>
-                      )
-                    })}
+                    <div className='flex flex-wrap gap-x-4'>
+                      {result.subResults?.map((subResult) => {
+                        return (
+                          <div
+                            key={subResult.walletID + subResult.identifier}
+                            className='flex justify-start gap-x-1'
+                          >
+                            {(subResult.identifierType == 'wallet' ||
+                              subResult.identifierType == 'wallet_url') && (
+                              <FynbosIcon />
+                            )}
+                            {subResult.identifierType == 'twitter' && (
+                              <TwitterIcon />
+                            )}
+                            {subResult.identifierType == 'discord' && (
+                              <DiscordIcon />
+                            )}
+                            {subResult.identifierType == 'domain' && (
+                              <Icon>captive_portal</Icon>
+                            )}
+                            <span className='text-medium'>
+                              {subResult.identifier}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
 
