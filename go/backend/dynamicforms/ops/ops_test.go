@@ -3,7 +3,6 @@ package ops_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"github.com/dgryski/trifles/uuid"
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/fynbos/backend/db"
@@ -12,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestCreateDynamicForm(t *testing.T) {
+func TestSubmitForm(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
@@ -21,25 +20,19 @@ func TestCreateDynamicForm(t *testing.T) {
 	}
 
 	walletID := uuid.UUIDv4()
-	data := `{ "test": "data" }`
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	form, err := ops.CreateForm(ctx, b, &dynamicforms.CreateFormArgs{
+	form, err := ops.SubmitForm(ctx, b, &dynamicforms.SubmitArgs{
 		FormID:   "testForm",
-		FormData: `{ "test": "data" }`,
+		Data:     `{ "testform1": "data" }`,
 		WalletID: walletID,
 	})
 
 	assert.NoError(t, err)
 	assert.Equal(t, "testForm", form.FormID)
-	assert.Equal(t, jsonData, form.Data)
 	assert.Equal(t, walletID, form.WalletID.String)
 }
 
-func TestListDynamicFroms(t *testing.T) {
+func TestListSubmissionCount(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
@@ -47,63 +40,63 @@ func TestListDynamicFroms(t *testing.T) {
 		Db: db.MigrateTestDB(t, ctx),
 	}
 
-	testForms := []dynamicforms.CreateFormArgs{
+	testForms := []dynamicforms.SubmitArgs{
 		{
-			FormID:   "testForm1",
-			FormData: `{ "test1": "data" }`,
+			FormID: "testForm1",
+			Data:   `{ "test1": "data" }`,
 		},
 		{
-			FormID:   "testForm1",
-			FormData: `{ "test2": "data" }`,
+			FormID: "testForm1",
+			Data:   `{ "test2": "data" }`,
 		},
 		{
-			FormID:   "testForm3",
-			FormData: `{ "test3": "data" }`,
+			FormID: "testForm3",
+			Data:   `{ "test3": "data" }`,
 		},
 	}
 
 	for _, form := range testForms {
-		_, err := ops.CreateForm(ctx, b, &form)
+		_, err := ops.SubmitForm(ctx, b, &form)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	formCounts, err := ops.ListFormCounts(ctx, b, db.Pagination{})
+	formCounts, err := ops.ListSubmissionCount(ctx, b, db.Pagination{})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(formCounts))
 }
 
-func TestExportFormResults(t *testing.T) {
+func TestExportSubmissions(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 	b := &TestBackends{
 		Db: db.MigrateTestDB(t, ctx),
 	}
 
-	testForms := []dynamicforms.CreateFormArgs{
+	testSubmissions := []dynamicforms.SubmitArgs{
 		{
-			FormID:   "testForm1",
-			FormData: `{ "name": "Omer" }`,
+			FormID: "testForm1",
+			Data:   `{ "name": "Omer" }`,
 		},
 		{
-			FormID:   "testForm1",
-			FormData: `{ "name": "Matt" }`,
+			FormID: "testForm1",
+			Data:   `{ "name": "Matt" }`,
 		},
 		{
-			FormID:   "testForm3",
-			FormData: `{ "test3": { "test4": "data" } }`,
+			FormID: "testForm3",
+			Data:   `{ "test3": { "test4": "data" } }`,
 		},
 	}
-	for _, form := range testForms {
-		_, err := ops.CreateForm(ctx, b, &form)
+	for _, form := range testSubmissions {
+		_, err := ops.SubmitForm(ctx, b, &form)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	buf := &bytes.Buffer{}
-	err := ops.ExportFormResults(ctx, b, "testForm1", buf)
+	err := ops.ExportSubmissions(ctx, b, "testForm1", buf)
 
 	assert.NoError(t, err)
 	assert.Equal(t, buf.String(), "Name\nOmer\nMatt\n")

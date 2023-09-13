@@ -1728,162 +1728,383 @@ export class WaitlistSignup extends Message<WaitlistSignup> {
 }
 
 /**
- * @generated from message backend.admin.v1.DynamicFormCount
+ * @generated from message backend.admin.v1.FormSubmissionCount
  */
-export class DynamicFormCount extends Message<DynamicFormCount> {
+export class FormSubmissionCount extends Message<FormSubmissionCount> {
   /**
    * @generated from field: string form_id = 1;
    */
   formId = "";
 
   /**
-   * @generated from field: int32 form_count = 2;
+   * @generated from field: int32 submission_count = 2;
    */
-  formCount = 0;
+  submissionCount = 0;
 
-  constructor(data?: PartialMessage<DynamicFormCount>) {
+  constructor(data?: PartialMessage<FormSubmissionCount>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.admin.v1.DynamicFormCount";
+  static readonly typeName = "backend.admin.v1.FormSubmissionCount";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "form_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "form_count", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 2, name: "submission_count", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DynamicFormCount {
-    return new DynamicFormCount().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FormSubmissionCount {
+    return new FormSubmissionCount().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DynamicFormCount {
-    return new DynamicFormCount().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FormSubmissionCount {
+    return new FormSubmissionCount().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DynamicFormCount {
-    return new DynamicFormCount().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FormSubmissionCount {
+    return new FormSubmissionCount().fromJsonString(jsonString, options);
   }
 
-  static equals(a: DynamicFormCount | PlainMessage<DynamicFormCount> | undefined, b: DynamicFormCount | PlainMessage<DynamicFormCount> | undefined): boolean {
-    return proto3.util.equals(DynamicFormCount, a, b);
+  static equals(a: FormSubmissionCount | PlainMessage<FormSubmissionCount> | undefined, b: FormSubmissionCount | PlainMessage<FormSubmissionCount> | undefined): boolean {
+    return proto3.util.equals(FormSubmissionCount, a, b);
   }
 }
 
 /**
- * @generated from message backend.admin.v1.ListDynamicFormCountsResponse
+ * @generated from message backend.admin.v1.ListFormSubmissionCountsResponse
  */
-export class ListDynamicFormCountsResponse extends Message<ListDynamicFormCountsResponse> {
+export class ListFormSubmissionCountsResponse extends Message<ListFormSubmissionCountsResponse> {
   /**
-   * @generated from field: repeated backend.admin.v1.DynamicFormCount dynamic_form_counts = 1;
+   * @generated from field: repeated backend.admin.v1.FormSubmissionCount form_submission_counts = 1;
    */
-  dynamicFormCounts: DynamicFormCount[] = [];
+  formSubmissionCounts: FormSubmissionCount[] = [];
 
   /**
    * @generated from field: string next_page_token = 2;
    */
   nextPageToken = "";
 
-  constructor(data?: PartialMessage<ListDynamicFormCountsResponse>) {
+  constructor(data?: PartialMessage<ListFormSubmissionCountsResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.admin.v1.ListDynamicFormCountsResponse";
+  static readonly typeName = "backend.admin.v1.ListFormSubmissionCountsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "dynamic_form_counts", kind: "message", T: DynamicFormCount, repeated: true },
+    { no: 1, name: "form_submission_counts", kind: "message", T: FormSubmissionCount, repeated: true },
     { no: 2, name: "next_page_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListDynamicFormCountsResponse {
-    return new ListDynamicFormCountsResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListFormSubmissionCountsResponse {
+    return new ListFormSubmissionCountsResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListDynamicFormCountsResponse {
-    return new ListDynamicFormCountsResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListFormSubmissionCountsResponse {
+    return new ListFormSubmissionCountsResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListDynamicFormCountsResponse {
-    return new ListDynamicFormCountsResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListFormSubmissionCountsResponse {
+    return new ListFormSubmissionCountsResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ListDynamicFormCountsResponse | PlainMessage<ListDynamicFormCountsResponse> | undefined, b: ListDynamicFormCountsResponse | PlainMessage<ListDynamicFormCountsResponse> | undefined): boolean {
-    return proto3.util.equals(ListDynamicFormCountsResponse, a, b);
+  static equals(a: ListFormSubmissionCountsResponse | PlainMessage<ListFormSubmissionCountsResponse> | undefined, b: ListFormSubmissionCountsResponse | PlainMessage<ListFormSubmissionCountsResponse> | undefined): boolean {
+    return proto3.util.equals(ListFormSubmissionCountsResponse, a, b);
   }
 }
 
 /**
- * @generated from message backend.admin.v1.ExportDynamicFormRequest
+ * @generated from message backend.admin.v1.ExportFormSubmissionsRequest
  */
-export class ExportDynamicFormRequest extends Message<ExportDynamicFormRequest> {
+export class ExportFormSubmissionsRequest extends Message<ExportFormSubmissionsRequest> {
   /**
    * @generated from field: string form_id = 1;
    */
   formId = "";
 
-  constructor(data?: PartialMessage<ExportDynamicFormRequest>) {
+  constructor(data?: PartialMessage<ExportFormSubmissionsRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.admin.v1.ExportDynamicFormRequest";
+  static readonly typeName = "backend.admin.v1.ExportFormSubmissionsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "form_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportDynamicFormRequest {
-    return new ExportDynamicFormRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportFormSubmissionsRequest {
+    return new ExportFormSubmissionsRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportDynamicFormRequest {
-    return new ExportDynamicFormRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportFormSubmissionsRequest {
+    return new ExportFormSubmissionsRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportDynamicFormRequest {
-    return new ExportDynamicFormRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportFormSubmissionsRequest {
+    return new ExportFormSubmissionsRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ExportDynamicFormRequest | PlainMessage<ExportDynamicFormRequest> | undefined, b: ExportDynamicFormRequest | PlainMessage<ExportDynamicFormRequest> | undefined): boolean {
-    return proto3.util.equals(ExportDynamicFormRequest, a, b);
+  static equals(a: ExportFormSubmissionsRequest | PlainMessage<ExportFormSubmissionsRequest> | undefined, b: ExportFormSubmissionsRequest | PlainMessage<ExportFormSubmissionsRequest> | undefined): boolean {
+    return proto3.util.equals(ExportFormSubmissionsRequest, a, b);
   }
 }
 
 /**
- * @generated from message backend.admin.v1.ExportDynamicFormResponse
+ * @generated from message backend.admin.v1.ExportFormSubmissionsResponse
  */
-export class ExportDynamicFormResponse extends Message<ExportDynamicFormResponse> {
+export class ExportFormSubmissionsResponse extends Message<ExportFormSubmissionsResponse> {
   /**
    * @generated from field: bytes chunk = 1;
    */
   chunk = new Uint8Array(0);
 
-  constructor(data?: PartialMessage<ExportDynamicFormResponse>) {
+  constructor(data?: PartialMessage<ExportFormSubmissionsResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.admin.v1.ExportDynamicFormResponse";
+  static readonly typeName = "backend.admin.v1.ExportFormSubmissionsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chunk", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportDynamicFormResponse {
-    return new ExportDynamicFormResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExportFormSubmissionsResponse {
+    return new ExportFormSubmissionsResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportDynamicFormResponse {
-    return new ExportDynamicFormResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExportFormSubmissionsResponse {
+    return new ExportFormSubmissionsResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportDynamicFormResponse {
-    return new ExportDynamicFormResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExportFormSubmissionsResponse {
+    return new ExportFormSubmissionsResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ExportDynamicFormResponse | PlainMessage<ExportDynamicFormResponse> | undefined, b: ExportDynamicFormResponse | PlainMessage<ExportDynamicFormResponse> | undefined): boolean {
-    return proto3.util.equals(ExportDynamicFormResponse, a, b);
+  static equals(a: ExportFormSubmissionsResponse | PlainMessage<ExportFormSubmissionsResponse> | undefined, b: ExportFormSubmissionsResponse | PlainMessage<ExportFormSubmissionsResponse> | undefined): boolean {
+    return proto3.util.equals(ExportFormSubmissionsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.FormSubmission
+ */
+export class FormSubmission extends Message<FormSubmission> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string form_id = 2;
+   */
+  formId = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp timestamp = 3;
+   */
+  timestamp?: Timestamp;
+
+  constructor(data?: PartialMessage<FormSubmission>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.FormSubmission";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "form_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "timestamp", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FormSubmission {
+    return new FormSubmission().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FormSubmission {
+    return new FormSubmission().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FormSubmission {
+    return new FormSubmission().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FormSubmission | PlainMessage<FormSubmission> | undefined, b: FormSubmission | PlainMessage<FormSubmission> | undefined): boolean {
+    return proto3.util.equals(FormSubmission, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.ListFormSubmissionsRequest
+ */
+export class ListFormSubmissionsRequest extends Message<ListFormSubmissionsRequest> {
+  /**
+   * @generated from field: string form_id = 1;
+   */
+  formId = "";
+
+  constructor(data?: PartialMessage<ListFormSubmissionsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ListFormSubmissionsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "form_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListFormSubmissionsRequest {
+    return new ListFormSubmissionsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListFormSubmissionsRequest {
+    return new ListFormSubmissionsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListFormSubmissionsRequest {
+    return new ListFormSubmissionsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListFormSubmissionsRequest | PlainMessage<ListFormSubmissionsRequest> | undefined, b: ListFormSubmissionsRequest | PlainMessage<ListFormSubmissionsRequest> | undefined): boolean {
+    return proto3.util.equals(ListFormSubmissionsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.ListFormSubmissionsResponse
+ */
+export class ListFormSubmissionsResponse extends Message<ListFormSubmissionsResponse> {
+  /**
+   * @generated from field: repeated backend.admin.v1.FormSubmission form_submissions = 1;
+   */
+  formSubmissions: FormSubmission[] = [];
+
+  constructor(data?: PartialMessage<ListFormSubmissionsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ListFormSubmissionsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "form_submissions", kind: "message", T: FormSubmission, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListFormSubmissionsResponse {
+    return new ListFormSubmissionsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListFormSubmissionsResponse {
+    return new ListFormSubmissionsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListFormSubmissionsResponse {
+    return new ListFormSubmissionsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListFormSubmissionsResponse | PlainMessage<ListFormSubmissionsResponse> | undefined, b: ListFormSubmissionsResponse | PlainMessage<ListFormSubmissionsResponse> | undefined): boolean {
+    return proto3.util.equals(ListFormSubmissionsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.GetFormSubmissionDetailsRequest
+ */
+export class GetFormSubmissionDetailsRequest extends Message<GetFormSubmissionDetailsRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<GetFormSubmissionDetailsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetFormSubmissionDetailsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetFormSubmissionDetailsRequest {
+    return new GetFormSubmissionDetailsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetFormSubmissionDetailsRequest {
+    return new GetFormSubmissionDetailsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetFormSubmissionDetailsRequest {
+    return new GetFormSubmissionDetailsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetFormSubmissionDetailsRequest | PlainMessage<GetFormSubmissionDetailsRequest> | undefined, b: GetFormSubmissionDetailsRequest | PlainMessage<GetFormSubmissionDetailsRequest> | undefined): boolean {
+    return proto3.util.equals(GetFormSubmissionDetailsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.FormSubmissionDetails
+ */
+export class FormSubmissionDetails extends Message<FormSubmissionDetails> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: optional string wallet_id = 2;
+   */
+  walletId?: string;
+
+  /**
+   * @generated from field: string form_id = 3;
+   */
+  formId = "";
+
+  /**
+   * @generated from field: string data = 4;
+   */
+  data = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp timestamp = 5;
+   */
+  timestamp?: Timestamp;
+
+  constructor(data?: PartialMessage<FormSubmissionDetails>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.FormSubmissionDetails";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "form_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "data", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "timestamp", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FormSubmissionDetails {
+    return new FormSubmissionDetails().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FormSubmissionDetails {
+    return new FormSubmissionDetails().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FormSubmissionDetails {
+    return new FormSubmissionDetails().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FormSubmissionDetails | PlainMessage<FormSubmissionDetails> | undefined, b: FormSubmissionDetails | PlainMessage<FormSubmissionDetails> | undefined): boolean {
+    return proto3.util.equals(FormSubmissionDetails, a, b);
   }
 }
 

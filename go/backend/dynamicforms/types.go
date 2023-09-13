@@ -1,21 +1,25 @@
 package dynamicforms
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+)
 
 type (
-	Form struct {
-		ID       string         `db:"id"`
-		FormID   string         `db:"form_id"`
-		Data     interface{}    `db:"data"`
-		WalletID sql.NullString `db:"wallet_id"`
+	Submission struct {
+		ID        string         `db:"id"`
+		FormID    string         `db:"form_id"`
+		Data      string         `db:"data"`
+		WalletID  sql.NullString `db:"wallet_id"`
+		CreatedAt time.Time      `db:"created_at"`
 	}
-	FormCount struct {
+	SubmissionCount struct {
 		FormID string `db:"form_id"`
 		Count  int32  `db:"count"`
 	}
-	CreateFormArgs struct {
+	SubmitArgs struct {
 		FormID   string
-		FormData interface{}
+		Data     interface{}
 		WalletID string
 	}
 )

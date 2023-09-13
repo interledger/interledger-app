@@ -7,7 +7,9 @@ import (
 )
 
 type Client interface {
-	Create(ctx context.Context, args *CreateFormArgs) (*Form, error)
-	ListFormCounts(ctx context.Context, page db.Pagination) ([]FormCount, error)
-	ExportFormResults(ctx context.Context, formID string, writer io.Writer) error
+	Submit(ctx context.Context, args *SubmitArgs) (*Submission, error)
+	ListSubmissionCounts(ctx context.Context, page db.Pagination) ([]SubmissionCount, error)
+	ExportSubmissions(ctx context.Context, formID string, writer io.Writer) error
+	ListSubmissions(ctx context.Context, formID string) ([]Submission, error)
+	GetSubmission(ctx context.Context, id string) (*Submission, error)
 }

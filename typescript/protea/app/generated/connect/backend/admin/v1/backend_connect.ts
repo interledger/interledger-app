@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportDynamicFormRequest, ExportDynamicFormResponse, Features, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListDynamicFormCountsResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, WalletDetails } from "./backend_pb.js";
+import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, WalletDetails } from "./backend_pb.js";
 
 /**
  * @generated from service backend.admin.v1.Backend
@@ -139,22 +139,40 @@ export const Backend = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc backend.admin.v1.Backend.ListDynamicFormCounts
+     * @generated from rpc backend.admin.v1.Backend.ListFormSubmissionCounts
      */
-    listDynamicFormCounts: {
-      name: "ListDynamicFormCounts",
+    listFormSubmissionCounts: {
+      name: "ListFormSubmissionCounts",
       I: PaginationRequest,
-      O: ListDynamicFormCountsResponse,
+      O: ListFormSubmissionCountsResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc backend.admin.v1.Backend.ExportDynamicForm
+     * @generated from rpc backend.admin.v1.Backend.ExportFormSubmissions
      */
-    exportDynamicForm: {
-      name: "ExportDynamicForm",
-      I: ExportDynamicFormRequest,
-      O: ExportDynamicFormResponse,
+    exportFormSubmissions: {
+      name: "ExportFormSubmissions",
+      I: ExportFormSubmissionsRequest,
+      O: ExportFormSubmissionsResponse,
       kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.ListFormSubmissions
+     */
+    listFormSubmissions: {
+      name: "ListFormSubmissions",
+      I: ListFormSubmissionsRequest,
+      O: ListFormSubmissionsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.GetFormSubmissionDetails
+     */
+    getFormSubmissionDetails: {
+      name: "GetFormSubmissionDetails",
+      I: GetFormSubmissionDetailsRequest,
+      O: FormSubmissionDetails,
+      kind: MethodKind.Unary,
     },
     /**
      * @generated from rpc backend.admin.v1.Backend.ListExternalApiCalls

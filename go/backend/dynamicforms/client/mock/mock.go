@@ -37,46 +37,76 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockClient) Create(ctx context.Context, args *dynamicforms.CreateFormArgs) (*dynamicforms.Form, error) {
+// ExportSubmissions mocks base method.
+func (m *MockClient) ExportSubmissions(ctx context.Context, formID string, writer io.Writer) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, args)
-	ret0, _ := ret[0].(*dynamicforms.Form)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClient)(nil).Create), ctx, args)
-}
-
-// ExportFormResults mocks base method.
-func (m *MockClient) ExportFormResults(ctx context.Context, formID string, writer io.Writer) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExportFormResults", ctx, formID, writer)
+	ret := m.ctrl.Call(m, "ExportSubmissions", ctx, formID, writer)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ExportFormResults indicates an expected call of ExportFormResults.
-func (mr *MockClientMockRecorder) ExportFormResults(ctx, formID, writer interface{}) *gomock.Call {
+// ExportSubmissions indicates an expected call of ExportSubmissions.
+func (mr *MockClientMockRecorder) ExportSubmissions(ctx, formID, writer interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportFormResults", reflect.TypeOf((*MockClient)(nil).ExportFormResults), ctx, formID, writer)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportSubmissions", reflect.TypeOf((*MockClient)(nil).ExportSubmissions), ctx, formID, writer)
 }
 
-// ListFormCounts mocks base method.
-func (m *MockClient) ListFormCounts(ctx context.Context, page db.Pagination) ([]dynamicforms.FormCount, error) {
+// GetSubmission mocks base method.
+func (m *MockClient) GetSubmission(ctx context.Context, id string) (*dynamicforms.Submission, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListFormCounts", ctx, page)
-	ret0, _ := ret[0].([]dynamicforms.FormCount)
+	ret := m.ctrl.Call(m, "GetSubmission", ctx, id)
+	ret0, _ := ret[0].(*dynamicforms.Submission)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListFormCounts indicates an expected call of ListFormCounts.
-func (mr *MockClientMockRecorder) ListFormCounts(ctx, page interface{}) *gomock.Call {
+// GetSubmission indicates an expected call of GetSubmission.
+func (mr *MockClientMockRecorder) GetSubmission(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFormCounts", reflect.TypeOf((*MockClient)(nil).ListFormCounts), ctx, page)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubmission", reflect.TypeOf((*MockClient)(nil).GetSubmission), ctx, id)
+}
+
+// ListSubmissionCounts mocks base method.
+func (m *MockClient) ListSubmissionCounts(ctx context.Context, page db.Pagination) ([]dynamicforms.SubmissionCount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSubmissionCounts", ctx, page)
+	ret0, _ := ret[0].([]dynamicforms.SubmissionCount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSubmissionCounts indicates an expected call of ListSubmissionCounts.
+func (mr *MockClientMockRecorder) ListSubmissionCounts(ctx, page interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubmissionCounts", reflect.TypeOf((*MockClient)(nil).ListSubmissionCounts), ctx, page)
+}
+
+// ListSubmissions mocks base method.
+func (m *MockClient) ListSubmissions(ctx context.Context, formID string) ([]dynamicforms.Submission, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSubmissions", ctx, formID)
+	ret0, _ := ret[0].([]dynamicforms.Submission)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSubmissions indicates an expected call of ListSubmissions.
+func (mr *MockClientMockRecorder) ListSubmissions(ctx, formID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubmissions", reflect.TypeOf((*MockClient)(nil).ListSubmissions), ctx, formID)
+}
+
+// Submit mocks base method.
+func (m *MockClient) Submit(ctx context.Context, args *dynamicforms.SubmitArgs) (*dynamicforms.Submission, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Submit", ctx, args)
+	ret0, _ := ret[0].(*dynamicforms.Submission)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Submit indicates an expected call of Submit.
+func (mr *MockClientMockRecorder) Submit(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Submit", reflect.TypeOf((*MockClient)(nil).Submit), ctx, args)
 }
