@@ -7,4 +7,6 @@ type Client interface {
 	Create(ctx context.Context, args CreateArgs) (*Payment, error)
 	Update(ctx context.Context, args UpdateArgs) (*Payment, error)
 	Confirm(ctx context.Context, id string) (*Payment, []RequiredActionType, error)
+	SignalIdentityCreated(ctx context.Context, identifier string) error
+	SignalAccountLinked(ctx context.Context, walletID string) error
 }
