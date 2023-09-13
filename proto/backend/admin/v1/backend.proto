@@ -25,8 +25,10 @@ service Backend {
   rpc GetLinkedAccountReview(GetLinkedAccountReviewRequest) returns (LinkedAccountReview);
   rpc CompleteLinkedAccountReview(CompleteLinkedAccountReviewRequest) returns(LinkedAccountReview);
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
-  rpc ListDynamicFormCounts(PaginationRequest) returns (ListDynamicFormCountsResponse);
-  rpc ExportDynamicForm(ExportDynamicFormRequest) returns (stream ExportDynamicFormResponse);
+  rpc ListFormSubmissionCounts(PaginationRequest) returns (ListFormSubmissionCountsResponse);
+  rpc ExportFormSubmissions(ExportFormSubmissionsRequest) returns (stream ExportFormSubmissionsResponse);
+  rpc ListFormSubmissions(ListFormSubmissionsRequest) returns (ListFormSubmissionsResponse);
+  rpc GetFormSubmissionDetails(GetFormSubmissionDetailsRequest) returns (FormSubmissionDetails);
   rpc ListExternalApiCalls(ListExternalApiCallsRequest) returns (ListExternalApiCallsResponse);
 }
 
@@ -243,20 +245,46 @@ message WaitlistSignup {
   string country_code = 7;
 }
 
-message DynamicFormCount {
+message FormSubmissionCount {
   string form_id = 1;
-  int32 form_count = 2;
+  int32 submission_count = 2;
 }
 
-message ListDynamicFormCountsResponse {
-  repeated DynamicFormCount dynamic_form_counts = 1;
+message ListFormSubmissionCountsResponse {
+  repeated FormSubmissionCount form_submission_counts = 1;
   string next_page_token = 2;
 }
 
-message ExportDynamicFormRequest {
+message ExportFormSubmissionsRequest {
   string form_id = 1;
 }
 
-message ExportDynamicFormResponse {
+message ExportFormSubmissionsResponse {
   bytes chunk = 1;
+}
+
+message FormSubmission {
+  string id = 1;
+  string form_id = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message ListFormSubmissionsRequest {
+  string form_id = 1;
+}
+
+message ListFormSubmissionsResponse {
+  repeated FormSubmission form_submissions = 1;
+}
+
+message GetFormSubmissionDetailsRequest {
+  string id = 1;
+}
+
+message FormSubmissionDetails {
+  string id = 1;
+  optional string wallet_id = 2;
+  string form_id = 3;
+  string data = 4;
+  google.protobuf.Timestamp timestamp = 5;
 }

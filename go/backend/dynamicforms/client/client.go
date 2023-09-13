@@ -20,14 +20,22 @@ func New(b ops.Backends) dynamicforms.Client {
 	}
 }
 
-func (c client) Create(ctx context.Context, args *dynamicforms.CreateFormArgs) (*dynamicforms.Form, error) {
-	return ops.CreateForm(ctx, c.b, args)
+func (c client) Submit(ctx context.Context, args *dynamicforms.SubmitArgs) (*dynamicforms.Submission, error) {
+	return ops.SubmitForm(ctx, c.b, args)
 }
 
-func (c client) ListFormCounts(ctx context.Context, page db.Pagination) ([]dynamicforms.FormCount, error) {
-	return ops.ListFormCounts(ctx, c.b, page)
+func (c client) ListSubmissionCounts(ctx context.Context, page db.Pagination) ([]dynamicforms.SubmissionCount, error) {
+	return ops.ListSubmissionCount(ctx, c.b, page)
 }
 
-func (c client) ExportFormResults(ctx context.Context, formID string, writer io.Writer) error {
-	return ops.ExportFormResults(ctx, c.b, formID, writer)
+func (c client) ExportSubmissions(ctx context.Context, formID string, writer io.Writer) error {
+	return ops.ExportSubmissions(ctx, c.b, formID, writer)
+}
+
+func (c client) ListSubmissions(ctx context.Context, formID string) ([]dynamicforms.Submission, error) {
+	return ops.ListSubmissions(ctx, c.b, formID)
+}
+
+func (c client) GetSubmission(ctx context.Context, id string) (*dynamicforms.Submission, error) {
+	return ops.GetSubmission(ctx, c.b, id)
 }
