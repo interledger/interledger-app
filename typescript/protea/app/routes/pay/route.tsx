@@ -380,7 +380,7 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
   await validateCSRFToken(request, form)
   const serviceAgreement = form.get('serviceAgreement') as string
   const paymentId = form.get('paymentId') as string
-  const otp = form.get('otp') as string
+  const otp = String(form.get('otp') || '')
 
   const errors = {
     form: '',
@@ -416,7 +416,7 @@ export async function confirmPaymentAction({ request }: ActionArgs) {
     ) {
       return redirect(`/pay/3ds?paymentId=${paymentId}&init=`)
     }
-    return error(request, { errors }, { action: 'Contact support' })
+    return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(request, route('/'), {
