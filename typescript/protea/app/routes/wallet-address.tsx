@@ -1,3 +1,4 @@
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
@@ -14,33 +15,17 @@ import {
   TextField
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
+import { error, isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
-import type { GrpcError } from '~/lib/proto.server'
-import {
-  StatusError,
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient
-} from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
-  let response = await openPaymentsClient
-    .listWalletPaymentPointers(
-      {},
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  } else if (response.response.pointers.length > 0) {
+  let response = await grpc.getWalletInfo(request, {})
+  if (isConnectError(response)) {
+    throw response.errorResponse
+  } else if (response.hasWalletAddress) {
     throw redirect(route('/'))
   }
 
@@ -52,13 +37,11 @@ export async function loader({ request }: LoaderArgs) {
     session.identity.traits.firstName + ' ' + session.identity.traits.lastName
 
   while (!usernameIsValid && attempts < 5) {
-    let response = await openPaymentsClient
-      .paymentPointerExists({
-        url: `https://${PAYMENT_POINTER_BASE}/${username}`
-      })
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(response) || response.response.exists) {
+    let response = await grpc.walletAddressExists(request, {
+      url: `https://${PAYMENT_POINTER_BASE}/${username}`
+    })
+
+    if (isConnectError(response) || response.exists) {
       attempts++
       username = session.identity.traits.firstName
       if (username.length < 4) username += session.identity.traits.lastName
@@ -173,98 +156,58 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'url'
-
-function mapper(field: fieldErrorsMap): 'username' | null {
-  switch (field) {
-    case 'url':
-      return 'username'
-    default:
-      return null
-  }
-}
-
 export async function action({ request }: ActionArgs) {
-  const cookie = String(request.headers.get('cookie'))
   const form = await request.formData()
   const username = form.get('username') as string
   const canSubmit = Boolean(form.get('canSubmit') as string)
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     username: ''
+  }
+  const mapping = {
+    username: 'url'
   }
 
   const publicName = username
 
-  let response = await openPaymentsClient
-    .paymentPointerExists({
-      url: `https://${PAYMENT_POINTER_BASE}/${username}`
-    })
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-
-      return error(request, { errors: { ...fieldErrors } })
+  let response = await grpc.walletAddressExists(request, {
+    url: `https://${PAYMENT_POINTER_BASE}/${username}`
+  })
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors }, mapping)
     } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+      return response.error({ errors }, mapping, { action: 'Contact support' })
   }
 
-  if (response.response.exists) {
-    fieldErrors.username =
+  if (response.exists) {
+    errors.username =
       'That wallet address has been taken. Please choose another.'
-    return error(request, { errors: { ...fieldErrors } })
+    return error(request, { errors })
   }
 
   if (canSubmit) {
-    let response = await openPaymentsClient
-      .createPaymentPointer(
-        {
-          url: `https://${PAYMENT_POINTER_BASE}/${username}`,
-          asset: 'USD',
-          assetScale: 2,
-          alias: publicName
-        },
-        {
-          meta: {
-            cookies: cookie || ''
-          }
-        }
-      )
-      .then((v) => v)
-      .catch(StatusError)
-    if (isGrpcError(response)) {
-      if (response.code == 3) {
-        for (let violation of (response as GrpcError).details[0]
-          .fieldViolations) {
-          const field = mapper(violation.field as fieldErrorsMap)
-          if (field != null) fieldErrors[field] = violation.description
-        }
-        return error(request, { errors: { ...fieldErrors } })
+    let response = await grpc.createWalletAddress(request, {
+      url: `https://${PAYMENT_POINTER_BASE}/${username}`,
+      asset: 'USD',
+      assetScale: 2,
+      alias: publicName
+    })
+    if (isConnectError(response)) {
+      if (response.code == Code.InvalidArgument) {
+        return response.error({ errors }, mapping)
       } else
-        return error(
-          request,
-          { errors: { ...fieldErrors } },
-          { action: 'Contact support' }
-        )
+        return response.error({ errors }, mapping, {
+          action: 'Contact support'
+        })
     }
 
     return redirectWithSnackbar(request, route('/'), {
       message: 'Your wallet address is reserved.',
       icon: 'close'
     })
-  } else return json({ errors: { ...fieldErrors } })
+  } else return json({ errors })
 }

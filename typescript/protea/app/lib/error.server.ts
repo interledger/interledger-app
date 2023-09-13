@@ -1,5 +1,6 @@
 import { Code } from '@bufbuild/connect'
 import type { ConnectError as BufConnectError } from '@bufbuild/connect/dist/types/connect-error'
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import type { TypedResponse } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { captureMessage } from '@sentry/remix'
@@ -23,7 +24,8 @@ type JsonWithErrorFunction = <
   request: Request,
   data: Data,
   snackbar?: Partial<SnackbarType>,
-  init?: number | ResponseInit
+  init?: number | ResponseInit,
+  isConnectError?: boolean
 ) => Promise<TypedResponse<(Data & object) | (Data & null)>>
 
 type JsonWithConnectErrorFunction = <
@@ -44,15 +46,26 @@ type JsonWithConnectErrorFunction = <
  * @param data
  * @param snackbar - Whether to show a snackbar on the client. Will use fieldErrors.form if set.
  * @param init
+ * @param isConnectError - Whether the error is a ConnectError. This is used to determine whether to log the error to Sentry.
  */
 export const error: JsonWithErrorFunction = async (
   request,
   data,
   snackbar,
-  init
+  init,
+  isConnectError = false
 ) => {
   let responseInit = typeof init === 'number' ? { status: init } : init
   const newHeaders = new Headers(responseInit?.headers)
+
+  if (!isConnectError) {
+    const url = new URL(request.url)
+    captureMessage('Non GRPC error returned to user', {
+      extra: {
+        url: url.pathname
+      }
+    })
+  }
 
   if (
     data &&
@@ -113,8 +126,8 @@ export class ConnectError {
   readonly status: ResponseInit | undefined
   readonly errorResponse: Response | undefined
 
-  violations: PreconditionFailure_Violation[] = []
-  fieldViolations: BadRequest_FieldViolation[] = []
+  violations: PlainMessage<PreconditionFailure_Violation>[] = []
+  fieldViolations: PlainMessage<BadRequest_FieldViolation>[] = []
 
   constructor(request: Request, err: BufConnectError) {
     this._request = request
@@ -146,7 +159,10 @@ export class ConnectError {
       this.violations = err
         .findDetails(PreconditionFailure)
         .reduce(
-          (accumulator: PreconditionFailure_Violation[], currentValue) => {
+          (
+            accumulator: PlainMessage<PreconditionFailure_Violation>[],
+            currentValue
+          ) => {
             currentValue.violations.forEach((val) => accumulator.push(val))
             return accumulator
           },
@@ -158,10 +174,16 @@ export class ConnectError {
     if (err.code === Code.InvalidArgument) {
       this.fieldViolations = err
         .findDetails(BadRequest)
-        .reduce((accumulator: BadRequest_FieldViolation[], currentValue) => {
-          currentValue.fieldViolations.forEach((val) => accumulator.push(val))
-          return accumulator
-        }, [])
+        .reduce(
+          (
+            accumulator: PlainMessage<BadRequest_FieldViolation>[],
+            currentValue
+          ) => {
+            currentValue.fieldViolations.forEach((val) => accumulator.push(val))
+            return accumulator
+          },
+          []
+        )
     }
   }
 
@@ -179,7 +201,7 @@ export class ConnectError {
     init
   ) => {
     data.errors = this.fieldErrors(data.errors, mapping)
-    return error(this._request, data, snackbar, init)
+    return error(this._request, data, snackbar, init, true)
   }
 
   /**

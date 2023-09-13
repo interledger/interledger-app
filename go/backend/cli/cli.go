@@ -63,7 +63,6 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 
 type StartArgs struct {
 	Port                       string
-	OpenPaymentsPort           string
 	AuthorisationPort          string
 	DbConnectionString         string
 	KratosUrl                  string
@@ -117,10 +116,6 @@ func ParseStartArgs() (*StartArgs, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
-	}
-	openPaymentsPort := os.Getenv("OPEN_PAYMENTS_PORT")
-	if openPaymentsPort == "" {
-		openPaymentsPort = "8081"
 	}
 
 	authorisationPort := os.Getenv("AUTHORISATION_PORT")
@@ -238,7 +233,6 @@ func ParseStartArgs() (*StartArgs, error) {
 
 	return &StartArgs{
 		Port:                       port,
-		OpenPaymentsPort:           openPaymentsPort,
 		AuthorisationPort:          authorisationPort,
 		DbConnectionString:         dbUrl,
 		KratosUrl:                  kratosUrl,

@@ -1,3 +1,4 @@
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
@@ -13,12 +14,9 @@ import {
   OutlineButton,
   TextField
 } from '~/components'
-import { Code } from '~/generated/protobuf-ts/google/rpc/code'
-import { getConnection, getConnectionLimits } from '~/lib/connections.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export const handle: ApplicationProps = {
@@ -38,13 +36,33 @@ export const meta: MetaFunction = () => {
 }
 
 export async function loader({ request, params }: LoaderArgs) {
-  let data = await Promise.all([
-    getConnection(request, params.keyId as string),
-    getConnectionLimits(request, params.keyId as string)
-  ])
+  const connection = await grpc.getConnection(request, {
+    id: params.keyId as string
+  })
+
+  if (isConnectError(connection)) throw connection.errorResponse
+
+  const response = await grpc.getConnectionLimits(request, {
+    id: params.keyId as string
+  })
+
+  if (isConnectError(response)) throw response.errorResponse
+
+  const limits = {
+    daily:
+      Number(response.daily?.amount) *
+      Math.pow(10, -(response.daily?.assetScale || 0)),
+    monthly:
+      Number(response.monthly?.amount) *
+      Math.pow(10, -(response.monthly?.assetScale || 0)),
+    overall:
+      Number(response.overall?.amount) *
+      Math.pow(10, -(response.overall?.assetScale || 0))
+  }
+
   return jsonWithCSRF(request, {
-    connection: data[0],
-    limits: data[1]
+    connection,
+    limits
   })
 }
 
@@ -169,31 +187,13 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'DailyLimit' | 'MonthlyLimit' | 'OverallLimit'
-
-function mapper(
-  field: fieldErrorsMap
-): 'dailyLimit' | 'monthlyLimit' | 'overallLimit' | null {
-  switch (field) {
-    case 'DailyLimit':
-      return 'dailyLimit'
-    case 'MonthlyLimit':
-      return 'monthlyLimit'
-    case 'OverallLimit':
-      return 'overallLimit'
-    default:
-      return null
-  }
-}
-
 export async function action({ request, params }: ActionArgs) {
   const form = await request.formData()
   const formName = form.get('formName')
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     dailyLimit: '',
     monthlyLimit: '',
@@ -201,22 +201,12 @@ export async function action({ request, params }: ActionArgs) {
   }
 
   if (formName === 'delete') {
-    const response = await grpcClient
-      .deleteConnection(
-        { id: params.keyId as string },
-        {
-          meta: {
-            cookies: String(request.headers.get('cookie')) || ''
-          }
-        }
-      )
-      .then((v) => v)
-      .catch((e) => {
-        console.log(e)
-        return StatusError(e)
-      })
-    if (isGrpcError(response)) {
-      return error(request, { errors: fieldErrors })
+    const response = await grpc.deleteConnection(request, {
+      id: params.keyId as string
+    })
+
+    if (isConnectError(response)) {
+      return response.error({ errors })
     }
 
     return redirectWithSnackbar(request, route('/settings/keys'), {
@@ -225,55 +215,35 @@ export async function action({ request, params }: ActionArgs) {
     })
   }
 
-  const response = await grpcClient
-    .updateConnectionLimits(
-      {
-        id: params.keyId as string,
-        daily: {
-          amount: String(
-            Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
-          ),
-          asset: 'USD',
-          assetScale: 2
-        },
-        monthly: {
-          amount: String(
-            Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
-          ),
-          asset: 'USD',
-          assetScale: 2
-        },
-        overall: {
-          amount: String(
-            Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
-          ),
-          asset: 'USD',
-          assetScale: 2
-        }
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    if (response.code == Code.INVALID_ARGUMENT) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: fieldErrors })
-    } else
-      return error(
-        request,
-        { errors: fieldErrors },
-        { action: 'Contact support' }
-      )
+  const response = await grpc.updateConnectionLimits(request, {
+    id: params.keyId as string,
+    daily: {
+      amount: BigInt(
+        Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
+      ),
+      asset: 'USD',
+      assetScale: 2
+    },
+    monthly: {
+      amount: BigInt(
+        Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
+      ),
+      asset: 'USD',
+      assetScale: 2
+    },
+    overall: {
+      amount: BigInt(
+        Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
+      ),
+      asset: 'USD',
+      assetScale: 2
+    }
+  })
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
-  return json({ errors: { ...fieldErrors } })
+  return json({ errors })
 }

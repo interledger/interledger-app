@@ -20,7 +20,7 @@ import {
   WalletGrid,
   WalletShapes
 } from '~/components'
-import { getKycStatus, getLinkedAccounts } from '~/lib/wallet.server'
+import { getKycStatus, getLinkedAccounts } from '~/data/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {
