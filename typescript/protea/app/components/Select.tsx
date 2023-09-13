@@ -75,12 +75,12 @@ export const Select: FC<SelectProps> = ({
             leaveFrom='opacity-100'
             leaveTo='opacity-0'
           >
-            <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav py-1 text-sm shadow-lg focus:outline-none'>
+            <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav p-1 text-sm shadow-lg focus:outline-none'>
               {options.map((option, index) => (
                 <Listbox.Option
                   key={index}
                   className={({ active }) =>
-                    `relative flex h-12 cursor-pointer select-none items-center justify-between pl-4 pr-3 ${
+                    `relative flex h-12 cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 ${
                       active ? 'bg-nav-hover' : 'text-medium'
                     }`
                   }
