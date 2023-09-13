@@ -27,8 +27,6 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Executing payment", "id", id)
 	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		// TODO: configure temporal infra to handle multiple namespaces
-		// Namespace:         "payments",
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
 	})
 
@@ -38,32 +36,38 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	// OFAC and compliance checks
-	err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, id).Get(childCtx, nil)
+	var receiverReady bool
+	err = workflow.ExecuteActivity(ctx, a.CheckReceiverReady, id).Get(ctx, &receiverReady)
 	if err != nil {
-		logger.Error("GMT compliance failed for payment", "payment_id", id, "error", err)
-		innerErr := workflow.ExecuteActivity(ctx, a.SetPaymentStateFailed, id).Get(ctx, nil)
-		if innerErr != nil {
-			logger.Error("Failed to set payment status to failed. paymentID=", id, "err", innerErr)
-			return innerErr
-		}
+		return err
+	}
 
-		innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, id, transactions.StateFailed).Get(ctx, nil)
-		if innerErr != nil {
-			logger.Error("Failed to set transaction status to failed. paymentID=", id, "err", innerErr)
-			return innerErr
-		}
+	// OFAC and compliance checks, if the receiver is ready and signed up, otherwise the AwaitReceiverWorkflow will do it.
+	if receiverReady {
+		err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, id).Get(childCtx, nil)
+		if err != nil {
+			logger.Error("GMT compliance failed for payment", "payment_id", id, "error", err)
+			innerErr := workflow.ExecuteActivity(ctx, a.SetPaymentStateFailed, id).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("Failed to set payment status to failed. paymentID=", id, "err", innerErr)
+				return innerErr
+			}
 
-		return nil
+			innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, id, transactions.StateFailed).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("Failed to set transaction status to failed. paymentID=", id, "err", innerErr)
+				return innerErr
+			}
+
+			return nil
+		}
 	}
 
 	// launch payout and payin workflows in parallel
 	selector := workflow.NewSelector(ctx)
 
 	childPayInCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: fmt.Sprintf(payinWorkflowFmt, id),
-		// TODO: configure temporal infra to handle multiple namespaces
-		// Namespace:         "payments",
+		WorkflowID:            fmt.Sprintf(payinWorkflowFmt, id),
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_TERMINATE,
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	})
@@ -77,9 +81,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	})
 
 	childPayoutCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: fmt.Sprintf(payoutWorkflowFmt, id),
-		// TODO: configure temporal infra to handle multiple namespaces
-		// Namespace:         "payments",
+		WorkflowID:            fmt.Sprintf(payoutWorkflowFmt, id),
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_TERMINATE,
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	})
@@ -125,9 +127,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 
 	// don't set parent close policy
 	childNotifyCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: fmt.Sprintf(gmtNotifyCompleteFmt, id),
-		// TODO: configure temporal infra to handle multiple namespaces
-		// Namespace:         "payments",
+		WorkflowID:            fmt.Sprintf(gmtNotifyCompleteFmt, id),
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON, // allow child workflow to continue running
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	})
@@ -278,6 +278,7 @@ type PaySignal struct {
 
 const (
 	signalChanName       = "payment_signals"
+	identityChanName     = "payment_identity_account_signals"
 	payinWorkflowFmt     = "payment_pay_in_%s"
 	payoutWorkflowFmt    = "payment_pay_out_%s"
 	gmtNotifyCompleteFmt = "payment_gmt_notify_complete_%s"
@@ -323,9 +324,26 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		return nil
 	}
 
-	// Funding was a success now, payout
+	// Funding was a success now wait for the receiver to have all the relevant details
+	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
+		WorkflowID:        fmt.Sprintf("payment_await_receiver_%s", paymentID),
+	})
+
+	var receiverReady bool
+	err := workflow.ExecuteChildWorkflow(childCtx, AwaitReceiverWorkflow, paymentID).Get(childCtx, &receiverReady)
+	if err != nil || !receiverReady {
+		logger.Info("failed to wait for receiver to be ready to receive", "payment_id", paymentID, "err", err, "receiver_ready", receiverReady)
+		// Signal the Pay In workflow that the payout has failed, it will know what to do.
+		return workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, paymentID), "", signalChanName, PaySignal{
+			PaymentID:     paymentID,
+			PayOutSuccess: false,
+		}).Get(ctx, nil)
+	}
+
+	// Funding was a success, the receiver has all the relevant information, now payout
 	var externalRef string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 		return tabapay.NewReferenceID()
 	}).Get(&externalRef)
 	if err != nil {
@@ -437,4 +455,87 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	return nil
+}
+
+// AwaitReceiverWorkflow gets called from the PayoutWorkflow to await a user signing up and/or linking
+// the identity associated with the payment, as well as a account that can receive.
+func AwaitReceiverWorkflow(ctx workflow.Context, paymentID string) (bool, error) {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+
+	var receiverReady bool
+	err := workflow.ExecuteActivity(ctx, a.CheckReceiverReady, paymentID).Get(ctx, &receiverReady)
+	if err != nil {
+		return false, err
+	}
+
+	// The receiver can receive, nothing to do.
+	if receiverReady {
+		return true, nil
+	}
+
+	// Add the Workflow ref to the DB, so it can be signalled
+	err = workflow.ExecuteActivity(ctx, a.AddIdentityWorkflowRef,
+		paymentID, workflow.GetInfo(ctx).WorkflowExecution.ID, workflow.GetInfo(ctx).WorkflowExecution.RunID).Get(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+
+	// Await the receiver being ready or a 24 hour timout
+	var timeout bool
+	selector := workflow.NewSelector(ctx)
+
+	// Default to 24 hours for the user to link their accounts
+	selector.AddFuture(workflow.NewTimer(ctx, time.Hour*24), func(f workflow.Future) {
+		timeout = true
+	})
+	selector.AddReceive(workflow.GetSignalChannel(ctx, identityChanName), func(c workflow.ReceiveChannel, more bool) {
+		c.Receive(ctx, nil)
+	})
+	for {
+		selector.Select(ctx)
+
+		// Recheck that the receiver is ready whether it be timeout or signal
+		err = workflow.ExecuteActivity(ctx, a.CheckReceiverReady, paymentID).Get(ctx, &receiverReady)
+		if err != nil {
+			logger.Error("failed to check receiver readiness", "err", err, "payment_id", paymentID)
+		}
+
+		if timeout && !receiverReady {
+			logger.Info("Wait time expired for user to link identity or account for payment", "payment_id", paymentID)
+			return false, nil
+		}
+
+		// Set the walletID if the identity is linked but not yet the linked account, so the workflow ID can be looked up.
+		err = workflow.ExecuteActivity(ctx, a.SetWorkflowRefWalletID, paymentID).Get(ctx, nil)
+		if err != nil {
+			return false, err
+		}
+
+		// The receiver is ready, continue the workflow
+		if receiverReady {
+			break
+		}
+	}
+
+	// Update the send transaction destination now that the user identity has been linked. We can look up the wallet address now.
+	err = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionDestination, paymentID).Get(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+
+	// Receiver is ready, now run the compliance checks
+	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
+	})
+
+	// OFAC and compliance checks, now that the receiver is ready
+	err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, paymentID).Get(childCtx, nil)
+	return err == nil, err
 }
