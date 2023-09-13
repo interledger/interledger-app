@@ -206,6 +206,11 @@ export default function Page() {
     }
   }, [fetcher.data])
 
+  // Handle transactions being revalidated
+  useEffect(() => {
+    setTransactions(initialPage.transactions)
+  }, [initialPage.transactions])
+
   const location = useLocation()
   const pathSegments = location.pathname.split('/').filter(Boolean)
 
@@ -271,7 +276,7 @@ export default function Page() {
                 <CardLink
                   preventScrollReset={!isMobile}
                   prefetch='none'
-                  key={transaction.id}
+                  key={transaction.id + transaction.state}
                   to={route('/transactions/:transactionId', {
                     transactionId: transaction.id
                   })}
