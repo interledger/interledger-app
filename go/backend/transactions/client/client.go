@@ -44,6 +44,10 @@ func (c *client) SetTransactionForeignID(ctx context.Context, ID string, foreign
 	return ops.SetTransactionForeignID(ctx, c.b, ID, foreignID)
 }
 
+func (c *client) SetTransactionDestination(ctx context.Context, id, destination string) error {
+	return ops.SetTransactionDestination(ctx, c.b, id, destination)
+}
+
 func (c *client) SetTransferForeignID(ctx context.Context, ID string, foreignID string) error {
 	return ops.SetTransferForeignID(ctx, c.b, ID, foreignID)
 }
