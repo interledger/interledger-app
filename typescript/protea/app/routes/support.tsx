@@ -1,3 +1,4 @@
+import { Code } from '@bufbuild/connect'
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -17,10 +18,9 @@ import {
   WalletShapes
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { error } from '~/lib/error.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
-import type { GrpcError } from '~/lib/proto.server'
-import { StatusError, grpcClient, isGrpcError } from '~/lib/proto.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -143,26 +143,6 @@ export default function Page() {
   )
 }
 
-// The field names given by the backend for field violations
-type fieldErrorsMap = 'FirstName' | 'Email' | 'LastName' | 'Description'
-
-function mapper(
-  field: fieldErrorsMap
-): 'firstName' | 'email' | 'lastName' | 'description' | null {
-  switch (field) {
-    case 'Email':
-      return 'email'
-    case 'FirstName':
-      return 'firstName'
-    case 'LastName':
-      return 'lastName'
-    case 'Description':
-      return 'description'
-    default:
-      return null
-  }
-}
-
 export async function action({ request }: ActionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
@@ -172,7 +152,7 @@ export async function action({ request }: ActionArgs) {
 
   await validateCSRFToken(request, form)
 
-  const fieldErrors = {
+  const errors = {
     form: '',
     firstName: '',
     lastName: '',
@@ -180,37 +160,17 @@ export async function action({ request }: ActionArgs) {
     description: ''
   }
 
-  let response = await grpcClient
-    .createSupportTicket(
-      {
-        description,
-        firstName,
-        lastName,
-        email
-      },
-      {
-        meta: {
-          cookies: String(request.headers.get('cookie')) || ''
-        }
-      }
-    )
-    .then((v) => v)
-    .catch(StatusError)
+  let response = await grpc.createSupportTicket(request, {
+    description,
+    firstName,
+    lastName,
+    email
+  })
 
-  if (isGrpcError(response)) {
-    if (response.code == 3) {
-      for (let violation of (response as GrpcError).details[0]
-        .fieldViolations) {
-        const field = mapper(violation.field as fieldErrorsMap)
-        if (field != null) fieldErrors[field] = violation.description
-      }
-      return error(request, { errors: { ...fieldErrors } })
-    } else
-      return error(
-        request,
-        { errors: { ...fieldErrors } },
-        { action: 'Contact support' }
-      )
+  if (isConnectError(response)) {
+    if (response.code == Code.InvalidArgument) {
+      return response.error({ errors })
+    } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(request, route('/'), {

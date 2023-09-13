@@ -36,21 +36,14 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import { getPerson } from '~/data/content.server'
+import { getPublicIdentities } from '~/data/identity.server'
+import { getPublicWalletDetails } from '~/data/wallet.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
-import { getPerson } from '~/lib/marketing.server'
-import {
-  StatusError,
-  httpMapping,
-  isGrpcError,
-  openPaymentsClient
-} from '~/lib/proto.server'
 import { PayStep } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import {
-  getPublicLinkedIdentities,
-  getPublicWalletDetails,
-  getWalletInfo
-} from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const walletAddressParam = params['*'] as string
@@ -67,41 +60,38 @@ export async function loader({ request, params }: LoaderArgs) {
     })
   }
 
-  const response = await openPaymentsClient
-    .getPaymentPointer({ url: walletAddressParam })
-    .then((v) => v)
-    .catch(StatusError)
-  if (isGrpcError(response)) {
-    throw json({}, httpMapping(response.code))
-  }
+  const response = await grpc.getPublicWalletInfo(request, {
+    walletAddress: walletAddressParam
+  })
 
-  const walletAddress = response.response
+  if (isConnectError(response)) throw response.errorResponse
+
+  const walletAddress = response
 
   if (request.headers.get('Content-type') == 'application/json')
-    return redirect(walletAddress.url)
+    return redirect(walletAddress.address)
 
   const wallet = await getPublicWalletDetails(request, walletAddress.walletID)
-  const identities = await getPublicLinkedIdentities(
-    request,
-    walletAddress.walletID
-  )
+  const identities = await getPublicIdentities(request, walletAddress.walletID)
 
-  let editable = false
+  let canSendToAddress = false
   const isUser = hasUserSession(request)
   if (isUser) {
-    const walletPaymentPointer = await getWalletInfo(request)
-    if (walletPaymentPointer.formattedURL == walletAddress.formatted)
-      editable = true
+    const response = await grpc.getPaymentAddress(request, {
+      address: walletAddressParam
+    })
+    if (!isConnectError(response)) {
+      canSendToAddress = response.canSendToAddress
+    }
   }
 
   return json({
     profilePicture,
     isUser,
-    editable,
+    canSendToAddress,
     wallet,
     identities,
-    walletAddress: walletAddress.url.replace(/(http(s)?:\/\/)/i, ''),
-    paymentPointer: walletAddress,
+    walletAddress: walletAddress,
     paymentPointerParam: walletAddressParam
   })
 }
@@ -119,8 +109,8 @@ export default function Page() {
     isUser,
     wallet,
     identities,
+    canSendToAddress,
     walletAddress,
-    paymentPointer,
     paymentPointerParam
   } = useLoaderData<typeof loader>()
 
@@ -150,12 +140,6 @@ export default function Page() {
             )}
           >
             {wallet.publicName}
-            {/*TODO Possibly put this edit button in the header*/}
-            {/*{editable && (*/}
-            {/*  <Router to={route('/settings/profile-public')}>*/}
-            {/*    <Icon>edit</Icon>*/}
-            {/*  </Router>*/}
-            {/*)}*/}
           </h1>
         </CardContent>
         <Label className='mt-2'>Wallet address</Label>
@@ -171,7 +155,7 @@ export default function Page() {
                 canShow: true
               })
             } else
-              navigator.clipboard.writeText(walletAddress).then(
+              navigator.clipboard.writeText(walletAddress.address).then(
                 () => {
                   pushSnackbar({
                     id: 'copy-wallet-address-success',
@@ -192,7 +176,7 @@ export default function Page() {
           }}
           className='items-center justify-between'
         >
-          <span className='text-medium'>{walletAddress}</span>
+          <span className='text-medium'>{walletAddress.shortAddress}</span>
           <Icon className='text-medium'>content_copy</Icon>
         </CardButton>
         {identities.twitter && (
@@ -338,14 +322,18 @@ export default function Page() {
       />
       <input
         form='me'
-        value={paymentPointer.formatted}
+        value={walletAddress.shortAddress}
         name='paymentPointer'
         type='hidden'
       />
-      {/* TODO Disable this if can't send to this user too */}
-      <Button disabled={!isUser} form='me' type='submit'>
+      <Button disabled={!isUser || !canSendToAddress} form='me' type='submit'>
         Send a payment
       </Button>
+      {!canSendToAddress && isUser && (
+        <p className='-mt-2 text-center text-xs text-medium'>
+          You can't send payments to {wallet.publicName}.
+        </p>
+      )}
       {!isUser && (
         <p className='-mt-2 text-center text-xs text-medium'>
           Payments are currently in beta and are only enabled for certain users.

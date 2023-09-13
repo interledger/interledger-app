@@ -3,53 +3,8 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { Address, Agreement, Authenticate3DSRequest, Authenticate3DSResponse, CanSignupRequest, CanSignupResponse, CardDetails, CompleteSignupRequest, ConfirmPaymentRequest, Connection, ConnectionLimits, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateDynamicFormRequest, CreateMXBankAccountsRequest, CreateMXBankAccountsResponse, CreatePaymentPointerRequest, CreatePaymentRequest, CreateSlackAuthURLResponse, CreateSupportTicketRequest, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, GetAgreementRequest, GetCardDetailsRequest, GetConnectionLimitsRequest, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetLinkedAccountRequest, GetLinkedAccountsResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentPointerRequest, GetPaymentRequest, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetSignupRequest, Identity, IndividualKYCResponse, Init3DSRequest, Init3DSResponse, InitQuote3DSRequest, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCStatusResponse, LinkedAccount, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListLimitsResponse, ListPublicIdentitiesRequest, ListTransactionsResponse, ListWalletPaymentPointersResponse, Lookup3DSRequest, Lookup3DSResponse, LookupTransactionRequest, MXWidgetResponse, PaginationRequest, Payment, PaymentPointer, PaymentPointerExistsRequest, PaymentPointerExistsResponse, PublicWalletInfo, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, Transaction, TwitterCallbackRequest, TwitterCallbackResponse, UpdateClientLimitsRequest, UpdateConnectionLimitsRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletInfo } from "./backend_pb.js";
+import { Address, Agreement, Authenticate3DSRequest, Authenticate3DSResponse, CanSignupRequest, CanSignupResponse, CardDetails, CompleteSignupRequest, ConfirmPaymentRequest, Connection, ConnectionLimits, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateDynamicFormRequest, CreateMXBankAccountsRequest, CreateMXBankAccountsResponse, CreatePaymentRequest, CreateSlackAuthURLResponse, CreateSupportTicketRequest, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, GetAgreementRequest, GetCardDetailsRequest, GetConnectionLimitsRequest, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetLinkedAccountRequest, GetLinkedAccountsResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetSignupRequest, Identity, IndividualKYCResponse, Init3DSRequest, Init3DSResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCStatusResponse, LinkedAccount, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListLimitsResponse, ListPublicIdentitiesRequest, ListTransactionsResponse, Lookup3DSRequest, Lookup3DSResponse, LookupTransactionRequest, MXWidgetResponse, PaginationRequest, Payment, PublicWalletInfo, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, Transaction, TwitterCallbackRequest, TwitterCallbackResponse, UpdateClientLimitsRequest, UpdateConnectionLimitsRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressExistsRequest, WalletAddressExistsResponse, WalletInfo } from "./backend_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
-
-/**
- * @generated from service backend.v1.OpenPaymentService
- */
-export const OpenPaymentService = {
-  typeName: "backend.v1.OpenPaymentService",
-  methods: {
-    /**
-     * @generated from rpc backend.v1.OpenPaymentService.CreatePaymentPointer
-     */
-    createPaymentPointer: {
-      name: "CreatePaymentPointer",
-      I: CreatePaymentPointerRequest,
-      O: Empty,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc backend.v1.OpenPaymentService.GetPaymentPointer
-     */
-    getPaymentPointer: {
-      name: "GetPaymentPointer",
-      I: GetPaymentPointerRequest,
-      O: PaymentPointer,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc backend.v1.OpenPaymentService.PaymentPointerExists
-     */
-    paymentPointerExists: {
-      name: "PaymentPointerExists",
-      I: PaymentPointerExistsRequest,
-      O: PaymentPointerExistsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc backend.v1.OpenPaymentService.ListWalletPaymentPointers
-     */
-    listWalletPaymentPointers: {
-      name: "ListWalletPaymentPointers",
-      I: Empty,
-      O: ListWalletPaymentPointersResponse,
-      kind: MethodKind.Unary,
-    },
-  }
-} as const;
 
 /**
  * @generated from service backend.v1.BackendService
@@ -136,6 +91,24 @@ export const BackendService = {
     /**
      * Wallet
      *
+     * @generated from rpc backend.v1.BackendService.CreateWalletAddress
+     */
+    createWalletAddress: {
+      name: "CreateWalletAddress",
+      I: CreateWalletAddressRequest,
+      O: Empty,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.WalletAddressExists
+     */
+    walletAddressExists: {
+      name: "WalletAddressExists",
+      I: WalletAddressExistsRequest,
+      O: WalletAddressExistsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
      * @generated from rpc backend.v1.BackendService.SetWalletName
      */
     setWalletName: {
@@ -584,16 +557,8 @@ export const BackendService = {
     },
     /**
      * Tabapay 3DS
+     *  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
      *
-     * @generated from rpc backend.v1.BackendService.InitQuote3DS
-     */
-    initQuote3DS: {
-      name: "InitQuote3DS",
-      I: InitQuote3DSRequest,
-      O: Init3DSResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc backend.v1.BackendService.Init3DS
      */
     init3DS: {

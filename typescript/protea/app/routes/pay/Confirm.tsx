@@ -156,7 +156,7 @@ export function Confirm() {
           </div>
           {note && (
             <div className='mt-4 flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Reference</span>
+              <span className='text-weak'>Note</span>
               <span className='text-medium'>{note}</span>
             </div>
           )}

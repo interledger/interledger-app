@@ -15,7 +15,7 @@ import {
   TextField,
   TwitterIcon
 } from '~/components'
-import type { SearchResult } from '~/generated/protobuf-ts/backend/v1/backend'
+import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 

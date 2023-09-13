@@ -35,8 +35,8 @@ import {
   WalletShapes
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { Transaction } from '~/generated/protobuf-ts/backend/v1/backend'
-import { getKycStatus, getTransactionsWithPending } from '~/lib/wallet.server'
+import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
+import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
 import { KycStatus } from '~/routes/_index/route'
 
 /**

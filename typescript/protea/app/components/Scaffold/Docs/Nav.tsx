@@ -14,7 +14,7 @@ import { FynbosLogo, IconButton, Router } from '~/components'
 import type { DocsNav } from '~/components/Scaffold/Docs/useDocsStore'
 import { useDocsStore } from '~/components/Scaffold/Docs/useDocsStore'
 import { NavDrawer } from '~/components/Scaffold/NavDrawer'
-import type { loader as docsLoader } from '~/routes/docs/route'
+import type { loader as docsLoader } from '~/routes/docs'
 
 type DocItemProps = {
   children?: ReactNode
