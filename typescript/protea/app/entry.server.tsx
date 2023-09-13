@@ -13,7 +13,14 @@ if (process.env.SENTRY_DSN) {
     dsn: process.env.SENTRY_DSN,
     release: process.env.SENTRY_RELEASE,
     tracesSampleRate: 1,
-    environment: process.env.FYNBOS_ENV
+    environment: process.env.FYNBOS_ENV,
+    integrations: [
+      new Sentry.Integrations.RequestData({
+        include: {
+          cookies: false
+        }
+      })
+    ]
   })
 }
 

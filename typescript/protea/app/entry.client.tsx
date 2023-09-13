@@ -19,7 +19,12 @@ if (
           useMatches
         )
       }),
-      new Sentry.Replay()
+      new Sentry.Replay(),
+      new Sentry.Integrations.RequestData({
+        include: {
+          cookies: false
+        }
+      })
     ],
     tracesSampleRate: 1.0,
     tracePropagationTargets: ['https://fynbos.app'],
