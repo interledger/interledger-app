@@ -59,6 +59,31 @@
     --mk-bg-section: 248 250 252;
     --mk-bg-section-hover: 226 232 240;
     --mk-bg-footer: 23 37 84;
+
+    /* Components */
+    --bg-chip-red: theme('colors.red.300');
+    --bg-chip-sky: theme('colors.sky.300');
+    --bg-chip-green: theme('colors.green.300');
+    --bg-chip-orange: theme('colors.orange.300');
+    --bg-chip-blue: theme('colors.blue.300');
+    --bg-chip-indigo: theme('colors.indigo.300');
+    --bg-chip-purple: theme('colors.purple.300');
+    --bg-chip-yellow: theme('colors.yellow.300');
+    --bg-chip-lime: theme('colors.lime.300');
+    --bg-chip-rose: theme('colors.rose.300');
+    --bg-chip-slate: theme('colors.slate.300');
+
+    --text-chip-red: theme('colors.red.950');
+    --text-chip-sky: theme('colors.sky.950');
+    --text-chip-green: theme('colors.green.950');
+    --text-chip-orange: theme('colors.orange.950');
+    --text-chip-blue: theme('colors.blue.950');
+    --text-chip-indigo: theme('colors.indigo.950');
+    --text-chip-purple: theme('colors.purple.950');
+    --text-chip-yellow: theme('colors.yellow.950');
+    --text-chip-lime: theme('colors.lime.950');
+    --text-chip-rose: theme('colors.rose.950');
+    --text-chip-slate: theme('colors.slate.950');
   }
 
   .theme-dark {
@@ -115,6 +140,31 @@
     --mk-bg-section: 15 23 42;
     --mk-bg-section-hover: 30 41 59;
     --mk-bg-footer: 23 37 84;
+
+    /* Components */
+    --bg-chip-red: theme('colors.red.400');
+    --bg-chip-sky: theme('colors.sky.400');
+    --bg-chip-green: theme('colors.green.400');
+    --bg-chip-orange: theme('colors.orange.400');
+    --bg-chip-blue: theme('colors.blue.400');
+    --bg-chip-indigo: theme('colors.indigo.400');
+    --bg-chip-purple: theme('colors.purple.400');
+    --bg-chip-yellow: theme('colors.yellow.400');
+    --bg-chip-lime: theme('colors.lime.400');
+    --bg-chip-rose: theme('colors.rose.400');
+    --bg-chip-slate: theme('colors.slate.400');
+
+    --text-chip-red: theme('colors.red.950');
+    --text-chip-sky: theme('colors.sky.950');
+    --text-chip-green: theme('colors.green.950');
+    --text-chip-orange: theme('colors.orange.950');
+    --text-chip-blue: theme('colors.blue.950');
+    --text-chip-indigo: theme('colors.indigo.950');
+    --text-chip-purple: theme('colors.purple.950');
+    --text-chip-yellow: theme('colors.yellow.950');
+    --text-chip-lime: theme('colors.lime.950');
+    --text-chip-rose: theme('colors.rose.950');
+    --text-chip-slate: theme('colors.slate.950');
   }
 
   @media (prefers-color-scheme: dark) {
@@ -172,6 +222,31 @@
       --mk-bg-section: 15 23 42;
       --mk-bg-section-hover: 30 41 59;
       --mk-bg-footer: 23 37 84;
+
+      /* Components */
+      --bg-chip-red: theme('colors.red.400');
+      --bg-chip-sky: theme('colors.sky.400');
+      --bg-chip-green: theme('colors.green.400');
+      --bg-chip-orange: theme('colors.orange.400');
+      --bg-chip-blue: theme('colors.blue.400');
+      --bg-chip-indigo: theme('colors.indigo.400');
+      --bg-chip-purple: theme('colors.purple.400');
+      --bg-chip-yellow: theme('colors.yellow.400');
+      --bg-chip-lime: theme('colors.lime.400');
+      --bg-chip-rose: theme('colors.rose.400');
+      --bg-chip-slate: theme('colors.slate.400');
+
+      --text-chip-red: theme('colors.red.950');
+      --text-chip-sky: theme('colors.sky.950');
+      --text-chip-green: theme('colors.green.950');
+      --text-chip-orange: theme('colors.orange.950');
+      --text-chip-blue: theme('colors.blue.950');
+      --text-chip-indigo: theme('colors.indigo.950');
+      --text-chip-purple: theme('colors.purple.950');
+      --text-chip-yellow: theme('colors.yellow.950');
+      --text-chip-lime: theme('colors.lime.950');
+      --text-chip-rose: theme('colors.rose.950');
+      --text-chip-slate: theme('colors.slate.950');
     }
   }
 }

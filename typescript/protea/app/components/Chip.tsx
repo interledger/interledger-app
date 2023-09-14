@@ -3,13 +3,17 @@ import type { FC, ReactNode } from 'react'
 
 // TODO: Refactor to use static string types for colours rather
 export enum ChipColor {
-  green = 'bg-green-200 text-green-800',
-  purple = 'bg-purple-200 text-purple-800',
-  indigo = 'bg-indigo-200 text-indigo-800',
-  orange = 'bg-orange-200 text-orange-800',
-  yellow = 'bg-yellow-200 text-yellow-800',
-  blue = 'bg-blue-200 text-blue-800',
-  red = 'bg-red-100 text-red-800'
+  red = 'bg-chip-red text-chip-red',
+  sky = 'bg-chip-sky text-chip-sky',
+  green = 'bg-chip-green text-chip-green',
+  orange = 'bg-chip-orange text-chip-orange',
+  blue = 'bg-chip-blue text-chip-blue',
+  indigo = 'bg-chip-indigo text-chip-indigo',
+  purple = 'bg-chip-purple text-chip-purple',
+  yellow = 'bg-chip-yellow text-chip-yellow',
+  lime = 'bg-chip-lime text-chip-lime',
+  rose = 'bg-chip-rose text-chip-rose',
+  slate = 'bg-chip-slate text-chip-slate'
 }
 
 export type ChipProps = {
