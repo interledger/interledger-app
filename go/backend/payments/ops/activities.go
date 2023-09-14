@@ -175,7 +175,7 @@ func (a *Activity) AddIdentityWorkflowRef(ctx context.Context, paymentID, workfl
 }
 
 func (a *Activity) MarkWorkflowRefComplete(ctx context.Context, paymentID, workflowID, runID string) error {
-	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments_workflow_refs SET complete=true, updated_at=now() WHERE payment_id=$1 AND workflow_id=$2 AND workflow_run_id=$3",
+	_, err := a.b.DB().ExecContext(ctx, "UPDATE payments_workflow_refs SET completed=true, updated_at=now() WHERE payment_id=$1 AND workflow_id=$2 AND workflow_run_id=$3",
 		paymentID, workflowID, runID)
 
 	return err

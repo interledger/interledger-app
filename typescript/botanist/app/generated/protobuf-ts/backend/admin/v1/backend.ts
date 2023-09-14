@@ -15,6 +15,60 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.ListPaymentsAwaitingSignalResponse
+ */
+export interface ListPaymentsAwaitingSignalResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.Payment payments = 1;
+     */
+    payments: Payment[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.Payment
+ */
+export interface Payment {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string publicID = 2;
+     */
+    publicID: string;
+    /**
+     * @generated from protobuf field: string state = 3;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: string receiverWalletUrl = 4;
+     */
+    receiverWalletUrl: string;
+    /**
+     * @generated from protobuf field: string receiverIdentity = 5;
+     */
+    receiverIdentity: string;
+    /**
+     * @generated from protobuf field: string receiverIdentityType = 6;
+     */
+    receiverIdentityType: string;
+    /**
+     * @generated from protobuf field: string senderAmount = 7;
+     */
+    senderAmount: string;
+    /**
+     * @generated from protobuf field: string senderAccount = 8;
+     */
+    senderAccount: string; // Linked Account ID
+    /**
+     * @generated from protobuf field: string note = 9;
+     */
+    note: string;
+    /**
+     * @generated from protobuf field: repeated string requiredActions = 10;
+     */
+    requiredActions: string[];
+}
+/**
  * @generated from protobuf message backend.admin.v1.ListExternalApiCallsRequest
  */
 export interface ListExternalApiCallsRequest {
@@ -756,6 +810,163 @@ export interface FormSubmissionDetails {
      */
     timestamp?: Timestamp;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class ListPaymentsAwaitingSignalResponse$Type extends MessageType<ListPaymentsAwaitingSignalResponse> {
+    constructor() {
+        super("backend.admin.v1.ListPaymentsAwaitingSignalResponse", [
+            { no: 1, name: "payments", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Payment }
+        ]);
+    }
+    create(value?: PartialMessage<ListPaymentsAwaitingSignalResponse>): ListPaymentsAwaitingSignalResponse {
+        const message = { payments: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListPaymentsAwaitingSignalResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListPaymentsAwaitingSignalResponse): ListPaymentsAwaitingSignalResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.Payment payments */ 1:
+                    message.payments.push(Payment.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListPaymentsAwaitingSignalResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.Payment payments = 1; */
+        for (let i = 0; i < message.payments.length; i++)
+            Payment.internalBinaryWrite(message.payments[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListPaymentsAwaitingSignalResponse
+ */
+export const ListPaymentsAwaitingSignalResponse = new ListPaymentsAwaitingSignalResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Payment$Type extends MessageType<Payment> {
+    constructor() {
+        super("backend.admin.v1.Payment", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "publicID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "receiverWalletUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "receiverIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "receiverIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "senderAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "senderAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "requiredActions", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Payment>): Payment {
+        const message = { id: "", publicID: "", state: "", receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: "", senderAmount: "", senderAccount: "", note: "", requiredActions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Payment>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Payment): Payment {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string publicID */ 2:
+                    message.publicID = reader.string();
+                    break;
+                case /* string state */ 3:
+                    message.state = reader.string();
+                    break;
+                case /* string receiverWalletUrl */ 4:
+                    message.receiverWalletUrl = reader.string();
+                    break;
+                case /* string receiverIdentity */ 5:
+                    message.receiverIdentity = reader.string();
+                    break;
+                case /* string receiverIdentityType */ 6:
+                    message.receiverIdentityType = reader.string();
+                    break;
+                case /* string senderAmount */ 7:
+                    message.senderAmount = reader.string();
+                    break;
+                case /* string senderAccount */ 8:
+                    message.senderAccount = reader.string();
+                    break;
+                case /* string note */ 9:
+                    message.note = reader.string();
+                    break;
+                case /* repeated string requiredActions */ 10:
+                    message.requiredActions.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Payment, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string publicID = 2; */
+        if (message.publicID !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.publicID);
+        /* string state = 3; */
+        if (message.state !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.state);
+        /* string receiverWalletUrl = 4; */
+        if (message.receiverWalletUrl !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.receiverWalletUrl);
+        /* string receiverIdentity = 5; */
+        if (message.receiverIdentity !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.receiverIdentity);
+        /* string receiverIdentityType = 6; */
+        if (message.receiverIdentityType !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.receiverIdentityType);
+        /* string senderAmount = 7; */
+        if (message.senderAmount !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.senderAmount);
+        /* string senderAccount = 8; */
+        if (message.senderAccount !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.senderAccount);
+        /* string note = 9; */
+        if (message.note !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.note);
+        /* repeated string requiredActions = 10; */
+        for (let i = 0; i < message.requiredActions.length; i++)
+            writer.tag(10, WireType.LengthDelimited).string(message.requiredActions[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Payment
+ */
+export const Payment = new Payment$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListExternalApiCallsRequest$Type extends MessageType<ListExternalApiCallsRequest> {
     constructor() {
@@ -3375,5 +3586,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ExportFormSubmissions", serverStreaming: true, options: {}, I: ExportFormSubmissionsRequest, O: ExportFormSubmissionsResponse },
     { name: "ListFormSubmissions", options: {}, I: ListFormSubmissionsRequest, O: ListFormSubmissionsResponse },
     { name: "GetFormSubmissionDetails", options: {}, I: GetFormSubmissionDetailsRequest, O: FormSubmissionDetails },
-    { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse }
+    { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse },
+    { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse }
 ]);
