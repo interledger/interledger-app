@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5/middleware"
 	"net"
 	"net/http"
 	"os"
@@ -252,7 +253,7 @@ func start(args *cli.StartArgs) {
 	var wg sync.WaitGroup
 
 	router := chi.NewRouter()
-	router.Routes()
+	router.Use(middleware.Logger)
 	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
