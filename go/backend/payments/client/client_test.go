@@ -46,9 +46,10 @@ func TestClient(t *testing.T) {
 	receiveWalletID, receiveLinkedAccount := createTestWallet(t, b)
 
 	cases := []struct {
-		Name       string
-		Args       payments.CreateArgs
-		Assertions Assertions
+		Name        string
+		Args        payments.CreateArgs
+		Assertions  Assertions
+		AddIdentity bool
 	}{
 		{
 			Name: "Golden path",
@@ -165,7 +166,8 @@ func TestClient(t *testing.T) {
 			},
 		},
 		{
-			Name: "Requires account linking",
+			Name:        "Requires account linking",
+			AddIdentity: true,
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
@@ -220,11 +222,22 @@ func TestClient(t *testing.T) {
 			})
 			require.NoError(st, err)
 
-			if tc.Args.Receiver.Type == payments.IdentityTypeSlack {
+			if tc.AddIdentity {
 				b.env.RegisterDelayedCallback(func() {
+
+					var platform identities.Platform
+					switch tc.Args.Receiver.Type {
+					case payments.IdentityTypeSlack:
+						platform = identities.PlatformSlack
+					case payments.IdentityTypeDiscord:
+						platform = identities.PlatformDiscord
+					case payments.IdentityTypeTwitter:
+						platform = identities.PlatformTwitter
+					}
+
 					id, err := b.Identities().Add(ctx, identities.AddArgs{
 						WalletID:   receiveWalletID,
-						Platform:   identities.PlatformSlack,
+						Platform:   platform,
 						Identifier: tc.Args.Receiver.Identifier,
 					})
 					require.NoError(st, err)
