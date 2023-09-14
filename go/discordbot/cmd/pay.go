@@ -79,13 +79,10 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 
 	receiver, err := b.Identities().GetByIdentifier(ctx, receiverUsername)
 	if err != nil {
-		newPaymentFailedMessage(s, i, fmt.Sprintf("%s has not linked their Fynbos wallet.", receiverUsername))
-		return
-	}
-
-	if receiver.WalletID == w.ID {
-		newPaymentFailedMessage(s, i, "You cannot create a payment to yourself.")
-		return
+		if receiver.WalletID == w.ID {
+			newPaymentFailedMessage(s, i, "You cannot create a payment to yourself.")
+			return
+		}
 	}
 
 	p, err := b.Payments().Create(ctx, payments.CreateArgs{
