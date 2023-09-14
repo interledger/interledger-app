@@ -7,6 +7,136 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.ListPaymentsAwaitingSignalResponse
+ */
+export class ListPaymentsAwaitingSignalResponse extends Message<ListPaymentsAwaitingSignalResponse> {
+  /**
+   * @generated from field: repeated backend.admin.v1.Payment payments = 1;
+   */
+  payments: Payment[] = [];
+
+  constructor(data?: PartialMessage<ListPaymentsAwaitingSignalResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ListPaymentsAwaitingSignalResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payments", kind: "message", T: Payment, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListPaymentsAwaitingSignalResponse {
+    return new ListPaymentsAwaitingSignalResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListPaymentsAwaitingSignalResponse {
+    return new ListPaymentsAwaitingSignalResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListPaymentsAwaitingSignalResponse {
+    return new ListPaymentsAwaitingSignalResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListPaymentsAwaitingSignalResponse | PlainMessage<ListPaymentsAwaitingSignalResponse> | undefined, b: ListPaymentsAwaitingSignalResponse | PlainMessage<ListPaymentsAwaitingSignalResponse> | undefined): boolean {
+    return proto3.util.equals(ListPaymentsAwaitingSignalResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.Payment
+ */
+export class Payment extends Message<Payment> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string publicID = 2;
+   */
+  publicID = "";
+
+  /**
+   * @generated from field: string state = 3;
+   */
+  state = "";
+
+  /**
+   * @generated from field: string receiverWalletUrl = 4;
+   */
+  receiverWalletUrl = "";
+
+  /**
+   * @generated from field: string receiverIdentity = 5;
+   */
+  receiverIdentity = "";
+
+  /**
+   * @generated from field: string receiverIdentityType = 6;
+   */
+  receiverIdentityType = "";
+
+  /**
+   * @generated from field: string senderAmount = 7;
+   */
+  senderAmount = "";
+
+  /**
+   * Linked Account ID
+   *
+   * @generated from field: string senderAccount = 8;
+   */
+  senderAccount = "";
+
+  /**
+   * @generated from field: string note = 9;
+   */
+  note = "";
+
+  /**
+   * @generated from field: repeated string requiredActions = 10;
+   */
+  requiredActions: string[] = [];
+
+  constructor(data?: PartialMessage<Payment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.Payment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "publicID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "receiverWalletUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "receiverIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "receiverIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "senderAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "senderAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "requiredActions", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payment {
+    return new Payment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Payment {
+    return new Payment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Payment {
+    return new Payment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Payment | PlainMessage<Payment> | undefined, b: Payment | PlainMessage<Payment> | undefined): boolean {
+    return proto3.util.equals(Payment, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.ListExternalApiCallsRequest
  */
 export class ListExternalApiCallsRequest extends Message<ListExternalApiCallsRequest> {

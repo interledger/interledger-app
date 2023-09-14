@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// AdminListAwaitingSignal mocks base method.
+func (m *MockClient) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AdminListAwaitingSignal", ctx)
+	ret0, _ := ret[0].([]payments.Payment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AdminListAwaitingSignal indicates an expected call of AdminListAwaitingSignal.
+func (mr *MockClientMockRecorder) AdminListAwaitingSignal(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminListAwaitingSignal", reflect.TypeOf((*MockClient)(nil).AdminListAwaitingSignal), ctx)
+}
+
 // Confirm mocks base method.
 func (m *MockClient) Confirm(ctx context.Context, id string) (*payments.Payment, []payments.RequiredActionType, error) {
 	m.ctrl.T.Helper()
