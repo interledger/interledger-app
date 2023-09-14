@@ -43,7 +43,18 @@ module.exports = {
         error: 'rgb(var(--text-error) / <alpha-value>)',
         success: 'rgb(var(--text-success) / <alpha-value>)',
         'on-color': 'rgb(var(--text-on-color) / <alpha-value>)',
-        inverted: 'rgb(var(--text-inverted) / <alpha-value>)'
+        inverted: 'rgb(var(--text-inverted) / <alpha-value>)',
+        'chip-red': 'var(--text-chip-red)',
+        'chip-sky': 'var(--text-chip-sky)',
+        'chip-green': 'var(--text-chip-green)',
+        'chip-orange': 'var(--text-chip-orange)',
+        'chip-blue': 'var(--text-chip-blue)',
+        'chip-indigo': 'var(--text-chip-indigo)',
+        'chip-purple': 'var(--text-chip-purple)',
+        'chip-yellow': 'var(--text-chip-yellow)',
+        'chip-lime': 'var(--text-chip-lime)',
+        'chip-rose': 'var(--text-chip-rose)',
+        'chip-slate': 'var(--text-chip-slate)'
       },
       ringOffsetColor: {
         'container-strong': 'rgb(var(--bg-container-strong) / <alpha-value>)'
@@ -74,7 +85,18 @@ module.exports = {
         'mk-footer': 'rgb(var(--mk-bg-footer) / <alpha-value>)',
         'mk-page': 'rgb(var(--mk-bg-page) / <alpha-value>)',
         'mk-section': 'rgb(var(--mk-bg-section) / <alpha-value>)',
-        'mk-section-hover': 'rgb(var(--mk-bg-section-hover) / <alpha-value>)'
+        'mk-section-hover': 'rgb(var(--mk-bg-section-hover) / <alpha-value>)',
+        'chip-red': 'var(--bg-chip-red)',
+        'chip-sky': 'var(--bg-chip-sky)',
+        'chip-green': 'var(--bg-chip-green)',
+        'chip-orange': 'var(--bg-chip-orange)',
+        'chip-blue': 'var(--bg-chip-blue)',
+        'chip-indigo': 'var(--bg-chip-indigo)',
+        'chip-purple': 'var(--bg-chip-purple)',
+        'chip-yellow': 'var(--bg-chip-yellow)',
+        'chip-lime': 'var(--bg-chip-lime)',
+        'chip-rose': 'var(--bg-chip-rose)',
+        'chip-slate': 'var(--bg-chip-slate)'
       },
       borderColor: {
         base: 'rgb(var(--border) / <alpha-value>)',
