@@ -262,6 +262,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
+	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
 	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
