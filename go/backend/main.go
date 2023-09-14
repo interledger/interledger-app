@@ -95,6 +95,7 @@ import (
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_client "gitlab.com/fynbos/backend/wallets/client"
+	wallet_handler "gitlab.com/fynbos/backend/wallets/handler"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -261,6 +262,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
+	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
