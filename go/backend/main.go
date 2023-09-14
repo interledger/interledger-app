@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5/middleware"
 	"net"
 	"net/http"
 	"os"
@@ -95,6 +96,7 @@ import (
 	waitlist_client "gitlab.com/fynbos/backend/waitlist/client"
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_client "gitlab.com/fynbos/backend/wallets/client"
+	wallet_handler "gitlab.com/fynbos/backend/wallets/handler"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -251,7 +253,7 @@ func start(args *cli.StartArgs) {
 	var wg sync.WaitGroup
 
 	router := chi.NewRouter()
-	router.Routes()
+	router.Use(middleware.Logger)
 	router.Use(otelchi.Middleware("backend", otelchi.WithChiRoutes(router)))
 	router.Handle("/healthz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
@@ -261,6 +263,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
+	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
+	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
 
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
