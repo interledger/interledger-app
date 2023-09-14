@@ -1,12 +1,17 @@
 package handler
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -15,6 +20,7 @@ import (
 
 type Backends interface {
 	Wallets() wallets.Client
+	Identities() identities.Client
 }
 
 // this handler handles fynbos.me redirects done by openpayments server previously
@@ -69,6 +75,130 @@ func NewWalletRedirectHandler(b Backends) http.HandlerFunc {
 	}
 }
 
+func NewGetIdentityHandler(b Backends) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != http.MethodGet {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		// check if the hostname is one of the fynbos.me domains
+		if req.Host != removeProtocol(env.OpenPaymentsURL()) {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		identitySigHash := chi.URLParam(req, "identity_sig_hash")
+		ppURL, _, err := extractPaymentPointer(getFullURL(req))
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		wallet, err := b.Wallets().GetFromAddress(req.Context(), ppURL)
+		if err != nil {
+			if errors.Is(err, wallets.ErrNoWalletFound) {
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+				return
+			}
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		sigHash, err := base64.URLEncoding.DecodeString(identitySigHash)
+		if err != nil {
+			// Leave as not found as decoding errors will give 500's
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		identity, err := b.Identities().GetBySignatureHash(req.Context(), sigHash)
+		if err != nil {
+			if errors.Is(err, identities.ErrNotFound) {
+				http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+				return
+			}
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		if identity.WalletID != wallet.ID {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		// Don't allow non verified and non public ones to be shown
+		if identity.State != identities.StateVerified || !identity.Public {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		if isSocialMediaScraper(req) {
+			u, err := url.JoinPath(env.GetUrl(), "me/identities", identitySigHash)
+			if err != nil {
+				log.Error("error generate url", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			// get the html body from the above url
+			resp, err := http.Get(u)
+			if err != nil {
+				log.Error("error getting url", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
+			b, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Error("error reading response body", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			defer resp.Body.Close()
+
+			// return bytes to the caller as html response
+			w.Header().Set("Content-Type", "text/html")
+			_, err = w.Write(b)
+			if err != nil {
+				log.Error("error writing response body", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
+		// if text html redirect
+		if strings.Contains(req.Header.Get("Accept"), "text/html") {
+			u, err := url.JoinPath(env.GetUrl(), "me/identities", identitySigHash)
+			if err != nil {
+				log.Error("error generate url", zap.Error(err))
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			http.Redirect(w, req, u, http.StatusSeeOther)
+			return
+		}
+
+		sigBase64 := base64.URLEncoding.EncodeToString(identity.Signature)
+		sigHashBase64 := base64.URLEncoding.EncodeToString(identity.SignatureHash)
+		jsonResp := IdentityResponse{
+			Identifier:    identity.Identifier,
+			Kid:           identity.KeyID,
+			Ctime:         identity.CreatedAt.Unix(),
+			Type:          string(identity.Platform),
+			Signature:     sigBase64,
+			SignatureHash: sigHashBase64,
+			PublicProof:   identity.VerificationProof,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(jsonResp)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func extractPaymentPointer(rawURL string) (string, string, error) {
 	var res string
 	for _, res = range wallets.ReservedURLParts {
@@ -108,4 +238,28 @@ func getFullURL(req *http.Request) string {
 func removeProtocol(url string) string {
 	url = strings.Replace(url, "http://", "", 1)
 	return strings.Replace(url, "https://", "", 1)
+}
+
+func isSocialMediaScraper(req *http.Request) bool {
+	ua := strings.ToLower(req.UserAgent())
+
+	// Check if the User-Agent contains any of the desired strings
+	if strings.Contains(ua, "linkedinbot") ||
+		strings.Contains(ua, "facebookexternalhit") ||
+		strings.Contains(ua, "facebookcatalog") ||
+		strings.Contains(ua, "twitterbot") {
+		return true
+	}
+
+	return false
+}
+
+type IdentityResponse struct {
+	Identifier    string `json:"identifier"`
+	Kid           string `json:"kid"`
+	Ctime         int64  `json:"ctime"`
+	Signature     string `json:"signature"`
+	SignatureHash string `json:"signature_hash"`
+	PublicProof   string `json:"public_proof"`
+	Type          string `json:"type"`
 }
