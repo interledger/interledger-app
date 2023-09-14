@@ -42,3 +42,7 @@ func (c client) SignalIdentityCreated(ctx context.Context, identifier string) er
 func (c client) SignalAccountLinked(ctx context.Context, walletID string) error {
 	return ops.SignalAccountLinked(ctx, c.b, walletID)
 }
+
+func (c client) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment, error) {
+	return ops.ListAwaitingSignal(ctx, c.b)
+}
