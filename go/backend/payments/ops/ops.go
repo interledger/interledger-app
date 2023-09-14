@@ -718,3 +718,22 @@ func SignalAccountLinked(ctx context.Context, b Backends, walletID string) error
 
 	return nil
 }
+
+func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {
+	var dbRes []dbPayment
+	err := b.DB().GetContext(ctx, &dbRes, fmt.Sprintf("SELECT %s FROM payments WHERE id IN (select payment_id frompayments_workflow_refs where completed=false)", cols))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	res := make([]payments.Payment, len(dbRes))
+	for i, p := range dbRes {
+		temp, err := transformPayment(ctx, b, p)
+		if err != nil {
+			return nil, err
+		}
+		res[i] = *temp
+	}
+
+	return res, nil
+}

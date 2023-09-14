@@ -508,6 +508,12 @@ func AwaitReceiverWorkflow(ctx workflow.Context, paymentID string) (bool, error)
 		}
 
 		if timeout && !receiverReady {
+			err = workflow.ExecuteActivity(ctx, a.MarkWorkflowRefComplete,
+				paymentID, workflow.GetInfo(ctx).WorkflowExecution.ID, workflow.GetInfo(ctx).WorkflowExecution.RunID).Get(ctx, nil)
+			if err != nil {
+				return false, err
+			}
+
 			logger.Info("Wait time expired for user to link identity or account for payment", "payment_id", paymentID)
 			return false, nil
 		}
@@ -522,6 +528,12 @@ func AwaitReceiverWorkflow(ctx workflow.Context, paymentID string) (bool, error)
 		if receiverReady {
 			break
 		}
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.MarkWorkflowRefComplete,
+		paymentID, workflow.GetInfo(ctx).WorkflowExecution.ID, workflow.GetInfo(ctx).WorkflowExecution.RunID).Get(ctx, nil)
+	if err != nil {
+		return false, err
 	}
 
 	// Update the send transaction destination now that the user identity has been linked. We can look up the wallet address now.
