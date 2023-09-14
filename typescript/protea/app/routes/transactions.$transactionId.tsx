@@ -161,7 +161,10 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
               - {transaction.total}
             </h2>
             {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
-            {transaction.icon === 'twitter' && <TwitterIcon height='h-12' />}
+            {transaction.icon === 'linkedin' && <TwitterIcon height='h-12' />}
+            {transaction.icon === 'twitter' && <LinkedInIcon height='h-12' />}
+            {transaction.icon === 'discord' && <DiscordIcon height='h-12' />}
+            {transaction.icon === 'slack' && <SlackIcon height='h-12' />}
           </div>
         </CardContent>
         <Label className='mt-2'>Payment to</Label>
@@ -320,7 +323,8 @@ function Incoming({ openDialog }: { openDialog: () => void }) {
               {transaction.total}
             </h2>
             {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
-            {transaction.icon === 'twitter' && <TwitterIcon height='h-12' />}
+            {transaction.icon === 'linkedin' && <TwitterIcon height='h-12' />}
+            {transaction.icon === 'twitter' && <LinkedInIcon height='h-12' />}
             {transaction.icon === 'discord' && <DiscordIcon height='h-12' />}
             {transaction.icon === 'slack' && <SlackIcon height='h-12' />}
           </div>
