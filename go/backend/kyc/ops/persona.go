@@ -34,25 +34,10 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
 
-	var inquiry *persona.InquiryData
-	if ongoing.ID != "" && ongoing.Status == persona.InquiryNeedsReview {
+	if ongoing.ID != "" {
 		return &kyc.PersonaInquiry{
 			ID:     ongoing.ID,
 			Status: ongoing.Status,
-		}, nil
-	} else if ongoing.ID != "" {
-		// The same idempotency key may have been used to create the initial Inquiry, so append the ID.
-		if idempotencyKey != "" {
-			idempotencyKey += "-" + ongoing.ID
-		}
-		inquiry, err = cl.ResumeInquiry(ctx, ongoing.ID, idempotencyKey)
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
-		}
-
-		return &kyc.PersonaInquiry{
-			ID:     inquiry.ID,
-			Status: persona.InquiryStatus(inquiry.Attributes.Status),
 		}, nil
 	}
 
@@ -91,7 +76,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 	}
 
 	args.InquiryTemplateID = string(persona.GetTemplateIDForCountry(ctx, country.Country(args.CountryCode)))
-	inquiry, err = cl.CreateInquiry(ctx, args, idempotencyKey)
+	inquiry, err := cl.CreateInquiry(ctx, args, idempotencyKey)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
 	}
