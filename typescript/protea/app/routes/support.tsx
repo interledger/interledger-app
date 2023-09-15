@@ -14,8 +14,7 @@ import {
   Icon,
   Layouts,
   TextArea,
-  WalletGrid,
-  WalletShapes
+  WalletGrid
 } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
@@ -34,8 +33,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Support',
-      actions: <WalletShapes />
+      title: 'Support'
     }
   }
 }

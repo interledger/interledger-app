@@ -4,14 +4,7 @@ import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  Card,
-  CardContent,
-  Layouts,
-  LoadingShapes,
-  Shape
-} from '~/components'
+import { Button, Card, CardContent, Layouts, Shape } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -72,7 +65,7 @@ export default function Page() {
       {id && (
         <Card>
           <CardContent>
-            <LoadingShapes />
+            <p>Connecting your Twitter account, please wait.</p>
           </CardContent>
         </Card>
       )}

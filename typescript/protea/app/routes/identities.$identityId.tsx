@@ -68,13 +68,27 @@ export const handle: ApplicationProps = {
         const state = data.identity.state
         switch (state) {
           case 'verified':
-            return <Chip color={ChipColor.green}>Verified</Chip>
+            return {
+              key: 'Verified',
+              nodes: <Chip color={ChipColor.green}>Verified</Chip>
+            }
           case 'unverified':
-            return <Chip color={ChipColor.yellow}>Unverified</Chip>
+            return {
+              key: 'Unverified',
+              nodes: <Chip color={ChipColor.yellow}>Unverified</Chip>
+            }
           case 'failed':
-            return <Chip color={ChipColor.red}>Failed</Chip>
+            return {
+              key: 'Failed',
+              nodes: <Chip color={ChipColor.red}>Failed</Chip>
+            }
           case 'pending':
-            return <Chip color={ChipColor.orange}>Pending</Chip>
+            return {
+              key: 'Pending',
+              nodes: <Chip color={ChipColor.orange}>Pending</Chip>
+            }
+          default:
+            return null
         }
       }
     },

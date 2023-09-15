@@ -1,10 +1,10 @@
-import { useLocation } from '@remix-run/react'
 import clsx from 'clsx'
 import type { MotionProps } from 'framer-motion'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion, stagger, useAnimate, usePresence } from 'framer-motion'
 import type { ReactNode } from 'react'
-import { forwardRef, useEffect, useMemo, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export type Radius =
   | 'rounded-none'
@@ -196,14 +196,14 @@ export function SuccessShapes() {
 let isHydrating = true
 
 export function WalletShapes() {
-  const location = useLocation()
-
+  const [isPresent, safeToRemove] = usePresence()
   const [isHydrated, setIsHydrated] = useState(!isHydrating)
 
-  useEffect(() => {
-    isHydrating = false
-    setIsHydrated(true)
-  }, [])
+  const [loading] = useScaffoldStore((state) => [state.loading])
+
+  let throttleRef = useRef<NodeJS.Timeout>()
+
+  const [scope, animate] = useAnimate()
 
   const shapes = useMemo(() => {
     const radii: Radius[] = [
@@ -238,131 +238,113 @@ export function WalletShapes() {
       'bg-yellow-400'
     ]
 
-    const commonShape = {
-      width: 'w-0 lg:w-6',
-      animate: { opacity: 1, scale: 1 },
-      initial: { opacity: 0, scale: 0.5 },
-      exit: {
-        opacity: 0,
-        scale: 0.5,
-        transition: {
-          duration: 0.2
-        }
-      },
-      transition: {
-        type: 'spring',
-        stiffness: 400,
-        damping: 20,
-        duration: 0.3
-      }
-    }
-
-    return Array(3)
-      .fill({ ...commonShape })
-      .map((shape: MotionShapeProps, index: number) => {
-        const colourIndex = Math.floor(Math.random() * colours.length)
-        const radiiIndex = Math.floor(Math.random() * radii.length)
-
-        return {
-          key: `shape${index}${location.pathname}`,
-          color: colours[colourIndex],
-          radius: radii[radiiIndex],
-          ...shape
-        }
-      })
-  }, [location.pathname])
-
-  if (!isHydrated) {
-    return null
-  }
-
-  return (
-    <div className='flex items-center justify-center'>
-      <AnimatePresence mode='popLayout'>
-        {shapes.map(({ key, ...props }) => (
-          <MotionShape key={key} {...props} />
-        ))}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-export function LoadingShapes() {
-  const [isHydrated, setIsHydrated] = useState(!isHydrating)
+    return ['', '', ''].map(() => {
+      const colourIndex = Math.floor(Math.random() * colours.length)
+      const radiiIndex = Math.floor(Math.random() * radii.length)
+      return `w-6 h-6 ${colours[colourIndex]} ${radii[radiiIndex]}`
+    })
+  }, [])
 
   useEffect(() => {
     isHydrating = false
     setIsHydrated(true)
   }, [])
 
+  useEffect(() => {
+    if (isHydrated) {
+      if (isPresent) {
+        animate(
+          'li',
+          { opacity: 1, scale: 1 },
+          {
+            delay: stagger(0.1),
+            type: 'spring',
+            stiffness: 400,
+            damping: 20
+          }
+        )
+      } else {
+        animate(
+          'li',
+          { opacity: 0, scale: 0.5 },
+          {
+            delay: stagger(0.1),
+            type: 'spring',
+            stiffness: 400,
+            damping: 20
+          }
+        ).then(() => safeToRemove())
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPresent, isHydrated])
+
+  useEffect(() => {
+    const loadingAnimation = () => {
+      animate([
+        [
+          'li',
+          { opacity: 0, scale: 0.5 },
+          {
+            delay: stagger(0.1),
+            type: 'spring',
+            stiffness: 400,
+            damping: 20
+          }
+        ],
+        [
+          'li',
+          { opacity: 1, scale: 1 },
+          {
+            delay: stagger(0.1),
+            type: 'spring',
+            stiffness: 400,
+            damping: 20
+          }
+        ]
+      ])
+    }
+
+    if (loading) {
+      loadingAnimation()
+      throttleRef.current = setInterval(async () => {
+        loadingAnimation()
+      }, 1800)
+    } else {
+      clearTimeout(throttleRef.current)
+    }
+    return () => {
+      clearTimeout(throttleRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading])
+
   if (!isHydrated) {
     return null
   }
-
-  const container = {
-    hidden: {},
-    show: {
-      transition: {
-        delayChildren: 0.5,
-        staggerChildren: 0.1,
-        repeat: Infinity
-      }
-    }
-  }
-
-  const item = {
-    hidden: { opacity: 0, scale: 0.5 },
-    show: {
-      opacity: 1,
-      scale: 1
-    }
-  }
-
   return (
-    <div className='flex items-center justify-center'>
-      <motion.div
-        className='flex'
-        variants={container}
-        initial='hidden'
-        animate='show'
-      >
-        <motion.div
-          className='h-6 w-6 rounded-full bg-rose-500'
-          variants={item}
-          transition={{
-            type: 'spring',
-            stiffness: 400,
-            damping: 20,
-            repeat: Infinity,
-            repeatDelay: 0.35,
-            repeatType: 'reverse'
-          }}
-        />
-        <motion.div
-          className='h-6 w-6 rounded-bl-full rounded-tr-full bg-lime-500'
-          variants={item}
-          transition={{
-            type: 'spring',
-            stiffness: 400,
-            damping: 20,
-            repeat: Infinity,
-            repeatDelay: 0.35,
-            repeatType: 'reverse'
-          }}
-        />
-        <motion.div
-          className='h-6 w-6 rounded-l-full bg-sky-500'
-          variants={item}
-          transition={{
-            type: 'spring',
-            stiffness: 400,
-            damping: 20,
-            repeat: Infinity,
-            repeatDelay: 0.35,
-            repeatType: 'reverse'
-          }}
-        />
-      </motion.div>
-    </div>
+    <ul ref={scope} className='flex items-center justify-center'>
+      <li
+        style={{
+          opacity: 0,
+          scale: 0.5
+        }}
+        className={shapes[0]}
+      />
+      <li
+        style={{
+          opacity: 0,
+          scale: 0.5
+        }}
+        className={shapes[1]}
+      />
+      <li
+        style={{
+          opacity: 0,
+          scale: 0.5
+        }}
+        className={shapes[2]}
+      />
+    </ul>
   )
 }
