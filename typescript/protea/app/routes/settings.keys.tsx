@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Layouts, WalletShapes } from '~/components'
+import { Card, CardContent, Layouts } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
@@ -20,8 +20,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Keys',
-      actions: <WalletShapes />
+      title: 'Keys'
     },
     isNested: true
   }

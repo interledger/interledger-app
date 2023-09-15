@@ -56,17 +56,32 @@ export const handle: ApplicationProps = {
       title: 'Sent payment',
       actions: (match) => {
         if (match.data.transaction.refundState == 'PENDING') {
-          return <Chip color={ChipColor.red}>Pending refund</Chip>
+          return {
+            key: 'Pending refund',
+            nodes: <Chip color={ChipColor.red}>Pending refund</Chip>
+          }
         } else if (match.data.transaction.refundState == 'COMPLETE') {
-          return <Chip color={ChipColor.red}>Refunded</Chip>
+          return {
+            key: 'Refunded',
+            nodes: <Chip color={ChipColor.red}>Refunded</Chip>
+          }
         }
         switch (match.data.transaction.status) {
           case 'Completed':
-            return <Chip color={ChipColor.green}>Complete</Chip>
+            return {
+              key: 'Complete',
+              nodes: <Chip color={ChipColor.green}>Complete</Chip>
+            }
           case 'Pending':
-            return <Chip color={ChipColor.orange}>Pending</Chip>
+            return {
+              key: 'Pending',
+              nodes: <Chip color={ChipColor.orange}>Pending</Chip>
+            }
           case 'Failed':
-            return <Chip color={ChipColor.red}>Failed</Chip>
+            return {
+              key: 'Failed',
+              nodes: <Chip color={ChipColor.red}>Failed</Chip>
+            }
           default:
             return null
         }

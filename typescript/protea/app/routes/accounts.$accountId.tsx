@@ -45,23 +45,38 @@ export const handle: ApplicationProps = {
           const canSend = match.data.card.canSend
           const canReceive = match.data.card.canReceive
           if (canSend && canReceive) {
-            return [
-              <Chip key='send' color={ChipColor.indigo}>
-                Send
-              </Chip>,
-              <Chip key='receive' color={ChipColor.purple}>
-                Receive
-              </Chip>
-            ]
+            return {
+              key: 'send+receive',
+              nodes: [
+                <Chip key='send' color={ChipColor.indigo}>
+                  Send
+                </Chip>,
+                <Chip key='receive' color={ChipColor.purple}>
+                  Receive
+                </Chip>
+              ]
+            }
           } else if (!canSend && canReceive) {
-            return <Chip color={ChipColor.purple}>Receive only</Chip>
+            return {
+              key: 'Receive only',
+              nodes: <Chip color={ChipColor.purple}>Receive only</Chip>
+            }
           } else if (canSend && !canReceive) {
-            return <Chip color={ChipColor.indigo}>Send only</Chip>
+            return {
+              key: 'Send only',
+              nodes: <Chip color={ChipColor.indigo}>Send only</Chip>
+            }
           } else return null
         } else if (state == 'OwnershipReviewRequired') {
-          return <Chip color={ChipColor.orange}>In review</Chip>
+          return {
+            key: 'In review',
+            nodes: <Chip color={ChipColor.orange}>In review</Chip>
+          }
         } else if (state == 'Rejected') {
-          return <Chip color={ChipColor.red}>Rejected</Chip>
+          return {
+            key: 'Rejected',
+            nodes: <Chip color={ChipColor.red}>Rejected</Chip>
+          }
         } else return null
       }
     },

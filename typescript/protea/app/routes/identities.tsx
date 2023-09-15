@@ -24,8 +24,7 @@ import {
   Router,
   SlackIcon,
   TwitterIcon,
-  WalletGrid,
-  WalletShapes
+  WalletGrid
 } from '~/components'
 import { getIdentities } from '~/data/identity.server'
 import { getKycStatus } from '~/data/wallet.server'
@@ -46,8 +45,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Identities',
-      actions: <WalletShapes />
+      title: 'Identities'
     },
     fab: Fab.Pay
   }

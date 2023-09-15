@@ -10,20 +10,14 @@ import {
 import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import {
-  Button,
-  ButtonRouter,
-  Card,
-  CardContent,
-  Layouts,
-  LoadingShapes
-} from '~/components'
+import { Button, ButtonRouter, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
 
@@ -104,12 +98,16 @@ function cleanupSongbirdScript(script: ScriptElt) {
 export default function Page() {
   const loaderData = useLoaderData<typeof loader>()
 
-  return (
-    <>
-      <LoadingShapes />
-      {loaderData.fynbosEnv === 'local' ? <DevThreeDSPage /> : <ThreeDSPage />}
-    </>
-  )
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
+  useEffect(() => {
+    // This ensures that loading is false when this route is unmounted.
+    return () => {
+      setLoading(false)
+    }
+  }, [setLoading])
+
+  return loaderData.fynbosEnv === 'local' ? <DevThreeDSPage /> : <ThreeDSPage />
 }
 
 function DevThreeDSPage() {
@@ -155,6 +153,9 @@ function ThreeDSPage() {
   const actionData = useActionData<typeof action>()
   const submit = useSubmit()
   let cardinalRef = useRef<any>(null)
+
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
   const [showingIssuerChallenge, setShowingIssuerChallenge] =
     useState<boolean>(false)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -166,6 +167,13 @@ function ThreeDSPage() {
   const [paymentId, setPaymentId] = useState<string>('')
   const csrfTokenRef = useRef<string>('')
   const state = useScript(songbirdURL, cleanupSongbirdScript)
+
+  setLoading(true)
+
+  useEffect(() => {
+    if (actionData?.challengeURL) setLoading(false)
+  }, [actionData?.challengeURL, setLoading])
+
   useEffect(() => {
     if (loaderData.songbirdURL) {
       setSongbirdURL(loaderData.songbirdURL)
@@ -250,6 +258,7 @@ function ThreeDSPage() {
 
             default:
               setThreeDSError(true)
+              setLoading(false)
           }
         }
       )
@@ -274,7 +283,8 @@ function ThreeDSPage() {
     fynbosEnv,
     searchParams,
     setSearchParams,
-    paymentId
+    paymentId,
+    setLoading
   ])
 
   const showIssuerChallenge = () => {
@@ -297,6 +307,11 @@ function ThreeDSPage() {
 
   return (
     <>
+      {!actionData?.challengeURL && !threeDSError && (
+        <Card>
+          <CardContent>Verifying payment, please wait.</CardContent>
+        </Card>
+      )}
       {actionData?.challengeURL && !threeDSError && (
         <>
           <Card>

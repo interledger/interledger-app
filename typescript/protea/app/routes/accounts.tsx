@@ -17,8 +17,7 @@ import {
   Icon,
   Layouts,
   Router,
-  WalletGrid,
-  WalletShapes
+  WalletGrid
 } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/data/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
@@ -40,8 +39,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Accounts',
-      actions: <WalletShapes />
+      title: 'Accounts'
     },
     fab: Fab.Pay
   }

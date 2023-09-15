@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
-import { Fab, Layouts, WalletShapes } from '~/components'
+import { Fab, Layouts } from '~/components'
 import { getHomeRoute } from '~/data/content.server'
 import {
   getFeatures,
@@ -78,8 +78,7 @@ export const handle: ApplicationProps = {
   layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
   scaffold: {
     header: {
-      title: 'Home',
-      actions: <WalletShapes />
+      title: 'Home'
     },
     fab: Fab.Pay,
     footer: (match) => match.data.footer

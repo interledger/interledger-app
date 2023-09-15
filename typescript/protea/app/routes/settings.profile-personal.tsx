@@ -4,7 +4,7 @@ import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Icon, Layouts, WalletShapes } from '~/components'
+import { Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
@@ -58,8 +58,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Personal information',
-      actions: <WalletShapes />
+      title: 'Personal information'
     },
     isNested: true
   }

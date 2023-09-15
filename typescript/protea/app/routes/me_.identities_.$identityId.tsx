@@ -108,9 +108,12 @@ export const handle: ApplicationProps = {
         }
       },
       actions: (match) =>
-        match.data.identity.state == 'verified' ? (
-          <Chip color={ChipColor.green}>Verified</Chip>
-        ) : null
+        match.data.identity.state == 'verified'
+          ? {
+              key: 'Verified',
+              nodes: <Chip color={ChipColor.green}>Verified</Chip>
+            }
+          : null
     }
   }
 }

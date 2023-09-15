@@ -11,8 +11,7 @@ import {
   GridColumn,
   Icon,
   Layouts,
-  WalletGrid,
-  WalletShapes
+  WalletGrid
 } from '~/components'
 import { getKycStatus } from '~/data/wallet.server'
 import { KycStatus } from '~/routes/_index/route'
@@ -34,8 +33,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Settings',
-      actions: <WalletShapes />
+      title: 'Settings'
     }
   }
 }

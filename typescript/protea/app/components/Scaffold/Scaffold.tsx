@@ -18,9 +18,9 @@ import {
   FynbosLogo,
   Icon,
   IconButton,
-  LoadingShapes,
   Router,
-  SnackbarStage
+  SnackbarStage,
+  WalletShapes
 } from '~/components'
 import { ContentRouter, Prose } from '~/components/Content'
 import { DocsNavDrawer } from '~/components/Scaffold/Docs'
@@ -68,11 +68,10 @@ export type ScaffoldProps = {
     // Back should check the history stack, and if the previous route is the same as the specified route, it should pop the history stack
     back?: string | ((match: RouteMatch) => string)
     title?: string | ((match: RouteMatch) => string)
-    actions?:
-      | ReactNode
-      | ReactNode[]
-      | ((match: RouteMatch) => ReactNode | ReactNode[])
-      | null
+    actions?: (match: RouteMatch) => {
+      key: string
+      nodes: ReactNode | ReactNode[]
+    } | null
   }
   footer?: (match: RouteMatch) => FooterRecord
   fab?: Fab
@@ -117,10 +116,7 @@ export function Scaffold() {
 
   const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
 
-  const [loading, pushSnackbar] = useScaffoldStore((state) => [
-    state.loading,
-    state.pushSnackbar
-  ])
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   useEffect(() => {
     const snackbar = matches[0].data.snackbar
@@ -136,11 +132,10 @@ export function Scaffold() {
   else layout = layoutHandle
 
   const actionHandle = scaffold.header?.actions
-  let actions: ReactNode | ReactNode[]
-
-  if (typeof actionHandle === 'function')
+  let actions = null
+  if (typeof actionHandle !== 'undefined') {
     actions = actionHandle(currentMatch) ?? null
-  else actions = actionHandle ?? null
+  }
 
   const titleHandle = scaffold.header?.title
 
@@ -304,7 +299,6 @@ export function Scaffold() {
                       navigate(-1)
                     } else signupStepBack()
                   } else if (scaffold.header.back === 'form') {
-                    console.log('formStep', formStep)
                     if (formStep == 0) {
                       formStepBack()
                       navigate(-1)
@@ -339,24 +333,44 @@ export function Scaffold() {
             >
               <FynbosLogo className='h-8' />
             </Router>
-            {loading && (
-              <div className='ml-auto flex items-center space-x-4'>
-                <LoadingShapes />
-              </div>
-            )}
-            {actions && !loading && (
-              <div className='ml-auto flex items-center space-x-2'>
-                {Array.isArray(actions) &&
-                  actions.map((action, index) => {
-                    return (
-                      <div key={'header-action' + index} className='ml-auto'>
-                        {action}
-                      </div>
-                    )
-                  })}
-                {!Array.isArray(actions) && actions}
-              </div>
-            )}
+            <div className='ml-auto flex items-center space-x-4'>
+              <AnimatePresence mode='wait'>
+                {!actions && <WalletShapes key='WalletShapes' />}
+                {actions && (
+                  <motion.div
+                    key={'header-action' + actions.key}
+                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.5,
+                      transition: {
+                        duration: 0.2
+                      }
+                    }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 400,
+                      damping: 20
+                    }}
+                    className='flex items-center space-x-4'
+                  >
+                    {Array.isArray(actions.nodes) &&
+                      actions.nodes.map((action, index) => {
+                        return (
+                          <div
+                            key={'header-action' + index}
+                            className='ml-auto'
+                          >
+                            {action}
+                          </div>
+                        )
+                      })}
+                    {!Array.isArray(actions.nodes) && actions.nodes}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         )}
       </header>
