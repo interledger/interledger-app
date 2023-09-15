@@ -9,8 +9,7 @@ import {
   CardContent,
   CardLink,
   Icon,
-  Layouts,
-  WalletShapes
+  Layouts
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
@@ -30,8 +29,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Public information',
-      actions: <WalletShapes />
+      title: 'Public information'
     },
     isNested: true
   }

@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Icon, Layouts, WalletShapes } from '~/components'
+import { Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
 
@@ -25,8 +25,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/settings'),
-      title: 'Contact information',
-      actions: <WalletShapes />
+      title: 'Contact information'
     },
     isNested: true
   }

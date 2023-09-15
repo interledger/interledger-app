@@ -31,8 +31,7 @@ import {
   Router,
   SlackIcon,
   TwitterIcon,
-  WalletGrid,
-  WalletShapes
+  WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
@@ -100,8 +99,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Wallet,
   scaffold: {
     header: {
-      title: 'Transactions',
-      actions: <WalletShapes />
+      title: 'Transactions'
     },
     fab: Fab.Pay
   }
