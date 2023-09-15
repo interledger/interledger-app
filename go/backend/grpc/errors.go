@@ -3,6 +3,7 @@ package grpc
 import (
 	"errors"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 
 	"gitlab.com/fynbos/backend/payments"
 
@@ -99,6 +100,7 @@ func toGRPCError(err error) error {
 	}
 
 	// Default to a generic error and log
+	_ = sentry.CaptureException(err)
 	log.Error("Unexpected error", zap.Error(err))
 	return status.Error(codes.Internal, "Internal server error")
 }
