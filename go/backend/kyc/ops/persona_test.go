@@ -46,9 +46,6 @@ func TestGetPersonaInquiry(t *testing.T) {
 
 		assert.Equal(st, inq.ID, inqID)
 
-		// Now lets get an update
-		pc.EXPECT().ResumeInquiry(ctx, inqID, gomock.Any()).Return(&persona.InquiryData{ID: inqID, Meta: persona.InquiryMeta{SessionToken: "token"}}, nil)
-
 		inq, err = ops.GetPersonaInquiry(ctx, b, pc, walletID, "")
 		require.NoError(t, err)
 
