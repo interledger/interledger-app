@@ -180,6 +180,7 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 				SenderAccount:  senderAcc.ID,
 				ReceiverAmount: amt,
 				Note:           note,
+				IPAddress:      "41.71.7.104", // TODO: take in IP address when confirming payment
 			})
 			if err != nil {
 				log.Error("failed to create payment for slack bot", zap.Error(err))
