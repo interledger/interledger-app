@@ -2091,6 +2091,57 @@ table "payments" {
   }
 }
 
+table "payments_workflow_refs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = text
+  }
+  column "identifier" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = text
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "workflow_run_id" {
+    null = false
+    type = text
+  }
+  column "completed" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "payments_workflow_refs_completed_ind" {
+    unique  = false
+    columns = [column.completed]
+  }
+}
+
 table "discord_authorizations" {
   schema = schema.public
   column "id" {

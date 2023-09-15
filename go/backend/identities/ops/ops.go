@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/slack"
 	"sort"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/slack"
 
 	"gitlab.com/fynbos/backend/notify"
 
@@ -241,6 +242,11 @@ func UpdateState(ctx context.Context, b Backends, id string, state identities.St
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeIdentity)
 	if err != nil {
 		log.Error("error notifying wallet", zap.Error(err), zap.String("type", notify.NotificationTypeIdentity))
+	}
+
+	err = b.Payments().SignalIdentityCreated(ctx, ident.Identifier)
+	if err != nil {
+		log.Error("error notifying payments of new identity", zap.Error(err), zap.String("id", id))
 	}
 
 	return nil
