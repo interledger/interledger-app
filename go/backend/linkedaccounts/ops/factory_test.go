@@ -4,10 +4,13 @@ import (
 	"context"
 	"testing"
 
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
@@ -37,6 +40,7 @@ type TestContainer struct {
 	Wc             *wallets_mock.MockClient
 	Ec             *email_mock.MockClient
 	Kyc            *kyc_mock.MockClient
+	Pc             *payments_mock.MockClient
 }
 
 func (t TestContainer) Validator() *validator.Validate {
@@ -67,6 +71,10 @@ func (t TestContainer) Email() email.Client {
 	return t.Ec
 }
 
+func (t TestContainer) Payments() payments.Client {
+	return t.Pc
+}
+
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
 	c := &TestContainer{ValidatorImpl: validator.New()}
 	c.Ctx = ctx
@@ -91,11 +99,13 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 	c.Wc = wc
 	c.Ec = email_mock.NewMockClient(ctrl)
 	c.Kyc = kyc_mock.NewMockClient(ctrl)
+	c.Pc = payments_mock.NewMockClient(ctrl)
 
 	c.Kyc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).Return(&kyc.IndividualDetails{
 		FirstName: "Test",
 		LastName:  "User",
 	}, nil).AnyTimes()
+	c.Pc.EXPECT().SignalAccountLinked(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	return c, nil
 }

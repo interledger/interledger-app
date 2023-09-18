@@ -80,6 +80,11 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		log.Error("notify failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
 	}
 
+	err = b.Payments().SignalAccountLinked(ctx, args.WalletID)
+	if err != nil {
+		log.Error("pending payment notification failed for linked account", zap.String("walletId", args.WalletID), zap.Error(err))
+	}
+
 	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", args.Name, args.Provider, env.AdminURL()+"/wallet/"+args.WalletID+"/linked-accounts"))
 
 	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired {
@@ -141,6 +146,11 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 		err = b.Notify().NotifyWallet(ctx, la.WalletID, notify.NotificationTypeLinkedAccount)
 		if err != nil {
 			log.Error("notify failed for linked account", zap.String("walletId", la.WalletID), zap.Error(err))
+		}
+
+		err = b.Payments().SignalAccountLinked(ctx, la.WalletID)
+		if err != nil {
+			log.Error("pending payment notification failed for linked account", zap.String("walletId", la.WalletID), zap.Error(err))
 		}
 
 		notifiedWallets[la.WalletID] = true
