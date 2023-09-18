@@ -663,6 +663,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		Value("updated_at", payment.UpdatedAt).
 		Value("note", payment.Note).
 		Value("action_three_ds_id", payment.ThreeDSID).
+		Value("ip_address", payment.IPAddress).
 		Value("action_otp", payment.OTP).Returning(cols).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
