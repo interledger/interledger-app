@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -21,6 +22,7 @@ import (
 type Backends interface {
 	Wallets() wallets.Client
 	Identities() identities.Client
+	Keys() keys.Client
 }
 
 // this handler handles fynbos.me redirects done by openpayments server previously
@@ -39,7 +41,7 @@ func NewWalletRedirectHandler(b Backends) http.HandlerFunc {
 
 		ctx := req.Context()
 
-		ppURL, _, err := extractWalletAddress(getFullURL(req))
+		ppURL, suffix, err := extractWalletAddress(getFullURL(req))
 		if errors.Is(err, wallets.ErrInvalidAddress) {
 			http.Error(w, "Invalid wallet address", http.StatusBadRequest)
 			return
@@ -70,6 +72,51 @@ func NewWalletRedirectHandler(b Backends) http.HandlerFunc {
 				return
 			}
 			http.Redirect(w, req, u, http.StatusFound)
+			return
+		}
+		switch suffix {
+		case "jwks.json":
+			listKeys(b, wallet.ID, w, req)
+			return
+		}
+
+		ids, err := b.Identities().ListPublic(ctx, wallet.ID)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		jsonIds := make([]IdentityResponse, 0)
+
+		for _, id := range ids {
+			if id.State == identities.StateVerified {
+				sigBase64 := base64.URLEncoding.EncodeToString(id.Signature)
+				sigHashBase64 := base64.URLEncoding.EncodeToString(id.SignatureHash)
+
+				jsonIds = append(jsonIds, IdentityResponse{
+					Identifier:    id.Identifier,
+					Kid:           id.KeyID,
+					Ctime:         id.CreatedAt.Unix(),
+					Type:          string(id.Platform),
+					Signature:     sigBase64,
+					SignatureHash: sigHashBase64,
+					PublicProof:   id.VerificationProof,
+				})
+			}
+		}
+
+		jsonResponse := JsonResponse{
+			Id:         wallet.AddressString(),
+			PublicName: wallet.Name,
+			Identities: jsonIds,
+		}
+
+		// Fallback to get payment pointer
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(jsonResponse)
+		if err != nil {
+			log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -254,6 +301,39 @@ func isSocialMediaScraper(req *http.Request) bool {
 	return false
 }
 
+func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Request) {
+	wKeys, err := b.Keys().List(req.Context(), walletID)
+	if err != nil {
+		log.Error("error listing client public keys", zap.Error(err), zap.String("walletID", walletID))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	jwks := make([]Jwk, len(wKeys))
+	for i, k := range wKeys {
+		jwks[i] = Jwk{
+			Kty: "OKP",
+			Kid: k.ID,
+			Crv: "Ed25519",
+			Alg: "edDSA",
+			Use: "sign",
+			X:   k.PublicKey,
+		}
+	}
+
+	resp := struct {
+		Keys []Jwk `json:"keys"`
+	}{
+		Keys: jwks,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		log.Error("error writing http response", zap.Error(err), zap.String("url", req.URL.String()))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
 type IdentityResponse struct {
 	Identifier    string `json:"identifier"`
 	Kid           string `json:"kid"`
@@ -262,4 +342,20 @@ type IdentityResponse struct {
 	SignatureHash string `json:"signature_hash"`
 	PublicProof   string `json:"public_proof"`
 	Type          string `json:"type"`
+}
+
+type Jwk struct {
+	Kty string `json:"kty,omitempty"`
+	E   string `json:"e,omitempty"`
+	Kid string `json:"kid,omitempty"`
+	Alg string `json:"alg,omitempty"`
+	N   string `json:"n,omitempty"`
+	Crv string `json:"crv,omitempty"`
+	X   string `json:"x,omitempty"`
+	Use string `json:"use,omitempty"`
+}
+type JsonResponse struct {
+	Id         string             `json:"id"`
+	PublicName string             `json:"publicName"`
+	Identities []IdentityResponse `json:"identities"`
 }
