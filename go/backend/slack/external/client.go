@@ -75,3 +75,12 @@ func (c client) CreateUserToken(ctx context.Context, authCode string) (*oauth2.T
 
 	return oauth2Token, &user, nil
 }
+
+func (c client) CreateBotToken(ctx context.Context, authCode string) (*oauth2.Token, error) {
+	oauth2Token, err := c.conf.Exchange(ctx, authCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return oauth2Token, err
+}
