@@ -2,12 +2,31 @@ package ops
 
 import (
 	"context"
+	"errors"
 
 	"gitlab.com/fynbos/backend/transactions"
 )
 
 func (a *Activity) SetReceiveTransactionID(ctx context.Context, paymentID, txID string) error {
 	return setReceiveTransactionID(ctx, a.b, paymentID, txID)
+}
+
+func (a *Activity) UpdatePayInTransactionDestination(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.SendTransactionID == "" {
+		return errors.New("no send transaction attached to payment")
+	}
+
+	w, err := lookupWallet(ctx, a.b, p.Receiver)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionDestination(ctx, p.SendTransactionID, w.AddressString())
 }
 
 func (a *Activity) UpdatePayInTransactionState(ctx context.Context, paymentID string, state transactions.State) error {
