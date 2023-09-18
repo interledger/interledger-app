@@ -180,7 +180,6 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 				SenderAccount:  senderAcc.ID,
 				ReceiverAmount: amt,
 				Note:           note,
-				IPAddress:      "41.71.7.104", // TODO: take in IP address when confirming payment
 			})
 			if err != nil {
 				log.Error("failed to create payment for slack bot", zap.Error(err))
@@ -289,6 +288,15 @@ func lookupAuth(ctx context.Context, b Backends, teamID, userID string) (*slack.
 		return nil, fmt.Errorf("%w %s", slack.ErrInternal, err)
 	}
 
+	// Check if the user has unlinked the connection then don't return it.
+	_, err = b.Identities().GetByIdentifier(ctx, res.Identifier())
+	if errors.Is(err, identities.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", slack.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", slack.ErrInternal, err)
+	}
+
 	return &res, nil
 }
 
@@ -340,7 +348,7 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 			}
 			if errors.Is(err, slack.ErrNotFound) && shouldPromt && !sentReceiverPrompt {
 				// Send prompt to user to link an
-				sendToUser(ctx, normalizeUserID(receiverSlackID),
+				sendToUser(ctx, b, c.TeamID, receiverSlackID,
 					fmt.Sprintf("%s has sent you a payment of %s. Please create an account, link a bank card and this slack profile to receive your payment on %s",
 						c.UserID, p.ReceiverAmount.Format(), env.GetUrl()))
 				sentReceiverPrompt = true
@@ -356,7 +364,7 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 			_, err = b.LinkedAccounts().GetDefaultReceive(ctx, con.WalletID)
 			if errors.Is(err, linkedaccounts.ErrNotFound) && !sentReceiverPrompt {
 				// Send prompt to user to link an
-				sendToUser(ctx, normalizeUserID(receiverSlackID),
+				sendToUser(ctx, b, c.TeamID, receiverSlackID,
 					fmt.Sprintf("%s has sent you a payment of %s. Please create an account, link a bank card to receive your payment on %s",
 						c.UserID, p.ReceiverAmount.Format(), env.GetUrl()))
 				sentReceiverPrompt = true
@@ -372,32 +380,56 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 
 }
 
-var api *ext_slack.Client
-var initOnce sync.Once
+var clients map[string]*ext_slack.Client // TeamID as the key for the slack client used
+var lock sync.RWMutex
 
-func sendToUser(ctx context.Context, userID, message string) {
-	initOnce.Do(func() {
-		api = ext_slack.New(os.Getenv("SLACK_TOKEN"), ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
-	})
-	if api == nil {
-		return
+func init() {
+	clients = make(map[string]*ext_slack.Client)
+}
+
+func getTeamClient(ctx context.Context, b Backends, teamID string) (*ext_slack.Client, error) {
+	lock.RLock()
+	api, ok := clients[teamID]
+	if ok {
+		defer lock.RUnlock()
+		return api, nil
+	}
+	lock.RUnlock()
+
+	// Upgrade to write lock
+	lock.Lock()
+	defer lock.Unlock()
+	// Double check another thread didn't already popuulate
+	api, ok = clients[teamID]
+	if ok {
+
+		return api, nil
 	}
 
-	user := "Fynbos"
-	if !env.IsProd() {
-		user = "Fynbos Sandbox"
+	var accessToken string
+	err := b.DB().GetContext(ctx, &accessToken, "SELECT access_token FROM slack_bot_installs WHERE team_id=$1", teamID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", slack.ErrInternal, err)
+	}
+
+	cl := ext_slack.New(accessToken, ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
+	clients[teamID] = cl
+
+	return cl, nil
+}
+
+func sendToUser(ctx context.Context, b Backends, teamID, userID, message string) {
+	cl, err := getTeamClient(ctx, b, teamID)
+	if err != nil {
+		log.Error("slack bot failed to get slack client for team", zap.Error(err), zap.String("team_id", teamID))
+		return
 	}
 
 	attachment := ext_slack.Attachment{
 		Pretext: message,
 	}
 
-	_, _, err := api.PostMessageContext(ctx, userID, ext_slack.MsgOptionPostMessageParameters(ext_slack.PostMessageParameters{
-		Username: userID,
-		AsUser:   true,
-		Channel:  userID,
-		User:     user,
-	}), ext_slack.MsgOptionAttachments(attachment))
+	_, _, err = cl.PostMessageContext(ctx, normalizeUserID(userID), ext_slack.MsgOptionAttachments(attachment))
 
 	if err != nil {
 		log.Error("slack bot failed to send message as itself", zap.Error(err))
