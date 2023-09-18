@@ -2285,6 +2285,49 @@ table "dynamic_forms" {
   }
 }
 
+table "slack_bot_installs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "access_token" {
+    null = false
+    type = text
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
+  column "team_id" {
+    null = false
+    type = text
+  }
+  column "bot_id" {
+    null = false
+    type = text
+  }
+  column "app_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  index "slack_bot_installs_team_ind" {
+    unique  = true
+    columns = [column.team_id]
+  }
+}
+
 table "slack_authorizations" {
   schema = schema.public
   column "id" {
