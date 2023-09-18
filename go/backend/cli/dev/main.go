@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/fynbos/backend/payments"
 	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 
 	"gitlab.com/fynbos/backend/images"
@@ -121,6 +122,10 @@ type backends struct {
 	vault          vault.Client
 	img            images.Client
 	walletImpl     wallets.Client
+}
+
+func (b *backends) Payments() payments.Client {
+	return nil
 }
 
 func (b *backends) Transactions() transactions.Client {
