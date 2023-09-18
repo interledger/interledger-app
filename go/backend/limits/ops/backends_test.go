@@ -3,6 +3,8 @@ package ops_test
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"github.com/google/uuid"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
@@ -32,6 +34,10 @@ type testBackends struct {
 	kc     keys.Client
 	kyc    *kyc_mock.MockClient
 	wc     wallets.Client
+}
+
+func (t testBackends) Payments() payments.Client {
+	return nil
 }
 
 func (t testBackends) Validator() *validator.Validate {

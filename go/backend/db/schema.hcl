@@ -2091,6 +2091,57 @@ table "payments" {
   }
 }
 
+table "payments_workflow_refs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = text
+  }
+  column "identifier" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = text
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "workflow_run_id" {
+    null = false
+    type = text
+  }
+  column "completed" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "payments_workflow_refs_completed_ind" {
+    unique  = false
+    columns = [column.completed]
+  }
+}
+
 table "discord_authorizations" {
   schema = schema.public
   column "id" {
@@ -2231,6 +2282,49 @@ table "dynamic_forms" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")
+  }
+}
+
+table "slack_bot_installs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "access_token" {
+    null = false
+    type = text
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
+  column "team_id" {
+    null = false
+    type = text
+  }
+  column "bot_id" {
+    null = false
+    type = text
+  }
+  column "app_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  index "slack_bot_installs_team_ind" {
+    unique  = true
+    columns = [column.team_id]
   }
 }
 

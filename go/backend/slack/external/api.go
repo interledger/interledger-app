@@ -9,6 +9,7 @@ import (
 type Client interface {
 	GetConfig() *oauth2.Config
 	CreateUserToken(ctx context.Context, authCode string) (*oauth2.Token, *User, error)
+	CreateBotToken(ctx context.Context, authCode string) (*oauth2.Token, error)
 }
 
 type User struct {
