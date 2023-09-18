@@ -42,6 +42,7 @@ type BackendClient interface {
 	ListFormSubmissions(ctx context.Context, in *ListFormSubmissionsRequest, opts ...grpc.CallOption) (*ListFormSubmissionsResponse, error)
 	GetFormSubmissionDetails(ctx context.Context, in *GetFormSubmissionDetailsRequest, opts ...grpc.CallOption) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error)
+	ListPaymentsAwaitingSignal(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPaymentsAwaitingSignalResponse, error)
 }
 
 type backendClient struct {
@@ -246,6 +247,15 @@ func (c *backendClient) ListExternalApiCalls(ctx context.Context, in *ListExtern
 	return out, nil
 }
 
+func (c *backendClient) ListPaymentsAwaitingSignal(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPaymentsAwaitingSignalResponse, error) {
+	out := new(ListPaymentsAwaitingSignalResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ListPaymentsAwaitingSignal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -269,6 +279,7 @@ type BackendServer interface {
 	ListFormSubmissions(context.Context, *ListFormSubmissionsRequest) (*ListFormSubmissionsResponse, error)
 	GetFormSubmissionDetails(context.Context, *GetFormSubmissionDetailsRequest) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error)
+	ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -331,6 +342,9 @@ func (UnimplementedBackendServer) GetFormSubmissionDetails(context.Context, *Get
 }
 func (UnimplementedBackendServer) ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListExternalApiCalls not implemented")
+}
+func (UnimplementedBackendServer) ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPaymentsAwaitingSignal not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -689,6 +703,24 @@ func _Backend_ListExternalApiCalls_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ListPaymentsAwaitingSignal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ListPaymentsAwaitingSignal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ListPaymentsAwaitingSignal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ListPaymentsAwaitingSignal(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -767,6 +799,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListExternalApiCalls",
 			Handler:    _Backend_ListExternalApiCalls_Handler,
+		},
+		{
+			MethodName: "ListPaymentsAwaitingSignal",
+			Handler:    _Backend_ListPaymentsAwaitingSignal_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
