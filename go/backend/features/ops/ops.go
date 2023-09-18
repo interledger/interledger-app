@@ -110,12 +110,10 @@ func canAddCards(ctx context.Context, b Backends, walletID string) (bool, error)
 }
 
 var gmtUSStates = []string{
-	"US-AK", "US-DC", "US-MA", "US-ND", "US-OR", "US-UT",
-	"US-AL", "US-DE", "US-MD", "US-NH", "US-RI", "US-VA",
-	"US-AR", "US-FL", "US-MN", "US-NJ", "US-SC", "US-WA",
-	"US-CA", "US-GA", "US-MO", "US-NM", "US-SD",
-	"US-CO", "US-ID", "US-MT", "US-NV", "US-TN",
-	"US-CT", "US-IL", "US-NC", "US-NY", "US-TX",
+	"US-AL", "US-AK", "US-AZ", "US-AR", "US-CA", "US-CO", "US-CT", "US-DE", "US-DC", "US-FL",
+	"US-GA", "US-ID", "US-IL", "US-LA", "US-MD", "US-MA", "US-MI", "US-MN", "US-MO", "US-MT",
+	"US-NV", "US-NH", "US-NJ", "US-NM", "US-NY", "US-NC", "US-ND", "US-OR", "US-PA", "US-RI",
+	"US-SC", "US-SD", "US-TN", "US-TX", "US-UT", "US-VA", "US-WA",
 }
 
 func isGMTSendState(state string) bool {
