@@ -12,6 +12,7 @@ import {
   CardExpirationDateElement,
   CardNumberElement,
   CardVerificationCodeElement,
+  TextElement,
   useBasisTheory
 } from '@basis-theory/basis-theory-react'
 import type {
@@ -36,7 +37,8 @@ export async function loader({ request, params }: LoaderArgs) {
   const walletId = await getWalletId(request)
   return jsonWithCSRF(request, {
     walletId,
-    token: process.env.BT_TOKEN || ''
+    token: process.env.BT_TOKEN || '',
+    fynbosEnv: process.env.FYNBOS_ENV
   })
 }
 
@@ -57,7 +59,8 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Page() {
-  const { walletId, token, csrfToken } = useLoaderData<typeof loader>()
+  const { walletId, token, csrfToken, fynbosEnv } =
+    useLoaderData<typeof loader>()
   const submit = useSubmit()
   const actionData = useActionData<typeof action>()
 
@@ -211,16 +214,29 @@ export default function Page() {
               )}
             >
               <div className='block w-full'>
-                <CardNumberElement
-                  ref={cardNumberRef}
-                  onReady={() => setLoading(false)}
-                  onFocus={() => setCardNumberFocus(true)}
-                  onBlur={() => setCardNumberFocus(false)}
-                  style={btStyle}
-                  iconPosition={'right'}
-                  placeholder=''
-                  id='card-number'
-                />
+                {fynbosEnv != 'prod' && (
+                  <TextElement
+                    ref={cardNumberRef}
+                    onReady={() => setLoading(false)}
+                    onFocus={() => setCardNumberFocus(true)}
+                    onBlur={() => setCardNumberFocus(false)}
+                    style={btStyle}
+                    placeholder=''
+                    id='card-number'
+                  />
+                )}
+                {fynbosEnv == 'prod' && (
+                  <CardNumberElement
+                    ref={cardNumberRef}
+                    onReady={() => setLoading(false)}
+                    onFocus={() => setCardNumberFocus(true)}
+                    onBlur={() => setCardNumberFocus(false)}
+                    style={btStyle}
+                    iconPosition={'right'}
+                    placeholder=''
+                    id='card-number'
+                  />
+                )}
               </div>
             </div>
             <AnimatePresence>
