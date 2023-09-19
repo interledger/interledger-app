@@ -168,8 +168,6 @@ function ThreeDSPage() {
   const csrfTokenRef = useRef<string>('')
   const state = useScript(songbirdURL, cleanupSongbirdScript)
 
-  setLoading(true)
-
   useEffect(() => {
     if (actionData?.challengeURL) setLoading(false)
   }, [actionData?.challengeURL, setLoading])
@@ -202,6 +200,7 @@ function ThreeDSPage() {
       cardinalRef.current === null &&
       searchParams.has('init')
     ) {
+      setLoading(true)
       let actionUrl = `${route('/pay/3ds')}?paymentId=${paymentId}`
       cardinalRef.current = (window as any).Cardinal
       cardinalRef.current.configure({
