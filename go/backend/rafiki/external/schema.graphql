@@ -1,0 +1,1072 @@
+type Query {
+    "Fetch an asset"
+    asset(id: String!): Asset
+
+    "Fetch a page of assets."
+    assets(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+    ): AssetsConnection!
+
+    "Fetch a peer"
+    peer(id: String!): Peer
+
+    "Fetch a page of peers."
+    peers(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+    ): PeersConnection!
+
+    "Fetch a payment pointer"
+    paymentPointer(id: String!): PaymentPointer
+
+    "Fetch a page of payment pointers."
+    paymentPointers(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+    ): PaymentPointersConnection!
+
+    "Fetch an Open Payments quote"
+    quote(id: String!): Quote
+
+    "Fetch an Open Payments outgoing payment"
+    outgoingPayment(id: String!): OutgoingPayment
+
+    "Fetch an Open Payments incoming payment"
+    incomingPayment(id: String!): IncomingPayment
+
+    "Fetch a page of webhook events"
+    webhookEvents(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+        "Filter webhook events based on specific criteria."
+        filter: WebhookEventFilter
+    ): WebhookEventsConnection!
+
+    "Fetch a page of combined payments"
+    payments(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+        "Filter payment events based on specific criteria."
+        filter: PaymentFilter
+    ): PaymentConnection!
+}
+
+type Mutation {
+    "Create an asset"
+    createAsset(input: CreateAssetInput!): AssetMutationResponse!
+
+    "Update an asset"
+    updateAsset(input: UpdateAssetInput!): AssetMutationResponse!
+
+    "Add asset liquidity"
+    addAssetLiquidity(input: AddAssetLiquidityInput!): LiquidityMutationResponse
+
+    "Withdraw asset liquidity"
+    createAssetLiquidityWithdrawal(
+        input: CreateAssetLiquidityWithdrawalInput!
+    ): LiquidityMutationResponse
+
+    "Create a peer"
+    createPeer(input: CreatePeerInput!): CreatePeerMutationResponse!
+
+    "Update a peer"
+    updatePeer(input: UpdatePeerInput!): UpdatePeerMutationResponse!
+
+    "Delete a peer"
+    deletePeer(input: DeletePeerInput!): DeletePeerMutationResponse!
+
+    "Add peer liquidity"
+    addPeerLiquidity(input: AddPeerLiquidityInput!): LiquidityMutationResponse
+
+    "Withdraw peer liquidity"
+    createPeerLiquidityWithdrawal(
+        input: CreatePeerLiquidityWithdrawalInput!
+    ): LiquidityMutationResponse
+
+    "Post liquidity withdrawal. Withdrawals are two-phase commits and are committed via this mutation."
+    postLiquidityWithdrawal(
+        input: PostLiquidityWithdrawalInput!
+    ): LiquidityMutationResponse
+
+    "Void liquidity withdrawal. Withdrawals are two-phase commits and are rolled back via this mutation."
+    voidLiquidityWithdrawal(
+        input: VoidLiquidityWithdrawalInput!
+    ): LiquidityMutationResponse
+
+    "Create a payment pointer"
+    createPaymentPointer(
+        input: CreatePaymentPointerInput!
+    ): CreatePaymentPointerMutationResponse!
+
+    "Update a payment pointer"
+    updatePaymentPointer(
+        input: UpdatePaymentPointerInput!
+    ): UpdatePaymentPointerMutationResponse!
+
+    "Add a public key to a payment pointer that is used to verify Open Payments requests."
+    createPaymentPointerKey(
+        input: CreatePaymentPointerKeyInput!
+    ): CreatePaymentPointerKeyMutationResponse
+
+    "Revoke a public key associated with a payment pointer. Open Payment requests using this key for request signatures will be denied going forward."
+    revokePaymentPointerKey(
+        input: RevokePaymentPointerKeyInput!
+    ): RevokePaymentPointerKeyMutationResponse
+
+    "Create an internal Open Payments Incoming Payment. The receiver has a payment pointer on this Rafiki instance."
+    createIncomingPayment(
+        input: CreateIncomingPaymentInput!
+    ): IncomingPaymentResponse!
+
+    "Create an internal or external Open Payments Incoming Payment. The receiver has a payment pointer on either this or another Open Payments resource server."
+    createReceiver(input: CreateReceiverInput!): CreateReceiverResponse!
+
+    "Create an Open Payments Quote"
+    createQuote(input: CreateQuoteInput!): QuoteResponse!
+
+    "Create an Open Payments Outgoing Payment"
+    createOutgoingPayment(
+        input: CreateOutgoingPaymentInput!
+    ): OutgoingPaymentResponse!
+
+    "Deposit webhook event liquidity"
+    depositEventLiquidity(
+        input: DepositEventLiquidityInput!
+    ): LiquidityMutationResponse
+
+    "Withdraw webhook event liquidity"
+    withdrawEventLiquidity(
+        input: WithdrawEventLiquidityInput!
+    ): LiquidityMutationResponse
+
+    "Withdraw liquidity from a payment pointer received via Web Monetization."
+    createPaymentPointerWithdrawal(
+        input: CreatePaymentPointerWithdrawalInput!
+    ): PaymentPointerWithdrawalMutationResponse
+
+    "If automatic withdrawal of funds received via Web Monetization by the payment pointer are disabled, this mutation can be used to trigger up to n withdrawal events."
+    triggerPaymentPointerEvents(
+        input: TriggerPaymentPointerEventsInput!
+    ): TriggerPaymentPointerEventsMutationResponse!
+
+    "Set the fee on an asset"
+    setFee(input: SetFeeInput!): SetFeeResponse!
+}
+
+type PageInfo {
+    "Paginating forwards: the cursor to continue."
+    endCursor: String
+    "Paginating forwards: Are there more pages?"
+    hasNextPage: Boolean!
+    "Paginating backwards: Are there more pages?"
+    hasPreviousPage: Boolean!
+    "Paginating backwards: the cursor to continue."
+    startCursor: String
+}
+
+type AssetsConnection {
+    pageInfo: PageInfo!
+    edges: [AssetEdge!]!
+}
+
+type AssetEdge {
+    node: Asset!
+    cursor: String!
+}
+
+input CreateAssetInput {
+    "[ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`"
+    code: String!
+    "Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit"
+    scale: UInt8!
+    "Minimum amount of liquidity that can be withdrawn from the asset"
+    withdrawalThreshold: UInt64
+    "Account Servicing Entity will be notified via a webhook event if liquidity falls below this value"
+    liquidityThreshold: UInt64
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input UpdateAssetInput {
+    "Asset id"
+    id: String!
+    "New minimum amount of liquidity that can be withdrawn from the asset"
+    withdrawalThreshold: UInt64
+    "Account Servicing Entity will be notified via a webhook event if liquidity falls below this new value"
+    liquidityThreshold: UInt64
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+type PeersConnection {
+    pageInfo: PageInfo!
+    edges: [PeerEdge!]!
+}
+
+type PeerEdge {
+    node: Peer!
+    cursor: String!
+}
+
+input CreatePeerInput {
+    "Maximum packet amount that the peer accepts"
+    maxPacketAmount: UInt64
+    "Peering connection details"
+    http: HttpInput!
+    "Asset id of peering relationship"
+    assetId: String!
+    "Peer's ILP address"
+    staticIlpAddress: String!
+    "Peer's internal name"
+    name: String
+    "Account Servicing Entity will be notified via a webhook event if peer liquidity falls below this value"
+    liquidityThreshold: UInt64
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input UpdatePeerInput {
+    "Peer id"
+    id: String!
+    "New maximum packet amount that the peer accepts"
+    maxPacketAmount: UInt64
+    "New peering connection details"
+    http: HttpInput
+    "Peer's new ILP address"
+    staticIlpAddress: String
+    "Peer's new public name"
+    name: String
+    "Account Servicing Entity will be notified via a webhook event if peer liquidity falls below this new value"
+    liquidityThreshold: UInt64
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input HttpInput {
+    "Incoming connection details"
+    incoming: HttpIncomingInput
+    "Outgoing connection details"
+    outgoing: HttpOutgoingInput!
+}
+
+input HttpIncomingInput {
+    "Array of auth tokens accepted by this Rafiki instance"
+    authTokens: [String!]!
+}
+
+input HttpOutgoingInput {
+    "Auth token to present at the peering Rafiki instance"
+    authToken: String!
+    "Peer's connection endpoint"
+    endpoint: String!
+}
+
+input AddPeerLiquidityInput {
+    "The id of the peer to add liquidity."
+    peerId: String!
+    "Amount of liquidity to add."
+    amount: UInt64!
+    "The id of the transfer."
+    id: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input AddAssetLiquidityInput {
+    "The id of the asset to add liquidity."
+    assetId: String!
+    "Amount of liquidity to add."
+    amount: UInt64!
+    "The id of the transfer."
+    id: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input CreatePeerLiquidityWithdrawalInput {
+    "The id of the peer to create the withdrawal for."
+    peerId: String!
+    "Amount of withdrawal."
+    amount: UInt64!
+    "The id of the withdrawal."
+    id: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input CreateAssetLiquidityWithdrawalInput {
+    "The id of the asset to create the withdrawal for."
+    assetId: String!
+    "Amount of withdrawal."
+    amount: UInt64!
+    "The id of the withdrawal."
+    id: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input PostLiquidityWithdrawalInput {
+    "The id of the liquidity withdrawal to post."
+    withdrawalId: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input VoidLiquidityWithdrawalInput {
+    "The id of the liquidity withdrawal to void."
+    withdrawalId: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input DepositEventLiquidityInput {
+    "The id of the event to deposit into."
+    eventId: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input WithdrawEventLiquidityInput {
+    "The id of the event to withdraw from."
+    eventId: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input CreatePaymentPointerWithdrawalInput {
+    "The id of the Open Payments payment pointer to create the withdrawal for."
+    paymentPointerId: String!
+    "The id of the withdrawal."
+    id: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String!
+}
+
+input JwkInput {
+    "Key id"
+    kid: String!
+    "Base64 url-encoded public key."
+    x: String!
+    "Cryptographic algorithm family used with the key. The only allowed value is `EdDSA`."
+    alg: Alg!
+    "Key type. The only allowed value is `OKP`."
+    kty: Kty!
+    "Curve that the key pair is derived from. The only allowed value is `Ed25519`."
+    crv: Crv!
+}
+
+input CreatePaymentPointerKeyInput {
+    paymentPointerId: String!
+    "Public key"
+    jwk: JwkInput!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input RevokePaymentPointerKeyInput {
+    "Internal id of key"
+    id: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+type Asset implements Model {
+    "Asset id"
+    id: ID!
+    "[ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`"
+    code: String!
+    "Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit"
+    scale: UInt8!
+    "Available liquidity"
+    liquidity: UInt64
+    "Minimum amount of liquidity that can be withdrawn from the asset"
+    withdrawalThreshold: UInt64
+    "Account Servicing Entity will be notified via a webhook event if liquidity falls below this value"
+    liquidityThreshold: UInt64
+    "The receiving fee structure for the asset"
+    receivingFee: Fee
+    "The sending fee structure for the asset"
+    sendingFee: Fee
+    "Date-time of creation"
+    createdAt: String!
+}
+
+enum LiquidityError {
+    AlreadyPosted
+    AlreadyVoided
+    AmountZero
+    InsufficientBalance
+    InvalidId
+    TransferExists
+    UnknownAsset
+    UnknownIncomingPayment
+    UnknownPayment
+    UnknownPaymentPointer
+    UnknownPeer
+    UnknownTransfer
+}
+
+type Peer implements Model {
+    "Peer id"
+    id: ID!
+    "Maximum packet amount that the peer accepts"
+    maxPacketAmount: UInt64
+    "Peering connection details"
+    http: Http!
+    "Asset of peering relationship"
+    asset: Asset!
+    "Peer's ILP address"
+    staticIlpAddress: String!
+    "Peer's public name"
+    name: String
+    "Account Servicing Entity will be notified via a webhook event if peer liquidity falls below this value"
+    liquidityThreshold: UInt64
+    "Available liquidity"
+    liquidity: UInt64
+    "Date-time of creation"
+    createdAt: String!
+}
+
+input DeletePeerInput {
+    # Id of the peer
+    id: ID!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+type Http {
+    "Outgoing connection details"
+    outgoing: HttpOutgoing!
+}
+
+type HttpOutgoing {
+    "Auth token to present at the peering Rafiki instance"
+    authToken: String!
+    "Peer's connection endpoint"
+    endpoint: String!
+}
+
+type PaymentPointersConnection {
+    pageInfo: PageInfo!
+    edges: [PaymentPointerEdge!]!
+}
+
+type PaymentPointerEdge {
+    node: PaymentPointer!
+    cursor: String!
+}
+
+type PaymentPointer implements Model {
+    "Payment pointer id"
+    id: ID!
+    "Asset of the payment pointer"
+    asset: Asset!
+    "Payment Pointer URL"
+    url: String!
+    "Public name associated with the payment pointer"
+    publicName: String
+    "List of incoming payments received by this payment pointer"
+    incomingPayments(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+    ): IncomingPaymentConnection
+    "List of quotes created at this payment pointer"
+    quotes(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+    ): QuoteConnection
+    "List of outgoing payments sent from this payment pointer"
+    outgoingPayments(
+        "Paginating forwards: the cursor before the the requested page."
+        after: String
+        "Paginating backwards: the cursor after the the requested page."
+        before: String
+        "Paginating forwards: The first **n** elements from the page."
+        first: Int
+        "Paginating backwards: The last **n** elements from the page."
+        last: Int
+    ): OutgoingPaymentConnection
+    "Date-time of creation"
+    createdAt: String!
+    "Status of the payment pointer"
+    status: PaymentPointerStatus!
+}
+
+enum PaymentPointerStatus {
+    "Status after deactivating"
+    INACTIVE
+    "Default status"
+    ACTIVE
+}
+
+type IncomingPaymentConnection {
+    pageInfo: PageInfo!
+    edges: [IncomingPaymentEdge!]!
+}
+
+type IncomingPaymentEdge {
+    node: IncomingPayment!
+    cursor: String!
+}
+
+interface BasePayment {
+    id: ID!
+    paymentPointerId: ID!
+    metadata: JSONObject
+    createdAt: String!
+}
+
+type IncomingPayment implements BasePayment & Model {
+    "Incoming Payment id"
+    id: ID!
+    "Id of the payment pointer under which this incoming payment was created"
+    paymentPointerId: ID!
+    "Incoming payment state"
+    state: IncomingPaymentState!
+    "Date-time of expiry. After this time, the incoming payment will not accept further payments made to it."
+    expiresAt: String!
+    "The maximum amount that should be paid into the payment pointer under this incoming payment."
+    incomingAmount: Amount
+    "The total amount that has been paid into the payment pointer under this incoming payment."
+    receivedAmount: Amount!
+    "Additional metadata associated with the incoming payment."
+    metadata: JSONObject
+    "Date-time of creation"
+    createdAt: String!
+}
+
+type Receiver {
+    "Incoming payment URL"
+    id: String!
+    "Payment pointer URL under which the incoming payment was created"
+    paymentPointerUrl: String!
+    "Describes whether the incoming payment has completed receiving funds."
+    completed: Boolean!
+    "The maximum amount that should be paid into the payment pointer under this incoming payment."
+    incomingAmount: Amount
+    "The total amount that has been paid into the payment pointer under this incoming payment."
+    receivedAmount: Amount!
+    "Date-time of expiry. After this time, the incoming payment will accept further payments made to it."
+    expiresAt: String
+    "Additional metadata associated with the incoming payment."
+    metadata: JSONObject
+    "Date-time of creation"
+    createdAt: String!
+    "Date-time of last update"
+    updatedAt: String!
+}
+
+enum IncomingPaymentState {
+    "The payment has a state of PENDING when it is initially created."
+    PENDING
+    "As soon as payment has started (funds have cleared into the account) the state moves to PROCESSING"
+    PROCESSING
+    "The payment is either auto-completed once the received amount equals the expected `incomingAmount`, or it is completed manually via an API call."
+    COMPLETED
+    "If the payment expires before it is completed then the state will move to EXPIRED and no further payments will be accepted."
+    EXPIRED
+}
+
+type Amount {
+    value: UInt64!
+    "[ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`"
+    assetCode: String!
+    "Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit"
+    assetScale: UInt8!
+}
+
+type OutgoingPaymentConnection {
+    pageInfo: PageInfo!
+    edges: [OutgoingPaymentEdge!]!
+}
+
+type OutgoingPaymentEdge {
+    node: OutgoingPayment!
+    cursor: String!
+}
+
+type OutgoingPayment implements BasePayment & Model {
+    "Outgoing payment id"
+    id: ID!
+    "Id of the payment pointer under which this outgoing payment was created"
+    paymentPointerId: ID!
+    "Outgoing payment state"
+    state: OutgoingPaymentState!
+    error: String
+    stateAttempts: Int!
+    "Amount to send (fixed send)"
+    debitAmount: Amount!
+    "Amount to receive (fixed receive)"
+    receiveAmount: Amount!
+    "Payment pointer URL of the receiver"
+    receiver: String!
+    "Additional metadata associated with the outgoing payment."
+    metadata: JSONObject
+    "Quote for this outgoing payment"
+    quote: Quote
+    "Amount already sent"
+    sentAmount: Amount!
+    "Date-time of creation"
+    createdAt: String!
+}
+
+enum OutgoingPaymentState {
+    "Will transition to SENDING once payment funds are reserved"
+    FUNDING
+    "Paying, will transition to COMPLETED on success"
+    SENDING
+    "Successful completion"
+    COMPLETED
+    "Payment failed"
+    FAILED
+}
+
+type PaymentConnection {
+    pageInfo: PageInfo!
+    edges: [PaymentEdge!]!
+}
+
+type PaymentEdge {
+    node: Payment!
+    cursor: String!
+}
+
+type Payment implements BasePayment & Model {
+    "Payment id"
+    id: ID!
+    "Type of payment"
+    type: PaymentType!
+    "Id of the payment pointer under which this payment was created"
+    paymentPointerId: ID!
+    "Either the IncomingPaymentState or OutgoingPaymentState according to type"
+    state: String!
+    "Additional metadata associated with the payment."
+    metadata: JSONObject
+    "Date-time of creation"
+    createdAt: String!
+}
+
+enum PaymentType {
+    INCOMING
+    OUTGOING
+}
+
+input PaymentFilter {
+    type: FilterString
+    paymentPointerId: FilterString
+}
+
+type QuoteConnection {
+    pageInfo: PageInfo!
+    edges: [QuoteEdge!]!
+}
+
+type QuoteEdge {
+    node: Quote!
+    cursor: String!
+}
+
+type Quote {
+    "Quote id"
+    id: ID!
+    "Id of the payment pointer under which this quote was created"
+    paymentPointerId: ID!
+    "Payment pointer URL of the receiver"
+    receiver: String!
+    "Amount to send (fixed send)"
+    debitAmount: Amount!
+    "Amount to receive (fixed receive)"
+    receiveAmount: Amount!
+    "Maximum value per packet allowed on the possible routes"
+    maxPacketAmount: UInt64!
+    "Aggregate exchange rate the payment is guaranteed to meet"
+    minExchangeRate: Float!
+    "Lower bound of probed exchange rate"
+    lowEstimatedExchangeRate: Float!
+    "Upper bound of probed exchange rate"
+    highEstimatedExchangeRate: Float!
+    "Date-time of creation"
+    createdAt: String!
+    "Date-time of expiration"
+    expiresAt: String!
+}
+
+input AmountInput {
+    value: UInt64!
+    "[ISO 4217 currency code](https://en.wikipedia.org/wiki/ISO_4217), e.g. `USD`"
+    assetCode: String!
+    "Difference in orders of magnitude between the standard unit of an asset and a corresponding fractional unit"
+    assetScale: UInt8!
+}
+
+input CreateQuoteInput {
+    "Id of the payment pointer under which the quote will be created"
+    paymentPointerId: String!
+    "Amount to send (fixed send)"
+    debitAmount: AmountInput
+    "Amount to receive (fixed receive)"
+    receiveAmount: AmountInput
+    "Payment pointer URL of the receiver"
+    receiver: String!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+type QuoteResponse {
+    code: String!
+    success: Boolean!
+    message: String
+    quote: Quote
+}
+
+input CreateOutgoingPaymentInput {
+    "Id of the payment pointer under which the outgoing payment will be created"
+    paymentPointerId: String!
+    "Id of the corresponding quote for that outgoing payment"
+    quoteId: String!
+    "Additional metadata associated with the outgoing payment."
+    metadata: JSONObject
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input CreateIncomingPaymentInput {
+    "Id of the payment pointer under which the incoming payment will be created"
+    paymentPointerId: String!
+    "Expiration date-time"
+    expiresAt: String
+    "Additional metadata associated with the incoming payment."
+    metadata: JSONObject
+    "Maximum amount to be received"
+    incomingAmount: AmountInput
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input CreateReceiverInput {
+    "Receiving payment pointer URL"
+    paymentPointerUrl: String!
+    "Expiration date-time"
+    expiresAt: String
+    "Maximum amount to be received"
+    incomingAmount: AmountInput
+    "Additional metadata associated with the incoming payment."
+    metadata: JSONObject
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+type OutgoingPaymentResponse {
+    code: String!
+    success: Boolean!
+    message: String
+    payment: OutgoingPayment
+}
+
+type IncomingPaymentResponse {
+    code: String!
+    success: Boolean!
+    message: String
+    payment: IncomingPayment
+}
+
+type CreateReceiverResponse {
+    code: String!
+    success: Boolean!
+    message: String
+    receiver: Receiver
+}
+
+input CreatePaymentPointerInput {
+    "Asset of the payment pointer"
+    assetId: String!
+    "Payment Pointer URL"
+    url: String!
+    "Public name associated with the payment pointer"
+    publicName: String
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input UpdatePaymentPointerInput {
+    "ID of payment pointer to update"
+    id: ID!
+    "New public name for payment pointer"
+    publicName: String
+    "New status to set the payment pointer to"
+    status: PaymentPointerStatus
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+enum Alg {
+    EdDSA
+}
+
+enum Kty {
+    OKP
+}
+
+enum Crv {
+    Ed25519
+}
+
+type Jwk {
+    "Key id"
+    kid: String!
+    "Base64 url-encoded public key."
+    x: String!
+    "Cryptographic algorithm family used with the key. The only allowed value is `EdDSA`."
+    alg: Alg!
+    "Key type. The only allowed value is `OKP`."
+    kty: Kty!
+    "Curve that the key pair is derived from. The only allowed value is `Ed25519`."
+    crv: Crv!
+}
+
+type PaymentPointerKey implements Model {
+    "Internal id of key"
+    id: ID!
+    "Id of the payment pointer to which this key belongs to"
+    paymentPointerId: ID!
+    "Public key"
+    jwk: Jwk!
+    "Indicator whether the key has been revoked"
+    revoked: Boolean!
+    "Date-time of creation"
+    createdAt: String!
+}
+
+input TriggerPaymentPointerEventsInput {
+    "Maximum number of events being triggered (n)."
+    limit: Int!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+type PaymentPointerWithdrawal {
+    "Withdrawal Id"
+    id: ID!
+    "Amount to withdraw"
+    amount: UInt64!
+    "Payment pointer details"
+    paymentPointer: PaymentPointer!
+}
+
+type WebhookEvent implements Model {
+    "Event id"
+    id: ID!
+    "Type of event"
+    type: String!
+    "Stringified JSON data"
+    data: JSONObject!
+    "Date-time of creation"
+    createdAt: String!
+}
+
+type WebhookEventsConnection {
+    pageInfo: PageInfo!
+    edges: [WebhookEventsEdge!]!
+}
+
+type WebhookEventsEdge {
+    node: WebhookEvent!
+    cursor: String!
+}
+
+enum FeeType {
+    "Sender pays the fees"
+    SENDING
+    "Receiver pays the fees"
+    RECEIVING
+}
+
+type Fee implements Model {
+    "Fee id"
+    id: ID!
+    "Asset id associated with the fee"
+    assetId: ID!
+    "Type of fee (sending or receiving)"
+    type: FeeType!
+    "Fixed fee"
+    fixed: UInt64!
+    "Basis points fee. 1 basis point = 0.01%, 100 basis points = 1%, 10000 basis points = 100%"
+    basisPoints: Int!
+    "Date-time of creation"
+    createdAt: String!
+}
+
+input SetFeeInput {
+    "Asset id to add the fee to"
+    assetId: ID!
+    "Type of fee (sending or receiving)"
+    type: FeeType!
+    "Fee values"
+    fee: FeeDetails!
+    "Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)"
+    idempotencyKey: String
+}
+
+input FeeDetails {
+    "A flat fee"
+    fixed: UInt64!
+    "Basis points fee. Should be between 0 and 10000 (inclusive). 1 basis point = 0.01%, 100 basis points = 1%, 10000 basis points = 100%"
+    basisPoints: Int!
+}
+
+input WebhookEventFilter {
+    type: FilterString
+}
+
+input FilterString {
+    in: [String!]!
+}
+
+interface Model {
+    id: ID!
+    createdAt: String!
+}
+
+type CreatePaymentPointerMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    paymentPointer: PaymentPointer
+}
+
+type UpdatePaymentPointerMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    paymentPointer: PaymentPointer
+}
+
+type TriggerPaymentPointerEventsMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    "Number of events triggered"
+    count: Int
+}
+
+type AssetMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    asset: Asset
+}
+
+type CreatePeerMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    peer: Peer
+}
+
+type UpdatePeerMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    peer: Peer
+}
+
+type DeletePeerMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+}
+
+type TransferMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+}
+
+type LiquidityMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    error: LiquidityError
+}
+
+type PaymentPointerWithdrawalMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    error: LiquidityError
+    withdrawal: PaymentPointerWithdrawal
+}
+
+type CreatePaymentPointerKeyMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    paymentPointerKey: PaymentPointerKey
+}
+
+type RevokePaymentPointerKeyMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    paymentPointerKey: PaymentPointerKey
+}
+
+type SetFeeResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    fee: Fee
+}
+
+interface MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+}
+
+scalar UInt8
+scalar UInt64
+scalar JSONObject
