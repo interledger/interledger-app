@@ -2506,7 +2506,7 @@ table "discord_payment_interactions" {
   column "id" {
     null = false
     type = uuid
-    default = sql("gen_random_uuid()")    
+    default = sql("gen_random_uuid()")
   }
   column "payment_id" {
     null = false
@@ -2540,6 +2540,43 @@ table "discord_payment_interactions" {
   column "expired_at" {
     null    = true
     type    = timestamp
+  }
+}
+
+table "rafiki_payment_pointers" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "payment_pointer_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "rafiki_payment_pointers_id_uniq_idx" {
+    unique  = true
+    columns = [column.payment_pointer_id]
+  }
+  index "rafiki_payment_pointers_wallet_idx" {
+    columns = [column.wallet_id]
   }
 }
 

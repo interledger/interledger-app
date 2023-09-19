@@ -12,12 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/slack/bot"
-
-	"gitlab.com/fynbos/backend/dynamicforms"
-
-	"gitlab.com/fynbos/backend/slack"
-
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -43,6 +37,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/discord"
 	discord_client "gitlab.com/fynbos/backend/discord/client"
+	"gitlab.com/fynbos/backend/dynamicforms"
 	dynamicforms_client "gitlab.com/fynbos/backend/dynamicforms/client"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
@@ -75,8 +70,12 @@ import (
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
+	"gitlab.com/fynbos/backend/rafiki"
+	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/slack/bot"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
 	"gitlab.com/fynbos/backend/statements"
 	statements_client "gitlab.com/fynbos/backend/statements/client"
@@ -240,6 +239,8 @@ func start(args *cli.StartArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	b.rafiki = rafiki_client.New(b)
 
 	b.auth = authorisation_client.New(b)
 
@@ -544,6 +545,8 @@ func startWorker(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
+	b.rafiki = rafiki_client.New(b)
+
 	b.keys = keys_client.New(b)
 
 	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
@@ -608,6 +611,7 @@ type backends struct {
 	discord        discord.Client
 	dynamicforms   dynamicforms.Client
 	slack          slack.Client
+	rafiki         rafiki.Client
 }
 
 func (b backends) DynamicForms() dynamicforms.Client {
@@ -617,6 +621,10 @@ func (b backends) DynamicForms() dynamicforms.Client {
 
 func (b backends) Slack() slack.Client {
 	return b.slack
+}
+
+func (b backends) Rafiki() rafiki.Client {
+	return b.rafiki
 }
 
 func (b backends) Discord() discord.Client {
