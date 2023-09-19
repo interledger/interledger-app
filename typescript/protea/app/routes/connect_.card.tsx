@@ -137,6 +137,7 @@ export default function Page() {
         }
       })
       .catch((error) => {
+        console.log('error tokenizing card', error)
         setLoading(false)
         setFieldErrors({
           number: error.details.data.number ? 'Card number is invalid.' : '',
