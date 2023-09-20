@@ -6,6 +6,7 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 
+import { Simulate } from 'react-dom/test-utils'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -37,9 +38,11 @@ import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { KycStatus } from '~/routes/_index/route'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
+import submit = Simulate.submit
 
 export enum PaymentRequiredAction {
   Unknown,
@@ -86,10 +89,38 @@ export async function loader({ request, params }: LoaderArgs) {
   // This payment is already confirmed
   if (payment.state > 1) throw redirect(route('/pay'))
 
-  publicWalletInfo = await getPublicWalletInfo(
-    request,
-    payment.receiverWalletUrl
-  )
+  const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
+    walletAddress: payment.receiverWalletUrl
+  })
+
+  if (isConnectError(publicWalletInfoResponse)) {
+    publicWalletInfo = {
+      walletID: 'not-found',
+      address: payment.receiverWalletUrl,
+      shortAddress: payment.receiverIdentity,
+      publicName: payment.receiverIdentity,
+      identities: [
+        {
+          id: payment.receiverWalletUrl,
+          wallet: '',
+          platform:
+            payment.receiverIdentityType == PaymentIdentityType.Slack
+              ? 'slack'
+              : 'discord',
+          identifier: payment.receiverIdentity,
+          state: '',
+          keyId: '',
+          signature: '',
+          signatureHash: '',
+          proof: '',
+          ctime: '',
+          public: false,
+          walletId: ''
+        }
+      ],
+      canReceive: false
+    }
+  } else publicWalletInfo = publicWalletInfoResponse
 
   const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
   sendAccounts = [...cardAccounts, ...bankAccounts].filter((acc) => acc.canSend)
@@ -158,6 +189,9 @@ export default function Page() {
     state.setAmount,
     state.reset
   ])
+  const [commandPaletteOpen, setCommandPaletteOpen] = useScaffoldStore(
+    (state) => [state.commandPalletOpen, state.setCommandPalletOpen]
+  )
 
   useEffect(() => {
     // This ensures that the state is only cleared when this route is unmounted.
@@ -172,6 +206,12 @@ export default function Page() {
       setStep(payStep)
     }
   }, [payStep, setStep, step])
+
+  useEffect(() => {
+    if (commandPaletteOpen) {
+      setCommandPaletteOpen(false)
+    }
+  }, [commandPaletteOpen, setCommandPaletteOpen])
 
   if (features && !features.sendEnabled)
     return (

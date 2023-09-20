@@ -1,6 +1,8 @@
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import {
+  Alert,
+  AlertBody,
   Card,
   CardButton,
   CardContent,
@@ -59,30 +61,56 @@ export const PaymentDetailsCard = () => {
           </div>
         </CardButton>
       </Card>
+      {publicWalletInfo.walletID == 'not-found' && (
+        <>
+          <Alert>
+            <Icon>error</Icon>
+            <AlertBody>
+              This person is not a Fynbos user yet. Confirming the payment will
+              prompt them to sign up to Fynbos to receive it.
+            </AlertBody>
+          </Alert>
+        </>
+      )}
+
       <Dialog open={showDialog} setOpen={setShowDialog}>
         <CardHeader>
           <h1 className='text-xl font-medium'>User information</h1>
         </CardHeader>
-        <CardContent>
-          <span className='text-medium'>
-            You are viewing public information about the person you intend to
-            pay.
-          </span>
-        </CardContent>
-        <Label className='mt-4'>Public name</Label>
-        <div className='mt-1 flex rounded-xl bg-nav p-3 text-medium'>
-          <span className=''>{publicWalletInfo?.publicName}</span>
-        </div>
-        <Label className='mt-2'>Wallet address</Label>
-        <CardLink className='flex w-full' to={publicWalletInfo?.address ?? ''}>
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              <FynbosIcon />
-              <span>{publicWalletInfo?.shortAddress}</span>
+        {publicWalletInfo.walletID == 'not-found' && (
+          <CardContent>
+            <span className='text-medium'>
+              This person is not a Fynbos user yet.
+            </span>
+          </CardContent>
+        )}
+        {publicWalletInfo.walletID !== 'not-found' && (
+          <>
+            <CardContent>
+              <span className='text-medium'>
+                You are viewing public information about the person you intend
+                to pay.
+              </span>
+            </CardContent>
+            <Label className='mt-4'>Public name</Label>
+            <div className='mt-1 flex rounded-xl bg-nav p-3 text-medium'>
+              <span className=''>{publicWalletInfo?.publicName}</span>
             </div>
-            <Icon>navigate_next</Icon>
-          </div>
-        </CardLink>
+            <Label className='mt-2'>Wallet address</Label>
+            <CardLink
+              className='flex w-full'
+              to={publicWalletInfo?.address ?? ''}
+            >
+              <div className='flex w-full items-center justify-between text-medium'>
+                <div className='flex space-x-2'>
+                  <FynbosIcon />
+                  <span>{publicWalletInfo?.shortAddress}</span>
+                </div>
+                <Icon>navigate_next</Icon>
+              </div>
+            </CardLink>
+          </>
+        )}
         {publicWalletInfo?.identities.map((identity) => (
           <div key={identity.id} className='contents'>
             <Label className='mt-2 capitalize'>{identity.platform}</Label>

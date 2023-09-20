@@ -33,13 +33,10 @@ export function Search() {
   const [term, setTerm] = useState<string>('')
   const [results, setResults] = useState<PlainMessage<SearchResult>[]>([])
 
-  const [pushSnackbar, setLoading, setCommandPaletteOpen] = useScaffoldStore(
-    (state) => [
-      state.pushSnackbar,
-      state.setLoading,
-      state.setCommandPalletOpen
-    ]
-  )
+  const [pushSnackbar, setLoading] = useScaffoldStore((state) => [
+    state.pushSnackbar,
+    state.setLoading
+  ])
 
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
@@ -58,16 +55,6 @@ export function Search() {
     }
     setLoading(false)
   }, [search.data, term.length, setResults, setLoading])
-
-  useEffect(() => {
-    if (
-      submit.state == 'loading' &&
-      navigation.state == 'loading' &&
-      navigation.location.pathname.startsWith('/pay/')
-    ) {
-      setCommandPaletteOpen(false)
-    }
-  }, [navigation, setCommandPaletteOpen, submit])
 
   return (
     <Combobox
