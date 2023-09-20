@@ -72,14 +72,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      title: '3DS Verification'
+      title: 'Verifying'
     }
   }
 }
 
 export const meta: MetaFunction = () => {
   return {
-    title: '3DS Verification'
+    title: 'Verifying'
   }
 }
 
