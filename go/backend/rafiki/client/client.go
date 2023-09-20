@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/rafiki"
@@ -39,4 +40,8 @@ func New(b Backends) rafiki.Client {
 
 func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) error {
 	return ops.CreatePaymentPointer(ctx, c.b, w)
+}
+
+func (c *client) WebhookHandler() http.HandlerFunc {
+	return ops.EventWebhook(c.b)
 }

@@ -2580,6 +2580,51 @@ table "rafiki_payment_pointers" {
   }
 }
 
+table "rafiki_incoming_payments" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_pointer_id" {
+    null = false
+    type = text
+  }
+  column "completed" {
+    null = false
+    type = text
+  }
+  column "received_amount" {
+    null = false
+    type = bigint
+  }
+  column "received_amount_asset" {
+    null = false
+    type = text
+  }
+  column "payment_id" {
+    null = true
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "rafiki_incoming_payments_payment_pointers_id_idx" {
+    columns = [column.payment_pointer_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
