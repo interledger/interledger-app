@@ -21,8 +21,7 @@ import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import {
   getFeatures,
   getKycStatus,
-  getLinkedAccounts,
-  getPublicWalletInfo
+  getLinkedAccounts
 } from '~/data/wallet.server'
 import type {
   Features,
@@ -65,7 +64,7 @@ export enum PaymentIdentityType {
 export async function loader({ request, params }: LoaderArgs) {
   let account: FormattedLinkedAccount | undefined
   let sendAccounts: FormattedLinkedAccount[] = []
-  let publicWalletInfo: PublicWalletInfo | null = null
+  let publicWalletInfo: PlainMessage<PublicWalletInfo>
   let features: Features | null = null
   let payment: PlainMessage<Payment> | ConnectError
   let phoneMask: string = ''
@@ -79,17 +78,43 @@ export async function loader({ request, params }: LoaderArgs) {
 
   payment = await grpc.getPayment(request, { id: params.paymentId })
 
-  console.log('payment', payment)
-
   if (isConnectError(payment)) throw payment.errorResponse
 
   // This payment is already confirmed
   if (payment.state > 1) throw redirect(route('/pay'))
 
-  publicWalletInfo = await getPublicWalletInfo(
-    request,
-    payment.receiverWalletUrl
-  )
+  const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
+    walletAddress: payment.receiverWalletUrl
+  })
+
+  if (isConnectError(publicWalletInfoResponse)) {
+    publicWalletInfo = {
+      walletID: '',
+      address: payment.receiverWalletUrl,
+      shortAddress: '',
+      publicName: payment.receiverIdentity,
+      identities: [
+        {
+          id: payment.receiverWalletUrl,
+          wallet: '',
+          platform:
+            payment.receiverIdentityType == PaymentIdentityType.Slack
+              ? 'slack'
+              : 'discord',
+          identifier: payment.receiverIdentity,
+          state: '',
+          keyId: '',
+          signature: '',
+          signatureHash: '',
+          proof: '',
+          ctime: '',
+          public: false,
+          walletId: ''
+        }
+      ],
+      canReceive: false
+    }
+  } else publicWalletInfo = publicWalletInfoResponse
 
   const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
   sendAccounts = [...cardAccounts, ...bankAccounts].filter((acc) => acc.canSend)
