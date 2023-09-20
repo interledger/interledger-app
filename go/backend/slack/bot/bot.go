@@ -306,7 +306,6 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 	defer cancel()
 
 	receiverSlackID := strings.Split(c.Text, " ")[0]
-	var sentReceiverPrompt bool
 
 	for {
 		select {
@@ -334,8 +333,11 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 				continue
 			}
 
-			// If there is a transfer it's the pull, now we should notify the receiver to link their identity
-			shouldPromt := len(senderTX.Transfers) > 1
+			// If there is a transfer it's the pull, now we should notify the receiver to link their identity,
+			// otherwise wait another minute and check again.
+			if len(senderTX.Transfers) < 1 {
+				continue
+			}
 
 			// Check that the userID we got from the command matches any slack connections.
 			// This is a sanity check to make sure the name we got from the command matches the actual identity linked.
@@ -346,12 +348,15 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 				log.Error("slack bot failed to lookup receiver connection", zap.Error(err), zap.String("payment_id", paymentID))
 				continue
 			}
-			if errors.Is(err, slack.ErrNotFound) && shouldPromt && !sentReceiverPrompt {
+			if errors.Is(err, slack.ErrNotFound) {
 				// Send prompt to user to link an
 				sendToUser(ctx, b, c.TeamID, receiverSlackID,
 					fmt.Sprintf("%s has sent you a payment of %s. Please create an account, link a bank card and this slack profile to receive your payment on %s",
 						c.UserID, p.ReceiverAmount.Format(), env.GetUrl()))
-				sentReceiverPrompt = true
+				return
+			}
+
+			if con == nil {
 				continue
 			}
 
@@ -362,19 +367,12 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 
 			// Now check if the user has a liked account that can receive
 			_, err = b.LinkedAccounts().GetDefaultReceive(ctx, con.WalletID)
-			if errors.Is(err, linkedaccounts.ErrNotFound) && !sentReceiverPrompt {
+			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				// Send prompt to user to link an
 				sendToUser(ctx, b, c.TeamID, receiverSlackID,
 					fmt.Sprintf("%s has sent you a payment of %s. Please create an account, link a bank card to receive your payment on %s",
 						c.UserID, p.ReceiverAmount.Format(), env.GetUrl()))
-				sentReceiverPrompt = true
 			}
-
-			if sentReceiverPrompt {
-				return
-			}
-
-			return
 		}
 	}
 
