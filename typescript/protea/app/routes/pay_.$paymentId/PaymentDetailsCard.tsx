@@ -1,0 +1,114 @@
+import { useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
+import {
+  Card,
+  CardButton,
+  CardContent,
+  CardHeader,
+  CardLink,
+  Chip,
+  ChipColor,
+  Dialog,
+  DiscordIcon,
+  FynbosIcon,
+  Icon,
+  LinkedInIcon,
+  SlackIcon,
+  TextButton,
+  TwitterIcon
+} from '~/components'
+import { Label } from '~/components/Label'
+import { usePayStore } from '~/lib/usePayStore'
+import type { loader } from './route'
+import { PaymentIdentityType } from './route'
+
+export const PaymentDetailsCard = () => {
+  const { publicWalletInfo, payment } = useLoaderData<typeof loader>()
+
+  const [showDialog, setShowDialog] = useState<boolean>(false)
+
+  const [displayAmount] = usePayStore((state) => [state.displayAmount])
+
+  return (
+    <>
+      <Card>
+        <CardContent>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-4xl font-medium text-strong'>
+              {displayAmount}
+            </h2>
+            {(payment.receiverIdentityType === PaymentIdentityType.WalletURL ||
+              payment.receiverIdentityType ===
+                PaymentIdentityType.WalletID) && <FynbosIcon height='h-12' />}
+            {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
+              <TwitterIcon height='h-12' />
+            )}
+            {payment.receiverIdentityType === PaymentIdentityType.Discord && (
+              <DiscordIcon height='h-12' />
+            )}
+            {payment.receiverIdentityType === PaymentIdentityType.Slack && (
+              <SlackIcon height='h-12' />
+            )}
+          </div>
+        </CardContent>
+        <Label className='mt-2'>Payment to</Label>
+        <CardButton noHover onClick={() => setShowDialog(true)}>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <span>{publicWalletInfo.publicName}</span>
+            <Icon>navigate_next</Icon>
+          </div>
+        </CardButton>
+      </Card>
+      <Dialog open={showDialog} setOpen={setShowDialog}>
+        <CardHeader>
+          <h1 className='text-xl font-medium'>User information</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            You are viewing public information about the person you intend to
+            pay.
+          </span>
+        </CardContent>
+        <Label className='mt-4'>Public name</Label>
+        <div className='mt-1 flex rounded-xl bg-nav p-3 text-medium'>
+          <span className=''>{publicWalletInfo?.publicName}</span>
+        </div>
+        <Label className='mt-2'>Wallet address</Label>
+        <CardLink className='flex w-full' to={publicWalletInfo?.address ?? ''}>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <FynbosIcon />
+              <span>{publicWalletInfo?.shortAddress}</span>
+            </div>
+            <Icon>navigate_next</Icon>
+          </div>
+        </CardLink>
+        {publicWalletInfo?.identities.map((identity) => (
+          <div key={identity.id} className='contents'>
+            <Label className='mt-2 capitalize'>{identity.platform}</Label>
+            <CardLink className='flex w-full' to={publicWalletInfo.address}>
+              <div className='flex w-full items-center justify-between text-medium'>
+                <div className='flex space-x-2'>
+                  {identity.platform == 'twitter' && <TwitterIcon />}
+                  {identity.platform == 'linkedin' && <LinkedInIcon />}
+                  {identity.platform == 'discord' && <DiscordIcon />}
+                  {identity.platform == 'domain' && <Icon>captive_portal</Icon>}
+                  <span>{identity.identifier}</span>
+                </div>
+                {identity.state == 'verified' && (
+                  <Chip color={ChipColor.green}>Verified</Chip>
+                )}
+              </div>
+            </CardLink>
+          </div>
+        ))}
+
+        <CardContent className='flex w-full justify-end space-x-6'>
+          <TextButton type='button' onClick={() => setShowDialog(false)}>
+            Close
+          </TextButton>
+        </CardContent>
+      </Dialog>
+    </>
+  )
+}

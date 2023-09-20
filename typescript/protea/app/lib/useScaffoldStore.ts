@@ -13,11 +13,13 @@ export type SnackbarType = {
 
 interface ScaffoldState {
   loading: boolean
+  commandPalletOpen: boolean
   snackbars: SnackbarType[]
 }
 
 interface ScaffoldActions {
   setLoading: (loading: boolean) => void
+  setCommandPalletOpen: (open: boolean) => void
   pushSnackbar: (snackbar: SnackbarType) => void
   shiftSnackbar: () => void
   reset: () => void
@@ -25,6 +27,7 @@ interface ScaffoldActions {
 
 const scaffoldInitialState = {
   loading: false,
+  commandPalletOpen: false,
   snackbars: []
 }
 
@@ -32,6 +35,8 @@ export const useScaffoldStore = create<ScaffoldState & ScaffoldActions>()(
   (set) => ({
     ...scaffoldInitialState,
     setLoading: (loading) => set((state) => ({ loading })),
+    setCommandPalletOpen: (commandPalletOpen) =>
+      set((state) => ({ commandPalletOpen })),
     pushSnackbar: (snackbar) =>
       set((state) => {
         if (state.snackbars.findIndex((s) => s.id == snackbar.id) == -1) {
