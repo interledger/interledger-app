@@ -36,6 +36,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CreateBotToken mocks base method.
+func (m *MockClient) CreateBotToken(ctx context.Context, authCode string) (*oauth2.Token, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBotToken", ctx, authCode)
+	ret0, _ := ret[0].(*oauth2.Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBotToken indicates an expected call of CreateBotToken.
+func (mr *MockClientMockRecorder) CreateBotToken(ctx, authCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBotToken", reflect.TypeOf((*MockClient)(nil).CreateBotToken), ctx, authCode)
+}
+
 // CreateUserToken mocks base method.
 func (m *MockClient) CreateUserToken(ctx context.Context, authCode string) (*oauth2.Token, *external.User, error) {
 	m.ctrl.T.Helper()
