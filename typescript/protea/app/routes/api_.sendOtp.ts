@@ -18,57 +18,58 @@ export async function action({ request }: ActionArgs) {
   // If the phone is missing we assume the user has a session and we can get it from there.
   const validation = form.has('phone')
 
-  const errors = {
-    form: '',
-    country: '',
-    phone: ''
+  const data = {
+    phone: '',
+    success: false,
+    errors: {
+      form: '',
+      country: '',
+      phone: ''
+    }
   }
   const mapping = {
     phone: 'To'
   }
 
-  let phoneNumber = ''
-
   if (validation) {
     try {
-      phoneNumber = parsePhoneNumberWithError(
+      data.phone = parsePhoneNumberWithError(
         phone,
         country as CountryCode
       ).number
     } catch (err) {
       switch ((err as ParseError).message) {
         case 'NOT_A_NUMBER':
-          errors.phone = 'Phone number is invalid.'
-          return error(request, { errors })
+          data.errors.phone = 'Phone number is invalid.'
+          return error(request, data)
         case 'INVALID_COUNTRY':
-          errors.phone = 'Country is invalid.'
-          return error(request, { errors })
+          data.errors.phone = 'Country is invalid.'
+          return error(request, data)
         case 'TOO_SHORT':
-          errors.phone = 'Phone number is too short.'
-          return error(request, { errors })
+          data.errors.phone = 'Phone number is too short.'
+          return error(request, data)
         case 'TOO_LONG':
-          errors.phone = 'Phone number is too long.'
-          return error(request, { errors })
+          data.errors.phone = 'Phone number is too long.'
+          return error(request, data)
         default:
           throw err
       }
     }
   } else {
-    phoneNumber = await getUserSession(request).then(
+    data.phone = await getUserSession(request).then(
       (v) => v.identity.traits.phone
     )
   }
 
   let response = await grpc.sendPhoneVerification(request, {
-    to: phoneNumber
+    to: data.phone
   })
 
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors }, mapping)
-    } else
-      return response.error({ errors }, mapping, { action: 'Contact support' })
+      return response.error(data, mapping)
+    } else return response.error(data, mapping, { action: 'Contact support' })
   }
 
-  return json({ phone: phoneNumber, success: true })
+  return json(data)
 }
