@@ -13,6 +13,7 @@ import (
 
 type client struct {
 	conf     *oauth2.Config
+	botConf  *oauth2.Config
 	verifier *oidc.IDTokenVerifier
 }
 
@@ -44,8 +45,16 @@ func New() (Client, error) {
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
+	botConf := &oauth2.Config{
+		ClientID:     getEnvDefault("SLACK_CLIENT_ID", "2317468772181.5841878200565"),
+		ClientSecret: getEnvDefault("SLACK_CLIENT_SECRET", "e0705d863bc2726505cd175b65cc12d9"),
+		Endpoint:     oauth2.Endpoint{TokenURL: "https://slack.com/api/oauth.v2.access", AuthStyle: oauth2.AuthStyleInParams},
+		RedirectURL:  getEnvDefault("SLACK_REDIRECT_URL", env.GetUrl()+"/webhooks/slack/bot/install"),
+	}
+
 	return client{
 		conf:     conf,
+		botConf:  botConf,
 		verifier: verifier,
 	}, nil
 }
@@ -74,4 +83,13 @@ func (c client) CreateUserToken(ctx context.Context, authCode string) (*oauth2.T
 	}
 
 	return oauth2Token, &user, nil
+}
+
+func (c client) CreateBotToken(ctx context.Context, authCode string) (*oauth2.Token, error) {
+	oauth2Token, err := c.botConf.Exchange(ctx, authCode)
+	if err != nil {
+		return nil, err
+	}
+
+	return oauth2Token, err
 }

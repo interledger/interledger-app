@@ -61,6 +61,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(payments_workflows.PayinWorkflow)
 	w.RegisterWorkflow(payments_workflows.PayoutWorkflow)
 	w.RegisterWorkflow(payments_workflows.PaymentWorkflow)
+	w.RegisterWorkflow(payments_workflows.AwaitReceiverWorkflow)
 
 	return w, nil
 }

@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/slack"
-	"gitlab.com/fynbos/env"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
@@ -514,6 +515,17 @@ func SetTransactionForeignID(ctx context.Context, b Backends, ID string, foreign
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Error("error sending notification", zap.Error(err))
+	}
+
+	return nil
+}
+
+func SetTransactionDestination(ctx context.Context, b Backends, ID string, destination string) error {
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "UPDATE transactions SET destination=$1, updated_at=now() WHERE id=$2 returning wallet_id",
+		destination, ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
 	return nil
