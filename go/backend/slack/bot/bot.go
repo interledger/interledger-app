@@ -187,7 +187,7 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 				return
 			}
 
-			authURL := fmt.Sprintf("%s/pay?paymentId=%s&start=2", env.GetUrl(), p.ID)
+			authURL := fmt.Sprintf("%s/pay/%s", env.GetUrl(), p.ID)
 
 			data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("Your payment to %s requires your authorization %s", receiverSlackID, authURL)})
 			if err != nil {
