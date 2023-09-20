@@ -1,55 +1,28 @@
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { create } from 'zustand'
-import type { FormattedLinkedAccount } from '~/data/wallet.server'
-import type {
-  PublicWalletInfo,
-  SearchResult
-} from '~/generated/connect/backend/v1/backend_pb'
 
 export enum PayStep {
-  SEARCH,
+  UNKNOWN,
   AMOUNT,
   CONFIRM
 }
 
 interface PayState {
   step: PayStep
-  // Search page
-  address: PlainMessage<SearchResult> | null
-  // Amount page
-  publicWalletInfo: PlainMessage<PublicWalletInfo> | null
-  requiresOTP: boolean
-  account: FormattedLinkedAccount | null
   amount: string
   displayAmount: string
-  note: string
-  paymentId: string
 }
 
 interface PayActions {
   setStep: (step: PayStep) => void
   stepBack: () => void
-  setAddress: (address: PlainMessage<SearchResult>) => void
   setAmount: (amount: string) => void
-  setNote: (note: string) => void
-  setPublicWalletInfo: (walletInfo: PlainMessage<PublicWalletInfo>) => void
-  setAccount: (account: FormattedLinkedAccount) => void
   reset: () => void
-
-  // payment engine fields
-  setPayment: (id: string, requiresOTP: boolean) => void
 }
 
 const payInitialState = {
-  step: PayStep.SEARCH,
-  address: null,
-  publicWalletInfo: null,
-  requiresOTP: false,
-  account: null,
+  step: PayStep.UNKNOWN,
   amount: '',
-  displayAmount: '$ 0.00',
-  note: '',
-  paymentId: ''
+  displayAmount: '$ 0.00'
 }
 
 export const usePayStore = create<PayState & PayActions>()((set) => ({
@@ -64,29 +37,13 @@ export const usePayStore = create<PayState & PayActions>()((set) => ({
           return { ...payInitialState }
       }
     }),
-  setAddress: (address) => set((state) => ({ address: address })),
   setAmount: (amount) =>
     set((state) => ({
       amount: amount,
       displayAmount: formatMoney(parseFloat(amount || '0'))
     })),
-  setPublicWalletInfo: (walletInfo) =>
-    set((state) => ({ publicWalletInfo: walletInfo })),
-  setNote: (note) => set((state) => ({ note })),
-  setAccount: (account) => set((state) => ({ account })),
-  reset: () => set((state) => ({ ...payInitialState })),
-
-  // payment engine fields
-  setPayment: (id, requiresOTP) =>
-    set((state) => ({ paymentId: id, requiresOTP }))
+  reset: () => set((state) => ({ ...payInitialState }))
 }))
-
-// sendPaymentPointer: string; - don't need this in the store
-// receivePaymentPointer: string; - this is determined from the search result
-// amount?: Amount;
-// expiresAt?: Timestamp;
-// description: string;
-// sendLinkedAccount?: string;
 
 const formatMoney = (value: number): string => {
   return `$ ${value.toFixed(2)}`
