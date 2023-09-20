@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	images_client "gitlab.com/fynbos/backend/images/client"
+
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 
 	limits_client "gitlab.com/fynbos/backend/limits/client"
@@ -86,6 +88,12 @@ func NewTestBackends(t *testing.T) *TestBackends {
 
 		return nil, nil
 	}).AnyTimes()
+	tp.EXPECT().SignalWorkflow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(arg0, arg1, arg2, arg3, arg4 interface{}) error {
+		ch, ok := arg3.(string)
+		require.True(t, ok)
+		b.env.SignalWorkflow(ch, arg4)
+		return nil
+	}).AnyTimes()
 	b.temporal = tp
 
 	tc, err := tabapay_client.New(tabapay_client.NewClientArgs{}, b)
@@ -131,9 +139,11 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.PayinWorkflow)
 	env.RegisterWorkflow(ops.PayoutWorkflow)
 	env.RegisterWorkflow(ops.RollbackPayInWorkflow)
+	env.RegisterWorkflow(ops.AwaitReceiverWorkflow)
 	env.RegisterActivity(gmt_ops.NewActivity(b))
 	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
 	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
+
 	b.env = env
 }
 
@@ -174,7 +184,7 @@ func (b *TestBackends) Twitter() twitter.Client {
 }
 
 func (b *TestBackends) Images() images.Client {
-	return nil
+	return images_client.New(b)
 }
 
 func (b *TestBackends) Keys() keys.Client {

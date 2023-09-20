@@ -30,6 +30,24 @@ service Backend {
   rpc ListFormSubmissions(ListFormSubmissionsRequest) returns (ListFormSubmissionsResponse);
   rpc GetFormSubmissionDetails(GetFormSubmissionDetailsRequest) returns (FormSubmissionDetails);
   rpc ListExternalApiCalls(ListExternalApiCallsRequest) returns (ListExternalApiCallsResponse);
+  rpc ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (ListPaymentsAwaitingSignalResponse);
+}
+
+message ListPaymentsAwaitingSignalResponse {
+  repeated Payment payments = 1;
+}
+
+message Payment {
+  string id = 1;
+  string publicID = 2;
+  string state = 3;
+  string receiverWalletUrl = 4;
+  string receiverIdentity = 5;
+  string receiverIdentityType = 6;
+  string senderAmount = 7;
+  string senderAccount = 8; // Linked Account ID
+  string note = 9;
+  repeated string requiredActions = 10;
 }
 
 message ListExternalApiCallsRequest {
