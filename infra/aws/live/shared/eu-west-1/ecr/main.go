@@ -82,9 +82,17 @@ func main() {
 		if err != nil {
 			return err
 		}
+
 		if _, err = ecr.NewPrivateRepository(ctx, "rafiki-backend", accountID, crossAccountIds); err != nil {
 			return err
 		}
+		if _, err = ecr.NewPrivateRepository(ctx, "rafiki-auth", accountID, crossAccountIds); err != nil {
+			return err
+		}
+		if _, err = ecr.NewPrivateRepository(ctx, "rafiki-frontend", accountID, crossAccountIds); err != nil {
+			return err
+		}
+
 		if _, err = ecr.NewPrivateRepository(ctx, "botanist", accountID, crossAccountIds); err != nil {
 			return err
 		}
