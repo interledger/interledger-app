@@ -7,6 +7,7 @@ import {
   useSearchParams
 } from '@remix-run/react'
 import clsx from 'clsx'
+import type { MotionProps } from 'framer-motion'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { FC, ReactNode } from 'react'
 import { forwardRef, useEffect, useState } from 'react'
@@ -23,6 +24,7 @@ import {
   WalletShapes
 } from '~/components'
 import { ContentRouter, Prose } from '~/components/Content'
+import { CommandPalette } from '~/components/Scaffold/CommandPalette'
 import { DocsNavDrawer } from '~/components/Scaffold/Docs'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
 import {
@@ -33,6 +35,7 @@ import { useFormStore } from '~/lib/useFormStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
+import { Search } from '~/routes/pay/Search'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -116,7 +119,12 @@ export function Scaffold() {
 
   const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
 
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+  const [pushSnackbar, commandPaletteOpen, setCommandPaletteOpen] =
+    useScaffoldStore((state) => [
+      state.pushSnackbar,
+      state.commandPalletOpen,
+      state.setCommandPalletOpen
+    ])
 
   useEffect(() => {
     const snackbar = matches[0].data.snackbar
@@ -175,13 +183,13 @@ export function Scaffold() {
                 <FynbosLogo className='h-8' />
               </Router>
             </div>
-            <Router
-              to={route('/pay')}
+            <button
+              onClick={() => setCommandPaletteOpen(true)}
               className='mb-2 mt-10 flex w-full space-x-3 rounded-2xl bg-primary p-4 text-white'
             >
               <Icon>attach_money</Icon>
               <span className='font-medium'>Pay</span>
-            </Router>
+            </button>
             <NavDrawer.ListItem to={route('/')}>Home</NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/accounts')}>
               Accounts
@@ -289,7 +297,10 @@ export function Scaffold() {
                     if (searchBack) navigate(-parseInt(searchBack))
                   }
                   if (scaffold.header.back === 'pay') {
-                    if (payStep == PayStep.SEARCH) {
+                    if (
+                      payStep == PayStep.AMOUNT ||
+                      payStep == PayStep.UNKNOWN
+                    ) {
                       payStepBack()
                       navigate(-1)
                     } else payStepBack()
@@ -622,10 +633,16 @@ export function Scaffold() {
       >
         <AnimatePresence mode='popLayout'>
           {scaffold.fab && layout !== Layouts.Marketing && (
-            <FAB key='fab' to={route('/pay')} />
+            <FAB key='fab' onTap={() => setCommandPaletteOpen(true)} />
           )}
           <SnackbarStage />
         </AnimatePresence>
+        <CommandPalette
+          open={commandPaletteOpen}
+          setOpen={() => setCommandPaletteOpen(false)}
+        >
+          <Search />
+        </CommandPalette>
       </div>
     </div>
   )
@@ -657,13 +674,17 @@ const HeaderLink: FC<HeaderLinkProps> = ({ title, to }) => {
   )
 }
 
-const FAB = forwardRef<any, { to: string }>(({ to, ...motionProps }, ref) => {
-  return (
-    <Router to={to}>
-      <motion.div
-        key={to}
+interface ButtonProps extends MotionProps {
+  shrink?: boolean // sm:max-w-fit
+}
+
+export const FAB = forwardRef<any, ButtonProps>(
+  ({ children, shrink, ...buttonProps }, ref) => {
+    return (
+      <motion.button
+        key='Mobile-FAB'
         ref={ref}
-        {...motionProps}
+        {...buttonProps}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         initial={{ opacity: 0, scale: 0.5, y: 40 }}
         exit={{
@@ -707,9 +728,9 @@ const FAB = forwardRef<any, { to: string }>(({ to, ...motionProps }, ref) => {
             />
           </g>
         </svg>
-      </motion.div>
-    </Router>
-  )
-})
+      </motion.button>
+    )
+  }
+)
 
 FAB.displayName = 'FAB'
