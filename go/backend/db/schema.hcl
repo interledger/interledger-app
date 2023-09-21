@@ -2091,6 +2091,69 @@ table "payments" {
   }
 }
 
+table "payments_workflow_refs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = text
+  }
+  column "identifier" {
+    null = false
+    type = text
+  }
+  column "wallet_id" {
+    null = false
+    type = text
+  }
+  column "workflow_id" {
+    null = false
+    type = text
+  }
+  column "workflow_run_id" {
+    null = false
+    type = text
+  }
+  column "completed" {
+    null = false
+    type = boolean
+    default = false
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "payments_workflow_refs_completed_ind" {
+    unique  = false
+    columns = [column.completed]
+  }
+  index "payments_workflow_refs_identifier_ind" {
+    unique  = false
+    columns = [column.identifier]
+  }
+  index "payments_workflow_refs_payment_id_ind" {
+    unique  = false
+    columns = [column.payment_id]
+  }
+  index "payments_workflow_refs_wallet_id_ind" {
+    unique  = false
+    columns = [column.wallet_id]
+  }
+}
+
 table "discord_authorizations" {
   schema = schema.public
   column "id" {
@@ -2231,6 +2294,83 @@ table "dynamic_forms" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")
+  }
+}
+
+table "slack_bot_installs" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "access_token" {
+    null = false
+    type = text
+  }
+  column "scopes" {
+    null = false
+    type = sql("text[]")
+  }
+  column "team_id" {
+    null = false
+    type = text
+  }
+  column "bot_id" {
+    null = false
+    type = text
+  }
+  column "app_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  index "slack_bot_installs_team_ind" {
+    unique  = true
+    columns = [column.team_id]
+  }
+}
+
+table "slack_unsignedup_payments" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "team_id" {
+    null = false
+    type = text
+  }
+  column "user_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  index "slack_unsignedup_payments_user_ind" {
+    columns = [column.team_id, column.user_id]
   }
 }
 

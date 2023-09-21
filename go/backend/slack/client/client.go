@@ -2,6 +2,9 @@ package client
 
 import (
 	"context"
+	"net/http"
+
+	"gitlab.com/fynbos/backend/payments"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/slack/external"
@@ -12,6 +15,7 @@ import (
 
 type Backends interface {
 	DB() *sqlx.DB
+	Payments() payments.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -46,4 +50,8 @@ func (c *client) CreateAuthURL(ctx context.Context, walletID string) (string, er
 
 func (c *client) CreateConnection(ctx context.Context, args slack.CreateConnectionArgs) (*slack.Connection, error) {
 	return ops.CreateConnection(ctx, c.b, args)
+}
+
+func (c *client) BotInstallWebhook() http.HandlerFunc {
+	return ops.BotInstallWebhook(c.b)
 }

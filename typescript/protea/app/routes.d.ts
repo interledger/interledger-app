@@ -19,6 +19,7 @@ declare module "routes-gen" {
     "/login/challenge": Record<string, never>;
     "/personal-details": Record<string, never>;
     "/connect/domain": Record<string, never>;
+    "/pay/:paymentId": { "paymentId": string };
     "/thank-you/:slug": { "slug": string };
     "/connect/slack": Record<string, never>;
     "/wallet-address": Record<string, never>;
@@ -83,6 +84,7 @@ declare module "routes-gen" {
       | ["/login/challenge"]
       | ["/personal-details"]
       | ["/connect/domain"]
+      | ["/pay/:paymentId", RouteParams["/pay/:paymentId"]]
       | ["/thank-you/:slug", RouteParams["/thank-you/:slug"]]
       | ["/connect/slack"]
       | ["/wallet-address"]

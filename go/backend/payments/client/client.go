@@ -34,3 +34,19 @@ func (c client) Update(ctx context.Context, args payments.UpdateArgs) (*payments
 func (c client) Confirm(ctx context.Context, id string) (*payments.Payment, []payments.RequiredActionType, error) {
 	return ops.Confirm(ctx, c.b, id)
 }
+
+func (c client) UpdateReceiver(ctx context.Context, id string, identity payments.Identity) error {
+	return ops.UpdateReceiver(ctx, c.b, id, identity)
+}
+
+func (c client) SignalIdentityCreated(ctx context.Context, identifier string) error {
+	return ops.SignalIdentityCreated(ctx, c.b, identifier)
+}
+
+func (c client) SignalAccountLinked(ctx context.Context, walletID string) error {
+	return ops.SignalAccountLinked(ctx, c.b, walletID)
+}
+
+func (c client) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment, error) {
+	return ops.ListAwaitingSignal(ctx, c.b)
+}
