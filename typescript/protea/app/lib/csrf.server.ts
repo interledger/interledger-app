@@ -33,7 +33,7 @@ async function getCSRFToken(
   return { csrfToken, newHeaders }
 }
 
-type JsonWithCSRFFunction = <Data extends unknown>(
+type JsonWithCSRFFunction = <Data>(
   request: Request,
   data: Data,
   init?: number | ResponseInit

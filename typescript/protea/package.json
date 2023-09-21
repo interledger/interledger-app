@@ -35,9 +35,9 @@
     "@protobuf-ts/runtime": "^2.9.0",
     "@protobuf-ts/runtime-rpc": "^2.9.0",
     "@redis/client": "^1.5.7",
-    "@remix-run/node": "^1.16.0",
-    "@remix-run/react": "^1.16.0",
-    "@remix-run/serve": "^1.16.0",
+    "@remix-run/node": "^1.19.3",
+    "@remix-run/react": "^1.19.3",
+    "@remix-run/serve": "^1.19.3",
     "@segment/analytics-next": "^1.54.0",
     "@sentry/remix": "^7.59.3",
     "clsx": "^1.2.1",
@@ -54,7 +54,7 @@
     "react-datocms": "^4.0.15",
     "react-dom": "18.2.0",
     "rehype-slug": "^5.1.0",
-    "routes-gen": "^0.6.0",
+    "routes-gen": "^0.6.1",
     "shiki": "^0.14.3",
     "uuid": "^9.0.0",
     "zustand": "^4.3.9"
@@ -66,9 +66,9 @@
     "@graphql-codegen/typescript-operations": "^3.0.4",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@playwright/test": "^1.33.0",
-    "@remix-run/dev": "^1.16.0",
-    "@remix-run/eslint-config": "^1.16.0",
-    "@remix-run/testing": "^1.16.0",
+    "@remix-run/dev": "^1.19.3",
+    "@remix-run/eslint-config": "^1.19.3",
+    "@remix-run/testing": "^1.19.3",
     "@routes-gen/remix": "^0.3.6",
     "@storybook/addon-actions": "7.0.10",
     "@storybook/addon-docs": "7.0.10",
@@ -117,7 +117,7 @@
   },
   "packageManager": "pnpm@8.5.0",
   "engines": {
-    "node": ">=14"
+    "node": ">=18.0.0"
   },
   "sideEffects": false,
   "_id": "protea@0.1.0"

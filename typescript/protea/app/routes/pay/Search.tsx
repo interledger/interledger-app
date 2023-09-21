@@ -1,6 +1,6 @@
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { Combobox } from '@headlessui/react'
-import { Form, useFetcher, useNavigation } from '@remix-run/react'
+import { Form, useFetcher } from '@remix-run/react'
 import clsx from 'clsx'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
@@ -25,7 +25,7 @@ import type { searchLoader } from './route'
 export function Search() {
   const search = useFetcher<typeof searchLoader>()
 
-  const navigation = useNavigation()
+  // const navigation = useNavigation()
 
   // We use this to submit the form so that we don't navigate to /pay
   const submit = useFetcher()

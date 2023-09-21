@@ -6,7 +6,6 @@ import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 
-import { Simulate } from 'react-dom/test-utils'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -41,7 +40,6 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { KycStatus } from '~/routes/_index/route'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
-import submit = Simulate.submit
 
 export enum PaymentRequiredAction {
   Unknown,
@@ -202,7 +200,7 @@ export default function Page() {
       setAmount(String(Number(payment.senderAmount?.amount) / 100 || ''))
       setStep(payStep)
     }
-  }, [payStep, setStep, step])
+  }, [payStep, payment.senderAmount?.amount, setAmount, setStep, step])
 
   useEffect(() => {
     if (commandPaletteOpen) {
