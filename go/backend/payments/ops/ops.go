@@ -678,6 +678,20 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 	return transformPayment(ctx, b, ret)
 }
 
+func UpdateReceiver(ctx context.Context, b Backends, id string, identity payments.Identity) error {
+	_, err := update(ctx, b, payments.UpdateArgs{ID: id, Receiver: identity})
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE payments_workflow_refs SET identifier=$1 WHERE payment_id=$2", identity.Identifier, id)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return nil
+}
+
 type workflowRef struct {
 	PaymentID  string `db:"payment_id"`
 	Identifier string `db:"identifier"`
@@ -722,7 +736,7 @@ func SignalAccountLinked(ctx context.Context, b Backends, walletID string) error
 
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {
 	var dbRes []dbPayment
-	err := b.DB().GetContext(ctx, &dbRes, fmt.Sprintf("SELECT %s FROM payments WHERE id IN (select payment_id frompayments_workflow_refs where completed=false)", cols))
+	err := b.DB().GetContext(ctx, &dbRes, fmt.Sprintf("SELECT %s FROM payments WHERE id IN (select payment_id from payments_workflow_refs where completed=false)", cols))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
