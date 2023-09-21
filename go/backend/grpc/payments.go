@@ -11,7 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/twilio"
 
 	"gitlab.com/fynbos/backend/currency"
-	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -361,29 +360,6 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 		return nil, NewValidationError("amount", description)
 	}
 
-	// TODO: remove after barnard's PR is in
-	if p.ReceiverAccount == "" {
-		las, err := s.b.LinkedAccounts().ListByWalletId(ctx, p.Receiver.WalletID)
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
-
-		var receiveLA *linkedaccounts.LinkedAccount
-		for _, la := range las {
-			if la.CanReceive {
-				receiveLA = &la
-				break
-			}
-		}
-
-		if receiveLA != nil {
-			_, _ = s.b.Payments().Update(ctx, payments.UpdateArgs{
-				ID:              p.ID,
-				ReceiverAccount: receiveLA.ID,
-			})
-		}
-	}
-
 	p, requiredActions, err := s.b.Payments().Confirm(ctx, req.Id)
 	if errors.Is(err, payments.ErrRequiredActions) {
 		return nil, PaymentPreconditionError(requiredActions)
@@ -401,16 +377,20 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		requiredActions = append(requiredActions, int32(ra))
 	}
 
-	receiveWallet, err := b.Wallets().Get(ctx, p.Receiver.WalletID)
-	if err != nil {
-		return nil, toGRPCError(err)
+	var receiveWalletAddress string
+	if p.Receiver.WalletID != "" {
+		receiveWallet, err := b.Wallets().Get(ctx, p.Receiver.WalletID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		receiveWalletAddress = receiveWallet.AddressString()
 	}
 
 	return &pb.Payment{
 		Id:                   p.ID,
 		PublicID:             p.PublicID,
 		State:                int32(p.State),
-		ReceiverWalletUrl:    receiveWallet.AddressString(),
+		ReceiverWalletUrl:    receiveWalletAddress,
 		ReceiverIdentity:     p.Receiver.Identifier,
 		ReceiverIdentityType: int32(p.Receiver.Type),
 		SenderAmount:         p.SenderAmount.ToPB(),

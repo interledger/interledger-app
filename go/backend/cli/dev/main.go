@@ -4,6 +4,12 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
+	payments_client "gitlab.com/fynbos/backend/payments/client"
+
+	"gitlab.com/fynbos/backend/payments"
 	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 
 	"gitlab.com/fynbos/backend/images"
@@ -121,6 +127,22 @@ type backends struct {
 	vault          vault.Client
 	img            images.Client
 	walletImpl     wallets.Client
+	pay            payments.Client
+}
+
+func (b *backends) Identities() identities.Client {
+	return nil
+}
+
+func (b *backends) Tabapay() tabapay.Client {
+	return nil
+}
+
+func (b *backends) Payments() payments.Client {
+	if b.pay == nil {
+		b.pay = payments_client.New(b)
+	}
+	return b.pay
 }
 
 func (b *backends) Transactions() transactions.Client {

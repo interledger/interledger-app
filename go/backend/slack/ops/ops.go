@@ -7,6 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/payments"
+
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -77,5 +82,28 @@ func CreateConnection(ctx context.Context, b Backends, args slack.CreateConnecti
 		return nil, fmt.Errorf("%w %s", slack.ErrInternal, err)
 	}
 
+	// Check for payments waiting for this slack identity
+	checkUnsignedupPayments(ctx, b, connection)
+
 	return &connection, nil
+}
+
+// checkUnsignedupPayments is a best effort check to update bot payments with the correct identifier
+func checkUnsignedupPayments(ctx context.Context, b Backends, con slack.Connection) {
+	var paymentIDs []string
+	err := b.DB().SelectContext(ctx, &paymentIDs, "SELECT payment_id FROM slack_unsignedup_payments WHERE team_id=$1, user_id=$2", con.TeamID, con.UserID)
+	if err != nil {
+		log.Error("failed to list slack awaiting payments", zap.Error(err), zap.String("connection_id", con.ID))
+		return
+	}
+
+	for _, pid := range paymentIDs {
+		err = b.Payments().UpdateReceiver(ctx, pid, payments.Identity{
+			Type:       payments.IdentityTypeSlack,
+			Identifier: con.Identifier(),
+		})
+		if err != nil {
+			log.Error("failed to update payment receiver from connection", zap.Error(err), zap.String("payment_id", pid), zap.String("connection_id", con.ID))
+		}
+	}
 }
