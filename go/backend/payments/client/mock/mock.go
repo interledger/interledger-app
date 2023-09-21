@@ -138,3 +138,17 @@ func (mr *MockClientMockRecorder) Update(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockClient)(nil).Update), ctx, args)
 }
+
+// UpdateReceiver mocks base method.
+func (m *MockClient) UpdateReceiver(ctx context.Context, id string, identity payments.Identity) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateReceiver", ctx, id, identity)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateReceiver indicates an expected call of UpdateReceiver.
+func (mr *MockClientMockRecorder) UpdateReceiver(ctx, id, identity interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateReceiver", reflect.TypeOf((*MockClient)(nil).UpdateReceiver), ctx, id, identity)
+}
