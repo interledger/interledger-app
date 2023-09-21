@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/lib/pq"
@@ -11,6 +12,7 @@ import (
 type Client interface {
 	CreateAuthURL(ctx context.Context, walletID string) (string, error)
 	CreateConnection(ctx context.Context, args CreateConnectionArgs) (*Connection, error)
+	BotInstallWebhook() http.HandlerFunc
 }
 
 type Connection struct {

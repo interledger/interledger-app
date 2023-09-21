@@ -51,6 +51,7 @@ type Payment struct {
 //go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType
 type RequiredActionType int
 
+// NOTE: If you change this please update it in protea too
 const (
 	RequiredActionTypeUnknown            RequiredActionType = 0
 	RequiredActionTypeThreeDS            RequiredActionType = 1
@@ -66,6 +67,7 @@ const (
 //go:generate stringer -type=IdentityType -trimprefix=IdentityType
 type IdentityType int
 
+// NOTE: If you change this please update it in protea too
 const (
 	IdentityTypeUnknown   IdentityType = 0
 	IdentityTypeTwitter   IdentityType = 1

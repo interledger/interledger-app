@@ -3,6 +3,10 @@ package ops
 import (
 	"testing"
 
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+
+	"gitlab.com/fynbos/backend/payments"
+
 	"gitlab.com/fynbos/backend/email"
 	email_mock "gitlab.com/fynbos/backend/email/client/mock"
 	"gitlab.com/fynbos/backend/kyc"
@@ -29,6 +33,7 @@ type Backends interface {
 	Analytics() analytics.Client
 	KYC() kyc.Client
 	Email() email.Client
+	Payments() payments.Client
 }
 
 type testBackends struct {
@@ -38,6 +43,11 @@ type testBackends struct {
 	ac     analytics.Client
 	ec     *email_mock.MockClient
 	kyc    *kyc_mock.MockClient
+	pc     *payments_mock.MockClient
+}
+
+func (t testBackends) Payments() payments.Client {
+	return t.pc
 }
 
 func (t testBackends) Users() user.Client {
@@ -80,5 +90,7 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) Backends {
 	ec.EXPECT().SendConnectedAccountEmail(gomock.Any(), gomock.Any()).AnyTimes()
 	kycMock := kyc_mock.NewMockClient(ctrl)
 	kycMock.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).Return(&kyc.IndividualDetails{}, nil).AnyTimes()
-	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), ec: ec, kyc: kycMock}
+	pc := payments_mock.NewMockClient(ctrl)
+	pc.EXPECT().SignalAccountLinked(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	return &testBackends{db: db, val: validator.New(), notify: nc, ac: analytics_client.New(nil, ""), ec: ec, kyc: kycMock, pc: pc}
 }
