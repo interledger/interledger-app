@@ -49,17 +49,15 @@ export function Search() {
   )
 
   useEffect(() => {
-    // TODO make this smarter
-    if (term.length >= 3) {
+    if (term.length >= 3 && search.state == 'idle') {
       setResults(search.data?.results || [])
     }
     setLoading(false)
-  }, [search.data, term.length, setResults, setLoading])
+  }, [search.data?.results, search.state, setLoading, term.length])
 
   return (
     <Combobox
       onChange={(result: PlainMessage<SearchResult>) => {
-        console.log('Selected an option:', result)
         submit.submit(
           { walletUrl: result.walletUrl },
           {
@@ -97,12 +95,15 @@ export function Search() {
         <CardHeader>
           <CardTitle>Results</CardTitle>
         </CardHeader>
-        {results.length == 0 && term.length >= 3 && (
-          <CardContent>No results found.</CardContent>
-        )}
         {results.length == 0 && term.length < 3 && (
           <CardContent>Type at least 3 characters to search.</CardContent>
         )}
+        {results.length == 0 && term.length >= 3 && search.state == 'idle' && (
+          <CardContent>Your search returned no results.</CardContent>
+        )}
+        {results.length == 0 &&
+          term.length >= 3 &&
+          search.state == 'loading' && <CardContent>Searching...</CardContent>}
         <Combobox.Options static className='contents w-full'>
           {results.map((result: PlainMessage<SearchResult>) => {
             return (
@@ -165,49 +166,45 @@ export function Search() {
           })}
         </Combobox.Options>
       </Card>
-      {results.length == 0 && term.length >= 3 && (
-        <Card>
-          <CardContent>
-            Share this link with {term} to join Fynbos to transact.
-          </CardContent>
-          <CardButton
-            noHover
-            type='button'
-            className='items-center justify-between'
-            onClick={async () => {
-              if (typeof navigator.clipboard == 'undefined') {
-                pushSnackbar({
-                  id: 'copy-to-clipboard-fail',
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close',
-                  canShow: true
-                })
-              } else
-                navigator.clipboard.writeText('https://fynbos.app/signup').then(
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-signup-link',
-                      message: 'Sign up link copied to clipboard.',
-                      icon: 'close',
-                      canShow: true
-                    })
-                  },
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-to-clipboard-fail',
-                      message: "Couldn't copy to clipboard.",
-                      icon: 'close',
-                      canShow: true
-                    })
-                  }
-                )
-            }}
-          >
-            <span className='text-medium'>fynbos.app/signup</span>
-            <Icon className={'text-medium'}>content_copy</Icon>
-          </CardButton>
-        </Card>
-      )}
+      <Card>
+        <CardContent>Or share this link with them to join Fynbos.</CardContent>
+        <CardButton
+          noHover
+          type='button'
+          className='items-center justify-between'
+          onClick={async () => {
+            if (typeof navigator.clipboard == 'undefined') {
+              pushSnackbar({
+                id: 'copy-to-clipboard-fail',
+                message: "Couldn't copy to clipboard.",
+                icon: 'close',
+                canShow: true
+              })
+            } else
+              navigator.clipboard.writeText('https://fynbos.app/signup').then(
+                () => {
+                  pushSnackbar({
+                    id: 'copy-signup-link',
+                    message: 'Sign up link copied to clipboard.',
+                    icon: 'close',
+                    canShow: true
+                  })
+                },
+                () => {
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    canShow: true
+                  })
+                }
+              )
+          }}
+        >
+          <span className='text-medium'>fynbos.app/signup</span>
+          <Icon className={'text-medium'}>content_copy</Icon>
+        </CardButton>
+      </Card>
     </Combobox>
   )
 }
