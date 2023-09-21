@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/slack/external"
 
@@ -13,6 +15,7 @@ import (
 
 type Backends interface {
 	DB() *sqlx.DB
+	Payments() payments.Client
 }
 
 var _ ops.Backends = opsBackends{}

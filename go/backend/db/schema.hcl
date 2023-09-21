@@ -2140,6 +2140,18 @@ table "payments_workflow_refs" {
     unique  = false
     columns = [column.completed]
   }
+  index "payments_workflow_refs_identifier_ind" {
+    unique  = false
+    columns = [column.identifier]
+  }
+  index "payments_workflow_refs_payment_id_ind" {
+    unique  = false
+    columns = [column.payment_id]
+  }
+  index "payments_workflow_refs_wallet_id_ind" {
+    unique  = false
+    columns = [column.wallet_id]
+  }
 }
 
 table "discord_authorizations" {
@@ -2325,6 +2337,40 @@ table "slack_bot_installs" {
   index "slack_bot_installs_team_ind" {
     unique  = true
     columns = [column.team_id]
+  }
+}
+
+table "slack_unsignedup_payments" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "team_id" {
+    null = false
+    type = text
+  }
+  column "user_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  index "slack_unsignedup_payments_user_ind" {
+    columns = [column.team_id, column.user_id]
   }
 }
 
