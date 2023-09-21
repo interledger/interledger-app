@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
@@ -17,6 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
 	notify_mock "gitlab.com/fynbos/backend/notify/client/mock"
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
@@ -38,6 +41,7 @@ type Backends interface {
 	Images() images.Client
 	Notify() notify.Client
 	Wallets() wallets.Client
+	Payments() payments.Client
 }
 
 type testBackends struct {
@@ -49,6 +53,11 @@ type testBackends struct {
 	img images.Client
 	wc  wallets.Client
 	nc  notify.Client
+	pc  payments.Client
+}
+
+func (t testBackends) Payments() payments.Client {
+	return t.pc
 }
 
 func (t testBackends) Twilio() twilio.Service {
@@ -118,6 +127,7 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 	img := images_mock.NewMockClient(ctrl)
 	wc := wallets_mock.NewMockClient(ctrl)
 	nc := notify_mock.NewMockClient(ctrl)
+	pc := payments_mock.NewMockClient(ctrl)
 	nc.EXPECT().NotifyWallet(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	wc.EXPECT().AddAddress(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 	wc.EXPECT().Get(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*wallets.Wallet, error) {
@@ -138,6 +148,7 @@ func NewTestBackends(t *testing.T, db *sqlx.DB) *testBackends {
 		},
 	}, nil).AnyTimes()
 	kc.EXPECT().Sign(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]byte{}, nil).AnyTimes()
+	pc.EXPECT().SignalIdentityCreated(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, img: img, wc: wc, nc: nc}
+	return &testBackends{db: db, val: validator.New(), an: analytics_client.New(nil, ""), kc: kc, tc: tc, img: img, wc: wc, nc: nc, pc: pc}
 }

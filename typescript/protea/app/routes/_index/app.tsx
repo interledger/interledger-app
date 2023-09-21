@@ -40,7 +40,7 @@ export function AppPage() {
   return (
     <WalletGrid>
       <GridColumn className='col-span-full lg:col-span-6'>
-        {!features.sendEnabled && (
+        {!features.sendEnabled && kycStatus == KycStatus.Approved && (
           <Alert>
             <Icon>south_west</Icon>
             <AlertBody>Receive only account</AlertBody>

@@ -11,6 +11,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	ext_slack "github.com/slack-go/slack"
 	"gitlab.com/fynbos/backend/currency"
@@ -125,66 +129,57 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 			}
 
 			receiverConnection, err := lookupAuth(r.Context(), b, team, receiverSlackID)
-			if errors.Is(err, slack.ErrNotFound) {
-				data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("%s do not have a fynbos wallet, please have them create one on %s", receiverSlackID, env.GetUrl())})
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write(data)
-				return
-			}
-			if err != nil {
+			if err != nil && !errors.Is(err, slack.ErrNotFound) {
 				log.Error("failed to lookup to connection for slack bot", zap.Error(err))
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			receiverWallet, err := b.Wallets().Get(r.Context(), receiverConnection.WalletID)
-			if err != nil {
-				log.Error("failed to lookup from wallet for slack bot", zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			if senderWallet.ID == receiverWallet.ID {
-				data, err := json.Marshal(&ext_slack.Msg{Text: "You cannot send payments to yourself"})
+			var receiverWallet *wallets.Wallet
+			if receiverConnection != nil {
+				receiverWallet, err = b.Wallets().Get(r.Context(), receiverConnection.WalletID)
 				if err != nil {
+					log.Error("failed to lookup from wallet for slack bot", zap.Error(err))
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write(data)
-				return
-			}
 
-			toAcc, err := b.LinkedAccounts().GetDefaultReceive(r.Context(), receiverWallet.ID)
-			if errors.Is(err, linkedaccounts.ErrNotFound) {
-				data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("%s is not capable of receiveing payments, please have them add an account that can receive payments", receiverSlackID)})
+				if senderWallet.ID == receiverWallet.ID {
+					data, err := json.Marshal(&ext_slack.Msg{Text: "You cannot send payments to yourself"})
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+					w.Header().Set("Content-Type", "application/json")
+					_, _ = w.Write(data)
+					return
+				}
+
+				_, err = b.LinkedAccounts().GetDefaultReceive(r.Context(), receiverWallet.ID)
+				if errors.Is(err, linkedaccounts.ErrNotFound) {
+					data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("%s is not capable of receiveing payments, please have them add an account that can receive payments", receiverSlackID)})
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+					w.Header().Set("Content-Type", "application/json")
+					_, _ = w.Write(data)
+					return
+				}
 				if err != nil {
+					log.Error("failed to lookup to account for slack bot", zap.Error(err))
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write(data)
-				return
-			}
-			if err != nil {
-				log.Error("failed to lookup to account for slack bot", zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
-				return
 			}
 
 			p, err := b.Payments().Create(r.Context(), payments.CreateArgs{
-				Sender:          getIdentity(r.Context(), b, senderWallet, senderConnection),
-				Receiver:        getIdentity(r.Context(), b, receiverWallet, receiverConnection),
-				SenderAmount:    amt,
-				SenderAccount:   senderAcc.ID,
-				ReceiverAmount:  amt,
-				ReceiverAccount: toAcc.ID,
-				Note:            note,
-				IPAddress:       "41.71.7.104", // TODO: take in IP address when confirming payment
+				Sender:         getSenderIdentity(r.Context(), b, senderWallet, senderConnection),
+				Receiver:       getReceiverIdentity(r.Context(), b, receiverSlackID, receiverWallet, senderConnection, receiverConnection),
+				SenderAmount:   amt,
+				SenderAccount:  senderAcc.ID,
+				ReceiverAmount: amt,
+				Note:           note,
 			})
 			if err != nil {
 				log.Error("failed to create payment for slack bot", zap.Error(err))
@@ -192,7 +187,7 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 				return
 			}
 
-			authURL := fmt.Sprintf("%s/pay?paymentId=%s&start=2", env.GetUrl(), p.ID)
+			authURL := fmt.Sprintf("%s/pay/%s", env.GetUrl(), p.ID)
 
 			data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("Your payment to %s requires your authorization %s", receiverSlackID, authURL)})
 			if err != nil {
@@ -201,6 +196,9 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write(data)
+
+			// Start a go routine that will poll every minute on the payment and notify the user if they should link an account
+			go pollPaymentUpdates(b, p.ID, s)
 			return
 
 		default:
@@ -210,7 +208,13 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 	}
 }
 
-func getIdentity(ctx context.Context, b Backends, w *wallets.Wallet, con *slack.Connection) payments.Identity {
+func getReceiverIdentity(ctx context.Context, b Backends, userID string, w *wallets.Wallet, senderCon, con *slack.Connection) payments.Identity {
+	if w == nil || con == nil {
+		return payments.Identity{
+			Type:       payments.IdentityTypeSlack,
+			Identifier: fmt.Sprintf("%s / %s", senderCon.TeamName, getUsername(userID)),
+		}
+	}
 	resp := payments.Identity{
 		Type:       payments.IdentityTypeWalletURL,
 		Identifier: w.AddressString(),
@@ -235,6 +239,38 @@ func getIdentity(ctx context.Context, b Backends, w *wallets.Wallet, con *slack.
 	}
 }
 
+func getSenderIdentity(ctx context.Context, b Backends, w *wallets.Wallet, con *slack.Connection) payments.Identity {
+	resp := payments.Identity{
+		Type:       payments.IdentityTypeWalletURL,
+		Identifier: w.AddressString(),
+	}
+
+	id, err := b.Identities().GetByIdentifier(ctx, con.Identifier())
+	// Possibly because the user changed their slack alias since linking their identity.
+	if err != nil {
+		log.Warn("slackbot: failed to get slack identity from identities service, falling back to wallet URL",
+			zap.Error(err), zap.String("wallet_id", w.ID), zap.String("connection_id", con.ID))
+		return resp
+	}
+	if id.Platform != identities.PlatformSlack || id.WalletID != w.ID {
+		log.Warn("slackbot: mismatch from connection to identity, falling back to wallet URL",
+			zap.Error(err), zap.String("wallet_id", w.ID), zap.String("connection_id", con.ID))
+		return resp
+	}
+
+	return payments.Identity{
+		Type:       payments.IdentityTypeSlack,
+		Identifier: con.Identifier(),
+	}
+}
+
+func getUsername(userID string) string {
+	if strings.HasPrefix(userID, "<@") {
+		userID = userID[strings.Index(userID, "|")+1 : strings.Index(userID, ">")]
+	}
+	return userID
+}
+
 func normalizeUserID(userID string) string {
 	if strings.HasPrefix(userID, "<@") {
 		userID = userID[2:strings.Index(userID, "|")]
@@ -252,5 +288,148 @@ func lookupAuth(ctx context.Context, b Backends, teamID, userID string) (*slack.
 		return nil, fmt.Errorf("%w %s", slack.ErrInternal, err)
 	}
 
+	// Check if the user has unlinked the connection then don't return it.
+	_, err = b.Identities().GetByIdentifier(ctx, res.Identifier())
+	if errors.Is(err, identities.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", slack.ErrNotFound, err)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", slack.ErrInternal, err)
+	}
+
 	return &res, nil
+}
+
+func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) {
+	// User has 20  minutes to complete the payment.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*20)
+	defer cancel()
+
+	receiverSlackID := strings.Split(c.Text, " ")[0]
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(time.Minute):
+			p, err := b.Payments().Lookup(ctx, paymentID)
+			if err != nil {
+				log.Error("slack bot failed to lookup payment", zap.Error(err), zap.String("payment_id", paymentID))
+				continue
+			}
+
+			// Nothing more to do
+			if p.State == payments.StateFailed || p.State == payments.StateCompleted {
+				return
+			}
+			// Not ready for us to check anything
+			if p.State == payments.StateCreated || p.State == payments.StateConfirmed {
+				continue
+			}
+
+			senderTX, err := b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+			if err != nil {
+				log.Error("slack bot failed to sender transaction", zap.Error(err), zap.String("payment_id", paymentID))
+				continue
+			}
+
+			// If there is a transfer it's the pull, now we should notify the receiver to link their identity,
+			// otherwise wait another minute and check again.
+			if len(senderTX.Transfers) < 1 {
+				continue
+			}
+
+			// Check that the userID we got from the command matches any slack connections.
+			// This is a sanity check to make sure the name we got from the command matches the actual identity linked.
+			// i.e. command might return a user with 'fynbos / barnard' but the identity linked is 'fynbos / Barnard du Toit.
+			// Log out these anomalies so we can adjust accordingly.
+			con, err := lookupAuth(ctx, b, c.TeamID, receiverSlackID)
+			if err != nil && !errors.Is(err, slack.ErrNotFound) {
+				log.Error("slack bot failed to lookup receiver connection", zap.Error(err), zap.String("payment_id", paymentID))
+				continue
+			}
+			if errors.Is(err, slack.ErrNotFound) {
+				// Send prompt to user to link an
+				sendToUser(ctx, b, c.TeamID, receiverSlackID,
+					fmt.Sprintf("<@%s|%s> has sent you a payment of %s. Please create an account, link a bank card and this slack profile to receive your payment on %s",
+						c.UserID, c.UserName, p.ReceiverAmount.Format(), env.GetUrl()))
+				return
+			}
+
+			if con == nil {
+				continue
+			}
+
+			if p.Receiver.Identifier != con.Identifier() {
+				log.Warn("linked slack identity does not match", zap.String("expected", p.Receiver.Identifier), zap.String("got", con.Identifier()))
+				// TODO: update the payment and signal the workflow
+			}
+
+			// Now check if the user has a liked account that can receive
+			_, err = b.LinkedAccounts().GetDefaultReceive(ctx, con.WalletID)
+			if errors.Is(err, linkedaccounts.ErrNotFound) {
+				// Send prompt to user to link an
+				sendToUser(ctx, b, c.TeamID, receiverSlackID,
+					fmt.Sprintf("<@%s|%s> has sent you a payment of %s. Please create an account, link a bank card to receive your payment on %s",
+						c.UserID, c.UserName, p.ReceiverAmount.Format(), env.GetUrl()))
+			}
+		}
+	}
+
+}
+
+var clients map[string]*ext_slack.Client // TeamID as the key for the slack client used
+var lock sync.RWMutex
+
+func init() {
+	clients = make(map[string]*ext_slack.Client)
+}
+
+func getTeamClient(ctx context.Context, b Backends, teamID string) (*ext_slack.Client, error) {
+	lock.RLock()
+	api, ok := clients[teamID]
+	if ok {
+		defer lock.RUnlock()
+		return api, nil
+	}
+	lock.RUnlock()
+
+	// Upgrade to write lock
+	lock.Lock()
+	defer lock.Unlock()
+	// Double check another thread didn't already popuulate
+	api, ok = clients[teamID]
+	if ok {
+
+		return api, nil
+	}
+
+	var accessToken string
+	err := b.DB().GetContext(ctx, &accessToken, "SELECT access_token FROM slack_bot_installs WHERE team_id=$1", teamID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", slack.ErrInternal, err)
+	}
+
+	cl := ext_slack.New(accessToken, ext_slack.OptionHTTPClient(otelhttp.DefaultClient))
+	clients[teamID] = cl
+
+	return cl, nil
+}
+
+func sendToUser(ctx context.Context, b Backends, teamID, userID, message string) {
+	cl, err := getTeamClient(ctx, b, teamID)
+	if err != nil {
+		log.Error("slack bot failed to get slack client for team", zap.Error(err), zap.String("team_id", teamID))
+		return
+	}
+
+	attachment := ext_slack.Attachment{
+		Pretext: message,
+	}
+
+	_, _, err = cl.PostMessageContext(ctx, normalizeUserID(userID), ext_slack.MsgOptionAttachments(attachment))
+
+	if err != nil {
+		log.Error("slack bot failed to send message as itself", zap.Error(err))
+	}
 }

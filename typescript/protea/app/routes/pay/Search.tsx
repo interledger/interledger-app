@@ -1,8 +1,10 @@
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { Combobox } from '@headlessui/react'
-import { useFetcher } from '@remix-run/react'
+import { Form, useFetcher, useNavigation } from '@remix-run/react'
 import clsx from 'clsx'
 import type { ChangeEventHandler } from 'react'
 import { useCallback, useEffect, useState } from 'react'
+import { route } from 'routes-gen'
 import {
   Card,
   CardButton,
@@ -16,17 +18,20 @@ import {
   TwitterIcon
 } from '~/components'
 import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
-import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
+import type { searchLoader } from './route'
+
 export function Search() {
-  const search = useFetcher()
+  const search = useFetcher<typeof searchLoader>()
+
+  const navigation = useNavigation()
+
+  // We use this to submit the form so that we don't navigate to /pay
+  const submit = useFetcher()
+
   const [term, setTerm] = useState<string>('')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [setStep, setAddress] = usePayStore((state) => [
-    state.setStep,
-    state.setAddress
-  ])
+  const [results, setResults] = useState<PlainMessage<SearchResult>[]>([])
 
   const [pushSnackbar, setLoading] = useScaffoldStore((state) => [
     state.pushSnackbar,
@@ -44,24 +49,30 @@ export function Search() {
   )
 
   useEffect(() => {
-    if (term.length >= 3) {
+    if (term.length >= 3 && search.state == 'idle') {
       setResults(search.data?.results || [])
     }
     setLoading(false)
-  }, [search.data, term.length, setResults, setLoading])
-
-  const _onClickResult = useCallback<{
-    (result: SearchResult): void
-  }>(
-    (result) => {
-      setAddress(result)
-      setStep(PayStep.AMOUNT)
-    },
-    [setAddress, setStep]
-  )
+  }, [search.data?.results, search.state, setLoading, term.length])
 
   return (
-    <Combobox onChange={_onClickResult}>
+    <Combobox
+      onChange={(result: PlainMessage<SearchResult>) => {
+        submit.submit(
+          { walletUrl: result.walletUrl },
+          {
+            action: route('/pay'),
+            method: 'POST'
+          }
+        )
+      }}
+    >
+      <Form
+        id='pay-search-form'
+        action={route('/pay')}
+        method='post'
+        className='hidden'
+      />
       <Card>
         <Combobox.Input
           as={TextField}
@@ -84,26 +95,35 @@ export function Search() {
         <CardHeader>
           <CardTitle>Results</CardTitle>
         </CardHeader>
-        {results.length == 0 && term.length >= 3 && (
-          <CardContent>No results found.</CardContent>
-        )}
         {results.length == 0 && term.length < 3 && (
           <CardContent>Type at least 3 characters to search.</CardContent>
         )}
+        {results.length == 0 && term.length >= 3 && search.state == 'idle' && (
+          <CardContent>Your search returned no results.</CardContent>
+        )}
+        {results.length == 0 &&
+          term.length >= 3 &&
+          search.state == 'loading' && <CardContent>Searching...</CardContent>}
         <Combobox.Options static className='contents w-full'>
-          {results.map((result: SearchResult) => {
+          {results.map((result: PlainMessage<SearchResult>) => {
             return (
               <Combobox.Option
                 as={CardButton}
+                form='pay-search-form'
                 key={result.walletID + result.identifier}
                 value={result}
-                onClick={() => _onClickResult(result)}
-                name='address'
+                name='walletUrl'
                 type='button'
                 className={({ active }) =>
                   clsx('items-center gap-x-3', active ? 'bg-nav-hover' : '')
                 }
               >
+                <input
+                  form='pay-search-form'
+                  value={result.walletUrl}
+                  name='walletUrl'
+                  type='hidden'
+                />
                 <div className='flex gap-x-3'>
                   {(result.identifierType == 'wallet' ||
                     result.identifierType == 'wallet_url') && <FynbosIcon />}
@@ -146,49 +166,45 @@ export function Search() {
           })}
         </Combobox.Options>
       </Card>
-      {results.length == 0 && term.length >= 3 && (
-        <Card>
-          <CardContent>
-            Share this link with {term} to join Fynbos to transact.
-          </CardContent>
-          <CardButton
-            noHover
-            type='button'
-            className='items-center justify-between'
-            onClick={async () => {
-              if (typeof navigator.clipboard == 'undefined') {
-                pushSnackbar({
-                  id: 'copy-to-clipboard-fail',
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close',
-                  canShow: true
-                })
-              } else
-                navigator.clipboard.writeText('https://fynbos.app/signup').then(
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-signup-link',
-                      message: 'Sign up link copied to clipboard.',
-                      icon: 'close',
-                      canShow: true
-                    })
-                  },
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-to-clipboard-fail',
-                      message: "Couldn't copy to clipboard.",
-                      icon: 'close',
-                      canShow: true
-                    })
-                  }
-                )
-            }}
-          >
-            <span className='text-medium'>fynbos.app/signup</span>
-            <Icon className={'text-medium'}>content_copy</Icon>
-          </CardButton>
-        </Card>
-      )}
+      <Card>
+        <CardContent>Or share this link with them to join Fynbos.</CardContent>
+        <CardButton
+          noHover
+          type='button'
+          className='items-center justify-between'
+          onClick={async () => {
+            if (typeof navigator.clipboard == 'undefined') {
+              pushSnackbar({
+                id: 'copy-to-clipboard-fail',
+                message: "Couldn't copy to clipboard.",
+                icon: 'close',
+                canShow: true
+              })
+            } else
+              navigator.clipboard.writeText('https://fynbos.app/signup').then(
+                () => {
+                  pushSnackbar({
+                    id: 'copy-signup-link',
+                    message: 'Sign up link copied to clipboard.',
+                    icon: 'close',
+                    canShow: true
+                  })
+                },
+                () => {
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    canShow: true
+                  })
+                }
+              )
+          }}
+        >
+          <span className='text-medium'>fynbos.app/signup</span>
+          <Icon className={'text-medium'}>content_copy</Icon>
+        </CardButton>
+      </Card>
     </Combobox>
   )
 }

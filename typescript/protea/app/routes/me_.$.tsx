@@ -41,8 +41,8 @@ import { getPublicIdentities } from '~/data/identity.server'
 import { getPublicWalletDetails } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { getClientIP } from '~/lib/ip.server'
 import { hasUserSession } from '~/lib/kratos.server'
-import { PayStep } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -405,6 +405,23 @@ export function ErrorBoundary() {
 }
 
 export async function action({ request, params }: ActionArgs) {
+  // TODO: create payment here and redirect to /pay/:paymentId
   const walletAddressParam = params['*'] as string
-  return redirect(`/pay?address=${walletAddressParam}&start=${PayStep.AMOUNT}`)
+
+  const clientIpAddress = getClientIP(request)
+
+  const response = await grpc.getPaymentAddress(request, {
+    address: walletAddressParam
+  })
+
+  if (isConnectError(response)) throw response.errorResponse
+
+  const payment = await grpc.createPayment(request, {
+    receiverIdentity: response.walletUrl,
+    receiverIdentityType: 3,
+    ipAddress: clientIpAddress
+  })
+  if (isConnectError(payment)) throw payment.errorResponse
+
+  return redirect(route('/pay') + `?paymentId=${payment.id}`)
 }
