@@ -187,6 +187,13 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 				return
 			}
 
+			err = addUnsignedupPayment(r.Context(), b, receiverSlackID, team, p)
+			if err != nil {
+				log.Error("failed to create unsigned up waiting payment for slack bot", zap.Error(err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
 			authURL := fmt.Sprintf("%s/pay/%s", env.GetUrl(), p.ID)
 
 			data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("Your payment to %s requires your authorization %s", receiverSlackID, authURL)})
@@ -206,6 +213,17 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func addUnsignedupPayment(ctx context.Context, b Backends, userID, teamID string, p *payments.Payment) error {
+	// Check if slack is already linked
+	if p.Receiver.WalletID != "" {
+		return nil
+	}
+
+	_, err := b.DB().ExecContext(ctx, "INSERT INTO slack_unsignedup_payments(payment_id, team_id, user_id) VALUES ($1, $2, $3)",
+		p.ID, teamID, userID)
+	return err
 }
 
 func getReceiverIdentity(ctx context.Context, b Backends, userID string, w *wallets.Wallet, senderCon, con *slack.Connection) payments.Identity {

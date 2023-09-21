@@ -7,6 +7,10 @@ import (
 	"testing"
 	"time"
 
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+
+	"gitlab.com/fynbos/backend/payments"
+
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -24,6 +28,11 @@ import (
 type TestBackends struct {
 	Db             *sqlx.DB
 	ExternalClient *external_mock.MockClient
+	PayClient      *payments_mock.MockClient
+}
+
+func (tb *TestBackends) Payments() payments.Client {
+	return tb.PayClient
 }
 
 func (tb *TestBackends) DB() *sqlx.DB {
