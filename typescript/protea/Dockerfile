@@ -1,5 +1,5 @@
 # Install dependencies only when needed
-FROM public.ecr.aws/docker/library/node:16-alpine AS deps
+FROM public.ecr.aws/docker/library/node:18-alpine AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat curl unzip
 RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
@@ -9,7 +9,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Rebuild the source code only when needed
-FROM public.ecr.aws/docker/library/node:16-alpine AS dev
+FROM public.ecr.aws/docker/library/node:18-alpine AS dev
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
@@ -17,7 +17,7 @@ RUN corepack enable && corepack prepare pnpm@8.5.0 --activate
 CMD ["pnpm", "dev"]
 
 # Rebuild the source code only when needed
-FROM public.ecr.aws/docker/library/node:16-alpine AS builder
+FROM public.ecr.aws/docker/library/node:18-alpine AS builder
 ARG REMIX_PUBLIC_PATH
 ARG IMAGE_HASH
 RUN apk add --no-cache curl unzip
