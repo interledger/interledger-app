@@ -351,8 +351,8 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 			if errors.Is(err, slack.ErrNotFound) {
 				// Send prompt to user to link an
 				sendToUser(ctx, b, c.TeamID, receiverSlackID,
-					fmt.Sprintf("%s has sent you a payment of %s. Please create an account, link a bank card and this slack profile to receive your payment on %s",
-						c.UserID, p.ReceiverAmount.Format(), env.GetUrl()))
+					fmt.Sprintf("<@%s|%s> has sent you a payment of %s. Please create an account, link a bank card and this slack profile to receive your payment on %s",
+						c.UserID, c.UserName, p.ReceiverAmount.Format(), env.GetUrl()))
 				return
 			}
 
@@ -370,8 +370,8 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				// Send prompt to user to link an
 				sendToUser(ctx, b, c.TeamID, receiverSlackID,
-					fmt.Sprintf("%s has sent you a payment of %s. Please create an account, link a bank card to receive your payment on %s",
-						c.UserID, p.ReceiverAmount.Format(), env.GetUrl()))
+					fmt.Sprintf("<@%s|%s> has sent you a payment of %s. Please create an account, link a bank card to receive your payment on %s",
+						c.UserID, c.UserName, p.ReceiverAmount.Format(), env.GetUrl()))
 			}
 		}
 	}
