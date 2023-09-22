@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -6,6 +6,7 @@ import type { ApplicationProps } from '~/components'
 import { Card, CardContent, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderArgs) {
   const session = await getUserSession(request)
@@ -31,11 +32,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Contact information'
   }
-}
+])
 
 export default function Page() {
   const { phoneMask, email } = useLoaderData<typeof loader>()

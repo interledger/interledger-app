@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
@@ -14,6 +14,7 @@ import { Avatar, Card, CardButton, CardContent, Layouts } from '~/components'
 import type { ListContactsResponse } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { mergeMeta } from '~/lib/meta'
 
 /**
  * Allows us to change the searchParams without revalidating the pages data
@@ -70,11 +71,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Contacts'
   }
-}
+])
 
 export default function Page() {
   const initialPage = useLoaderData<typeof loader>()

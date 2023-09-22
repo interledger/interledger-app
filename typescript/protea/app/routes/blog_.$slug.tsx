@@ -9,10 +9,10 @@ import {
   Router
 } from '~/components'
 
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import type { ResponsiveImageType } from 'react-datocms'
-import { Image, StructuredText, toRemixMeta } from 'react-datocms'
+import { Image, StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import { Prose } from '~/components/Content'
 import { getCurrentBlogPost } from '~/data/content.server'
@@ -23,14 +23,21 @@ import type {
   InlineTwitterEmbedRecord,
   InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.post.seoMeta),
-    'twitter:url': `https://fynbos.app/blog/${params.slug}`,
-    'og:url': `https://fynbos.app/blog/${params.slug}`
-  }
-}
+export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.post?.seoMeta),
+  ({ location }) => [
+    {
+      name: 'og:url',
+      content: `https://fynbos.app${location.pathname}`
+    },
+    {
+      name: 'twitter:url',
+      content: `https://fynbos.app${location.pathname}`
+    }
+  ]
+)
 
 export async function loader({ params }: LoaderArgs) {
   const { footer, blogPost } = await getCurrentBlogPost({

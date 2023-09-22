@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import { Code } from '@bufbuild/connect'
@@ -19,6 +19,7 @@ import {
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { About } from '~/routes/signup/About'
@@ -67,11 +68,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Sign up'
   }
-}
+])
 
 export function links() {
   return [{ rel: 'stylesheet', href: styles }]

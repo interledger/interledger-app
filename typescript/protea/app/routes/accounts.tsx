@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -20,6 +20,7 @@ import {
   WalletGrid
 } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/data/wallet.server'
+import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 
 export async function loader({ request }: LoaderArgs) {
@@ -45,11 +46,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Accounts'
   }
-}
+])
 
 export default function Page() {
   const { bankAccounts, cardAccounts, hasCard, hasBank, kycStatus } =

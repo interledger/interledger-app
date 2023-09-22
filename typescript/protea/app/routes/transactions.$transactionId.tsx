@@ -1,5 +1,5 @@
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
@@ -29,6 +29,7 @@ import { getTransaction } from '~/data/wallet.server'
 import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 
@@ -112,11 +113,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Transaction | Outgoing'
   }
-}
+])
 
 export default function Page() {
   const { transaction, publicWalletInfo, pusherArgs } =

@@ -1,7 +1,10 @@
-import type { LinksFunction, LoaderArgs } from '@remix-run/node'
+import type {
+  LinksFunction,
+  LoaderArgs,
+  V2_MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
 import { getHomeRoute } from '~/data/content.server'
@@ -12,6 +15,7 @@ import {
   getWalletInfo
 } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { AppPage } from './app'
 import styles from './home.css'
@@ -85,13 +89,19 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data?.homeRoute?.seoMeta),
-    'twitter:url': 'https://fynbos.app/',
-    'og:url': 'https://fynbos.app/'
-  }
-}
+export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.homeRoute?.seoMeta),
+  ({ location }) => [
+    {
+      name: 'og:url',
+      content: `https://fynbos.app${location.pathname}`
+    },
+    {
+      name: 'twitter:url',
+      content: `https://fynbos.app${location.pathname}`
+    }
+  ]
+)
 
 export default function Page() {
   const { isUser } = useLoaderData<typeof loader>()

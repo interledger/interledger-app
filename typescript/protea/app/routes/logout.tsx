@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -7,6 +7,7 @@ import { Button, Card, CardContent, Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { trimHeaders } from '~/lib/headers.server'
 import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 import { destroySession, getSession } from '~/session.server'
 
 export async function loader({ request }: LoaderArgs) {
@@ -33,11 +34,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Log out'
   }
-}
+])
 
 export default function Page() {
   const { logoutToken, csrfToken } = useLoaderData<typeof loader>()
