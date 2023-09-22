@@ -1,6 +1,6 @@
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -31,6 +31,7 @@ import { jsonWithCSRF } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
+import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 import { Search } from '~/routes/pay/Search'
 import { PaymentIdentityType } from '~/routes/pay_.$paymentId/route'
@@ -100,11 +101,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Pay search'
   }
-}
+])
 
 export default function Page() {
   const { features, sendAccounts } = useLoaderData<typeof payLoader>()

@@ -1,5 +1,5 @@
 import type { Session } from '@ory/kratos-client'
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -11,6 +11,7 @@ import {
   getCsrfTokenFromFlow,
   handleFlowError
 } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderArgs) {
   const url = new URL(request.url)
@@ -86,11 +87,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Verify your email'
   }
-}
+])
 
 export default function Page() {
   const { flow, email, csrfToken } = useLoaderData<typeof loader>()

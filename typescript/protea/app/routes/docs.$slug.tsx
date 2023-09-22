@@ -1,4 +1,4 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
@@ -7,7 +7,7 @@ import { isCode } from 'datocms-structured-text-utils'
 import type { FC, ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
-import { Image, StructuredText, toRemixMeta } from 'react-datocms'
+import { Image, StructuredText } from 'react-datocms'
 import { getHighlighter, renderToHtml } from 'shiki'
 import type { ApplicationProps } from '~/components'
 import {
@@ -32,6 +32,7 @@ import type {
   InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
 import { sanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export async function loader({ request, params }: LoaderArgs) {
   if (process.env.FYNBOS_ENV == 'prod')
@@ -100,13 +101,19 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.doc.seoMeta),
-    'twitter:url': 'https://fynbos.app/docs',
-    'og:url': 'https://fynbos.app/docs'
-  }
-}
+export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.doc?.seoMeta),
+  ({ location }) => [
+    {
+      name: 'og:url',
+      content: `https://fynbos.app${location.pathname}`
+    },
+    {
+      name: 'twitter:url',
+      content: `https://fynbos.app${location.pathname}`
+    }
+  ]
+)
 
 export default function Page() {
   const { doc } = useLoaderData<typeof loader>()

@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
@@ -7,6 +7,7 @@ import { Button, Card, CardContent, Layouts, Shape } from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { exitFlow, flowType, requireFlow } from '~/lib/flows.server'
 import { grpc } from '~/lib/grpc.server'
+import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
@@ -35,11 +36,11 @@ export const handle = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Activate wallet'
   }
-}
+])
 
 export default function Page() {
   const submit = useSubmit()

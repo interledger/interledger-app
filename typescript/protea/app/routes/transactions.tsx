@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
@@ -36,6 +36,7 @@ import {
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
 import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 
 /**
@@ -105,11 +106,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Transactions'
   }
-}
+])
 
 export default function Page() {
   const initialPage = useLoaderData<typeof loader>()

@@ -1,7 +1,6 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -18,6 +17,7 @@ import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderArgs) {
   const { contactRoute, footer } = await getContactRoute()
@@ -32,13 +32,19 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data }: any) {
-  return {
-    ...toRemixMeta(data.contactRoute.seoMeta),
-    'twitter:url': 'https://fynbos.app/contact',
-    'og:url': 'https://fynbos.app/contact'
-  }
-}
+export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.contactRoute?.seoMeta),
+  ({ location }) => [
+    {
+      name: 'og:url',
+      content: `https://fynbos.app${location.pathname}`
+    },
+    {
+      name: 'twitter:url',
+      content: `https://fynbos.app${location.pathname}`
+    }
+  ]
+)
 
 export default function Page() {
   const { contactRoute, csrfToken } = useLoaderData<typeof loader>()

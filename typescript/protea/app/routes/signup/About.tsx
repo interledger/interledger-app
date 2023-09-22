@@ -1,4 +1,3 @@
-import type { MetaFunction } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
@@ -14,12 +13,6 @@ import {
 import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader } from './route'
-
-export const meta: MetaFunction = () => {
-  return {
-    title: 'Sign up | Profile details'
-  }
-}
 
 export function About() {
   const details = useFetcher()

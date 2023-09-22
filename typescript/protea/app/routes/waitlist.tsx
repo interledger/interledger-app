@@ -1,5 +1,5 @@
 import { Code } from '@bufbuild/connect'
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
@@ -20,6 +20,7 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { requireNoUserSession } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 
 type Country = {
   id: string
@@ -73,11 +74,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Waitlist'
   }
-}
+])
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
