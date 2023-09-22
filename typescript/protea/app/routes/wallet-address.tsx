@@ -1,5 +1,5 @@
 import { Code } from '@bufbuild/connect'
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
@@ -18,6 +18,7 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getUserSession } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
@@ -71,11 +72,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Wallet'
   }
-}
+])
 
 export default function Page() {
   const fetcher = useFetcher()

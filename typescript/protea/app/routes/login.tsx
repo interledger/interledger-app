@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
   Form,
@@ -26,6 +26,7 @@ import {
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderArgs) {
   await requireNoUserSession(request)
@@ -80,11 +81,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: V2_MetaFunction = mergeMeta(() => [
+  {
     title: 'Log in'
   }
-}
+])
 
 export default function Page() {
   const actionData = useActionData<typeof action>()

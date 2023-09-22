@@ -1,14 +1,14 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
-import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Chip, ChipColor, Layouts, Router } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import { getBlogRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderArgs) {
   const { blogRoute, allBlogPosts, footer } = await getBlogRoute({
@@ -25,13 +25,19 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.blogRoute.seoMeta),
-    'twitter:url': 'https://fynbos.app/blog',
-    'og:url': 'https://fynbos.app/blog'
-  }
-}
+export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.blogRoute?.seoMeta),
+  ({ location }) => [
+    {
+      name: 'og:url',
+      content: `https://fynbos.app${location.pathname}`
+    },
+    {
+      name: 'twitter:url',
+      content: `https://fynbos.app${location.pathname}`
+    }
+  ]
+)
 
 export default function Page() {
   const { allBlogPosts, blogRoute } = useLoaderData<typeof loader>()

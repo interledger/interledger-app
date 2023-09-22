@@ -1,10 +1,9 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
 
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData, useParams } from '@remix-run/react'
 import clsx from 'clsx'
 import { useCallback, useEffect } from 'react'
-import { toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { Button, Layouts } from '~/components'
@@ -15,6 +14,7 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useFormStore } from '~/lib/useFormStore'
 
@@ -38,13 +38,19 @@ export const handle: ApplicationProps = {
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.form.seoMeta),
-    'twitter:url': 'https://fynbos.app/form/' + params.slug,
-    'og:url': 'https://fynbos.app/form/' + params.slug
-  }
-}
+export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.form?.seoMeta),
+  ({ location }) => [
+    {
+      name: 'og:url',
+      content: `https://fynbos.app${location.pathname}`
+    },
+    {
+      name: 'twitter:url',
+      content: `https://fynbos.app${location.pathname}`
+    }
+  ]
+)
 
 export default function Page() {
   const { form, csrfToken } = useLoaderData<typeof loader>()
