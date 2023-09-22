@@ -4,8 +4,14 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/identities"
+	id_mock "gitlab.com/fynbos/backend/identities/client/mock"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/payments"
 	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
+	"gitlab.com/fynbos/backend/transactions"
+	tx_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/discordbot/ops"
 )
 
@@ -13,6 +19,9 @@ type backends struct {
 	db      *sqlx.DB
 	pc      *payments_mock.MockClient
 	discord *MockDiscord
+	la      *la_mock.MockClient
+	id      *id_mock.MockClient
+	tc      *tx_mock.MockClient
 }
 
 func (b backends) Discord() ops.Discord {
@@ -25,6 +34,18 @@ func (b backends) DB() *sqlx.DB {
 
 func (b backends) Payments() payments.Client {
 	return b.pc
+}
+
+func (b backends) LinkedAccounts() linkedaccounts.Client {
+	return b.la
+}
+
+func (b backends) Identities() identities.Client {
+	return b.id
+}
+
+func (b backends) Transactions() transactions.Client {
+	return b.tc
 }
 
 type MockDiscord struct {
