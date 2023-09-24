@@ -71,5 +71,6 @@ export async function action({ request }: ActionArgs) {
     } else return response.error(data, mapping, { action: 'Contact support' })
   }
 
+  data.success = true
   return json(data)
 }
