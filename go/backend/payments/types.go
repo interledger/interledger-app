@@ -15,6 +15,7 @@ type CreateArgs struct {
 	ReceiverAccount string `validate:"omitempty,uuid"`
 	Note            string
 	IPAddress       string `validate:"omitempty,ip_addr"`
+	Type            Type
 }
 
 type UpdateArgs struct {
@@ -46,6 +47,7 @@ type Payment struct {
 	Note                 string
 	IPAddress            string
 	UpdatedAt            time.Time
+	Type                 Type
 }
 
 //go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType
@@ -133,3 +135,11 @@ var validTransitions = map[State][]State{
 	StateCompleted:  {},
 	StateFailed:     {StateProcessing, StateCompleted},
 }
+
+type Type int
+
+const (
+	TypeUnknown         Type = 0
+	TypePeer2Peer       Type = 1
+	TypeWebMonetization Type = 2
+)

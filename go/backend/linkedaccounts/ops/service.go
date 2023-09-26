@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/rafiki"
+
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/env"
 
@@ -274,7 +276,7 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedac
 	}
 
 	for _, la := range lal {
-		if la.CanSend && la.State == linkedaccounts.Verified && la.Provider == tabapay.ProviderName {
+		if la.CanSend && la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider) {
 			return &la, nil
 		}
 	}

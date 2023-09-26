@@ -17,6 +17,19 @@ import (
 	"go.uber.org/zap"
 )
 
+func (a *Activity) PaymentNeedsCompliance(ctx context.Context, paymentID string) (bool, error) {
+	p, err := a.b.Payments().Lookup(ctx, paymentID)
+	if errors.Is(err, payments.ErrNotFound) {
+		return false, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return p.Type == payments.TypePeer2Peer, nil
+
+}
+
 func (a *Activity) CheckPaymentSenderOFAC(ctx context.Context, paymentID string) error {
 	p, err := a.b.Payments().Lookup(ctx, paymentID)
 	if errors.Is(err, payments.ErrNotFound) {
