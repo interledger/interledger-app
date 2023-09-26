@@ -8,7 +8,6 @@ import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   Link,
   Links,
-  LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
@@ -21,7 +20,7 @@ import {
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
-import { AnchorRouter, Error } from '~/components'
+import { AnchorRouter, Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
