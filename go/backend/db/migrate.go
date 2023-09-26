@@ -178,17 +178,16 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 	}
 
 	err = seedSysAccounts(ctx, db)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	return db
 }
 
 func seedSysAccounts(ctx context.Context, dbc *sqlx.DB) error {
-	const (
-		linkedAccID = "f27a1e1d-0e29-4f90-9051-0faac46a8a90"
-		walletID    = "31db2044-0b83-4aae-9cd8-b5b63cc85414"
-	)
 	// Can't use linkedaccount/rafiki constants for cyclic dependencies
-	_, err := dbc.ExecContext(ctx, seedSQL, walletID, env.OpenPaymentsURL()+"/webmonetization", linkedAccID, "rafiki_web_monetization", "Verified")
+	_, err := dbc.ExecContext(ctx, fmt.Sprintf(seedSQL, env.OpenPaymentsURL()))
 
 	return err
 }
@@ -198,7 +197,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "wallet_address_url_lower" ON "public"."wallet
 `
 
 const seedSQL = `
-INSERT INTO wallets (id, name) VALUES ($1, 'Web Monetization') ON CONFLICT DO NOTHING;
-INSERT INTO wallet_addresses(url, wallet_id) VALUES ($2, $1) ON CONFLICT DO NOTHING;
-INSERT INTO linked_accounts(id, wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive) VALUES ($3, $1, 'web_monetization', '1234', 'rafiki', '', $4, 'Web Monetization', $5, true, true) ON CONFLICT DO NOTHING;
+INSERT INTO wallets (id, name) VALUES ('31db2044-0b83-4aae-9cd8-b5b63cc85414', 'Web Monetization') ON CONFLICT DO NOTHING;
+INSERT INTO wallet_addresses(url, wallet_id) VALUES ('%s/webmonetization', '31db2044-0b83-4aae-9cd8-b5b63cc85414') ON CONFLICT DO NOTHING;
+INSERT INTO linked_accounts(wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive) VALUES ('31db2044-0b83-4aae-9cd8-b5b63cc85414', 'web_monetization', '1234', 'rafiki', '0000', 'rafiki_web_monetization', 'Web Monetization', 'Verified', true, true) ON CONFLICT DO NOTHING;
 `

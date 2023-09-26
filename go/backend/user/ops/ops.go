@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/wallets"
+
 	client "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/user"
 )
@@ -68,6 +70,15 @@ func UserForContext(ctx context.Context) (*user.User, error) {
 }
 
 func ListUsers(ctx context.Context, b Backends, walletID string) ([]user.User, error) {
+	if walletID == wallets.WebMonetizationWalletID {
+		return []user.User{
+			{
+				ID:          "6b5ada19-1638-4c09-a0f6-9cdbb34abc42",
+				Email:       "openpayments.dev@fynbos.dev",
+				PhoneNumber: "",
+			},
+		}, nil
+	}
 	ctx, cancel := context.WithTimeout(ctx, kratosTimeout)
 	defer cancel()
 
