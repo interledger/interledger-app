@@ -36,7 +36,9 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
-	a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
+	if payment.Type != payments.TypeWebMonetization {
+		a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
+	}
 
 	a.b.Email().SendPaymentReceivedEmailV2(ctx, payment.Receiver.WalletID, payment)
 

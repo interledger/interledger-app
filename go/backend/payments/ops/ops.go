@@ -291,11 +291,7 @@ func requiresOTP(ctx context.Context, b Backends, sender, receiver payments.Iden
 }
 
 func requires3DS(sender payments.Identity) bool {
-	if sender.Identifier == wallets.WebMonetizationWalletID {
-		return false
-	}
-
-	return true
+	return sender.Identifier != wallets.WebMonetizationWalletID
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity

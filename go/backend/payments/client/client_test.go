@@ -42,8 +42,12 @@ func TestClient(t *testing.T) {
 	b := NewTestBackends(t)
 
 	pc := client.New(b)
+
+	b.user.MapUserWallet(context.Background(), uuid.NewString(), wallets.WebMonetizationWalletID)
 	sendWalletID, sendLinkedAccount := createTestWallet(t, b)
 	receiveWalletID, receiveLinkedAccount := createTestWallet(t, b)
+	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID)
+	require.NoError(t, err)
 
 	cases := []struct {
 		Name        string
@@ -200,6 +204,42 @@ func TestClient(t *testing.T) {
 				ReceiveTransactionState: transactions.StateCompleted,
 			},
 		},
+		{
+			Name: "Golden path Web monetization",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: wallets.WebMonetizationWalletID,
+				},
+				SenderAccount: webMonetizaiontLinkedAccount.ID,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveLinkedAccount,
+				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				IPAddress:       "192.36.8.4",
+				Type:            payments.TypeWebMonetization,
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitWebMonetization,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeCreditCard,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransactionState: transactions.StateCompleted,
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -265,10 +305,15 @@ func TestClient(t *testing.T) {
 			require.NoError(st, err)
 			assert.Equal(st, tc.Assertions.PaymentState, p.State)
 
-			sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
+			var sendTransaction *transactions.Transaction
+			if p.Type == payments.TypeWebMonetization {
+				sendTransaction, err = b.Transactions().GetTransaction(ctx, wallets.WebMonetizationWalletID, p.SendTransactionID)
+			} else {
+				sendTransaction, err = b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
+			}
 			require.NoError(st, err)
-			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://fynbos.test/"))
-			assert.True(st, strings.HasPrefix(sendTransaction.Source, "https://fynbos.test/"))
+			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://local.fynbos.me/"))
+			assert.True(st, strings.HasPrefix(sendTransaction.Source, "https://local.fynbos.me/"))
 			assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
 			sendTransfers := []AssertTransfer{}
 			for _, tr := range sendTransaction.Transfers {
@@ -279,8 +324,8 @@ func TestClient(t *testing.T) {
 			if tc.Assertions.ReceiveTransactionState != "" {
 				recvTransaction, err := b.Transactions().GetTransaction(ctx, receiveWalletID, p.ReceiveTransactionID)
 				require.NoError(st, err)
-				assert.True(st, strings.HasPrefix(recvTransaction.Destination, "https://fynbos.test/"))
-				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://fynbos.test/"))
+				assert.True(st, strings.HasPrefix(recvTransaction.Destination, "https://local.fynbos.me/"))
+				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://local.fynbos.me/"))
 				assert.Equal(st, tc.Assertions.ReceiveTransactionState, recvTransaction.State)
 				recvTransfers := []AssertTransfer{}
 				for _, tr := range recvTransaction.Transfers {
@@ -304,7 +349,7 @@ Seeds a user:
 */
 func createTestWallet(t *testing.T, b *TestBackends) (string, string) {
 	userID := uuid.NewString()
-	address, err := wallets.ParseAddress(fmt.Sprintf("https://fynbos.test/%s", faker.FirstName()))
+	address, err := wallets.ParseAddress(fmt.Sprintf("%s/%s", env.OpenPaymentsURL(), faker.FirstName()))
 	if err != nil {
 		t.Fatal(err)
 	}

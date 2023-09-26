@@ -68,5 +68,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(rafiki_workflows.NewActivity(b))
 	w.RegisterWorkflow(rafiki_workflows.PayoutIncomingPaymentsWorkflow)
 
+	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
+
 	return w, nil
 }
