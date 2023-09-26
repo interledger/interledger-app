@@ -8,13 +8,15 @@ import (
 )
 
 type PaymentInteraction struct {
-	ID                 string       `db:"id"`
-	PaymentID          string       `db:"payment_id"`
-	RawInteraction     string       `db:"interaction"`
-	NotifiedReceiver   bool         `db:"notified_receiver"`
-	NotifiedProcessing bool         `db:"notified_processing"`
-	CreatedAt          time.Time    `db:"created_at"`
-	ExpiredAt          sql.NullTime `db:"expired_at"`
+	ID                    string       `db:"id"`
+	PaymentID             string       `db:"payment_id"`
+	RawInteraction        string       `db:"interaction"`
+	NotifiedReceiver      bool         `db:"notified_receiver"`
+	NotifiedProcessing    bool         `db:"notified_processing"`
+	ReceiverDiscordUserID string       `db:"receiver_discord_user_id"`
+	SenderDiscordUsername string       `db:"sender_discord_username"`
+	CreatedAt             time.Time    `db:"created_at"`
+	ExpiredAt             sql.NullTime `db:"expired_at"`
 }
 
 type Discord interface {

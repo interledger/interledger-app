@@ -45,15 +45,16 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-func NewBackends(env *Environment) *Backends {
+func NewBackends(env *Environment, discordSession *discordgo.Session) *Backends {
 	db, err := otelsqlx.Connect("postgres", env.DbURL, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
 	if err != nil {
 		log.Fatal("Failed to initialize db client.", zap.Error(err))
 	}
 
 	return &Backends{
-		db:   db,
-		user: user_mock.NewMock(),
+		db:      db,
+		user:    user_mock.NewMock(),
+		discord: discordSession,
 	}
 }
 

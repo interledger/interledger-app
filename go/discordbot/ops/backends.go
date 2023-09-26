@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 type Backends interface {
@@ -15,4 +16,5 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Identities() identities.Client
 	Transactions() transactions.Client
+	Wallets() wallets.Client
 }
