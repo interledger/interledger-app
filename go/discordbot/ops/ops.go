@@ -1,0 +1,258 @@
+package ops
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+)
+
+const fields = "id, payment_id, notified_receiver, notified_processing, interaction, receiver_discord_user_id, sender_discord_username, created_at, expired_at"
+
+func CreatePaymentInteraction(ctx context.Context, b Backends, i *discordgo.Interaction, paymentID, receiverDiscordUserID, senderDiscordUsername string) (*PaymentInteraction, error) {
+	rawInteraction, err := json.Marshal(i)
+	if err != nil {
+		return nil, err
+	}
+
+	var pi PaymentInteraction
+	err = b.DB().GetContext(ctx, &pi, fmt.Sprintf("INSERT INTO discord_payment_interactions (payment_id, interaction, receiver_discord_user_id, sender_discord_username) VALUES ($1, $2, $3, $4) RETURNING %s;", fields), paymentID, rawInteraction, receiverDiscordUserID, senderDiscordUsername)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pi, nil
+}
+
+func ExpirePaymentInteraction(ctx context.Context, b Backends, id string) error {
+	i, err := GetPaymentInteraction(ctx, b, id)
+	if err != nil {
+		return err
+	}
+	if i.ExpiredAt.Valid {
+		return nil
+	}
+
+	result, err := b.DB().ExecContext(ctx, "UPDATE discord_payment_interactions SET expired_at=now() WHERE id=$1;", i.ID)
+	if err != nil {
+		return err
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return errors.New("Failed to insert interaction")
+	}
+
+	return nil
+}
+
+func GetPaymentInteraction(ctx context.Context, b Backends, id string) (*PaymentInteraction, error) {
+	var i PaymentInteraction
+	err := b.DB().GetContext(ctx, &i, fmt.Sprintf("SELECT %s FROM discord_payment_interactions WHERE id=$1;", fields), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, errors.New("not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &i, nil
+}
+
+func ListPaymentInteractions(ctx context.Context, b Backends, limit uint32) ([]PaymentInteraction, error) {
+	if limit < 1 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	var list []PaymentInteraction
+	err := b.DB().SelectContext(ctx, &list, fmt.Sprintf("SELECT %s FROM discord_payment_interactions WHERE expired_at IS NULL ORDER BY created_at ASC LIMIT $1;", fields), limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}
+
+var (
+	SuccessContent    = "Success"
+	SuccessComponents = []discordgo.MessageComponent{}
+
+	FailureContent    = "Your payment failed"
+	FailureComponents = []discordgo.MessageComponent{}
+
+	ProcessingContent    = "Your payment is underway"
+	ProcessingComponents = []discordgo.MessageComponent{}
+
+	SignupContentTemplate = "%s is trying to pay you. Sign up with Fynbos, connect your card and discord profile to receive it."
+	SignupComponents      = []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					Label:    "Sign up",
+					Style:    discordgo.LinkButton,
+					Disabled: false,
+					URL:      fmt.Sprintf("%s/signup", env.GetUrl()),
+				},
+			},
+		},
+	}
+
+	ConnectCardContentTemplate = "%s is trying to pay you. Connect your card to receive it."
+	ConnectCardComponents      = []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					Label:    "Connect card",
+					Style:    discordgo.LinkButton,
+					Disabled: false,
+					URL:      fmt.Sprintf("%s/connect/card", env.GetUrl()),
+				},
+			},
+		},
+	}
+)
+
+func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteraction) {
+	for _, i := range is {
+		p, err := b.Payments().Lookup(ctx, i.PaymentID)
+		if err != nil {
+			log.Error("Failed to lookup payment", zap.Error(err))
+			continue
+		}
+
+		// sanity checks
+		if p.Receiver.Type != payments.IdentityTypeDiscord {
+			log.Error("Receiver is not a discord identity", zap.String("paymentID", p.ID))
+			continue
+		}
+
+		// check if we need to respond to sender's interaction
+		if i.ExpiredAt.Valid {
+			log.Info("Skipping expired interaction")
+			continue
+		}
+		if time.Since(i.CreatedAt) >= 15*time.Minute {
+			log.Info("Expiring payment interaction")
+			err = ExpirePaymentInteraction(ctx, b, i.ID)
+			if err != nil {
+				log.Error("Failed to expire interaction", zap.Error(err))
+			}
+			continue
+		}
+
+		var interaction discordgo.Interaction
+		err = interaction.UnmarshalJSON([]byte(i.RawInteraction))
+		if err != nil {
+			log.Error("Failed to hydrate discord interaction", zap.Error(err))
+			continue
+		}
+
+		switch p.State {
+		case payments.StateCompleted:
+			_, err = b.Discord().InteractionResponseEdit(&interaction, &discordgo.WebhookEdit{
+				Content:    &SuccessContent,
+				Components: &SuccessComponents,
+			})
+			_ = ExpirePaymentInteraction(ctx, b, i.ID)
+		case payments.StateFailed:
+			_, err = b.Discord().InteractionResponseEdit(&interaction, &discordgo.WebhookEdit{
+				Content:    &FailureContent,
+				Components: &FailureComponents,
+			})
+			_ = ExpirePaymentInteraction(ctx, b, i.ID)
+		case payments.StateProcessing:
+			if !i.NotifiedProcessing {
+				_, err = b.Discord().InteractionResponseEdit(&interaction, &discordgo.WebhookEdit{
+					Content:    &ProcessingContent,
+					Components: &ProcessingComponents,
+				})
+
+				// remember that we've responded
+				if err == nil {
+					_, err = b.DB().ExecContext(ctx, "UPDATE discord_payment_interactions SET notified_processing=$1 WHERE id=$2;", true, i.ID)
+				}
+			}
+		}
+		if err != nil {
+			log.Error("Failed to process payment interaction", zap.Error(err))
+			continue
+		}
+
+		// check if we need to DM receiver
+		if i.NotifiedReceiver || p.State != payments.StateProcessing {
+			continue
+		}
+
+		senderTX, err := b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+		if err != nil {
+			log.Error("slack bot failed to sender transaction", zap.Error(err), zap.String("paymentID", p.ID))
+			continue
+		}
+
+		// If there is a transfer it's the pull, now we should notify the receiver to link their identity,
+		// otherwise wait.
+		if len(senderTX.Transfers) < 1 {
+			continue
+		}
+
+		senderWallet, err := b.Wallets().Get(ctx, p.Sender.WalletID)
+		if err != nil {
+			log.Error("Failed to lookup sender wallet to create embed", zap.Error(err))
+			continue
+		}
+		embed := &discordgo.MessageEmbed{
+			Title: "View their public fynbos.me page",
+			URL:   senderWallet.AddressString(),
+			Type:  discordgo.EmbedTypeLink,
+			Color: 16007006, // rose-500: #F43F5E;
+		}
+
+		receiverId, err := b.Identities().GetByIdentifier(ctx, p.Receiver.Identifier)
+		if errors.Is(err, identities.ErrNotFound) {
+			err = SendDM(ctx, b, i, fmt.Sprintf(SignupContentTemplate, i.SenderDiscordUsername), SignupComponents, embed)
+			if err != nil {
+				log.Error("Failed to DM receiver to sign up", zap.String("paymentID", p.ID), zap.Error(err))
+			}
+			continue
+		}
+
+		_, err = b.LinkedAccounts().GetDefaultReceive(ctx, receiverId.WalletID)
+		if errors.Is(err, identities.ErrNotFound) {
+			err = SendDM(ctx, b, i, fmt.Sprintf(ConnectCardContentTemplate, i.SenderDiscordUsername), ConnectCardComponents, embed)
+			if err != nil {
+				log.Error("Failed to DM receiver to connect card", zap.String("paymentID", p.ID), zap.Error(err))
+			}
+			continue
+		}
+	}
+}
+
+func SendDM(ctx context.Context, b Backends, interaction PaymentInteraction, content string, components []discordgo.MessageComponent, embed *discordgo.MessageEmbed) error {
+	channel, err := b.Discord().UserChannelCreate(interaction.ReceiverDiscordUserID)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.Discord().ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
+		Content:    content,
+		Components: components,
+		Embed:      embed,
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE discord_payment_interactions SET notified_receiver=$1 WHERE id=$2;", true, interaction.ID)
+
+	return err
+}
