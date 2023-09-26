@@ -180,3 +180,12 @@ func (a *Activity) MarkWorkflowRefComplete(ctx context.Context, paymentID, workf
 
 	return err
 }
+
+func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) (bool, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return false, err
+	}
+
+	return p.Type == payments.TypePeer2Peer, nil
+}

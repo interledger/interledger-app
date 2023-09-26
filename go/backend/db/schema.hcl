@@ -2082,6 +2082,11 @@ table "payments" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
+  column "type" {
+    null    = false
+    type    = int
+    default = 1
+  }
   primary_key {
     columns = [column.id]
   }

@@ -1315,7 +1315,18 @@ func GMTComplianceChecksWorkflow(ctx workflow.Context, paymentID string) error {
 
 	// logger := workflow.GetLogger(ctx)
 
-	// err := workflow.ExecuteActivity(ctx, a.CheckPaymentSenderOFAC, paymentID).Get(ctx, nil)
+	// var doWorkflow bool
+	// err := workflow.ExecuteActivity(ctx, a.PaymentNeedsCompliance, paymentID).Get(ctx, &doWorkflow)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// // This payment does not require compliance checks
+	// if !doWorkflow {
+	// 	return nil
+	// }
+
+	// err = workflow.ExecuteActivity(ctx, a.CheckPaymentSenderOFAC, paymentID).Get(ctx, nil)
 	// if err != nil {
 	// 	return err
 	// }
@@ -1349,9 +1360,20 @@ func GMTNotifyCompleted(ctx workflow.Context, paymentID string) error {
 
 	logger := workflow.GetLogger(ctx)
 
+	var doWorkflow bool
+	err := workflow.ExecuteActivity(ctx, a.PaymentNeedsCompliance, paymentID).Get(ctx, &doWorkflow)
+	if err != nil {
+		return err
+	}
+
+	// This payment does not require compliance checks
+	if !doWorkflow {
+		return nil
+	}
+
 	// Insert GMT TX
 	var gmtTransaction TransactionResp
-	err := workflow.ExecuteActivity(ctx, a.PaymentGMTTransaction, paymentID).Get(ctx, &gmtTransaction)
+	err = workflow.ExecuteActivity(ctx, a.PaymentGMTTransaction, paymentID).Get(ctx, &gmtTransaction)
 	if err != nil {
 		logger.Error("failed to insert gmt transaction", "err", err)
 		return err

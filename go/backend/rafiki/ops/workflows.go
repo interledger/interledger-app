@@ -23,6 +23,12 @@ func PayoutIncomingPaymentsWorkflow(ctx workflow.Context) error {
 	}
 
 	for _, p := range payouts {
+
+		// Only do payouts larger than 1USD
+		if p.ReceivedAmount < 100 {
+			continue
+		}
+
 		var paymentID string
 		err = workflow.ExecuteActivity(ctx, a.CreatePayoutPayment, p).Get(ctx, &paymentID)
 		if err != nil {
@@ -38,7 +44,7 @@ func PayoutIncomingPaymentsWorkflow(ctx workflow.Context) error {
 			continue
 		}
 
-		err = workflow.ExecuteActivity(ctx, a.AddPaymentRef, p.ID, paymentID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.AddPaymentRef, p, paymentID).Get(ctx, nil)
 		if err != nil {
 			logger.Error("failed to add payment ref to incoming payment payout", "err", err)
 			return err

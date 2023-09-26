@@ -24,7 +24,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, created_at, updated_at`
 
 type dbPayment struct {
 	ID                   string                `db:"id"`
@@ -50,6 +50,7 @@ type dbPayment struct {
 	CreatedAt            time.Time             `db:"created_at"`
 	UpdatedAt            time.Time             `db:"updated_at"`
 	IPAddress            sql.NullString        `db:"ip_address"`
+	Type                 payments.Type         `db:"type"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -150,6 +151,7 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.
 		UpdatedAt:            db.UpdatedAt,
 		Note:                 db.Note.String,
 		IPAddress:            db.IPAddress.String,
+		Type:                 db.Type,
 	}, nil
 }
 
@@ -288,6 +290,14 @@ func requiresOTP(ctx context.Context, b Backends, sender, receiver payments.Iden
 	return !hasTx, nil
 }
 
+func requires3DS(sender payments.Identity) bool {
+	if sender.Identifier == wallets.WebMonetizationWalletID {
+		return false
+	}
+
+	return true
+}
+
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
 // is not of type WalletID, then the walletID will be looked up and used as the `Sender`.
 func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
@@ -321,6 +331,13 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
+	require3DS := requires3DS(p.Sender)
+
+	// Default to Peer to Peer
+	if p.Type == payments.TypeUnknown {
+		p.Type = payments.TypePeer2Peer
+	}
+
 	// TODO Calculate more actions required
 	id := uuid.NewString()
 	stmt, args, err := db.NewInsert("payments").
@@ -337,10 +354,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_amount", p.ReceiverAmount.Value).
 		Value("receiver_currency", p.ReceiverAmount.Currency).
 		Value("receiver_account", sql.NullString{String: defaultRecvAcc, Valid: defaultRecvAcc != ""}).
-		Value("action_three_ds_required", true).
+		Value("action_three_ds_required", require3DS).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
 		Value("action_otp_required", requireOTP).
 		Value("ip_address", sql.NullString{String: p.IPAddress, Valid: b.Validator().Var(p.IPAddress, "ip_addr") == nil}).
+		Value("type", p.Type).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
