@@ -15,7 +15,7 @@ module.exports = {
     v2_routeConvention: true,
     v2_normalizeFormMethod: true
   },
-  serverDependenciesToBundle: 'all',
+  // serverDependenciesToBundle: 'all',
   appDirectory: 'app',
   assetsBuildDirectory: 'public/build',
   serverModuleFormat: 'cjs',
