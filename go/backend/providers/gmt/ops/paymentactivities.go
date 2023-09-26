@@ -152,10 +152,11 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		return nil, err
 	}
 
-	sid, err := getSenderID(ctx, b, p.Sender.WalletID)
-	if err != nil {
-		return nil, err
-	}
+	// sid, err := getSenderID(ctx, b, p.Sender.WalletID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	sid := 0 // hard-coded until GMT api is fixed
 
 	ipAddress := senderID.IPAddress
 	if p.IPAddress != "" {
