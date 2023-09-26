@@ -1,5 +1,9 @@
 import * as widgetSdk from '@mxenabled/web-widget-sdk'
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { useLoaderData, useRevalidator, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
@@ -12,7 +16,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   // TODO Add colorScheme option once theme is in the users session
   const features = await getFeatures(request)
 
@@ -37,7 +41,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Connect bank account'
   }
@@ -116,7 +120,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)

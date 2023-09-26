@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
@@ -12,7 +16,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useScript } from '~/lib/useScript'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const flow = await requireFlow(request, flowType.PersonalDetails)
   const response = await grpc.getPersonaInquiry(request, {
     idempotencyKey: flow.data.idempotencyKey
@@ -36,7 +40,7 @@ export const handle = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Activate wallet'
   }
@@ -125,7 +129,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   await exitFlow(request, flowType.PersonalDetails)
 
   await grpc.setKYCStatusPending(request, {})

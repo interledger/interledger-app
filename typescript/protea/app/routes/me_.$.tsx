@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import {
   Form,
@@ -45,7 +45,7 @@ import { getClientIP } from '~/lib/ip.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const walletAddressParam = params['*'] as string
   let profilePicture = null
 
@@ -404,7 +404,7 @@ export function ErrorBoundary() {
   throw error
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   // TODO: create payment here and redirect to /pay/:paymentId
   const walletAddressParam = params['*'] as string
 

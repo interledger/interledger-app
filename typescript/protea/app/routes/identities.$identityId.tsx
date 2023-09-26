@@ -1,5 +1,10 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { useCallback, useState } from 'react'
@@ -37,7 +42,7 @@ import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const walletInfo = await getWalletInfo(request)
   const { publicName } = await getPublicWalletDetails(
     request,
@@ -64,9 +69,10 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/identities'),
-      title: (match) => `@${match.data.identity.identifier}`,
-      actions: ({ data }) => {
-        const state = data.identity.state
+      title: (match: UIMatch<typeof loader>) =>
+        `@${match.data.identity.identifier}`,
+      actions: (match: UIMatch<typeof loader>) => {
+        const state = match.data.identity.state
         switch (state) {
           case 'verified':
             return {
@@ -97,7 +103,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Identities'
   }
@@ -868,7 +874,7 @@ function Slack() {
   )
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
   const formName = form.get('formName') as string
   const identityId = params.identityId as string

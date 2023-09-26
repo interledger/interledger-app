@@ -1,9 +1,10 @@
 import type {
   LinksFunction,
-  LoaderArgs,
-  V2_MetaFunction
+  LoaderFunctionArgs,
+  MetaFunction
 } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
@@ -36,7 +37,7 @@ export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: styles }]
 }
 
-export async function loader(args: LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   const isUser = hasUserSession(args.request)
 
   if (isUser) {
@@ -46,7 +47,7 @@ export async function loader(args: LoaderArgs) {
   }
 }
 
-export async function appLoader({ request }: LoaderArgs) {
+export async function appLoader({ request }: LoaderFunctionArgs) {
   const [walletInfo, transactions, kycStatus, pusherArgs, features] =
     await Promise.all([
       getWalletInfo(request),
@@ -79,18 +80,19 @@ export async function marketingLoader() {
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
+  layout: (match: UIMatch<typeof loader>) =>
+    match.data.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: {
       title: 'Home'
     },
     fab: Fab.Pay,
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof marketingLoader>) => match.data.footer
   }
 }
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.homeRoute?.seoMeta),
+export const meta: MetaFunction<typeof marketingLoader> = mergeMeta(
+  ({ data }) => datoMeta(data?.homeRoute?._seoMetaTags),
   ({ location }) => [
     {
       name: 'og:url',

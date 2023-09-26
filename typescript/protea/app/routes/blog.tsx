@@ -1,5 +1,6 @@
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
 import type { ApplicationProps } from '~/components'
@@ -10,7 +11,7 @@ import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const { blogRoute, allBlogPosts, footer } = await getBlogRoute({
     orderBy: [BlogPostModelOrderBy.DateDesc]
   })
@@ -21,12 +22,12 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.blogRoute?.seoMeta),
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.blogRoute?._seoMetaTags),
   ({ location }) => [
     {
       name: 'og:url',

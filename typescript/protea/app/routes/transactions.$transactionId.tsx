@@ -1,6 +1,7 @@
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
@@ -33,7 +34,7 @@ import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const transaction = await getTransaction(
     request,
     params.transactionId as string
@@ -76,7 +77,7 @@ export const handle: ApplicationProps = {
     header: {
       back: route('/transactions'),
       title: 'Sent payment',
-      actions: (match) => {
+      actions: (match: UIMatch<typeof loader>) => {
         if (match.data.transaction.refundState == 'PENDING') {
           return {
             key: 'Pending refund',
@@ -113,7 +114,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Transaction | Outgoing'
   }

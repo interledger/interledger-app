@@ -40,4 +40,4 @@ const GridColumn = forwardRef<HTMLDivElement, GridColumnProps>(
 
 GridColumn.displayName = 'GridColumn'
 
-export { WalletGrid, GridColumn }
+export { GridColumn, WalletGrid }

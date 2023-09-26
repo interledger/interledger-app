@@ -1,6 +1,11 @@
 import { Code } from '@bufbuild/connect'
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -25,18 +30,19 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: '/settings/keys',
-      title: (match) => match.data.connection.applicationName
+      title: (match: UIMatch<typeof loader>) =>
+        match.data.connection.applicationName
     }
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Key'
   }
 ])
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const connection = await grpc.getConnection(request, {
     id: params.keyId as string
   })
@@ -188,7 +194,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
   const formName = form.get('formName')
 

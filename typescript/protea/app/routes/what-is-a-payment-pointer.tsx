@@ -1,10 +1,10 @@
-import type { V2_MetaFunction } from '@remix-run/node'
+import type { MetaFunction } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
 import { mergeMeta } from '~/lib/meta'
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'What is a payment pointer?'
   }

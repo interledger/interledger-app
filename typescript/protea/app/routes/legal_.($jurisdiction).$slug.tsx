@@ -2,7 +2,8 @@ import { json } from '@remix-run/node'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { StructuredText } from 'react-datocms'
@@ -11,8 +12,8 @@ import { getCurrentLegalPage } from '~/data/content.server'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.page?.seoMeta),
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.page?._seoMetaTags),
   ({ location }) => [
     {
       name: 'og:url',
@@ -25,7 +26,7 @@ export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
   ]
 )
 
-export async function loader({ request, params, context }: LoaderArgs) {
+export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { legalPage, footer } = await getCurrentLegalPage({
     filter: {
       slug: { eq: params.slug },
@@ -59,7 +60,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 

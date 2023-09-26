@@ -12,10 +12,10 @@ import {
 } from '~/components'
 import type { Country } from '~/generated/connect/backend/v1/backend_pb'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { loader } from './route'
+import type { detailsAction, loader } from './route'
 
 export function About() {
-  const details = useFetcher()
+  const details = useFetcher<typeof detailsAction>()
   const { csrfToken } = useLoaderData<typeof loader>()
 
   const [

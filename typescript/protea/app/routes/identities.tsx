@@ -1,4 +1,4 @@
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Outlet, useLoaderData, useLocation } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -31,7 +31,7 @@ import { getKycStatus } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const identities = await getIdentities(request)
 
   const kycStatus = await getKycStatus(request)
@@ -52,7 +52,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Identities'
   }

@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { Form, useLoaderData, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
@@ -19,7 +19,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   // Check for state and code if not state create auth url
   let url = new URL(request.url)
   let state = url.searchParams.get('state')
@@ -123,7 +123,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
