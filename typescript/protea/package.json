@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' remix dev",
+    "dev": "remix dev",
     "build": "pnpm typecheck && remix build",
     "start": "remix-serve build",
     "lint": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
