@@ -11,20 +11,21 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 
-const fields = "id, payment_id, notified_receiver, notified_processing, interaction, created_at, expired_at"
+const fields = "id, payment_id, notified_receiver, notified_processing, interaction, receiver_discord_user_id, sender_discord_username, created_at, expired_at"
 
-func CreatePaymentInteraction(ctx context.Context, b Backends, i *discordgo.Interaction, paymentID string) (*PaymentInteraction, error) {
+func CreatePaymentInteraction(ctx context.Context, b Backends, i *discordgo.Interaction, paymentID, receiverDiscordUserID, senderDiscordUsername string) (*PaymentInteraction, error) {
 	rawInteraction, err := json.Marshal(i)
 	if err != nil {
 		return nil, err
 	}
 
 	var pi PaymentInteraction
-	err = b.DB().GetContext(ctx, &pi, fmt.Sprintf("INSERT INTO discord_payment_interactions (payment_id, interaction) VALUES ($1, $2) RETURNING %s;", fields), paymentID, rawInteraction)
+	err = b.DB().GetContext(ctx, &pi, fmt.Sprintf("INSERT INTO discord_payment_interactions (payment_id, interaction, receiver_discord_user_id, sender_discord_username) VALUES ($1, $2, $3, $4) RETURNING %s;", fields), paymentID, rawInteraction, receiverDiscordUserID, senderDiscordUsername)
 	if err != nil {
 		return nil, err
 	}
@@ -92,17 +93,32 @@ var (
 	ProcessingContent    = "Your payment is underway"
 	ProcessingComponents = []discordgo.MessageComponent{}
 
-	SignupContentTemplate = "%s is trying to pay you"
+	SignupContentTemplate = "%s is trying to pay you. Sign up with Fynbos, connect your card and discord profile to receive it."
 	SignupComponents      = []discordgo.MessageComponent{
-		// 1) Sign up with Fynbos
-		// 2) Connect your card
-		// 3) Connect your Discord profile
-		// 4) Get paid
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					Label:    "Sign up",
+					Style:    discordgo.LinkButton,
+					Disabled: false,
+					URL:      fmt.Sprintf("%s/signup", env.GetUrl()),
+				},
+			},
+		},
 	}
 
-	ConnectCardContentTemplate = "%s is trying to pay you"
+	ConnectCardContentTemplate = "%s is trying to pay you. Connect your card to receive it."
 	ConnectCardComponents      = []discordgo.MessageComponent{
-		// Connect your card
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					Label:    "Connect card",
+					Style:    discordgo.LinkButton,
+					Disabled: false,
+					URL:      fmt.Sprintf("%s/connect/card", env.GetUrl()),
+				},
+			},
+		},
 	}
 )
 
@@ -128,10 +144,6 @@ func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteractio
 		// sanity checks
 		if p.Receiver.Type != payments.IdentityTypeDiscord {
 			log.Error("Receiver is not a discord identity", zap.String("paymentID", p.ID))
-			continue
-		}
-		if p.Sender.Type != payments.IdentityTypeDiscord {
-			log.Error("Sender is not a discord identity", zap.String("paymentID", p.ID))
 			continue
 		}
 
@@ -190,32 +202,40 @@ func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteractio
 			continue
 		}
 
+		senderWallet, err := b.Wallets().Get(ctx, p.Sender.WalletID)
+		if err != nil {
+			log.Error("Failed to lookup sender wallet to create embed", zap.Error(err))
+			continue
+		}
+		embed := &discordgo.MessageEmbed{
+			Title: "View their public fynbos.me page",
+			URL:   senderWallet.AddressString(),
+			Type:  discordgo.EmbedTypeLink,
+			Color: 16007006, // rose-500: #F43F5E;
+		}
+
 		receiverId, err := b.Identities().GetByIdentifier(ctx, p.Receiver.Identifier)
 		if errors.Is(err, identities.ErrNotFound) {
-			err = SendDM(ctx, b, p.Receiver, i, fmt.Sprintf(SignupContentTemplate, p.Sender.Identifier), SignupComponents)
+			err = SendDM(ctx, b, i, fmt.Sprintf(SignupContentTemplate, i.SenderDiscordUsername), SignupComponents, embed)
 			if err != nil {
-				log.Error("Failed to DM receiver to sign up", zap.String("paymentID", p.ID))
+				log.Error("Failed to DM receiver to sign up", zap.String("paymentID", p.ID), zap.Error(err))
 			}
 			continue
 		}
 
 		_, err = b.LinkedAccounts().GetDefaultReceive(ctx, receiverId.WalletID)
 		if errors.Is(err, identities.ErrNotFound) {
-			err = SendDM(ctx, b, p.Receiver, i, fmt.Sprintf(ConnectCardContentTemplate, p.Sender.Identifier), ConnectCardComponents)
+			err = SendDM(ctx, b, i, fmt.Sprintf(ConnectCardContentTemplate, i.SenderDiscordUsername), ConnectCardComponents, embed)
 			if err != nil {
-				log.Error("Failed to DM receiver to connect card", zap.String("paymentID", p.ID))
+				log.Error("Failed to DM receiver to connect card", zap.String("paymentID", p.ID), zap.Error(err))
 			}
 			continue
 		}
 	}
 }
 
-func SendDM(ctx context.Context, b Backends, user payments.Identity, interaction PaymentInteraction, content string, components []discordgo.MessageComponent) error {
-	if user.Type != payments.IdentityTypeDiscord {
-		return errors.New("Not a discord identity")
-	}
-
-	channel, err := b.Discord().UserChannelCreate(user.Identifier)
+func SendDM(ctx context.Context, b Backends, interaction PaymentInteraction, content string, components []discordgo.MessageComponent, embed *discordgo.MessageEmbed) error {
+	channel, err := b.Discord().UserChannelCreate(interaction.ReceiverDiscordUserID)
 	if err != nil {
 		return err
 	}
@@ -223,6 +243,7 @@ func SendDM(ctx context.Context, b Backends, user payments.Identity, interaction
 	_, err = b.Discord().ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
 		Content:    content,
 		Components: components,
+		Embed:      embed,
 	})
 	if err != nil {
 		return err

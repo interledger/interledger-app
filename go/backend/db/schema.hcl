@@ -2524,6 +2524,14 @@ table "discord_payment_interactions" {
     type = text
     default = ""
   }
+  column "receiver_discord_user_id" {
+    type = text
+    default = ""
+  }
+  column "sender_discord_username" {
+    type = text
+    default = ""
+  }
   column "created_at" {
     null    = false
     type    = timestamp

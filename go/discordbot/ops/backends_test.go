@@ -12,6 +12,8 @@ import (
 	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/transactions"
 	tx_mock "gitlab.com/fynbos/backend/transactions/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	"gitlab.com/fynbos/discordbot/ops"
 )
 
@@ -22,6 +24,7 @@ type backends struct {
 	la      *la_mock.MockClient
 	id      *id_mock.MockClient
 	tc      *tx_mock.MockClient
+	wc      *wallets_mock.MockClient
 }
 
 func (b backends) Discord() ops.Discord {
@@ -46,6 +49,10 @@ func (b backends) Identities() identities.Client {
 
 func (b backends) Transactions() transactions.Client {
 	return b.tc
+}
+
+func (b backends) Wallets() wallets.Client {
+	return b.wc
 }
 
 type MockDiscord struct {
