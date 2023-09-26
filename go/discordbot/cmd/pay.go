@@ -47,11 +47,11 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		return
 	}
 
-	var discordUsername string
+	var senderUsername string
 	if i.User != nil {
-		discordUsername = i.User.Username
+		senderUsername = i.User.Username
 	} else if i.Member != nil {
-		discordUsername = i.Member.User.Username
+		senderUsername = i.Member.User.Username
 	}
 
 	data := i.ApplicationCommandData()
@@ -61,13 +61,15 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 	}
 
 	var amount float64
-	var receiverUsername string
+	var receiverUsername, receiverUserID string
 	for _, opt := range data.Options {
 		switch opt.Name {
 		case "amount":
 			amount = opt.FloatValue()
 		case "user":
-			receiverUsername = opt.UserValue(s).Username
+			usr := opt.UserValue(s)
+			receiverUsername = usr.Username
+			receiverUserID = usr.ID
 		}
 	}
 
@@ -79,16 +81,15 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 
 	receiver, err := b.Identities().GetByIdentifier(ctx, receiverUsername)
 	if err != nil {
-		if receiver.WalletID == w.ID {
+		if receiver != nil && receiver.WalletID == w.ID {
 			newPaymentFailedMessage(s, i, "You cannot create a payment to yourself.")
 			return
 		}
 	}
-
 	p, err := b.Payments().Create(ctx, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeDiscord,
-			Identifier: discordUsername,
+			Identifier: senderUsername,
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeDiscord,
@@ -127,7 +128,7 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		return
 	}
 
-	_, err = ops.CreatePaymentInteraction(ctx, b, i.Interaction, p.ID)
+	_, err = ops.CreatePaymentInteraction(ctx, b, i.Interaction, p.ID, receiverUserID, senderUsername)
 	if err != nil {
 		log.Error("Failed to create payment interaction", zap.String("paymentID", p.ID), zap.Error(err))
 		return

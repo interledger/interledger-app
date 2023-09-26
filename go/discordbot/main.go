@@ -32,13 +32,13 @@ func main() {
 		log.Fatal("Failed to parse environment variables.", zap.Error(err))
 	}
 
-	b := NewBackends(&environment)
-	defer CloseBackends(b)
-
 	bot, err := discordgo.New("Bot " + environment.DiscordBotToken)
 	if err != nil {
 		log.Fatal("Invalid bot parameters", zap.Error(err))
 	}
+	b := NewBackends(&environment, bot)
+	defer CloseBackends(b)
+
 	bot.Identify.Intents = discordgo.IntentsGuildMessages
 	bot.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) { log.Info("Bot is up!") })
 	bot.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
