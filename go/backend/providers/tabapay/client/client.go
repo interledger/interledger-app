@@ -83,8 +83,11 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 		}
 
 		if os.Getenv("FYNBOS_ADDRESS_STATE") != "" && os.Getenv("FYNBOS_ADDRESS_CITY") != "" &&
-			os.Getenv("FYNBOS_ADDRESS_ZIPCODE") != "" && os.Getenv("FYNBOS_ADDRESS_COUNTRY") != "" {
+			os.Getenv("FYNBOS_ADDRESS_ZIPCODE") != "" && os.Getenv("FYNBOS_ADDRESS_COUNTRY") != "" &&
+			os.Getenv("FYNBOS_ADDRESS_COUNTY") != "" && os.Getenv("FYNBOS_ADDRESS_LINE1") != "" {
 			fynbosAddress = &external.Address{
+				Line1:   os.Getenv("FYNBOS_ADDRESS_LINE1"),
+				County:  os.Getenv("FYNBOS_ADDRESS_COUNTY"),
 				City:    os.Getenv("FYNBOS_ADDRESS_CITY"),
 				State:   os.Getenv("FYNBOS_ADDRESS_STATE"),
 				ZipCode: os.Getenv("FYNBOS_ADDRESS_ZIPCODE"),
