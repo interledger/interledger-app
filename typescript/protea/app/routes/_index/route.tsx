@@ -92,17 +92,7 @@ export const handle: ApplicationProps = {
 }
 
 export const meta: MetaFunction<typeof marketingLoader> = mergeMeta(
-  ({ data }) => datoMeta(data?.homeRoute?._seoMetaTags),
-  ({ location }) => [
-    {
-      name: 'og:url',
-      content: `https://fynbos.app${location.pathname}`
-    },
-    {
-      name: 'twitter:url',
-      content: `https://fynbos.app${location.pathname}`
-    }
-  ]
+  ({ data, location }) => datoMeta(data?.homeRoute?._seoMetaTags, location)
 )
 
 export default function Page() {

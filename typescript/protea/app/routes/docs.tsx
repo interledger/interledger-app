@@ -7,7 +7,7 @@ import { Layouts } from '~/components'
 
 import type { LoaderDocsNav } from '~/components/Scaffold/Docs/useDocsStore'
 import { getAllDocs } from '~/data/content.server'
-import { mergeMeta } from '~/lib/meta'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod')
@@ -37,18 +37,8 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(
-  () => [],
-  ({ location }) => [
-    {
-      name: 'og:url',
-      content: `https://fynbos.app${location.pathname}`
-    },
-    {
-      name: 'twitter:url',
-      content: `https://fynbos.app${location.pathname}`
-    }
-  ]
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ location }) =>
+  datoMeta(undefined, location)
 )
 
 export default function Page() {
