@@ -261,7 +261,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
-	router.Handle("/webhooks/rafiki", b.rafiki.WebhookHandler())
+	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 	router.Handle("/webhooks/slack/bot/install", b.slack.BotInstallWebhook())

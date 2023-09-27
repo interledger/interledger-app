@@ -3,14 +3,12 @@ package external
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/Khan/genqlient/graphql"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-)
-
-const (
-	assetUSD = "4a0e9bec-7a57-44b3-aab7-e450886b8a43"
 )
 
 type Client interface {
@@ -18,19 +16,26 @@ type Client interface {
 }
 
 type client struct {
-	gcl graphql.Client
+	gcl   graphql.Client
+	usdID string
 }
 
 func New() Client {
 	baseURL := "https://localhost:8080/"
 	cl := graphql.NewClient(baseURL, otelhttp.DefaultClient) // TODO: set auth headers maybe
 
-	return &client{gcl: cl}
+	// Default value for eu1
+	assetUSD := os.Getenv("RAFIKI_USD_ASSET")
+	if assetUSD == "" && env.IsDev() {
+		assetUSD = "80d80585-5341-413a-acaf-169779b4642c"
+	}
+
+	return &client{gcl: cl, usdID: assetUSD}
 }
 
 func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
 	pp, err := CreatePaymentPointer(ctx, c.gcl, CreatePaymentPointerInput{
-		AssetId:        assetUSD,
+		AssetId:        c.usdID,
 		Url:            w.AddressString(),
 		PublicName:     w.Name,
 		IdempotencyKey: w.ID,
