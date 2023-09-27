@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/discordbot/cmd"
 	"gitlab.com/fynbos/discordbot/ops"
+	fynbos_env "gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -90,12 +92,46 @@ func lookupWallet(ctx context.Context, b *Backends, s *discordgo.Session, i *dis
 	identity, err := b.Identities().GetByIdentifier(ctx, discordUsername)
 	if err != nil {
 		log.Info("no identity found", zap.String("username", discordUsername))
+		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   discordgo.MessageFlagsEphemeral,
+				Content: "Sign up for a Fynbos wallet to pay",
+				Components: []discordgo.MessageComponent{
+					discordgo.ActionsRow{
+						Components: []discordgo.MessageComponent{
+							discordgo.Button{
+								Label:    "Sign up",
+								Style:    discordgo.LinkButton,
+								Disabled: false,
+								URL:      fmt.Sprintf("%s/signup", fynbos_env.GetUrl()),
+							},
+						},
+					},
+				},
+			},
+		})
+		if err != nil {
+			log.Error("Failed to respond to user", zap.Error(err))
+		}
+
 		return nil
 	}
 
 	w, err := b.Wallets().Get(ctx, identity.WalletID)
 	if err != nil {
 		log.Info("no wallet found", zap.String("username", discordUsername))
+		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Flags:   discordgo.MessageFlagsEphemeral,
+				Content: "Your payment failed",
+			},
+		})
+		if err != nil {
+			log.Error("Failed to respond to user", zap.Error(err))
+		}
+
 		return nil
 	}
 
