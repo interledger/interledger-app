@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/providers/tabapay/external"
 )
 
 type PullFromCardArgs struct {
@@ -14,6 +15,7 @@ type PullFromCardArgs struct {
 	SettlementAccountID string
 	Amount              currency.Amount
 	ThreeDSID           string
+	SoftDescriptor      *external.SoftDescriptor
 }
 
 type dbThreeDSSession struct {
