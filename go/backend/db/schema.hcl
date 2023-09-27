@@ -2581,6 +2581,7 @@ table "rafiki_payment_pointers" {
     columns = [column.payment_pointer_id]
   }
   index "rafiki_payment_pointers_wallet_idx" {
+    unique  = true
     columns = [column.wallet_id]
   }
 }

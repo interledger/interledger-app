@@ -6,11 +6,19 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/db"
+
+	"gitlab.com/fynbos/env"
+
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 )
 
 func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) error {
+	if !env.IsDev() {
+		return nil
+	}
+
 	var ppID string
 	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", w.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -26,6 +34,9 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 	}
 
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_payment_pointers (wallet_id, payment_pointer_id) VALUES ($1, $2)", w.ID, ppID)
+	if db.IsErrorCode(err, db.UniqueViolationError) {
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
