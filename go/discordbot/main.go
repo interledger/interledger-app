@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/discordbot/cmd"
+	"gitlab.com/fynbos/discordbot/ops"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -68,6 +69,9 @@ func main() {
 	}
 	log.Info("Registered commands...")
 
+	go watchForPaymentChanges(b)
+	log.Info("Started watching payments for changes...")
+
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	<-sigs
@@ -96,4 +100,19 @@ func lookupWallet(ctx context.Context, b *Backends, s *discordgo.Session, i *dis
 	}
 
 	return w
+}
+
+func watchForPaymentChanges(b *Backends) {
+	ticker := time.NewTicker(5 * time.Second)
+	for {
+		<-ticker.C
+
+		is, err := ops.ListPaymentInteractions(context.Background(), b, 10)
+		if err != nil {
+			log.Error("Failed to list payment interactions", zap.Error(err))
+			continue
+		}
+
+		ops.ProcessInteractions(context.Background(), b, is)
+	}
 }

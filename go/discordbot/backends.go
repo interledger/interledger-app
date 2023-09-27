@@ -2,6 +2,7 @@ package main
 
 import (
 	limits_client "gitlab.com/fynbos/backend/limits/client"
+	"gitlab.com/fynbos/discordbot/ops"
 	"gitlab.com/fynbos/log"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
@@ -12,6 +13,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
@@ -66,9 +68,14 @@ func CloseBackends(b *Backends) {
 }
 
 type Backends struct {
-	db   *sqlx.DB
-	kyc  kyc.Client
-	user user.Client
+	db      *sqlx.DB
+	kyc     kyc.Client
+	user    user.Client
+	discord *discordgo.Session
+}
+
+func (b *Backends) Discord() ops.Discord {
+	return b.discord
 }
 
 func (b *Backends) Twilio() twilio.Service {

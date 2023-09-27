@@ -2501,6 +2501,40 @@ table "slack_connections" {
   }
 }
 
+table "discord_payment_interactions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")    
+  }
+  column "payment_id" {
+    null = false
+    type = text
+  }
+  column "notified_processing" {
+    type    = bool
+    default = false
+  }
+  column "notified_receiver" {
+    type    = bool
+    default = false
+  }
+  column "interaction" {
+    type = text
+    default = ""
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "expired_at" {
+    null    = true
+    type    = timestamp
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
