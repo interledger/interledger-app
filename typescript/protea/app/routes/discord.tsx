@@ -23,17 +23,7 @@ export const handle: ApplicationProps = {
 }
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.discordRoute?._seoMetaTags),
-  ({ location }) => [
-    {
-      name: 'og:url',
-      content: `https://fynbos.app${location.pathname}`
-    },
-    {
-      name: 'twitter:url',
-      content: `https://fynbos.app${location.pathname}`
-    }
-  ]
+  ({ data, location }) => datoMeta(data?.discordRoute?._seoMetaTags, location)
 )
 
 export default function Page() {

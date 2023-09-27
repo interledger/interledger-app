@@ -13,17 +13,7 @@ import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.page?._seoMetaTags),
-  ({ location }) => [
-    {
-      name: 'og:url',
-      content: `https://fynbos.app${location.pathname}`
-    },
-    {
-      name: 'twitter:url',
-      content: `https://fynbos.app${location.pathname}`
-    }
-  ]
+  ({ data, location }) => datoMeta(data?.page?._seoMetaTags, location)
 )
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {

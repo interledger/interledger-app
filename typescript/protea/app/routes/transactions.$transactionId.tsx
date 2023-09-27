@@ -57,11 +57,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   } else publicWalletInfo = publicWalletInfoResponse
 
-  // const publicWalletInfo = await getPublicWalletInfo(
-  //   request,
-  //   transaction.walletUrl
-  // )
-
   const pusherArgs = await getPusherArgs(request)
 
   return json({
