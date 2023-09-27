@@ -4,6 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/discordbot/ops"
 
 	"gitlab.com/fynbos/backend/identities"
@@ -17,4 +18,5 @@ type Backends interface {
 	Identities() identities.Client
 	Payments() payments.Client
 	Discord() ops.Discord
+	Transactions() transactions.Client
 }

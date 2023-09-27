@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -134,26 +135,6 @@ func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteractio
 			continue
 		}
 
-		// once we've started processing, check if we need to DM receiver and take care to only message once
-		if p.State == payments.StateProcessing && !i.NotifiedReceiver {
-			for _, action := range p.RequiredActions {
-				if action == payments.RequiredActionTypeReceiverIdentifier {
-					content := fmt.Sprintf(SignupContentTemplate, p.Sender.Identifier)
-					err = SendDM(ctx, b, p.Receiver, i, content, SignupComponents)
-					break
-				}
-
-				if action == payments.RequiredActionTypeReceiverAccount {
-					content := fmt.Sprintf(ConnectCardContentTemplate, p.Sender.Identifier)
-					err = SendDM(ctx, b, p.Receiver, i, content, ConnectCardComponents)
-					break
-				}
-			}
-		}
-		if err != nil {
-			log.Error("Failed to DM receiver about payment", zap.Error(err))
-		}
-
 		var interaction discordgo.Interaction
 		err = interaction.UnmarshalJSON([]byte(i.RawInteraction))
 		if err != nil {
@@ -189,6 +170,41 @@ func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteractio
 		}
 		if err != nil {
 			log.Error("Failed to process payment interaction", zap.Error(err))
+			continue
+		}
+
+		// check if we need to DM receiver
+		if i.NotifiedReceiver || p.State != payments.StateProcessing {
+			continue
+		}
+
+		senderTX, err := b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+		if err != nil {
+			log.Error("discord bot failed to sender transaction", zap.Error(err), zap.String("paymentID", p.ID))
+			continue
+		}
+
+		// If there is a transfer it's the pull, now we should notify the receiver to link their identity,
+		// otherwise wait.
+		if len(senderTX.Transfers) < 1 {
+			continue
+		}
+
+		receiverId, err := b.Identities().GetByIdentifier(ctx, p.Receiver.Identifier)
+		if errors.Is(err, identities.ErrNotFound) {
+			err = SendDM(ctx, b, p.Receiver, i, fmt.Sprintf(SignupContentTemplate, p.Sender.Identifier), SignupComponents)
+			if err != nil {
+				log.Error("Failed to DM receiver to sign up", zap.String("paymentID", p.ID))
+			}
+			continue
+		}
+
+		_, err = b.LinkedAccounts().GetDefaultReceive(ctx, receiverId.WalletID)
+		if errors.Is(err, identities.ErrNotFound) {
+			err = SendDM(ctx, b, p.Receiver, i, fmt.Sprintf(ConnectCardContentTemplate, p.Sender.Identifier), ConnectCardComponents)
+			if err != nil {
+				log.Error("Failed to DM receiver to connect card", zap.String("paymentID", p.ID))
+			}
 			continue
 		}
 	}
