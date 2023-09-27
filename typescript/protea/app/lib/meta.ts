@@ -1,49 +1,65 @@
-import type { MetaDescriptor, MetaFunction } from '@remix-run/node'
+import type {
+  LoaderFunction,
+  MetaDescriptor,
+  MetaFunction
+} from '@remix-run/node'
+import type { Location } from '@remix-run/react'
 import type { Tag } from '~/generated/dato-cms-graphql'
 
-export const mergeMeta = <MergeMetaArgs>(
-  overrideFn: MetaFunction<MergeMetaArgs>,
-  appendFn?: MetaFunction<MergeMetaArgs>
-): MetaFunction<MergeMetaArgs> => {
+export const mergeMeta = <
+  Loader extends LoaderFunction | unknown = unknown,
+  ParentsLoaders extends Record<string, LoaderFunction | unknown> = Record<
+    string,
+    unknown
+  >
+>(
+  leafMetaFn: MetaFunction<Loader, ParentsLoaders>
+): MetaFunction<Loader, ParentsLoaders> => {
   return (arg) => {
-    // get meta from parent routes
-    let mergedMeta = arg.matches.reduce((acc, match: any) => {
-      return acc.concat(match.meta || [])
-    }, [] as MetaDescriptor[])
+    let leafMeta = leafMetaFn(arg)
 
-    // replace any parent meta with the same name or property with the override
-    let overrides = overrideFn(arg)
-    for (let override of overrides) {
-      let index = mergedMeta.findIndex(
-        (meta) =>
-          ('name' in meta &&
-            'name' in override &&
-            meta.name === override.name) ||
-          ('property' in meta &&
-            'property' in override &&
-            meta.property === override.property) ||
-          ('title' in meta && 'title' in override)
-      )
-      if (index !== -1) {
-        mergedMeta.splice(index, 1, override)
+    return arg.matches.reduceRight((acc, match) => {
+      for (let parentMeta of match.meta) {
+        let index = acc.findIndex(
+          (meta) =>
+            ('name' in meta &&
+              'name' in parentMeta &&
+              meta.name === parentMeta.name) ||
+            ('property' in meta &&
+              'property' in parentMeta &&
+              meta.property === parentMeta.property) ||
+            ('title' in meta && 'title' in parentMeta)
+        )
+        if (index == -1) {
+          // Parent meta not found in acc, so add it
+          acc.push(parentMeta)
+        }
       }
-    }
-
-    // append any additional meta
-    if (appendFn) {
-      mergedMeta = mergedMeta.concat(appendFn(arg))
-    }
-
-    return mergedMeta
+      return acc
+    }, leafMeta)
   }
 }
 
-export function datoMeta(metaTags?: Array<Tag>): MetaDescriptor[] {
+export function datoMeta(
+  metaTags?: Array<Tag>,
+  location?: Location
+): MetaDescriptor[] {
+  const locationTags = [
+    {
+      name: 'og:url',
+      content: `https://fynbos.app${location?.pathname}`
+    },
+    {
+      name: 'twitter:url',
+      content: `https://fynbos.app${location?.pathname}`
+    }
+  ]
+
   if (!metaTags) {
-    return []
+    return [...locationTags]
   }
 
-  let tags: MetaDescriptor[] = []
+  let tags: MetaDescriptor[] = locationTags
   for (const metaTag of metaTags) {
     if (metaTag.tag === 'title' && metaTag.content) {
       tags.push({ title: metaTag.content })

@@ -27,17 +27,7 @@ import type {
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.post?._seoMetaTags),
-  ({ location }) => [
-    {
-      name: 'og:url',
-      content: `https://fynbos.app${location.pathname}`
-    },
-    {
-      name: 'twitter:url',
-      content: `https://fynbos.app${location.pathname}`
-    }
-  ]
+  ({ data, location }) => datoMeta(data?.post?._seoMetaTags, location)
 )
 
 export async function loader({ params }: LoaderFunctionArgs) {
