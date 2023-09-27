@@ -186,6 +186,7 @@ type (
 		State   string `json:"state,omitempty"`
 		ZipCode string `json:"zipcode,omitempty"`
 		Country string `json:"country,omitempty"`
+		County  string `json:"county,omitempty"`
 	}
 
 	Phone struct {
