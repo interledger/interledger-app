@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "remix dev",
     "build": "pnpm typecheck && remix build",
-    "start": "remix-serve build",
+    "start": "remix-serve ./build/index.js",
     "lint": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "tsc -b",
     "format": "prettier --write .",
