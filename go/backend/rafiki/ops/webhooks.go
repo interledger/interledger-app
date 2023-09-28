@@ -17,18 +17,20 @@ type webhook struct {
 }
 
 type incomingPaymentData struct {
-	ID               string `json:"id"`
-	PaymentPointerID string `json:"paymentPointerId"`
-	CreatedAt        string `json:"createdAt"`
-	ExpiresAt        string `json:"expiresAt"`
-	ReceivedAmount   amount `json:"receivedAmount"`
-	Completed        bool   `json:"completed"`
+	Payment struct {
+		ID               string `json:"id"`
+		PaymentPointerID string `json:"paymentPointerId"`
+		CreatedAt        string `json:"createdAt"`
+		ExpiresAt        string `json:"expiresAt"`
+		ReceivedAmount   amount `json:"receivedAmount"`
+		Completed        bool   `json:"completed"`
+	} `json:"incomingPayment"`
 }
 
 type amount struct {
 	Value      string `json:"value"`
 	AssetCode  string `json:"assetCode"`
-	AssetScale string `json:"assetScale"`
+	AssetScale int    `json:"assetScale"`
 }
 
 func EventWebhook(b Backends) http.HandlerFunc {
@@ -63,10 +65,10 @@ func EventWebhook(b Backends) http.HandlerFunc {
 				return
 			}
 
-			completed := payment.Completed || hook.Type == "incoming_payment.completed" || hook.Type == "incoming_payment.expired"
+			completed := payment.Payment.Completed || hook.Type == "incoming_payment.completed" || hook.Type == "incoming_payment.expired"
 
 			var amt uint64
-			amt, err = strconv.ParseUint(payment.ReceivedAmount.Value, 10, 64)
+			amt, err = strconv.ParseUint(payment.Payment.ReceivedAmount.Value, 10, 64)
 			if err != nil {
 				log.Error("failed to convert rafiki incoming payment amount", zap.Error(err))
 				w.WriteHeader(http.StatusInternalServerError)
@@ -80,7 +82,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
     DO UPDATE SET 
                 completed = EXCLUDED.completed, 
                 received = EXCLUDED.received_amount,
-                updated_at = now()`, payment.ID, payment.PaymentPointerID, completed, amt, payment.ReceivedAmount.AssetCode)
+                updated_at = now()`, payment.Payment.ID, payment.Payment.PaymentPointerID, completed, amt, payment.Payment.ReceivedAmount.AssetCode)
 			if err != nil {
 				log.Error("failed to upsert rafiki incoming payment", zap.Error(err))
 				w.WriteHeader(http.StatusInternalServerError)
