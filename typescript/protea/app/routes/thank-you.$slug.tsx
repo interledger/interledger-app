@@ -1,6 +1,7 @@
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
@@ -9,7 +10,7 @@ import { getCurrentThankYouPage } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { thankYou, footer } = await getCurrentThankYouPage({
     filter: { slug: { eq: params.slug } }
   })
@@ -20,12 +21,12 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.thankYou?.seoMeta),
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.thankYou?._seoMetaTags),
   ({ location }) => [
     {
       name: 'og:url',

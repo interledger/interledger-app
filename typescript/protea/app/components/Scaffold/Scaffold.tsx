@@ -1,9 +1,11 @@
-import type { RouteMatch } from '@remix-run/react'
+import type { SerializeFrom } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import {
   NavLink,
   Outlet,
   useMatches,
   useNavigate,
+  useRouteLoaderData,
   useSearchParams
 } from '@remix-run/react'
 import clsx from 'clsx'
@@ -35,11 +37,12 @@ import { useFormStore } from '~/lib/useFormStore'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
+import type { loader as rootLoader } from '~/root'
 import { Search } from '~/routes/pay/Search'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
-  layout: Layouts | ((match: RouteMatch) => Layouts)
+  layout: Layouts | ((match: UIMatch<any, ApplicationProps>) => Layouts)
   scaffold?: ScaffoldProps
 }
 
@@ -69,14 +72,16 @@ export enum Fab {
 export type ScaffoldProps = {
   header: {
     // Back should check the history stack, and if the previous route is the same as the specified route, it should pop the history stack
-    back?: string | ((match: RouteMatch) => string)
-    title?: string | ((match: RouteMatch) => string)
-    actions?: (match: RouteMatch) => {
+    back?: string | ((match: UIMatch<any, ApplicationProps>) => string)
+    title?: string | ((match: UIMatch<any, ApplicationProps>) => string)
+    actions?: (match: UIMatch<any, ApplicationProps>) => {
       key: string
       nodes: ReactNode | ReactNode[]
     } | null
   }
-  footer?: (match: RouteMatch) => FooterRecord
+  footer?: (
+    match: UIMatch<any, ApplicationProps>
+  ) => SerializeFrom<FooterRecord> | null | undefined
   fab?: Fab
   isNested?: boolean
 }
@@ -94,6 +99,9 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
+  const { isUser, snackbar } = useRouteLoaderData('root') as SerializeFrom<
+    typeof rootLoader
+  >
 
   const [payStep, payStepBack] = usePayStore((state) => [
     state.step,
@@ -112,12 +120,13 @@ export function Scaffold() {
     (state) => [state.step, state.stepBack]
   )
 
-  const isUser = matches[0]?.data.isUser
-
   // TODO should use second last match for scaffold if current match is nested (Only on desktop)
-  let currentMatch = matches[matches.length - 1]
+  let currentMatch = matches[matches.length - 1] as UIMatch<
+    any,
+    ApplicationProps
+  >
 
-  const scaffold: ScaffoldProps = currentMatch.handle?.scaffold
+  const scaffold: ScaffoldProps | undefined = currentMatch.handle.scaffold
 
   const [pushSnackbar, commandPaletteOpen, setCommandPaletteOpen] =
     useScaffoldStore((state) => [
@@ -127,11 +136,10 @@ export function Scaffold() {
     ])
 
   useEffect(() => {
-    const snackbar = matches[0].data.snackbar
-    if (snackbar) pushSnackbar(matches[0].data.snackbar)
-  }, [matches, pushSnackbar])
+    if (snackbar) pushSnackbar(snackbar)
+  }, [pushSnackbar, snackbar])
 
-  const footer = scaffold.footer && scaffold.footer(currentMatch)
+  const footer = scaffold?.footer && scaffold.footer(currentMatch)
 
   const layoutHandle = currentMatch?.handle?.layout
 
@@ -139,25 +147,29 @@ export function Scaffold() {
   if (typeof layoutHandle === 'function') layout = layoutHandle(currentMatch)
   else layout = layoutHandle
 
-  const actionHandle = scaffold.header?.actions
+  const actionHandle = scaffold?.header?.actions
   let actions = null
   if (typeof actionHandle !== 'undefined') {
     actions = actionHandle(currentMatch) ?? null
   }
 
-  const titleHandle = scaffold.header?.title
+  const titleHandle = scaffold?.header?.title
 
   let title: string
   if (typeof titleHandle === 'function') title = titleHandle(currentMatch)
   else title = titleHandle ?? ''
 
-  const parentTitleHandle =
-    matches[matches.length - 2].handle?.scaffold.header?.title
+  const parentMatch = matches[matches.length - 2] as UIMatch<
+    any,
+    ApplicationProps
+  >
+
+  const parentTitleHandle = parentMatch?.handle?.scaffold?.header?.title
 
   let parentTitle = ''
-  if (scaffold.isNested) {
+  if (scaffold?.isNested) {
     if (typeof parentTitleHandle === 'function')
-      parentTitle = parentTitleHandle(matches[matches.length - 2])
+      parentTitle = parentTitleHandle(parentMatch)
     else parentTitle = parentTitleHandle ?? ''
 
     // if (!actions && !isNested) {
@@ -277,7 +289,7 @@ export function Scaffold() {
               layout != Layouts.Focus && 'lg:px-4'
             )}
           >
-            {!scaffold.header.back && (
+            {!scaffold?.header.back && (
               <div className='lg:hidden'>
                 <IconButton
                   className={clsx(layout === Layouts.Focus && 'hidden', 'mr-4')}
@@ -288,7 +300,7 @@ export function Scaffold() {
                 </IconButton>
               </div>
             )}
-            {scaffold.header.back && (
+            {scaffold?.header.back && (
               <IconButton
                 className={clsx('mr-4', scaffold.isNested && 'lg:hidden')}
                 onClick={() => {
@@ -346,8 +358,8 @@ export function Scaffold() {
             </Router>
             <div className='ml-auto flex items-center space-x-4'>
               <AnimatePresence mode='wait'>
-                {!actions && <WalletShapes key='WalletShapes' />}
-                {actions && (
+                {actions == null && <WalletShapes key='WalletShapes' />}
+                {actions != null && (
                   <motion.div
                     key={'header-action' + actions.key}
                     animate={{ opacity: 1, scale: 1 }}
@@ -632,7 +644,7 @@ export function Scaffold() {
         )}
       >
         <AnimatePresence mode='popLayout'>
-          {scaffold.fab && layout !== Layouts.Marketing && (
+          {scaffold?.fab && layout !== Layouts.Marketing && (
             <FAB key='fab' onTap={() => setCommandPaletteOpen(true)} />
           )}
           <SnackbarStage />

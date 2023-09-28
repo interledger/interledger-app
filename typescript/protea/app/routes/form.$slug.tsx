@@ -1,6 +1,11 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 
 import { json, redirect } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { Form, useLoaderData, useParams } from '@remix-run/react'
 import clsx from 'clsx'
 import { useCallback, useEffect } from 'react'
@@ -18,7 +23,7 @@ import { datoMeta, mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useFormStore } from '~/lib/useFormStore'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { form } = await getCurrentFormPage({
     filter: { slug: { eq: params.slug } }
   })
@@ -34,12 +39,15 @@ export async function loader({ request, params }: LoaderArgs) {
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
-    header: { title: (match) => match.data.form.title, back: 'form' }
+    header: {
+      title: (match: UIMatch<typeof loader>) => match.data.form.title ?? '',
+      back: 'form'
+    }
   }
 }
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.form?.seoMeta),
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.form?._seoMetaTags),
   ({ location }) => [
     {
       name: 'og:url',
@@ -116,7 +124,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)

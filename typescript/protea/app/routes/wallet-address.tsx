@@ -1,5 +1,9 @@
 import { Code } from '@bufbuild/connect'
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
@@ -22,7 +26,7 @@ import { mergeMeta } from '~/lib/meta'
 import { PAYMENT_POINTER_BASE } from '~/lib/paymentPointer.server'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   let response = await grpc.getWalletInfo(request, {})
   if (isConnectError(response)) {
     throw response.errorResponse
@@ -72,14 +76,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Wallet'
   }
 ])
 
 export default function Page() {
-  const fetcher = useFetcher()
+  const fetcher = useFetcher<typeof action>()
   const { paymentPointerBase, username, csrfToken } =
     useLoaderData<typeof loader>()
 
@@ -157,7 +161,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const username = form.get('username') as string
   const canSubmit = Boolean(form.get('canSubmit') as string)

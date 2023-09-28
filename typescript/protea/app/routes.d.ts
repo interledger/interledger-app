@@ -20,7 +20,6 @@ declare module "routes-gen" {
     "/connect/twitter": Record<string, never>;
     "/contact": Record<string, never>;
     "/contact/success": Record<string, never>;
-    "/contacts": Record<string, never>;
     "/discord": Record<string, never>;
     "/docs": Record<string, never>;
     "/docs/:slug": { "slug": string };
@@ -85,7 +84,6 @@ declare module "routes-gen" {
       | ["/connect/twitter"]
       | ["/contact"]
       | ["/contact/success"]
-      | ["/contacts"]
       | ["/discord"]
       | ["/docs"]
       | ["/docs/:slug", RouteParams["/docs/:slug"]]

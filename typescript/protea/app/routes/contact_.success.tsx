@@ -1,4 +1,4 @@
-import type { V2_MetaFunction } from '@remix-run/node'
+import type { MetaFunction } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
@@ -14,7 +14,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Contact | Success'
   }

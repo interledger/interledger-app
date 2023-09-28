@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -10,7 +14,7 @@ import { KRATOS_URL, handleFlowError } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { destroySession, getSession } from '~/session.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const cookie = String(request.headers.get('cookie'))
   let flow
   const flowRes = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
@@ -34,7 +38,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Log out'
   }
@@ -64,7 +68,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const cookie = request.headers.get('cookie') as string
   const form = await request.formData()
   const token = form.get('logoutToken')

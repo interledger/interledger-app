@@ -1,15 +1,15 @@
-import type { V2_HtmlMetaDescriptor, V2_MetaFunction } from '@remix-run/node'
-import type { SeoOrFaviconTag, TitleMetaLinkTag } from 'react-datocms'
+import type { MetaDescriptor, MetaFunction } from '@remix-run/node'
+import type { Tag } from '~/generated/dato-cms-graphql'
 
-export const mergeMeta = (
-  overrideFn: V2_MetaFunction,
-  appendFn?: V2_MetaFunction
-): V2_MetaFunction => {
+export const mergeMeta = <MergeMetaArgs>(
+  overrideFn: MetaFunction<MergeMetaArgs>,
+  appendFn?: MetaFunction<MergeMetaArgs>
+): MetaFunction<MergeMetaArgs> => {
   return (arg) => {
     // get meta from parent routes
     let mergedMeta = arg.matches.reduce((acc, match: any) => {
       return acc.concat(match.meta || [])
-    }, [] as V2_HtmlMetaDescriptor[])
+    }, [] as MetaDescriptor[])
 
     // replace any parent meta with the same name or property with the override
     let overrides = overrideFn(arg)
@@ -38,14 +38,12 @@ export const mergeMeta = (
   }
 }
 
-export function datoMeta(
-  metaTags: null | TitleMetaLinkTag[] | SeoOrFaviconTag[]
-): V2_HtmlMetaDescriptor[] {
+export function datoMeta(metaTags?: Array<Tag>): MetaDescriptor[] {
   if (!metaTags) {
     return []
   }
 
-  let tags: V2_HtmlMetaDescriptor[] = []
+  let tags: MetaDescriptor[] = []
   for (const metaTag of metaTags) {
     if (metaTag.tag === 'title' && metaTag.content) {
       tags.push({ title: metaTag.content })

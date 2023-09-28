@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 
 import { Code } from '@bufbuild/connect'
 import { useEffect } from 'react'
@@ -17,7 +21,7 @@ import {
 import { Landing } from './Landing'
 import { Name } from './Name'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   return jsonWithCSRF(request, {
     fynbosEnv: process.env.FYNBOS_ENV
   })
@@ -30,7 +34,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Connect a domain'
   }
@@ -57,7 +61,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)

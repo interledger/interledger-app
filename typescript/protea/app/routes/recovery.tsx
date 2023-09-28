@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import type { ApplicationProps } from '~/components'
@@ -14,7 +18,7 @@ import {
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   await requireNoUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -59,7 +63,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Recover account'
   }
@@ -112,7 +116,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 

@@ -1,6 +1,6 @@
-import type { ActionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   try {
     let expectedDsn = process.env.SENTRY_DSN || ''
     let envelope = await request.text()

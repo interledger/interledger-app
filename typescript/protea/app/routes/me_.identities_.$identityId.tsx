@@ -1,5 +1,6 @@
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { Form, useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
@@ -21,7 +22,7 @@ import { getPublicWalletDetails } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const identity = await getIdentityBySignatureHash(
     request,
     params.identityId as string
@@ -44,7 +45,7 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(({ data }) => {
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
   let metaContent
 
   switch (data?.identity.platform) {
@@ -131,16 +132,19 @@ export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: (match) => `/me/${match.data.identity.walletUrlWithoutProtocol}`,
-      title: (match) => {
+      back: (match: UIMatch<typeof loader>) =>
+        `/me/${match.data.identity.walletUrlWithoutProtocol}`,
+      title: (match: UIMatch<typeof loader>) => {
         switch (match.data.identity.platform) {
           case 'twitter':
             return `@${match.data.identity.identifier}`
           case 'domain':
             return match.data.identity.identifier
+          default:
+            return match.data.identity.identifier
         }
       },
-      actions: (match) =>
+      actions: (match: UIMatch<typeof loader>) =>
         match.data.identity.state == 'verified'
           ? {
               key: 'Verified',

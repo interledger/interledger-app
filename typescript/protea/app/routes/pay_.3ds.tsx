@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
@@ -36,7 +40,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   await getUserSession(request)
   const url = new URL(request.url)
   const paymentId = url.searchParams.get('paymentId') as string
@@ -78,7 +82,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Verifying'
   }
@@ -347,7 +351,7 @@ function ThreeDSPage() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const formName = form.get('name')
   const threeDSID = form.get('threeDsId') as string

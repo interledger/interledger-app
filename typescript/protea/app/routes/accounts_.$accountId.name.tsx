@@ -1,5 +1,10 @@
 import { Code } from '@bufbuild/connect'
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -11,7 +16,7 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const account = await getLinkedAccount(request, params.accountId as string)
   return jsonWithCSRF(request, {
     name: account.nickname,
@@ -24,17 +29,19 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/accounts'),
-      title: (match) =>
+      title: (match: UIMatch<typeof loader>) =>
         match.data.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
     }
   }
 }
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(({ data }) => [
-  {
-    title: data.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
-  }
-])
+export const meta: MetaFunction<typeof loader> = mergeMeta<typeof loader>(
+  ({ data }) => [
+    {
+      title: data?.type == 'bank' ? 'Bank account nickname' : 'Card nickname'
+    }
+  ]
+)
 
 export default function Page() {
   const { name, csrfToken } = useLoaderData<typeof loader>()
@@ -79,7 +86,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const form = await request.formData()
   const nickname = form.get('name') as string
 
