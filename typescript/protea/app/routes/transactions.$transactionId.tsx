@@ -1,6 +1,7 @@
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
@@ -29,10 +30,11 @@ import { getTransaction } from '~/data/wallet.server'
 import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const transaction = await getTransaction(
     request,
     params.transactionId as string
@@ -55,11 +57,6 @@ export async function loader({ request, params }: LoaderArgs) {
     }
   } else publicWalletInfo = publicWalletInfoResponse
 
-  // const publicWalletInfo = await getPublicWalletInfo(
-  //   request,
-  //   transaction.walletUrl
-  // )
-
   const pusherArgs = await getPusherArgs(request)
 
   return json({
@@ -75,7 +72,7 @@ export const handle: ApplicationProps = {
     header: {
       back: route('/transactions'),
       title: 'Sent payment',
-      actions: (match) => {
+      actions: (match: UIMatch<typeof loader>) => {
         if (match.data.transaction.refundState == 'PENDING') {
           return {
             key: 'Pending refund',
@@ -112,11 +109,16 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
-    title: 'Transaction | Outgoing'
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
+  {
+    title:
+      typeof data == 'undefined'
+        ? 'Transaction'
+        : data.transaction.type.includes('outgoing')
+        ? `- ${data.transaction.total} to ${data.transaction.title}`
+        : `${data.transaction.total} from ${data.transaction.title}`
   }
-}
+])
 
 export default function Page() {
   const { transaction, publicWalletInfo, pusherArgs } =

@@ -2,27 +2,21 @@ import { json } from '@remix-run/node'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
-import { StructuredText, toRemixMeta } from 'react-datocms'
+import { StructuredText } from 'react-datocms'
 import { Prose } from '~/components/Content'
 import { getCurrentLegalPage } from '~/data/content.server'
 import { fetchAndSanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.page.seoMeta),
-    'twitter:url': `https://fynbos.app/legal${
-      params.jurisdiction ? `/${params.jurisdiction}` : ''
-    }/${params.slug}`,
-    'og:url': `https://fynbos.app/legal${
-      params.jurisdiction ? `/${params.jurisdiction}` : ''
-    }/${params.slug}`
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.page?._seoMetaTags, location)
+)
 
-export async function loader({ request, params, context }: LoaderArgs) {
+export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { legalPage, footer } = await getCurrentLegalPage({
     filter: {
       slug: { eq: params.slug },
@@ -56,7 +50,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 

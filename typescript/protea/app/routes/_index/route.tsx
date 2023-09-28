@@ -1,7 +1,11 @@
-import type { LinksFunction, LoaderArgs } from '@remix-run/node'
+import type {
+  LinksFunction,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
-import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Fab, Layouts } from '~/components'
 import { getHomeRoute } from '~/data/content.server'
@@ -12,6 +16,7 @@ import {
   getWalletInfo
 } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { AppPage } from './app'
 import styles from './home.css'
@@ -32,7 +37,7 @@ export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: styles }]
 }
 
-export async function loader(args: LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   const isUser = hasUserSession(args.request)
 
   if (isUser) {
@@ -42,7 +47,7 @@ export async function loader(args: LoaderArgs) {
   }
 }
 
-export async function appLoader({ request }: LoaderArgs) {
+export async function appLoader({ request }: LoaderFunctionArgs) {
   const [walletInfo, transactions, kycStatus, pusherArgs, features] =
     await Promise.all([
       getWalletInfo(request),
@@ -75,23 +80,20 @@ export async function marketingLoader() {
 }
 
 export const handle: ApplicationProps = {
-  layout: (match) => (match.data.isUser ? Layouts.Wallet : Layouts.Marketing),
+  layout: (match: UIMatch<typeof loader>) =>
+    match.data.isUser ? Layouts.Wallet : Layouts.Marketing,
   scaffold: {
     header: {
       title: 'Home'
     },
     fab: Fab.Pay,
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof marketingLoader>) => match.data.footer
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data?.homeRoute?.seoMeta),
-    'twitter:url': 'https://fynbos.app/',
-    'og:url': 'https://fynbos.app/'
-  }
-}
+export const meta: MetaFunction<typeof marketingLoader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.homeRoute?._seoMetaTags, location)
+)
 
 export default function Page() {
   const { isUser } = useLoaderData<typeof loader>()

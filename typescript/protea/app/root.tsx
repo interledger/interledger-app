@@ -1,10 +1,13 @@
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  LinksFunction,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
   Link,
   Links,
-  LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
@@ -17,7 +20,7 @@ import {
 import { captureRemixErrorBoundaryError, withSentry } from '@sentry/remix'
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
-import { AnchorRouter, Error } from '~/components'
+import { AnchorRouter, Error, LiveReload } from '~/components'
 import { Scaffold } from '~/components/Scaffold'
 import { hasUserSession } from '~/lib/kratos.server'
 import { getSnackbar } from '~/lib/snackbar.server'
@@ -26,32 +29,62 @@ import styles from '~/styles/app.css'
 
 const metaContent = {
   title: 'Fynbos',
-  description: 'Building the better way to pay.'
+  description: 'Connect. Verify. Transact with certainty.'
 }
 
-export const meta: MetaFunction = () => {
-  return {
-    title: metaContent.title,
-    'theme-color': '#FFE4E6',
-    description: metaContent.description,
-    viewport: 'width=device-width,initial-scale=1',
-
-    // Open Graph / Facebook
-    'og:title': metaContent.title,
-    'og:type': 'website',
-    'og:url': 'https://fynbos.app/',
-    'og:description': metaContent.description,
-    'og:image': '/fynbos.png',
-
-    // Twitter
-    'twitter:site': '@fynbosdev',
-    'twitter:card': 'summary_large_image',
-    'twitter:url': 'https://fynbos.app/',
-    'twitter:title': metaContent.title,
-    'twitter:description': metaContent.description,
-    'twitter:image': '/fynbos.png'
+export const meta: MetaFunction = () => [
+  { title: metaContent.title },
+  {
+    property: 'og:title',
+    content: metaContent.title
+  },
+  {
+    name: 'twitter:title',
+    content: metaContent.title
+  },
+  {
+    name: 'description',
+    content: metaContent.description
+  },
+  {
+    property: 'og:description',
+    content: metaContent.description
+  },
+  {
+    name: 'twitter:description',
+    content: metaContent.description
+  },
+  {
+    property: 'og:image',
+    content:
+      'https://www.datocms-assets.com/101040/1691759191-og-banner-6.png?auto=format&fit=max&w=1200'
+  },
+  {
+    name: 'twitter:image',
+    content:
+      'https://www.datocms-assets.com/101040/1691759191-og-banner-6.png?auto=format&fit=max&w=1200'
+  },
+  {
+    property: 'og:locale',
+    content: 'en'
+  },
+  {
+    property: 'og:type',
+    content: 'website'
+  },
+  {
+    property: 'og:site_name',
+    content: metaContent.title
+  },
+  {
+    name: 'twitter:card',
+    content: 'summary_large_image'
+  },
+  {
+    name: 'twitter:site',
+    content: '@fynbosdev'
   }
-}
+]
 
 export const links: LinksFunction = () => {
   return [
@@ -70,6 +103,9 @@ function Document({ children, theme = 'theme-system' }: DocumentProps) {
   return (
     <html lang='en'>
       <head>
+        <meta charSet='utf-8' />
+        <meta name='viewport' content='width=device-width,initial-scale=1' />
+        <meta name='theme-color' content='#FFE4E6' />
         <Meta />
         <Links />
       </head>
@@ -104,7 +140,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
   return json({
@@ -121,8 +157,8 @@ export async function loader({ request }: LoaderArgs) {
 
 function Page() {
   const location = useLocation()
-  const loader = useLoaderData()
-  useSegment(loader.env.segmentApiKey)
+  const { env } = useLoaderData<typeof loader>()
+  useSegment(env.segmentApiKey)
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 
@@ -131,7 +167,7 @@ function Page() {
       <Scaffold />
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(loader.env)}`
+          __html: `window.ENV = ${JSON.stringify(env)}`
         }}
       />
     </Document>

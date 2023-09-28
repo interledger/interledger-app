@@ -44,7 +44,7 @@ export const getAboutRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -143,7 +143,7 @@ export const getCurrentDocPage = async (variables: QueryDocArgs) => {
                 }
               }
             }
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -216,7 +216,7 @@ export const getCurrentFormPage = async (variables: QueryFormArgs) => {
                 buttonText
               }
             }
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -256,7 +256,7 @@ export const getCurrentThankYouPage = async (variables: QueryThankYouArgs) => {
             body {
               ...Section
             }
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -302,7 +302,7 @@ export const getBlogRoute = async (variables?: QueryAllBlogPostsArgs) => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -451,7 +451,7 @@ export const getCurrentBlogPost = async (variables: QueryBlogPostArgs) => {
             }
             description
             date
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -527,7 +527,7 @@ export const getContactRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -564,7 +564,7 @@ export const getDiscordRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -601,7 +601,7 @@ export const getCollectablesRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -638,7 +638,7 @@ export const getSlackRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -675,7 +675,7 @@ export const getLegalRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -714,7 +714,7 @@ export const getCurrentLegalPage = async (variables: QueryLegalPageArgs) => {
             id
             title
             _publishedAt
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -752,7 +752,7 @@ export const getHomeRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content
@@ -789,7 +789,7 @@ export const getWalletRoute = async () => {
               ...Section
             }
             _status
-            seoMeta: _seoMetaTags {
+            _seoMetaTags {
               tag
               attributes
               content

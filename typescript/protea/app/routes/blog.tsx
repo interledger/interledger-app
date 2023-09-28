@@ -1,16 +1,17 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
-import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Chip, ChipColor, Layouts, Router } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import { getBlogRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { BlogPostModelOrderBy } from '~/generated/dato-cms-graphql'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const { blogRoute, allBlogPosts, footer } = await getBlogRoute({
     orderBy: [BlogPostModelOrderBy.DateDesc]
   })
@@ -21,17 +22,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.blogRoute.seoMeta),
-    'twitter:url': 'https://fynbos.app/blog',
-    'og:url': 'https://fynbos.app/blog'
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.blogRoute?._seoMetaTags, location)
+)
 
 export default function Page() {
   const { allBlogPosts, blogRoute } = useLoaderData<typeof loader>()

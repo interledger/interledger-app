@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
@@ -16,6 +20,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { ScriptElt } from '~/lib/useScript'
@@ -35,7 +40,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   await getUserSession(request)
   const url = new URL(request.url)
   const paymentId = url.searchParams.get('paymentId') as string
@@ -77,11 +82,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Verifying'
   }
-}
+])
 
 function cleanupSongbirdScript(script: ScriptElt) {
   if (script) {
@@ -346,7 +351,7 @@ function ThreeDSPage() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const formName = form.get('name')
   const threeDSID = form.get('threeDsId') as string

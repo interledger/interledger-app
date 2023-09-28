@@ -1,4 +1,4 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Outlet } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -7,8 +7,9 @@ import { Layouts } from '~/components'
 
 import type { LoaderDocsNav } from '~/components/Scaffold/Docs/useDocsStore'
 import { getAllDocs } from '~/data/content.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod')
     throw json(null, { status: 404, statusText: 'Not found' })
 
@@ -32,17 +33,13 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Docs'
-    },
-    footer: (match) => match.data.footer
+    }
   }
 }
 
-export function meta() {
-  return {
-    'twitter:url': 'https://fynbos.app/docs',
-    'og:url': 'https://fynbos.app/docs'
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ location }) =>
+  datoMeta(undefined, location)
+)
 
 export default function Page() {
   return <Outlet />

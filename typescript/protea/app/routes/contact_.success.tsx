@@ -2,6 +2,7 @@ import type { MetaFunction } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { ButtonRouter, Card, Layouts, SuccessShapes } from '~/components'
+import { mergeMeta } from '~/lib/meta'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -13,11 +14,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Contact | Success'
   }
-}
+])
 
 export default function Page() {
   return (

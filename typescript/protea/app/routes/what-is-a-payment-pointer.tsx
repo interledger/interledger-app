@@ -1,30 +1,14 @@
+import type { MetaFunction } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import { AnchorRouter, ButtonRouter, Layouts, Shape } from '~/components'
+import { mergeMeta } from '~/lib/meta'
 
-import type { MetaFunction } from '@remix-run/node'
-
-export const meta: MetaFunction = () => {
-  const metaContent = {
-    title: 'What is a payment pointer?',
-    description:
-      "It's quite simple really - think of it as an email address for your digital wallet."
+export const meta: MetaFunction = mergeMeta(() => [
+  {
+    title: 'What is a payment pointer?'
   }
-
-  return {
-    title: metaContent.title,
-    description: metaContent.description,
-    'og:title': metaContent.title,
-    'og:description': metaContent.description,
-    'og:image':
-      'https://cdn.fynbos.app/marketing/what-is-a-payment-pointer-og.png',
-    'og:url': 'https://fynbos.app/what-is-a-payment-pointer',
-    'twitter:title': metaContent.title,
-    'twitter:description': metaContent.description,
-    'twitter:image':
-      'https://cdn.fynbos.app/marketing/what-is-a-payment-pointer-twitter.png'
-  }
-}
+])
 
 export const handle: ApplicationProps = {
   layout: Layouts.Marketing,

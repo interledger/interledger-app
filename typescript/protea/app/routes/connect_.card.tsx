@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import {
   useActionData,
   useLoaderData,
@@ -29,10 +33,11 @@ import { getWalletId } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const walletId = await getWalletId(request)
   return jsonWithCSRF(request, {
     walletId,
@@ -50,11 +55,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Connect card'
   }
-}
+])
 
 export default function Page() {
   const { walletId, token, csrfToken } = useLoaderData<typeof loader>()
@@ -352,7 +357,7 @@ export default function Page() {
   }
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const cardToken = form.get('tokenId') as string
 

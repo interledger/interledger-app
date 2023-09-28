@@ -1,14 +1,15 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
-import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import { getDiscordRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const { discordRoute, footer } = await getDiscordRoute()
   return json({ discordRoute, footer })
 }
@@ -17,17 +18,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.discordRoute.seoMeta),
-    'twitter:url': 'https://fynbos.app/discord',
-    'og:url': 'https://fynbos.app/discord'
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.discordRoute?._seoMetaTags, location)
+)
 
 export default function Page() {
   const { discordRoute } = useLoaderData<typeof loader>()

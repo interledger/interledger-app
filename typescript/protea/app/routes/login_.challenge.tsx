@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -13,8 +17,9 @@ import {
   handleFlowError,
   kratosErrorMapping
 } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const session = await getUserSession(request)
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
@@ -64,11 +69,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: "Confirm it's you"
   }
-}
+])
 
 export default function Page() {
   const actionData = useActionData<typeof action>()
@@ -120,7 +125,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const url = new URL(request.url)
   const flowId = url.searchParams.get('flow')
 

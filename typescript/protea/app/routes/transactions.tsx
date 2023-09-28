@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
 import {
@@ -36,6 +36,7 @@ import {
 import { Label } from '~/components/Label'
 import { getKycStatus, getTransactionsWithPending } from '~/data/wallet.server'
 import type { Transaction } from '~/generated/connect/backend/v1/backend_pb'
+import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 
 /**
@@ -51,7 +52,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const pages = parseInt(url.searchParams.get('pages') || '1')
 
@@ -105,16 +106,16 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Transactions'
   }
-}
+])
 
 export default function Page() {
   const initialPage = useLoaderData<typeof loader>()
   let [, setSearchParams] = useSearchParams()
-  const fetcher = useFetcher()
+  const fetcher = useFetcher<typeof loader>()
   const [transactions, setTransactions] = useState(initialPage.transactions)
   const [nextPageToken, setNextPageToken] = useState<string>(
     initialPage.nextPageToken
@@ -180,8 +181,11 @@ export default function Page() {
   useEffect(() => {
     if (fetcher.data && fetcher.data.transactions.length > 0) {
       setTransactions((currentTransactions) => {
+        if (!fetcher.data) return currentTransactions
+
         const lastOfCurrent =
           currentTransactions[currentTransactions.length - 1]
+
         const newTransactions = fetcher.data.transactions
         // Verifies if current and new transaction sets have date group overlap
         if (
@@ -190,6 +194,7 @@ export default function Page() {
         ) {
           const last = currentTransactions.pop() ?? []
           const first = newTransactions.shift()
+          if (!first) return [...currentTransactions, ...newTransactions]
           return [
             ...currentTransactions,
             [...last, ...first],
