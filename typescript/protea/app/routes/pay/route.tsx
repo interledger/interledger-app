@@ -1,6 +1,10 @@
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -36,7 +40,7 @@ import { KycStatus } from '~/routes/_index/route'
 import { Search } from '~/routes/pay/Search'
 import { PaymentIdentityType } from '~/routes/pay_.$paymentId/route'
 
-export async function loader(args: LoaderArgs) {
+export async function loader(args: LoaderFunctionArgs) {
   const url = new URL(args.request.url)
 
   const term = url.searchParams.get('term')
@@ -47,7 +51,10 @@ export async function loader(args: LoaderArgs) {
   return payLoader(args)
 }
 
-export async function searchLoader({ request }: LoaderArgs, term: string) {
+export async function searchLoader(
+  { request }: LoaderFunctionArgs,
+  term: string
+) {
   const response = await grpc.searchWallets(request, { term })
 
   if (isConnectError(response)) throw response.errorResponse
@@ -56,7 +63,7 @@ export async function searchLoader({ request }: LoaderArgs, term: string) {
   return json({ results })
 }
 
-export async function payLoader({ request }: LoaderArgs) {
+export async function payLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
 
   let results: PlainMessage<SearchResult>[] = []
@@ -101,7 +108,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Pay search'
   }
@@ -173,7 +180,7 @@ export default function Page() {
   return <Search />
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const type = form.get('type') as string
   const walletUrl = form.get('walletUrl') as string

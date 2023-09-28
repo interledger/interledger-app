@@ -9,7 +9,8 @@ import {
   Router
 } from '~/components'
 
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ResponsiveImageType } from 'react-datocms'
 import { Image, StructuredText } from 'react-datocms'
@@ -25,8 +26,8 @@ import type {
 } from '~/generated/dato-cms-graphql'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.post?.seoMeta),
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.post?._seoMetaTags),
   ({ location }) => [
     {
       name: 'og:url',
@@ -39,7 +40,7 @@ export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
   ]
 )
 
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
   const { footer, blogPost } = await getCurrentBlogPost({
     filter: { slug: { eq: params.slug } }
   })
@@ -53,7 +54,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 

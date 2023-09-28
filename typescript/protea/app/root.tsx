@@ -1,7 +1,7 @@
 import type {
   LinksFunction,
-  LoaderArgs,
-  V2_MetaFunction
+  LoaderFunctionArgs,
+  MetaFunction
 } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { ShouldRevalidateFunction } from '@remix-run/react'
@@ -32,7 +32,7 @@ const metaContent = {
   description: 'Connect. Verify. Transact with certainty.'
 }
 
-export const meta: V2_MetaFunction = () => [
+export const meta: MetaFunction = () => [
   { title: metaContent.title },
   {
     property: 'og:title',
@@ -140,7 +140,7 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate
 }
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const isUser = hasUserSession(request)
   const snackbar = await getSnackbar(request)
   return json({
@@ -157,8 +157,8 @@ export async function loader({ request }: LoaderArgs) {
 
 function Page() {
   const location = useLocation()
-  const loader = useLoaderData()
-  useSegment(loader.env.segmentApiKey)
+  const { env } = useLoaderData<typeof loader>()
+  useSegment(env.segmentApiKey)
 
   if (location.pathname == '/temp-cloudflare-error') return <CloudFlareError />
 
@@ -167,7 +167,7 @@ function Page() {
       <Scaffold />
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.ENV = ${JSON.stringify(loader.env)}`
+          __html: `window.ENV = ${JSON.stringify(env)}`
         }}
       />
     </Document>

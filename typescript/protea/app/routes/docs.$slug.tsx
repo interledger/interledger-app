@@ -1,5 +1,6 @@
-import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
 import type { Node } from 'datocms-structured-text-utils'
@@ -34,7 +35,7 @@ import type {
 import { sanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod')
     throw json(null, { status: 404, statusText: 'Not found' })
 
@@ -95,14 +96,14 @@ export const handle: ApplicationProps = {
   layout: Layouts.Docs,
   scaffold: {
     header: {
-      title: (match) => match.data.doc.title
+      title: (match: UIMatch<typeof loader>) => match.data.doc.title ?? ''
     },
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export const meta: V2_MetaFunction<typeof loader> = mergeMeta(
-  ({ data }) => datoMeta(data?.doc?.seoMeta),
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data }) => datoMeta(data?.doc?._seoMetaTags),
   ({ location }) => [
     {
       name: 'og:url',

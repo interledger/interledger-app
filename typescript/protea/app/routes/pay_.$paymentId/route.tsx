@@ -1,6 +1,10 @@
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
@@ -63,7 +67,7 @@ export enum PaymentIdentityType {
   Sentinel // End of range value must be last, no need to public
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount | undefined
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
@@ -170,7 +174,7 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: V2_MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction = mergeMeta(() => [
   {
     title: 'Pay'
   }
@@ -277,7 +281,7 @@ export default function Page() {
   )
 }
 
-export async function action(args: ActionArgs) {
+export async function action(args: ActionFunctionArgs) {
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string
@@ -296,7 +300,10 @@ export async function action(args: ActionArgs) {
   }
 }
 
-export async function confirmPaymentAction({ request, params }: ActionArgs) {
+export async function confirmPaymentAction({
+  request,
+  params
+}: ActionFunctionArgs) {
   const form = await request.formData()
   const serviceAgreement = form.get('serviceAgreement') as string
   const otp = String(form.get('otp') || '')
@@ -347,7 +354,10 @@ export async function confirmPaymentAction({ request, params }: ActionArgs) {
   })
 }
 
-export async function updatePaymentAction({ request, params }: ActionArgs) {
+export async function updatePaymentAction({
+  request,
+  params
+}: ActionFunctionArgs) {
   const form = await request.formData()
   const amount = form.get('amount') as string
   const note = String(form.get('note') || '')
