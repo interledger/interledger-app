@@ -143,28 +143,28 @@ func TestClient(t *testing.T) {
 				ReceiveTransfers: []AssertTransfer{},
 			},
 		},
-		// {
-		// 	Name: "Compliance fails",
-		// 	Args: payments.CreateArgs{
-		// 		Sender: payments.Identity{
-		// 			Type:       payments.IdentityTypeWalletID,
-		// 			Identifier: sendWalletID,
-		// 		},
-		// 		SenderAccount: sendLinkedAccount,
-		// 		Receiver: payments.Identity{
-		// 			Type:       payments.IdentityTypeWalletID,
-		// 			Identifier: receiveWalletID,
-		// 		},
-		// 		ReceiverAccount: receiveLinkedAccount,
-		// 		SenderAmount:    currency.FromUInt64(1222, currency.ParseCurrency("USD")),
-		// 		ReceiverAmount:  currency.FromUInt64(1222, currency.ParseCurrency("USD")),
-		// 		IPAddress:       "192.36.8.4",
-		// 	},
-		// 	Assertions: Assertions{
-		// 		PaymentState:         payments.StateFailed,
-		// 		SendTransactionState: transactions.StateFailed,
-		// 	},
-		// },
+		{
+			Name: "Compliance fails",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendLinkedAccount,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveLinkedAccount,
+				SenderAmount:    currency.FromUInt64(1222, currency.ParseCurrency("USD")),
+				ReceiverAmount:  currency.FromUInt64(1222, currency.ParseCurrency("USD")),
+				IPAddress:       "192.36.8.4",
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateFailed,
+				SendTransactionState: transactions.StateFailed,
+			},
+		},
 		{
 			Name:        "Requires account linking",
 			AddIdentity: true,
