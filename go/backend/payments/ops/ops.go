@@ -299,7 +299,13 @@ func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity
 	return la.ID, nil
 }
 
-func requiresOTP(ctx context.Context, b Backends, sender, receiver payments.Identity) (bool, error) {
+func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver payments.Identity) (bool, error) {
+
+	// Web monetization payouts don't need an OTP
+	if typ == payments.TypeWebMonetization {
+		return false, nil
+	}
+
 	// Default to requiring
 	if receiver.IsEmpty() || !receiver.Type.Valid() {
 		return true, nil
@@ -339,6 +345,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w Sender is invalid.", payments.ErrInvalidIdentifier)
 	}
 
+	// Default to Peer to Peer
+	if p.Type == payments.TypeUnknown {
+		p.Type = payments.TypePeer2Peer
+	}
+
 	senderWallet, err := lookupWallet(ctx, b, p.Sender)
 	if err != nil {
 		return nil, err
@@ -359,17 +370,12 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		defaultRecvAcc, _ = defaultReceiveAccount(ctx, b, p.Receiver)
 	}
 
-	requireOTP, err := requiresOTP(ctx, b, p.Sender, p.Receiver)
+	requireOTP, err := requiresOTP(ctx, b, p.Type, p.Sender, p.Receiver)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	require3DS := requires3DS(p.Sender)
-
-	// Default to Peer to Peer
-	if p.Type == payments.TypeUnknown {
-		p.Type = payments.TypePeer2Peer
-	}
 
 	publicID, err := NewSoftDescriptor(time.Now())
 	if err != nil {

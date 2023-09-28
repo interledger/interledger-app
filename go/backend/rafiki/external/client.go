@@ -21,7 +21,7 @@ type client struct {
 }
 
 func New() Client {
-	baseURL := "https://localhost:8080/"
+	baseURL := "http://rafiki-rafiki-backend.rafiki:3001/graphql"
 	cl := graphql.NewClient(baseURL, otelhttp.DefaultClient) // TODO: set auth headers maybe
 
 	// Default value for eu1

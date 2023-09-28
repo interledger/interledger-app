@@ -4,21 +4,21 @@ import (
 	"context"
 	"net/http"
 
-	temporal "go.temporal.io/sdk/client"
-
-	"gitlab.com/fynbos/backend/payments"
-
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/rafiki/external"
 	"gitlab.com/fynbos/backend/rafiki/ops"
 	"gitlab.com/fynbos/backend/wallets"
+	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
 	DB() *sqlx.DB
 	Payments() payments.Client
 	Temporal() temporal.Client
+	LinkedAccounts() linkedaccounts.Client
 }
 
 var _ ops.Backends = opsBackends{}
