@@ -2598,8 +2598,9 @@ table "rafiki_incoming_payments" {
     type = text
   }
   column "completed" {
-    null = false
-    type = text
+    null    = false
+    type    = boolean
+    default = false
   }
   column "received_amount" {
     null = false
