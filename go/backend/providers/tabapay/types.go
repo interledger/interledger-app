@@ -28,11 +28,12 @@ type CreateCardArgs struct {
 }
 
 type PullFromCardArgs struct {
-	WalletID    string
-	ProviderID  string
-	ReferenceID string
-	Amount      currency.Amount
-	ThreeDSID   string
+	WalletID       string
+	ProviderID     string
+	ReferenceID    string
+	Amount         currency.Amount
+	ThreeDSID      string
+	SoftDescriptor string
 }
 
 type PushToCardArgs = PullFromCardArgs

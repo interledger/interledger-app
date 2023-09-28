@@ -2,6 +2,9 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"math"
+	"time"
 
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
@@ -23,8 +26,14 @@ func (c client) Lookup(ctx context.Context, id string) (*payments.Payment, error
 	return ops.Lookup(ctx, c.b, id)
 }
 
+// This will retry up to 3 times with exponential back-off as there may be PublicID collisions.
 func (c client) Create(ctx context.Context, args payments.CreateArgs) (*payments.Payment, error) {
-	return ops.Create(ctx, c.b, args)
+	operation := func() (*payments.Payment, error) {
+		return ops.Create(ctx, c.b, args)
+	}
+	wrappedOperation := retryWithBackoff(operation)
+
+	return wrappedOperation()
 }
 
 func (c client) Update(ctx context.Context, args payments.UpdateArgs) (*payments.Payment, error) {
@@ -49,4 +58,32 @@ func (c client) SignalAccountLinked(ctx context.Context, walletID string) error 
 
 func (c client) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment, error) {
 	return ops.ListAwaitingSignal(ctx, c.b)
+}
+
+var maxRetries = 3
+var baseDelay = 1 * time.Millisecond
+
+// RetryFunc is a function that can be retried
+type retryFunc func() (*payments.Payment, error)
+
+// RetryWithBackoff retries the given operation with exponential backoff
+func retryWithBackoff(operation retryFunc) retryFunc {
+	return func() (*payments.Payment, error) {
+		var lastError error
+
+		for i := 0; i < maxRetries; i++ {
+			val, err := operation()
+			if err == nil {
+				return val, nil
+			}
+
+			secRetry := math.Pow(2, float64(i))
+			fmt.Printf("Retrying operation in %f seconds\n", secRetry)
+			delay := time.Duration(secRetry) * baseDelay
+			time.Sleep(delay)
+			lastError = err
+		}
+
+		return nil, lastError
+	}
 }

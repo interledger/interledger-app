@@ -2082,6 +2082,11 @@ table "payments" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
+  column "type" {
+    null    = false
+    type    = int
+    default = 1
+  }
   primary_key {
     columns = [column.id]
   }
@@ -2498,6 +2503,131 @@ table "slack_connections" {
   }
   index "slack_user_team_ind" {
     columns = [column.user_id, column.team_domain]
+  }
+}
+
+table "discord_payment_interactions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = text
+  }
+  column "notified_processing" {
+    type    = bool
+    default = false
+  }
+  column "notified_receiver" {
+    type    = bool
+    default = false
+  }
+  column "interaction" {
+    type = text
+    default = ""
+  }
+  column "receiver_discord_user_id" {
+    type = text
+    default = ""
+  }
+  column "sender_discord_username" {
+    type = text
+    default = ""
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "expired_at" {
+    null    = true
+    type    = timestamp
+  }
+}
+
+table "rafiki_payment_pointers" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "payment_pointer_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "rafiki_payment_pointers_id_uniq_idx" {
+    unique  = true
+    columns = [column.payment_pointer_id]
+  }
+  index "rafiki_payment_pointers_wallet_idx" {
+    unique  = true
+    columns = [column.wallet_id]
+  }
+}
+
+table "rafiki_incoming_payments" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_pointer_id" {
+    null = false
+    type = text
+  }
+  column "completed" {
+    null = false
+    type = text
+  }
+  column "received_amount" {
+    null = false
+    type = bigint
+  }
+  column "received_amount_asset" {
+    null = false
+    type = text
+  }
+  column "payment_id" {
+    null = true
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "rafiki_incoming_payments_payment_pointers_id_idx" {
+    columns = [column.payment_pointer_id]
   }
 }
 

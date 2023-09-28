@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
@@ -14,6 +15,7 @@ import (
 	mock_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay/ops"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -61,6 +63,7 @@ func (ob *opsBackends) Temporal() temporal.Client {
 }
 
 func New(args NewClientArgs, b Backends) (*Client, error) {
+	var fynbosAddress *external.Address
 	var externalClient external.Client
 	if env.IsLocal() {
 		externalClient = mock_client.SetupDevMock(nil)
@@ -78,6 +81,22 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if os.Getenv("FYNBOS_ADDRESS_STATE") != "" && os.Getenv("FYNBOS_ADDRESS_CITY") != "" &&
+			os.Getenv("FYNBOS_ADDRESS_ZIPCODE") != "" && os.Getenv("FYNBOS_ADDRESS_COUNTRY") != "" {
+			fynbosAddress = &external.Address{
+				City:    os.Getenv("FYNBOS_ADDRESS_CITY"),
+				State:   os.Getenv("FYNBOS_ADDRESS_STATE"),
+				ZipCode: os.Getenv("FYNBOS_ADDRESS_ZIPCODE"),
+				Country: os.Getenv("FYNBOS_ADDRESS_COUNTRY"),
+			}
+		} else {
+			log.Warn("Fynbos address not configured. Soft descriptors will not be sent to Tabapay")
+		}
+	}
+
+	if fynbosAddress == nil {
+		log.Warn("tabapay client is not configured with Fynbos address. Soft descriptor won't be sent.")
 	}
 
 	return &Client{
@@ -86,12 +105,14 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 			b:        b,
 		},
 		settlementAccountID: args.SettlementAccountID,
+		fynbosAddress:       fynbosAddress,
 	}, nil
 }
 
 type Client struct {
 	b                   ops.Backends
 	settlementAccountID string
+	fynbosAddress       *external.Address
 }
 
 func (c *Client) CreateCard(ctx context.Context, args tabapay.CreateCardArgs) (tabapay.Await, error) {
@@ -99,6 +120,16 @@ func (c *Client) CreateCard(ctx context.Context, args tabapay.CreateCardArgs) (t
 }
 
 func (c *Client) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs) (*tabapay.Transaction, error) {
+	var softDescriptor *external.SoftDescriptor
+	if args.SoftDescriptor != "" && c.fynbosAddress != nil {
+		softDescriptor = &external.SoftDescriptor{
+			Name:    args.SoftDescriptor,
+			Address: c.fynbosAddress,
+		}
+	} else {
+		log.Warn("Fynbos address not configured. Soft descriptors will not be sent to Tabapay")
+	}
+
 	return ops.PullFromCard(ctx, c.b, ops.PullFromCardArgs{
 		WalletID:            args.WalletID,
 		ProviderID:          args.ProviderID,
@@ -106,10 +137,21 @@ func (c *Client) PullFromCard(ctx context.Context, args tabapay.PullFromCardArgs
 		Amount:              args.Amount,
 		SettlementAccountID: c.settlementAccountID,
 		ThreeDSID:           args.ThreeDSID,
+		SoftDescriptor:      softDescriptor,
 	})
 }
 
 func (c *Client) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (*tabapay.Transaction, error) {
+	var softDescriptor *external.SoftDescriptor
+	if args.SoftDescriptor != "" && c.fynbosAddress != nil {
+		softDescriptor = &external.SoftDescriptor{
+			Name:    args.SoftDescriptor,
+			Address: c.fynbosAddress,
+		}
+	} else {
+		log.Warn("Fynbos address not configured. Soft descriptors will not be sent to Tabapay")
+	}
+
 	return ops.PushToCard(ctx, c.b, ops.PullFromCardArgs{
 		WalletID:            args.WalletID,
 		ProviderID:          args.ProviderID,
@@ -117,6 +159,7 @@ func (c *Client) PushToCard(ctx context.Context, args tabapay.PushToCardArgs) (*
 		Amount:              args.Amount,
 		SettlementAccountID: c.settlementAccountID,
 		ThreeDSID:           args.ThreeDSID,
+		SoftDescriptor:      softDescriptor,
 	})
 }
 

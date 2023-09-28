@@ -1,0 +1,10 @@
+mutation CreatePaymentPointer($input: CreatePaymentPointerInput!){
+    createPaymentPointer(input: $input) {
+        code
+        success
+        message
+        paymentPointer {
+            id
+        }
+    }
+}

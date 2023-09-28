@@ -2,9 +2,11 @@ package grpc
 
 import (
 	"fmt"
-	"gitlab.com/fynbos/backend/dynamicforms"
 	"net"
 	"testing"
+
+	"gitlab.com/fynbos/backend/dynamicforms"
+	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/discord"
 	"gitlab.com/fynbos/backend/payments"
@@ -99,6 +101,10 @@ type TestContainer struct {
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
 	dynamicforms       *dynamicforms_mock.MockClient
+}
+
+func (t TestContainer) Rafiki() rafiki.Client {
+	return nil
 }
 
 func (t TestContainer) Slack() slack.Client {

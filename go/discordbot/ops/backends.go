@@ -1,22 +1,20 @@
-package cmd
+package ops
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/discordbot/ops"
-
-	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/wallets"
 )
 
 type Backends interface {
 	DB() *sqlx.DB
-	LinkedAccounts() linkedaccounts.Client
-	Wallets() wallets.Client
-	Identities() identities.Client
+	Discord() Discord
 	Payments() payments.Client
-	Discord() ops.Discord
+	LinkedAccounts() linkedaccounts.Client
+	Identities() identities.Client
 	Transactions() transactions.Client
+	Wallets() wallets.Client
 }

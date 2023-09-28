@@ -71,6 +71,7 @@ func PullFromCard(ctx context.Context, b Backends, args PullFromCardArgs) (*taba
 			SourceAccountID:      args.ProviderID,
 			DestinationAccountID: args.SettlementAccountID,
 		},
+		SoftDescriptor: args.SoftDescriptor,
 	}
 
 	if args.ThreeDSID != "" {
@@ -123,6 +124,7 @@ func PushToCard(ctx context.Context, b Backends, args PullFromCardArgs) (*tabapa
 			SourceAccountID:      args.SettlementAccountID,
 			DestinationAccountID: args.ProviderID,
 		},
+		SoftDescriptor: args.SoftDescriptor,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
