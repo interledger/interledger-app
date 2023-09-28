@@ -565,11 +565,10 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 		return nil, err
 	}
 
-	// rid, err := getReceiverID(ctx, b, walletID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	rid := 0 // hard-coded until GMT api is fixed
+	rid, err := getReceiverID(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
 
 	gender := "Male"
 	if recvID.Gender == kyc.GenderFemale {
