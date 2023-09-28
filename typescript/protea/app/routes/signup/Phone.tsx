@@ -15,11 +15,12 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
-import type { loader } from './route'
+import type { action as sendOtpAction } from '~/routes/api_.sendOtp'
+import type { loader, otpAction } from './route'
 
 export function Phone() {
-  const otpFetcher = useFetcher()
-  const validateFetcher = useFetcher()
+  const otpFetcher = useFetcher<typeof sendOtpAction>()
+  const validateFetcher = useFetcher<typeof otpAction>()
   const { csrfToken } = useLoaderData<typeof loader>()
   const [showDialog, setShowDialog] = useState<boolean>(false)
 

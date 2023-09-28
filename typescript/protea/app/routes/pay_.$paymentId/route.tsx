@@ -1,12 +1,15 @@
 import { Code } from '@bufbuild/connect'
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { useEffect } from 'react'
 import { route } from 'routes-gen'
 
-import { Simulate } from 'react-dom/test-utils'
 import type { ApplicationProps } from '~/components'
 import {
   Alert,
@@ -35,13 +38,13 @@ import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { KycStatus } from '~/routes/_index/route'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
-import submit = Simulate.submit
 
 export enum PaymentRequiredAction {
   Unknown,
@@ -64,7 +67,7 @@ export enum PaymentIdentityType {
   Sentinel // End of range value must be last, no need to public
 }
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount | undefined
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
@@ -171,11 +174,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Pay'
   }
-}
+])
 
 export default function Page() {
   const { payStep, features, sendAccounts, payment } =
@@ -202,7 +205,7 @@ export default function Page() {
       setAmount(String(Number(payment.senderAmount?.amount) / 100 || ''))
       setStep(payStep)
     }
-  }, [payStep, setStep, step])
+  }, [payStep, payment.senderAmount?.amount, setAmount, setStep, step])
 
   useEffect(() => {
     if (commandPaletteOpen) {
@@ -278,7 +281,7 @@ export default function Page() {
   )
 }
 
-export async function action(args: ActionArgs) {
+export async function action(args: ActionFunctionArgs) {
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string
@@ -297,7 +300,10 @@ export async function action(args: ActionArgs) {
   }
 }
 
-export async function confirmPaymentAction({ request, params }: ActionArgs) {
+export async function confirmPaymentAction({
+  request,
+  params
+}: ActionFunctionArgs) {
   const form = await request.formData()
   const serviceAgreement = form.get('serviceAgreement') as string
   const otp = String(form.get('otp') || '')
@@ -348,7 +354,10 @@ export async function confirmPaymentAction({ request, params }: ActionArgs) {
   })
 }
 
-export async function updatePaymentAction({ request, params }: ActionArgs) {
+export async function updatePaymentAction({
+  request,
+  params
+}: ActionFunctionArgs) {
   const form = await request.formData()
   const amount = form.get('amount') as string
   const note = String(form.get('note') || '')

@@ -11,10 +11,10 @@ import {
 } from '~/components'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { useSignupStore } from '~/lib/useSignupStore'
-import type { loader } from './route'
+import type { loader, passwordAction } from './route'
 
 export function Password() {
-  const passwordFetcher = useFetcher()
+  const passwordFetcher = useFetcher<typeof passwordAction>()
   const { kratosFlowId, kratosCsrfToken, csrfToken } =
     useLoaderData<typeof loader>()
 

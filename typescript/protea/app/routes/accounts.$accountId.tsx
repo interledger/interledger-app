@@ -1,5 +1,6 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData, useParams } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
@@ -22,7 +23,7 @@ import { Label } from '~/components/Label'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const card = await grpc.getCardDetails(request, {
     id: params.accountId as string
   })
@@ -39,7 +40,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: route('/accounts'),
-      actions: (match) => {
+      actions: (match: UIMatch<typeof loader>) => {
         const state = match.data.card.state
         if (state == 'Verified') {
           const canSend = match.data.card.canSend

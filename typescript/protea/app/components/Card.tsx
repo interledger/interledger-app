@@ -111,10 +111,10 @@ CardButton.displayName = 'CardButton'
 
 export {
   Card,
-  CardIcon,
+  CardButton,
   CardContent,
   CardHeader,
-  CardTitle,
+  CardIcon,
   CardLink,
-  CardButton
+  CardTitle
 }

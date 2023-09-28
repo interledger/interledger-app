@@ -1,5 +1,6 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { Form, useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
@@ -19,8 +20,9 @@ import {
 import { getIdentityBySignatureHash } from '~/data/identity.server'
 import { getPublicWalletDetails } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const identity = await getIdentityBySignatureHash(
     request,
     params.identityId as string
@@ -43,71 +45,106 @@ export async function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  const metaContent = (() => {
-    switch (data.identity.platform) {
-      case 'twitter':
-        return {
-          title: `@${data.identity.identifier} has verified they are a real person`,
-          description:
-            'Fynbos has verified that this person is real and this is the public proof of their Twitter identity.'
-        }
-      case 'domain':
-        return {
-          title: `${data.identity.identifier} is connected to a real person`,
-          description:
-            'Fynbos has verified that this domain is connected to a real person and this is the public proof of their domain identity.'
-        }
-      case 'discord':
-        return {
-          title: `@${data.identity.identifier} has verified they are a real person`,
-          description:
-            'Fynbos has verified that this person is real and this is the public proof of their Discord identity.'
-        }
-      case 'slack':
-        return {
-          title: `@${data.identity.identifier} has verified they are a real person`,
-          description:
-            'Fynbos has verified that this person is real and this is the public proof of their Slack identity.'
-        }
-      default:
-        return {
-          title: `@${data.identity.identifier} has verified they are a real person`,
-          description:
-            'Fynbos has verified that this person is real and this is the public proof of their identity.'
-        }
-    }
-  })()
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
+  let metaContent
 
-  return {
-    title: metaContent.title,
-    description: metaContent.description,
-    'og:title': metaContent.title,
-    'og:url': 'https://fynbos.app/me/identities/' + data.identity.signatureHash,
-    'og:description': metaContent.description,
-    'og:image': `https://cdn.fynbos.app/identities/${data.identity.signatureHash}/${data.identity.platform}-og.png`,
-    'twitter:url':
-      'https://fynbos.app/me/identities/' + data.identity.signatureHash,
-    'twitter:image': `https://cdn.fynbos.app/identities/${data.identity.signatureHash}/${data.identity.platform}-og.png`,
-    'twitter:title': metaContent.title,
-    'twitter:description': metaContent.description
+  switch (data?.identity.platform) {
+    case 'twitter':
+      metaContent = {
+        title: `@${data.identity.identifier} has verified they are a real person`,
+        description:
+          'Fynbos has verified that this person is real and this is the public proof of their Twitter identity.'
+      }
+      break
+    case 'domain':
+      metaContent = {
+        title: `${data.identity.identifier} is connected to a real person`,
+        description:
+          'Fynbos has verified that this domain is connected to a real person and this is the public proof of their domain identity.'
+      }
+      break
+    case 'discord':
+      metaContent = {
+        title: `@${data.identity.identifier} has verified they are a real person`,
+        description:
+          'Fynbos has verified that this person is real and this is the public proof of their Discord identity.'
+      }
+      break
+    case 'slack':
+      metaContent = {
+        title: `@${data.identity.identifier} has verified they are a real person`,
+        description:
+          'Fynbos has verified that this person is real and this is the public proof of their Slack identity.'
+      }
+      break
+    default:
+      metaContent = {
+        title: `@${data?.identity.identifier} has verified they are a real person`,
+        description:
+          'Fynbos has verified that this person is real and this is the public proof of their identity.'
+      }
   }
-}
+
+  return [
+    { title: metaContent.title },
+    {
+      property: 'og:title',
+      content: metaContent.title
+    },
+    {
+      name: 'twitter:title',
+      content: metaContent.title
+    },
+    {
+      name: 'description',
+      content: metaContent.description
+    },
+    {
+      property: 'og:description',
+      content: metaContent.description
+    },
+    {
+      name: 'twitter:description',
+      content: metaContent.description
+    },
+    {
+      property: 'og:image',
+      content: `https://cdn.fynbos.app/identities/${data?.identity.signatureHash}/${data?.identity.platform}-og.png`
+    },
+    {
+      name: 'twitter:image',
+      content: `https://cdn.fynbos.app/identities/${data?.identity.signatureHash}/${data?.identity.platform}-og.png`
+    },
+    {
+      name: 'og:url',
+      content:
+        'https://fynbos.app/me/identities/' + data?.identity.signatureHash
+    },
+    {
+      name: 'twitter:url',
+      content:
+        'https://fynbos.app/me/identities/' + data?.identity.signatureHash
+    }
+  ]
+})
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
   scaffold: {
     header: {
-      back: (match) => `/me/${match.data.identity.walletUrlWithoutProtocol}`,
-      title: (match) => {
+      back: (match: UIMatch<typeof loader>) =>
+        `/me/${match.data.identity.walletUrlWithoutProtocol}`,
+      title: (match: UIMatch<typeof loader>) => {
         switch (match.data.identity.platform) {
           case 'twitter':
             return `@${match.data.identity.identifier}`
           case 'domain':
             return match.data.identity.identifier
+          default:
+            return match.data.identity.identifier
         }
       },
-      actions: (match) =>
+      actions: (match: UIMatch<typeof loader>) =>
         match.data.identity.state == 'verified'
           ? {
               key: 'Verified',

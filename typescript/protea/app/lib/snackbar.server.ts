@@ -59,7 +59,7 @@ export async function redirectWithSnackbar(
   })
 }
 
-type JsonWithSnackbarFunction = <Data extends unknown>(
+type JsonWithSnackbarFunction = <Data>(
   request: Request,
   data: Data,
   snackbar: Partial<SnackbarType>,

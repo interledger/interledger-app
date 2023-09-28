@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
@@ -13,8 +13,9 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { getPublicWalletDetails, getWalletInfo } from '~/data/wallet.server'
+import { mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const walletInfo = await getWalletInfo(request)
   const wallet = await getPublicWalletDetails(request, walletInfo.walletID)
 
@@ -35,11 +36,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Public information'
   }
-}
+])
 
 export default function Page() {
   const { name, walletInfo } = useLoaderData<typeof loader>()

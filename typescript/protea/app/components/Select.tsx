@@ -144,7 +144,7 @@ interface SelectRouterProps
 }
 
 export const SelectRouter = forwardRef<any, SelectRouterProps>(
-  ({ className, to, ...props }, ref) => {
+  ({ className, to, children, ...props }, ref) => {
     return (
       <Link
         ref={ref}
@@ -154,7 +154,9 @@ export const SelectRouter = forwardRef<any, SelectRouterProps>(
           className
         )}
         {...props}
-      />
+      >
+        {children}
+      </Link>
     )
   }
 )

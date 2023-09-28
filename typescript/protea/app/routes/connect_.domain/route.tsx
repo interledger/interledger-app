@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 
 import { Code } from '@bufbuild/connect'
 import { useEffect } from 'react'
@@ -8,6 +12,7 @@ import { Layouts } from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import {
   ConnectDomainStep,
@@ -16,7 +21,7 @@ import {
 import { Landing } from './Landing'
 import { Name } from './Name'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   return jsonWithCSRF(request, {
     fynbosEnv: process.env.FYNBOS_ENV
   })
@@ -29,11 +34,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Connect a domain'
   }
-}
+])
 
 export default function Page() {
   const [step, reset] = useConnectDomainStore((state) => [
@@ -56,7 +61,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)

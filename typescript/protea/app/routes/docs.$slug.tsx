@@ -1,5 +1,6 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
 import type { Node } from 'datocms-structured-text-utils'
@@ -7,7 +8,7 @@ import { isCode } from 'datocms-structured-text-utils'
 import type { FC, ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import type { ResponsiveImageType } from 'react-datocms'
-import { Image, StructuredText, toRemixMeta } from 'react-datocms'
+import { Image, StructuredText } from 'react-datocms'
 import { getHighlighter, renderToHtml } from 'shiki'
 import type { ApplicationProps } from '~/components'
 import {
@@ -32,8 +33,9 @@ import type {
   InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
 import { sanitizeHTML } from '~/lib/fetchAndSanitizeHTML.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod')
     throw json(null, { status: 404, statusText: 'Not found' })
 
@@ -94,19 +96,15 @@ export const handle: ApplicationProps = {
   layout: Layouts.Docs,
   scaffold: {
     header: {
-      title: (match) => match.data.doc.title
+      title: (match: UIMatch<typeof loader>) => match.data.doc.title ?? ''
     },
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.doc.seoMeta),
-    'twitter:url': 'https://fynbos.app/docs',
-    'og:url': 'https://fynbos.app/docs'
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.doc?._seoMetaTags, location)
+)
 
 export default function Page() {
   const { doc } = useLoaderData<typeof loader>()

@@ -8,6 +8,7 @@ import {
   Layouts,
   SuccessShapes
 } from '~/components'
+import { mergeMeta } from '~/lib/meta'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -19,11 +20,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Waitlist | Success'
   }
-}
+])
 
 export default function Page() {
   return (

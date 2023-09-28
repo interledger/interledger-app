@@ -1,4 +1,8 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 
 import { Code } from '@bufbuild/connect'
@@ -19,6 +23,7 @@ import {
   kratosErrorMapping,
   requireNoUserSession
 } from '~/lib/kratos.server'
+import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import { About } from '~/routes/signup/About'
@@ -27,7 +32,7 @@ import { Password } from '~/routes/signup/Password'
 import { Phone } from '~/routes/signup/Phone'
 import styles from '~/styles/flags.css'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
 
   await requireNoUserSession(request)
@@ -67,11 +72,11 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = () => {
-  return {
+export const meta: MetaFunction = mergeMeta(() => [
+  {
     title: 'Sign up'
   }
-}
+])
 
 export function links() {
   return [{ rel: 'stylesheet', href: styles }]
@@ -106,7 +111,7 @@ export default function Page() {
   )
 }
 
-export async function action(args: ActionArgs) {
+export async function action(args: ActionFunctionArgs) {
   const formName = (await args.request.clone().formData()).get(
     'formName'
   ) as string
@@ -131,17 +136,23 @@ export async function action(args: ActionArgs) {
   )
 }
 
-export async function detailsAction({ request }: ActionArgs) {
+export async function detailsAction({ request }: ActionFunctionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
 
-  const errors = {
-    form: '',
+  const data = {
+    id: '',
     firstName: '',
     lastName: '',
-    country: '',
-    email: ''
+    email: '',
+    errors: {
+      form: '',
+      firstName: '',
+      lastName: '',
+      country: '',
+      email: ''
+    }
   }
   const mapping = { country: 'CountryOfResidence' }
 
@@ -165,23 +176,32 @@ export async function detailsAction({ request }: ActionArgs) {
 
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors }, mapping)
-    } else
-      return response.error({ errors }, mapping, { action: 'Contact support' })
+      return response.error(data, mapping)
+    } else return response.error(data, mapping, { action: 'Contact support' })
   }
 
-  return json({ id: response.id, firstName, lastName, email })
+  return json({
+    id: response.id,
+    firstName,
+    lastName,
+    email,
+    errors: data.errors
+  })
 }
 
-export async function otpAction({ request }: ActionArgs) {
+export async function otpAction({ request }: ActionFunctionArgs) {
   const form = await request.formData()
 
   await validateCSRFToken(request, form)
 
-  const errors = {
-    form: '',
-    otp: '',
-    phone: ''
+  const data = {
+    id: '',
+    phone: '',
+    errors: {
+      form: '',
+      otp: '',
+      phone: ''
+    }
   }
   const mapping = {
     phone: 'MobileNumber'
@@ -199,17 +219,16 @@ export async function otpAction({ request }: ActionArgs) {
 
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors }, mapping)
+      return response.error(data, mapping)
     } else if (response.code == Code.AlreadyExists) {
-      errors.phone = 'Mobile phone number is already registered.'
-      return response.error({ errors })
-    } else
-      return response.error({ errors }, mapping, { action: 'Contact support' })
+      data.errors.phone = 'Mobile phone number is already registered.'
+      return response.error(data)
+    } else return response.error(data, mapping, { action: 'Contact support' })
   }
-  return json({ id, phone })
+  return json({ id, phone, errors: data.errors })
 }
 
-export async function passwordAction({ request }: ActionArgs) {
+export async function passwordAction({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const id = form.get('id') as string
   const kratosFlowId = form.get('kratosFlowId') as string

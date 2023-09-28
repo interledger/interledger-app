@@ -1,7 +1,11 @@
-import type { ActionArgs, LoaderArgs } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
 import { redirect } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { toRemixMeta } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -18,8 +22,9 @@ import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const { contactRoute, footer } = await getContactRoute()
   return jsonWithCSRF(request, { contactRoute, footer })
 }
@@ -28,17 +33,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export function meta({ data }: any) {
-  return {
-    ...toRemixMeta(data.contactRoute.seoMeta),
-    'twitter:url': 'https://fynbos.app/contact',
-    'og:url': 'https://fynbos.app/contact'
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.contactRoute?._seoMetaTags, location)
+)
 
 export default function Page() {
   const { contactRoute, csrfToken } = useLoaderData<typeof loader>()
@@ -167,7 +168,7 @@ export default function Page() {
   )
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const firstName = form.get('firstName') as string
   const lastName = form.get('lastName') as string

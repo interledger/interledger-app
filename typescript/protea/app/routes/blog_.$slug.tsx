@@ -9,10 +9,11 @@ import {
   Router
 } from '~/components'
 
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
 import type { ResponsiveImageType } from 'react-datocms'
-import { Image, StructuredText, toRemixMeta } from 'react-datocms'
+import { Image, StructuredText } from 'react-datocms'
 import { route } from 'routes-gen'
 import { Prose } from '~/components/Content'
 import { getCurrentBlogPost } from '~/data/content.server'
@@ -23,16 +24,13 @@ import type {
   InlineTwitterEmbedRecord,
   InlineVideoRecord
 } from '~/generated/dato-cms-graphql'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.post.seoMeta),
-    'twitter:url': `https://fynbos.app/blog/${params.slug}`,
-    'og:url': `https://fynbos.app/blog/${params.slug}`
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.post?._seoMetaTags, location)
+)
 
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
   const { footer, blogPost } = await getCurrentBlogPost({
     filter: { slug: { eq: params.slug } }
   })
@@ -46,7 +44,7 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 

@@ -1,15 +1,16 @@
-import type { LoaderArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 
 import { json } from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
 import { useLoaderData } from '@remix-run/react'
-import { toRemixMeta } from 'react-datocms'
 import type { ApplicationProps } from '~/components'
 import { Layouts } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
 import { getCurrentThankYouPage } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
+import { datoMeta, mergeMeta } from '~/lib/meta'
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { thankYou, footer } = await getCurrentThankYouPage({
     filter: { slug: { eq: params.slug } }
   })
@@ -20,17 +21,13 @@ export const handle: ApplicationProps = {
   layout: Layouts.Marketing,
   scaffold: {
     header: {},
-    footer: (match) => match.data.footer
+    footer: (match: UIMatch<typeof loader>) => match.data.footer
   }
 }
 
-export function meta({ data, params }: any) {
-  return {
-    ...toRemixMeta(data.thankYou.seoMeta),
-    'twitter:url': 'https://fynbos.app/thank-you/' + params.slug,
-    'og:url': 'https://fynbos.app/thank-you/' + params.slug
-  }
-}
+export const meta: MetaFunction<typeof loader> = mergeMeta(
+  ({ data, location }) => datoMeta(data?.thankYou?._seoMetaTags, location)
+)
 
 export default function Page() {
   const { thankYou } = useLoaderData<typeof loader>()
