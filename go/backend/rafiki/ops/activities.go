@@ -76,6 +76,12 @@ func (a *Activity) ListPayouts(ctx context.Context) ([]Payout, error) {
 }
 
 func (a *Activity) CreatePayoutPayment(ctx context.Context, payout Payout) (string, error) {
+
+	senderAcc, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, wallets.WebMonetizationWalletID)
+	if err != nil {
+		return "", err
+	}
+
 	p, err := a.b.Payments().Create(ctx, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
@@ -85,6 +91,7 @@ func (a *Activity) CreatePayoutPayment(ctx context.Context, payout Payout) (stri
 			Type:       payments.IdentityTypeWalletID,
 			Identifier: payout.WalletID,
 		},
+		SenderAccount:  senderAcc.ID,
 		Type:           payments.TypeWebMonetization,
 		SenderAmount:   currency.FromUInt64(payout.ReceivedAmount, currency.ParseCurrency(payout.Asset)),
 		ReceiverAmount: currency.FromUInt64(payout.ReceivedAmount, currency.ParseCurrency(payout.Asset)),
