@@ -109,9 +109,14 @@ export const handle: ApplicationProps = {
   }
 }
 
-export const meta: MetaFunction = mergeMeta(() => [
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
   {
-    title: 'Transaction | Outgoing'
+    title:
+      typeof data == 'undefined'
+        ? 'Transaction'
+        : data.transaction.type.includes('outgoing')
+        ? `- ${data.transaction.total} to ${data.transaction.title}`
+        : `${data.transaction.total} from ${data.transaction.title}`
   }
 ])
 
