@@ -2,11 +2,12 @@ package ops
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base32"
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +25,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, created_at, updated_at`
 
 type dbPayment struct {
 	ID                   string                `db:"id"`
@@ -50,6 +51,7 @@ type dbPayment struct {
 	CreatedAt            time.Time             `db:"created_at"`
 	UpdatedAt            time.Time             `db:"updated_at"`
 	IPAddress            sql.NullString        `db:"ip_address"`
+	Type                 payments.Type         `db:"type"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -150,12 +152,44 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.
 		UpdatedAt:            db.UpdatedAt,
 		Note:                 db.Note.String,
 		IPAddress:            db.IPAddress.String,
+		Type:                 db.Type,
 	}, nil
 }
 
 func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) {
+	dbID, err := uuid.Parse(id)
+	if err != nil {
+		return getPaymentByPublicID(ctx, b, id)
+	}
+
 	var res dbPayment
-	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 OR public_id=$2", cols), id, id)
+	err = b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1;", cols), dbID.String())
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
+func getPaymentByPublicID(ctx context.Context, b Backends, publicID string) (*dbPayment, error) {
+	var res dbPayment
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE public_id=$1", cols), publicID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
+func getPaymentByPublicIDTx(ctx context.Context, tx *sqlx.Tx, publicID string) (*dbPayment, error) {
+	var res dbPayment
+	err := tx.GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE public_id=$1", cols), publicID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, payments.ErrNotFound
 	}
@@ -167,8 +201,13 @@ func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) 
 }
 
 func getPaymentTX(ctx context.Context, tx *sqlx.Tx, id string) (*dbPayment, error) {
+	dbID, err := uuid.Parse(id)
+	if err != nil {
+		return getPaymentByPublicIDTx(ctx, tx, id)
+	}
+
 	var res dbPayment
-	err := tx.GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1 OR public_id=$2", cols), id, id)
+	err = tx.GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1;", cols), dbID.String())
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, payments.ErrNotFound
 	}
@@ -288,6 +327,10 @@ func requiresOTP(ctx context.Context, b Backends, sender, receiver payments.Iden
 	return !hasTx, nil
 }
 
+func requires3DS(sender payments.Identity) bool {
+	return sender.Identifier != wallets.WebMonetizationWalletID
+}
+
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
 // is not of type WalletID, then the walletID will be looked up and used as the `Sender`.
 func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
@@ -321,11 +364,23 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
+	require3DS := requires3DS(p.Sender)
+
+	// Default to Peer to Peer
+	if p.Type == payments.TypeUnknown {
+		p.Type = payments.TypePeer2Peer
+	}
+
+	publicID, err := NewSoftDescriptor(time.Now())
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
 	// TODO Calculate more actions required
 	id := uuid.NewString()
 	stmt, args, err := db.NewInsert("payments").
 		Value("id", id).
-		Value("public_id", "fynbos_"+strconv.Itoa(rand.Int())). // TODO: Generate "pretty" soft id for display
+		Value("public_id", publicID).
 		Value("state", payments.StateCreated).
 		Value("sender_id", senderWallet.ID).
 		Value("sender_id_type", payments.IdentityTypeWalletID).
@@ -337,10 +392,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_amount", p.ReceiverAmount.Value).
 		Value("receiver_currency", p.ReceiverAmount.Currency).
 		Value("receiver_account", sql.NullString{String: defaultRecvAcc, Valid: defaultRecvAcc != ""}).
-		Value("action_three_ds_required", true).
+		Value("action_three_ds_required", require3DS).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
 		Value("action_otp_required", requireOTP).
 		Value("ip_address", sql.NullString{String: p.IPAddress, Valid: b.Validator().Var(p.IPAddress, "ip_addr") == nil}).
+		Value("type", p.Type).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -751,4 +807,37 @@ func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, er
 	}
 
 	return res, nil
+}
+
+const (
+	geohashBase32Alphabet = "0123456789bcdefghjkmnpqrstuvwxyz"
+	hoursInUnixTimestamp  = 60 * 60
+)
+
+// Generates a soft descriptor to show on the user's card statement.
+// See https://www.notion.so/fynbos/Soft-Descriptors-08b6693f96194f54ba0d62e21efd22d6
+func NewSoftDescriptor(date time.Time) (string, error) {
+	// Generate a random uint64.
+	buffer := make([]byte, 8)
+	_, err := rand.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+	// Put 5 bytes of randomness in first 40 bits of uint64
+	randomNum := binary.BigEndian.Uint64(buffer) << 24
+
+	// Put 20 bits of date in bits 41 - 60 of unit64
+	dateValue := uint64(date.Unix()/hoursInUnixTimestamp) << 4
+
+	// XOR the two values together and convert to a byte slice.
+	binary.BigEndian.PutUint64(buffer, randomNum^dateValue)
+
+	// Create a Geohash Base32 encoder.
+	geohashEncoder := base32.NewEncoding(geohashBase32Alphabet).WithPadding(base32.NoPadding)
+
+	// Encode the buffer as a Base32 string.
+	key := geohashEncoder.EncodeToString(buffer)
+
+	// Trim key to 12 characters, we don't care about the last 4 bits
+	return key[:12], nil
 }

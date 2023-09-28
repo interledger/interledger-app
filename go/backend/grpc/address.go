@@ -3,9 +3,10 @@ package grpc
 import (
 	"context"
 	"errors"
+	"strings"
+
 	"gitlab.com/fynbos/backend/wallets"
 	pb "gitlab.com/fynbos/proto/backend/v1"
-	"strings"
 )
 
 func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWalletAddressRequest) (*pb.Empty, error) {
@@ -32,7 +33,12 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 		return nil, toGRPCError(err)
 	}
 
-	_, err = g.b.Wallets().SetWalletName(ctx, wallet.ID, req.GetAlias())
+	wallet, err = g.b.Wallets().SetWalletName(ctx, wallet.ID, req.GetAlias())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = g.b.Rafiki().CreatePaymentPointer(ctx, *wallet)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

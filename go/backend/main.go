@@ -12,12 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/slack/bot"
-
-	"gitlab.com/fynbos/backend/dynamicforms"
-
-	"gitlab.com/fynbos/backend/slack"
-
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -43,6 +37,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/discord"
 	discord_client "gitlab.com/fynbos/backend/discord/client"
+	"gitlab.com/fynbos/backend/dynamicforms"
 	dynamicforms_client "gitlab.com/fynbos/backend/dynamicforms/client"
 	"gitlab.com/fynbos/backend/email"
 	email_client "gitlab.com/fynbos/backend/email/client"
@@ -75,8 +70,12 @@ import (
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
+	"gitlab.com/fynbos/backend/rafiki"
+	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
 	signup_client "gitlab.com/fynbos/backend/signup/client"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/slack/bot"
 	slack_client "gitlab.com/fynbos/backend/slack/client"
 	"gitlab.com/fynbos/backend/statements"
 	statements_client "gitlab.com/fynbos/backend/statements/client"
@@ -152,9 +151,6 @@ func main() {
 }
 
 func start(args *cli.StartArgs) {
-	var b = new(backends)
-	b.val = validator.New()
-
 	traceShutdown, err := tracing.InitTraceProvider("backend")
 	if err != nil {
 		log.Fatalln(err)
@@ -166,90 +162,8 @@ func start(args *cli.StartArgs) {
 		}
 	}()
 
-	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-	b.db = db
-
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Setup(logger)
-
-	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.temporal = tp
-
-	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
-
-	b.wallet = wallets_client.New(b)
-
-	b.payment = payments_client.New(b)
-
-	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid:   args.TwilioSid,
-		AccountToken: args.TwilioSecret,
-		ServiceSid:   args.TwilioServiceSid,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.twilio = twilioService
-
-	b.linkedaccounts = linked_account_client.New(b)
-
-	b.signup = signup_client.New(b)
-
-	b.waitlist = waitlist_client.New(b, logger)
-
-	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
-		ClientID:      args.TwitterClientID,
-		ClientSecret:  args.TwitterClientSecret,
-		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
-		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
-		RedirectURL:   args.TwitterRedirectURL,
-		BearerToken:   args.TwitterBearerToken,
-	})
-
-	b.discord = discord_client.New(b, &discord_client.NewClientArgs{
-		ClientID:      args.DiscordClientID,
-		ClientSecret:  args.DiscordClientSecret,
-		AuthEndpoint:  "https://discord.com/oauth2/authorize",
-		TokenEndpoint: "https://discord.com/api/oauth2/token",
-		RedirectURL:   args.DiscordRedirectURL,
-	})
-
-	b.dynamicforms = dynamicforms_client.New(b)
-
-	b.slack, err = slack_client.New(b)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	b.auth = authorisation_client.New(b)
-
-	b.analytics = analytics_client.New(b, args.SegmentKey)
-
-	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
-
-	b.feat = features_client.New(b)
-
-	var wg sync.WaitGroup
+	b := NewBackends(args, false)
+	defer CloseBackends(b)
 
 	router := chi.NewRouter()
 	router.Routes()
@@ -260,77 +174,18 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/signup", analytics_webhook.NewHandleSignup(b))
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
+	router.Handle("/rafiki", b.rafiki.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 	router.Handle("/webhooks/slack/bot/install", b.slack.BotInstallWebhook())
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
 	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
 
+	var wg sync.WaitGroup
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
 
-	log.Info("connect to http://localhost:%s/playground for GraphQL playground", zap.String("port", args.Port))
+	log.Info("backend running at http://localhost:%s", zap.String("port", args.Port))
 	serveHTTP(&http.Server{Addr: ":" + args.Port, Handler: router}, &wg)
-
-	health, err := healthcheck.NewService()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.healthcheck = health
-
-	adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain, b.DB())
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.adminAuth = auth.NewLoggingService(adminUsers, logger)
-
-	b.agreements = agreements_client.New(b)
-
-	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
-
-	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	b.email = email_client.New(b, args.SendgridAPIKey)
-
-	b.transactions = transactions_client.New(b)
-
-	b.notify = notify_client.New(b, args.PusherAddr)
-
-	b.statements = statements_client.New()
-
-	b.limits = limits_client.New(b)
-
-	b.ident = identities_client.New(b)
-
-	b.contacts = contacts_client.New(b)
-
-	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
-
-	b.gmt = gmt_client.New(b)
-
-	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
-		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
-		ClientID:               args.TabapayClientID,
-		BearerToken:            args.TabapayBearerToken,
-		SettlementAccountID:    args.TabapaySettlementAccountID,
-		SubClientID:            args.TabapaySubClientID,
-	}, b)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.tabapay = tabapayClient
-
-	b.img = img_client.New(b)
-
-	vc, err := vault.NewClient()
-	if err != nil {
-		log.Error("error vault", zap.Error(err))
-	}
-	b.vault = vc
-
-	b.keys = keys_client.New(b)
 
 	server, err := _grpc.NewServer(b)
 	if err != nil {
@@ -445,118 +300,7 @@ func startWorker(args *cli.StartArgs) {
 		}
 	}()
 
-	var b = new(backends)
-	b.val = validator.New()
-
-	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			log.Fatalln(err)
-		}
-	}()
-	b.db = db
-
-	cfg := zap.NewProductionConfig()
-	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	cfg.OutputPaths = []string{args.LogOutputPath}
-	logger, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Setup(logger)
-
-	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.temporal = tp
-
-	b.signup = signup_client.New(b)
-
-	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
-
-	b.wallet = wallets_client.New(b)
-
-	b.payment = payments_client.New(b)
-
-	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	b.linkedaccounts = linked_account_client.New(b)
-
-	b.email = email_client.New(b, args.SendgridAPIKey)
-
-	b.transactions = transactions_client.New(b)
-
-	b.notify = notify_client.New(b, args.PusherAddr)
-
-	b.statements = statements_client.New()
-
-	b.analytics = analytics_client.New(b, args.SegmentKey)
-
-	b.ident = identities_client.New(b)
-
-	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
-		ClientID:      args.TwitterClientID,
-		ClientSecret:  args.TwitterClientSecret,
-		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
-		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
-		RedirectURL:   args.TwitterRedirectURL,
-		BearerToken:   args.TwitterBearerToken,
-	})
-
-	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
-		AccountSid:   args.TwilioSid,
-		AccountToken: args.TwilioSecret,
-		ServiceSid:   args.TwilioServiceSid,
-	})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.twilio = twilioService
-
-	b.limits = limits_client.New(b)
-
-	b.contacts = contacts_client.New(b)
-
-	b.gmt = gmt_client.New(b)
-
-	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
-
-	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
-
-	vc, err := vault.NewClient()
-	if err != nil {
-		log.Fatal("Failed to init vault client.", zap.Error(err))
-	}
-	b.vault = vc
-
-	b.slack, err = slack_client.New(b)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	b.keys = keys_client.New(b)
-
-	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
-		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
-		ClientID:               args.TabapayClientID,
-		BearerToken:            args.TabapayBearerToken,
-		SettlementAccountID:    args.TabapaySettlementAccountID,
-		SubClientID:            args.TabapaySubClientID,
-	}, b)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.tabapay = tabapayClient
+	b := NewBackends(args, true)
 
 	log.Info("Worker creating")
 	w, err := temporal.NewTemporalWorker(b)
@@ -567,7 +311,7 @@ func startWorker(args *cli.StartArgs) {
 	err = w.Run(worker.InterruptCh())
 	log.Info("Worker started")
 	if err != nil {
-		logger.Fatal("Unable to start worker", zap.Error(err))
+		log.Fatal("Unable to start worker", zap.Error(err))
 	}
 }
 
@@ -608,6 +352,7 @@ type backends struct {
 	discord        discord.Client
 	dynamicforms   dynamicforms.Client
 	slack          slack.Client
+	rafiki         rafiki.Client
 }
 
 func (b backends) DynamicForms() dynamicforms.Client {
@@ -617,6 +362,10 @@ func (b backends) DynamicForms() dynamicforms.Client {
 
 func (b backends) Slack() slack.Client {
 	return b.slack
+}
+
+func (b backends) Rafiki() rafiki.Client {
+	return b.rafiki
 }
 
 func (b backends) Discord() discord.Client {
@@ -753,4 +502,167 @@ func (b backends) Vault() vault.Client {
 
 func (b backends) Images() images.Client {
 	return b.img
+}
+
+func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
+	b := &backends{}
+
+	db, err := otelsqlx.Connect("postgres", args.DbConnectionString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.db = db
+
+	cfg := zap.NewProductionConfig()
+	err = cfg.Level.UnmarshalText([]byte(args.LogLevel))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	cfg.OutputPaths = []string{args.LogOutputPath}
+	logger, err := cfg.Build(zap.AddCallerSkip(1))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Setup(logger)
+
+	tp, err := temporal.NewTemporalClient(args.TemporalUrl)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.temporal = tp
+
+	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
+
+	b.wallet = wallets_client.New(b)
+
+	b.payment = payments_client.New(b)
+
+	b.linkedaccounts = linked_account_client.New(b)
+
+	b.signup = signup_client.New(b)
+
+	b.waitlist = waitlist_client.New(b, logger)
+
+	b.twitter = twitter_client.New(b, &twitter_client.NewClientArgs{
+		ClientID:      args.TwitterClientID,
+		ClientSecret:  args.TwitterClientSecret,
+		AuthEndpoint:  "https://twitter.com/i/oauth2/authorize",
+		TokenEndpoint: "https://api.twitter.com/2/oauth2/token",
+		RedirectURL:   args.TwitterRedirectURL,
+		BearerToken:   args.TwitterBearerToken,
+	})
+
+	b.discord = discord_client.New(b, &discord_client.NewClientArgs{
+		ClientID:      args.DiscordClientID,
+		ClientSecret:  args.DiscordClientSecret,
+		AuthEndpoint:  "https://discord.com/oauth2/authorize",
+		TokenEndpoint: "https://discord.com/api/oauth2/token",
+		RedirectURL:   args.DiscordRedirectURL,
+	})
+
+	b.dynamicforms = dynamicforms_client.New(b)
+
+	b.slack, err = slack_client.New(b)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	b.auth = authorisation_client.New(b)
+
+	b.analytics = analytics_client.New(b, args.SegmentKey)
+
+	b.basistheory = bt_client.New(args.BasisTheoryApiKey, b)
+
+	b.feat = features_client.New(b)
+
+	twilioService, err := _twilio.NewService(&_twilio.ServiceArgs{
+		AccountSid:   args.TwilioSid,
+		AccountToken: args.TwilioSecret,
+		ServiceSid:   args.TwilioServiceSid,
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.twilio = twilioService
+
+	if !isWorker {
+		health, err := healthcheck.NewService()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.healthcheck = health
+
+		adminUsers, err := auth.NewService(args.AdminPolicyAud, args.AdminTeamDomain, b.DB())
+		if err != nil {
+			log.Fatalln(err)
+		}
+		b.adminAuth = auth.NewLoggingService(adminUsers, logger)
+	}
+
+	b.agreements = agreements_client.New(b)
+
+	b.supportTickets = support_client.NewClient(b, args.ZendeskUser, args.ZendeskToken)
+
+	b.kyc, err = kyc_client.New(b, args.SmartyAuthID, args.SmartyAuthToken)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	b.email = email_client.New(b, args.SendgridAPIKey)
+
+	b.transactions = transactions_client.New(b)
+
+	b.notify = notify_client.New(b, args.PusherAddr)
+
+	b.statements = statements_client.New()
+
+	b.limits = limits_client.New(b)
+
+	b.ident = identities_client.New(b)
+
+	b.contacts = contacts_client.New(b)
+
+	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
+
+	b.gmt = gmt_client.New(b)
+
+	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
+		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
+		ClientID:               args.TabapayClientID,
+		BearerToken:            args.TabapayBearerToken,
+		SettlementAccountID:    args.TabapaySettlementAccountID,
+		SubClientID:            args.TabapaySubClientID,
+	}, b)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.tabapay = tabapayClient
+
+	b.img = img_client.New(b)
+
+	vc, err := vault.NewClient()
+	if err != nil {
+		log.Error("error vault", zap.Error(err))
+	}
+	b.vault = vc
+
+	b.keys = keys_client.New(b)
+
+	b.val = validator.New()
+
+	b.rafiki = rafiki_client.New(b)
+
+	return b
+}
+
+func CloseBackends(b *backends) {
+	if b == nil {
+		return
+	}
+
+	if b.db != nil {
+		if err := b.db.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}
 }

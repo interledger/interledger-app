@@ -169,3 +169,7 @@ func standardize(wa string) string {
 	// The payment pointer has no prefix assume we need to add https://
 	return "https://" + wa
 }
+
+const (
+	WebMonetizationWalletID = "31db2044-0b83-4aae-9cd8-b5b63cc85414"
+)

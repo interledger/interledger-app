@@ -35,10 +35,11 @@ const (
 type TransferType string
 
 const (
-	TransferTypeDebitCard         TransferType = "debit_card"
-	TransferTypeCreditCard        TransferType = "credit_card"
-	TransferTypeDebitBankAccount  TransferType = "debit_bank_acc"
-	TransferTypeCreditBankAccount TransferType = "credit_bank_acc"
+	TransferTypeDebitCard            TransferType = "debit_card"
+	TransferTypeCreditCard           TransferType = "credit_card"
+	TransferTypeDebitBankAccount     TransferType = "debit_bank_acc"
+	TransferTypeCreditBankAccount    TransferType = "credit_bank_acc"
+	TransferTypeDebitWebMonetization TransferType = "debit_web_monetization"
 )
 
 type CreateTransactionArgs struct {

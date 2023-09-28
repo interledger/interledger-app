@@ -16,6 +16,8 @@ import (
 	"strings"
 	"testing"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/uptrace/opentelemetry-go-extra/otelsql"
@@ -98,7 +100,9 @@ func Migrate(ctx context.Context, connString string) error {
 		}
 	}
 
-	return nil
+	err = seedSysAccounts(ctx, db)
+
+	return err
 }
 
 func CreateExpIndex(ctx context.Context, db *sqlx.DB) error {
@@ -173,9 +177,27 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 		t.Fatal(err)
 	}
 
+	err = seedSysAccounts(ctx, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return db
+}
+
+func seedSysAccounts(ctx context.Context, dbc *sqlx.DB) error {
+	// Can't use linkedaccount/rafiki constants for cyclic dependencies
+	_, err := dbc.ExecContext(ctx, fmt.Sprintf(seedSQL, env.OpenPaymentsURL()))
+
+	return err
 }
 
 const waExpIndex = `
 CREATE UNIQUE INDEX IF NOT EXISTS "wallet_address_url_lower" ON "public"."wallet_addresses" (lower(url));
+`
+
+const seedSQL = `
+INSERT INTO wallets (id, name) VALUES ('31db2044-0b83-4aae-9cd8-b5b63cc85414', 'Web Monetization') ON CONFLICT DO NOTHING;
+INSERT INTO wallet_addresses(url, wallet_id) VALUES ('%s/webmonetization', '31db2044-0b83-4aae-9cd8-b5b63cc85414') ON CONFLICT DO NOTHING;
+INSERT INTO linked_accounts(wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive) VALUES ('31db2044-0b83-4aae-9cd8-b5b63cc85414', 'web_monetization', '1234', 'rafiki', '0000', 'rafiki_web_monetization', 'Web Monetization', 'Verified', true, true) ON CONFLICT DO NOTHING;
 `

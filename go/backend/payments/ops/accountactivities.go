@@ -3,6 +3,7 @@ package ops
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -50,11 +51,12 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID, externalID st
 	}
 
 	externalTransaction, err := a.b.Tabapay().PullFromCard(ctx, tabapay.PullFromCardArgs{
-		WalletID:    linkedCard.WalletID,
-		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: externalID,
-		Amount:      currency.FromUInt64(dbp.SenderAmount, currency.ParseCurrency(dbp.SenderCurrency)),
-		ThreeDSID:   dbp.ThreeDSID.String,
+		WalletID:       linkedCard.WalletID,
+		ProviderID:     linkedCard.ProviderID,
+		ReferenceID:    externalID,
+		Amount:         currency.FromUInt64(dbp.SenderAmount, currency.ParseCurrency(dbp.SenderCurrency)),
+		ThreeDSID:      dbp.ThreeDSID.String,
+		SoftDescriptor: fmt.Sprintf("fynbos.me*%s", dbp.PublicID),
 	})
 	if err != nil {
 		return nil, err
@@ -100,10 +102,11 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 	}
 
 	externalTransaction, err := a.b.Tabapay().PushToCard(ctx, tabapay.PushToCardArgs{
-		WalletID:    linkedCard.WalletID,
-		ProviderID:  linkedCard.ProviderID,
-		ReferenceID: externalRef,
-		Amount:      p.ReceiverAmount,
+		WalletID:       linkedCard.WalletID,
+		ProviderID:     linkedCard.ProviderID,
+		ReferenceID:    externalRef,
+		Amount:         p.ReceiverAmount,
+		SoftDescriptor: fmt.Sprintf("fynbos.me*%s", p.PublicID),
 	})
 	if err != nil {
 		return nil, err

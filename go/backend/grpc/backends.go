@@ -23,6 +23,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -68,4 +69,5 @@ type Backends interface {
 	Discord() discord.Client
 	DynamicForms() dynamicforms.Client
 	Slack() slack.Client
+	Rafiki() rafiki.Client
 }

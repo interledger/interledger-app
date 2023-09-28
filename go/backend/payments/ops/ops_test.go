@@ -113,6 +113,7 @@ func TestCreate(t *testing.T) {
 			assert.Equal(t, tc.args.Note, p.Note)
 			assert.Equal(t, tc.args.IPAddress, p.IPAddress)
 			assert.Len(t, p.RequiredActions, len(tc.actions))
+			assert.Regexp(t, "^([b-z0-9]{12})$", p.PublicID)
 			for _, ra := range tc.actions {
 				assert.Contains(t, p.RequiredActions, ra)
 			}

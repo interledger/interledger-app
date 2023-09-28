@@ -36,7 +36,9 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
-	a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
+	if payment.Type != payments.TypeWebMonetization {
+		a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
+	}
 
 	a.b.Email().SendPaymentReceivedEmailV2(ctx, payment.Receiver.WalletID, payment)
 
@@ -179,4 +181,13 @@ func (a *Activity) MarkWorkflowRefComplete(ctx context.Context, paymentID, workf
 		paymentID, workflowID, runID)
 
 	return err
+}
+
+func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) (bool, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return false, err
+	}
+
+	return p.Type == payments.TypePeer2Peer, nil
 }

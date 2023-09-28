@@ -7,6 +7,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/discordbot/ops"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -36,10 +37,9 @@ var PaySlashCommandSchema = discordgo.ApplicationCommand{
 func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// respond to interaction so Discord doesn't timeout
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "We're processing your payment...",
-			Flags:   discordgo.MessageFlagsEphemeral,
+			Flags: discordgo.MessageFlagsEphemeral,
 		},
 	})
 	if err != nil {
@@ -47,11 +47,11 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		return
 	}
 
-	var discordUsername string
+	var senderUsername string
 	if i.User != nil {
-		discordUsername = i.User.Username
+		senderUsername = i.User.Username
 	} else if i.Member != nil {
-		discordUsername = i.Member.User.Username
+		senderUsername = i.Member.User.Username
 	}
 
 	data := i.ApplicationCommandData()
@@ -61,13 +61,15 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 	}
 
 	var amount float64
-	var receiverUsername string
+	var receiverUsername, receiverUserID string
 	for _, opt := range data.Options {
 		switch opt.Name {
 		case "amount":
 			amount = opt.FloatValue()
 		case "user":
-			receiverUsername = opt.UserValue(s).Username
+			usr := opt.UserValue(s)
+			receiverUsername = usr.Username
+			receiverUserID = usr.ID
 		}
 	}
 
@@ -79,19 +81,15 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 
 	receiver, err := b.Identities().GetByIdentifier(ctx, receiverUsername)
 	if err != nil {
-		newPaymentFailedMessage(s, i, fmt.Sprintf("%s has not linked their Fynbos wallet.", receiverUsername))
-		return
+		if receiver != nil && receiver.WalletID == w.ID {
+			newPaymentFailedMessage(s, i, "You cannot create a payment to yourself.")
+			return
+		}
 	}
-
-	if receiver.WalletID == w.ID {
-		newPaymentFailedMessage(s, i, "You cannot create a payment to yourself.")
-		return
-	}
-
 	p, err := b.Payments().Create(ctx, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeDiscord,
-			Identifier: discordUsername,
+			Identifier: senderUsername,
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeDiscord,
@@ -108,24 +106,31 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		return
 	}
 
-	_, err = s.FollowupMessageCreate(i.Interaction, true, &discordgo.WebhookParams{
-		Content: "Your payment requires your authorization",
-		Flags:   discordgo.MessageFlagsEphemeral,
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{
-				Components: []discordgo.MessageComponent{
-					discordgo.Button{
-						Label:    "Authorize",
-						Style:    discordgo.LinkButton,
-						Disabled: false,
-						URL:      fmt.Sprintf("%s/pay/%s", fynbos_env.GetUrl(), p.ID),
-					},
+	content := "Your payment requires your authorization"
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					Label:    "Authorize",
+					Style:    discordgo.LinkButton,
+					Disabled: false,
+					URL:      fmt.Sprintf("%s/pay/%s", fynbos_env.GetUrl(), p.ID),
 				},
 			},
 		},
+	}
+	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content:    &content,
+		Components: &components,
 	})
 	if err != nil {
 		log.Error("Failed to send authorize follow up message for /pay command", zap.Error(err))
+		return
+	}
+
+	_, err = ops.CreatePaymentInteraction(ctx, b, i.Interaction, p.ID, receiverUserID, senderUsername)
+	if err != nil {
+		log.Error("Failed to create payment interaction", zap.String("paymentID", p.ID), zap.Error(err))
 		return
 	}
 }

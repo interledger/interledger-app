@@ -126,12 +126,18 @@ type (
 	}
 
 	CreateTransactionArgs struct {
-		ReferenceID string                        `json:"referenceID"`
-		Type        TransactionType               `json:"type,omitempty"`
-		Accounts    CreateTransactionAccounts     `json:"accounts"`
-		Currency    string                        `json:"currency,omitempty"`
-		Amount      string                        `json:"amount"`
-		PullOptions *CreateTransactionPullOptions `json:"pullOptions,omitempty"`
+		ReferenceID    string                        `json:"referenceID"`
+		Type           TransactionType               `json:"type,omitempty"`
+		Accounts       CreateTransactionAccounts     `json:"accounts"`
+		Currency       string                        `json:"currency,omitempty"`
+		Amount         string                        `json:"amount"`
+		PullOptions    *CreateTransactionPullOptions `json:"pullOptions,omitempty"`
+		SoftDescriptor *SoftDescriptor               `json:"softDescriptor,omitempty"`
+	}
+
+	SoftDescriptor struct {
+		Name    string   `json:"name,omitempty"`
+		Address *Address `json:"address,omitempty"`
 	}
 
 	CreateTransactionAccounts struct {
