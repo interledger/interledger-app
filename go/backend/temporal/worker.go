@@ -55,6 +55,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
 	w.RegisterWorkflow(jobs.MigrateOpenPaymentsObjects)
 	w.RegisterWorkflow(jobs.ClearOrphanedGMTTransactions)
+	w.RegisterWorkflow(jobs.BackfillLinkedCardCurrencyInfo)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
