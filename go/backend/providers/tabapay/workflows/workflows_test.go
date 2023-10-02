@@ -90,7 +90,7 @@ func TestCreateCardWorkflow(t *testing.T) {
 	)
 
 	env.OnActivity(a.CreateLinkedCard, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, arg workflows.CreateLinkedCardArgs) (*linkedaccounts.LinkedAccount, error) {
+		func(ctx context.Context, arg linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
 			require.Equal(t, basisTheoryCardID, arg.ID)
 			require.Equal(t, "1234", arg.Mask)
 			require.Equal(t, "Mastercard 1234", arg.Name)

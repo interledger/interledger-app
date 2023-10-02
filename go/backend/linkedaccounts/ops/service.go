@@ -27,11 +27,11 @@ import (
 )
 
 const (
-	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, created_at, updated_at"
+	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, created_at, updated_at"
 
 	// If you update this, then remember to update the create and createBatch functions.
-	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state"
-	insertColumns = 11
+	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability"
+	insertColumns = 19
 )
 
 const (
@@ -60,7 +60,7 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 	err = b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING %s;", insertFields, allFields),
+		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING %s;", insertFields, allFields),
 		linkedAccountID,
 		args.WalletID,
 		args.Name,
@@ -72,6 +72,14 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 		args.CanSend,
 		args.CanReceive,
 		state,
+		args.SendCountry,
+		args.SendCurrency,
+		args.SendNetwork,
+		args.SendAvailability,
+		args.ReceiveCountry,
+		args.ReceiveCurrency,
+		args.ReceiveNetwork,
+		args.ReceiveAvailability,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
@@ -113,7 +121,7 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 	var placeholders []string
 	var values []interface{}
 	for i, arg := range args {
-		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10, i*insertColumns+11))
+		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d,$%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10, i*insertColumns+11, i*insertColumns+12, i*insertColumns+13, i*insertColumns+14, i*insertColumns+15, i*insertColumns+16, i*insertColumns+17, i*insertColumns+18, i*insertColumns+19))
 
 		linkedAccountID := arg.ID
 		if linkedAccountID == "" {
@@ -124,7 +132,27 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 			state = linkedaccounts.Verified
 		}
 
-		values = append(values, linkedAccountID, arg.WalletID, arg.Name, arg.Nickname, arg.Mask, arg.Provider, arg.ProviderID, arg.Type, arg.CanSend, arg.CanReceive, state)
+		values = append(
+			values,
+			linkedAccountID,
+			arg.WalletID,
+			arg.Name,
+			arg.Nickname,
+			arg.Mask,
+			arg.Provider,
+			arg.ProviderID,
+			arg.Type,
+			arg.CanSend,
+			arg.CanReceive,
+			state,
+			arg.SendCountry,
+			arg.SendCurrency,
+			arg.SendNetwork,
+			arg.SendAvailability,
+			arg.ReceiveCountry,
+			arg.ReceiveCurrency,
+			arg.ReceiveNetwork,
+			arg.ReceiveAvailability)
 	}
 
 	var linkedAccounts []linkedaccounts.LinkedAccount
