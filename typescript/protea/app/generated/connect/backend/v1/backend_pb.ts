@@ -2889,6 +2889,30 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   title = "";
 
+  /**
+   * e.g. USD
+   *
+   * @generated from field: string sendCurrencyCode = 9;
+   */
+  sendCurrencyCode = "";
+
+  /**
+   * e.g. US
+   *
+   * @generated from field: string sendCurrencyCountryCode = 10;
+   */
+  sendCurrencyCountryCode = "";
+
+  /**
+   * @generated from field: string receiveCurrencyCode = 11;
+   */
+  receiveCurrencyCode = "";
+
+  /**
+   * @generated from field: string receiveCurrencyCountryCode = 12;
+   */
+  receiveCurrencyCountryCode = "";
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2905,6 +2929,10 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 6, name: "canSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 7, name: "canReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "sendCurrencyCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "receiveCurrencyCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {

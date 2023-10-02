@@ -155,6 +155,10 @@ message LinkedAccount {
   string state = 9;
   string canSend = 10;
   string canReceive = 11;
+  string sendCurrencyCode = 12; // e.g. USD
+  string sendCurrencyCountryCode = 13; // e.g. US
+  string receiveCurrencyCode = 14;
+  string receiveCurrencyCountryCode = 15;
 }
 
 message GetTransactionDetailsRequest {
