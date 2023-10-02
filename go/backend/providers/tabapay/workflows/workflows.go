@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	httplog "gitlab.com/fynbos/backend/providers/http"
@@ -154,16 +156,24 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 	if network == "" {
 		network = pushNetwork
 	}
-	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, CreateLinkedCardArgs{
-		ID:         tokenizedCard.ID,
-		WalletID:   args.WalletID,
-		ProviderID: externalAccountID,
-		Mask:       mask,
-		Name:       fmt.Sprintf("%s %s", network, mask),
-		Nickname:   fmt.Sprintf("%s %s", network, mask),
-		CanSend:    cardInfo.Card.Pull.Enabled,
-		CanReceive: cardInfo.Card.Push.Enabled,
-		State:      linkedAccountState,
+	err = workflow.ExecuteActivity(ctx, a.CreateLinkedCard, linkedaccounts.CreateArgs{
+		ID:                  tokenizedCard.ID,
+		WalletID:            args.WalletID,
+		ProviderID:          externalAccountID,
+		Mask:                mask,
+		Name:                fmt.Sprintf("%s %s", network, mask),
+		Nickname:            fmt.Sprintf("%s %s", network, mask),
+		CanSend:             cardInfo.Card.Pull.Enabled,
+		CanReceive:          cardInfo.Card.Push.Enabled,
+		State:               linkedAccountState,
+		SendCountry:         country.ParseCountry(cardInfo.Card.Pull.Country),
+		SendNetwork:         pullNetwork,
+		SendCurrency:        currency.ParseCurrency(cardInfo.Card.Pull.Currency),
+		SendAvailability:    "Immediate",
+		ReceiveCountry:      country.ParseCountry(cardInfo.Card.Push.Country),
+		ReceiveCurrency:     currency.ParseCurrency(cardInfo.Card.Push.Currency),
+		ReceiveNetwork:      pushNetwork,
+		ReceiveAvailability: linkedaccounts.FundsAvailability(cardInfo.Card.Push.Availability),
 	}).Get(ctx, &la)
 	if err != nil {
 		logger.Error("Failed to create linked account.")

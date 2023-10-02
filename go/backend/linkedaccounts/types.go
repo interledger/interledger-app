@@ -3,23 +3,33 @@ package linkedaccounts
 import (
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 )
 
 type LinkedAccount struct {
-	ID         string
-	WalletID   string `db:"wallet_id"`
-	Name       string
-	Nickname   string `db:"nickname"`
-	Mask       string
-	Provider   string
-	ProviderID string `db:"provider_id"`
-	Type       string
-	CanSend    bool `db:"can_send"`
-	CanReceive bool `db:"can_receive"`
-	State      State
-	CreatedAt  string `db:"created_at"`
-	UpdatedAt  string `db:"updated_at"`
+	ID                  string
+	WalletID            string `db:"wallet_id"`
+	Name                string
+	Nickname            string `db:"nickname"`
+	Mask                string
+	Provider            string
+	ProviderID          string `db:"provider_id"`
+	Type                string
+	CanSend             bool `db:"can_send"`
+	CanReceive          bool `db:"can_receive"`
+	State               State
+	SendCountry         country.Country   `db:"send_country"`
+	SendCurrency        currency.Currency `db:"send_currency"`
+	SendAvailability    string            `db:"send_availability"`
+	SendNetwork         string            `db:"send_network"`
+	ReceiveCountry      country.Country   `db:"receive_country"`
+	ReceiveCurrency     currency.Currency `db:"receive_currency"`
+	ReceiveAvailability string            `db:"receive_availability"`
+	ReceiveNetwork      string            `db:"receive_network"`
+	CreatedAt           string            `db:"created_at"`
+	UpdatedAt           string            `db:"updated_at"`
 }
 
 func (la *LinkedAccount) Title() string {
@@ -33,17 +43,25 @@ func (la *LinkedAccount) Title() string {
 }
 
 type CreateArgs struct {
-	ID         string `validate:"omitempty,uuid4"`
-	WalletID   string `validate:"required,uuid4"`
-	Name       string `validate:"required"`
-	Nickname   string
-	Mask       string
-	Provider   string `validate:"oneof=mx gmt tabapay"`
-	ProviderID string
-	Type       string `validate:"required"`
-	CanSend    bool
-	CanReceive bool
-	State      State
+	ID                  string `validate:"omitempty,uuid4"`
+	WalletID            string `validate:"required,uuid4"`
+	Name                string `validate:"required"`
+	Nickname            string
+	Mask                string
+	Provider            string `validate:"oneof=mx gmt tabapay"`
+	ProviderID          string
+	Type                string `validate:"required"`
+	CanSend             bool
+	CanReceive          bool
+	State               State
+	SendCountry         country.Country
+	SendCurrency        currency.Currency
+	SendAvailability    FundsAvailability
+	SendNetwork         string
+	ReceiveCountry      country.Country
+	ReceiveCurrency     currency.Currency
+	ReceiveAvailability FundsAvailability
+	ReceiveNetwork      string
 }
 
 type GetByProviderIDArgs struct {
@@ -104,3 +122,11 @@ func IsValidState(s State) bool {
 	_, ok := validStates[s]
 	return ok
 }
+
+type FundsAvailability string
+
+const (
+	Immediate FundsAvailability = "Immediate"
+	Next      FundsAvailability = "Next"
+	Few       FundsAvailability = "Few"
+)

@@ -150,20 +150,8 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 	return resp, nil
 }
 
-func (a *Activity) CreateLinkedCard(ctx context.Context, args CreateLinkedCardArgs) (*linkedaccounts.LinkedAccount, error) {
-	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
-		ID:         args.ID,
-		WalletID:   args.WalletID,
-		Name:       args.Name,
-		Mask:       args.Mask,
-		Provider:   tabapay.ProviderName,
-		ProviderID: args.ProviderID,
-		Nickname:   args.Name,
-		Type:       tabapay.TypeCard,
-		State:      args.State,
-		CanReceive: args.CanReceive,
-		CanSend:    args.CanSend,
-	})
+func (a *Activity) CreateLinkedCard(ctx context.Context, args linkedaccounts.CreateArgs) (*linkedaccounts.LinkedAccount, error) {
+	la, err := a.b.LinkedAccounts().Create(ctx, &args)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}

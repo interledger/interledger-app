@@ -188,6 +188,46 @@ table "linked_accounts" {
     type = bool
     default = false
   }
+  column "send_country" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_currency" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_network" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "send_availability" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_country" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_currency" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_network" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "receive_availability" {
+    null = false
+    type = text
+    default = ""
+  }
   column "created_at" {
     null    = false
     type    = timestamp

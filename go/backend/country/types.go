@@ -1,6 +1,25 @@
 package country
 
+import "strings"
+
 type Country string
+
+func ParseCountry(c string) Country {
+	formattedInput := strings.TrimSpace(strings.ToUpper(c))
+	_, ok := Details[Country(formattedInput)]
+	if ok {
+		return Country(formattedInput)
+	}
+
+	for ctry, details := range Details {
+		if strings.EqualFold(details.Numeric, formattedInput) {
+			return ctry
+		}
+	}
+
+	// default to US
+	return US
+}
 
 func (c Country) Numeric() (string, error) {
 	details, ok := Details[c]
