@@ -2,8 +2,10 @@ package admin
 
 import (
 	"context"
-	pb "gitlab.com/fynbos/proto/backend/admin/v1"
 	"strconv"
+
+	"gitlab.com/fynbos/backend/country"
+	pb "gitlab.com/fynbos/proto/backend/admin/v1"
 )
 
 func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLinkedAccountsRequest) (*pb.ListLinkedAccountsResponse, error) {
@@ -15,17 +17,21 @@ func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLi
 	resp := make([]*pb.LinkedAccount, len(lal))
 	for i, la := range lal {
 		resp[i] = &pb.LinkedAccount{
-			Id:         la.ID,
-			WalletID:   la.WalletID,
-			Name:       la.Name,
-			Nickname:   la.Nickname,
-			Mask:       la.Mask,
-			Provider:   la.Provider,
-			ProviderID: la.ProviderID,
-			Type:       la.Type,
-			State:      string(la.State),
-			CanSend:    strconv.FormatBool(la.CanSend),
-			CanReceive: strconv.FormatBool(la.CanReceive),
+			Id:                         la.ID,
+			WalletID:                   la.WalletID,
+			Name:                       la.Name,
+			Nickname:                   la.Nickname,
+			Mask:                       la.Mask,
+			Provider:                   la.Provider,
+			ProviderID:                 la.ProviderID,
+			Type:                       la.Type,
+			State:                      string(la.State),
+			CanSend:                    strconv.FormatBool(la.CanSend),
+			CanReceive:                 strconv.FormatBool(la.CanReceive),
+			SendCurrencyCode:           la.SendCurrency.String(),
+			SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
+			ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
+			ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
 		}
 	}
 
@@ -40,16 +46,20 @@ func (s *AdminRpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinke
 	}
 
 	return &pb.LinkedAccount{
-		Id:         la.ID,
-		WalletID:   la.WalletID,
-		Name:       la.Name,
-		Nickname:   la.Nickname,
-		Mask:       la.Mask,
-		Provider:   la.Provider,
-		ProviderID: la.ProviderID,
-		Type:       la.Type,
-		State:      string(la.State),
-		CanSend:    strconv.FormatBool(la.CanSend),
-		CanReceive: strconv.FormatBool(la.CanReceive),
+		Id:                         la.ID,
+		WalletID:                   la.WalletID,
+		Name:                       la.Name,
+		Nickname:                   la.Nickname,
+		Mask:                       la.Mask,
+		Provider:                   la.Provider,
+		ProviderID:                 la.ProviderID,
+		Type:                       la.Type,
+		State:                      string(la.State),
+		CanSend:                    strconv.FormatBool(la.CanSend),
+		CanReceive:                 strconv.FormatBool(la.CanReceive),
+		SendCurrencyCode:           la.SendCurrency.String(),
+		SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
+		ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
+		ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
 	}, nil
 }

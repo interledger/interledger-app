@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
@@ -15,15 +16,20 @@ func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
 	if la.Nickname == "" {
 		title = la.Mask
 	}
+
 	return &pb.LinkedAccount{
-		Id:         la.ID,
-		Type:       la.Type,
-		Name:       la.Name,
-		Mask:       la.Mask,
-		Nickname:   la.Nickname,
-		CanSend:    la.CanSend,
-		CanReceive: la.CanReceive,
-		Title:      title,
+		Id:                         la.ID,
+		Type:                       la.Type,
+		Name:                       la.Name,
+		Mask:                       la.Mask,
+		Nickname:                   la.Nickname,
+		CanSend:                    la.CanSend,
+		CanReceive:                 la.CanReceive,
+		Title:                      title,
+		SendCurrencyCode:           la.SendCurrency.String(),
+		SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
+		ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
+		ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
 	}
 }
 func (s *rpcService) GetLinkedAccounts(

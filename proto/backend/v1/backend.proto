@@ -500,6 +500,11 @@ message LinkedAccount {
   bool canSend = 6;
   bool canReceive = 7;
   string title = 8;
+
+  string sendCurrencyCode = 9; // e.g. USD
+  string sendCurrencyCountryCode = 10; // e.g. US
+  string receiveCurrencyCode = 11;
+  string receiveCurrencyCountryCode = 12;
 }
 
 message GetSignupRequest {

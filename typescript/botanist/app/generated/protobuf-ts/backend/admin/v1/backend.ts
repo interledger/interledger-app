@@ -380,6 +380,22 @@ export interface LinkedAccount {
      * @generated from protobuf field: string canReceive = 11;
      */
     canReceive: string;
+    /**
+     * @generated from protobuf field: string sendCurrencyCode = 12;
+     */
+    sendCurrencyCode: string; // e.g. USD
+    /**
+     * @generated from protobuf field: string sendCurrencyCountryCode = 13;
+     */
+    sendCurrencyCountryCode: string; // e.g. US
+    /**
+     * @generated from protobuf field: string receiveCurrencyCode = 14;
+     */
+    receiveCurrencyCode: string;
+    /**
+     * @generated from protobuf field: string receiveCurrencyCountryCode = 15;
+     */
+    receiveCurrencyCountryCode: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
@@ -1929,11 +1945,15 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "canSend", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "canReceive", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 11, name: "canReceive", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "sendCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "receiveCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 15, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "", canSend: "", canReceive: "" };
+        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "", canSend: "", canReceive: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -1976,6 +1996,18 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string canReceive */ 11:
                     message.canReceive = reader.string();
+                    break;
+                case /* string sendCurrencyCode */ 12:
+                    message.sendCurrencyCode = reader.string();
+                    break;
+                case /* string sendCurrencyCountryCode */ 13:
+                    message.sendCurrencyCountryCode = reader.string();
+                    break;
+                case /* string receiveCurrencyCode */ 14:
+                    message.receiveCurrencyCode = reader.string();
+                    break;
+                case /* string receiveCurrencyCountryCode */ 15:
+                    message.receiveCurrencyCountryCode = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2022,6 +2054,18 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string canReceive = 11; */
         if (message.canReceive !== "")
             writer.tag(11, WireType.LengthDelimited).string(message.canReceive);
+        /* string sendCurrencyCode = 12; */
+        if (message.sendCurrencyCode !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.sendCurrencyCode);
+        /* string sendCurrencyCountryCode = 13; */
+        if (message.sendCurrencyCountryCode !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.sendCurrencyCountryCode);
+        /* string receiveCurrencyCode = 14; */
+        if (message.receiveCurrencyCode !== "")
+            writer.tag(14, WireType.LengthDelimited).string(message.receiveCurrencyCode);
+        /* string receiveCurrencyCountryCode = 15; */
+        if (message.receiveCurrencyCountryCode !== "")
+            writer.tag(15, WireType.LengthDelimited).string(message.receiveCurrencyCountryCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
