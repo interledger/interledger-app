@@ -87,10 +87,10 @@ export async function GetWalletDetails(
       response.response.gender == 0
         ? 'Unknown'
         : response.response.gender == 1
-          ? 'Male'
-          : response.response.gender == 2
-            ? 'Female'
-            : 'Other',
+        ? 'Male'
+        : response.response.gender == 2
+        ? 'Female'
+        : 'Other',
     dateOfBirth: DateTime.fromSeconds(
       parseInt(response.response.dateOfBirth?.seconds ?? '')
     ).toLocaleString(DateTime.DATETIME_FULL)
@@ -574,11 +574,14 @@ export async function ListExternalApiCalls(
 ) {
   const cookie = String(request.headers.get('cookie'))
   let rpc = await grpcClient
-    .listExternalApiCalls({ paymentId }, {
-      meta: {
-        cookies: cookie || ''
+    .listExternalApiCalls(
+      { paymentId },
+      {
+        meta: {
+          cookies: cookie || ''
+        }
       }
-    })
+    )
     .then((v) => v)
     .catch(StatusError)
 
@@ -587,4 +590,20 @@ export async function ListExternalApiCalls(
   }
 
   return rpc.response.list
+}
+
+export async function GetPendingPayouts(request: Request) {
+  let rpc = await grpcClient
+    .listPaymentsAwaitingSignal(
+      {},
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response.payments
 }

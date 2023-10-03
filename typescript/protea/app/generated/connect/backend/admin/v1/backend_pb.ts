@@ -99,6 +99,16 @@ export class Payment extends Message<Payment> {
    */
   requiredActions: string[] = [];
 
+  /**
+   * @generated from field: string senderWalletUrl = 11;
+   */
+  senderWalletUrl = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updatedAt = 12;
+   */
+  updatedAt?: Timestamp;
+
   constructor(data?: PartialMessage<Payment>) {
     super();
     proto3.util.initPartial(data, this);
@@ -117,6 +127,8 @@ export class Payment extends Message<Payment> {
     { no: 8, name: "senderAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 10, name: "requiredActions", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 11, name: "senderWalletUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "updatedAt", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payment {
