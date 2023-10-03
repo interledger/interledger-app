@@ -2,7 +2,6 @@ package ops_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -326,16 +325,6 @@ func TestListWithPendingTransaction(t *testing.T) {
 				assert.Equal(t, tc.args.DestinationIdentity, tx.DestinationIdentity)
 				assert.Equal(t, tc.args.DestinationIdentityType, tx.DestinationIdentityType)
 				assert.Equal(t, tc.args.LinkedAccountTitle, tx.LinkedAccountTitle)
-				for _, tr := range tx.Transfers {
-					var found bool
-					for _, etr := range tc.args.Transfers {
-						if etr.State == tr.State && etr.Type == tr.Type {
-							found = true
-							break
-						}
-					}
-					assert.True(t, found)
-				}
 			}
 		})
 	}
@@ -574,17 +563,19 @@ func TestSetTransferForeignID(t *testing.T) {
 			require.NoError(t, err)
 			require.Empty(t, tx.ForeignID)
 
-			tfr := tx.Transfers[0]
-			require.Empty(t, tfr.ForeignID)
-
-			fmt.Println(tfr.ID)
-			err = ops.SetTransferForeignID(ctx, b, tfr.ID, tc.foreignID)
+			xfers, err := ops.ListTransfers(ctx, b, trxID)
 			require.NoError(t, err)
 
-			tx, err = ops.GetTransaction(ctx, b, walletID, trxID)
+			xfer := xfers[0]
+			require.Empty(t, xfer.ForeignID)
+
+			err = ops.SetTransferForeignID(ctx, b, xfer.ID, tc.foreignID)
 			require.NoError(t, err)
 
-			assert.Equal(t, tx.Transfers[0].ForeignID, tc.foreignID)
+			xfers, err = ops.ListTransfers(ctx, b, trxID)
+			require.NoError(t, err)
+
+			assert.Equal(t, xfers[0].ForeignID, tc.foreignID)
 		})
 	}
 }
@@ -726,18 +717,18 @@ func TestSetTransferState(t *testing.T) {
 			trxID, err := ops.CreateTransaction(ctx, b, tc.args)
 			require.NoError(t, err)
 
-			tx, err := ops.GetTransaction(ctx, b, walletID, trxID)
+			xfers, err := ops.ListTransfers(ctx, b, trxID)
 			require.NoError(t, err)
-			tfr := tx.Transfers[0]
-			require.Equal(t, tfr.State, tc.args.Transfers[0].State)
+			xfer := xfers[0]
+			require.Equal(t, xfer.State, tc.args.Transfers[0].State)
 
-			err = ops.SetTransferState(ctx, b, tfr.ID, tc.state)
-			require.NoError(t, err)
-
-			tx, err = ops.GetTransaction(ctx, b, walletID, trxID)
+			err = ops.SetTransferState(ctx, b, xfer.ID, tc.state)
 			require.NoError(t, err)
 
-			assert.Equal(t, tx.Transfers[0].State, tc.state)
+			xfers, err = ops.ListTransfers(ctx, b, trxID)
+			require.NoError(t, err)
+
+			assert.Equal(t, xfers[0].State, tc.state)
 		})
 	}
 }

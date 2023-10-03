@@ -205,7 +205,7 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, foreign_id, type, state, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at `
+	transactionCols = ` id, foreign_id, type, state, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
@@ -226,6 +226,7 @@ type dbTransaction struct {
 	DestinationIdentityType sql.NullString               `db:"destination_identity_type"`
 	DestinationIdentity     sql.NullString               `db:"destination_identity"`
 	Reference               sql.NullString               `db:"reference"`
+	RefundState             transactions.RefundState     `db:"refund_state"`
 }
 
 func List(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
@@ -283,10 +284,6 @@ func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStm
 	resp := make([]transactions.Transaction, len(txs))
 
 	for i, t := range txs {
-		trs, err := getTransfers(ctx, b, t.ID)
-		if err != nil {
-			return nil, err
-		}
 		resp[i] = transactions.Transaction{
 			ID:                      t.ID,
 			ForeignID:               t.ForeignID.String,
@@ -306,7 +303,6 @@ func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStm
 				Currency: currency.ParseCurrency(t.Asset),
 				Scale:    t.Scale,
 			},
-			Transfers: trs,
 		}
 	}
 
@@ -334,10 +330,6 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 	resp := make([]transactions.Transaction, len(txs))
 
 	for i, t := range txs {
-		trs, err := getTransfers(ctx, b, t.ID)
-		if err != nil {
-			return nil, err
-		}
 		resp[i] = transactions.Transaction{
 			ID:          t.ID,
 			ForeignID:   t.ForeignID.String,
@@ -356,7 +348,6 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 			LinkedAccountTitle:      t.LinkedAccountTitle.String,
 			DestinationIdentity:     t.DestinationIdentity.String,
 			DestinationIdentityType: t.DestinationIdentityType.String,
-			Transfers:               trs,
 			Reference:               t.Reference.String,
 		}
 	}
@@ -374,11 +365,6 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
-	}
-
-	trs, err := getTransfers(ctx, b, tx.ID)
-	if err != nil {
-		return nil, err
 	}
 
 	return &transactions.Transaction{
@@ -400,7 +386,6 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 			Currency: currency.ParseCurrency(tx.Asset),
 			Scale:    tx.Scale,
 		},
-		Transfers: trs,
 	}, nil
 }
 
@@ -422,11 +407,6 @@ func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string,
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
-	trs, err := getTransfers(ctx, b, tx.ID)
-	if err != nil {
-		return nil, err
-	}
-
 	return &transactions.Transaction{
 		ID:                      tx.ID,
 		ForeignID:               tx.ForeignID.String,
@@ -446,7 +426,6 @@ func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string,
 			Currency: currency.ParseCurrency(tx.Asset),
 			Scale:    tx.Scale,
 		},
-		Transfers: trs,
 	}, nil
 }
 
@@ -636,6 +615,16 @@ func SetTransactionAmountTx(ctx context.Context, b Backends, tx *sqlx.Tx, ID str
 	err = b.Notify().NotifyWallet(ctx, walletID, notify.NotificationTypeTransaction)
 	if err != nil {
 		log.Error("error sending notification", zap.Error(err))
+	}
+
+	return nil
+}
+
+func SetTransactionRefundState(ctx context.Context, b Backends, id string, state transactions.RefundState) error {
+	_, err := b.DB().ExecContext(ctx, "UPDATE transactions SET refund_state=$1, updated_at=now() WHERE id=$2",
+		state, id)
+	if err != nil {
+		return fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
 	return nil
