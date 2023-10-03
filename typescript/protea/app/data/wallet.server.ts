@@ -196,15 +196,13 @@ export type DetailedTransaction = {
   time: string
   accountTitle: string
   reference: string
-  transfers: Array<DetailedTransfer>
-  refundState: string
+  refundState: number
 }
 
-export type DetailedTransfer = {
-  linkedAccountId: string
-  type: string
-  amount: string
-  status: string
+export enum TransactionRefundState {
+  NA = 0,
+  PENDING = 1,
+  COMPLETED = 2,
 }
 
 export async function getTransaction(
@@ -231,14 +229,6 @@ export async function getTransaction(
     fees: response.fees,
     total: response.formattedAmount,
     date: response.formattedDate,
-    time: response.formattedTime,
-    transfers: response.transfers.map((transfer) => {
-      return {
-        linkedAccountId: transfer.linkedAccountId,
-        type: transfer.type,
-        amount: formatAmount(transfer.amount),
-        status: transfer.state
-      }
-    })
+    time: response.formattedTime
   }
 }

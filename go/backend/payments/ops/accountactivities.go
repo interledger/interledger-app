@@ -130,15 +130,15 @@ func (a *Activity) RollbackPullFromAccount(ctx context.Context, paymentID string
 		return err
 	}
 
-	tx, err := a.b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+	xfers, err := a.b.Transactions().ListTransfers(ctx, p.SendTransactionID)
 	if err != nil {
 		return err
 	}
 
 	var externalTX string
-	for _, tr := range tx.Transfers {
-		if tr.Type == transactions.TransferTypeDebitCard {
-			externalTX = tr.ForeignID
+	for _, xfer := range xfers {
+		if xfer.Type == transactions.TransferTypeDebitCard {
+			externalTX = xfer.ForeignID
 		}
 	}
 
