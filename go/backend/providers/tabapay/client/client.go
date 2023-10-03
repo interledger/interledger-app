@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -188,4 +190,8 @@ func (c *Client) Get3DSSession(ctx context.Context, id string) (*tabapay.ThreeDS
 
 func (c *Client) ReverseTransaction(ctx context.Context, id string, txSettled bool) error {
 	return ops.ReverseTransaction(ctx, c.b, id, txSettled)
+}
+
+func (c *Client) GetFXRate(ctx context.Context, cc currency.Currency) (*tabapay.FXRate, error) {
+	return ops.GetFXRate(ctx, c.b, cc)
 }

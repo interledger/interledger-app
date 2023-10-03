@@ -22,6 +22,11 @@ func TestCurrency(t *testing.T) {
 		},
 		{
 			cc:    "ZAR",
+			valid: true,
+			scale: 2,
+		},
+		{
+			cc:    "THB",
 			valid: false,
 			scale: 2,
 		},
@@ -144,9 +149,9 @@ func TestAmount_Format(t *testing.T) {
 			name: "currency without a format",
 			in: currency.Amount{
 				Value:    1000,
-				Currency: currency.ParseCurrency("ZAR"),
+				Currency: currency.ParseCurrency("THB"),
 			},
-			out: "10.00 ZAR", // Default to 2 decimal points
+			out: "10.00 THB", // Default to 2 decimal points
 		},
 		{
 			name: "currency without a format scale provided",
@@ -192,8 +197,8 @@ func TestFromFloat(t *testing.T) {
 		{
 			name:    "unknown currency",
 			in:      10.00,
-			inCC:    "ZAR",
-			format:  "10.00 ZAR",
+			inCC:    "THB",
+			format:  "10.00 THB",
 			float64: 10.00,
 		},
 	}

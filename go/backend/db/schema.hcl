@@ -1803,6 +1803,59 @@ table "tabapay_3ds_sessions" {
     columns = [column.id, column.revision]
   }
 }
+
+table "tabapay_fx_rates" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "currency_code" {
+    null = false
+    type = text
+  }
+  column "network" {
+    null = false
+    type = text
+  }
+  column "buy_rate"{
+    null = false
+    type = float
+  }
+  column "buy_rate_inverted"{
+    null = false
+    type = float
+  }
+  column "sell_rate"{
+    null = false
+    type = float
+  }
+  column "sell_rate_inverted"{
+    null = false
+    type = float
+  }
+  column "file_name" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "tabapay_fx_rates_file_currency_uniq_ind" {
+    unique = true
+    columns = [column.currency_code, column.network, column.file_name]
+  }
+  index "tabapay_fx_rates_latest_currency_ind" {
+    columns = [column.currency_code, column.network, column.created_at]
+  }
+}
+
 table "wallet_features" {
   schema = schema.public
   column "id" {

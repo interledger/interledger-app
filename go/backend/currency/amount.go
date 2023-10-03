@@ -48,18 +48,26 @@ func (c Currency) ISO4217() string {
 
 const (
 	USD Currency = "USD"
+	EUR Currency = "EUR"
+	ZAR Currency = "ZAR"
 )
 
 var currencyScale = map[Currency]int{
 	USD: 2,
+	EUR: 2,
+	ZAR: 2,
 }
 
 var currencyFormat = map[Currency]string{
 	USD: "$ %s",
+	EUR: "€ %s",
+	ZAR: "R %s",
 }
 
 var iso4217 = map[Currency]string{
 	USD: "840",
+	EUR: "978",
+	ZAR: "710",
 }
 
 type Amount struct {

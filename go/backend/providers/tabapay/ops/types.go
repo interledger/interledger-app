@@ -41,3 +41,12 @@ type dbThreeDSSession struct {
 }
 
 var dbThreeDSSessionFields = "id, card_id, order_id, revision, amount, currency, version, enrolled, processor_transaction_id, ds_transaction_id, status, eci, ucaf, xid, challenge_url, payload, init_at, lookup_at, authenticated_at"
+
+type dbFXRate struct {
+	ID          string            `db:"id"`
+	Currency    currency.Currency `db:"currency_code"`
+	BuyRate     float64           `db:"buy_rate"`
+	BuyRateInv  float64           `db:"buy_rate_inverted"`
+	SellRate    float64           `db:"sell_rate"`
+	SellRateInv float64           `db:"sell_rate_inverted"`
+}

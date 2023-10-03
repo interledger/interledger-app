@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	currency "gitlab.com/fynbos/backend/currency"
 	tabapay "gitlab.com/fynbos/backend/providers/tabapay"
 )
 
@@ -78,6 +79,21 @@ func (m *MockClient) Get3DSSession(ctx context.Context, id string) (*tabapay.Thr
 func (mr *MockClientMockRecorder) Get3DSSession(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get3DSSession", reflect.TypeOf((*MockClient)(nil).Get3DSSession), ctx, id)
+}
+
+// GetFXRate mocks base method.
+func (m *MockClient) GetFXRate(ctx context.Context, cc currency.Currency) (*tabapay.FXRate, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFXRate", ctx, cc)
+	ret0, _ := ret[0].(*tabapay.FXRate)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFXRate indicates an expected call of GetFXRate.
+func (mr *MockClientMockRecorder) GetFXRate(ctx, cc interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFXRate", reflect.TypeOf((*MockClient)(nil).GetFXRate), ctx, cc)
 }
 
 // GetTransaction mocks base method.

@@ -231,3 +231,26 @@ func NewReferenceID() string {
 
 	return string(refBytes)
 }
+
+type FXRate struct {
+	Currency      currency.Currency `db:"currency_code"`
+	VisaRate      NetworkRate
+	MatercardRate NetworkRate
+}
+
+type NetworkRate struct {
+	BuyRate     float64 `db:"buy_rate"`
+	BuyRateInv  float64 `db:"buy_rate_inverted"`
+	SellRate    float64 `db:"sell_rate"`
+	SellRateInv float64 `db:"sell_rate_inverted"`
+}
+
+// FromUSD takes the USD amount we want to convert and returns the amount of the currency we would get.
+func (f *NetworkRate) FromUSD(amt float64) float64 {
+	return amt * f.BuyRateInv
+}
+
+// ToUSD takes the amt of the target currency and converts it to it's USD equivalent.
+func (f *NetworkRate) ToUSD(amt float64) float64 {
+	return amt * f.SellRate
+}
