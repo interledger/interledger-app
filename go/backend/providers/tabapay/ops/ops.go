@@ -554,3 +554,55 @@ func ReverseTransaction(ctx context.Context, b Backends, id string, isSettled bo
 
 	return nil
 }
+
+func GetFXRate(ctx context.Context, b Backends, cc currency.Currency) (*tabapay.FXRate, error) {
+	if cc == currency.USD {
+		return &tabapay.FXRate{
+			Currency: currency.USD,
+			VisaRate: tabapay.NetworkRate{
+				BuyRate:     1,
+				BuyRateInv:  1,
+				SellRate:    1,
+				SellRateInv: 1,
+			},
+			MatercardRate: tabapay.NetworkRate{
+				BuyRate:     1,
+				BuyRateInv:  1,
+				SellRate:    1,
+				SellRateInv: 1},
+		}, nil
+	}
+
+	resp := &tabapay.FXRate{Currency: cc}
+
+	var dbr dbFXRate
+	err := b.DB().GetContext(ctx, &dbr, "SELECT id, currency_code, buy_rate, buy_rate_inverted, sell_rate, sell_rate_inverted FROM tabapay_fx_rates WHERE currency_code=$1 AND network=$2 ORDER BY created_at DESC LIMIT 1", cc, "Visa")
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w no conversion found for currency code (%s)", tabapay.ErrNotFound, cc)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+	resp.VisaRate = tabapay.NetworkRate{
+		BuyRate:     dbr.BuyRate,
+		BuyRateInv:  dbr.BuyRateInv,
+		SellRate:    dbr.SellRate,
+		SellRateInv: dbr.SellRateInv,
+	}
+
+	err = b.DB().GetContext(ctx, &dbr, "SELECT id, currency_code, buy_rate, buy_rate_inverted, sell_rate, sell_rate_inverted FROM tabapay_fx_rates WHERE currency_code=$1 AND network=$2 ORDER BY created_at DESC LIMIT 1", cc, "Mastercard")
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w no conversion found for currency code (%s)", tabapay.ErrNotFound, cc)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
+	}
+	resp.MatercardRate = tabapay.NetworkRate{
+		BuyRate:     dbr.BuyRate,
+		BuyRateInv:  dbr.BuyRateInv,
+		SellRate:    dbr.SellRate,
+		SellRateInv: dbr.SellRateInv,
+	}
+
+	return resp, nil
+}

@@ -2,6 +2,8 @@ package tabapay
 
 import (
 	"context"
+
+	"gitlab.com/fynbos/backend/currency"
 )
 
 type Client interface {
@@ -14,4 +16,5 @@ type Client interface {
 	Authenticate3DS(ctx context.Context, args Authenticate3DSArgs) (*Authenticate3DSResponse, error)
 	Get3DSSession(ctx context.Context, id string) (*ThreeDSSession, error)
 	ReverseTransaction(ctx context.Context, id string, txSettled bool) error
+	GetFXRate(ctx context.Context, cc currency.Currency) (*FXRate, error)
 }
