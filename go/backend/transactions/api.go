@@ -20,6 +20,7 @@ type Client interface {
 	SetTransactionForeignID(ctx context.Context, ID string, foreignID string) error
 	SetTransferForeignID(ctx context.Context, ID string, foreignID string) error
 	SetTransactionDestination(ctx context.Context, id, destination string) error
+	SetTransactionRefundState(ctx context.Context, ID string, state RefundState) error
 
 	SetTransactionState(ctx context.Context, ID string, state State) error
 	SetTransactionStateTx(ctx context.Context, tx *sqlx.Tx, ID string, state State) error

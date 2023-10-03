@@ -48,6 +48,10 @@ func (c *client) SetTransactionDestination(ctx context.Context, id, destination 
 	return ops.SetTransactionDestination(ctx, c.b, id, destination)
 }
 
+func (c *client) SetTransactionRefundState(ctx context.Context, id string, state transactions.RefundState) error {
+	return ops.SetTransactionRefundState(ctx, c.b, id, state)
+}
+
 func (c *client) SetTransferForeignID(ctx context.Context, ID string, foreignID string) error {
 	return ops.SetTransferForeignID(ctx, c.b, ID, foreignID)
 }

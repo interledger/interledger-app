@@ -190,7 +190,7 @@ func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteractio
 			continue
 		}
 
-		senderTX, err := b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+		senderXfers, err := b.Transactions().ListTransfers(ctx, p.SendTransactionID)
 		if err != nil {
 			log.Error("discord bot failed to sender transaction", zap.Error(err), zap.String("paymentID", p.ID))
 			continue
@@ -198,7 +198,7 @@ func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteractio
 
 		// If there is a transfer it's the pull, now we should notify the receiver to link their identity,
 		// otherwise wait.
-		if len(senderTX.Transfers) < 1 {
+		if len(senderXfers) < 1 {
 			continue
 		}
 

@@ -6,9 +6,9 @@ import (
 
 func NewCmdRoot(b Backends) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fynbos",
-		Short: "Fynbos cli",
-		Long: "Access your wallet using the open-payments API.",
+		Use:     "fynbos",
+		Short:   "Fynbos cli",
+		Long:    "Access your wallet using the open-payments API.",
 		Version: "0.0.1",
 	}
 
