@@ -14,6 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -22,6 +23,9 @@ func BackfillLinkedCardCurrencyInfo(ctx workflow.Context) error {
 	var tabapayActivity *tabapay_workflows.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 3,
+		},
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
@@ -58,6 +62,7 @@ func BackfillLinkedCardCurrencyInfo(ctx workflow.Context) error {
 			pushNetwork = "Mastercard"
 		}
 		err = workflow.ExecuteActivity(ctx, a.UpdateLinkedAccountCurrencyData, UpdateLinkedAccountCurrencyData{
+			ID:                  card.ID,
 			Mask:                cardInfo.Card.Last4,
 			CanSend:             cardInfo.Card.Pull.Enabled,
 			SendCountry:         country.ParseCountry(cardInfo.Card.Pull.Country),
