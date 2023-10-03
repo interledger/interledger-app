@@ -5,6 +5,7 @@ import (
 
 	pb "gitlab.com/fynbos/proto/backend/admin/v1"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *AdminRpcService) ListPaymentsAwaitingSignal(ctx context.Context, _ *emptypb.Empty) (*pb.ListPaymentsAwaitingSignalResponse, error) {
@@ -30,6 +31,11 @@ func (s *AdminRpcService) ListPaymentsAwaitingSignal(ctx context.Context, _ *emp
 			receiveWalletAddress = receiveWallet.AddressString()
 		}
 
+		senderWallet, err := s.b.Wallets().Get(ctx, p.Sender.WalletID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
 		resp[i] = &pb.Payment{
 			Id:                   p.ID,
 			PublicID:             p.PublicID,
@@ -37,10 +43,12 @@ func (s *AdminRpcService) ListPaymentsAwaitingSignal(ctx context.Context, _ *emp
 			ReceiverWalletUrl:    receiveWalletAddress,
 			ReceiverIdentity:     p.Receiver.Identifier,
 			ReceiverIdentityType: p.Receiver.Type.String(),
+			SenderWalletUrl:      senderWallet.AddressString(),
 			SenderAmount:         p.SenderAmount.Format(),
 			SenderAccount:        p.SenderAccount,
 			Note:                 p.Note,
 			RequiredActions:      requiredActions,
+			UpdatedAt:            timestamppb.New(p.UpdatedAt),
 		}
 	}
 

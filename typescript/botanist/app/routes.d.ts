@@ -4,6 +4,7 @@ declare module "routes-gen" {
     "/dynamic-form/:id": { "id": string };
     "/dynamic-form/:id/submissions": { "id": string };
     "/dynamic-form/:id/submissions/:submissionId": { "id": string, "submissionId": string };
+    "/pendingpayouts": Record<string, never>;
     "/dynamic-forms": Record<string, never>;
     "/review/:id": { "id": string };
     "/review/:id/details": { "id": string };
@@ -25,6 +26,7 @@ declare module "routes-gen" {
       | ["/dynamic-form/:id", RouteParams["/dynamic-form/:id"]]
       | ["/dynamic-form/:id/submissions", RouteParams["/dynamic-form/:id/submissions"]]
       | ["/dynamic-form/:id/submissions/:submissionId", RouteParams["/dynamic-form/:id/submissions/:submissionId"]]
+      | ["/pendingpayouts"]
       | ["/dynamic-forms"]
       | ["/review/:id", RouteParams["/review/:id"]]
       | ["/review/:id/details", RouteParams["/review/:id/details"]]

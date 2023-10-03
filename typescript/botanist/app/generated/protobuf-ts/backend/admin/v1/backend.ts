@@ -67,6 +67,14 @@ export interface Payment {
      * @generated from protobuf field: repeated string requiredActions = 10;
      */
     requiredActions: string[];
+    /**
+     * @generated from protobuf field: string senderWalletUrl = 11;
+     */
+    senderWalletUrl: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp updatedAt = 12;
+     */
+    updatedAt?: Timestamp;
 }
 /**
  * @generated from protobuf message backend.admin.v1.ListExternalApiCallsRequest
@@ -886,11 +894,13 @@ class Payment$Type extends MessageType<Payment> {
             { no: 7, name: "senderAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "senderAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "requiredActions", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+            { no: 10, name: "requiredActions", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "senderWalletUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "updatedAt", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: "", receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: "", senderAmount: "", senderAccount: "", note: "", requiredActions: [] };
+        const message = { id: "", publicID: "", state: "", receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: "", senderAmount: "", senderAccount: "", note: "", requiredActions: [], senderWalletUrl: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -930,6 +940,12 @@ class Payment$Type extends MessageType<Payment> {
                     break;
                 case /* repeated string requiredActions */ 10:
                     message.requiredActions.push(reader.string());
+                    break;
+                case /* string senderWalletUrl */ 11:
+                    message.senderWalletUrl = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp updatedAt */ 12:
+                    message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -973,6 +989,12 @@ class Payment$Type extends MessageType<Payment> {
         /* repeated string requiredActions = 10; */
         for (let i = 0; i < message.requiredActions.length; i++)
             writer.tag(10, WireType.LengthDelimited).string(message.requiredActions[i]);
+        /* string senderWalletUrl = 11; */
+        if (message.senderWalletUrl !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.senderWalletUrl);
+        /* google.protobuf.Timestamp updatedAt = 12; */
+        if (message.updatedAt)
+            Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(12, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

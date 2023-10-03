@@ -48,6 +48,8 @@ message Payment {
   string senderAccount = 8; // Linked Account ID
   string note = 9;
   repeated string requiredActions = 10;
+  string senderWalletUrl = 11;
+  google.protobuf.Timestamp updatedAt = 12;
 }
 
 message ListExternalApiCallsRequest {
