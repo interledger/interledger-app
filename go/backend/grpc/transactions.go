@@ -144,7 +144,7 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 		Reference:               tx.Reference,
 		DestinationIdentity:     tx.DestinationIdentity,
 		DestinationIdentityType: destinationIdentityType,
-		RefundState:             string(tx.RefundState),
+		RefundState:             int32(tx.RefundState),
 	}
 }
 
