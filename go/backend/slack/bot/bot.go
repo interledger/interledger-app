@@ -345,15 +345,15 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 				continue
 			}
 
-			senderTX, err := b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+			senderXfers, err := b.Transactions().ListTransfers(ctx, p.SendTransactionID)
 			if err != nil {
-				log.Error("slack bot failed to sender transaction", zap.Error(err), zap.String("payment_id", paymentID))
+				log.Error("slack bot failed to list sender transfers", zap.Error(err), zap.String("payment_id", paymentID))
 				continue
 			}
 
 			// If there is a transfer it's the pull, now we should notify the receiver to link their identity,
 			// otherwise wait another minute and check again.
-			if len(senderTX.Transfers) < 1 {
+			if len(senderXfers) < 1 {
 				continue
 			}
 
