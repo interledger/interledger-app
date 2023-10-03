@@ -345,9 +345,9 @@ export class Transaction extends Message<Transaction> {
   /**
    * NA , PENDING , COMPLETE
    *
-   * @generated from field: string refundState = 20;
+   * @generated from field: int32 refundState = 20;
    */
-  refundState = "";
+  refundState = 0;
 
   constructor(data?: PartialMessage<Transaction>) {
     super();
@@ -375,7 +375,7 @@ export class Transaction extends Message<Transaction> {
     { no: 17, name: "reference", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 18, name: "destinationIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 20, name: "refundState", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 20, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {

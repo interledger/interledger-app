@@ -42,12 +42,12 @@ const (
 	TransferTypeDebitWebMonetization TransferType = "debit_web_monetization"
 )
 
-type RefundState string
+type RefundState int16
 
 const (
-	RefundStateNA       RefundState = "NA"
-	RefundStatePending  RefundState = "PENDING"
-	RefundStateComplete RefundState = "COMPLETE"
+	RefundStateNone RefundState = iota
+	RefundStatePending
+	RefundStateCompleted
 )
 
 type CreateTransactionArgs struct {
