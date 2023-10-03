@@ -316,8 +316,12 @@ func TestClient(t *testing.T) {
 			assert.True(st, strings.HasPrefix(sendTransaction.Source, "https://local.fynbos.me/"))
 			assert.Equal(st, tc.Assertions.SendTransactionState, sendTransaction.State)
 			sendTransfers := []AssertTransfer{}
-			for _, tr := range sendTransaction.Transfers {
-				sendTransfers = append(sendTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
+
+			sendXfers, err := b.Transactions().ListTransfers(ctx, sendTransaction.ID)
+			require.NoError(st, err)
+
+			for _, xfer := range sendXfers {
+				sendTransfers = append(sendTransfers, AssertTransfer{TransferType: xfer.Type, State: xfer.State})
 			}
 			assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
 
@@ -328,8 +332,12 @@ func TestClient(t *testing.T) {
 				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://local.fynbos.me/"))
 				assert.Equal(st, tc.Assertions.ReceiveTransactionState, recvTransaction.State)
 				recvTransfers := []AssertTransfer{}
-				for _, tr := range recvTransaction.Transfers {
-					recvTransfers = append(recvTransfers, AssertTransfer{TransferType: tr.Type, State: tr.State})
+
+				recvXfers, err := b.Transactions().ListTransfers(ctx, recvTransaction.ID)
+				require.NoError(st, err)
+
+				for _, xfer := range recvXfers {
+					recvTransfers = append(recvTransfers, AssertTransfer{TransferType: xfer.Type, State: xfer.State})
 				}
 				assert.ElementsMatch(st, tc.Assertions.ReceiveTransfers, recvTransfers)
 			} else {

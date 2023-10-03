@@ -458,7 +458,13 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 		Context: fmt.Sprintf("paymentID=%s", paymentID),
 	})
 
-	err := workflow.ExecuteActivity(ctx, a.RollbackPullFromAccount, paymentID).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.SetTransactionRefundState, paymentID, transactions.StatePending).Get(ctx, nil)
+	if err != nil {
+		logger.Error("error updating transaction refundState", "Error", err)
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.RollbackPullFromAccount, paymentID).Get(ctx, nil)
 	if err != nil {
 		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			logger.Error("Final failure to rollback tabapay card transaction", "err", err, "payment_id", paymentID)
@@ -471,6 +477,12 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 	err = workflow.ExecuteActivity(ctx, a.AddPayInRollbackTransfer, paymentID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error updating transaction transfer", "Error", err)
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SetTransactionRefundState, paymentID, transactions.StateCompleted).Get(ctx, nil)
+	if err != nil {
+		logger.Error("error updating transaction refundState", "Error", err)
 		return err
 	}
 
