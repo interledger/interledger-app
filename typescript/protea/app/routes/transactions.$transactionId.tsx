@@ -26,7 +26,7 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import { getTransaction } from '~/data/wallet.server'
+import {getTransaction, TransactionRefundState} from '~/data/wallet.server'
 import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -73,12 +73,12 @@ export const handle: ApplicationProps = {
       back: route('/transactions'),
       title: 'Sent payment',
       actions: (match: UIMatch<typeof loader>) => {
-        if (match.data.transaction.refundState == 'PENDING') {
+        if (match.data.transaction.refundState == TransactionRefundState.PENDING) {
           return {
             key: 'Pending refund',
             nodes: <Chip color={ChipColor.red}>Pending refund</Chip>
           }
-        } else if (match.data.transaction.refundState == 'COMPLETE') {
+        } else if (match.data.transaction.refundState == TransactionRefundState.COMPLETED) {
           return {
             key: 'Refunded',
             nodes: <Chip color={ChipColor.red}>Refunded</Chip>
@@ -225,7 +225,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </div>
         </CardButton>
       </Card>
-      {transaction.refundState == 'PENDING' && (
+      {transaction.refundState == TransactionRefundState.PENDING && (
         <Card>
           <CardContent>
             <div className='flex items-start space-x-4'>
@@ -243,7 +243,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </CardContent>
         </Card>
       )}
-      {transaction.refundState == 'COMPLETE' && (
+      {transaction.refundState == TransactionRefundState.COMPLETED && (
         <Card>
           <CardContent>
             <div className='flex items-start space-x-4'>
@@ -263,7 +263,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </CardContent>
         </Card>
       )}
-      {transaction.refundState == 'NA' && transaction.status == 'Failed' && (
+      {transaction.refundState == TransactionRefundState.NA && transaction.status == 'Failed' && (
         <Card>
           <CardContent>
             <div className='flex items-start space-x-4'>
@@ -282,7 +282,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </CardContent>
         </Card>
       )}
-      {transaction.refundState != 'NA' && transaction.status == 'Failed' && (
+      {transaction.refundState != TransactionRefundState.NA && transaction.status == 'Failed' && (
         <Card>
           <CardContent>
             <div className='flex w-full justify-between'>
@@ -295,7 +295,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
               <span className='text-weak'>You paid</span>
               <span className='text-medium'>{transaction.total}</span>
             </div>
-            {transaction.refundState == 'COMPLETE' && (
+            {transaction.refundState == TransactionRefundState.COMPLETED && (
               <div className='mt-2 flex w-full justify-between'>
                 <span className='text-weak'>Your refund</span>
                 <span className='text-medium'>{transaction.total}</span>

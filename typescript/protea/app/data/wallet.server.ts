@@ -196,7 +196,13 @@ export type DetailedTransaction = {
   time: string
   accountTitle: string
   reference: string
-  refundState: string
+  refundState: number
+}
+
+export enum TransactionRefundState {
+  NA = 0,
+  PENDING = 1,
+  COMPLETED = 2,
 }
 
 export async function getTransaction(

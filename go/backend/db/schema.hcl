@@ -955,8 +955,8 @@ table "transactions" {
   }
   column "refund_state" {
     null = false
-    type = text
-    default = "NA"
+    type = int
+    default = 0
   }
   column "created_at" {
     null    = false
