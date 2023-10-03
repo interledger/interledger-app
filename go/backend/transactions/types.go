@@ -42,6 +42,14 @@ const (
 	TransferTypeDebitWebMonetization TransferType = "debit_web_monetization"
 )
 
+type RefundState string
+
+const (
+	RefundStateNA       RefundState = "NA"
+	RefundStatePending  RefundState = "PENDING"
+	RefundStateComplete RefundState = "COMPLETE"
+)
+
 type CreateTransactionArgs struct {
 	ID                      string          `validate:"omitempty,uuid"`
 	WalletID                string          `validate:"uuid"` // Fynbos wallet ID
@@ -99,7 +107,7 @@ type Transaction struct {
 	DestinationIdentity     string
 	DestinationIdentityType string
 	Reference               string
-	Transfers               []Transfer
+	RefundState             RefundState
 }
 
 // Transfer is the underlying transfers that make up a single Transactions

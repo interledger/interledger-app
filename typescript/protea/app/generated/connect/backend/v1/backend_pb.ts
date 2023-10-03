@@ -286,11 +286,6 @@ export class Transaction extends Message<Transaction> {
   state = "";
 
   /**
-   * @generated from field: repeated backend.v1.Transfer transfers = 8;
-   */
-  transfers: Transfer[] = [];
-
-  /**
    * @generated from field: string foreignId = 9;
    */
   foreignId = "";
@@ -369,7 +364,6 @@ export class Transaction extends Message<Transaction> {
     { no: 5, name: "destination", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "timestamp", kind: "message", T: Timestamp },
     { no: 7, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "transfers", kind: "message", T: Transfer, repeated: true },
     { no: 9, name: "foreignId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 10, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 11, name: "formattedAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
