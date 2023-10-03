@@ -458,7 +458,7 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 		Context: fmt.Sprintf("paymentID=%s", paymentID),
 	})
 
-	err := workflow.ExecuteActivity(ctx, a.SetTransactionRefundState, paymentID, transactions.StatePending).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, a.SetTransactionRefundState, paymentID, transactions.RefundStatePending).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error updating transaction refundState", "Error", err)
 		return err
@@ -480,7 +480,7 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SetTransactionRefundState, paymentID, transactions.StateCompleted).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SetTransactionRefundState, paymentID, transactions.RefundStateCompleted).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error updating transaction refundState", "Error", err)
 		return err

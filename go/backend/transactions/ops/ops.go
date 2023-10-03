@@ -303,6 +303,7 @@ func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStm
 				Currency: currency.ParseCurrency(t.Asset),
 				Scale:    t.Scale,
 			},
+			RefundState: t.RefundState,
 		}
 	}
 
@@ -349,6 +350,7 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 			DestinationIdentity:     t.DestinationIdentity.String,
 			DestinationIdentityType: t.DestinationIdentityType.String,
 			Reference:               t.Reference.String,
+			RefundState:             t.RefundState,
 		}
 	}
 
@@ -386,6 +388,7 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 			Currency: currency.ParseCurrency(tx.Asset),
 			Scale:    tx.Scale,
 		},
+		RefundState: tx.RefundState,
 	}, nil
 }
 
@@ -426,6 +429,7 @@ func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string,
 			Currency: currency.ParseCurrency(tx.Asset),
 			Scale:    tx.Scale,
 		},
+		RefundState: tx.RefundState,
 	}, nil
 }
 
