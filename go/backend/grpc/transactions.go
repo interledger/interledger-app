@@ -100,34 +100,6 @@ func transformTransactions(ctx context.Context, b Backends, txs []transactions.T
 }
 
 func transformTransaction(ctx context.Context, b Backends, tx transactions.Transaction) *pb.Transaction {
-	refundState := "NA"
-	trs := make([]*pb.Transfer, len(tx.Transfers))
-	for y, tr := range tx.Transfers {
-		trs[y] = &pb.Transfer{
-			ForeignId:       tr.ForeignID,
-			Type:            string(tr.Type),
-			State:           string(tr.State),
-			LinkedAccountId: tr.LinkedAccountID,
-			Timestamp:       timestamppb.New(tr.Timestamp),
-			Amount:          tr.Amount.ToPB(),
-		}
-		// The transfers are in order.
-		// So it will move from state NA -> PENDING -> COMPLETE based on how many transfers there are
-		// This is for Card origination transaction so any ACH origin transactions will never get out of NA state
-		if refundState == "NA" &&
-			tx.State == transactions.StateFailed &&
-			tx.Type == transactions.TransactionTypeOpenOutgoingPayment &&
-			tr.Type == transactions.TransferTypeDebitCard {
-			refundState = "PENDING"
-		}
-		if refundState == "PENDING" &&
-			tx.State == transactions.StateFailed &&
-			tx.Type == transactions.TransactionTypeOpenOutgoingPayment &&
-			tr.Type == transactions.TransferTypeCreditCard {
-			refundState = "COMPLETE"
-		}
-	}
-
 	amt := tx.Amount.Format()
 	title := tx.DestinationIdentity
 	if tx.Type == transactions.TransactionTypeOpenPaymentIncoming || tx.Type == transactions.TransactionTypeIncoming {
@@ -161,7 +133,6 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 		Destination:             tx.Destination,
 		Timestamp:               timestamppb.New(tx.Timestamp),
 		State:                   string(tx.State),
-		Transfers:               trs,
 		ForeignId:               tx.ForeignID,
 		Title:                   title,
 		FormattedAmount:         amt,
@@ -173,7 +144,7 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 		Reference:               tx.Reference,
 		DestinationIdentity:     tx.DestinationIdentity,
 		DestinationIdentityType: destinationIdentityType,
-		RefundState:             refundState,
+		RefundState:             string(tx.RefundState),
 	}
 }
 

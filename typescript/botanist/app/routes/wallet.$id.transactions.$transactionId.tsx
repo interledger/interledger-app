@@ -20,7 +20,10 @@ export async function loader({ request, params }: LoaderArgs) {
     params.id as string,
     params.transactionId as string
   )
-  const externalApiLogs = await ListExternalApiCalls(request, transaction?.transaction?.paymentId || '')
+  const externalApiLogs = await ListExternalApiCalls(
+    request,
+    transaction?.transaction?.paymentId || ''
+  )
 
   return json({
     transaction,
