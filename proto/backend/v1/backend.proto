@@ -169,7 +169,6 @@ message Transaction {
   string destination = 5;
   google.protobuf.Timestamp timestamp = 6;
   string state = 7;
-  repeated Transfer transfers = 8;
   string foreignId = 9;
 
   // Display
@@ -183,7 +182,7 @@ message Transaction {
   string reference = 17;
   string destinationIdentity = 18;
   string destinationIdentityType = 19;
-  string refundState = 20; // NA , PENDING , COMPLETE
+  int32 refundState = 20; // NA , PENDING , COMPLETE
 }
 
 message ListTransactionsResponse {

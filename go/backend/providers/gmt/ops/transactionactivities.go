@@ -35,14 +35,14 @@ func (a *Activity) GMTUpdateTransactionState(ctx context.Context, trxID string, 
 	return a.b.Transactions().SetTransactionState(ctx, trxID, state)
 }
 
-func (a *Activity) UpdateTransferStateByType(ctx context.Context, trxID string, walletID string, tfsType transactions.TransferType, state transactions.State) error {
-	trx, err := a.b.Transactions().GetTransaction(ctx, walletID, trxID)
+func (a *Activity) UpdateTransferStateByType(ctx context.Context, trxID string, xferType transactions.TransferType, state transactions.State) error {
+	xfers, err := a.b.Transactions().ListTransfers(ctx, trxID)
 	if err != nil {
 		return err
 	}
-	for _, tfr := range trx.Transfers {
-		if tfr.Type == tfsType {
-			err = a.b.Transactions().SetTransferState(ctx, tfr.ID, state)
+	for _, xfer := range xfers {
+		if xfer.Type == xferType {
+			err = a.b.Transactions().SetTransferState(ctx, xfer.ID, state)
 			if err != nil {
 				return err
 			}

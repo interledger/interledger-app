@@ -157,3 +157,12 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, fkID 
 		},
 	})
 }
+
+func (a *Activity) SetTransactionRefundState(ctx context.Context, paymentID string, state transactions.RefundState) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	return a.b.Transactions().SetTransactionRefundState(ctx, p.SendTransactionID, state)
+}
