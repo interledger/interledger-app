@@ -622,6 +622,42 @@ export const getCollectablesRoute = async () => {
     })
 }
 
+export const getReferralRoute = async () => {
+  return apolloClient
+    .query<{
+      referralRoute: Query['referralRoute']
+      footer: Query['footer']
+    }>({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetReferralRouteContent {
+          referralRoute {
+            id
+            body {
+              ...Section
+            }
+            _status
+            _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { referralRoute: null, footer: null }
+    })
+}
 export const getSlackRoute = async () => {
   return apolloClient
     .query<{
