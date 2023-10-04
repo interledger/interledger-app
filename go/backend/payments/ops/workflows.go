@@ -256,7 +256,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			return err
 		}
 
-		err = workflow.ExecuteActivity(accountsCtx, a.AddWebMonetizationPayInTransfer, paymentID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(accountsCtx, a.AddPayInTransfer, paymentID, paymentID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
