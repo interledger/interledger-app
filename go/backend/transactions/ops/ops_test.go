@@ -746,11 +746,13 @@ func TestGetHasTransacted(t *testing.T) {
 		destination string
 		args        *transactions.CreateTransactionArgs
 		hasTx       bool
+		txCount     int
 	}{
 		{
 			name:        "has transacted",
 			walletID:    uuid.NewString(),
 			hasTx:       true,
+			txCount:     1,
 			destination: "$fynbos.me/bob",
 			args: &transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
@@ -787,8 +789,11 @@ func TestGetHasTransacted(t *testing.T) {
 
 			hasTx, err := ops.GetHasTransacted(ctx, b, tc.walletID, tc.destination)
 			require.NoError(t, err)
-			require.Equal(t, hasTx, tc.hasTx)
+			assert.Equal(t, hasTx, tc.hasTx)
 
+			txCount, err := ops.GetTransactedCount(ctx, b, tc.walletID, "%")
+			require.NoError(t, err)
+			assert.Equal(t, tc.txCount, txCount)
 		})
 	}
 }
