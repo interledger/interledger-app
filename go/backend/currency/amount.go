@@ -50,30 +50,42 @@ const (
 	USD Currency = "USD"
 	EUR Currency = "EUR"
 	ZAR Currency = "ZAR"
+	JPY Currency = "JPY"
+	GBP Currency = "GBP"
+	INR Currency = "INR"
 )
 
 var currencyScale = map[Currency]int{
 	USD: 2,
 	EUR: 2,
 	ZAR: 2,
+	JPY: 0,
+	GBP: 2,
+	INR: 2,
 }
 
 var currencyFormat = map[Currency]string{
 	USD: "$ %s",
 	EUR: "€ %s",
 	ZAR: "R %s",
+	JPY: "%s ¥",
+	GBP: "£ %s",
+	INR: "₹ %s",
 }
 
 var iso4217 = map[Currency]string{
 	USD: "840",
 	EUR: "978",
 	ZAR: "710",
+	JPY: "392",
+	GBP: "826",
+	INR: "356",
 }
 
 type Amount struct {
 	Value    uint64   `validate:"gt=0" json:"amount,string"`
 	Currency Currency `validate:"iso4217"  json:"currency"`
-	Scale    int      `validate:"omitempty,gt=0" json:"scale"`
+	Scale    int      `validate:"omitempty,gte=0" json:"scale"`
 }
 
 // IsEqual returns true if the value and currency are the same

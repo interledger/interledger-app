@@ -26,7 +26,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, created_at, updated_at`
 
 type dbPayment struct {
 	ID                   string                `db:"id"`
@@ -53,6 +53,8 @@ type dbPayment struct {
 	UpdatedAt            time.Time             `db:"updated_at"`
 	IPAddress            sql.NullString        `db:"ip_address"`
 	Type                 payments.Type         `db:"type"`
+	FXRate               sql.NullFloat64       `db:"fx_rate"`
+	FXFeePercentage      sql.NullFloat64       `db:"fx_fee_percentage"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -147,13 +149,15 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.
 		ReceiverAmount:       currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
 		SenderAccount:        db.SenderAccount.String,
 		ReceiverAccount:      db.ReceiverAccount.String,
-		RequiredActions:      getRequiredActions(&db),
 		SendTransactionID:    db.SendTransactionID.String,
 		ReceiveTransactionID: db.ReceiveTransactionID.String,
-		UpdatedAt:            db.UpdatedAt,
+		RequiredActions:      getRequiredActions(&db),
 		Note:                 db.Note.String,
 		IPAddress:            db.IPAddress.String,
+		UpdatedAt:            db.UpdatedAt,
 		Type:                 db.Type,
+		FXRate:               db.FXRate.Float64,
+		FXFeePercentage:      db.FXFeePercentage.Float64,
 	}, nil
 }
 
@@ -360,15 +364,17 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
+	if !canSend {
+		p.SenderAccount = ""
+	}
 
 	canReceive, err := accountCanReceive(ctx, b, p.Receiver, p.ReceiverAccount)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	defaultRecvAcc := p.ReceiverAccount
 	if p.ReceiverAccount == "" || !canReceive {
-		defaultRecvAcc, _ = defaultReceiveAccount(ctx, b, p.Receiver)
+		p.ReceiverAccount, _ = defaultReceiveAccount(ctx, b, p.Receiver)
 	}
 
 	requireOTP, err := requiresOTP(ctx, b, p.Type, p.Sender, p.Receiver)
@@ -381,6 +387,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	publicID, err := NewSoftDescriptor(time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	p, fxRate, fxFeePerc, err := applyFXCreate(ctx, b, p)
+	if err != nil {
+		return nil, err
 	}
 
 	// TODO Calculate more actions required
@@ -398,12 +409,14 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_id_type", p.Receiver.Type).
 		Value("receiver_amount", p.ReceiverAmount.Value).
 		Value("receiver_currency", p.ReceiverAmount.Currency).
-		Value("receiver_account", sql.NullString{String: defaultRecvAcc, Valid: defaultRecvAcc != ""}).
+		Value("receiver_account", sql.NullString{String: p.ReceiverAccount, Valid: p.ReceiverAccount != ""}).
 		Value("action_three_ds_required", require3DS).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
 		Value("action_otp_required", requireOTP).
 		Value("ip_address", sql.NullString{String: p.IPAddress, Valid: b.Validator().Var(p.IPAddress, "ip_addr") == nil}).
 		Value("type", p.Type).
+		Value("fx_rate", sql.NullFloat64{Float64: fxRate, Valid: fxRate > 0}).
+		Value("fx_fee_percentage", sql.NullFloat64{Float64: fxFeePerc, Valid: fxFeePerc > 0}).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -415,6 +428,58 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	return Lookup(ctx, b, id)
+}
+
+func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (payments.CreateArgs, float64, float64, error) {
+	if args.SenderAccount == "" || args.ReceiverAccount == "" {
+		return args, 0, 0, nil
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, args.SenderAccount)
+	if err != nil {
+		return args, 0, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if senderAcc.SendCurrency != currency.USD {
+		return args, 0, 0, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
+	}
+
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, args.ReceiverAccount)
+	if err != nil {
+		return args, 0, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	if receiverAcc.ReceiveCurrency == senderAcc.SendCurrency {
+		if !args.SenderAmount.IsEqual(args.ReceiverAmount) {
+			// Equalize sender and receiver amounts until we add fees.
+			if args.SenderAmount.Value > args.ReceiverAmount.Value {
+				args.ReceiverAmount = args.SenderAmount
+			} else {
+				args.SenderAmount = args.ReceiverAmount
+			}
+		}
+		return args, 0, 0, nil
+	}
+
+	if receiverAcc.ReceiveCurrency == currency.USD {
+		return args, 0, 0, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
+	}
+
+	fx, err := b.Tabapay().GetFXRate(ctx, receiverAcc.ReceiveCurrency)
+	if err != nil {
+		return args, 0, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	rate := fx.MatercardRate
+	if strings.EqualFold(receiverAcc.ReceiveNetwork, "Visa") {
+		rate = fx.VisaRate
+	}
+
+	if args.SenderAmount.Value > 0 {
+		args.ReceiverAmount = currency.FromFloat64(rate.FromUSD(args.SenderAmount.Float64()), receiverAcc.ReceiveCurrency)
+		return args, rate.BuyRateInv, 0, nil
+	}
+	args.SenderAmount = currency.FromFloat64(rate.ToUSD(args.ReceiverAmount.Float64()), senderAcc.SendCurrency)
+	return args, rate.SellRate, 0, nil
 }
 
 func SetState(ctx context.Context, b Backends, id string, state payments.State) error {
@@ -650,6 +715,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		return nil, fmt.Errorf("%w Receiver is invalid", payments.ErrInvalidIdentifier)
 	}
 
+	var receiverAmtUpdated bool
 	noop := true
 	receiver := payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}
 	if !args.Receiver.IsEmpty() && !args.Receiver.IsEqual(receiver) {
@@ -658,12 +724,6 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		noop = false
 	}
 
-	receiveAmount := currency.FromUInt64(payment.ReceiverAmount, currency.Currency(payment.ReceiverCurrency))
-	if !args.ReceiverAmount.IsEmpty() && !args.ReceiverAmount.IsEqual(receiveAmount) {
-		payment.ReceiverAmount = args.ReceiverAmount.Value
-		payment.ReceiverCurrency = args.ReceiverAmount.Currency.String()
-		noop = false
-	}
 	if args.ReceiverAccount != "" && args.ReceiverAccount != payment.ReceiverAccount.String {
 		canReceive, err := accountCanReceive(ctx, b, payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}, args.ReceiverAccount)
 		if err != nil {
@@ -683,6 +743,13 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		noop = false
 	}
 
+	receiveAmount := currency.FromUInt64(payment.ReceiverAmount, currency.Currency(payment.ReceiverCurrency))
+	if !args.ReceiverAmount.IsEmpty() && !args.ReceiverAmount.IsEqual(receiveAmount) {
+		payment.ReceiverAmount = args.ReceiverAmount.Value
+		payment.ReceiverCurrency = args.ReceiverAmount.Currency.String()
+		noop = false
+		receiverAmtUpdated = true
+	}
 	sendAmount := currency.FromUInt64(payment.SenderAmount, currency.Currency(payment.SenderCurrency))
 	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.IsEqual(sendAmount) {
 		payment.SenderAmount = args.SenderAmount.Value
@@ -717,6 +784,12 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		return transformPayment(ctx, b, *payment)
 	}
 
+	// Something changed, update the FX calculations
+	payment, err = applyFXUpdate(ctx, b, payment, receiverAmtUpdated)
+	if err != nil {
+		return nil, err
+	}
+
 	payment.UpdatedAt = time.Now()
 	stmt, values, err := db.NewUpdate("payments").ID(payment.ID).
 		Value("sender_amount", payment.SenderAmount).
@@ -731,7 +804,9 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		Value("note", payment.Note).
 		Value("action_three_ds_id", payment.ThreeDSID).
 		Value("ip_address", payment.IPAddress).
-		Value("action_otp", payment.OTP).Returning(cols).GetStatement()
+		Value("action_otp", payment.OTP).
+		Value("fx_rate", payment.FXRate).
+		Value("fx_fee_percentage", payment.FXFeePercentage).Returning(cols).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -743,6 +818,64 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 	}
 
 	return transformPayment(ctx, b, ret)
+}
+
+func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receiverAmtUpdated bool) (*dbPayment, error) {
+	if !existing.SenderAccount.Valid || !existing.ReceiverAccount.Valid {
+		return existing, nil
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, existing.SenderAccount.String)
+	if err != nil {
+		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if senderAcc.SendCurrency != currency.USD {
+		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
+	}
+
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, existing.ReceiverAccount.String)
+	if err != nil {
+		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	if receiverAcc.ReceiveCurrency == senderAcc.SendCurrency {
+		if existing.SenderAmount != existing.ReceiverAmount {
+			// Equalize sender and receiver amounts until we add fees.
+			if existing.SenderAmount > existing.ReceiverAmount {
+				existing.ReceiverAmount = existing.SenderAmount
+			} else {
+				existing.SenderAmount = existing.ReceiverAmount
+			}
+		}
+		return existing, nil
+	}
+
+	if receiverAcc.ReceiveCurrency == currency.USD {
+		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
+	}
+
+	fx, err := b.Tabapay().GetFXRate(ctx, receiverAcc.ReceiveCurrency)
+	if err != nil {
+		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	rate := fx.MatercardRate
+	if strings.EqualFold(receiverAcc.ReceiveNetwork, "Visa") {
+		rate = fx.VisaRate
+	}
+
+	if receiverAmtUpdated {
+		receiveAmt := currency.FromUInt64(existing.ReceiverAmount, receiverAcc.ReceiveCurrency)
+		existing.SenderAmount = currency.FromFloat64(rate.ToUSD(receiveAmt.Float64()), senderAcc.SendCurrency).Value
+		existing.SenderCurrency = senderAcc.SendCurrency.String()
+		existing.FXRate = sql.NullFloat64{Float64: rate.SellRate, Valid: true}
+		return existing, nil
+	}
+	sendAmt := currency.FromUInt64(existing.SenderAmount, senderAcc.SendCurrency)
+	existing.ReceiverAmount = currency.FromFloat64(rate.FromUSD(sendAmt.Float64()), receiverAcc.ReceiveCurrency).Value
+	existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
+	existing.FXRate = sql.NullFloat64{Float64: rate.BuyRateInv, Valid: true}
+	return existing, nil
 }
 
 func UpdateReceiver(ctx context.Context, b Backends, id string, identity payments.Identity) error {

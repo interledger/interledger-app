@@ -120,8 +120,8 @@ func TestClient(t *testing.T) {
 					Identifier: receiveWalletID,
 				},
 				ReceiverAccount: receiveLinkedAccount,
-				SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("USD")),
-				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				SenderAmount:    currency.FromUInt64(777, currency.ParseCurrency("USD")),
+				ReceiverAmount:  currency.FromUInt64(777, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
 			},
 			Assertions: Assertions{
@@ -144,7 +144,7 @@ func TestClient(t *testing.T) {
 					Identifier: receiveWalletID,
 				},
 				ReceiverAccount: receiveLinkedAccount,
-				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(666, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
 			},
@@ -633,13 +633,15 @@ func createTestWallet(t *testing.T, b *TestBackends) (string, string) {
 	require.Equal(t, walletID, wallet.ID)
 
 	la, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
-		WalletID:   wallet.ID,
-		Name:       "default",
-		Provider:   tabapay.ProviderName,
-		ProviderID: uuid.NewString(),
-		CanSend:    true,
-		CanReceive: true,
-		Type:       tabapay.TypeCard,
+		WalletID:        wallet.ID,
+		Name:            "default",
+		Provider:        tabapay.ProviderName,
+		ProviderID:      uuid.NewString(),
+		CanSend:         true,
+		CanReceive:      true,
+		Type:            tabapay.TypeCard,
+		SendCurrency:    currency.USD,
+		ReceiveCurrency: currency.USD,
 	})
 	require.NoError(t, err)
 
