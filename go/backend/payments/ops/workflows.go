@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/payments"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -136,6 +138,23 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	// Child workflow execution has started. We can return and GMT will carry-on on its own
 	if err != nil {
 		logger.Error("Failed to notify GMT of completed payment", "err", err)
+	}
+
+	referralCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+		WorkflowID:            fmt.Sprintf(referralWorkflowFmt, id),
+		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON, // allow child workflow to continue running
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	})
+
+	referralFuture := workflow.ExecuteChildWorkflow(referralCtx, CreateReferralsWorkflow, id)
+	if env.IsLocal() { // run sync to help with payments engine test harness
+		err = referralFuture.Get(referralCtx, nil)
+	} else {
+		var referralWe workflow.Execution
+		err = referralFuture.GetChildWorkflowExecution().Get(referralCtx, &referralWe)
+	}
+	if err != nil {
+		logger.Error("Failed to create referrals workflow", "err", err)
 	}
 
 	return nil
@@ -302,6 +321,7 @@ const (
 	payinWorkflowFmt     = "payment_pay_in_%s"
 	payoutWorkflowFmt    = "payment_pay_out_%s"
 	gmtNotifyCompleteFmt = "payment_gmt_notify_complete_%s"
+	referralWorkflowFmt  = "referrals_%s"
 )
 
 func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
@@ -582,4 +602,33 @@ func AwaitReceiverWorkflow(ctx workflow.Context, paymentID string) (bool, error)
 	// OFAC and compliance checks, now that the receiver is ready
 	err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, paymentID).Get(childCtx, nil)
 	return err == nil, err
+}
+
+func CreateReferralsWorkflow(ctx workflow.Context, originalPaymentID string) error {
+	var a *Activity
+
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 20 * time.Minute,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+
+	var paymentIDs []string
+	err := workflow.ExecuteActivity(ctx, a.CreateReferrals, originalPaymentID).Get(ctx, &paymentIDs)
+	if err != nil {
+		logger.Error("Failed to create referral payments.", err)
+		return err
+	}
+
+	for _, paymentID := range paymentIDs {
+		var requiredActions []payments.RequiredActionType
+		innerErr := workflow.ExecuteActivity(ctx, a.ConfirmPaymentsEnginePayment, paymentID).Get(ctx, &requiredActions)
+		if err != nil {
+			logger.Error("Payment has required actions", "paymentID=", paymentID, "requiredActions=", requiredActions)
+			err = innerErr
+		}
+	}
+
+	return err
 }

@@ -191,3 +191,8 @@ func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) 
 
 	return p.Type == payments.TypePeer2Peer, nil
 }
+
+func (a *Activity) ConfirmPaymentsEnginePayment(ctx context.Context, id string) ([]payments.RequiredActionType, error) {
+	_, requiredActions, err := Confirm(ctx, a.b, id)
+	return requiredActions, err
+}
