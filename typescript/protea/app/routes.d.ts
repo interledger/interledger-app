@@ -38,6 +38,7 @@ declare module "routes-gen" {
     "/personal-details": Record<string, never>;
     "/recovery": Record<string, never>;
     "/recovery/password": Record<string, never>;
+    "/referral": Record<string, never>;
     "/settings": Record<string, never>;
     "/settings/keys": Record<string, never>;
     "/settings/keys/:keyId": { "keyId": string };
@@ -102,6 +103,7 @@ declare module "routes-gen" {
       | ["/personal-details"]
       | ["/recovery"]
       | ["/recovery/password"]
+      | ["/referral"]
       | ["/settings"]
       | ["/settings/keys"]
       | ["/settings/keys/:keyId", RouteParams["/settings/keys/:keyId"]]
