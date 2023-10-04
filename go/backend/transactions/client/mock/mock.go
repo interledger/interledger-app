@@ -258,6 +258,20 @@ func (mr *MockClientMockRecorder) SetTransactionForeignID(ctx, ID, foreignID int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionForeignID", reflect.TypeOf((*MockClient)(nil).SetTransactionForeignID), ctx, ID, foreignID)
 }
 
+// SetTransactionRefundState mocks base method.
+func (m *MockClient) SetTransactionRefundState(ctx context.Context, ID string, state transactions.RefundState) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetTransactionRefundState", ctx, ID, state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTransactionRefundState indicates an expected call of SetTransactionRefundState.
+func (mr *MockClientMockRecorder) SetTransactionRefundState(ctx, ID, state interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTransactionRefundState", reflect.TypeOf((*MockClient)(nil).SetTransactionRefundState), ctx, ID, state)
+}
+
 // SetTransactionState mocks base method.
 func (m *MockClient) SetTransactionState(ctx context.Context, ID string, state transactions.State) error {
 	m.ctrl.T.Helper()
