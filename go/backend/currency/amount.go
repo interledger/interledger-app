@@ -17,6 +17,15 @@ func ParseCurrency(cc string) Currency {
 	return Currency(cc)
 }
 
+func FromISO4217(iso string) Currency {
+	cc, ok := iso4217Currency[iso]
+	if !ok {
+		log.Warn("unknown iso4217 code for currency", zap.String("iso4217", iso))
+		return ""
+	}
+	return cc
+}
+
 func (c Currency) String() string {
 	return string(c)
 }
@@ -80,6 +89,15 @@ var iso4217 = map[Currency]string{
 	JPY: "392",
 	GBP: "826",
 	INR: "356",
+}
+
+var iso4217Currency = map[string]Currency{
+	"840": USD,
+	"978": EUR,
+	"710": ZAR,
+	"392": JPY,
+	"826": GBP,
+	"356": INR,
 }
 
 type Amount struct {

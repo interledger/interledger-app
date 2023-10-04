@@ -42,8 +42,7 @@ func NewActivity(cb InputBackends) *Activity {
 	}
 
 	return &Activity{b: &backends{
-		b:        cb,
-		external: externalClient,
+		cb, externalClient,
 	}}
 }
 
