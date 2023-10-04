@@ -3056,6 +3056,8 @@ export type Query = {
   /** Returns a specific record */
   person?: Maybe<PersonRecord>;
   /** Returns the single instance record */
+  referralRoute?: Maybe<ReferralRouteRecord>;
+  /** Returns the single instance record */
   slackRoute?: Maybe<SlackRouteRecord>;
   /** Returns a specific record */
   thankYou?: Maybe<ThankYouRecord>;
@@ -3301,6 +3303,13 @@ export type QueryPersonArgs = {
 
 
 /** The query root for this schema */
+export type QueryReferralRouteArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
 export type QuerySlackRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
@@ -3350,6 +3359,33 @@ export type RecordInterface = {
 
 
 export type RecordInterface_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
+/** Record of type Referral (referral_route) */
+export type ReferralRouteRecord = RecordInterface & {
+  __typename?: 'ReferralRouteRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body: Array<SectionRecord>;
+  id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
+};
+
+
+/** Record of type Referral (referral_route) */
+export type ReferralRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
