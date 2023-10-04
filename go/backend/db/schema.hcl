@@ -953,6 +953,11 @@ table "transactions" {
     null = true
     type = text
   }
+  column "refund_state" {
+    null = false
+    type = int
+    default = 0
+  }
   column "created_at" {
     null    = false
     type    = timestamp
