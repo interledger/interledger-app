@@ -13,6 +13,7 @@ import (
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
@@ -46,6 +47,7 @@ type TestBackends struct {
 	Ic  *id_mock.MockClient
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
+	Tbp *tabapay_mock.MockClient
 }
 
 func (t TestBackends) Transactions() transactions.Client {
@@ -53,8 +55,7 @@ func (t TestBackends) Transactions() transactions.Client {
 }
 
 func (t TestBackends) Tabapay() tabapay.Client {
-	//TODO implement me
-	panic("implement me")
+	return t.Tbp
 }
 
 func (t TestBackends) LinkedAccounts() linkedaccounts.Client {

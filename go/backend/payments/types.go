@@ -48,6 +48,8 @@ type Payment struct {
 	IPAddress            string
 	UpdatedAt            time.Time
 	Type                 Type
+	FXRate               float64
+	FXFeePercentage      float64
 }
 
 //go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType

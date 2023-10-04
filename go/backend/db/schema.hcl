@@ -2132,6 +2132,14 @@ table "payments" {
     null = false
     type = text
   }
+  column "fx_rate" {
+    null = true
+    type = float
+  }
+  column "fx_fee_percentage" {
+    null = true
+    type = float
+  }
   column "receiver_amount" {
     null = false
     type = bigint

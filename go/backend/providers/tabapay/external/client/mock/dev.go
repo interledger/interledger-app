@@ -48,7 +48,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 	) (*external.CreateTransactionResponse, error) {
 		id := uuid.NewString()
 		txIDAmounts[id] = args.Amount
-		if args.Amount == "6.66" {
+		if (args.Amount == "6.66" && args.Type == external.TransactionTypePush) || (args.Amount == "7.77" && args.Type == external.TransactionTypePull) {
 			return &external.CreateTransactionResponse{
 				SC:            http.StatusMultiStatus,
 				EC:            "fail",

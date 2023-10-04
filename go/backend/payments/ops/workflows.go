@@ -201,6 +201,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 		var accountTX tabapay.Transaction
 		err = workflow.ExecuteActivity(accountsCtx, a.PullFromAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
+		fmt.Println("XXXXXXXXXXXXXX", err)
 		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			innerErr := workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 			if innerErr != nil {
@@ -258,6 +259,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 		if !tabapay.IsSuccessfulTransaction(accountTX) {
 			// Mark transaction as a failure and stop the workflow
+			fmt.Println("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
 			return workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 		}
 
