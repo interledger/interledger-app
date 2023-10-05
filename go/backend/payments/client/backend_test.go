@@ -143,6 +143,7 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterActivity(gmt_ops.NewActivity(b))
 	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
 	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
+	env.RegisterWorkflow(ops.CreateReferralsWorkflow)
 
 	b.env = env
 }
