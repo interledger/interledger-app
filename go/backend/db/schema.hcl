@@ -921,6 +921,10 @@ table "transactions" {
     null = true
     type = text
   }
+  column "title" {
+    null = true
+    type = text
+  }
   column "note" {
     null = true
     type = text
