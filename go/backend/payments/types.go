@@ -142,4 +142,5 @@ const (
 	TypeUnknown         Type = 0
 	TypePeer2Peer       Type = 1
 	TypeWebMonetization Type = 2
+	TypeReferral        Type = 3
 )

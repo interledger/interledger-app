@@ -29,6 +29,8 @@ type Client interface {
 	SetTransactionAmountTx(ctx context.Context, tx *sqlx.Tx, ID string, amount currency.Amount) error
 
 	GetHasTransacted(ctx context.Context, walletID, destination string) (bool, error)
+	GetTransactedCount(ctx context.Context, walletID, destination string) (int, error)
+	CountReferralsInPastDay(ctx context.Context, destination string) (int, error)
 
 	ListTransactionsInRange(ctx context.Context, walletID string, inRange TransactionRangeFilter) ([]Transaction, error)
 	List(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
