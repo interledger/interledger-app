@@ -17,15 +17,14 @@ import (
 
 const tabapayRatesBucket = "fynbos-tabapay"
 
-func (a *Activity) LoadFXRatesFromS3(ctx context.Context) error {
-
+func (a *Activity) GetLatestRatesFile(ctx context.Context) (string, error) {
 	var latest types.Object
 	pl := a.b.AWS().S3ListObjects(tabapayRatesBucket, "")
 
 	for pl.HasMorePages() {
 		page, err := pl.NextPage(ctx)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		// Load go for the latest file only
@@ -42,11 +41,16 @@ func (a *Activity) LoadFXRatesFromS3(ctx context.Context) error {
 
 	// No rates files in the bucket
 	if latest.Key == nil {
-		return nil
+		return "", nil
 	}
 
+	return *latest.Key, nil
+}
+
+func (a *Activity) LoadFXRatesFromS3(ctx context.Context, filename string) error {
+
 	// Read the contents of the latest file
-	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayRatesBucket, *latest.Key)
+	data, err := a.b.AWS().S3GetObjectData(ctx, tabapayRatesBucket, filename)
 	if err != nil {
 		return err
 	}
@@ -73,7 +77,7 @@ func (a *Activity) LoadFXRatesFromS3(ctx context.Context) error {
 			continue
 		}
 		_, err = a.b.DB().ExecContext(ctx, "INSERT INTO tabapay_fx_rates (currency_code, network, buy_rate, buy_rate_inverted, sell_rate, sell_rate_inverted, file_name) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING;",
-			cc, strings.TrimSpace(line[4]), convertRate(line[2]), convertRate(line[5]), convertRate(line[3]), convertRate(line[6]), latest.Key)
+			cc, strings.TrimSpace(line[4]), convertRate(line[2]), convertRate(line[5]), convertRate(line[3]), convertRate(line[6]), filename)
 		if err != nil {
 			log.Error("failed to load line from tabapay fx rates", zap.Error(err), zap.Int("line", i))
 		}
