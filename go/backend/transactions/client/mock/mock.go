@@ -66,6 +66,21 @@ func (mr *MockClientMockRecorder) AddTransfersTx(ctx, tx, trxID, args interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTransfersTx", reflect.TypeOf((*MockClient)(nil).AddTransfersTx), ctx, tx, trxID, args)
 }
 
+// CountReferralsInPastDay mocks base method.
+func (m *MockClient) CountReferralsInPastDay(ctx context.Context, destination string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountReferralsInPastDay", ctx, destination)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountReferralsInPastDay indicates an expected call of CountReferralsInPastDay.
+func (mr *MockClientMockRecorder) CountReferralsInPastDay(ctx, destination interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountReferralsInPastDay", reflect.TypeOf((*MockClient)(nil).CountReferralsInPastDay), ctx, destination)
+}
+
 // CreateTransaction mocks base method.
 func (m *MockClient) CreateTransaction(ctx context.Context, args transactions.CreateTransactionArgs) (string, error) {
 	m.ctrl.T.Helper()
@@ -109,6 +124,21 @@ func (m *MockClient) GetHasTransacted(ctx context.Context, walletID, destination
 func (mr *MockClientMockRecorder) GetHasTransacted(ctx, walletID, destination interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHasTransacted", reflect.TypeOf((*MockClient)(nil).GetHasTransacted), ctx, walletID, destination)
+}
+
+// GetTransactedCount mocks base method.
+func (m *MockClient) GetTransactedCount(ctx context.Context, walletID, destination string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransactedCount", ctx, walletID, destination)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransactedCount indicates an expected call of GetTransactedCount.
+func (mr *MockClientMockRecorder) GetTransactedCount(ctx, walletID, destination interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactedCount", reflect.TypeOf((*MockClient)(nil).GetTransactedCount), ctx, walletID, destination)
 }
 
 // GetTransaction mocks base method.

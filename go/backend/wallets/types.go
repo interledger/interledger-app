@@ -172,4 +172,5 @@ func standardize(wa string) string {
 
 const (
 	WebMonetizationWalletID = "31db2044-0b83-4aae-9cd8-b5b63cc85414"
+	ReferralsWalletID       = "9d0357f9-10f0-4450-8dda-0a97f9acdca2"
 )
