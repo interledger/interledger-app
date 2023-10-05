@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/wallets"
 	"strings"
 	"time"
 
@@ -57,6 +58,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 			String: args.Reference,
 			Valid:  args.Reference != "",
 		})
+
 	if args.Source != "" {
 		is.Value("source", args.Source)
 	}
@@ -68,6 +70,15 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 	}
 	if args.ForeignID != "" {
 		is.Value("foreign_id", args.ForeignID)
+	}
+	title := GenerateTransactionTitle(ctx, b.Wallets(), GenerateTransactionTitleArgs{
+		Type:                args.ForeignType,
+		Source:              args.Source,
+		Destination:         args.Destination,
+		DestinationIdentity: args.DestinationIdentity,
+	})
+	if title != "" {
+		is.Value("title", title)
 	}
 
 	stmt, qargs, err := is.GetStatement()
@@ -205,7 +216,7 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, foreign_id, type, state, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state `
+	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
@@ -218,6 +229,7 @@ type dbTransaction struct {
 	Note                    sql.NullString               `db:"note"`
 	Source                  sql.NullString               `db:"source"`
 	Destination             sql.NullString               `db:"destination"`
+	Title                   sql.NullString               `db:"title"`
 	Amount                  uint64                       `db:"amount"`
 	Scale                   int                          `db:"asset_scale"`
 	Asset                   string                       `db:"asset_code"`
@@ -268,6 +280,19 @@ func ListWithPending(ctx context.Context, b Backends, walletID string, page db.P
 	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
 }
 
+func ListAllTransactions(ctx context.Context, b Backends, page db.Pagination) ([]transactions.Transaction, error) {
+
+	sqlStmt := "SELECT %s FROM transactions ORDER BY updated_at DESC,id %s"
+	var sqlArgs []interface{}
+
+	if page.PageToken != "" {
+		sqlStmt = "SELECT %s FROM transactions WHERE updated_at<=(SELECT updated_at FROM transactions WHERE id=$1) ORDER BY updated_at DESC,id %s"
+		sqlArgs = []interface{}{page.PageToken}
+	}
+
+	return listTransaction(ctx, b, page, sqlStmt, sqlArgs)
+}
+
 func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStmt string, sqlArgs []interface{}) ([]transactions.Transaction, error) {
 	var txs []dbTransaction
 	err := b.DB().SelectContext(ctx, &txs,
@@ -284,27 +309,7 @@ func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStm
 	resp := make([]transactions.Transaction, len(txs))
 
 	for i, t := range txs {
-		resp[i] = transactions.Transaction{
-			ID:                      t.ID,
-			ForeignID:               t.ForeignID.String,
-			Source:                  t.Source.String,
-			Destination:             t.Destination.String,
-			Type:                    t.Type,
-			Timestamp:               t.Timestamp,
-			Note:                    t.Note.String,
-			State:                   t.State,
-			Provider:                t.Provider,
-			LinkedAccountTitle:      t.LinkedAccountTitle.String,
-			DestinationIdentity:     t.DestinationIdentity.String,
-			DestinationIdentityType: t.DestinationIdentityType.String,
-			Reference:               t.Reference.String,
-			Amount: currency.Amount{
-				Value:    t.Amount,
-				Currency: currency.ParseCurrency(t.Asset),
-				Scale:    t.Scale,
-			},
-			RefundState: t.RefundState,
-		}
+		resp[i] = transformTransaction(t)
 	}
 
 	return resp, err
@@ -331,27 +336,7 @@ func ListTransactionsInRange(ctx context.Context, b Backends, walletID string, i
 	resp := make([]transactions.Transaction, len(txs))
 
 	for i, t := range txs {
-		resp[i] = transactions.Transaction{
-			ID:          t.ID,
-			ForeignID:   t.ForeignID.String,
-			Source:      t.Source.String,
-			Destination: t.Destination.String,
-			Note:        t.Note.String,
-			Type:        t.Type,
-			Timestamp:   t.Timestamp,
-			Provider:    t.Provider,
-			State:       t.State,
-			Amount: currency.Amount{
-				Value:    t.Amount,
-				Currency: currency.ParseCurrency(t.Asset),
-				Scale:    t.Scale,
-			},
-			LinkedAccountTitle:      t.LinkedAccountTitle.String,
-			DestinationIdentity:     t.DestinationIdentity.String,
-			DestinationIdentityType: t.DestinationIdentityType.String,
-			Reference:               t.Reference.String,
-			RefundState:             t.RefundState,
-		}
+		resp[i] = transformTransaction(t)
 	}
 
 	return resp, err
@@ -369,27 +354,9 @@ func GetTransaction(ctx context.Context, b Backends, walletID string, trxID stri
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
-	return &transactions.Transaction{
-		ID:                      tx.ID,
-		ForeignID:               tx.ForeignID.String,
-		Source:                  tx.Source.String,
-		Destination:             tx.Destination.String,
-		Type:                    tx.Type,
-		Timestamp:               tx.Timestamp,
-		Note:                    tx.Note.String,
-		State:                   tx.State,
-		Provider:                tx.Provider,
-		LinkedAccountTitle:      tx.LinkedAccountTitle.String,
-		DestinationIdentity:     tx.DestinationIdentity.String,
-		DestinationIdentityType: tx.DestinationIdentityType.String,
-		Reference:               tx.Reference.String,
-		Amount: currency.Amount{
-			Value:    tx.Amount,
-			Currency: currency.ParseCurrency(tx.Asset),
-			Scale:    tx.Scale,
-		},
-		RefundState: tx.RefundState,
-	}, nil
+	resp := transformTransaction(tx)
+
+	return &resp, nil
 }
 
 func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string, foreignID string) (*transactions.Transaction, error) {
@@ -410,27 +377,9 @@ func GetTransactionByForeignID(ctx context.Context, b Backends, walletID string,
 		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
 
-	return &transactions.Transaction{
-		ID:                      tx.ID,
-		ForeignID:               tx.ForeignID.String,
-		Source:                  tx.Source.String,
-		Destination:             tx.Destination.String,
-		Type:                    tx.Type,
-		Timestamp:               tx.Timestamp,
-		Note:                    tx.Note.String,
-		State:                   tx.State,
-		Provider:                tx.Provider,
-		LinkedAccountTitle:      tx.LinkedAccountTitle.String,
-		DestinationIdentity:     tx.DestinationIdentity.String,
-		DestinationIdentityType: tx.DestinationIdentityType.String,
-		Reference:               tx.Reference.String,
-		Amount: currency.Amount{
-			Value:    tx.Amount,
-			Currency: currency.ParseCurrency(tx.Asset),
-			Scale:    tx.Scale,
-		},
-		RefundState: tx.RefundState,
-	}, nil
+	resp := transformTransaction(tx)
+
+	return &resp, nil
 }
 
 type dbTransfer struct {
@@ -655,4 +604,53 @@ func getWalletUserID(ctx context.Context, b Backends, walletID string) string {
 
 func ListTransfers(ctx context.Context, b Backends, txID string) ([]transactions.Transfer, error) {
 	return getTransfers(ctx, b, txID)
+}
+
+func transformTransaction(tx dbTransaction) transactions.Transaction {
+	return transactions.Transaction{
+		ID:                      tx.ID,
+		ForeignID:               tx.ForeignID.String,
+		Source:                  tx.Source.String,
+		Destination:             tx.Destination.String,
+		Title:                   tx.Title.String,
+		Type:                    tx.Type,
+		Timestamp:               tx.Timestamp,
+		Note:                    tx.Note.String,
+		State:                   tx.State,
+		Provider:                tx.Provider,
+		LinkedAccountTitle:      tx.LinkedAccountTitle.String,
+		DestinationIdentity:     tx.DestinationIdentity.String,
+		DestinationIdentityType: tx.DestinationIdentityType.String,
+		Reference:               tx.Reference.String,
+		Amount: currency.Amount{
+			Value:    tx.Amount,
+			Currency: currency.ParseCurrency(tx.Asset),
+			Scale:    tx.Scale,
+		},
+		RefundState: tx.RefundState,
+	}
+}
+
+type GenerateTransactionTitleArgs struct {
+	Source              string
+	Destination         string
+	Type                transactions.TransactionType
+	DestinationIdentity string
+}
+
+func GenerateTransactionTitle(ctx context.Context, wc wallets.Client, args GenerateTransactionTitleArgs) string {
+	title := args.DestinationIdentity
+	if args.Type == transactions.TransactionTypeOpenPaymentIncoming || args.Type == transactions.TransactionTypeIncoming {
+		title = args.Source
+	}
+	w, _ := wc.GetFromAddress(ctx, title)
+	// We don't care about errors, we'll use the source/destination/full wallet address as the fallback
+	if w != nil {
+		title = w.Name
+	}
+
+	// Remove https if it exists
+	title = strings.TrimPrefix(title, "https://")
+
+	return title
 }
