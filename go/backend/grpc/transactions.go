@@ -2,15 +2,13 @@ package grpc
 
 import (
 	"context"
-	"math"
-	"strings"
-
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"math"
 )
 
 func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -31,7 +29,7 @@ func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationReq
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(ctx, s.b, txs, page), nil
+	return transformTransactions(txs, page), nil
 }
 
 func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -52,7 +50,7 @@ func (s *rpcService) ListTransactionsCompleted(ctx context.Context, req *pb.Pagi
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(ctx, s.b, txs, page), nil
+	return transformTransactions(txs, page), nil
 }
 
 func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -73,10 +71,10 @@ func (s *rpcService) ListTransactionsWithPending(ctx context.Context, req *pb.Pa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransactions(ctx, s.b, txs, page), nil
+	return transformTransactions(txs, page), nil
 }
 
-func transformTransactions(ctx context.Context, b Backends, txs []transactions.Transaction, page db.Pagination) *pb.ListTransactionsResponse {
+func transformTransactions(txs []transactions.Transaction, page db.Pagination) *pb.ListTransactionsResponse {
 	var nextPageToken string
 
 	resSize := int(math.Min(float64(len(txs)), float64(page.PageSize)))
@@ -90,7 +88,7 @@ func transformTransactions(ctx context.Context, b Backends, txs []transactions.T
 			break
 		}
 
-		res[i] = transformTransaction(ctx, b, tx)
+		res[i] = transformTransaction(tx)
 	}
 
 	return &pb.ListTransactionsResponse{
@@ -99,17 +97,8 @@ func transformTransactions(ctx context.Context, b Backends, txs []transactions.T
 	}
 }
 
-func transformTransaction(ctx context.Context, b Backends, tx transactions.Transaction) *pb.Transaction {
+func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 	amt := tx.Amount.Format()
-	title := tx.DestinationIdentity
-	if tx.Type == transactions.TransactionTypeOpenPaymentIncoming || tx.Type == transactions.TransactionTypeIncoming {
-		title = tx.Source
-	}
-	w, _ := b.Wallets().GetFromAddress(ctx, title)
-	// We don't care about errors, we'll use the source/destination/full wallet address as the fallback
-	if w != nil {
-		title = w.Name
-	}
 
 	// transform identity types to twitter/wallet for the frontend
 	destinationIdentityType := tx.DestinationIdentityType
@@ -119,9 +108,6 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 		tx.Type == transactions.TransactionTypeIncoming {
 		destinationIdentityType = "wallet"
 	}
-
-	// Remove https if it exists
-	title = strings.TrimPrefix(title, "https://")
 
 	fees := currency.FromFloat64(0, tx.Amount.Currency)
 
@@ -134,7 +120,7 @@ func transformTransaction(ctx context.Context, b Backends, tx transactions.Trans
 		Timestamp:               timestamppb.New(tx.Timestamp),
 		State:                   string(tx.State),
 		ForeignId:               tx.ForeignID,
-		Title:                   title,
+		Title:                   tx.Title,
 		FormattedAmount:         amt,
 		FormattedTime:           tx.Timestamp.Format("15:04"),
 		FormattedDate:           tx.Timestamp.Format("02 Jan 2006"),
@@ -164,5 +150,5 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransaction(ctx, s.b, *tx), nil
+	return transformTransaction(*tx), nil
 }
