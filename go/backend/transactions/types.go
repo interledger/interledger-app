@@ -98,6 +98,7 @@ type Transaction struct {
 	ForeignID               string
 	Source                  string
 	Destination             string
+	Title                   string
 	Note                    string
 	Type                    TransactionType
 	Timestamp               time.Time

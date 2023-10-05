@@ -111,3 +111,7 @@ func (c *client) GetTransactedCount(ctx context.Context, walletID, destination s
 func (c *client) CountReferralsInPastDay(ctx context.Context, destination string) (int, error) {
 	return ops.CountReferralsInPastDay(ctx, c.b, destination)
 }
+
+func (c *client) ListAll(ctx context.Context, page db.Pagination) ([]transactions.Transaction, error) {
+	return ops.ListAllTransactions(ctx, c.b, page)
+}
