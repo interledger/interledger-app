@@ -61,7 +61,7 @@ func Migrate(ctx context.Context, connString string) error {
 
 	if strings.EqualFold(currentHash, schemaHash) {
 		log.Info("Schema already deployed.", zap.String("hash", currentHash))
-		return nil
+		return seedSysAccounts(ctx, db)
 	}
 
 	_, err = exec.LookPath("atlas")
@@ -186,6 +186,7 @@ func MigrateTestDB(t *testing.T, ctx context.Context) *sqlx.DB {
 }
 
 func seedSysAccounts(ctx context.Context, dbc *sqlx.DB) error {
+	log.Info("Seeding system accounts...")
 	// Can't use linkedaccount/rafiki constants for cyclic dependencies
 	_, err := dbc.ExecContext(ctx, fmt.Sprintf(seedSQL, env.OpenPaymentsURL(), env.OpenPaymentsURL()))
 
