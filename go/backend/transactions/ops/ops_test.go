@@ -13,6 +13,7 @@ import (
 	linkedaccounts_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/transactions/ops"
+	"gitlab.com/fynbos/backend/wallets"
 )
 
 func TestCreateTransaction(t *testing.T) {
@@ -746,11 +747,13 @@ func TestGetHasTransacted(t *testing.T) {
 		destination string
 		args        *transactions.CreateTransactionArgs
 		hasTx       bool
+		txCount     int
 	}{
 		{
 			name:        "has transacted",
 			walletID:    uuid.NewString(),
 			hasTx:       true,
+			txCount:     1,
 			destination: "$fynbos.me/bob",
 			args: &transactions.CreateTransactionArgs{
 				WalletID:    uuid.NewString(),
@@ -787,8 +790,51 @@ func TestGetHasTransacted(t *testing.T) {
 
 			hasTx, err := ops.GetHasTransacted(ctx, b, tc.walletID, tc.destination)
 			require.NoError(t, err)
-			require.Equal(t, hasTx, tc.hasTx)
+			assert.Equal(t, hasTx, tc.hasTx)
 
+			txCount, err := ops.GetTransactedCount(ctx, b, tc.walletID, "%")
+			require.NoError(t, err)
+			assert.Equal(t, tc.txCount, txCount)
 		})
 	}
+}
+
+func TestCountReferralsInPastDay(t *testing.T) {
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+
+	count, err := ops.CountReferralsInPastDay(ctx, b, "$fynbos.me/bob")
+	require.NoError(t, err)
+	assert.Equal(t, 0, count)
+
+	tx, err := ops.CreateTransaction(ctx, b, transactions.CreateTransactionArgs{
+		WalletID:    wallets.ReferralsWalletID,
+		ForeignID:   uuid.NewString(),
+		ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+		Provider:    transactions.ProviderGMT,
+		State:       transactions.StateCompleted,
+		Source:      "$fynbos.me/referrals",
+		Destination: "$fynbos.me/bob",
+		Amount: currency.Amount{
+			Value:    1000,
+			Currency: currency.USD,
+			Scale:    2,
+		},
+	})
+	require.NoError(t, err)
+
+	count, err = ops.CountReferralsInPastDay(ctx, b, "$fynbos.me/bob")
+	require.NoError(t, err)
+	assert.Equal(t, 1, count)
+
+	result := dbc.MustExec("UPDATE transactions set updated_at=now() - INTERVAL '2 days' WHERE id=$1", tx)
+	rows, err := result.RowsAffected()
+	require.NoError(t, err)
+	require.Equal(t, rows, int64(1))
+
+	newCount, err := ops.CountReferralsInPastDay(ctx, b, "$fynbos.me/bob")
+	require.NoError(t, err)
+	assert.Equal(t, 0, newCount)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 )
 
@@ -61,11 +62,21 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 		return err
 	}
 
+	transferType := transactions.TransferTypeDebitCard
+	switch p.Type {
+	case payments.TypePeer2Peer:
+		transferType = transactions.TransferTypeDebitCard
+	case payments.TypeWebMonetization:
+		transferType = transactions.TransferTypeDebitWebMonetization
+	case payments.TypeReferral:
+		transferType = transactions.TransferTypeDebitReferral
+	}
+
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: p.SenderAccount,
 			ForeignID:       fkID,
-			Type:            transactions.TransferTypeDebitCard,
+			Type:            transferType,
 			Amount:          p.SenderAmount,
 			State:           transactions.StateCompleted,
 		},
