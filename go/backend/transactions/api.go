@@ -34,6 +34,7 @@ type Client interface {
 	List(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
 	ListWithPending(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
 	ListCompleted(ctx context.Context, page db.Pagination, walletID string) ([]Transaction, error)
+	ListAll(ctx context.Context, page db.Pagination) ([]Transaction, error)
 	GetTransaction(ctx context.Context, walletID string, trxID string) (*Transaction, error)
 	GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*Transaction, error)
 	ListTransfers(ctx context.Context, trxID string) ([]Transfer, error)

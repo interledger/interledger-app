@@ -156,6 +156,21 @@ func (mr *MockClientMockRecorder) List(ctx, page, walletID interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockClient)(nil).List), ctx, page, walletID)
 }
 
+// ListAll mocks base method.
+func (m *MockClient) ListAll(ctx context.Context, page db.Pagination) ([]transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAll", ctx, page)
+	ret0, _ := ret[0].([]transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListAll indicates an expected call of ListAll.
+func (mr *MockClientMockRecorder) ListAll(ctx, page interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockClient)(nil).ListAll), ctx, page)
+}
+
 // ListCompleted mocks base method.
 func (m *MockClient) ListCompleted(ctx context.Context, page db.Pagination, walletID string) ([]transactions.Transaction, error) {
 	m.ctrl.T.Helper()

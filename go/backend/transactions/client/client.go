@@ -103,3 +103,7 @@ func (c *client) ListTransfers(ctx context.Context, trxID string) ([]transaction
 func (c *client) GetHasTransacted(ctx context.Context, walletID, destination string) (bool, error) {
 	return ops.GetHasTransacted(ctx, c.b, walletID, destination)
 }
+
+func (c *client) ListAll(ctx context.Context, page db.Pagination) ([]transactions.Transaction, error) {
+	return ops.ListAllTransactions(ctx, c.b, page)
+}
