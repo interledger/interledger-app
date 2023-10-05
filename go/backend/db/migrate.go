@@ -203,5 +203,5 @@ INSERT INTO linked_accounts(wallet_id, name, mask, provider, provider_id, type, 
 
 INSERT INTO wallets (id, name) VALUES ('9d0357f9-10f0-4450-8dda-0a97f9acdca2', 'Referrals') ON CONFLICT DO NOTHING;
 INSERT INTO wallet_addresses(id, url, wallet_id) VALUES ('7d1cc37c-1efb-46bf-af53-eb289f93fa8f','%s/referrals', '9d0357f9-10f0-4450-8dda-0a97f9acdca2') ON CONFLICT DO NOTHING;
-INSERT INTO linked_accounts(wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive) VALUES ('9d0357f9-10f0-4450-8dda-0a97f9acdca2', 'referrals', '1234', 'referrals', '0000', 'referrals', 'Referrals', 'Verified', true, true) ON CONFLICT DO NOTHING;
+INSERT INTO linked_accounts(id, wallet_id, name, mask, provider, provider_id, type, nickname, state, can_send, can_receive) VALUES ('d7476edd-4cfe-41ff-8955-1048598e8108', '9d0357f9-10f0-4450-8dda-0a97f9acdca2', 'referrals', '1234', 'referrals', '0000', 'referrals', 'Referrals', 'Verified', true, true) ON CONFLICT DO NOTHING;
 `

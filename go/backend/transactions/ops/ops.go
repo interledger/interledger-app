@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -490,6 +491,16 @@ func GetHasTransacted(ctx context.Context, b Backends, walletID, destination str
 func GetTransactedCount(ctx context.Context, b Backends, walletID, destination string) (int, error) {
 	var txCnt int
 	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND destination ILIKE $3", walletID, transactions.StateCompleted, destination)
+	if err != nil {
+		return 0, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return txCnt, nil
+}
+
+func CountReferralsInPastDay(ctx context.Context, b Backends, destination string) (int, error) {
+	var txCnt int
+	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND destination ILIKE $3 AND updated_at >= now() - INTERVAL '1 day';", wallets.ReferralsWalletID, transactions.StateCompleted, destination)
 	if err != nil {
 		return 0, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
