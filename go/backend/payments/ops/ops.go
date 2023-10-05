@@ -19,6 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"go.temporal.io/api/enums/v1"
@@ -604,6 +605,10 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 	_, err = b.Temporal().ExecuteWorkflow(ctx, workflowOptions, PaymentWorkflow, dbp.ID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	if dbp.Type == payments.TypeReferral {
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":money_with_wings: New Referral Payment Created\nID: %s\nReceiver Wallet ID: %s\nAmount:%s\nTemporal WorkflowID: %s", dbp.ID, dbp.Receiver.WalletID, dbp.SenderAmount.Format(), "payments_"+dbp.ID))
 	}
 
 	payment, err := Lookup(ctx, b, id)
