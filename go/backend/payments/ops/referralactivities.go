@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/env"
 )
 
 /*
@@ -54,6 +55,14 @@ func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string
 	referralAmount := currency.FromUInt64(10_00, currency.USD)
 	if boost {
 		referralAmount.Value = 20_00
+	}
+
+	// need to use lower amounts to not exceed tabapay sanbox limits
+	if env.IsDev() {
+		referralAmount.Value = 1
+	}
+	if env.IsDev() && boost {
+		referralAmount.Value = 2
 	}
 
 	sendersLa, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Sender.WalletID)
