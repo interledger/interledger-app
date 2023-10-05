@@ -174,6 +174,8 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		ReceiveCurrency:     currency.ParseCurrency(cardInfo.Card.Push.Currency),
 		ReceiveNetwork:      pushNetwork,
 		ReceiveAvailability: linkedaccounts.FundsAvailability(cardInfo.Card.Push.Availability),
+		Provider:            tabapay.ProviderName,
+		Type:                tabapay.TypeCard,
 	}).Get(ctx, &la)
 	if err != nil {
 		logger.Error("Failed to create linked account.")
