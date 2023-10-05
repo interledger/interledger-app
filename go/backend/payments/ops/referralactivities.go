@@ -14,6 +14,8 @@ This creates the payments to the sender and receiver for the referral programme.
 NB! This assumes it is being called at the end of the payments workflow.
 */
 func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string) ([]string, error) {
+	var referralPayments []string
+
 	p, err := Lookup(ctx, a.b, originalPaymentID)
 	if err != nil {
 		return nil, err
@@ -68,22 +70,35 @@ func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string
 		return nil, err
 	}
 
-	senderReferral, err := Create(ctx, a.b, payments.CreateArgs{
-		Receiver:        p.Sender,
-		ReceiverAccount: sendersLa.ID,
-		ReceiverAmount:  referralAmount,
-		Sender: payments.Identity{
-			Type:       payments.IdentityTypeWalletID,
-			Identifier: referralsWallet.ID,
-		},
-		SenderAmount:  referralAmount,
-		SenderAccount: referralLa.ID,
-		Type:          payments.TypeReferral,
-		IPAddress:     "10.0.0.10",
-		Note:          "Here's a little something to say thank you for using Fynbos!", // TODO: update copy
-	})
+	senderWallet, err := a.b.Wallets().Get(ctx, p.Sender.WalletID)
 	if err != nil {
 		return nil, err
+	}
+
+	senderReferralCount, err := a.b.Transactions().CountReferralsInPastDay(ctx, senderWallet.AddressString())
+	if err != nil {
+		return nil, err
+	}
+	if senderReferralCount < 3 {
+		senderReferral, err := Create(ctx, a.b, payments.CreateArgs{
+			Receiver:        p.Sender,
+			ReceiverAccount: sendersLa.ID,
+			ReceiverAmount:  referralAmount,
+			Sender: payments.Identity{
+				Type:       payments.IdentityTypeWalletID,
+				Identifier: referralsWallet.ID,
+			},
+			SenderAmount:  referralAmount,
+			SenderAccount: referralLa.ID,
+			Type:          payments.TypeReferral,
+			IPAddress:     "10.0.0.10",
+			Note:          "Here's a little something to say thank you for using Fynbos!", // TODO: update copy
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		referralPayments = append(referralPayments, senderReferral.ID)
 	}
 
 	receiverReferral, err := Create(ctx, a.b, payments.CreateArgs{
@@ -103,6 +118,7 @@ func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string
 	if err != nil {
 		return nil, err
 	}
+	referralPayments = append(referralPayments, receiverReferral.ID)
 
-	return []string{senderReferral.ID, receiverReferral.ID}, nil
+	return referralPayments, nil
 }
