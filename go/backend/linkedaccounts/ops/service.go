@@ -304,7 +304,7 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedac
 	}
 
 	for _, la := range lal {
-		if la.CanSend && la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider) {
+		if la.CanSend && la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
 			return &la, nil
 		}
 	}
