@@ -57,6 +57,18 @@ func (a *Activity) SetPaymentStateProcessing(ctx context.Context, id string) err
 	return nil
 }
 
+func (a *Activity) SetPaymentStateConfirmed(ctx context.Context, id string) error {
+	err := SetState(ctx, a.b, id, payments.StateConfirmed)
+	if err != nil {
+		if errors.Is(err, payments.ErrInvalidStateTransition) {
+			return temporal.NewApplicationError(err.Error(), "ErrInvalidStateTransition", err)
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 	payment, err := Lookup(ctx, a.b, id)
 	if err != nil {
