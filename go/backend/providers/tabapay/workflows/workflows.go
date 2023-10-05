@@ -198,6 +198,12 @@ func ImportFXRates(ctx workflow.Context) error {
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
-	err := workflow.ExecuteActivity(ctx, a.LoadFXRatesFromS3).Get(ctx, nil)
+	var filename string
+	err := workflow.ExecuteActivity(ctx, a.GetLatestRatesFile).Get(ctx, &filename)
+	if err != nil {
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.LoadFXRatesFromS3, filename).Get(ctx, nil)
 	return err
 }
