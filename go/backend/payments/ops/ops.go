@@ -291,7 +291,7 @@ func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (
 func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
 
 	// Web monetization payouts don't need an OTP
-	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral {
+	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer {
 		return false, nil
 	}
 
@@ -308,8 +308,8 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 	return !hasTx, nil
 }
 
-func requires3DS(sender payments.Identity) bool {
-	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID
+func requires3DS(typ payments.Type, sender payments.Identity) bool {
+	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -357,7 +357,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	require3DS := requires3DS(p.Sender)
+	require3DS := requires3DS(p.Type, p.Sender)
 
 	publicID, err := NewSoftDescriptor(time.Now())
 	if err != nil {
@@ -380,7 +380,10 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	// TODO Calculate more actions required
-	id := uuid.NewString()
+	id := p.IdempotencyKey
+	if id == "" {
+		id = uuid.NewString()
+	}
 	stmt, args, err := db.NewInsert("payments").
 		Value("id", id).
 		Value("public_id", publicID).
@@ -406,6 +409,9 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Returning(cols).
 		GetStatement()
 	if err != nil {
+		if db.IsErrorCode(err, db.UniqueViolationError) {
+			return nil, fmt.Errorf("%w %s", payments.ErrIdempotencyViolation, err)
+		}
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 

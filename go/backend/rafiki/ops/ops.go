@@ -43,3 +43,13 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 
 	return nil
 }
+
+func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (string, error) {
+	var wid string
+	err := b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", paymentPointerID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return wid, nil
+}
