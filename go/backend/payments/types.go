@@ -7,6 +7,7 @@ import (
 )
 
 type CreateArgs struct {
+	IdempotencyKey  string
 	Sender               Identity
 	Receiver             Identity
 	SenderAmount         currency.Amount
@@ -171,4 +172,5 @@ const (
 	TypePeer2Peer       Type = 1
 	TypeWebMonetization Type = 2
 	TypeReferral        Type = 3
+	TypeRafikiPeer2Peer Type = 4
 )
