@@ -43,6 +43,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { KycStatus } from '~/routes/_index/route'
+import styles from '~/styles/flags.css'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 
@@ -68,7 +69,7 @@ export enum PaymentIdentityType {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  let account: FormattedLinkedAccount | undefined
+  let account: FormattedLinkedAccount
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
   let features: Features | null = null
@@ -127,7 +128,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   if (payment.senderAccount) {
     const accountId = payment.senderAccount
-    account = sendAccounts.find((acc) => acc.id == accountId)
+    account = sendAccounts.find((acc) => acc.id == accountId)!
   } else {
     account = sendAccounts[0]
   }
@@ -179,6 +180,10 @@ export const meta: MetaFunction = mergeMeta(() => [
     title: 'Pay'
   }
 ])
+
+export function links() {
+  return [{ rel: 'stylesheet', href: styles }]
+}
 
 export default function Page() {
   const { payStep, features, sendAccounts, payment } =
@@ -354,16 +359,35 @@ export async function confirmPaymentAction({
   })
 }
 
+function stringToBigInt(amount: string) {
+  if (amount == '') return BigInt(0)
+  const dotIndex = amount.lastIndexOf('.')
+  if (dotIndex > -1) {
+    const decimalPlaces = amount.length - dotIndex - 1
+    const padding = 2 - decimalPlaces
+
+    const amountToSubmit = amount
+      .padEnd(amount.length + padding, '0')
+      .replace('.', '')
+    return BigInt(amountToSubmit)
+  }
+  return BigInt(parseFloat(amount) * 100)
+}
+
 export async function updatePaymentAction({
   request,
   params
 }: ActionFunctionArgs) {
   const form = await request.formData()
-  const amount = form.get('amount') as string
+  const send = String(form.get('send') || '')
+  const receive = String(form.get('receive') || '')
+  const hasPaymentProtection = form.get('hasPaymentProtection') as string
   const note = String(form.get('note') || '')
   const accountId = String(form.get('accountId') || '')
   const intent = form.get('intent') as string
-  const amountToSubmit = Math.floor(parseFloat(amount) * 100)
+
+  const sendToSubmit = stringToBigInt(send)
+  const receiveToSubmit = stringToBigInt(receive)
 
   const errors = {
     form: '',
@@ -372,30 +396,45 @@ export async function updatePaymentAction({
     note: ''
   }
 
-  if (!amountToSubmit) {
+  if (intent == 'submit' && sendToSubmit == 0n) {
     errors.amount = 'Amount is required.'
-    return error(request, { errors, payment: null, intent })
+    return error(request, { errors, payment: null, intent: '' })
   }
 
   const clientIpAddress = getClientIP(request)
+
+  let senderAmount, receiverAmount
+  if (send != '') {
+    senderAmount = {
+      amount: sendToSubmit,
+      assetScale: 2,
+      asset: 'USD'
+    }
+  }
+  if (receive != '') {
+    receiverAmount = {
+      amount: receiveToSubmit,
+      assetScale: 2,
+      asset: 'USD'
+    }
+  }
 
   let response = await grpc.updatePayment(request, {
     id: params.paymentId,
     note,
     senderAccount: accountId,
-    senderAmount: {
-      amount: BigInt(amountToSubmit),
-      assetScale: 2,
-      asset: 'USD'
-    },
+    addPaymentProtection: hasPaymentProtection == 'true',
+    senderAmount,
+    receiverAmount,
     ipAddress: clientIpAddress
   })
+
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors, payment: null, intent })
+      return response.error({ errors, payment: null, intent: '' })
     }
     return response.error(
-      { errors, payment: null, intent },
+      { errors, payment: null, intent: '' },
       {},
       { action: 'Contact support' }
     )
