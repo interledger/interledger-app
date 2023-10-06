@@ -101,7 +101,7 @@
     /* Text */
     --text-strong: 255 255 255;
     --text-medium: 241 245 249;
-    --text-weak: 100 116 139;
+    --text-weak: 148 163 184;
     --text-disabled: 100 116 139;
     --text-primary: 59 130 246;
     --text-error: 252 165 165;
@@ -183,7 +183,7 @@
       /* Text */
       --text-strong: 255 255 255;
       --text-medium: 241 245 249;
-      --text-weak: 100 116 139;
+      --text-weak: 148 163 184;
       --text-disabled: 100 116 139;
       --text-primary: 59 130 246;
       --text-error: 252 165 165;
