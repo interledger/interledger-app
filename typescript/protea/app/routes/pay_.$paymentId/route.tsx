@@ -43,6 +43,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { KycStatus } from '~/routes/_index/route'
+import styles from '~/styles/flags.css'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 
@@ -179,6 +180,10 @@ export const meta: MetaFunction = mergeMeta(() => [
     title: 'Pay'
   }
 ])
+
+export function links() {
+  return [{ rel: 'stylesheet', href: styles }]
+}
 
 export default function Page() {
   const { payStep, features, sendAccounts, payment } =
@@ -360,10 +365,13 @@ export async function updatePaymentAction({
 }: ActionFunctionArgs) {
   const form = await request.formData()
   const amount = form.get('amount') as string
+  const receiveAmount = form.get('receiveAmount') as string
+  const paymentProtection = form.get('paymentProtection') as string
   const note = String(form.get('note') || '')
   const accountId = String(form.get('accountId') || '')
   const intent = form.get('intent') as string
   const amountToSubmit = Math.floor(parseFloat(amount) * 100)
+  const receiveAmountToSubmit = Math.floor(parseFloat(receiveAmount) * 100)
 
   const errors = {
     form: '',
@@ -372,24 +380,40 @@ export async function updatePaymentAction({
     note: ''
   }
 
-  if (!amountToSubmit) {
-    errors.amount = 'Amount is required.'
-    return error(request, { errors, payment: null, intent })
-  }
+  // TODO: Figure out a better way to handle this error case
+  // if (isNaN(amountToSubmit) && isNaN(receiveAmountToSubmit)) {
+  //   errors.amount = 'Amount is required.'
+  //   return error(request, { errors, payment: null, intent })
+  // }
 
   const clientIpAddress = getClientIP(request)
+
+  let senderAmount, receiverAmount
+  if (amount != null && !isNaN(amountToSubmit)) {
+    senderAmount = {
+      amount: BigInt(amountToSubmit),
+      assetScale: 2,
+      asset: 'USD'
+    }
+  }
+  if (receiveAmount != null && !isNaN(receiveAmountToSubmit)) {
+    receiverAmount = {
+      amount: BigInt(receiveAmountToSubmit),
+      assetScale: 2,
+      asset: 'USD'
+    }
+  }
 
   let response = await grpc.updatePayment(request, {
     id: params.paymentId,
     note,
     senderAccount: accountId,
-    senderAmount: {
-      amount: BigInt(amountToSubmit),
-      assetScale: 2,
-      asset: 'USD'
-    },
+    addPaymentProtection: paymentProtection == 'true',
+    senderAmount,
+    receiverAmount,
     ipAddress: clientIpAddress
   })
+
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors, payment: null, intent })
