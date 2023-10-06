@@ -470,7 +470,7 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 	}
 
 	rate := fx.MatercardRate
-	if strings.EqualFold(receiverAcc.ReceiveNetwork, "Visa") {
+	if strings.Contains(strings.ToLower(receiverAcc.ReceiveNetwork), "visa") {
 		rate = fx.VisaRate
 	}
 
@@ -860,7 +860,7 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 	}
 
 	rate := fx.MatercardRate
-	if strings.EqualFold(receiverAcc.ReceiveNetwork, "Visa") {
+	if strings.Contains(strings.ToLower(receiverAcc.ReceiveNetwork), "visa") {
 		rate = fx.VisaRate
 	}
 
