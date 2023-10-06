@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
 
@@ -14,7 +15,18 @@ import (
 type Currency string
 
 func ParseCurrency(cc string) Currency {
-	return Currency(cc)
+	formattedInput := strings.ToUpper(strings.TrimSpace(cc))
+	_, ok := iso4217[Currency(formattedInput)]
+	if ok {
+		return Currency(formattedInput)
+	}
+
+	ret, ok := iso4217Currency[formattedInput]
+	if ok {
+		return ret
+	}
+
+	return Currency(formattedInput)
 }
 
 func FromISO4217(iso string) Currency {
