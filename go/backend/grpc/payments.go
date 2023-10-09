@@ -399,7 +399,10 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		receiveWalletAddress = receiveWallet.AddressString()
 	}
 
+	// TODO: update to include exchange rate fee
 	paymentProtection := p.PaymentProtectionAmount()
+	inputSendAmount := currency.FromUInt64(p.SenderAmount.Value-paymentProtection.Value, p.SenderAmount.Currency)
+
 	return &pb.Payment{
 		Id:                      p.ID,
 		PublicID:                p.PublicID,
@@ -407,11 +410,14 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		ReceiverWalletUrl:       receiveWalletAddress,
 		ReceiverIdentity:        p.Receiver.Identifier,
 		ReceiverIdentityType:    int32(p.Receiver.Type),
-		SenderAmount:            p.SenderAmount.ToPB(),
+		SenderAmount:            inputSendAmount.ToPB(),
 		SenderAccount:           p.SenderAccount,
+		TotalSendAmount:         p.SenderAmount.Format(),
 		Note:                    p.Note,
 		RequiredActions:         requiredActions,
 		HasPaymentProtection:    p.PaymentProtectionFeePercentage != 0,
 		PaymentProtectionAmount: paymentProtection.Format(),
+		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
+		ReceiverAmount:          p.ReceiverAmount.ToPB(),
 	}, nil
 }
