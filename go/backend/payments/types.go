@@ -1,21 +1,23 @@
 package payments
 
 import (
+	"database/sql"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 )
 
 type CreateArgs struct {
-	Sender          Identity
-	Receiver        Identity
-	SenderAmount    currency.Amount
-	SenderAccount   string `validate:"omitempty,uuid"`
-	ReceiverAmount  currency.Amount
-	ReceiverAccount string `validate:"omitempty,uuid"`
-	Note            string
-	IPAddress       string `validate:"omitempty,ip_addr"`
-	Type            Type
+	Sender               Identity
+	Receiver             Identity
+	SenderAmount         currency.Amount
+	SenderAccount        string `validate:"omitempty,uuid"`
+	ReceiverAmount       currency.Amount
+	ReceiverAccount      string `validate:"omitempty,uuid"`
+	Note                 string
+	IPAddress            string `validate:"omitempty,ip_addr"`
+	Type                 Type
+	AddPaymentProtection sql.NullBool
 }
 
 type UpdateArgs struct {
@@ -29,27 +31,45 @@ type UpdateArgs struct {
 	OTP             string
 	Note            string
 	IPAddress       string
+	UpdatedAt       time.Time
+	Type            Type
+	FXRate          float64
+	FXFeePercentage float64
 }
 
 type Payment struct {
-	ID                   string
-	PublicID             string
-	State                State
-	Sender               Identity
-	Receiver             Identity
-	SenderAmount         currency.Amount
-	ReceiverAmount       currency.Amount
-	SenderAccount        string
-	ReceiverAccount      string
-	SendTransactionID    string
-	ReceiveTransactionID string
-	RequiredActions      []RequiredActionType
-	Note                 string
-	IPAddress            string
-	UpdatedAt            time.Time
-	Type                 Type
-	FXRate               float64
-	FXFeePercentage      float64
+	ID                             string
+	PublicID                       string
+	State                          State
+	Sender                         Identity
+	Receiver                       Identity
+	SenderAmount                   currency.Amount
+	ReceiverAmount                 currency.Amount
+	SenderAccount                  string
+	ReceiverAccount                string
+	SendTransactionID              string
+	ReceiveTransactionID           string
+	RequiredActions                []RequiredActionType
+	Note                           string
+	IPAddress                      string
+	UpdatedAt                      time.Time
+	Type                           Type
+	FXRate                         float64
+	FXFeePercentage                float64
+	PaymentProtectionFeePercentage float64
+}
+
+// This works out the payment protection amount from the send amount as
+// x_paymentprotection
+// = x_sendamount - x_sendamountwithoutpaymentprotection
+// = x_sendamount - x_sendamount / (1 + r_paymentprotectionfeepercentage)
+// = x_sendamount * (r_paymentprotectionfeepercentage / 1 + r_paymentprotectionfeepercentage)
+func (p Payment) PaymentProtectionAmount() currency.Amount {
+	sendAmount := p.SenderAmount.Float64()
+
+	paymentProtectionFee := sendAmount * p.PaymentProtectionFeePercentage / (float64(1) + p.PaymentProtectionFeePercentage)
+
+	return currency.FromFloat64(paymentProtectionFee, p.SenderAmount.Currency)
 }
 
 //go:generate stringer -type=RequiredActionType -trimprefix=RequiredActionType

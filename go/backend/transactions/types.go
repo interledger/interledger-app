@@ -110,6 +110,7 @@ type Transaction struct {
 	DestinationIdentityType string
 	Reference               string
 	RefundState             RefundState
+	PaymentProtection       currency.Amount
 }
 
 // Transfer is the underlying transfers that make up a single Transactions

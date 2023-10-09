@@ -241,6 +241,10 @@ export interface UpdatePaymentRequest {
      * @generated from protobuf field: optional string ipAddress = 11;
      */
     ipAddress?: string;
+    /**
+     * @generated from protobuf field: optional bool addPaymentProtection = 12;
+     */
+    addPaymentProtection?: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.Payment
@@ -286,6 +290,14 @@ export interface Payment {
      * @generated from protobuf field: repeated int32 requiredActions = 10;
      */
     requiredActions: number[]; // 1 - ThreeDS
+    /**
+     * @generated from protobuf field: bool hasPaymentProtection = 11;
+     */
+    hasPaymentProtection: boolean;
+    /**
+     * @generated from protobuf field: string paymentProtectionAmount = 12;
+     */
+    paymentProtectionAmount: string;
 }
 /**
  * @generated from protobuf message backend.v1.CreatePaymentRequest
@@ -323,6 +335,10 @@ export interface CreatePaymentRequest {
      * @generated from protobuf field: optional string ipAddress = 8;
      */
     ipAddress?: string;
+    /**
+     * @generated from protobuf field: optional bool addPaymentProtection = 9;
+     */
+    addPaymentProtection?: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.GetCardDetailsRequest
@@ -2610,7 +2626,8 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
             { no: 8, name: "receiverIdentityType", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
             { no: 9, name: "threeDSID", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "otp", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 11, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "addPaymentProtection", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<UpdatePaymentRequest>): UpdatePaymentRequest {
@@ -2658,6 +2675,9 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
                 case /* optional string ipAddress */ 11:
                     message.ipAddress = reader.string();
                     break;
+                case /* optional bool addPaymentProtection */ 12:
+                    message.addPaymentProtection = reader.bool();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -2703,6 +2723,9 @@ class UpdatePaymentRequest$Type extends MessageType<UpdatePaymentRequest> {
         /* optional string ipAddress = 11; */
         if (message.ipAddress !== undefined)
             writer.tag(11, WireType.LengthDelimited).string(message.ipAddress);
+        /* optional bool addPaymentProtection = 12; */
+        if (message.addPaymentProtection !== undefined)
+            writer.tag(12, WireType.Varint).bool(message.addPaymentProtection);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2726,11 +2749,13 @@ class Payment$Type extends MessageType<Payment> {
             { no: 7, name: "senderAmount", kind: "message", T: () => Amount },
             { no: 8, name: "senderAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "requiredActions", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ }
+            { no: 10, name: "requiredActions", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
+            { no: 11, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 12, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [] };
+        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -2774,6 +2799,12 @@ class Payment$Type extends MessageType<Payment> {
                             message.requiredActions.push(reader.int32());
                     else
                         message.requiredActions.push(reader.int32());
+                    break;
+                case /* bool hasPaymentProtection */ 11:
+                    message.hasPaymentProtection = reader.bool();
+                    break;
+                case /* string paymentProtectionAmount */ 12:
+                    message.paymentProtectionAmount = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2821,6 +2852,12 @@ class Payment$Type extends MessageType<Payment> {
                 writer.int32(message.requiredActions[i]);
             writer.join();
         }
+        /* bool hasPaymentProtection = 11; */
+        if (message.hasPaymentProtection !== false)
+            writer.tag(11, WireType.Varint).bool(message.hasPaymentProtection);
+        /* string paymentProtectionAmount = 12; */
+        if (message.paymentProtectionAmount !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.paymentProtectionAmount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2842,7 +2879,8 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
             { no: 5, name: "senderAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 6, name: "receiverAccount", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
             { no: 7, name: "note", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 8, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ }
+            { no: 8, name: "ipAddress", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "addPaymentProtection", kind: "scalar", opt: true, T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<CreatePaymentRequest>): CreatePaymentRequest {
@@ -2881,6 +2919,9 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
                 case /* optional string ipAddress */ 8:
                     message.ipAddress = reader.string();
                     break;
+                case /* optional bool addPaymentProtection */ 9:
+                    message.addPaymentProtection = reader.bool();
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -2917,6 +2958,9 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
         /* optional string ipAddress = 8; */
         if (message.ipAddress !== undefined)
             writer.tag(8, WireType.LengthDelimited).string(message.ipAddress);
+        /* optional bool addPaymentProtection = 9; */
+        if (message.addPaymentProtection !== undefined)
+            writer.tag(9, WireType.Varint).bool(message.addPaymentProtection);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
