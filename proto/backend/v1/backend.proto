@@ -158,6 +158,7 @@ message Amount {
   uint64 amount = 1;
   string asset = 2;
   int32 assetScale = 3;
+  string country = 4;
 }
 
 message Transaction {
@@ -228,6 +229,10 @@ message Payment {
   repeated int32 requiredActions = 10; // 1 - ThreeDS
   bool hasPaymentProtection = 11;
   string paymentProtectionAmount = 12;
+  string fxRate = 13;
+  Amount receiverAmount = 14;
+  string totalSendAmount = 15; // total debit amount
+  string receiverLinkedAccountCountryCode = 16;
 }
 
 message CreatePaymentRequest {

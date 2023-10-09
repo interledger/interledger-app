@@ -216,6 +216,11 @@ export class Amount extends Message<Amount> {
    */
   assetScale = 0;
 
+  /**
+   * @generated from field: string country = 4;
+   */
+  country = "";
+
   constructor(data?: PartialMessage<Amount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -227,6 +232,7 @@ export class Amount extends Message<Amount> {
     { no: 1, name: "amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 2, name: "asset", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "assetScale", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 4, name: "country", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Amount {
@@ -711,6 +717,28 @@ export class Payment extends Message<Payment> {
    */
   paymentProtectionAmount = "";
 
+  /**
+   * @generated from field: string fxRate = 13;
+   */
+  fxRate = "";
+
+  /**
+   * @generated from field: backend.v1.Amount receiverAmount = 14;
+   */
+  receiverAmount?: Amount;
+
+  /**
+   * total debit amount
+   *
+   * @generated from field: string totalSendAmount = 15;
+   */
+  totalSendAmount = "";
+
+  /**
+   * @generated from field: string receiverLinkedAccountCountryCode = 16;
+   */
+  receiverLinkedAccountCountryCode = "";
+
   constructor(data?: PartialMessage<Payment>) {
     super();
     proto3.util.initPartial(data, this);
@@ -731,6 +759,10 @@ export class Payment extends Message<Payment> {
     { no: 10, name: "requiredActions", kind: "scalar", T: 5 /* ScalarType.INT32 */, repeated: true },
     { no: 11, name: "hasPaymentProtection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 12, name: "paymentProtectionAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: "fxRate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 14, name: "receiverAmount", kind: "message", T: Amount },
+    { no: 15, name: "totalSendAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payment {
