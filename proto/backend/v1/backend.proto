@@ -101,7 +101,6 @@ service BackendService {
   rpc OnboardGMTUser(Empty) returns (Empty);
 
   // Tabapay 3DS
-//  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
   rpc Init3DS(Init3DSRequest) returns (Init3DSResponse);
   rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
   rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
@@ -159,6 +158,7 @@ message Amount {
   uint64 amount = 1;
   string asset = 2;
   int32 assetScale = 3;
+  string country = 4;
 }
 
 message Transaction {
@@ -184,6 +184,8 @@ message Transaction {
   string destinationIdentity = 18;
   string destinationIdentityType = 19;
   int32 refundState = 20; // NA , PENDING , COMPLETE
+  string paymentProtectionAmount = 21;
+  bool hasPaymentProtection = 22;
 }
 
 message ListTransactionsResponse {
@@ -211,6 +213,7 @@ message UpdatePaymentRequest {
   optional string threeDSID = 9;
   optional string otp = 10;
   optional string ipAddress = 11;
+  optional bool addPaymentProtection = 12;
 }
 
 message Payment {
@@ -224,6 +227,12 @@ message Payment {
   string senderAccount = 8; // Linked Account ID
   string note = 9;
   repeated int32 requiredActions = 10; // 1 - ThreeDS
+  bool hasPaymentProtection = 11;
+  string paymentProtectionAmount = 12;
+  string fxRate = 13;
+  Amount receiverAmount = 14;
+  string totalSendAmount = 15; // total debit amount
+  string receiverLinkedAccountCountryCode = 16;
 }
 
 message CreatePaymentRequest {
@@ -235,6 +244,7 @@ message CreatePaymentRequest {
   optional string receiverAccount = 6; // Linked Account ID
   optional string note = 7;
   optional string ipAddress = 8;
+  optional bool addPaymentProtection = 9;
 }
 
 message GetCardDetailsRequest {
