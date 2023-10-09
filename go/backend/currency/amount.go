@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.com/fynbos/backend/country"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 
 	"gitlab.com/fynbos/log"
@@ -193,6 +194,7 @@ func (a *Amount) ToPB() *pb.Amount {
 		Amount:     a.Value,
 		Asset:      a.Currency.String(),
 		AssetScale: int32(a.Scale),
+		Country:    country.ParseCountry(a.Currency.ISO4217()).String(),
 	}
 }
 
