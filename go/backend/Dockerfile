@@ -4,11 +4,11 @@ FROM public.ecr.aws/docker/library/golang:1.20.1 AS base
 WORKDIR /build
 
 # Fetch grpc health prober until kubernetes 1.23 releases on EKS
+ARG BUILDARCH
 RUN GRPC_HEALTH_PROBE_VERSION=v0.4.7 && \
-	wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+	wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-${BUILDARCH} && \
 	chmod +x /bin/grpc_health_probe
 
-ARG BUILDARCH
 RUN wget -qO/bin/atlas https://release.ariga.io/atlas/atlas-linux-${BUILDARCH}-v0.11.0 && \
 	chmod +x /bin/atlas
 
