@@ -962,6 +962,11 @@ table "transactions" {
     type = int
     default = 0
   }
+  column "payment_protection_fee_percentage" {
+    null = false
+    type = float
+    default = 0
+  }
   column "created_at" {
     null    = false
     type    = timestamp

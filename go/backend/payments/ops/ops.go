@@ -659,19 +659,20 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 		}
 
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
-			WalletID:                senderWallet.ID,
-			ForeignID:               dbp.ID,
-			ForeignType:             transactions.TransactionTypeOutgoing,
-			Provider:                transactions.ProviderPaymentsEngine,
-			State:                   transactions.StatePending,
-			Note:                    dbp.Note,
-			Source:                  senderWallet.AddressString(),
-			Destination:             destination,
-			Amount:                  dbp.SenderAmount,
-			LinkedAccountTitle:      la.Title(),
-			DestinationIdentity:     dbp.Receiver.Identifier,
-			DestinationIdentityType: dbp.Receiver.Type.String(),
-			Reference:               dbp.Note,
+			WalletID:                       senderWallet.ID,
+			ForeignID:                      dbp.ID,
+			ForeignType:                    transactions.TransactionTypeOutgoing,
+			Provider:                       transactions.ProviderPaymentsEngine,
+			State:                          transactions.StatePending,
+			Note:                           dbp.Note,
+			Source:                         senderWallet.AddressString(),
+			Destination:                    destination,
+			Amount:                         dbp.SenderAmount,
+			LinkedAccountTitle:             la.Title(),
+			DestinationIdentity:            dbp.Receiver.Identifier,
+			DestinationIdentityType:        dbp.Receiver.Type.String(),
+			Reference:                      dbp.Note,
+			PaymentProtectionFeePercentage: dbp.PaymentProtectionFeePercentage,
 		})
 		if err != nil {
 			return err

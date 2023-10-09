@@ -349,6 +349,16 @@ export class Transaction extends Message<Transaction> {
    */
   refundState = 0;
 
+  /**
+   * @generated from field: string paymentProtectionAmount = 21;
+   */
+  paymentProtectionAmount = "";
+
+  /**
+   * @generated from field: bool hasPaymentProtection = 22;
+   */
+  hasPaymentProtection = false;
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -376,6 +386,8 @@ export class Transaction extends Message<Transaction> {
     { no: 18, name: "destinationIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 20, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 21, name: "paymentProtectionAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 22, name: "hasPaymentProtection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
