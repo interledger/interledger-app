@@ -78,6 +78,10 @@ export interface Amount {
      * @generated from protobuf field: int32 assetScale = 3;
      */
     assetScale: number;
+    /**
+     * @generated from protobuf field: string country = 4;
+     */
+    country: string;
 }
 /**
  * @generated from protobuf message backend.v1.Transaction
@@ -306,6 +310,22 @@ export interface Payment {
      * @generated from protobuf field: string paymentProtectionAmount = 12;
      */
     paymentProtectionAmount: string;
+    /**
+     * @generated from protobuf field: string fxRate = 13;
+     */
+    fxRate: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount receiverAmount = 14;
+     */
+    receiverAmount?: Amount;
+    /**
+     * @generated from protobuf field: string totalSendAmount = 15;
+     */
+    totalSendAmount: string; // total debit amount
+    /**
+     * @generated from protobuf field: string receiverLinkedAccountCountryCode = 16;
+     */
+    receiverLinkedAccountCountryCode: string;
 }
 /**
  * @generated from protobuf message backend.v1.CreatePaymentRequest
@@ -2244,11 +2264,12 @@ class Amount$Type extends MessageType<Amount> {
         super("backend.v1.Amount", [
             { no: 1, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 2, name: "asset", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "assetScale", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 3, name: "assetScale", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "country", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Amount>): Amount {
-        const message = { amount: "0", asset: "", assetScale: 0 };
+        const message = { amount: "0", asset: "", assetScale: 0, country: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Amount>(this, message, value);
@@ -2267,6 +2288,9 @@ class Amount$Type extends MessageType<Amount> {
                     break;
                 case /* int32 assetScale */ 3:
                     message.assetScale = reader.int32();
+                    break;
+                case /* string country */ 4:
+                    message.country = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2289,6 +2313,9 @@ class Amount$Type extends MessageType<Amount> {
         /* int32 assetScale = 3; */
         if (message.assetScale !== 0)
             writer.tag(3, WireType.Varint).int32(message.assetScale);
+        /* string country = 4; */
+        if (message.country !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.country);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2773,11 +2800,15 @@ class Payment$Type extends MessageType<Payment> {
             { no: 9, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "requiredActions", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
             { no: 11, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 12, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 12, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "fxRate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "receiverAmount", kind: "message", T: () => Amount },
+            { no: 15, name: "totalSendAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "" };
+        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "", fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -2827,6 +2858,18 @@ class Payment$Type extends MessageType<Payment> {
                     break;
                 case /* string paymentProtectionAmount */ 12:
                     message.paymentProtectionAmount = reader.string();
+                    break;
+                case /* string fxRate */ 13:
+                    message.fxRate = reader.string();
+                    break;
+                case /* backend.v1.Amount receiverAmount */ 14:
+                    message.receiverAmount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.receiverAmount);
+                    break;
+                case /* string totalSendAmount */ 15:
+                    message.totalSendAmount = reader.string();
+                    break;
+                case /* string receiverLinkedAccountCountryCode */ 16:
+                    message.receiverLinkedAccountCountryCode = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2880,6 +2923,18 @@ class Payment$Type extends MessageType<Payment> {
         /* string paymentProtectionAmount = 12; */
         if (message.paymentProtectionAmount !== "")
             writer.tag(12, WireType.LengthDelimited).string(message.paymentProtectionAmount);
+        /* string fxRate = 13; */
+        if (message.fxRate !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.fxRate);
+        /* backend.v1.Amount receiverAmount = 14; */
+        if (message.receiverAmount)
+            Amount.internalBinaryWrite(message.receiverAmount, writer.tag(14, WireType.LengthDelimited).fork(), options).join();
+        /* string totalSendAmount = 15; */
+        if (message.totalSendAmount !== "")
+            writer.tag(15, WireType.LengthDelimited).string(message.totalSendAmount);
+        /* string receiverLinkedAccountCountryCode = 16; */
+        if (message.receiverLinkedAccountCountryCode !== "")
+            writer.tag(16, WireType.LengthDelimited).string(message.receiverLinkedAccountCountryCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
