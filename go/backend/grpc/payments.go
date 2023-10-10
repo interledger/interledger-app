@@ -205,7 +205,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		},
 		SenderAmount:         currency.FromPB(req.SenderAmount),
 		SenderAccount:        req.GetSenderAccount(),
-		ReceiverAmount:       currency.FromPB(req.SenderAmount), // TODO: calculate receive amount
+		ReceiverAmount:       currency.FromPB(req.GetReceiverAmount()),
 		ReceiverAccount:      req.GetReceiverAccount(),
 		Note:                 req.GetNote(),
 		IPAddress:            req.GetIpAddress(),
@@ -279,7 +279,7 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		ID:             req.Id,
 		SenderAmount:   currency.FromPB(req.GetSenderAmount()),
 		SenderAccount:  req.GetSenderAccount(),
-		ReceiverAmount: currency.FromPB(req.GetSenderAmount()), // TODO: calculate receive amount
+		ReceiverAmount: currency.FromPB(req.GetReceiverAmount()),
 		Receiver: payments.Identity{
 			Type:       payments.IdentityType(req.GetReceiverIdentityType()),
 			Identifier: req.GetReceiverIdentity(),
