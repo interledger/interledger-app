@@ -288,7 +288,7 @@ max-pods = 40
 	// Launch template is required to set values in the user data field. This
 	// is merged with the default values from the EKS Node group to create
 	// a new launch template
-	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-general-template", &ec2.LaunchTemplateArgs{
+	launchTemplate, err := ec2.NewLaunchTemplate(ctx, "eks-general-template-1", &ec2.LaunchTemplateArgs{
 		UserData: pulumi.String(b64.StdEncoding.EncodeToString([]byte(instanceUserData))),
 		BlockDeviceMappings: ec2.LaunchTemplateBlockDeviceMappingArray{
 			ec2.LaunchTemplateBlockDeviceMappingArgs{
@@ -315,11 +315,11 @@ max-pods = 40
 		return err
 	}
 
-	_, err = eks.NewNodeGroup(ctx, "managed-general", &eks.NodeGroupArgs{
-		NodeGroupName: pulumi.String("managed-general"),
+	_, err = eks.NewNodeGroup(ctx, "managed-general-1", &eks.NodeGroupArgs{
+		NodeGroupName: pulumi.String("managed-general-1"),
 		ClusterName:   args.Cluster.Name,
 		ScalingConfig: eks.NodeGroupScalingConfigArgs{
-			DesiredSize: pulumi.Int(6),
+			DesiredSize: pulumi.Int(4),
 			MinSize:     pulumi.Int(3),
 			MaxSize:     pulumi.Int(6),
 		},
@@ -328,7 +328,7 @@ max-pods = 40
 			Id:      launchTemplate.ID(),
 			Version: pulumi.Sprintf("%d", launchTemplate.LatestVersion),
 		},
-		InstanceTypes: pulumi.StringArray{pulumi.String("t3.medium")},
+		InstanceTypes: pulumi.StringArray{pulumi.String("m7a.large")},
 		SubnetIds:     args.SubnetIds,
 		AmiType:       pulumi.String("BOTTLEROCKET_x86_64"),
 		Taints: eks.NodeGroupTaintArray{
