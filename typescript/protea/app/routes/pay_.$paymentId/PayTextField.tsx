@@ -3,7 +3,7 @@ import type { InputHTMLAttributes, ReactNode } from 'react'
 import { forwardRef } from 'react'
 import { Router } from '~/components/Router'
 
-interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+interface PayTextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
   className?: string
   // The label value.
@@ -25,7 +25,7 @@ interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   appendIcon?: ReactNode
 }
 
-export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
+export const PayTextField = forwardRef<HTMLInputElement, PayTextFieldProps>(
   (
     {
       className,
@@ -62,28 +62,18 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
             )}
           </div>
         )}
-        <div className='block h-12 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
+        <div className='block h-14 w-full rounded-xl border-2 border-base focus-within:border-focus focus-within:ring-0'>
           <div className='flex h-full items-center justify-between overflow-hidden rounded-[10px]'>
             {prefixIcon && (
-              <div className='-mr-4 flex h-full items-center px-3'>
+              <div className='-mr-4 flex h-full items-center px-4'>
                 {prefixIcon}
               </div>
-            )}
-            {prefix && (
-              <span className='z-10 -mr-3 ml-4 font-medium text-weak'>
-                {prefix}
-              </span>
             )}
             <input
               ref={ref}
               {...inputProps}
-              className='z-0 h-full w-full overflow-hidden border-none bg-transparent px-4 focus:ring-0'
+              className='z-0 h-full w-full overflow-hidden border-none bg-transparent px-4 text-2xl focus:ring-0'
             />
-            {appendIcon && (
-              <div className='-ml-3 flex h-full items-center px-3'>
-                {appendIcon}
-              </div>
-            )}
           </div>
         </div>
         <AnimatePresence>
@@ -120,4 +110,4 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   }
 )
 
-TextField.displayName = 'TextField'
+PayTextField.displayName = 'PayTextField'
