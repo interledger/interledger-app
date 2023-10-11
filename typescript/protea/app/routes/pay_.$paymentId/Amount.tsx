@@ -1,6 +1,6 @@
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import type { ChangeEventHandler } from 'react'
-import { useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer, useRef } from 'react'
 import { route } from 'routes-gen'
 import {
   Button,
@@ -25,6 +25,8 @@ import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
 import type { loader, updatePaymentAction } from './route'
+
+const DEBOUNCE_WAIT = 150
 
 const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
   if (typeof amount == 'undefined') return ''
@@ -142,21 +144,27 @@ export const Amount = () => {
     [csrfToken, localPayment, updatePaymentFetcher]
   )
 
+  let onChangeSendAmountDismissRef = useRef<NodeJS.Timeout>()
   const _onChangeSendAmount = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       let send = event.target.value
       dispatchPayment({ type: 'send', send })
 
-      updatePaymentFetcher.submit(
-        {
-          formName: 'updatePayment',
-          send,
-          accountId: localPayment.linkedAccount.id,
-          hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
-          csrfToken
-        },
-        { method: 'post' }
-      )
+      if (onChangeSendAmountDismissRef.current) {
+        clearTimeout(onChangeSendAmountDismissRef.current)
+      }
+      onChangeSendAmountDismissRef.current = setTimeout(() => {
+        updatePaymentFetcher.submit(
+          {
+            formName: 'updatePayment',
+            send,
+            accountId: localPayment.linkedAccount.id,
+            hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
+            csrfToken
+          },
+          { method: 'post' }
+        )
+      }, DEBOUNCE_WAIT)
     },
     [
       csrfToken,
@@ -166,6 +174,7 @@ export const Amount = () => {
     ]
   )
 
+  let onChangeReceiveAmountDismissRef = useRef<NodeJS.Timeout>()
   const _onChangeReceiveAmount = useCallback<
     ChangeEventHandler<HTMLInputElement>
   >(
@@ -173,16 +182,21 @@ export const Amount = () => {
       let receive = event.target.value
       dispatchPayment({ type: 'receive', receive })
 
-      updatePaymentFetcher.submit(
-        {
-          formName: 'updatePayment',
-          receive,
-          accountId: localPayment.linkedAccount.id,
-          hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
-          csrfToken
-        },
-        { method: 'post' }
-      )
+      if (onChangeReceiveAmountDismissRef.current) {
+        clearTimeout(onChangeReceiveAmountDismissRef.current)
+      }
+      onChangeReceiveAmountDismissRef.current = setTimeout(() => {
+        updatePaymentFetcher.submit(
+          {
+            formName: 'updatePayment',
+            receive,
+            accountId: localPayment.linkedAccount.id,
+            hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
+            csrfToken
+          },
+          { method: 'post' }
+        )
+      }, DEBOUNCE_WAIT)
     },
     [
       csrfToken,
@@ -192,23 +206,43 @@ export const Amount = () => {
     ]
   )
 
+  let onChangeSwitchDismissRef = useRef<NodeJS.Timeout>()
   const _onChangeSwitch = useCallback<{
     (formName: string, publish: boolean): void
   }>(
     (formName, hasPaymentProtection) => {
       dispatchPayment({ type: 'hasPaymentProtection', hasPaymentProtection })
 
-      updatePaymentFetcher.submit(
-        {
-          formName,
-          hasPaymentProtection: hasPaymentProtection.toString(),
-          csrfToken
-        },
-        { method: 'post' }
-      )
+      if (onChangeSwitchDismissRef.current) {
+        clearTimeout(onChangeSwitchDismissRef.current)
+      }
+      onChangeSwitchDismissRef.current = setTimeout(() => {
+        updatePaymentFetcher.submit(
+          {
+            formName,
+            hasPaymentProtection: hasPaymentProtection.toString(),
+            csrfToken
+          },
+          { method: 'post' }
+        )
+      }, DEBOUNCE_WAIT)
     },
     [csrfToken, updatePaymentFetcher]
   )
+
+  useEffect(() => {
+    return () => {
+      if (onChangeSendAmountDismissRef.current) {
+        clearTimeout(onChangeSendAmountDismissRef.current)
+      }
+      if (onChangeReceiveAmountDismissRef.current) {
+        clearTimeout(onChangeReceiveAmountDismissRef.current)
+      }
+      if (onChangeSwitchDismissRef.current) {
+        clearTimeout(onChangeSwitchDismissRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (
