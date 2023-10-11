@@ -52,22 +52,23 @@ const (
 )
 
 type CreateTransactionArgs struct {
-	ID                      string          `validate:"omitempty,uuid"`
-	WalletID                string          `validate:"uuid"` // Fynbos wallet ID
-	ForeignID               string          `validate:"omitempty,uuid"`
-	ForeignType             TransactionType `validate:"required"`
-	Provider                Provider        `validate:"required"`
-	State                   State           `validate:"required"`
-	Note                    string
-	Source                  string // Usually the sending payment pointer
-	Destination             string // Usually the receiving payment pointer
-	Amount                  currency.Amount
-	Transfers               []TransferArgs `validate:"omitempty,dive"`
-	GrantID                 string
-	LinkedAccountTitle      string
-	DestinationIdentity     string
-	DestinationIdentityType string `validate:"omitempty,oneof=Twitter Slack Discord wallet WalletID WalletURL"`
-	Reference               string
+	ID                             string          `validate:"omitempty,uuid"`
+	WalletID                       string          `validate:"uuid"` // Fynbos wallet ID
+	ForeignID                      string          `validate:"omitempty,uuid"`
+	ForeignType                    TransactionType `validate:"required"`
+	Provider                       Provider        `validate:"required"`
+	State                          State           `validate:"required"`
+	Note                           string
+	Source                         string // Usually the sending payment pointer
+	Destination                    string // Usually the receiving payment pointer
+	Amount                         currency.Amount
+	Transfers                      []TransferArgs `validate:"omitempty,dive"`
+	GrantID                        string
+	LinkedAccountTitle             string
+	DestinationIdentity            string
+	DestinationIdentityType        string `validate:"omitempty,oneof=Twitter Slack Discord wallet WalletID WalletURL"`
+	Reference                      string
+	PaymentProtectionFeePercentage float64
 }
 
 type UpdateTransactionArgs struct {
@@ -94,23 +95,39 @@ type TransferArgs struct {
 // Transaction is abstract information representing either an incoming or outgoing payment, wallet top up or withdrawal.
 // This is used for listing transactions for the frontend
 type Transaction struct {
-	ID                      string
-	ForeignID               string
-	Source                  string
-	Destination             string
-	Title                   string
-	Note                    string
-	Type                    TransactionType
-	Timestamp               time.Time
-	Provider                Provider
-	State                   State
-	Amount                  currency.Amount
-	LinkedAccountTitle      string
-	DestinationIdentity     string
-	DestinationIdentityType string
-	Reference               string
-	RefundState             RefundState
-	PaymentProtection       currency.Amount
+	ID                             string
+	ForeignID                      string
+	Source                         string
+	Destination                    string
+	Title                          string
+	Note                           string
+	Type                           TransactionType
+	Timestamp                      time.Time
+	Provider                       Provider
+	State                          State
+	Amount                         currency.Amount
+	LinkedAccountTitle             string
+	DestinationIdentity            string
+	DestinationIdentityType        string
+	Reference                      string
+	RefundState                    RefundState
+	PaymentProtectionFeePercentage float64
+}
+
+// This works out the payment protection amount for outgoing payments as
+// x_paymentprotection
+// = x_sendamount - x_sendamountwithoutpaymentprotection
+// = x_sendamount - x_sendamount / (1 + r_paymentprotectionfeepercentage)
+// = x_sendamount * (r_paymentprotectionfeepercentage / 1 + r_paymentprotectionfeepercentage)
+func (t Transaction) PaymentProtectionAmount() currency.Amount {
+	if t.Type == TransactionTypeIncoming {
+		return currency.FromUInt64(0, t.Amount.Currency)
+	}
+
+	sendAmount := t.Amount.Float64()
+	paymentProtectionFee := sendAmount * t.PaymentProtectionFeePercentage / (float64(1) + t.PaymentProtectionFeePercentage)
+
+	return currency.FromFloat64(paymentProtectionFee, t.Amount.Currency)
 }
 
 // Transfer is the underlying transfers that make up a single Transactions

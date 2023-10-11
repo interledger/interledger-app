@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/wallets"
 	"strings"
 	"time"
+
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/env"
@@ -38,6 +39,7 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 		Value("amount", args.Amount.Value).
 		Value("asset_code", args.Amount.Currency).
 		Value("asset_scale", args.Amount.Scale).
+		Value("payment_protection_fee_percentage", args.PaymentProtectionFeePercentage).
 		Value("grant_id", sql.NullString{
 			String: args.GrantID,
 			Valid:  args.GrantID != "",
@@ -216,29 +218,30 @@ func AddTransfers(ctx context.Context, b Backends, trxID string, transferArgs []
 }
 
 const (
-	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, updated_at, refund_state `
+	transactionCols = ` id, foreign_id, type, state, title, provider, note, source, destination, amount, asset_scale, asset_code, linked_account_title, destination_identity_type, destination_identity, reference, payment_protection_fee_percentage, updated_at, refund_state `
 	transferCols    = ` id, foreign_id, linked_acc_id, type, state, amount, asset_scale, asset_code, updated_at `
 )
 
 type dbTransaction struct {
-	ID                      string                       `db:"id"`
-	ForeignID               sql.NullString               `db:"foreign_id"`
-	Type                    transactions.TransactionType `db:"type"`
-	State                   transactions.State           `db:"state"`
-	Provider                transactions.Provider        `db:"provider"`
-	Note                    sql.NullString               `db:"note"`
-	Source                  sql.NullString               `db:"source"`
-	Destination             sql.NullString               `db:"destination"`
-	Title                   sql.NullString               `db:"title"`
-	Amount                  uint64                       `db:"amount"`
-	Scale                   int                          `db:"asset_scale"`
-	Asset                   string                       `db:"asset_code"`
-	Timestamp               time.Time                    `db:"updated_at"`
-	LinkedAccountTitle      sql.NullString               `db:"linked_account_title"`
-	DestinationIdentityType sql.NullString               `db:"destination_identity_type"`
-	DestinationIdentity     sql.NullString               `db:"destination_identity"`
-	Reference               sql.NullString               `db:"reference"`
-	RefundState             transactions.RefundState     `db:"refund_state"`
+	ID                             string                       `db:"id"`
+	ForeignID                      sql.NullString               `db:"foreign_id"`
+	Type                           transactions.TransactionType `db:"type"`
+	State                          transactions.State           `db:"state"`
+	Provider                       transactions.Provider        `db:"provider"`
+	Note                           sql.NullString               `db:"note"`
+	Source                         sql.NullString               `db:"source"`
+	Destination                    sql.NullString               `db:"destination"`
+	Title                          sql.NullString               `db:"title"`
+	Amount                         uint64                       `db:"amount"`
+	Scale                          int                          `db:"asset_scale"`
+	Asset                          string                       `db:"asset_code"`
+	Timestamp                      time.Time                    `db:"updated_at"`
+	LinkedAccountTitle             sql.NullString               `db:"linked_account_title"`
+	DestinationIdentityType        sql.NullString               `db:"destination_identity_type"`
+	DestinationIdentity            sql.NullString               `db:"destination_identity"`
+	Reference                      sql.NullString               `db:"reference"`
+	RefundState                    transactions.RefundState     `db:"refund_state"`
+	PaymentProtectionFeePercentage float64                      `db:"payment_protection_fee_percentage"`
 }
 
 func List(ctx context.Context, b Backends, walletID string, page db.Pagination) ([]transactions.Transaction, error) {
@@ -647,7 +650,8 @@ func transformTransaction(tx dbTransaction) transactions.Transaction {
 			Currency: currency.ParseCurrency(tx.Asset),
 			Scale:    tx.Scale,
 		},
-		RefundState: tx.RefundState,
+		RefundState:                    tx.RefundState,
+		PaymentProtectionFeePercentage: tx.PaymentProtectionFeePercentage,
 	}
 }
 
