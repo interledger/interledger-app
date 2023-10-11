@@ -880,23 +880,26 @@ func AddPaymentProtection(ctx context.Context, b Backends, id string, add bool) 
 	}
 
 	// remove old payment percentage. This is defaulted to 0.00. Then check if we must add it back.
-	newAmount := p.SenderAmount.Float64() / (float64(1) + p.ProtectionFeePercentage)
+	protectionFee := p.PaymentProtectionAmount()
+	newSenderAmount := currency.Amount{
+		Value:    p.SenderAmount.Value - protectionFee.Value,
+		Currency: p.SenderAmount.Currency,
+	}
 	newPaymentProtectionFeePercentage := float64(0)
 	if add {
 		amount, feePercentage, err := applyPaymentProtection(
 			ctx,
 			b,
 			p.Sender,
-			currency.FromFloat64(newAmount, p.SenderAmount.Currency),
+			newSenderAmount,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		newAmount = amount.Float64()
+		newSenderAmount = amount
 		newPaymentProtectionFeePercentage = feePercentage
 	}
-	newSenderAmount := currency.FromFloat64(newAmount, p.SenderAmount.Currency)
 
 	stmt, values, err := db.NewUpdate("payments").ID(p.ID).
 		Value("sender_amount", newSenderAmount.Value).
