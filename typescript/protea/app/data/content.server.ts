@@ -7,6 +7,7 @@ import type {
   QueryDocArgs,
   QueryFormArgs,
   QueryLegalPageArgs,
+  QueryMarketingPageArgs,
   QueryThankYouArgs
 } from '~/generated/dato-cms-graphql'
 import { apolloClient } from '~/lib/apollo.server'
@@ -729,6 +730,48 @@ export const getLegalRoute = async () => {
     .catch((error) => {
       console.log(error)
       return { legalRoute: null, footer: null }
+    })
+}
+
+export const getCurrentMarketingPage = async (
+  variables: QueryMarketingPageArgs
+) => {
+  return apolloClient
+    .query<
+      { marketingPage: Query['marketingPage']; footer: Query['footer'] },
+      QueryMarketingPageArgs
+    >({
+      query: gql`
+        ${FOOTER}
+        ${SECTION}
+        query GetCurrentMarketingPageQuery($filter: MarketingPageModelFilter) {
+          marketingPage(filter: $filter) {
+            slug
+            body {
+              ...Section
+            }
+            id
+            title
+            _publishedAt
+            _seoMetaTags {
+              tag
+              attributes
+              content
+            }
+          }
+          footer {
+            ...Footer
+          }
+        }
+      `,
+      variables
+    })
+    .then((res) => {
+      return res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      return { marketingPage: null, footer: null }
     })
 }
 
