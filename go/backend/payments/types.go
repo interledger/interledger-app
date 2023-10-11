@@ -65,8 +65,13 @@ type Payment struct {
 // = x_sendamount * (r_paymentprotectionfeepercentage / 1 + r_paymentprotectionfeepercentage)
 func (p Payment) PaymentProtectionAmount() currency.Amount {
 	sendAmount := p.SenderAmount.Float64()
+	rate := p.ProtectionFeePercentage / (float64(1) + p.ProtectionFeePercentage)
 
-	paymentProtectionFee := sendAmount * p.ProtectionFeePercentage / (float64(1) + p.ProtectionFeePercentage)
+	paymentProtectionFee := sendAmount * rate
+	smallestFee := currency.FromUInt64(1, p.SenderAmount.Currency)
+	if paymentProtectionFee < smallestFee.Float64() {
+		paymentProtectionFee = 0
+	}
 
 	return currency.FromFloat64(paymentProtectionFee, p.SenderAmount.Currency)
 }
