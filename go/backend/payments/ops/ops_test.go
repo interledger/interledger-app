@@ -87,8 +87,9 @@ func TestCreate(t *testing.T) {
 					Type:       payments.IdentityTypeWalletURL,
 					Identifier: "https://fynbos.me/charlie",
 				},
-				SenderAmount:   currency.FromFloat64(51, currency.USD),
-				ReceiverAmount: currency.FromFloat64(51, currency.USD),
+				SenderAmount:         currency.FromFloat64(51, currency.USD),
+				ReceiverAmount:       currency.FromFloat64(51, currency.USD),
+				AddPaymentProtection: true,
 			},
 			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress, payments.RequiredActionTypeOTP},
 			err:     nil,
@@ -110,7 +111,6 @@ func TestCreate(t *testing.T) {
 			assert.Equal(t, tc.args.Receiver.Identifier, p.Receiver.Identifier)
 			assert.Equal(t, tc.args.SenderAccount, p.SenderAccount)
 			assert.Equal(t, tc.args.ReceiverAccount, p.ReceiverAccount)
-			assert.Equal(t, tc.args.SenderAmount.Format(), p.SenderAmount.Format())
 			assert.Equal(t, tc.args.ReceiverAmount.Format(), p.ReceiverAmount.Format())
 			assert.Equal(t, tc.args.Note, p.Note)
 			assert.Equal(t, tc.args.IPAddress, p.IPAddress)
@@ -118,6 +118,16 @@ func TestCreate(t *testing.T) {
 			assert.Regexp(t, "^([b-z0-9]{12})$", p.PublicID)
 			for _, ra := range tc.actions {
 				assert.Contains(t, p.RequiredActions, ra)
+			}
+
+			if tc.args.AddPaymentProtection {
+				expectedPaymentProtectionFeePercentage := float64(0.03)
+				assert.Equal(t, expectedPaymentProtectionFeePercentage, p.ProtectionFeePercentage)
+
+				expectedPaymentProtection := tc.args.SenderAmount.Float64() * (1 + expectedPaymentProtectionFeePercentage)
+				assert.Equal(t, expectedPaymentProtection, p.SenderAmount.Float64())
+			} else {
+				assert.Equal(t, tc.args.SenderAmount.Format(), p.SenderAmount.Format())
 			}
 		})
 	}
@@ -383,23 +393,39 @@ func TestUpdate(t *testing.T) {
 		DBC: db.MigrateTestDB(t, ctx),
 		Wc:  wallets_mock.NewMockClient(ctrl),
 		Lac: linkedaccounts_mock.NewMockClient(ctrl),
+		Txc: transactions_mock.NewMockClient(ctrl),
 	}
-	walletID := uuid.NewString()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
-	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
-		ID: walletID,
-	}, nil).AnyTimes()
-
+	walletID, receiverWalletID := uuid.NewString(), uuid.NewString()
 	senderAccount := uuid.NewString()
 	receiverAccount := uuid.NewString()
+	newSenderAccount := uuid.NewString()
+	newReceiverAccount := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+		ret := &linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}
+		if id == receiverAccount || id == newReceiverAccount {
+			ret.WalletID = receiverWalletID
+		}
+
+		return ret, nil
+	}).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
+	b.Wc.EXPECT().Get(ctx, receiverWalletID).Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
+	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
+		ID: receiverWalletID,
+	}, nil).AnyTimes()
+	b.Txc.EXPECT().GetHasTransacted(ctx, gomock.Any(), gomock.Any()).Return(true, nil)
+
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
 			Identifier: walletID,
 		},
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeWalletURL,
+			Identifier: "https://fynbos.me/charlie",
+		},
 		SenderAmount:    currency.FromFloat64(51, currency.USD),
-		ReceiverAmount:  currency.FromFloat64(50, currency.USD),
 		SenderAccount:   senderAccount,
 		ReceiverAccount: receiverAccount,
 	})
@@ -420,16 +446,13 @@ func TestUpdate(t *testing.T) {
 		Identifier: "https://fynbos.me/charlie",
 	}))
 	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(51, currency.USD)))
-	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(51, currency.USD)))
+	assert.Equal(t, uint64(5100), p.ReceiverAmount.Value)
 	assert.Equal(t, senderAccount, p.SenderAccount)
 	assert.Equal(t, receiverAccount, p.ReceiverAccount)
 
-	newSenderAccount := uuid.NewString()
-	newReceiverAccount := uuid.NewString()
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
 		ID:              paymentID,
 		SenderAmount:    currency.FromFloat64(54, currency.USD),
-		ReceiverAmount:  currency.FromFloat64(54, currency.USD),
 		SenderAccount:   newSenderAccount,
 		ReceiverAccount: newReceiverAccount,
 	})
@@ -439,10 +462,41 @@ func TestUpdate(t *testing.T) {
 		Type:       payments.IdentityTypeWalletURL,
 		Identifier: "https://fynbos.me/charlie",
 	}))
-	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(54, currency.USD)))
-	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(54, currency.USD)))
+
+	assert.Equal(t, uint64(5400), p.SenderAmount.Value)
+	assert.Equal(t, uint64(5400), p.ReceiverAmount.Value)
 	assert.Equal(t, newReceiverAccount, p.ReceiverAccount)
 	assert.Equal(t, newSenderAccount, p.SenderAccount)
+
+	// add payment protection
+	p, err = ops.AddPaymentProtection(ctx, b, p.ID, true)
+	require.NoError(t, err)
+	assert.Equal(t, float64(0.03), p.ProtectionFeePercentage)
+	assert.Equal(t, uint64(5562), p.SenderAmount.Value)
+
+	// update send amount
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID:             paymentID,
+		SenderAmount:   currency.FromFloat64(51, currency.USD),
+		ReceiverAmount: currency.FromFloat64(51, currency.USD),
+	})
+	require.NoError(t, err)
+	assert.Equal(t, uint64(5253), p.SenderAmount.Value)
+
+	// remove payment protection
+	p, err = ops.AddPaymentProtection(ctx, b, p.ID, false)
+	require.NoError(t, err)
+	require.Equal(t, float64(0), p.ProtectionFeePercentage)
+	assert.Equal(t, uint64(5100), p.SenderAmount.Value)
+
+	// update send amount
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID:           paymentID,
+		SenderAmount: currency.FromFloat64(55, currency.USD),
+	})
+	require.NoError(t, err)
+	require.Equal(t, float64(0), p.ProtectionFeePercentage)
+	assert.Equal(t, uint64(5500), p.SenderAmount.Value)
 }
 
 func TestUpdateFX(t *testing.T) {
