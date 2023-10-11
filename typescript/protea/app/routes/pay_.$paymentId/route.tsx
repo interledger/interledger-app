@@ -75,7 +75,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let features: Features | null = null
   let payment: PlainMessage<Payment> | ConnectError
   let phoneMask: string = ''
-  let payStep: PayStep = PayStep.AMOUNT
 
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
@@ -141,23 +140,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   }
 
-  // If we have an amount and account, and we don't have outstanding requirements, then we can skip the amount step
-  if (
-    payment.senderAmount &&
-    payment.senderAccount &&
-    payment.requiredActions.findIndex(
-      (ra) =>
-        ra == PaymentRequiredAction.SenderAccount ||
-        ra == PaymentRequiredAction.SenderAmount ||
-        ra == PaymentRequiredAction.ReceiverAmount
-    ) == -1
-  ) {
-    payStep = PayStep.CONFIRM
-  }
-
   return jsonWithCSRF(request, {
     features,
-    payStep,
     account,
     sendAccounts,
     phoneMask,
@@ -186,14 +170,8 @@ export function links() {
 }
 
 export default function Page() {
-  const { payStep, features, sendAccounts, payment } =
-    useLoaderData<typeof loader>()
-  const [step, setStep, setAmount, reset] = usePayStore((state) => [
-    state.step,
-    state.setStep,
-    state.setAmount,
-    state.reset
-  ])
+  const { features, sendAccounts, payment } = useLoaderData<typeof loader>()
+  const [step, reset] = usePayStore((state) => [state.step, state.reset])
   const [commandPaletteOpen, setCommandPaletteOpen] = useScaffoldStore(
     (state) => [state.commandPalletOpen, state.setCommandPalletOpen]
   )
@@ -204,13 +182,6 @@ export default function Page() {
       reset()
     }
   }, [reset])
-
-  useEffect(() => {
-    if (step == PayStep.UNKNOWN) {
-      setAmount(String(Number(payment.senderAmount?.amount) / 100 || ''))
-      setStep(payStep)
-    }
-  }, [payStep, payment.senderAmount?.amount, setAmount, setStep, step])
 
   useEffect(() => {
     if (commandPaletteOpen) {
