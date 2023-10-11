@@ -60,6 +60,10 @@ func (c client) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment
 	return ops.ListAwaitingSignal(ctx, c.b)
 }
 
+func (c client) AddPaymentProtection(ctx context.Context, id string, add bool) (*payments.Payment, error) {
+	return ops.AddPaymentProtection(ctx, c.b, id, add)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

@@ -2182,6 +2182,11 @@ table "payments" {
     null = true
     type = text
   }
+  column "protection_fee_percentage" {
+    null = false
+    type = float
+    default = 0
+  }
   column "created_at" {
     null    = false
     type    = timestamp
