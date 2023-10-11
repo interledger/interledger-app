@@ -49,6 +49,34 @@ export type AboutRouteRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
+/** Block of type Banner (banner) */
+export type BannerRecord = RecordInterface & {
+  __typename?: 'BannerRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body?: Maybe<Scalars['String']>;
+  chip?: Maybe<Scalars['String']>;
+  id: Scalars['ItemId'];
+  link: Array<LinkRecord>;
+};
+
+
+/** Block of type Banner (banner) */
+export type BannerRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export type BlogPostModelContentBlocksField = InlineImageRecord | InlinePersonRecord | InlineTwitterEmbedRecord | InlineVideoRecord;
 
 export type BlogPostModelContentField = {
@@ -2836,6 +2864,75 @@ export type ManualContentRecord_SeoMetaTagsArgs = {
   locale?: InputMaybe<SiteLocale>;
 };
 
+export type MarketingPageModelFilter = {
+  AND?: InputMaybe<Array<InputMaybe<MarketingPageModelFilter>>>;
+  OR?: InputMaybe<Array<InputMaybe<MarketingPageModelFilter>>>;
+  _createdAt?: InputMaybe<CreatedAtFilter>;
+  _firstPublishedAt?: InputMaybe<PublishedAtFilter>;
+  _isValid?: InputMaybe<BooleanFilter>;
+  _publicationScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _publishedAt?: InputMaybe<PublishedAtFilter>;
+  _status?: InputMaybe<StatusFilter>;
+  _unpublishingScheduledAt?: InputMaybe<PublishedAtFilter>;
+  _updatedAt?: InputMaybe<UpdatedAtFilter>;
+  id?: InputMaybe<ItemIdFilter>;
+  seoMeta?: InputMaybe<SeoFilter>;
+  slug?: InputMaybe<SlugFilter>;
+  title?: InputMaybe<StringFilter>;
+};
+
+export enum MarketingPageModelOrderBy {
+  CreatedAtAsc = '_createdAt_ASC',
+  CreatedAtDesc = '_createdAt_DESC',
+  FirstPublishedAtAsc = '_firstPublishedAt_ASC',
+  FirstPublishedAtDesc = '_firstPublishedAt_DESC',
+  IsValidAsc = '_isValid_ASC',
+  IsValidDesc = '_isValid_DESC',
+  PublicationScheduledAtAsc = '_publicationScheduledAt_ASC',
+  PublicationScheduledAtDesc = '_publicationScheduledAt_DESC',
+  PublishedAtAsc = '_publishedAt_ASC',
+  PublishedAtDesc = '_publishedAt_DESC',
+  StatusAsc = '_status_ASC',
+  StatusDesc = '_status_DESC',
+  UnpublishingScheduledAtAsc = '_unpublishingScheduledAt_ASC',
+  UnpublishingScheduledAtDesc = '_unpublishingScheduledAt_DESC',
+  UpdatedAtAsc = '_updatedAt_ASC',
+  UpdatedAtDesc = '_updatedAt_DESC',
+  IdAsc = 'id_ASC',
+  IdDesc = 'id_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
+}
+
+/** Record of type Marketing page (marketing_page) */
+export type MarketingPageRecord = RecordInterface & {
+  __typename?: 'MarketingPageRecord';
+  _createdAt: Scalars['DateTime'];
+  /** Editing URL */
+  _editingUrl?: Maybe<Scalars['String']>;
+  _firstPublishedAt?: Maybe<Scalars['DateTime']>;
+  _isValid: Scalars['BooleanType'];
+  _modelApiKey: Scalars['String'];
+  _publicationScheduledAt?: Maybe<Scalars['DateTime']>;
+  _publishedAt?: Maybe<Scalars['DateTime']>;
+  /** SEO meta tags */
+  _seoMetaTags: Array<Tag>;
+  _status: ItemStatus;
+  _unpublishingScheduledAt?: Maybe<Scalars['DateTime']>;
+  _updatedAt: Scalars['DateTime'];
+  body: Array<SectionRecord>;
+  id: Scalars['ItemId'];
+  seoMeta?: Maybe<SeoField>;
+  slug?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+/** Record of type Marketing page (marketing_page) */
+export type MarketingPageRecord_SeoMetaTagsArgs = {
+  locale?: InputMaybe<SiteLocale>;
+};
+
 export enum MuxThumbnailFormatType {
   Gif = 'gif',
   Jpg = 'jpg',
@@ -3008,6 +3105,8 @@ export type Query = {
   /** Returns meta information regarding a record collection */
   _allLegalPagesMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
+  _allMarketingPagesMeta: CollectionMetadata;
+  /** Returns meta information regarding a record collection */
   _allPeopleMeta: CollectionMetadata;
   /** Returns meta information regarding a record collection */
   _allThankYousMeta: CollectionMetadata;
@@ -3025,6 +3124,8 @@ export type Query = {
   allForms: Array<FormRecord>;
   /** Returns a collection of records */
   allLegalPages: Array<LegalPageRecord>;
+  /** Returns a collection of records */
+  allMarketingPages: Array<MarketingPageRecord>;
   /** Returns a collection of records */
   allPeople: Array<PersonRecord>;
   /** Returns a collection of records */
@@ -3053,6 +3154,8 @@ export type Query = {
   legalPage?: Maybe<LegalPageRecord>;
   /** Returns the single instance record */
   legalRoute?: Maybe<LegalRouteRecord>;
+  /** Returns a specific record */
+  marketingPage?: Maybe<MarketingPageRecord>;
   /** Returns a specific record */
   person?: Maybe<PersonRecord>;
   /** Returns the single instance record */
@@ -3092,6 +3195,13 @@ export type Query_AllFormsMetaArgs = {
 /** The query root for this schema */
 export type Query_AllLegalPagesMetaArgs = {
   filter?: InputMaybe<LegalPageModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type Query_AllMarketingPagesMetaArgs = {
+  filter?: InputMaybe<MarketingPageModelFilter>;
   locale?: InputMaybe<SiteLocale>;
 };
 
@@ -3171,6 +3281,17 @@ export type QueryAllLegalPagesArgs = {
   first?: InputMaybe<Scalars['IntType']>;
   locale?: InputMaybe<SiteLocale>;
   orderBy?: InputMaybe<Array<InputMaybe<LegalPageModelOrderBy>>>;
+  skip?: InputMaybe<Scalars['IntType']>;
+};
+
+
+/** The query root for this schema */
+export type QueryAllMarketingPagesArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<MarketingPageModelFilter>;
+  first?: InputMaybe<Scalars['IntType']>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<MarketingPageModelOrderBy>>>;
   skip?: InputMaybe<Scalars['IntType']>;
 };
 
@@ -3290,6 +3411,15 @@ export type QueryLegalPageArgs = {
 export type QueryLegalRouteArgs = {
   fallbackLocales?: InputMaybe<Array<SiteLocale>>;
   locale?: InputMaybe<SiteLocale>;
+};
+
+
+/** The query root for this schema */
+export type QueryMarketingPageArgs = {
+  fallbackLocales?: InputMaybe<Array<SiteLocale>>;
+  filter?: InputMaybe<MarketingPageModelFilter>;
+  locale?: InputMaybe<SiteLocale>;
+  orderBy?: InputMaybe<Array<InputMaybe<MarketingPageModelOrderBy>>>;
 };
 
 
@@ -3694,7 +3824,7 @@ export type StringMatchesFilter = {
   regexp?: InputMaybe<Scalars['BooleanType']>;
 };
 
-/** Specifies how to filter Structured Text fields */
+/** Specifies how to filter Structured Text fields values */
 export type StructuredTextFilter = {
   /** Filter records with the specified field defined (i.e. with any value) or not [DEPRECATED] */
   exists?: InputMaybe<Scalars['BooleanType']>;

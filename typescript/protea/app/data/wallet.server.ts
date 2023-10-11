@@ -1,4 +1,5 @@
 import type { PartialMessage } from '@bufbuild/protobuf'
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type {
@@ -88,14 +89,10 @@ export async function getWalletInfo(request: Request): Promise<WalletInfo> {
 }
 
 export type FormattedLinkedAccount = {
-  id: string
   name: string
-  nickname: string
   type: string
   icon: string
-  canSend: boolean
-  canReceive: boolean
-}
+} & PlainMessage<LinkedAccount>
 
 type LinkedAccountsResponse = {
   bankAccounts: Array<FormattedLinkedAccount>

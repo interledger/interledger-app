@@ -26,35 +26,36 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, created_at, updated_at`
 
 type dbPayment struct {
-	ID                   string                `db:"id"`
-	PublicID             string                `db:"public_id"`
-	State                payments.State        `db:"state"`
-	ThreeDSRequired      bool                  `db:"action_three_ds_required"`
-	ThreeDSID            sql.NullString        `db:"action_three_ds_id"`
-	SenderID             string                `db:"sender_id"`
-	SenderIDType         payments.IdentityType `db:"sender_id_type"`
-	SenderAmount         uint64                `db:"sender_amount"`
-	SenderCurrency       string                `db:"sender_currency"`
-	SenderAccount        sql.NullString        `db:"sender_account"`
-	ReceiverID           string                `db:"receiver_id"`
-	ReceiverIDType       payments.IdentityType `db:"receiver_id_type"`
-	ReceiverAmount       uint64                `db:"receiver_amount"`
-	ReceiverCurrency     string                `db:"receiver_currency"`
-	ReceiverAccount      sql.NullString        `db:"receiver_account"`
-	SendTransactionID    sql.NullString        `db:"send_transaction_id"`
-	ReceiveTransactionID sql.NullString        `db:"receive_transaction_id"`
-	Note                 sql.NullString        `db:"note"`
-	OTPRequired          bool                  `db:"action_otp_required"`
-	OTP                  sql.NullString        `db:"action_otp"`
-	CreatedAt            time.Time             `db:"created_at"`
-	UpdatedAt            time.Time             `db:"updated_at"`
-	IPAddress            sql.NullString        `db:"ip_address"`
-	Type                 payments.Type         `db:"type"`
-	FXRate               sql.NullFloat64       `db:"fx_rate"`
-	FXFeePercentage      sql.NullFloat64       `db:"fx_fee_percentage"`
+	ID                      string                `db:"id"`
+	PublicID                string                `db:"public_id"`
+	State                   payments.State        `db:"state"`
+	ThreeDSRequired         bool                  `db:"action_three_ds_required"`
+	ThreeDSID               sql.NullString        `db:"action_three_ds_id"`
+	SenderID                string                `db:"sender_id"`
+	SenderIDType            payments.IdentityType `db:"sender_id_type"`
+	SenderAmount            uint64                `db:"sender_amount"`
+	SenderCurrency          string                `db:"sender_currency"`
+	SenderAccount           sql.NullString        `db:"sender_account"`
+	ReceiverID              string                `db:"receiver_id"`
+	ReceiverIDType          payments.IdentityType `db:"receiver_id_type"`
+	ReceiverAmount          uint64                `db:"receiver_amount"`
+	ReceiverCurrency        string                `db:"receiver_currency"`
+	ReceiverAccount         sql.NullString        `db:"receiver_account"`
+	SendTransactionID       sql.NullString        `db:"send_transaction_id"`
+	ReceiveTransactionID    sql.NullString        `db:"receive_transaction_id"`
+	Note                    sql.NullString        `db:"note"`
+	OTPRequired             bool                  `db:"action_otp_required"`
+	OTP                     sql.NullString        `db:"action_otp"`
+	CreatedAt               time.Time             `db:"created_at"`
+	UpdatedAt               time.Time             `db:"updated_at"`
+	IPAddress               sql.NullString        `db:"ip_address"`
+	Type                    payments.Type         `db:"type"`
+	FXRate                  sql.NullFloat64       `db:"fx_rate"`
+	FXFeePercentage         sql.NullFloat64       `db:"fx_fee_percentage"`
+	ProtectionFeePercentage float64               `db:"protection_fee_percentage"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -145,19 +146,20 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.
 			Identifier: db.ReceiverID,
 			WalletID:   receiverWalletID,
 		},
-		SenderAmount:         currency.FromUInt64(db.SenderAmount, currency.ParseCurrency(db.SenderCurrency)),
-		ReceiverAmount:       currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
-		SenderAccount:        db.SenderAccount.String,
-		ReceiverAccount:      db.ReceiverAccount.String,
-		SendTransactionID:    db.SendTransactionID.String,
-		ReceiveTransactionID: db.ReceiveTransactionID.String,
-		RequiredActions:      getRequiredActions(&db),
-		Note:                 db.Note.String,
-		IPAddress:            db.IPAddress.String,
-		UpdatedAt:            db.UpdatedAt,
-		Type:                 db.Type,
-		FXRate:               db.FXRate.Float64,
-		FXFeePercentage:      db.FXFeePercentage.Float64,
+		SenderAmount:            currency.FromUInt64(db.SenderAmount, currency.ParseCurrency(db.SenderCurrency)),
+		ReceiverAmount:          currency.FromUInt64(db.ReceiverAmount, currency.ParseCurrency(db.ReceiverCurrency)),
+		SenderAccount:           db.SenderAccount.String,
+		ReceiverAccount:         db.ReceiverAccount.String,
+		SendTransactionID:       db.SendTransactionID.String,
+		ReceiveTransactionID:    db.ReceiveTransactionID.String,
+		RequiredActions:         getRequiredActions(&db),
+		Note:                    db.Note.String,
+		IPAddress:               db.IPAddress.String,
+		UpdatedAt:               db.UpdatedAt,
+		Type:                    db.Type,
+		FXRate:                  db.FXRate.Float64,
+		FXFeePercentage:         db.FXFeePercentage.Float64,
+		ProtectionFeePercentage: db.ProtectionFeePercentage,
 	}, nil
 }
 
@@ -244,6 +246,11 @@ func accountCanSend(ctx context.Context, b Backends, id payments.Identity, accou
 		return false, err
 	}
 
+	// Short circuit the need for a wallet lookup
+	if id.WalletID != "" || id.Type == payments.IdentityTypeWalletID {
+		return acc.CanSend && (id.WalletID == acc.WalletID || id.Identifier == acc.WalletID), nil
+	}
+
 	w, err := lookupWallet(ctx, b, id)
 	if err != nil {
 		return false, err
@@ -268,6 +275,11 @@ func accountCanReceive(ctx context.Context, b Backends, id payments.Identity, ac
 		return false, err
 	}
 
+	// Short circuit the need for a wallet lookup
+	if id.WalletID != "" || id.Type == payments.IdentityTypeWalletID {
+		return acc.CanReceive && (id.WalletID == acc.WalletID || id.Identifier == acc.WalletID), nil
+	}
+
 	w, err := lookupWallet(ctx, b, id)
 	if errors.Is(err, identities.ErrNotFound) {
 		return false, nil
@@ -288,12 +300,20 @@ func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity
 		return "", nil
 	}
 
-	wallet, err := lookupWallet(ctx, b, id)
-	if err != nil {
-		return "", err
+	var walletID string
+	if id.WalletID != "" {
+		walletID = id.WalletID
+	} else if id.Type == payments.IdentityTypeWalletID {
+		walletID = id.Identifier
+	} else {
+		wallet, err := lookupWallet(ctx, b, id)
+		if err != nil {
+			return "", err
+		}
+		walletID = wallet.ID
 	}
 
-	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, wallet.ID)
+	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, walletID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return "", nil
 	}
@@ -394,6 +414,16 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
+	var paymentProtectionFeePercentage float64
+	if p.AddPaymentProtection {
+		amount, feePercentage, err := applyPaymentProtection(ctx, b, p.Sender, p.SenderAmount)
+		if err != nil {
+			return nil, err
+		}
+		paymentProtectionFeePercentage = feePercentage
+		p.SenderAmount.Value = amount.Value
+	}
+
 	// TODO Calculate more actions required
 	id := uuid.NewString()
 	stmt, args, err := db.NewInsert("payments").
@@ -417,6 +447,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("type", p.Type).
 		Value("fx_rate", sql.NullFloat64{Float64: fxRate, Valid: fxRate > 0}).
 		Value("fx_fee_percentage", sql.NullFloat64{Float64: fxFeePerc, Valid: fxFeePerc > 0}).
+		Value("protection_fee_percentage", paymentProtectionFeePercentage).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -428,6 +459,21 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	return Lookup(ctx, b, id)
+}
+
+// Hard coded to be calculated as 3%.
+// TODO: Make it dynamic by looking at senders payment history
+func applyPaymentProtection(_ context.Context, _ Backends, sender payments.Identity, amount currency.Amount) (currency.Amount, float64, error) {
+	rate := float64(0.03)
+	smallest := currency.FromUInt64(1, amount.Currency)
+	fee := amount.Float64() * rate
+	if fee < smallest.Float64() {
+		fee = 0
+	}
+
+	feeAmount := currency.FromFloat64(fee, amount.Currency)
+
+	return currency.FromUInt64(feeAmount.Value+amount.Value, amount.Currency), rate, nil
 }
 
 func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (payments.CreateArgs, float64, float64, error) {
@@ -631,19 +677,20 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 		}
 
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
-			WalletID:                senderWallet.ID,
-			ForeignID:               dbp.ID,
-			ForeignType:             transactions.TransactionTypeOutgoing,
-			Provider:                transactions.ProviderPaymentsEngine,
-			State:                   transactions.StatePending,
-			Note:                    dbp.Note,
-			Source:                  senderWallet.AddressString(),
-			Destination:             destination,
-			Amount:                  dbp.SenderAmount,
-			LinkedAccountTitle:      la.Title(),
-			DestinationIdentity:     dbp.Receiver.Identifier,
-			DestinationIdentityType: dbp.Receiver.Type.String(),
-			Reference:               dbp.Note,
+			WalletID:                       senderWallet.ID,
+			ForeignID:                      dbp.ID,
+			ForeignType:                    transactions.TransactionTypeOutgoing,
+			Provider:                       transactions.ProviderPaymentsEngine,
+			State:                          transactions.StatePending,
+			Note:                           dbp.Note,
+			Source:                         senderWallet.AddressString(),
+			Destination:                    destination,
+			Amount:                         dbp.SenderAmount,
+			LinkedAccountTitle:             la.Title(),
+			DestinationIdentity:            dbp.Receiver.Identifier,
+			DestinationIdentityType:        dbp.Receiver.Type.String(),
+			Reference:                      dbp.Note,
+			PaymentProtectionFeePercentage: dbp.ProtectionFeePercentage,
 		})
 		if err != nil {
 			return err
@@ -695,15 +742,18 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		return nil, fmt.Errorf("%w Cannot update payment in state (%s)", payments.ErrInvalidState, payment.State)
 	}
 
-	return update(ctx, b, args)
+	return update(ctx, b, args, payment)
 }
 
 // update performs minimal validation and updates a payment. This is only available internally to the payments engine
 // where updates can be made to the payment regardless of the state of the payment.
-func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payments.Payment, error) {
-	payment, err := getPayment(ctx, b, args.ID)
-	if err != nil {
-		return nil, err
+func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *dbPayment) (*payments.Payment, error) {
+	var err error
+	if payment == nil {
+		payment, err = getPayment(ctx, b, args.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.Currency.Valid() {
 		return nil, fmt.Errorf("%w Sender amount currency is invalid", payments.ErrInvalidAmount)
@@ -715,7 +765,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		return nil, fmt.Errorf("%w Receiver is invalid", payments.ErrInvalidIdentifier)
 	}
 
-	var receiverAmtUpdated bool
+	var receiverAmtUpdated, senderAmtUpdated bool
 	noop := true
 	receiver := payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}
 	if !args.Receiver.IsEmpty() && !args.Receiver.IsEqual(receiver) {
@@ -755,6 +805,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		payment.SenderAmount = args.SenderAmount.Value
 		payment.SenderCurrency = args.SenderAmount.Currency.String()
 		noop = false
+		senderAmtUpdated = true
 	}
 	if args.ThreeDSID != "" && args.ThreeDSID != payment.ThreeDSID.String {
 		payment.ThreeDSID.String = args.ThreeDSID
@@ -780,14 +831,36 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 			Valid:  true,
 		}
 	}
+
 	if noop {
 		return transformPayment(ctx, b, *payment)
 	}
 
 	// Something changed, update the FX calculations
-	payment, err = applyFXUpdate(ctx, b, payment, receiverAmtUpdated)
-	if err != nil {
-		return nil, err
+	if receiverAmtUpdated || senderAmtUpdated {
+		payment, err = applyFXUpdate(ctx, b, payment, receiverAmtUpdated)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	hasPaymentProtection := payment.ProtectionFeePercentage != 0
+	if (receiverAmtUpdated || senderAmtUpdated) && hasPaymentProtection {
+		amount, feePercentage, err := applyPaymentProtection(
+			ctx,
+			b,
+			payments.Identity{
+				Type:       payment.SenderIDType,
+				Identifier: payment.SenderID,
+			},
+			currency.FromUInt64(payment.SenderAmount, currency.ParseCurrency(payment.SenderCurrency)),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		payment.SenderAmount = amount.Value
+		payment.ProtectionFeePercentage = feePercentage
 	}
 
 	payment.UpdatedAt = time.Now()
@@ -806,7 +879,54 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		Value("ip_address", payment.IPAddress).
 		Value("action_otp", payment.OTP).
 		Value("fx_rate", payment.FXRate).
-		Value("fx_fee_percentage", payment.FXFeePercentage).Returning(cols).GetStatement()
+		Value("fx_fee_percentage", payment.FXFeePercentage).
+		Returning(cols).GetStatement()
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	var ret dbPayment
+	err = b.DB().GetContext(ctx, &ret, stmt, values...)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPayment(ctx, b, ret)
+}
+
+func AddPaymentProtection(ctx context.Context, b Backends, id string, add bool) (*payments.Payment, error) {
+	p, err := Lookup(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// remove old payment percentage. This is defaulted to 0.00. Then check if we must add it back.
+	protectionFee := p.PaymentProtectionAmount()
+	newSenderAmount := currency.Amount{
+		Value:    p.SenderAmount.Value - protectionFee.Value,
+		Currency: p.SenderAmount.Currency,
+	}
+	newPaymentProtectionFeePercentage := float64(0)
+	if add {
+		amount, feePercentage, err := applyPaymentProtection(
+			ctx,
+			b,
+			p.Sender,
+			newSenderAmount,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		newSenderAmount = amount
+		newPaymentProtectionFeePercentage = feePercentage
+	}
+
+	stmt, values, err := db.NewUpdate("payments").ID(p.ID).
+		Value("sender_amount", newSenderAmount.Value).
+		Value("protection_fee_percentage", newPaymentProtectionFeePercentage).
+		Returning(cols).GetStatement()
+
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -839,14 +959,15 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 	}
 
 	if receiverAcc.ReceiveCurrency == senderAcc.SendCurrency {
-		if existing.SenderAmount != existing.ReceiverAmount {
-			// Equalize sender and receiver amounts until we add fees.
-			if existing.SenderAmount > existing.ReceiverAmount {
-				existing.ReceiverAmount = existing.SenderAmount
-			} else {
-				existing.SenderAmount = existing.ReceiverAmount
-			}
+		// Equalize sender and receiver amounts until we add fees.
+		if receiverAmtUpdated {
+			existing.SenderAmount = existing.ReceiverAmount
+			existing.SenderCurrency = senderAcc.ReceiveCurrency.String()
+			return existing, nil
 		}
+
+		existing.ReceiverAmount = existing.SenderAmount
+		existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
 		return existing, nil
 	}
 
@@ -879,7 +1000,7 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 }
 
 func UpdateReceiver(ctx context.Context, b Backends, id string, identity payments.Identity) error {
-	_, err := update(ctx, b, payments.UpdateArgs{ID: id, Receiver: identity})
+	_, err := update(ctx, b, payments.UpdateArgs{ID: id, Receiver: identity}, nil)
 	if err != nil {
 		return err
 	}
