@@ -246,6 +246,11 @@ func accountCanSend(ctx context.Context, b Backends, id payments.Identity, accou
 		return false, err
 	}
 
+	// Short circuit the need for a wallet lookup
+	if id.WalletID != "" || id.Type == payments.IdentityTypeWalletID {
+		return acc.CanSend && (id.WalletID == acc.WalletID || id.Identifier == acc.WalletID), nil
+	}
+
 	w, err := lookupWallet(ctx, b, id)
 	if err != nil {
 		return false, err
@@ -270,6 +275,11 @@ func accountCanReceive(ctx context.Context, b Backends, id payments.Identity, ac
 		return false, err
 	}
 
+	// Short circuit the need for a wallet lookup
+	if id.WalletID != "" || id.Type == payments.IdentityTypeWalletID {
+		return acc.CanReceive && (id.WalletID == acc.WalletID || id.Identifier == acc.WalletID), nil
+	}
+
 	w, err := lookupWallet(ctx, b, id)
 	if errors.Is(err, identities.ErrNotFound) {
 		return false, nil
@@ -290,12 +300,20 @@ func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity
 		return "", nil
 	}
 
-	wallet, err := lookupWallet(ctx, b, id)
-	if err != nil {
-		return "", err
+	var walletID string
+	if id.WalletID != "" {
+		walletID = id.WalletID
+	} else if id.Type == payments.IdentityTypeWalletID {
+		walletID = id.Identifier
+	} else {
+		wallet, err := lookupWallet(ctx, b, id)
+		if err != nil {
+			return "", err
+		}
+		walletID = wallet.ID
 	}
 
-	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, wallet.ID)
+	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, walletID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return "", nil
 	}
@@ -724,15 +742,18 @@ func Update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payment
 		return nil, fmt.Errorf("%w Cannot update payment in state (%s)", payments.ErrInvalidState, payment.State)
 	}
 
-	return update(ctx, b, args)
+	return update(ctx, b, args, payment)
 }
 
 // update performs minimal validation and updates a payment. This is only available internally to the payments engine
 // where updates can be made to the payment regardless of the state of the payment.
-func update(ctx context.Context, b Backends, args payments.UpdateArgs) (*payments.Payment, error) {
-	payment, err := getPayment(ctx, b, args.ID)
-	if err != nil {
-		return nil, err
+func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *dbPayment) (*payments.Payment, error) {
+	var err error
+	if payment == nil {
+		payment, err = getPayment(ctx, b, args.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.Currency.Valid() {
 		return nil, fmt.Errorf("%w Sender amount currency is invalid", payments.ErrInvalidAmount)
@@ -979,7 +1000,7 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 }
 
 func UpdateReceiver(ctx context.Context, b Backends, id string, identity payments.Identity) error {
-	_, err := update(ctx, b, payments.UpdateArgs{ID: id, Receiver: identity})
+	_, err := update(ctx, b, payments.UpdateArgs{ID: id, Receiver: identity}, nil)
 	if err != nil {
 		return err
 	}
