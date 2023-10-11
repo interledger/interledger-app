@@ -43,6 +43,7 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { KycStatus } from '~/routes/_index/route'
+import styles from '~/styles/flags.css'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
 
@@ -68,13 +69,12 @@ export enum PaymentIdentityType {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  let account: FormattedLinkedAccount | undefined
+  let account: FormattedLinkedAccount
   let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
   let features: Features | null = null
   let payment: PlainMessage<Payment> | ConnectError
   let phoneMask: string = ''
-  let payStep: PayStep = PayStep.AMOUNT
 
   const { kycStatus } = await getKycStatus(request)
   if (kycStatus != KycStatus.Approved)
@@ -127,7 +127,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   if (payment.senderAccount) {
     const accountId = payment.senderAccount
-    account = sendAccounts.find((acc) => acc.id == accountId)
+    account = sendAccounts.find((acc) => acc.id == accountId)!
   } else {
     account = sendAccounts[0]
   }
@@ -140,23 +140,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     })
   }
 
-  // If we have an amount and account, and we don't have outstanding requirements, then we can skip the amount step
-  if (
-    payment.senderAmount &&
-    payment.senderAccount &&
-    payment.requiredActions.findIndex(
-      (ra) =>
-        ra == PaymentRequiredAction.SenderAccount ||
-        ra == PaymentRequiredAction.SenderAmount ||
-        ra == PaymentRequiredAction.ReceiverAmount
-    ) == -1
-  ) {
-    payStep = PayStep.CONFIRM
-  }
-
   return jsonWithCSRF(request, {
     features,
-    payStep,
     account,
     sendAccounts,
     phoneMask,
@@ -180,15 +165,13 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
+export function links() {
+  return [{ rel: 'stylesheet', href: styles }]
+}
+
 export default function Page() {
-  const { payStep, features, sendAccounts, payment } =
-    useLoaderData<typeof loader>()
-  const [step, setStep, setAmount, reset] = usePayStore((state) => [
-    state.step,
-    state.setStep,
-    state.setAmount,
-    state.reset
-  ])
+  const { features, sendAccounts, payment } = useLoaderData<typeof loader>()
+  const [step, reset] = usePayStore((state) => [state.step, state.reset])
   const [commandPaletteOpen, setCommandPaletteOpen] = useScaffoldStore(
     (state) => [state.commandPalletOpen, state.setCommandPalletOpen]
   )
@@ -199,13 +182,6 @@ export default function Page() {
       reset()
     }
   }, [reset])
-
-  useEffect(() => {
-    if (step == PayStep.UNKNOWN) {
-      setAmount(String(Number(payment.senderAmount?.amount) / 100 || ''))
-      setStep(payStep)
-    }
-  }, [payStep, payment.senderAmount?.amount, setAmount, setStep, step])
 
   useEffect(() => {
     if (commandPaletteOpen) {
@@ -354,16 +330,30 @@ export async function confirmPaymentAction({
   })
 }
 
+function stringToBigInt(amount: string) {
+  if (amount == '') return BigInt(0)
+  const dotIndex = amount.lastIndexOf('.')
+  if (dotIndex > -1) {
+    const amounts = amount.split('.')
+    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
+  }
+  return BigInt(parseFloat(amount) * 100)
+}
+
 export async function updatePaymentAction({
   request,
   params
 }: ActionFunctionArgs) {
   const form = await request.formData()
-  const amount = form.get('amount') as string
+  const send = String(form.get('send') || '')
+  const receive = String(form.get('receive') || '')
+  const hasPaymentProtection = form.get('hasPaymentProtection') as string
   const note = String(form.get('note') || '')
   const accountId = String(form.get('accountId') || '')
   const intent = form.get('intent') as string
-  const amountToSubmit = Math.floor(parseFloat(amount) * 100)
+
+  const sendToSubmit = stringToBigInt(send)
+  const receiveToSubmit = stringToBigInt(receive)
 
   const errors = {
     form: '',
@@ -372,30 +362,45 @@ export async function updatePaymentAction({
     note: ''
   }
 
-  if (!amountToSubmit) {
+  if (intent == 'submit' && sendToSubmit == 0n) {
     errors.amount = 'Amount is required.'
-    return error(request, { errors, payment: null, intent })
+    return error(request, { errors, payment: null, intent: '' })
   }
 
   const clientIpAddress = getClientIP(request)
+
+  let senderAmount, receiverAmount
+  if (send != '') {
+    senderAmount = {
+      amount: sendToSubmit,
+      assetScale: 2,
+      asset: 'USD'
+    }
+  }
+  if (receive != '') {
+    receiverAmount = {
+      amount: receiveToSubmit,
+      assetScale: 2,
+      asset: 'USD'
+    }
+  }
 
   let response = await grpc.updatePayment(request, {
     id: params.paymentId,
     note,
     senderAccount: accountId,
-    senderAmount: {
-      amount: BigInt(amountToSubmit),
-      assetScale: 2,
-      asset: 'USD'
-    },
+    addPaymentProtection: hasPaymentProtection == 'true',
+    senderAmount,
+    receiverAmount,
     ipAddress: clientIpAddress
   })
+
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors, payment: null, intent })
+      return response.error({ errors, payment: null, intent: '' })
     }
     return response.error(
-      { errors, payment: null, intent },
+      { errors, payment: null, intent: '' },
       {},
       { action: 'Contact support' }
     )

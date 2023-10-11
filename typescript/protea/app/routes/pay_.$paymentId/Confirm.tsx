@@ -18,9 +18,9 @@ import {
   TextField
 } from '~/components'
 import { Label } from '~/components/Label'
-import { usePayStore } from '~/lib/usePayStore'
 import type { action as otpAction } from '~/routes/api_.sendOtp'
 
+import { DateTime } from 'luxon'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
 import type { confirmPaymentAction, loader } from './route'
 
@@ -31,8 +31,6 @@ export function Confirm() {
   const otpFetcher = useFetcher<typeof otpAction>()
 
   const [showOTPDialog, setShowOTPDialog] = useState<boolean>(false)
-
-  const [displayAmount] = usePayStore((state) => [state.displayAmount])
 
   useEffect(() => {
     if (
@@ -75,38 +73,48 @@ export function Confirm() {
       <Card>
         <CardContent>
           <div className='flex w-full justify-between'>
-            <span className='text-weak'>Total fees</span>
+            <span className='text-weak'>Payment from</span>
             <span className='text-medium'>
-              Free <sup>*</sup>
+              {account.name} {account.mask}
             </span>
           </div>
           <div className='mt-2 flex w-full justify-between'>
-            <span className='text-weak'>They receive</span>
-            <span className='text-medium'>{displayAmount}</span>
-          </div>
-          <div className='mt-4 flex w-full space-x-2'>
-            <span className='text-xs text-medium'>*</span>
-            <span className='text-xs text-medium'>
-              For a limited time, Fynbos will absorb the fees associated with
-              making a payment.
+            <span className='text-weak'>Payment date</span>
+            <span className='text-medium'>
+              {DateTime.now().toFormat('dd MMMM yyyy')}
             </span>
           </div>
+          {/* TODO Convert amount to currency*/}
+          {/*<div className='mt-2 flex w-full justify-between'>*/}
+          {/*  <span className='text-weak'>Amount to send</span>*/}
+          {/*  <span className='text-medium'>{payment.senderAmount?.amount}</span>*/}
+          {/*</div>*/}
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-weak'>Fees</span>
+            <span className='text-medium'>$ 0.00</span>
+          </div>
+          <div className='mt-2 flex w-full justify-between'>
+            <span className='text-weak'>Payment protection (3%)</span>
+            <span className='text-medium'>
+              {payment.paymentProtectionAmount}
+            </span>
+          </div>
+          <div className='mt-4 flex w-full justify-between font-medium'>
+            <span className='text-medium'>Total amount to debit</span>
+            <span className='text-error'>{payment.totalSendAmount}</span>
+          </div>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent>
-          <div className='flex w-full flex-col justify-between space-y-1'>
-            <span className='text-weak'>Source</span>
-            <span className='text-medium'>{account?.name}</span>
-          </div>
-          {payment.note && (
-            <div className='mt-4 flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Note</span>
+      {payment.note && (
+        <Card>
+          <CardContent>
+            <div className='flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Payment note</span>
               <span className='text-medium'>{payment.note}</span>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardContent>
           <Checkbox
