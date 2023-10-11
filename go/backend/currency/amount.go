@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.com/fynbos/backend/country"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 
 	"gitlab.com/fynbos/log"
@@ -193,6 +194,7 @@ func (a *Amount) ToPB() *pb.Amount {
 		Amount:     a.Value,
 		Asset:      a.Currency.String(),
 		AssetScale: int32(a.Scale),
+		Country:    country.ParseCountry(a.Currency.ISO4217()).String(),
 	}
 }
 
@@ -205,7 +207,16 @@ func FromPB(a *pb.Amount) Amount {
 }
 
 func FromFloat64(f float64, cc Currency) Amount {
-	amt := uint64(f * math.Pow(10, float64(cc.Scale())))
+	smallest := math.Pow(10, -float64(cc.Scale()))
+
+	convertedAmount := f * math.Pow(10, float64(cc.Scale()))
+	// start with truncated value
+	amt := uint64(convertedAmount)
+
+	// use the rounded value if it's close enough
+	if math.Abs(math.Round(convertedAmount)-convertedAmount) < smallest {
+		amt = uint64(math.Round(convertedAmount))
+	}
 
 	return Amount{
 		Value:    amt,

@@ -166,6 +166,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, fkID 
 				State:           transactions.StateCompleted,
 			},
 		},
+		PaymentProtectionFeePercentage: p.PaymentProtectionFeePercentage,
 	})
 }
 

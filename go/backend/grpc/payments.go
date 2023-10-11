@@ -2,11 +2,13 @@ package grpc
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/limits"
 	"net/url"
 	"strings"
+
+	"gitlab.com/fynbos/backend/limits"
 
 	"gitlab.com/fynbos/backend/twilio"
 
@@ -204,10 +206,14 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		},
 		SenderAmount:    currency.FromPB(req.SenderAmount),
 		SenderAccount:   req.GetSenderAccount(),
-		ReceiverAmount:  currency.FromPB(req.SenderAmount), // TODO: calculate receive amount
+		ReceiverAmount:  currency.FromPB(req.GetReceiverAmount()),
 		ReceiverAccount: req.GetReceiverAccount(),
 		Note:            req.GetNote(),
 		IPAddress:       req.GetIpAddress(),
+		AddPaymentProtection: sql.NullBool{
+			Valid: req.AddPaymentProtection != nil,
+			Bool:  req.GetAddPaymentProtection(),
+		},
 	}
 
 	p, err := s.b.Payments().Create(ctx, args)
@@ -277,7 +283,7 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 		ID:             req.Id,
 		SenderAmount:   currency.FromPB(req.GetSenderAmount()),
 		SenderAccount:  req.GetSenderAccount(),
-		ReceiverAmount: currency.FromPB(req.GetSenderAmount()), // TODO: calculate receive amount
+		ReceiverAmount: currency.FromPB(req.GetReceiverAmount()),
 		Receiver: payments.Identity{
 			Type:       payments.IdentityType(req.GetReceiverIdentityType()),
 			Identifier: req.GetReceiverIdentity(),
@@ -292,6 +298,13 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 	p, err = s.b.Payments().Update(ctx, args)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	if req.AddPaymentProtection != nil {
+		p, err = s.b.Payments().AddPaymentProtection(ctx, p.ID, req.GetAddPaymentProtection())
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
 	}
 
 	return transformPayment(ctx, s.b, p)
@@ -386,16 +399,25 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		receiveWalletAddress = receiveWallet.AddressString()
 	}
 
+	// TODO: update to include exchange rate fee
+	paymentProtection := p.PaymentProtectionAmount()
+	inputSendAmount := currency.FromUInt64(p.SenderAmount.Value-paymentProtection.Value, p.SenderAmount.Currency)
+
 	return &pb.Payment{
-		Id:                   p.ID,
-		PublicID:             p.PublicID,
-		State:                int32(p.State),
-		ReceiverWalletUrl:    receiveWalletAddress,
-		ReceiverIdentity:     p.Receiver.Identifier,
-		ReceiverIdentityType: int32(p.Receiver.Type),
-		SenderAmount:         p.SenderAmount.ToPB(),
-		SenderAccount:        p.SenderAccount,
-		Note:                 p.Note,
-		RequiredActions:      requiredActions,
+		Id:                      p.ID,
+		PublicID:                p.PublicID,
+		State:                   int32(p.State),
+		ReceiverWalletUrl:       receiveWalletAddress,
+		ReceiverIdentity:        p.Receiver.Identifier,
+		ReceiverIdentityType:    int32(p.Receiver.Type),
+		SenderAmount:            inputSendAmount.ToPB(),
+		SenderAccount:           p.SenderAccount,
+		TotalSendAmount:         p.SenderAmount.Format(),
+		Note:                    p.Note,
+		RequiredActions:         requiredActions,
+		HasPaymentProtection:    p.PaymentProtectionFeePercentage != 0,
+		PaymentProtectionAmount: paymentProtection.Format(),
+		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
+		ReceiverAmount:          p.ReceiverAmount.ToPB(),
 	}, nil
 }

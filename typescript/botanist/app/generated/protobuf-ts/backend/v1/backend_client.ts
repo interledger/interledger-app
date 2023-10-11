@@ -376,7 +376,6 @@ export interface IBackendServiceClient {
     onboardGMTUser(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
     /**
      * Tabapay 3DS
-     *  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
      *
      * @generated from protobuf rpc: Init3DS(backend.v1.Init3DSRequest) returns (backend.v1.Init3DSResponse);
      */
@@ -916,7 +915,6 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     }
     /**
      * Tabapay 3DS
-     *  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
      *
      * @generated from protobuf rpc: Init3DS(backend.v1.Init3DSRequest) returns (backend.v1.Init3DSResponse);
      */
