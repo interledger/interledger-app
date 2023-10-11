@@ -309,10 +309,7 @@ export function Scaffold() {
                     if (searchBack) navigate(-parseInt(searchBack))
                   }
                   if (scaffold.header.back === 'pay') {
-                    if (
-                      payStep == PayStep.AMOUNT ||
-                      payStep == PayStep.UNKNOWN
-                    ) {
+                    if (payStep == PayStep.AMOUNT) {
                       payStepBack()
                       navigate(-1)
                     } else payStepBack()
