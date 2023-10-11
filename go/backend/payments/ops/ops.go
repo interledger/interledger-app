@@ -941,10 +941,12 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		// Equalize sender and receiver amounts until we add fees.
 		if receiverAmtUpdated {
 			existing.SenderAmount = existing.ReceiverAmount
+			existing.SenderCurrency = senderAcc.ReceiveCurrency.String()
 			return existing, nil
 		}
 
 		existing.ReceiverAmount = existing.SenderAmount
+		existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
 		return existing, nil
 	}
 
