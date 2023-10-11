@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/fynbos/backend/identities"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -74,7 +76,15 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 	// Check if the receiving account is configured else lookup default
 	accountID := p.ReceiverAccount.String
 	if accountID == "" {
-		accountID, err = defaultReceiveAccount(ctx, a.b, payments.Identity{Identifier: p.ReceiverID, Type: p.ReceiverIDType})
+		w, err := lookupWallet(ctx, a.b, payments.Identity{Identifier: p.ReceiverID, Type: p.ReceiverIDType})
+		if err != nil {
+			if errors.Is(err, identities.ErrNotFound) {
+				return nil, temporal.NewNonRetryableApplicationError("Linked identity not found.", "ErrNotFound", err)
+			}
+			return nil, err
+		}
+
+		accountID, err = defaultReceiveAccount(ctx, a.b, w)
 		if err != nil {
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				return nil, temporal.NewNonRetryableApplicationError("Default linked card not found.", "ErrNotFound", err)
