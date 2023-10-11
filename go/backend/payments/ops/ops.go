@@ -97,17 +97,20 @@ func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (
 		}
 		resp, err = b.Wallets().Get(ctx, id.WalletID)
 	default:
-		return nil, fmt.Errorf("unknown identity type %s", identity.Type)
+		return nil, fmt.Errorf("%w unknown identity type %s", identities.ErrNotFound, identity.Type)
 	}
 	return resp, err
 }
 
-func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.Payment, error) {
+func transformPayment(ctx context.Context, b Backends, db dbPayment, senderWallet, receiverWallet *wallets.Wallet) (*payments.Payment, error) {
 	var senderWalletID, receiverWalletID string
+	var err error
 	if db.SenderIDType == payments.IdentityTypeWalletID {
 		senderWalletID = db.SenderID
+	} else if senderWallet != nil {
+		senderWalletID = senderWallet.ID
 	} else {
-		senderWallet, err := lookupWallet(ctx, b, payments.Identity{
+		senderWallet, err = lookupWallet(ctx, b, payments.Identity{
 			Type:       db.SenderIDType,
 			Identifier: db.SenderID,
 		})
@@ -119,8 +122,10 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment) (*payments.
 
 	if db.ReceiverIDType == payments.IdentityTypeWalletID {
 		receiverWalletID = db.ReceiverID
+	} else if receiverWallet != nil {
+		receiverWalletID = receiverWallet.ID
 	} else if db.ReceiverIDType.Valid() {
-		receiverWallet, err := lookupWallet(ctx, b, payments.Identity{
+		receiverWallet, err = lookupWallet(ctx, b, payments.Identity{
 			Type:       db.ReceiverIDType,
 			Identifier: db.ReceiverID,
 		})
@@ -231,11 +236,11 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 		return nil, err
 	}
 
-	return transformPayment(ctx, b, *dbp)
+	return transformPayment(ctx, b, *dbp, nil, nil)
 }
 
-func accountCanSend(ctx context.Context, b Backends, id payments.Identity, accountID string) (bool, error) {
-	if accountID == "" || id.IsEmpty() {
+func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, error) {
+	if accountID == "" || w == nil {
 		return false, nil
 	}
 	acc, err := b.LinkedAccounts().Get(ctx, accountID)
@@ -246,25 +251,11 @@ func accountCanSend(ctx context.Context, b Backends, id payments.Identity, accou
 		return false, err
 	}
 
-	// Short circuit the need for a wallet lookup
-	if id.WalletID != "" || id.Type == payments.IdentityTypeWalletID {
-		return acc.CanSend && (id.WalletID == acc.WalletID || id.Identifier == acc.WalletID), nil
-	}
-
-	w, err := lookupWallet(ctx, b, id)
-	if err != nil {
-		return false, err
-	}
-
-	if acc.WalletID != w.ID {
-		return false, nil
-	}
-
-	return acc.CanSend, nil
+	return acc.CanSend && w.ID == acc.WalletID, nil
 }
 
-func accountCanReceive(ctx context.Context, b Backends, id payments.Identity, accountID string) (bool, error) {
-	if accountID == "" || id.IsEmpty() {
+func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, error) {
+	if accountID == "" || w == nil {
 		return false, nil
 	}
 	acc, err := b.LinkedAccounts().Get(ctx, accountID)
@@ -275,45 +266,15 @@ func accountCanReceive(ctx context.Context, b Backends, id payments.Identity, ac
 		return false, err
 	}
 
-	// Short circuit the need for a wallet lookup
-	if id.WalletID != "" || id.Type == payments.IdentityTypeWalletID {
-		return acc.CanReceive && (id.WalletID == acc.WalletID || id.Identifier == acc.WalletID), nil
-	}
-
-	w, err := lookupWallet(ctx, b, id)
-	if errors.Is(err, identities.ErrNotFound) {
-		return false, nil
-	}
-	if err != nil && !errors.Is(err, identities.ErrNotFound) {
-		return false, err
-	}
-
-	if w.ID != acc.WalletID {
-		return false, nil
-	}
-
-	return acc.CanReceive, nil
+	return acc.CanReceive && w.ID == acc.WalletID, nil
 }
 
-func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity) (string, error) {
-	if id.IsEmpty() || !id.Type.Valid() {
+func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (string, error) {
+	if w == nil {
 		return "", nil
 	}
 
-	var walletID string
-	if id.WalletID != "" {
-		walletID = id.WalletID
-	} else if id.Type == payments.IdentityTypeWalletID {
-		walletID = id.Identifier
-	} else {
-		wallet, err := lookupWallet(ctx, b, id)
-		if err != nil {
-			return "", err
-		}
-		walletID = wallet.ID
-	}
-
-	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, walletID)
+	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, w.ID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return "", nil
 	}
@@ -324,7 +285,7 @@ func defaultReceiveAccount(ctx context.Context, b Backends, id payments.Identity
 	return la.ID, nil
 }
 
-func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver payments.Identity) (bool, error) {
+func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
 
 	// Web monetization payouts don't need an OTP
 	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral {
@@ -332,25 +293,11 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 	}
 
 	// Default to requiring
-	if receiver.IsEmpty() || !receiver.Type.Valid() {
+	if receiver == nil || sender == nil {
 		return true, nil
 	}
 
-	senderWallet, err := lookupWallet(ctx, b, sender)
-	if err != nil {
-		return false, err
-	}
-
-	receiverWallet, err := lookupWallet(ctx, b, receiver)
-	if errors.Is(err, identities.ErrNotFound) {
-		// Identity not yet linked, require OTP
-		return true, nil
-	}
-	if err != nil {
-		return false, err
-	}
-
-	hasTx, err := b.Transactions().GetHasTransacted(ctx, senderWallet.ID, receiverWallet.AddressString())
+	hasTx, err := b.Transactions().GetHasTransacted(ctx, sender.ID, receiver.AddressString())
 	if err != nil {
 		return false, err
 	}
@@ -380,7 +327,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
-	canSend, err := accountCanSend(ctx, b, p.Sender, p.SenderAccount)
+	canSend, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -388,16 +335,21 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		p.SenderAccount = ""
 	}
 
-	canReceive, err := accountCanReceive(ctx, b, p.Receiver, p.ReceiverAccount)
+	receiverWallet, err := lookupWallet(ctx, b, p.Receiver)
+	if err != nil && !errors.Is(err, identities.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	canReceive, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	if p.ReceiverAccount == "" || !canReceive {
-		p.ReceiverAccount, _ = defaultReceiveAccount(ctx, b, p.Receiver)
+		p.ReceiverAccount, _ = defaultReceiveAccount(ctx, b, receiverWallet)
 	}
 
-	requireOTP, err := requiresOTP(ctx, b, p.Type, p.Sender, p.Receiver)
+	requireOTP, err := requiresOTP(ctx, b, p.Type, senderWallet, receiverWallet)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -448,17 +400,19 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("fx_rate", sql.NullFloat64{Float64: fxRate, Valid: fxRate > 0}).
 		Value("fx_fee_percentage", sql.NullFloat64{Float64: fxFeePerc, Valid: fxFeePerc > 0}).
 		Value("protection_fee_percentage", paymentProtectionFeePercentage).
+		Returning(cols).
 		GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	_, err = b.DB().ExecContext(ctx, stmt, args...)
+	var dbp dbPayment
+	err = b.DB().GetContext(ctx, &dbp, stmt, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	return Lookup(ctx, b, id)
+	return transformPayment(ctx, b, dbp, senderWallet, receiverWallet)
 }
 
 // Hard coded to be calculated as 3%.
@@ -769,13 +723,23 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	noop := true
 	receiver := payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}
 	if !args.Receiver.IsEmpty() && !args.Receiver.IsEqual(receiver) {
-		payment.ReceiverID = args.Receiver.Identifier
-		payment.ReceiverIDType = args.Receiver.Type
+		payment.ReceiverID, receiver.Identifier = args.Receiver.Identifier, args.Receiver.Identifier
+		payment.ReceiverIDType, receiver.Type = args.Receiver.Type, args.Receiver.Type
 		noop = false
 	}
 
+	senderWallet, err := lookupWallet(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	receiverWallet, err := lookupWallet(ctx, b, receiver)
+	if err != nil && !errors.Is(err, identities.ErrNotFound) {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
 	if args.ReceiverAccount != "" && args.ReceiverAccount != payment.ReceiverAccount.String {
-		canReceive, err := accountCanReceive(ctx, b, payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}, args.ReceiverAccount)
+		canReceive, err := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 		}
@@ -783,8 +747,9 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		payment.ReceiverAccount.Valid = canReceive
 		noop = false
 	}
+
 	if args.SenderAccount != "" && args.SenderAccount != payment.SenderAccount.String {
-		canSend, err := accountCanSend(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType}, args.SenderAccount)
+		canSend, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 		}
@@ -833,7 +798,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	}
 
 	if noop {
-		return transformPayment(ctx, b, *payment)
+		return transformPayment(ctx, b, *payment, senderWallet, receiverWallet)
 	}
 
 	// Something changed, update the FX calculations
@@ -891,7 +856,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	return transformPayment(ctx, b, ret)
+	return transformPayment(ctx, b, ret, senderWallet, receiverWallet)
 }
 
 func AddPaymentProtection(ctx context.Context, b Backends, id string, add bool) (*payments.Payment, error) {
@@ -937,7 +902,7 @@ func AddPaymentProtection(ctx context.Context, b Backends, id string, add bool) 
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	return transformPayment(ctx, b, ret)
+	return transformPayment(ctx, b, ret, nil, nil)
 }
 
 func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receiverAmtUpdated bool) (*dbPayment, error) {
@@ -1064,7 +1029,7 @@ func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, er
 
 	res := make([]payments.Payment, len(dbRes))
 	for i, p := range dbRes {
-		temp, err := transformPayment(ctx, b, p)
+		temp, err := transformPayment(ctx, b, p, nil, nil)
 		if err != nil {
 			return nil, err
 		}
