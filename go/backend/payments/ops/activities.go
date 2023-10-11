@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
@@ -121,16 +120,12 @@ func (a *Activity) CheckReceiverReady(ctx context.Context, paymentID string) (bo
 		return true, nil
 	}
 
-	w, err := lookupWallet(ctx, a.b, p.Receiver)
-	if errors.Is(err, identities.ErrNotFound) {
+	if p.Receiver.WalletID == "" {
 		return false, nil
-	}
-	if err != nil {
-		return false, err
 	}
 
 	// Check that the user has at least one account that can receive funds
-	acc, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, w.ID)
+	acc, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Receiver.WalletID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return false, nil
 	}
