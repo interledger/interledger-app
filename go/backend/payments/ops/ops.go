@@ -1023,7 +1023,7 @@ type workflowRef struct {
 
 func SignalIdentityCreated(ctx context.Context, b Backends, identifier string) error {
 	var refs []workflowRef
-	err := b.DB().SelectContext(ctx, &refs, "SELECT payment_id, identifier, wallet_id, workflow_id, workflow_run_id FROM payments_workflow_refs WHERE identifier=$1", identifier)
+	err := b.DB().SelectContext(ctx, &refs, "SELECT payment_id, identifier, wallet_id, workflow_id, workflow_run_id FROM payments_workflow_refs WHERE identifier=$1 AND completed=false", identifier)
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -1040,7 +1040,7 @@ func SignalIdentityCreated(ctx context.Context, b Backends, identifier string) e
 
 func SignalAccountLinked(ctx context.Context, b Backends, walletID string) error {
 	var refs []workflowRef
-	err := b.DB().SelectContext(ctx, &refs, "SELECT payment_id, identifier, wallet_id, workflow_id, workflow_run_id FROM payments_workflow_refs WHERE wallet_id=$1", walletID)
+	err := b.DB().SelectContext(ctx, &refs, "SELECT payment_id, identifier, wallet_id, workflow_id, workflow_run_id FROM payments_workflow_refs WHERE wallet_id=$1 AND completed=false", walletID)
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
