@@ -183,6 +183,8 @@ message Transaction {
   string destinationIdentity = 18;
   string destinationIdentityType = 19;
   int32 refundState = 20; // NA , PENDING , COMPLETE
+  string paymentProtectionAmount = 21;
+  bool hasPaymentProtection = 22;
 }
 
 message ListTransactionsResponse {

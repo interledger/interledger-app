@@ -161,6 +161,14 @@ export interface Transaction {
      * @generated from protobuf field: int32 refundState = 20;
      */
     refundState: number; // NA , PENDING , COMPLETE
+    /**
+     * @generated from protobuf field: string paymentProtectionAmount = 21;
+     */
+    paymentProtectionAmount: string;
+    /**
+     * @generated from protobuf field: bool hasPaymentProtection = 22;
+     */
+    hasPaymentProtection: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -2313,11 +2321,13 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 17, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 18, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 20, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 20, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 21, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 22, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0 };
+        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, paymentProtectionAmount: "", hasPaymentProtection: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -2384,6 +2394,12 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* int32 refundState */ 20:
                     message.refundState = reader.int32();
+                    break;
+                case /* string paymentProtectionAmount */ 21:
+                    message.paymentProtectionAmount = reader.string();
+                    break;
+                case /* bool hasPaymentProtection */ 22:
+                    message.hasPaymentProtection = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2454,6 +2470,12 @@ class Transaction$Type extends MessageType<Transaction> {
         /* int32 refundState = 20; */
         if (message.refundState !== 0)
             writer.tag(20, WireType.Varint).int32(message.refundState);
+        /* string paymentProtectionAmount = 21; */
+        if (message.paymentProtectionAmount !== "")
+            writer.tag(21, WireType.LengthDelimited).string(message.paymentProtectionAmount);
+        /* bool hasPaymentProtection = 22; */
+        if (message.hasPaymentProtection !== false)
+            writer.tag(22, WireType.Varint).bool(message.hasPaymentProtection);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
