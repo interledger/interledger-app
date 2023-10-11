@@ -101,7 +101,6 @@ service BackendService {
   rpc OnboardGMTUser(Empty) returns (Empty);
 
   // Tabapay 3DS
-//  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
   rpc Init3DS(Init3DSRequest) returns (Init3DSResponse);
   rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
   rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
@@ -211,6 +210,7 @@ message UpdatePaymentRequest {
   optional string threeDSID = 9;
   optional string otp = 10;
   optional string ipAddress = 11;
+  optional bool addPaymentProtection = 12;
 }
 
 message Payment {
@@ -224,6 +224,8 @@ message Payment {
   string senderAccount = 8; // Linked Account ID
   string note = 9;
   repeated int32 requiredActions = 10; // 1 - ThreeDS
+  bool hasPaymentProtection = 11;
+  string paymentProtectionAmount = 12;
 }
 
 message CreatePaymentRequest {
@@ -235,6 +237,7 @@ message CreatePaymentRequest {
   optional string receiverAccount = 6; // Linked Account ID
   optional string note = 7;
   optional string ipAddress = 8;
+  optional bool addPaymentProtection = 9;
 }
 
 message GetCardDetailsRequest {
