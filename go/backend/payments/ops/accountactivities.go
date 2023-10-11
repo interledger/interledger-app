@@ -66,15 +66,15 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID, externalID st
 }
 
 func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef string) (*tabapay.Transaction, error) {
-	p, err := Lookup(ctx, a.b, paymentID)
+	p, err := getPayment(ctx, a.b, paymentID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if the receiving account is configured else lookup default
-	accountID := p.ReceiverAccount
-	if p.ReceiverAccount == "" {
-		accountID, err = defaultReceiveAccount(ctx, a.b, p.Receiver)
+	accountID := p.ReceiverAccount.String
+	if accountID == "" {
+		accountID, err = defaultReceiveAccount(ctx, a.b, payments.Identity{Identifier: p.ReceiverID, Type: p.ReceiverIDType})
 		if err != nil {
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				return nil, temporal.NewNonRetryableApplicationError("Default linked card not found.", "ErrNotFound", err)
@@ -83,7 +83,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 		}
 
 		// Set the linked account ID on the payment
-		p, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: accountID})
+		_, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: accountID}, p)
 		if err != nil {
 			return nil, err
 		}
@@ -105,7 +105,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 		WalletID:       linkedCard.WalletID,
 		ProviderID:     linkedCard.ProviderID,
 		ReferenceID:    externalRef,
-		Amount:         p.ReceiverAmount,
+		Amount:         currency.FromUInt64(p.ReceiverAmount, currency.ParseCurrency(p.ReceiverCurrency)),
 		SoftDescriptor: fmt.Sprintf("fynbos.me*%s", p.PublicID),
 	})
 	if err != nil {

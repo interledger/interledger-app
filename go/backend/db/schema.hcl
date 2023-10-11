@@ -755,6 +755,10 @@ table "user_wallets" {
     on_update   = NO_ACTION
     on_delete   = NO_ACTION
   }
+  index "user_wallets_wallet_id_ind" {
+    unique  = true
+    columns = [column.wallet_id]
+  }
 }
 table "waitlist_signups" {
   schema = schema.public
