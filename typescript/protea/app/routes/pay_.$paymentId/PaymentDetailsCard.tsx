@@ -20,7 +20,6 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import { usePayStore } from '~/lib/usePayStore'
 import type { loader } from './route'
 import { PaymentIdentityType } from './route'
 
@@ -29,34 +28,28 @@ export const PaymentDetailsCard = () => {
 
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
-  const [displayAmount] = usePayStore((state) => [state.displayAmount])
-
   return (
     <>
       <Card>
-        <CardContent>
-          <div className='flex items-center justify-between'>
-            <h2 className='text-4xl font-medium text-strong'>
-              {displayAmount}
-            </h2>
-            {(payment.receiverIdentityType === PaymentIdentityType.WalletURL ||
-              payment.receiverIdentityType ===
-                PaymentIdentityType.WalletID) && <FynbosIcon height='h-12' />}
-            {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
-              <TwitterIcon height='h-12' />
-            )}
-            {payment.receiverIdentityType === PaymentIdentityType.Discord && (
-              <DiscordIcon height='h-12' />
-            )}
-            {payment.receiverIdentityType === PaymentIdentityType.Slack && (
-              <SlackIcon height='h-12' />
-            )}
-          </div>
-        </CardContent>
         <Label className='mt-2'>Payment to</Label>
         <CardButton noHover onClick={() => setShowDialog(true)}>
           <div className='flex w-full items-center justify-between text-medium'>
-            <span>{publicWalletInfo.publicName}</span>
+            <div className='flex space-x-2'>
+              {(payment.receiverIdentityType ===
+                PaymentIdentityType.WalletURL ||
+                payment.receiverIdentityType ===
+                  PaymentIdentityType.WalletID) && <FynbosIcon />}
+              {payment.receiverIdentityType === PaymentIdentityType.Twitter && (
+                <TwitterIcon />
+              )}
+              {payment.receiverIdentityType === PaymentIdentityType.Discord && (
+                <DiscordIcon />
+              )}
+              {payment.receiverIdentityType === PaymentIdentityType.Slack && (
+                <SlackIcon />
+              )}
+              <span>{publicWalletInfo.publicName}</span>
+            </div>
             <Icon>navigate_next</Icon>
           </div>
         </CardButton>

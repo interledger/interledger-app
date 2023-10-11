@@ -150,15 +150,6 @@ func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 
 	wallet.Addresses = wa
 
-	users, err := b.Users().ListUsers(ctx, id)
-	if err != nil {
-		log.Error("error getting users", zap.Error(err))
-		return &wallet, nil
-	}
-	for _, u := range users {
-		b.Analytics().GroupUserWallet(id, u.ID)
-	}
-
 	return &wallet, nil
 }
 

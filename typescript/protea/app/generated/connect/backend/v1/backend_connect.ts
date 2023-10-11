@@ -557,7 +557,6 @@ export const BackendService = {
     },
     /**
      * Tabapay 3DS
-     *  rpc InitQuote3DS(InitQuote3DSRequest) returns (Init3DSResponse);
      *
      * @generated from rpc backend.v1.BackendService.Init3DS
      */
