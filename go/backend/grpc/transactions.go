@@ -2,13 +2,14 @@ package grpc
 
 import (
 	"context"
+	"math"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"math"
 )
 
 func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
@@ -111,6 +112,7 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 
 	fees := currency.FromFloat64(0, tx.Amount.Currency)
 
+	paymentProtection := tx.PaymentProtectionAmount()
 	return &pb.Transaction{
 		Id:                      tx.ID,
 		Type:                    string(tx.Type),
@@ -131,6 +133,8 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 		DestinationIdentity:     tx.DestinationIdentity,
 		DestinationIdentityType: destinationIdentityType,
 		RefundState:             int32(tx.RefundState),
+		HasPaymentProtection:    tx.PaymentProtectionFeePercentage != 0,
+		PaymentProtectionAmount: paymentProtection.Format(),
 	}
 }
 

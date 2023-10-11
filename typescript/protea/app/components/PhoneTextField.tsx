@@ -1,10 +1,17 @@
 import { Listbox, Transition } from '@headlessui/react'
-import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { CountryCode } from 'libphonenumber-js'
 import { AsYouType, getCountryCallingCode } from 'libphonenumber-js'
 import type { ChangeEventHandler, InputHTMLAttributes } from 'react'
-import { Fragment, forwardRef, useCallback, useRef, useState } from 'react'
+import {
+  Fragment,
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState
+} from 'react'
+import { Icon } from '~/components/Icon'
 
 interface PhoneFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.
@@ -39,8 +46,8 @@ export const PhoneTextField = forwardRef<
     { className, label, errorMessage, defaultCountry, options, ...inputProps },
     ref
   ) => {
-    // @ts-ignore
-    const inputRef = useRef<HTMLInputElement>(ref)
+    const inputRef = useRef<HTMLInputElement>(null)
+    useImperativeHandle(ref, () => inputRef.current!, [])
 
     const [country, setCountry] = useState<PhoneAutocompleteOptions>(
       options.find(
@@ -70,15 +77,15 @@ export const PhoneTextField = forwardRef<
 
     const _onChangeCountry = useCallback(
       (newCountry: PhoneAutocompleteOptions) => {
-        const currentNumber = inputRef.current.value
+        const currentNumber = inputRef.current!.value
 
         if (currentNumber.startsWith('+')) {
-          inputRef.current.value = currentNumber.replace(
+          inputRef.current!.value = currentNumber.replace(
             `+${getCountryCallingCode(country.id)}`,
             `+${getCountryCallingCode(newCountry.id)}`
           )
         } else {
-          inputRef.current.value = `+${getCountryCallingCode(
+          inputRef.current!.value = `+${getCountryCallingCode(
             newCountry.id
           )}${currentNumber}`
         }
@@ -128,33 +135,38 @@ export const PhoneTextField = forwardRef<
               leaveTo='opacity-0'
               afterLeave={() => {
                 // Ensure the input is put in focus
-                inputRef.current.focus()
+                inputRef.current!.focus()
                 // Ensure that the cursor is sent to the end of the input
-                inputRef.current.selectionStart = inputRef.current.value.length
-                inputRef.current.selectionEnd = inputRef.current.value.length
+                inputRef.current!.selectionStart =
+                  inputRef.current!.value.length
+                inputRef.current!.selectionEnd = inputRef.current!.value.length
               }}
             >
-              <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav py-1 shadow-lg focus:outline-none sm:text-sm'>
+              <Listbox.Options className='absolute z-10 mt-2 max-h-60 w-full overflow-auto rounded-xl bg-nav p-1 text-sm shadow-lg focus:outline-none'>
                 {options.length > 0 &&
                   options.map((option, index) => (
                     <Listbox.Option
                       key={index}
-                      className={({ active, selected }) =>
-                        clsx(
-                          'relative flex h-12 cursor-pointer select-none items-center justify-start space-x-2 pl-4 pr-3',
-                          selected
-                            ? active
-                              ? 'bg-container-primary-hover'
-                              : 'bg-container-primary text-medium'
-                            : active
-                            ? 'bg-nav-hover'
-                            : 'bg-nav text-medium'
-                        )
+                      className={({ active }) =>
+                        `relative flex h-12 cursor-pointer select-none items-center justify-between rounded-lg pl-4 pr-3 ${
+                          active ? 'bg-nav-hover' : 'text-medium'
+                        }`
                       }
                       value={option}
                     >
-                      <div className={`flag:${option.id}`} />
-                      <span className='block truncate'>{option.name}</span>
+                      {/*<div className={`flag:${option.id}`} />*/}
+                      {({ selected }) => (
+                        <>
+                          <span className={`block truncate`}>
+                            {option.name}
+                          </span>
+                          {selected && (
+                            <span className='flex text-primary'>
+                              <Icon>check</Icon>
+                            </span>
+                          )}
+                        </>
+                      )}
                     </Listbox.Option>
                   ))}
                 {options.length === 0 && (
