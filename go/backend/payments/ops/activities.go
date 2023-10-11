@@ -139,7 +139,7 @@ func (a *Activity) CheckReceiverReady(ctx context.Context, paymentID string) (bo
 	}
 
 	if p.ReceiverAccount == "" {
-		_, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: acc.ID})
+		_, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: acc.ID}, nil)
 		if err != nil {
 			return false, err
 		}
