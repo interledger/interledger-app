@@ -363,13 +363,8 @@ function stringToBigInt(amount: string) {
   if (amount == '') return BigInt(0)
   const dotIndex = amount.lastIndexOf('.')
   if (dotIndex > -1) {
-    const decimalPlaces = amount.length - dotIndex - 1
-    const padding = 2 - decimalPlaces
-
-    const amountToSubmit = amount
-      .padEnd(amount.length + padding, '0')
-      .replace('.', '')
-    return BigInt(amountToSubmit)
+    const amounts = amount.split('.')
+    return BigInt(amounts[0] + amounts[1].slice(0, 2).padEnd(2, '0'))
   }
   return BigInt(parseFloat(amount) * 100)
 }
