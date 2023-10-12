@@ -46,6 +46,8 @@ type BackendServiceClient interface {
 	SignAgreements(ctx context.Context, in *SignAgreementsRequest, opts ...grpc.CallOption) (*SignAgreementsResponse, error)
 	GetLinkedAccounts(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetLinkedAccountsResponse, error)
 	GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	SetDefaultReceiveLinkedAccount(ctx context.Context, in *SetDefaultReceiveLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	SetDefaultSendLinkedAccount(ctx context.Context, in *SetDefaultSendLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	SetNicknameLinkedAccount(ctx context.Context, in *SetNicknameLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	DeleteLinkedAccount(ctx context.Context, in *DeleteLinkedAccountRequest, opts ...grpc.CallOption) (*Empty, error)
 	CreateSupportTicket(ctx context.Context, in *CreateSupportTicketRequest, opts ...grpc.CallOption) (*Empty, error)
@@ -299,6 +301,24 @@ func (c *backendServiceClient) GetLinkedAccounts(ctx context.Context, in *Empty,
 func (c *backendServiceClient) GetLinkedAccount(ctx context.Context, in *GetLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
 	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetLinkedAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) SetDefaultReceiveLinkedAccount(ctx context.Context, in *SetDefaultReceiveLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SetDefaultReceiveLinkedAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) SetDefaultSendLinkedAccount(ctx context.Context, in *SetDefaultSendLinkedAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/SetDefaultSendLinkedAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -855,6 +875,8 @@ type BackendServiceServer interface {
 	SignAgreements(context.Context, *SignAgreementsRequest) (*SignAgreementsResponse, error)
 	GetLinkedAccounts(context.Context, *Empty) (*GetLinkedAccountsResponse, error)
 	GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error)
+	SetDefaultReceiveLinkedAccount(context.Context, *SetDefaultReceiveLinkedAccountRequest) (*LinkedAccount, error)
+	SetDefaultSendLinkedAccount(context.Context, *SetDefaultSendLinkedAccountRequest) (*LinkedAccount, error)
 	SetNicknameLinkedAccount(context.Context, *SetNicknameLinkedAccountRequest) (*LinkedAccount, error)
 	DeleteLinkedAccount(context.Context, *DeleteLinkedAccountRequest) (*Empty, error)
 	CreateSupportTicket(context.Context, *CreateSupportTicketRequest) (*Empty, error)
@@ -995,6 +1017,12 @@ func (UnimplementedBackendServiceServer) GetLinkedAccounts(context.Context, *Emp
 }
 func (UnimplementedBackendServiceServer) GetLinkedAccount(context.Context, *GetLinkedAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) SetDefaultReceiveLinkedAccount(context.Context, *SetDefaultReceiveLinkedAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultReceiveLinkedAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) SetDefaultSendLinkedAccount(context.Context, *SetDefaultSendLinkedAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultSendLinkedAccount not implemented")
 }
 func (UnimplementedBackendServiceServer) SetNicknameLinkedAccount(context.Context, *SetNicknameLinkedAccountRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetNicknameLinkedAccount not implemented")
@@ -1520,6 +1548,42 @@ func _BackendService_GetLinkedAccount_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).GetLinkedAccount(ctx, req.(*GetLinkedAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_SetDefaultReceiveLinkedAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDefaultReceiveLinkedAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SetDefaultReceiveLinkedAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/SetDefaultReceiveLinkedAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SetDefaultReceiveLinkedAccount(ctx, req.(*SetDefaultReceiveLinkedAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_SetDefaultSendLinkedAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDefaultSendLinkedAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).SetDefaultSendLinkedAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/SetDefaultSendLinkedAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).SetDefaultSendLinkedAccount(ctx, req.(*SetDefaultSendLinkedAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2650,6 +2714,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLinkedAccount",
 			Handler:    _BackendService_GetLinkedAccount_Handler,
+		},
+		{
+			MethodName: "SetDefaultReceiveLinkedAccount",
+			Handler:    _BackendService_SetDefaultReceiveLinkedAccount_Handler,
+		},
+		{
+			MethodName: "SetDefaultSendLinkedAccount",
+			Handler:    _BackendService_SetDefaultSendLinkedAccount_Handler,
 		},
 		{
 			MethodName: "SetNicknameLinkedAccount",
