@@ -469,7 +469,26 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, newSenderAccount, p.SenderAccount)
 
 	// add payment protection
-	p, err = ops.AddPaymentProtection(ctx, b, p.ID, true)
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID: p.ID, UpdatePaymentProtection: true, AddPaymentProtection: true,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, float64(0.03), p.ProtectionFeePercentage)
+	assert.Equal(t, uint64(5562), p.SenderAmount.Value)
+
+	// remove payment protection
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID: p.ID, UpdatePaymentProtection: true, AddPaymentProtection: false,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, uint64(5400), p.SenderAmount.Value)
+	assert.Equal(t, uint64(5400), p.ReceiverAmount.Value)
+	require.Equal(t, float64(0), p.ProtectionFeePercentage)
+
+	// re-add payment protection
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID: p.ID, UpdatePaymentProtection: true, AddPaymentProtection: true,
+	})
 	require.NoError(t, err)
 	assert.Equal(t, float64(0.03), p.ProtectionFeePercentage)
 	assert.Equal(t, uint64(5562), p.SenderAmount.Value)
@@ -481,10 +500,14 @@ func TestUpdate(t *testing.T) {
 		ReceiverAmount: currency.FromFloat64(51, currency.USD),
 	})
 	require.NoError(t, err)
+	assert.Equal(t, float64(0.03), p.ProtectionFeePercentage)
 	assert.Equal(t, uint64(5253), p.SenderAmount.Value)
 
 	// remove payment protection
-	p, err = ops.AddPaymentProtection(ctx, b, p.ID, false)
+	p, err = ops.Update(ctx, b, payments.UpdateArgs{
+		ID: p.ID, UpdatePaymentProtection: true, AddPaymentProtection: false,
+	})
+
 	require.NoError(t, err)
 	require.Equal(t, float64(0), p.ProtectionFeePercentage)
 	assert.Equal(t, uint64(5100), p.SenderAmount.Value)

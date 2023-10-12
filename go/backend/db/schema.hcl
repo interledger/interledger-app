@@ -2211,6 +2211,11 @@ table "payments" {
     type    = int
     default = 1
   }
+  column "revision" {
+    null    = false
+    type    = int
+    default = 1
+  }
   primary_key {
     columns = [column.id]
   }

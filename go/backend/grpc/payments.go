@@ -284,23 +284,18 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 			Type:       payments.IdentityType(req.GetReceiverIdentityType()),
 			Identifier: req.GetReceiverIdentity(),
 		},
-		ReceiverAccount: req.GetReceiverAccount(),
-		Note:            req.GetNote(),
-		ThreeDSID:       req.GetThreeDSID(),
-		OTP:             req.GetOtp(),
-		IPAddress:       req.GetIpAddress(),
+		ReceiverAccount:         req.GetReceiverAccount(),
+		Note:                    req.GetNote(),
+		ThreeDSID:               req.GetThreeDSID(),
+		OTP:                     req.GetOtp(),
+		IPAddress:               req.GetIpAddress(),
+		UpdatePaymentProtection: req.AddPaymentProtection != nil,
+		AddPaymentProtection:    req.GetAddPaymentProtection(),
 	}
 
 	p, err = s.b.Payments().Update(ctx, args)
 	if err != nil {
 		return nil, toGRPCError(err)
-	}
-
-	if req.AddPaymentProtection != nil {
-		p, err = s.b.Payments().AddPaymentProtection(ctx, p.ID, req.GetAddPaymentProtection())
-		if err != nil {
-			return nil, toGRPCError(err)
-		}
 	}
 
 	return transformPayment(ctx, s.b, p)
