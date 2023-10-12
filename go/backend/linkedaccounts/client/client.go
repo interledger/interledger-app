@@ -151,3 +151,11 @@ func (c client) ListIncompleteReviews(ctx context.Context, pagination db.Paginat
 func (c client) CompleteReview(ctx context.Context, args linkedaccounts.CompleteReviewArgs) (*linkedaccounts.Review, error) {
 	return ops.CompleteReview(ctx, c.b, args)
 }
+
+func (c client) SetDefaultSend(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	return ops.SetDefaultSend(ctx, c.b, id)
+}
+
+func (c client) SetDefaultReceive(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	return ops.SetDefaultReceive(ctx, c.b, id)
+}

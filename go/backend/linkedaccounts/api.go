@@ -20,6 +20,8 @@ type Client interface {
 	Requires3DS(ctx context.Context, id string) (bool, error)
 	GetDefaultReceive(ctx context.Context, walletID string) (*LinkedAccount, error)
 	GetDefaultSend(ctx context.Context, walletID string) (*LinkedAccount, error)
+	SetDefaultReceive(ctx context.Context, id string) (*LinkedAccount, error)
+	SetDefaultSend(ctx context.Context, id string) (*LinkedAccount, error)
 
 	CreateReviews(ctx context.Context, args []CreateReviewArgs) ([]Review, error)
 	GetReview(ctx context.Context, id string) (*Review, error)

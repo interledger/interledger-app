@@ -20,6 +20,8 @@ type LinkedAccount struct {
 	Type                string
 	CanSend             bool `db:"can_send"`
 	CanReceive          bool `db:"can_receive"`
+	DefaultReceive      bool `db:"default_receive"`
+	DefaultSend         bool `db:"default_send"`
 	State               State
 	SendCountry         country.Country   `db:"send_country"`
 	SendCurrency        currency.Currency `db:"send_currency"`

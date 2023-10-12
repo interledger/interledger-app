@@ -4,12 +4,14 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/linkedaccounts/ops"
 	"gitlab.com/fynbos/backend/wallets"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
@@ -360,4 +362,86 @@ func TestListReviews(t *testing.T) {
 	reviews, err = c.LinkedAccounts.ListIncompleteReviews(ctx, db.Pagination{})
 	require.NoError(t, err)
 	assert.Len(t, reviews, 3)
+}
+
+func TestDefaultSendReceive(t *testing.T) {
+	ctx := context.Background()
+	c, err := NewTestContainer(ctx, t)
+	require.NoError(t, err)
+	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
+	walletID := uuid.NewString()
+	c.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{
+		ID:   walletID,
+		Name: "Test Wallet",
+	}, nil).AnyTimes()
+
+	la1, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   walletID,
+		Name:       "Test",
+		Mask:       "1234",
+		Provider:   tabapay.ProviderName,
+		ProviderID: "1234",
+		Type:       tabapay.TypeCard,
+		State:      linkedaccounts.Verified,
+		CanSend:    true,
+		CanReceive: true,
+	})
+	require.NoError(t, err)
+	assert.False(t, la1.DefaultReceive)
+	assert.False(t, la1.DefaultSend)
+
+	la2, err := c.LinkedAccounts.Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:   walletID,
+		Name:       "Test2",
+		Mask:       "4321",
+		Provider:   tabapay.ProviderName,
+		ProviderID: "4321",
+		Type:       tabapay.TypeCard,
+		State:      linkedaccounts.Verified,
+		CanSend:    true,
+		CanReceive: true,
+	})
+	require.NoError(t, err)
+	assert.False(t, la2.DefaultReceive)
+	assert.False(t, la2.DefaultSend)
+
+	defaultSend, err := ops.SetDefaultSend(ctx, c, la1.ID)
+	require.NoError(t, err)
+	assert.True(t, defaultSend.DefaultSend)
+
+	defaultReceive, err := ops.SetDefaultReceive(ctx, c, la1.ID)
+	require.NoError(t, err)
+	assert.True(t, defaultReceive.DefaultReceive)
+
+	las, err := ops.ListByWalletId(ctx, c, walletID)
+	require.NoError(t, err)
+	for _, la := range las {
+		if la.ID == la1.ID {
+			assert.True(t, la.DefaultSend)
+			assert.True(t, la.DefaultReceive)
+		} else {
+			assert.False(t, la.DefaultSend)
+			assert.False(t, la.DefaultReceive)
+		}
+	}
+
+	defaultSend, err = ops.SetDefaultSend(ctx, c, la2.ID)
+	require.NoError(t, err)
+	assert.True(t, defaultSend.DefaultSend)
+
+	defaultReceive, err = ops.SetDefaultReceive(ctx, c, la2.ID)
+	require.NoError(t, err)
+	assert.True(t, defaultReceive.DefaultReceive)
+
+	las, err = ops.ListByWalletId(ctx, c, walletID)
+	require.NoError(t, err)
+	for _, la := range las {
+		if la.ID == la2.ID {
+			assert.True(t, la.DefaultSend)
+			assert.True(t, la.DefaultReceive)
+		} else {
+			assert.False(t, la.DefaultSend)
+			assert.False(t, la.DefaultReceive)
+		}
+	}
 }

@@ -188,6 +188,14 @@ table "linked_accounts" {
     type = bool
     default = false
   }
+  column "default_receive" {
+    type = bool
+    default = false
+  }
+  column "default_send" {
+    type = bool
+    default = false
+  }
   column "send_country" {
     null = false
     type = text
