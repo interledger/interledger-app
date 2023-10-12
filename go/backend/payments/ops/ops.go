@@ -1039,7 +1039,7 @@ func SignalAccountLinked(ctx context.Context, b Backends, walletID string) error
 
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {
 	var dbRes []dbPayment
-	err := b.DB().GetContext(ctx, &dbRes, fmt.Sprintf("SELECT %s FROM payments WHERE id IN (select payment_id from payments_workflow_refs where completed=false)", cols))
+	err := b.DB().SelectContext(ctx, &dbRes, fmt.Sprintf("SELECT %s FROM payments WHERE id IN (select payment_id::uuid from payments_workflow_refs where completed=false)", cols))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
