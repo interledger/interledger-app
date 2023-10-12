@@ -3,9 +3,10 @@ package ops
 import (
 	"context"
 	"errors"
+	"strings"
+
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
-	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"

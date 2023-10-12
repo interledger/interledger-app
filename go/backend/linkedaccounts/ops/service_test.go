@@ -152,21 +152,25 @@ func TestDelete(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, err = c.LinkedAccounts.Get(ctx, la.ID)
+	la, err = c.LinkedAccounts.Get(ctx, la.ID)
 	require.NoError(t, err)
+	assert.False(t, la.DeletedAt.Valid)
 
 	err = c.LinkedAccounts.Delete(ctx, la.ID)
 	require.NoError(t, err)
 
-	_, err = c.LinkedAccounts.Get(ctx, la.ID)
-	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)
+	la, err = c.LinkedAccounts.Get(ctx, la.ID)
+	require.NoError(t, err)
+	assert.True(t, la.DeletedAt.Valid)
 
 	la, err = c.LinkedAccounts.MarkNotDeleted(ctx, la.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "Test", la.Name)
+	assert.False(t, la.DeletedAt.Valid)
 
-	_, err = c.LinkedAccounts.Get(ctx, la.ID)
+	la, err = c.LinkedAccounts.Get(ctx, la.ID)
 	require.NoError(t, err)
+	assert.False(t, la.DeletedAt.Valid)
 
 	_, err = c.LinkedAccounts.MarkNotDeleted(ctx, uuid.NewString())
 	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)

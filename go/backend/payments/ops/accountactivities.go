@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -62,6 +64,10 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID, externalID st
 	})
 	if err != nil {
 		return nil, err
+	}
+	if linkedCard.DeletedAt.Valid {
+		sendAmount := currency.FromUInt64(dbp.SenderAmount, currency.ParseCurrency(dbp.SenderCurrency))
+		slack.SendToChannel(ctx, slack.ChannelNotifyReview, "Fynbot", fmt.Sprintf("Pulled from a deleted card. paymentID: %s\n tabapay transactionID: %s\n amount: %s\n linkedaccountID: %s\n Transaction link: %s", paymentID, externalTransaction.ID, sendAmount.Format(), linkedCard.ID, env.AdminURL()+"/wallet/"+linkedCard.WalletID+"/transactions/"+dbp.SendTransactionID.String))
 	}
 
 	return externalTransaction, nil
@@ -120,6 +126,11 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if linkedCard.DeletedAt.Valid {
+		receiveAmount := currency.FromUInt64(p.SenderAmount, currency.ParseCurrency(p.SenderCurrency))
+		slack.SendToChannel(ctx, slack.ChannelNotifyReview, "Fynbot", fmt.Sprintf("Pushed to a deleted card. paymentID: %s\n tabapay transactionID: %s\n amount: %s\n linkedAccountID: %s\n  Transaction link:%s", paymentID, externalTransaction.ID, receiveAmount.Format(), linkedCard.ID, env.AdminURL()+"/wallet/"+linkedCard.WalletID+"/transactions/"+p.ReceiveTransactionID.String))
 	}
 
 	return externalTransaction, nil

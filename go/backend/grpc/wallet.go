@@ -78,7 +78,7 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 
 	var canRecv bool
 	for _, la := range lal {
-		if la.CanReceive {
+		if la.CanReceive && !la.DeletedAt.Valid {
 			canRecv = true
 			break
 		}
@@ -124,6 +124,10 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		}
 
 		for _, la := range lal {
+			if la.DeletedAt.Valid {
+				continue
+			}
+
 			if la.Provider == mx.ProviderName {
 				hasBank = true
 			}

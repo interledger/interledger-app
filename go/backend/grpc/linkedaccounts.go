@@ -50,9 +50,12 @@ func (s *rpcService) GetLinkedAccounts(
 		return nil, InternalError("Unable to get linked accounts.")
 	}
 
-	ret := make([]*pb.LinkedAccount, len(linkedAccounts))
-	for i, fs := range linkedAccounts {
-		ret[i] = transformLinkedAccount(fs)
+	var ret = []*pb.LinkedAccount{}
+	for _, fs := range linkedAccounts {
+		if fs.DeletedAt.Valid {
+			continue
+		}
+		ret = append(ret, transformLinkedAccount(fs))
 	}
 
 	return &pb.GetLinkedAccountsResponse{
@@ -76,7 +79,7 @@ func (s *rpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinkedAcco
 		return nil, toGRPCError(err)
 	}
 
-	if la.WalletID != wallet.ID {
+	if la.WalletID != wallet.ID || la.DeletedAt.Valid {
 		return nil, toGRPCError(linkedaccounts.ErrNotFound)
 	}
 
@@ -104,7 +107,7 @@ func (s *rpcService) DeleteLinkedAccount(ctx context.Context, req *pb.DeleteLink
 		return nil, toGRPCError(linkedaccounts.ErrNotFound)
 	}
 
-	// TODO: Add provider for the linked account here.
+	err = s.b.LinkedAccounts().Delete(ctx, la.ID)
 
 	return &pb.Empty{}, toGRPCError(err)
 }
@@ -125,7 +128,7 @@ func (s *rpcService) SetNicknameLinkedAccount(ctx context.Context, req *pb.SetNi
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if la.WalletID != wallet.ID {
+	if la.WalletID != wallet.ID || la.DeletedAt.Valid {
 		return nil, toGRPCError(linkedaccounts.ErrNotFound)
 	}
 
@@ -152,7 +155,7 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if la.WalletID != wallet.ID && la.Type != tabapay.ProviderName {
+	if la.WalletID != wallet.ID || la.Type != tabapay.ProviderName || la.DeletedAt.Valid {
 		return nil, NotFoundError("ErrNotFound")
 	}
 
