@@ -84,7 +84,7 @@ message LinkedAccountReview {
   string walletName = 10;
   string mask = 11;
   google.protobuf.Timestamp createdAt = 7; 
-  google.protobuf.Timestamp completedAt = 8; 
+  google.protobuf.Timestamp completedAt = 8;
 }
 
 message LinkedAccountReviews {
@@ -162,6 +162,8 @@ message LinkedAccount {
   string receiveCurrencyCode = 14;
   string receiveCurrencyCountryCode = 15;
   google.protobuf.Timestamp deletedAt = 16;
+  bool defaultSend = 17;
+  bool defaultReceive = 18;
 }
 
 message GetTransactionDetailsRequest {

@@ -81,6 +81,80 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.SetDefaultSendLinkedAccountRequest
+ */
+export class SetDefaultSendLinkedAccountRequest extends Message<SetDefaultSendLinkedAccountRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<SetDefaultSendLinkedAccountRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.SetDefaultSendLinkedAccountRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetDefaultSendLinkedAccountRequest {
+    return new SetDefaultSendLinkedAccountRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetDefaultSendLinkedAccountRequest {
+    return new SetDefaultSendLinkedAccountRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetDefaultSendLinkedAccountRequest {
+    return new SetDefaultSendLinkedAccountRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetDefaultSendLinkedAccountRequest | PlainMessage<SetDefaultSendLinkedAccountRequest> | undefined, b: SetDefaultSendLinkedAccountRequest | PlainMessage<SetDefaultSendLinkedAccountRequest> | undefined): boolean {
+    return proto3.util.equals(SetDefaultSendLinkedAccountRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.SetDefaultReceiveLinkedAccountRequest
+ */
+export class SetDefaultReceiveLinkedAccountRequest extends Message<SetDefaultReceiveLinkedAccountRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<SetDefaultReceiveLinkedAccountRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.SetDefaultReceiveLinkedAccountRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetDefaultReceiveLinkedAccountRequest {
+    return new SetDefaultReceiveLinkedAccountRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetDefaultReceiveLinkedAccountRequest {
+    return new SetDefaultReceiveLinkedAccountRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetDefaultReceiveLinkedAccountRequest {
+    return new SetDefaultReceiveLinkedAccountRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetDefaultReceiveLinkedAccountRequest | PlainMessage<SetDefaultReceiveLinkedAccountRequest> | undefined, b: SetDefaultReceiveLinkedAccountRequest | PlainMessage<SetDefaultReceiveLinkedAccountRequest> | undefined): boolean {
+    return proto3.util.equals(SetDefaultReceiveLinkedAccountRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.SlackCallbackRequest
  */
 export class SlackCallbackRequest extends Message<SlackCallbackRequest> {
@@ -2975,6 +3049,16 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   receiveCurrencyCountryCode = "";
 
+  /**
+   * @generated from field: bool defaultSend = 13;
+   */
+  defaultSend = false;
+
+  /**
+   * @generated from field: bool defaultReceive = 14;
+   */
+  defaultReceive = false;
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2995,6 +3079,8 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 10, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 11, name: "receiveCurrencyCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: "defaultSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {

@@ -408,6 +408,14 @@ export interface LinkedAccount {
      * @generated from protobuf field: google.protobuf.Timestamp deletedAt = 16;
      */
     deletedAt?: Timestamp;
+    /**
+     * @generated from protobuf field: bool defaultSend = 17;
+     */
+    defaultSend: boolean;
+    /**
+     * @generated from protobuf field: bool defaultReceive = 18;
+     */
+    defaultReceive: boolean;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
@@ -1976,11 +1984,13 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 13, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 14, name: "receiveCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 15, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 16, name: "deletedAt", kind: "message", T: () => Timestamp }
+            { no: 16, name: "deletedAt", kind: "message", T: () => Timestamp },
+            { no: 17, name: "defaultSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 18, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "", canSend: "", canReceive: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "" };
+        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "", canSend: "", canReceive: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -2038,6 +2048,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* google.protobuf.Timestamp deletedAt */ 16:
                     message.deletedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.deletedAt);
+                    break;
+                case /* bool defaultSend */ 17:
+                    message.defaultSend = reader.bool();
+                    break;
+                case /* bool defaultReceive */ 18:
+                    message.defaultReceive = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2099,6 +2115,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* google.protobuf.Timestamp deletedAt = 16; */
         if (message.deletedAt)
             Timestamp.internalBinaryWrite(message.deletedAt, writer.tag(16, WireType.LengthDelimited).fork(), options).join();
+        /* bool defaultSend = 17; */
+        if (message.defaultSend !== false)
+            writer.tag(17, WireType.Varint).bool(message.defaultSend);
+        /* bool defaultReceive = 18; */
+        if (message.defaultReceive !== false)
+            writer.tag(18, WireType.Varint).bool(message.defaultReceive);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

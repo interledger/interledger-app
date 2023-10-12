@@ -33,6 +33,8 @@ func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLi
 			SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
 			ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
 			ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
+			DefaultSend:                la.DefaultSend,
+			DefaultReceive:             la.DefaultReceive,
 		}
 		if la.DeletedAt.Valid {
 			resp[i].DeletedAt = timestamppb.New(la.DeletedAt.Time)
@@ -65,6 +67,8 @@ func (s *AdminRpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinke
 		SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
 		ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
 		ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
+		DefaultSend:                la.DefaultSend,
+		DefaultReceive:             la.DefaultReceive,
 	}
 	if la.DeletedAt.Valid {
 		ret.DeletedAt = timestamppb.New(la.DeletedAt.Time)

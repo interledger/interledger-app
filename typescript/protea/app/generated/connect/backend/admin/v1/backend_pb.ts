@@ -1008,6 +1008,16 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   deletedAt?: Timestamp;
 
+  /**
+   * @generated from field: bool defaultSend = 17;
+   */
+  defaultSend = false;
+
+  /**
+   * @generated from field: bool defaultReceive = 18;
+   */
+  defaultReceive = false;
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1032,6 +1042,8 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 14, name: "receiveCurrencyCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 15, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 16, name: "deletedAt", kind: "message", T: Timestamp },
+    { no: 17, name: "defaultSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 18, name: "defaultReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {

@@ -32,6 +32,24 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.SetDefaultSendLinkedAccountRequest
+ */
+export interface SetDefaultSendLinkedAccountRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.SetDefaultReceiveLinkedAccountRequest
+ */
+export interface SetDefaultReceiveLinkedAccountRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
  * @generated from protobuf message backend.v1.SlackCallbackRequest
  */
 export interface SlackCallbackRequest {
@@ -1162,6 +1180,14 @@ export interface LinkedAccount {
      * @generated from protobuf field: string receiveCurrencyCountryCode = 12;
      */
     receiveCurrencyCountryCode: string;
+    /**
+     * @generated from protobuf field: bool defaultSend = 13;
+     */
+    defaultSend: boolean;
+    /**
+     * @generated from protobuf field: bool defaultReceive = 14;
+     */
+    defaultReceive: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.GetSignupRequest
@@ -2110,6 +2136,100 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetDefaultSendLinkedAccountRequest$Type extends MessageType<SetDefaultSendLinkedAccountRequest> {
+    constructor() {
+        super("backend.v1.SetDefaultSendLinkedAccountRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetDefaultSendLinkedAccountRequest>): SetDefaultSendLinkedAccountRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetDefaultSendLinkedAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetDefaultSendLinkedAccountRequest): SetDefaultSendLinkedAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetDefaultSendLinkedAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SetDefaultSendLinkedAccountRequest
+ */
+export const SetDefaultSendLinkedAccountRequest = new SetDefaultSendLinkedAccountRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetDefaultReceiveLinkedAccountRequest$Type extends MessageType<SetDefaultReceiveLinkedAccountRequest> {
+    constructor() {
+        super("backend.v1.SetDefaultReceiveLinkedAccountRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetDefaultReceiveLinkedAccountRequest>): SetDefaultReceiveLinkedAccountRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetDefaultReceiveLinkedAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetDefaultReceiveLinkedAccountRequest): SetDefaultReceiveLinkedAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetDefaultReceiveLinkedAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.SetDefaultReceiveLinkedAccountRequest
+ */
+export const SetDefaultReceiveLinkedAccountRequest = new SetDefaultReceiveLinkedAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SlackCallbackRequest$Type extends MessageType<SlackCallbackRequest> {
     constructor() {
@@ -5561,11 +5681,13 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 9, name: "sendCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 10, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 11, name: "receiveCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "defaultSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "" };
+        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -5611,6 +5733,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* string receiveCurrencyCountryCode */ 12:
                     message.receiveCurrencyCountryCode = reader.string();
+                    break;
+                case /* bool defaultSend */ 13:
+                    message.defaultSend = reader.bool();
+                    break;
+                case /* bool defaultReceive */ 14:
+                    message.defaultReceive = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5660,6 +5788,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string receiveCurrencyCountryCode = 12; */
         if (message.receiveCurrencyCountryCode !== "")
             writer.tag(12, WireType.LengthDelimited).string(message.receiveCurrencyCountryCode);
+        /* bool defaultSend = 13; */
+        if (message.defaultSend !== false)
+            writer.tag(13, WireType.Varint).bool(message.defaultSend);
+        /* bool defaultReceive = 14; */
+        if (message.defaultReceive !== false)
+            writer.tag(14, WireType.Varint).bool(message.defaultReceive);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9257,6 +9391,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },
     { name: "GetLinkedAccounts", options: {}, I: Empty, O: GetLinkedAccountsResponse },
     { name: "GetLinkedAccount", options: {}, I: GetLinkedAccountRequest, O: LinkedAccount },
+    { name: "SetDefaultReceiveLinkedAccount", options: {}, I: SetDefaultReceiveLinkedAccountRequest, O: LinkedAccount },
+    { name: "SetDefaultSendLinkedAccount", options: {}, I: SetDefaultSendLinkedAccountRequest, O: LinkedAccount },
     { name: "SetNicknameLinkedAccount", options: {}, I: SetNicknameLinkedAccountRequest, O: LinkedAccount },
     { name: "DeleteLinkedAccount", options: {}, I: DeleteLinkedAccountRequest, O: Empty },
     { name: "CreateSupportTicket", options: {}, I: CreateSupportTicketRequest, O: Empty },

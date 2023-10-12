@@ -30,6 +30,8 @@ func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
 		SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
 		ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
 		ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
+		DefaultSend:                la.DefaultSend,
+		DefaultReceive:             la.DefaultReceive,
 	}
 }
 func (s *rpcService) GetLinkedAccounts(
@@ -188,4 +190,58 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 		CanSend:    la.CanSend,
 		CanReceive: la.CanReceive,
 	}, nil
+}
+
+func (s *rpcService) SetDefaultSendLinkedAccount(ctx context.Context, req *pb.SetDefaultSendLinkedAccountRequest) (*pb.LinkedAccount, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().Get(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if la.WalletID != wallet.ID {
+		return nil, NotFoundError("ErrNotFound")
+	}
+
+	la, err = s.b.LinkedAccounts().SetDefaultSend(ctx, la.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformLinkedAccount(*la), nil
+}
+
+func (s *rpcService) SetDefaultReceiveLinkedAccount(ctx context.Context, req *pb.SetDefaultReceiveLinkedAccountRequest) (*pb.LinkedAccount, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	wallet, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().Get(ctx, req.GetId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if la.WalletID != wallet.ID {
+		return nil, NotFoundError("ErrNotFound")
+	}
+
+	la, err = s.b.LinkedAccounts().SetDefaultReceive(ctx, la.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformLinkedAccount(*la), nil
 }

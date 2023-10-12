@@ -41,6 +41,8 @@ service BackendService {
   rpc SignAgreements(SignAgreementsRequest) returns (SignAgreementsResponse);
   rpc GetLinkedAccounts(Empty) returns (GetLinkedAccountsResponse);
   rpc GetLinkedAccount(GetLinkedAccountRequest) returns (LinkedAccount);
+  rpc SetDefaultReceiveLinkedAccount(SetDefaultReceiveLinkedAccountRequest) returns (LinkedAccount);
+  rpc SetDefaultSendLinkedAccount(SetDefaultSendLinkedAccountRequest) returns (LinkedAccount);
   rpc SetNicknameLinkedAccount(SetNicknameLinkedAccountRequest) returns (LinkedAccount);
   rpc DeleteLinkedAccount(DeleteLinkedAccountRequest) returns (Empty);
   rpc CreateSupportTicket(CreateSupportTicketRequest) returns (Empty);
@@ -139,6 +141,14 @@ service BackendService {
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
+}
+
+message SetDefaultSendLinkedAccountRequest {
+  string id = 1;
+}
+
+message SetDefaultReceiveLinkedAccountRequest {
+  string id = 1;
 }
 
 message SlackCallbackRequest {
@@ -515,6 +525,8 @@ message LinkedAccount {
   string sendCurrencyCountryCode = 10; // e.g. US
   string receiveCurrencyCode = 11;
   string receiveCurrencyCountryCode = 12;
+  bool defaultSend = 13;
+  bool defaultReceive = 14;
 }
 
 message GetSignupRequest {
