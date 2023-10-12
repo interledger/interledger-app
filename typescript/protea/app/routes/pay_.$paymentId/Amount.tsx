@@ -43,6 +43,8 @@ type AmountState = {
   receive: string
   linkedAccount: FormattedLinkedAccount
   hasPaymentProtection: boolean
+  paymentProtectionAmount: string
+  totalSendAmount: string
 }
 
 type Action = {
@@ -68,7 +70,9 @@ function createInitialState({ account, payment }: InitialState): AmountState {
     send,
     receive,
     linkedAccount: account,
-    hasPaymentProtection: payment.hasPaymentProtection
+    hasPaymentProtection: payment.hasPaymentProtection,
+    paymentProtectionAmount: payment.paymentProtectionAmount,
+    totalSendAmount: payment.totalSendAmount
   }
 }
 
@@ -105,7 +109,9 @@ function reducer(state: AmountState, action: Action): AmountState {
         ...state,
         send: newSend,
         receive: newReceive,
-        hasPaymentProtection: newHasPaymentProtection
+        hasPaymentProtection: newHasPaymentProtection,
+        paymentProtectionAmount: action.paymentProtectionAmount!,
+        totalSendAmount: action.totalSendAmount!
       }
     default:
       return state
@@ -270,7 +276,10 @@ export const Amount = () => {
         send: formatAmount(updatePaymentFetcher.data?.payment?.senderAmount),
         receive: formatAmount(
           updatePaymentFetcher.data?.payment?.receiverAmount
-        )
+        ),
+        paymentProtectionAmount:
+          updatePaymentFetcher.data?.payment.paymentProtectionAmount,
+        totalSendAmount: updatePaymentFetcher.data?.payment?.totalSendAmount
       })
     }
   }, [localPayment.focussed, updatePaymentFetcher.data?.payment])
@@ -298,7 +307,7 @@ export const Amount = () => {
       <input
         type='hidden'
         name='hasPaymentProtection'
-        value={payment.hasPaymentProtection.toString()}
+        value={localPayment.hasPaymentProtection.toString()}
         form='amount-form'
       />
       <PaymentDetailsCard />
@@ -354,7 +363,7 @@ export const Amount = () => {
             <div className='flex w-full justify-between'>
               <span className='text-weak'>Payment protection (+3%)</span>
               <span className='text-medium'>
-                {payment.paymentProtectionAmount}
+                {localPayment.paymentProtectionAmount}
               </span>
             </div>
             <div className='flex w-full gap-x-2'>
@@ -364,7 +373,7 @@ export const Amount = () => {
                 onChange={() =>
                   _onChangeSwitch(
                     'updatePayment',
-                    !payment.hasPaymentProtection
+                    !localPayment.hasPaymentProtection
                   )
                 }
               />
@@ -389,7 +398,7 @@ export const Amount = () => {
               Total amount to debit
             </span>
             <span className='font-medium text-error'>
-              {payment.totalSendAmount}
+              {localPayment.totalSendAmount}
             </span>
           </div>
         </CardContent>
