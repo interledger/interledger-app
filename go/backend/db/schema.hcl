@@ -999,6 +999,9 @@ table "transactions" {
   index "wallet_id_state_updated_ind" {
     columns = [column.wallet_id, column.state, column.updated_at]
   }
+  index "wallet_id_state_created_ind" {
+    columns = [column.wallet_id, column.state, column.created_at]
+  }
   index "wallet_id_foreign_id_ind" {
     columns = [column.wallet_id, column.foreign_id]
   }
@@ -2207,6 +2210,11 @@ table "payments" {
     default = sql("now():::TIMESTAMP")
   }
   column "type" {
+    null    = false
+    type    = int
+    default = 1
+  }
+  column "revision" {
     null    = false
     type    = int
     default = 1

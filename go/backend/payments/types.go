@@ -20,20 +20,22 @@ type CreateArgs struct {
 }
 
 type UpdateArgs struct {
-	ID              string
-	Receiver        Identity
-	ReceiverAmount  currency.Amount
-	ReceiverAccount string
-	SenderAccount   string
-	SenderAmount    currency.Amount
-	ThreeDSID       string
-	OTP             string
-	Note            string
-	IPAddress       string
-	UpdatedAt       time.Time
-	Type            Type
-	FXRate          float64
-	FXFeePercentage float64
+	ID                      string
+	Receiver                Identity
+	ReceiverAmount          currency.Amount
+	ReceiverAccount         string
+	SenderAccount           string
+	SenderAmount            currency.Amount
+	ThreeDSID               string
+	OTP                     string
+	Note                    string
+	IPAddress               string
+	UpdatedAt               time.Time
+	Type                    Type
+	FXRate                  float64
+	FXFeePercentage         float64
+	UpdatePaymentProtection bool
+	AddPaymentProtection    bool
 }
 
 type Payment struct {

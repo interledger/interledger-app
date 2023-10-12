@@ -59,18 +59,22 @@ func (b InsertBuilder) GetStatement() (string, []interface{}, error) {
 }
 
 type UpdateBuilder struct {
-	table     string
-	fields    []string
-	returning []string
-	values    []interface{}
-	id        string
+	table       string
+	fields      []string
+	returning   []string
+	values      []interface{}
+	id          string
+	whereFields []string
+	whereValues []interface{}
 }
 
 func NewUpdate(table string) *UpdateBuilder {
 	return &UpdateBuilder{
-		table:  table,
-		fields: []string{},
-		values: []interface{}{},
+		table:       table,
+		fields:      []string{},
+		values:      []interface{}{},
+		whereValues: []interface{}{},
+		whereFields: []string{},
 	}
 }
 
@@ -92,9 +96,18 @@ func (b *UpdateBuilder) Returning(field string) *UpdateBuilder {
 	return b
 }
 
+func (b *UpdateBuilder) Where(field string, value interface{}) *UpdateBuilder {
+	b.whereFields = append(b.whereFields, field)
+	b.whereValues = append(b.whereValues, value)
+	return b
+}
+
 func (b UpdateBuilder) GetStatement() (string, []interface{}, error) {
 	if len(b.fields) != len(b.values) {
-		return "", nil, errors.New("update builder: do not have the same amount of insert fields and insert values.")
+		return "", nil, errors.New("update builder: do not have the same amount of update fields and update values.")
+	}
+	if len(b.whereFields) != len(b.whereValues) {
+		return "", nil, errors.New("update builder: do not have the same amount of where fields and where values.")
 	}
 
 	placeholders := make([]string, len(b.values))
@@ -104,16 +117,28 @@ func (b UpdateBuilder) GetStatement() (string, []interface{}, error) {
 		lastIndex = i + 1
 	}
 
+	var where string
+	if len(b.whereFields) > 0 {
+		for i := range b.whereFields {
+			lastIndex++
+			where += fmt.Sprintf("%s=$%d AND", b.whereFields[i], lastIndex)
+		}
+	}
+
 	var returning string
 	if len(b.returning) > 0 {
 		returning = fmt.Sprintf("RETURNING %s", strings.Join(b.returning, ","))
 	}
 
+	vals := append(b.values, b.whereValues...)
+	vals = append(vals, b.id)
+
 	return fmt.Sprintf(
-		"UPDATE %s SET %s WHERE id=$%d %s;",
+		"UPDATE %s SET %s WHERE %s id=$%d %s;",
 		b.table,
 		strings.Join(placeholders, ","),
+		where,
 		lastIndex+1,
 		returning,
-	), append(b.values, b.id), nil
+	), vals, nil
 }

@@ -8,8 +8,6 @@ type Client interface {
 	Update(ctx context.Context, args UpdateArgs) (*Payment, error)
 	Confirm(ctx context.Context, id string) (*Payment, []RequiredActionType, error)
 
-	AddPaymentProtection(ctx context.Context, id string, add bool) (*Payment, error)
-
 	UpdateReceiver(ctx context.Context, id string, identity Identity) error
 	SignalIdentityCreated(ctx context.Context, identifier string) error
 	SignalAccountLinked(ctx context.Context, walletID string) error

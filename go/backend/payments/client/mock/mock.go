@@ -35,21 +35,6 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// AddPaymentProtection mocks base method.
-func (m *MockClient) AddPaymentProtection(ctx context.Context, id string, add bool) (*payments.Payment, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddPaymentProtection", ctx, id, add)
-	ret0, _ := ret[0].(*payments.Payment)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AddPaymentProtection indicates an expected call of AddPaymentProtection.
-func (mr *MockClientMockRecorder) AddPaymentProtection(ctx, id, add interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPaymentProtection", reflect.TypeOf((*MockClient)(nil).AddPaymentProtection), ctx, id, add)
-}
-
 // AdminListAwaitingSignal mocks base method.
 func (m *MockClient) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment, error) {
 	m.ctrl.T.Helper()
