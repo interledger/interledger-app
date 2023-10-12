@@ -23,11 +23,13 @@ import (
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 const (
-	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, created_at, updated_at, deleted_at"
+	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, default_send, default_receive, created_at, updated_at, deleted_at"
 
 	// If you update this, then remember to update the create and createBatch functions.
 	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability"
@@ -215,7 +217,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 }
 
 func Delete(ctx context.Context, b Backends, id string) error {
-	_, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=now() WHERE id=$1", id)
+	_, err := b.DB().ExecContext(ctx, "UPDATE linked_accounts SET deleted_at=now(), default_send=false, default_receive=false WHERE id=$1", id)
 	if err != nil {
 		return fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
 	}
@@ -288,6 +290,17 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string) (*linke
 		return nil, err
 	}
 
+	// look for default receive
+	for _, la := range lal {
+		if la.DeletedAt.Valid {
+			continue
+		}
+		if la.DefaultReceive {
+			return &la, nil
+		}
+	}
+
+	// not set, so look for first eligible account
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
 			continue
@@ -306,6 +319,17 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedac
 		return nil, err
 	}
 
+	// look for default send
+	for _, la := range lal {
+		if la.DeletedAt.Valid {
+			continue
+		}
+		if la.DefaultSend {
+			return &la, nil
+		}
+	}
+
+	// not set, so look for first eligible account
 	for _, la := range lal {
 		if la.DeletedAt.Valid {
 			continue
@@ -584,4 +608,60 @@ func ListByProviderID(ctx context.Context, b Backends, provider, providerID stri
 	}
 
 	return linkedAccounts, nil
+}
+
+func SetDefaultReceive(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAccount, error) {
+	la, err := Get(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+	if la.DeletedAt.Valid {
+		return nil, linkedaccounts.ErrNotFound
+	}
+	if !la.CanReceive || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
+		return nil, fmt.Errorf("%w Linked account not eligible to be set as default receive account.", linkedaccounts.ErrInternal)
+	}
+
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, "UPDATE linked_accounts set default_receive=false WHERE wallet_id=$1;", la.WalletID)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.ExecContext(ctx, "UPDATE linked_accounts set default_receive=true WHERE id=$1;", la.ID)
+		return err
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	return Get(ctx, b, id)
+}
+
+func SetDefaultSend(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAccount, error) {
+	la, err := Get(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+	if la.DeletedAt.Valid {
+		return nil, linkedaccounts.ErrNotFound
+	}
+	if !la.CanSend || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
+		return nil, fmt.Errorf("%w Linked account not eligible to be set as default send account.", linkedaccounts.ErrInternal)
+	}
+
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, "UPDATE linked_accounts set default_send=false WHERE wallet_id=$1;", la.WalletID)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.ExecContext(ctx, "UPDATE linked_accounts set default_send=true WHERE id=$1;", la.ID)
+		return err
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	return Get(ctx, b, id)
 }

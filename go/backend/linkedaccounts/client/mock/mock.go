@@ -290,6 +290,36 @@ func (mr *MockClientMockRecorder) Requires3DS(ctx, id interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Requires3DS", reflect.TypeOf((*MockClient)(nil).Requires3DS), ctx, id)
 }
 
+// SetDefaultReceive mocks base method.
+func (m *MockClient) SetDefaultReceive(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetDefaultReceive", ctx, id)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetDefaultReceive indicates an expected call of SetDefaultReceive.
+func (mr *MockClientMockRecorder) SetDefaultReceive(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDefaultReceive", reflect.TypeOf((*MockClient)(nil).SetDefaultReceive), ctx, id)
+}
+
+// SetDefaultSend mocks base method.
+func (m *MockClient) SetDefaultSend(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetDefaultSend", ctx, id)
+	ret0, _ := ret[0].(*linkedaccounts.LinkedAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetDefaultSend indicates an expected call of SetDefaultSend.
+func (mr *MockClientMockRecorder) SetDefaultSend(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDefaultSend", reflect.TypeOf((*MockClient)(nil).SetDefaultSend), ctx, id)
+}
+
 // SetNickname mocks base method.
 func (m *MockClient) SetNickname(ctx context.Context, id, nickname string) (*linkedaccounts.LinkedAccount, error) {
 	m.ctrl.T.Helper()
