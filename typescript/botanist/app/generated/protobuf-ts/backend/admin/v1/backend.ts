@@ -404,6 +404,10 @@ export interface LinkedAccount {
      * @generated from protobuf field: string receiveCurrencyCountryCode = 15;
      */
     receiveCurrencyCountryCode: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp deletedAt = 16;
+     */
+    deletedAt?: Timestamp;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
@@ -1971,7 +1975,8 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 12, name: "sendCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 13, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 14, name: "receiveCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 15, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 15, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "deletedAt", kind: "message", T: () => Timestamp }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
@@ -2031,6 +2036,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                 case /* string receiveCurrencyCountryCode */ 15:
                     message.receiveCurrencyCountryCode = reader.string();
                     break;
+                case /* google.protobuf.Timestamp deletedAt */ 16:
+                    message.deletedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.deletedAt);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -2088,6 +2096,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string receiveCurrencyCountryCode = 15; */
         if (message.receiveCurrencyCountryCode !== "")
             writer.tag(15, WireType.LengthDelimited).string(message.receiveCurrencyCountryCode);
+        /* google.protobuf.Timestamp deletedAt = 16; */
+        if (message.deletedAt)
+            Timestamp.internalBinaryWrite(message.deletedAt, writer.tag(16, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

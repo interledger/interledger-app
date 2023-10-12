@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -90,7 +91,7 @@ func (s *rpcService) Init3DS(
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if fromLinkedAcc.WalletID != w.ID {
+	if fromLinkedAcc.WalletID != w.ID || fromLinkedAcc.DeletedAt.Valid {
 		return nil, NotFoundError("Payment not found.")
 	}
 	if !linkedaccounts.Requires3DS(fromLinkedAcc) {
@@ -151,7 +152,7 @@ func (s *rpcService) Lookup3DS(
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if la.WalletID != w.ID {
+	if la.WalletID != w.ID || la.DeletedAt.Valid {
 		return nil, NotFoundError("")
 	}
 
@@ -220,7 +221,7 @@ func (s *rpcService) Authenticate3DS(
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if la.WalletID != w.ID {
+	if la.WalletID != w.ID || la.DeletedAt.Valid {
 		return nil, NotFoundError("")
 	}
 

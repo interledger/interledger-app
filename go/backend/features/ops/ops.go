@@ -100,6 +100,10 @@ func canAddCards(ctx context.Context, b Backends, walletID string) (bool, error)
 
 	var cnt int
 	for _, la := range lal {
+		if la.DeletedAt.Valid {
+			continue
+		}
+
 		if la.Provider == tabapay.ProviderName &&
 			la.Type == tabapay.TypeCard {
 			cnt++

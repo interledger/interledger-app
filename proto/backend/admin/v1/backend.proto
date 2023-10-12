@@ -161,6 +161,7 @@ message LinkedAccount {
   string sendCurrencyCountryCode = 13; // e.g. US
   string receiveCurrencyCode = 14;
   string receiveCurrencyCountryCode = 15;
+  google.protobuf.Timestamp deletedAt = 16;
 }
 
 message GetTransactionDetailsRequest {

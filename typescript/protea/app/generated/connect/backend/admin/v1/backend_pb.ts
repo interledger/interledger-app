@@ -1003,6 +1003,11 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   receiveCurrencyCountryCode = "";
 
+  /**
+   * @generated from field: google.protobuf.Timestamp deletedAt = 16;
+   */
+  deletedAt?: Timestamp;
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1026,6 +1031,7 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 13, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 14, name: "receiveCurrencyCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 15, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "deletedAt", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {

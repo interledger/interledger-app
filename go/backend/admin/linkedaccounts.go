@@ -6,6 +6,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	pb "gitlab.com/fynbos/proto/backend/admin/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLinkedAccountsRequest) (*pb.ListLinkedAccountsResponse, error) {
@@ -33,6 +34,9 @@ func (s *AdminRpcService) ListLinkedAccounts(ctx context.Context, req *pb.ListLi
 			ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
 			ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
 		}
+		if la.DeletedAt.Valid {
+			resp[i].DeletedAt = timestamppb.New(la.DeletedAt.Time)
+		}
 	}
 
 	return &pb.ListLinkedAccountsResponse{Accounts: resp}, err
@@ -45,7 +49,7 @@ func (s *AdminRpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinke
 		return nil, toGRPCError(err)
 	}
 
-	return &pb.LinkedAccount{
+	ret := &pb.LinkedAccount{
 		Id:                         la.ID,
 		WalletID:                   la.WalletID,
 		Name:                       la.Name,
@@ -61,5 +65,10 @@ func (s *AdminRpcService) GetLinkedAccount(ctx context.Context, req *pb.GetLinke
 		SendCurrencyCountryCode:    country.ParseCountry(la.SendCurrency.ISO4217()).String(),
 		ReceiveCurrencyCode:        la.ReceiveCurrency.String(),
 		ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
-	}, nil
+	}
+	if la.DeletedAt.Valid {
+		ret.DeletedAt = timestamppb.New(la.DeletedAt.Time)
+	}
+
+	return ret, nil
 }

@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, created_at, updated_at"
+	allFields = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability, created_at, updated_at, deleted_at"
 
 	// If you update this, then remember to update the create and createBatch functions.
 	insertFields  = "id, wallet_id, name, nickname, mask, provider, provider_id, type, can_send, can_receive, state, send_country, send_currency, send_network, send_availability, receive_country, receive_currency, receive_network, receive_availability"
@@ -200,7 +200,7 @@ func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAcco
 	err := b.DB().GetContext(
 		ctx,
 		&linkedAccount,
-		fmt.Sprintf("SELECT %s FROM linked_accounts where id=$1 and deleted_at IS NULL LIMIT 1;", allFields),
+		fmt.Sprintf("SELECT %s FROM linked_accounts where id=$1;", allFields),
 		id,
 	)
 	if err != nil {
@@ -268,7 +268,7 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE deleted_at IS NULL AND wallet_id=$1;", allFields),
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE wallet_id=$1;", allFields),
 		walletId,
 	)
 	if err != nil {
@@ -289,6 +289,9 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string) (*linke
 	}
 
 	for _, la := range lal {
+		if la.DeletedAt.Valid {
+			continue
+		}
 		if la.CanReceive && la.State == linkedaccounts.Verified && la.Provider == tabapay.ProviderName {
 			return &la, nil
 		}
@@ -304,6 +307,9 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedac
 	}
 
 	for _, la := range lal {
+		if la.DeletedAt.Valid {
+			continue
+		}
 		if la.CanSend && la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
 			return &la, nil
 		}
@@ -317,7 +323,7 @@ func ListMXBankAccounts(ctx context.Context, b Backends) ([]linkedaccounts.Linke
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND type=$2;", allFields),
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE provider=$1 AND type=$2;", allFields),
 		mx.ProviderName, mx.TypeBankAccount,
 	)
 	if err != nil {

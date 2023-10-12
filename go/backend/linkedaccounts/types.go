@@ -1,6 +1,7 @@
 package linkedaccounts
 
 import (
+	"database/sql"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -30,6 +31,7 @@ type LinkedAccount struct {
 	ReceiveNetwork      string            `db:"receive_network"`
 	CreatedAt           string            `db:"created_at"`
 	UpdatedAt           string            `db:"updated_at"`
+	DeletedAt           sql.NullTime      `db:"deleted_at"`
 }
 
 func (la *LinkedAccount) Title() string {
