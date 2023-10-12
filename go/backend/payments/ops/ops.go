@@ -26,7 +26,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, revision, created_at, updated_at`
 
 type dbPayment struct {
 	ID                      string                `db:"id"`
@@ -56,6 +56,7 @@ type dbPayment struct {
 	FXRate                  sql.NullFloat64       `db:"fx_rate"`
 	FXFeePercentage         sql.NullFloat64       `db:"fx_fee_percentage"`
 	ProtectionFeePercentage float64               `db:"protection_fee_percentage"`
+	Revision                int                   `db:"revision"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -417,7 +418,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 
 // Hard coded to be calculated as 3%.
 // TODO: Make it dynamic by looking at senders payment history
-func applyPaymentProtection(_ context.Context, _ Backends, sender payments.Identity, amount currency.Amount) (currency.Amount, float64, error) {
+func applyPaymentProtection(_ context.Context, _ Backends, _ payments.Identity, amount currency.Amount) (currency.Amount, float64, error) {
 	rate := float64(0.03)
 	smallest := currency.FromUInt64(1, amount.Currency)
 	fee := amount.Float64() * rate
@@ -428,6 +429,22 @@ func applyPaymentProtection(_ context.Context, _ Backends, sender payments.Ident
 	feeAmount := currency.FromFloat64(fee, amount.Currency)
 
 	return currency.FromUInt64(feeAmount.Value+amount.Value, amount.Currency), rate, nil
+}
+
+func reversePaymentProtection(appliedRate float64, amount currency.Amount) currency.Amount {
+	if appliedRate == 0 {
+		return amount
+	}
+	sendAmount := amount.Float64()
+	rate := appliedRate / (float64(1) + appliedRate)
+	paymentProtectionFee := sendAmount * rate
+	smallest := currency.FromUInt64(1, amount.Currency)
+	if paymentProtectionFee < smallest.Float64() {
+		paymentProtectionFee = 0
+	}
+	fee := currency.FromFloat64(paymentProtectionFee, amount.Currency)
+
+	return currency.FromUInt64(amount.Value-fee.Value, amount.Currency)
 }
 
 func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (payments.CreateArgs, float64, float64, error) {
@@ -719,7 +736,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		return nil, fmt.Errorf("%w Receiver is invalid", payments.ErrInvalidIdentifier)
 	}
 
-	var receiverAmtUpdated, senderAmtUpdated bool
+	var receiverAmtUpdated, senderAmtUpdated, recalcProtection bool
 	noop := true
 	receiver := payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}
 	if !args.Receiver.IsEmpty() && !args.Receiver.IsEqual(receiver) {
@@ -769,6 +786,9 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	if !args.SenderAmount.IsEmpty() && !args.SenderAmount.IsEqual(sendAmount) {
 		payment.SenderAmount = args.SenderAmount.Value
 		payment.SenderCurrency = args.SenderAmount.Currency.String()
+		if payment.ProtectionFeePercentage > 0 || args.AddPaymentProtection {
+			recalcProtection = true
+		}
 		noop = false
 		senderAmtUpdated = true
 	}
@@ -796,8 +816,19 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 			Valid:  true,
 		}
 	}
+	if args.UpdatePaymentProtection && args.AddPaymentProtection && payment.ProtectionFeePercentage == 0 && !senderAmtUpdated {
+		recalcProtection = true
+	}
+	// Remove payment protection
+	if args.UpdatePaymentProtection && !args.AddPaymentProtection && payment.ProtectionFeePercentage > 0 {
+		amount := reversePaymentProtection(payment.ProtectionFeePercentage, currency.FromUInt64(payment.SenderAmount, currency.ParseCurrency(payment.SenderCurrency)))
+		payment.SenderAmount = amount.Value
+		payment.ProtectionFeePercentage = 0
+		noop = false
+		senderAmtUpdated = true
+	}
 
-	if noop {
+	if noop && !recalcProtection {
 		return transformPayment(ctx, b, *payment, senderWallet, receiverWallet)
 	}
 
@@ -809,23 +840,13 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		}
 	}
 
-	hasPaymentProtection := payment.ProtectionFeePercentage != 0
-	if (receiverAmtUpdated || senderAmtUpdated) && hasPaymentProtection {
-		amount, feePercentage, err := applyPaymentProtection(
-			ctx,
-			b,
-			payments.Identity{
-				Type:       payment.SenderIDType,
-				Identifier: payment.SenderID,
-			},
-			currency.FromUInt64(payment.SenderAmount, currency.ParseCurrency(payment.SenderCurrency)),
-		)
+	if recalcProtection {
+		amt, fee, err := applyPaymentProtection(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType}, currency.FromUInt64(payment.SenderAmount, currency.Currency(payment.SenderCurrency)))
 		if err != nil {
 			return nil, err
 		}
-
-		payment.SenderAmount = amount.Value
-		payment.ProtectionFeePercentage = feePercentage
+		payment.SenderAmount = amt.Value
+		payment.ProtectionFeePercentage = fee
 	}
 
 	payment.UpdatedAt = time.Now()
@@ -845,6 +866,9 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		Value("action_otp", payment.OTP).
 		Value("fx_rate", payment.FXRate).
 		Value("fx_fee_percentage", payment.FXFeePercentage).
+		Value("protection_fee_percentage", payment.ProtectionFeePercentage).
+		Value("revision", payment.Revision+1).
+		Where("revision", payment.Revision).
 		Returning(cols).GetStatement()
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -852,57 +876,15 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 
 	var ret dbPayment
 	err = b.DB().GetContext(ctx, &ret, stmt, values...)
+	if errors.Is(err, sql.ErrNoRows) {
+		// Update lost the race condition for updating, just return the latest DB entry
+		return Lookup(ctx, b, payment.ID)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	return transformPayment(ctx, b, ret, senderWallet, receiverWallet)
-}
-
-func AddPaymentProtection(ctx context.Context, b Backends, id string, add bool) (*payments.Payment, error) {
-	p, err := Lookup(ctx, b, id)
-	if err != nil {
-		return nil, err
-	}
-
-	// remove old payment percentage. This is defaulted to 0.00. Then check if we must add it back.
-	protectionFee := p.PaymentProtectionAmount()
-	newSenderAmount := currency.Amount{
-		Value:    p.SenderAmount.Value - protectionFee.Value,
-		Currency: p.SenderAmount.Currency,
-	}
-	newPaymentProtectionFeePercentage := float64(0)
-	if add {
-		amount, feePercentage, err := applyPaymentProtection(
-			ctx,
-			b,
-			p.Sender,
-			newSenderAmount,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		newSenderAmount = amount
-		newPaymentProtectionFeePercentage = feePercentage
-	}
-
-	stmt, values, err := db.NewUpdate("payments").ID(p.ID).
-		Value("sender_amount", newSenderAmount.Value).
-		Value("protection_fee_percentage", newPaymentProtectionFeePercentage).
-		Returning(cols).GetStatement()
-
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	var ret dbPayment
-	err = b.DB().GetContext(ctx, &ret, stmt, values...)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	return transformPayment(ctx, b, ret, nil, nil)
 }
 
 func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receiverAmtUpdated bool) (*dbPayment, error) {
