@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -99,6 +100,8 @@ func (a *Activity) PaymentCompliance(ctx context.Context, paymentID string) (*Co
 		return nil, err
 	}
 
+	protectionAmount := p.PaymentProtectionAmount()
+	netAmount := currency.FromUInt64(p.SenderAmount.Value-protectionAmount.Value, p.SenderAmount.Currency)
 	res, err := a.ext.ComplianceCheck(ctx, external.ComplianceCheck{
 		Sender:   gmtSender,
 		Receiver: gmtReceiver,
@@ -106,12 +109,13 @@ func (a *Activity) PaymentCompliance(ctx context.Context, paymentID string) (*Co
 			AmountToReceive:       p.ReceiverAmount.Float64(),
 			CorrespondentCode:     "USCD",
 			DestinationCurrency:   p.ReceiverAmount.Currency.String(),
-			ExchangeRate:          1,
-			Fee:                   0,
+			ExchangeRate:          p.FXFeePercentage,
+			Fee:                   protectionAmount.Float64(),
 			MTSID:                 a.mts,
 			OfficeCode:            "0",
-			NetAmount:             p.SenderAmount.Float64(),
-			OriginalCurrency:      p.SenderAmount.Currency.String(),
+			TotalAmount:           p.SenderAmount.Float64(),
+			NetAmount:             netAmount.Float64(),
+			OriginalCurrency:      netAmount.Currency.String(),
 			OriginalPaymentMethod: "DEBIT", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
 			ReceiverCity:          receiverKYC.Address.City,
 			ReceiverState:         receiverKYC.Address.State,
