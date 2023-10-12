@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -744,35 +745,63 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		payment.ReceiverIDType, receiver.Type = args.Receiver.Type, args.Receiver.Type
 		noop = false
 	}
+	var wg sync.WaitGroup
+	var pErr error
+	var senderWallet, receiverWallet *wallets.Wallet
 
-	senderWallet, err := lookupWallet(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType})
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var syncErr error
+		senderWallet, syncErr = lookupWallet(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType})
+		if err != nil {
+			pErr = syncErr
+		}
+	}()
 
-	receiverWallet, err := lookupWallet(ctx, b, receiver)
-	if err != nil && !errors.Is(err, identities.ErrNotFound) {
-		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		var syncErr error
+		receiverWallet, syncErr = lookupWallet(ctx, b, receiver)
+		if err != nil && !errors.Is(err, identities.ErrNotFound) {
+			pErr = syncErr
+		}
+	}()
+
+	wg.Wait()
+	if pErr != nil {
+		return nil, pErr
 	}
 
 	if args.ReceiverAccount != "" && args.ReceiverAccount != payment.ReceiverAccount.String {
-		canReceive, err := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-		}
-		payment.ReceiverAccount.String = args.ReceiverAccount
-		payment.ReceiverAccount.Valid = canReceive
-		noop = false
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			canReceive, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
+			if syncErr != nil {
+				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
+				return
+			}
+			payment.ReceiverAccount.String = args.ReceiverAccount
+			payment.ReceiverAccount.Valid = canReceive
+			noop = false
+		}()
 	}
 
 	if args.SenderAccount != "" && args.SenderAccount != payment.SenderAccount.String {
-		canSend, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
-		if err != nil {
-			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-		}
-		payment.SenderAccount.String = args.SenderAccount
-		payment.SenderAccount.Valid = canSend
-		noop = false
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			canSend, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
+			if err != nil {
+				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
+				return
+			}
+			payment.SenderAccount.String = args.SenderAccount
+			payment.SenderAccount.Valid = canSend
+			noop = false
+		}()
 	}
 
 	receiveAmount := currency.FromUInt64(payment.ReceiverAmount, currency.Currency(payment.ReceiverCurrency))
@@ -826,6 +855,12 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		payment.ProtectionFeePercentage = 0
 		noop = false
 		senderAmtUpdated = true
+	}
+
+	// Wait for parallel checks to complete
+	wg.Wait()
+	if pErr != nil {
+		return nil, pErr
 	}
 
 	if noop && !recalcProtection {
