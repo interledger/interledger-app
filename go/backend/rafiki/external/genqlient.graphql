@@ -8,3 +8,11 @@ mutation CreatePaymentPointer($input: CreatePaymentPointerInput!){
         }
     }
 }
+mutation DepositEventLiquidity($input: DepositEventLiquidityInput!) {
+    depositEventLiquidity(input: $input) {
+        code
+        error
+        success
+        message
+    }
+}

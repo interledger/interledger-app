@@ -19,6 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
@@ -54,4 +55,5 @@ type Backends interface {
 	Twilio() twilio.Service
 	Payments() payments.Client
 	AWS() aws.Client
+	Rafiki() rafiki.Client
 }

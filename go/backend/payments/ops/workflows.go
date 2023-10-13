@@ -201,7 +201,6 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 		var accountTX tabapay.Transaction
 		err = workflow.ExecuteActivity(accountsCtx, a.PullFromAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
-		fmt.Println("XXXXXXXXXXXXXX", err)
 		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 			innerErr := workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 			if innerErr != nil {
@@ -259,7 +258,6 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 		if !tabapay.IsSuccessfulTransaction(accountTX) {
 			// Mark transaction as a failure and stop the workflow
-			fmt.Println("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
 			return workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 		}
 
@@ -281,6 +279,12 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// Signal Rafiki that we pulled
+	err = workflow.ExecuteActivity(accountsCtx, a.SignalRafikiPayIn, paymentID, paymentID).Get(ctx, nil)
+	if err != nil {
+		return err
 	}
 
 	// Now we wait for the payout to complete
@@ -366,6 +370,20 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		return nil
 	}
 
+	externalSuccess, doPayout, err := maybeAwaitRafikiPayout(ctx, a, paymentID)
+	if err != nil {
+		return err
+	}
+
+	// Payout done by rafiki, just signal success or failure.
+	if !doPayout {
+		err = workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, paymentID), "", signalChanName, PaySignal{
+			PaymentID:     paymentID,
+			PayOutSuccess: externalSuccess,
+		}).Get(ctx, nil)
+		return err
+	}
+
 	// Funding was a success now wait for the receiver to have all the relevant details
 	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
@@ -373,7 +391,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	})
 
 	var receiverReady bool
-	err := workflow.ExecuteChildWorkflow(childCtx, AwaitReceiverWorkflow, paymentID).Get(childCtx, &receiverReady)
+	err = workflow.ExecuteChildWorkflow(childCtx, AwaitReceiverWorkflow, paymentID).Get(childCtx, &receiverReady)
 	if err != nil || !receiverReady {
 		logger.Info("failed to wait for receiver to be ready to receive", "payment_id", paymentID, "err", err, "receiver_ready", receiverReady)
 		// Signal the Pay In workflow that the payout has failed, it will know what to do.
@@ -460,6 +478,30 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	return nil
+}
+
+func maybeAwaitRafikiPayout(ctx workflow.Context, a *Activity, paymentID string) (success bool, doPayout bool, err error) {
+	err = workflow.ExecuteActivity(ctx, a.ShouldPushToAccount, paymentID).Get(ctx, &doPayout)
+	if err != nil {
+		return
+	}
+
+	if doPayout {
+		return true, true, nil
+	}
+
+	// Wait for rafiki webhook to tell us the payment out was successful or failed
+	var signal PaySignal
+	signalChan := workflow.GetSignalChannel(ctx, signalChanName)
+	for {
+		signalChan.Receive(ctx, &signal)
+		if signal.PaymentID != paymentID {
+			continue
+		}
+
+		success = signal.PayOutSuccess
+		return
+	}
 }
 
 func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {

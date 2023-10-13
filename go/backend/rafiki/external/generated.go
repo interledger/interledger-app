@@ -81,6 +81,75 @@ func (v *CreatePaymentPointerResponse) GetCreatePaymentPointer() CreatePaymentPo
 	return v.CreatePaymentPointer
 }
 
+// DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse includes the requested fields of the GraphQL type LiquidityMutationResponse.
+type DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse struct {
+	Code    string         `json:"code"`
+	Error   LiquidityError `json:"error"`
+	Success bool           `json:"success"`
+	Message string         `json:"message"`
+}
+
+// GetCode returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Code, and is useful for accessing the field via an interface.
+func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetCode() string {
+	return v.Code
+}
+
+// GetError returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Error, and is useful for accessing the field via an interface.
+func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetError() LiquidityError {
+	return v.Error
+}
+
+// GetSuccess returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetSuccess() bool {
+	return v.Success
+}
+
+// GetMessage returns DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse.Message, and is useful for accessing the field via an interface.
+func (v *DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse) GetMessage() string {
+	return v.Message
+}
+
+type DepositEventLiquidityInput struct {
+	// The id of the event to deposit into.
+	EventId string `json:"eventId"`
+	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
+	IdempotencyKey string `json:"idempotencyKey"`
+}
+
+// GetEventId returns DepositEventLiquidityInput.EventId, and is useful for accessing the field via an interface.
+func (v *DepositEventLiquidityInput) GetEventId() string { return v.EventId }
+
+// GetIdempotencyKey returns DepositEventLiquidityInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *DepositEventLiquidityInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// DepositEventLiquidityResponse is returned by DepositEventLiquidity on success.
+type DepositEventLiquidityResponse struct {
+	// Deposit webhook event liquidity
+	DepositEventLiquidity DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse `json:"depositEventLiquidity"`
+}
+
+// GetDepositEventLiquidity returns DepositEventLiquidityResponse.DepositEventLiquidity, and is useful for accessing the field via an interface.
+func (v *DepositEventLiquidityResponse) GetDepositEventLiquidity() DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse {
+	return v.DepositEventLiquidity
+}
+
+type LiquidityError string
+
+const (
+	LiquidityErrorAlreadyposted          LiquidityError = "AlreadyPosted"
+	LiquidityErrorAlreadyvoided          LiquidityError = "AlreadyVoided"
+	LiquidityErrorAmountzero             LiquidityError = "AmountZero"
+	LiquidityErrorInsufficientbalance    LiquidityError = "InsufficientBalance"
+	LiquidityErrorInvalidid              LiquidityError = "InvalidId"
+	LiquidityErrorTransferexists         LiquidityError = "TransferExists"
+	LiquidityErrorUnknownasset           LiquidityError = "UnknownAsset"
+	LiquidityErrorUnknownincomingpayment LiquidityError = "UnknownIncomingPayment"
+	LiquidityErrorUnknownpayment         LiquidityError = "UnknownPayment"
+	LiquidityErrorUnknownpaymentpointer  LiquidityError = "UnknownPaymentPointer"
+	LiquidityErrorUnknownpeer            LiquidityError = "UnknownPeer"
+	LiquidityErrorUnknowntransfer        LiquidityError = "UnknownTransfer"
+)
+
 // __CreatePaymentPointerInput is used internally by genqlient
 type __CreatePaymentPointerInput struct {
 	Input CreatePaymentPointerInput `json:"input"`
@@ -88,6 +157,14 @@ type __CreatePaymentPointerInput struct {
 
 // GetInput returns __CreatePaymentPointerInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreatePaymentPointerInput) GetInput() CreatePaymentPointerInput { return v.Input }
+
+// __DepositEventLiquidityInput is used internally by genqlient
+type __DepositEventLiquidityInput struct {
+	Input DepositEventLiquidityInput `json:"input"`
+}
+
+// GetInput returns __DepositEventLiquidityInput.Input, and is useful for accessing the field via an interface.
+func (v *__DepositEventLiquidityInput) GetInput() DepositEventLiquidityInput { return v.Input }
 
 // The query or mutation executed by CreatePaymentPointer.
 const CreatePaymentPointer_Operation = `
@@ -118,6 +195,44 @@ func CreatePaymentPointer(
 	var err error
 
 	var data CreatePaymentPointerResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by DepositEventLiquidity.
+const DepositEventLiquidity_Operation = `
+mutation DepositEventLiquidity ($input: DepositEventLiquidityInput!) {
+	depositEventLiquidity(input: $input) {
+		code
+		error
+		success
+		message
+	}
+}
+`
+
+func DepositEventLiquidity(
+	ctx context.Context,
+	client graphql.Client,
+	input DepositEventLiquidityInput,
+) (*DepositEventLiquidityResponse, error) {
+	req := &graphql.Request{
+		OpName: "DepositEventLiquidity",
+		Query:  DepositEventLiquidity_Operation,
+		Variables: &__DepositEventLiquidityInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data DepositEventLiquidityResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(

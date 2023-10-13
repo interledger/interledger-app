@@ -184,10 +184,32 @@ func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) 
 		return false, err
 	}
 
-	return p.Type == payments.TypePeer2Peer, nil
+	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External, nil
 }
 
 func (a *Activity) ConfirmPaymentsEnginePayment(ctx context.Context, id string) ([]payments.RequiredActionType, error) {
 	_, requiredActions, err := Confirm(ctx, a.b, id)
 	return requiredActions, err
+}
+
+func (a *Activity) SignalRafikiPayIn(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeRafiki2External && p.Type != payments.TypeRafikiPeer2Peer {
+		return nil
+	}
+
+	return a.b.Rafiki().FundOutgoingPayment(ctx, paymentID)
+}
+
+func (a *Activity) ShouldPushToAccount(ctx context.Context, paymentID string) (bool, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return false, err
+	}
+
+	return p.Type != payments.TypeRafiki2External, nil
 }

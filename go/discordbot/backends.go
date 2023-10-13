@@ -2,6 +2,7 @@ package main
 
 import (
 	limits_client "gitlab.com/fynbos/backend/limits/client"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/discordbot/ops"
 	"gitlab.com/fynbos/log"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -73,6 +74,10 @@ type Backends struct {
 	kyc     kyc.Client
 	user    user.Client
 	discord *discordgo.Session
+}
+
+func (b *Backends) Rafiki() rafiki.Client {
+	return nil
 }
 
 func (b *Backends) Discord() ops.Discord {

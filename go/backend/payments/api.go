@@ -11,6 +11,7 @@ type Client interface {
 	UpdateReceiver(ctx context.Context, id string, identity Identity) error
 	SignalIdentityCreated(ctx context.Context, identifier string) error
 	SignalAccountLinked(ctx context.Context, walletID string) error
+	SignalExternalPayoutComplete(ctx context.Context, id string, success bool) error
 
 	AdminListAwaitingSignal(ctx context.Context) ([]Payment, error)
 }

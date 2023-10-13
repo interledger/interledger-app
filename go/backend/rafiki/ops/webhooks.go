@@ -7,9 +7,11 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -77,7 +79,9 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		case "incoming_payment.created", "incoming_payment.completed", "incoming_payment.expired":
 			err = incomingPaymentHandle(r.Context(), b, hook.Type, hook.Data)
 		case "outgoing_payment.completed", "outgoing_payment.failed":
-			err = outgoingPaymentHandle(r.Context(), b, hook.Data)
+			err = outgoingPaymentCompleteHandle(r.Context(), b, hook)
+		case "outgoing_payment.created":
+			err = outgoingPaymentCreatedHandle(r.Context(), b, hook)
 		default:
 			log.Info("rafiki unsupported webhook type", zap.String("type", hook.Type))
 			w.WriteHeader(http.StatusOK)
@@ -92,9 +96,9 @@ func EventWebhook(b Backends) http.HandlerFunc {
 	}
 }
 
-func outgoingPaymentHandle(ctx context.Context, b Backends, data json.RawMessage) error {
+func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook) error {
 	var op outgoingPaymentData
-	err := json.Unmarshal(data, &op)
+	err := json.Unmarshal(hook.Data, &op)
 	if err != nil {
 		log.Error("failed to unmarshal rafiki outgoing payment", zap.Error(err))
 		return err
@@ -109,6 +113,14 @@ func outgoingPaymentHandle(ctx context.Context, b Backends, data json.RawMessage
 	// Nothing to do
 	if amt == 0 {
 		return nil
+	}
+
+	typ := payments.TypeRafikiPeer2Peer
+	_, err = b.Wallets().GetFromAddress(ctx, op.Payment.Receiver)
+	if errors.Is(err, wallets.ErrNoWalletFound) {
+		typ = payments.TypeRafiki2External
+	} else if err != nil {
+		return err
 	}
 
 	senderWallet, err := LookupWalletID(ctx, b, op.Payment.PaymentPointerID)
@@ -131,7 +143,7 @@ func outgoingPaymentHandle(ctx context.Context, b Backends, data json.RawMessage
 		SenderAccount:  senderAcc.ID,
 		ReceiverAmount: currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.SentAmount.AssetCode)),
 		IPAddress:      "41.71.7.104", // TODO: get IP address from somewhere
-		Type:           payments.TypeRafikiPeer2Peer,
+		Type:           typ,
 	})
 	if errors.Is(err, payments.ErrIdempotencyViolation) {
 		p, err = b.Payments().Lookup(ctx, op.Payment.ID)
@@ -153,12 +165,41 @@ func outgoingPaymentHandle(ctx context.Context, b Backends, data json.RawMessage
 		}
 	}
 
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, payment_id, event_id) VALUES ($1, $2, $3)", op.Payment.ID, p.ID, hook.ID)
+	if err != nil {
+		log.Error("failed to add outgoing payment from rafiki outoing payment hook")
+	}
+
 	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_incoming_payments SET payment_id=$1 WHERE id = $2", p.ID, op.Payment.Quote.IncomingPaymentID)
 	if err != nil {
-		log.Error("failed to confirm payment from rafiki outoing payment")
+		log.Error("failed to confirm payment from rafiki outoing payment hook")
 	}
 
 	return nil
+}
+
+func outgoingPaymentCompleteHandle(ctx context.Context, b Backends, hook webhook) error {
+	var op outgoingPaymentData
+	err := json.Unmarshal(hook.Data, &op)
+	if err != nil {
+		log.Error("failed to unmarshal rafiki outgoing payment", zap.Error(err))
+		return err
+	}
+
+	var paymentID string
+	err = b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM rafiki_outgoing_payments WHERE id=$1", op.Payment.ID)
+	if err != nil {
+		return err
+	}
+
+	success := strings.EqualFold(hook.Type, "outgoing_payment.completed")
+	err = b.Payments().SignalExternalPayoutComplete(ctx, paymentID, success)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_outgoing_payments SET completed=true WHERE id=$1", op.Payment.ID)
+	return err
 }
 
 func incomingPaymentHandle(ctx context.Context, b Backends, hookType string, data json.RawMessage) error {
