@@ -13,6 +13,7 @@ import (
 
 type Client interface {
 	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet) (string, error)
+	FundOutgoingPayment(ctx context.Context, eventID string) error
 }
 
 type client struct {
@@ -48,5 +49,17 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (str
 	}
 
 	return pp.CreatePaymentPointer.PaymentPointer.Id, nil
+}
 
+func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
+	r, err := DepositEventLiquidity(ctx, c.gcl, DepositEventLiquidityInput{
+		EventId: eventID,
+	})
+	if err != nil {
+		return err
+	}
+	if !r.GetDepositEventLiquidity().Success {
+		return fmt.Errorf("error code (%s) message (%s)", r.GetDepositEventLiquidity().Code, r.GetDepositEventLiquidity().Message)
+	}
+	return nil
 }

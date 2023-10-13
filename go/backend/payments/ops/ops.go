@@ -1060,6 +1060,23 @@ func SignalAccountLinked(ctx context.Context, b Backends, walletID string) error
 	return nil
 }
 
+func SignalExternalPayoutComplete(ctx context.Context, b Backends, id string, success bool) error {
+	dbp, err := getPayment(ctx, b, id)
+	if err != nil {
+		return err
+	}
+
+	// Nothing to signal if it's not a external payment
+	if dbp.Type == payments.TypeRafiki2External {
+		return nil
+	}
+
+	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, id), "", signalChanName, PaySignal{
+		PaymentID:     id,
+		PayOutSuccess: success,
+	})
+}
+
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {
 	var dbRes []dbPayment
 	err := b.DB().SelectContext(ctx, &dbRes, fmt.Sprintf("SELECT %s FROM payments WHERE id IN (select payment_id::uuid from payments_workflow_refs where completed=false)", cols))

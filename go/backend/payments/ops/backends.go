@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/rafiki"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/email"
@@ -34,6 +36,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Tabapay() tabapay.Client
 	Transactions() transactions.Client
+	Rafiki() rafiki.Client
 }
 
 type TestBackends struct {
@@ -48,6 +51,10 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Tbp *tabapay_mock.MockClient
+}
+
+func (t TestBackends) Rafiki() rafiki.Client {
+	return nil
 }
 
 func (t TestBackends) Transactions() transactions.Client {

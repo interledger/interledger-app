@@ -19,6 +19,7 @@ type Backends interface {
 	Payments() payments.Client
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
+	Wallets() wallets.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -50,4 +51,8 @@ func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) err
 
 func (c *client) WebhookHandler() http.HandlerFunc {
 	return ops.EventWebhook(c.b)
+}
+
+func (c *client) FundOutgoingPayment(ctx context.Context, paymentID string) error {
+	return ops.FundOutgoingPayment(ctx, c.b, paymentID)
 }

@@ -2726,6 +2726,41 @@ table "rafiki_payment_pointers" {
   }
 }
 
+table "rafiki_outgoing_payments" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "completed" {
+    null    = false
+    type    = boolean
+    default = false
+  }
+  column "payment_id" {
+    null = true
+    type = uuid
+  }
+  column "event_id" {
+    null = true
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
 table "rafiki_incoming_payments" {
   schema = schema.public
   column "id" {

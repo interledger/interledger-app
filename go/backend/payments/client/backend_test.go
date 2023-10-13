@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/rafiki"
+
 	images_client "gitlab.com/fynbos/backend/images/client"
 
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
@@ -149,6 +151,10 @@ func (b *TestBackends) RestoreTemporalEnv() {
 }
 
 func (b *TestBackends) Twilio() twilio.Service {
+	return nil
+}
+
+func (b *TestBackends) Rafiki() rafiki.Client {
 	return nil
 }
 

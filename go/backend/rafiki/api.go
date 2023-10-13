@@ -10,4 +10,5 @@ import (
 type Client interface {
 	WebhookHandler() http.HandlerFunc
 	CreatePaymentPointer(ctx context.Context, address wallets.Wallet) error
+	FundOutgoingPayment(ctx context.Context, paymentID string) error
 }

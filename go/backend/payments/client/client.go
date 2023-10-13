@@ -60,6 +60,10 @@ func (c client) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment
 	return ops.ListAwaitingSignal(ctx, c.b)
 }
 
+func (c client) SignalExternalPayoutComplete(ctx context.Context, id string, success bool) error {
+	return ops.SignalExternalPayoutComplete(ctx, c.b, id, success)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

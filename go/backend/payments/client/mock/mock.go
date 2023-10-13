@@ -110,6 +110,20 @@ func (mr *MockClientMockRecorder) SignalAccountLinked(ctx, walletID interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignalAccountLinked", reflect.TypeOf((*MockClient)(nil).SignalAccountLinked), ctx, walletID)
 }
 
+// SignalExternalPayoutComplete mocks base method.
+func (m *MockClient) SignalExternalPayoutComplete(ctx context.Context, id string, success bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignalExternalPayoutComplete", ctx, id, success)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SignalExternalPayoutComplete indicates an expected call of SignalExternalPayoutComplete.
+func (mr *MockClientMockRecorder) SignalExternalPayoutComplete(ctx, id, success interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignalExternalPayoutComplete", reflect.TypeOf((*MockClient)(nil).SignalExternalPayoutComplete), ctx, id, success)
+}
+
 // SignalIdentityCreated mocks base method.
 func (m *MockClient) SignalIdentityCreated(ctx context.Context, identifier string) error {
 	m.ctrl.T.Helper()
