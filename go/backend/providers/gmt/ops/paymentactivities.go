@@ -309,6 +309,8 @@ func (a *Activity) PaymentGMTTransaction(ctx context.Context, paymentID string) 
 		bankAccNum = strings.TrimSpace(strings.ReplaceAll(receiverAcc.Mask, "*", ""))
 	}
 
+	protectionAmount := p.PaymentProtectionAmount()
+	netAmount := currency.FromUInt64(p.SenderAmount.Value-protectionAmount.Value, p.SenderAmount.Currency)
 	res, err := a.ext.InsertTransaction(ctx, external.InsertTransaction{
 		Sender:   gmtSender,
 		Receiver: gmtReceiver,
@@ -317,12 +319,13 @@ func (a *Activity) PaymentGMTTransaction(ctx context.Context, paymentID string) 
 			CorrespondentCode:     "USCD",
 			BankAccount:           bankAccNum,
 			DestinationCurrency:   p.ReceiverAmount.Currency.String(),
-			ExchangeRate:          1,
-			Fee:                   0,
+			ExchangeRate:          p.FXFeePercentage,
+			Fee:                   protectionAmount.Float64(),
 			MTSID:                 a.mts,
 			OfficeCode:            "0",
-			NetAmount:             p.SenderAmount.Float64(),
-			OriginalCurrency:      p.SenderAmount.Currency.String(),
+			TotalAmount:           p.SenderAmount.Float64(),
+			NetAmount:             netAmount.Float64(),
+			OriginalCurrency:      netAmount.Currency.String(),
 			OriginalPaymentMethod: "DEBIT", // ACH | CHECK | WALLET | CASH | DEBIT | WIRE
 			ReceiverCity:          receiverKYC.Address.City,
 			ReceiverState:         receiverKYC.Address.State,
