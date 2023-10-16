@@ -7,7 +7,7 @@ import (
 )
 
 type CreateArgs struct {
-	IdempotencyKey  string
+	IdempotencyKey       string
 	Sender               Identity
 	Receiver             Identity
 	SenderAmount         currency.Amount
