@@ -291,7 +291,7 @@ func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (
 func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
 
 	// Web monetization payouts don't need an OTP
-	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer {
+	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External {
 		return false, nil
 	}
 
@@ -309,7 +309,7 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 }
 
 func requires3DS(typ payments.Type, sender payments.Identity) bool {
-	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer
+	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer && typ != payments.TypeRafiki2External
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
