@@ -131,7 +131,7 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 
 	senderAcc, err := b.LinkedAccounts().GetDefaultSend(ctx, senderWallet)
 	if err != nil {
-		log.Error("failed to lookup wallet ID from rafiki payment pointer ID", zap.Error(err))
+		log.Error("failed to lookup default send account", zap.Error(err))
 		return err
 	}
 
