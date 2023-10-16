@@ -449,6 +449,16 @@ func GetTransactedCount(ctx context.Context, b Backends, walletID, destination s
 	return txCnt, nil
 }
 
+func CountReceiveTransactions(ctx context.Context, b Backends, walletID string) (int, error) {
+	var txCnt int
+	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND (type=$3 OR type=$4)", walletID, transactions.StateCompleted, transactions.TransactionTypeIncoming, transactions.TransactionTypeOpenPaymentIncoming)
+	if err != nil {
+		return 0, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	return txCnt, nil
+}
+
 func CountReferralsInPastDay(ctx context.Context, b Backends, destination string) (int, error) {
 	var txCnt int
 	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND destination ILIKE $3 AND updated_at >= now() - INTERVAL '1 day';", wallets.ReferralsWalletID, transactions.StateCompleted, destination)

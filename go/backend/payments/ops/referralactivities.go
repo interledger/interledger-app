@@ -13,13 +13,22 @@ import (
 /*
 This creates the payments to the sender and receiver for the referral programme.
 NB! This assumes it is being called at the end of the payments workflow.
+Eligibility criteria:
+1) Send amount >= $ 20.00
+2) Sender has a limit of 3 referrals in rolling 24 hour window
+3) Receiver must have just received their first payment
 */
 func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string) ([]string, error) {
 	var referralPayments []string
+	minSendAmount := currency.FromUInt64(20_00, currency.USD)
 
 	p, err := Lookup(ctx, a.b, originalPaymentID)
 	if err != nil {
 		return nil, err
+	}
+
+	if p.SenderAmount.Value < minSendAmount.Value {
+		return nil, nil
 	}
 
 	if p.Type != payments.TypePeer2Peer {
@@ -31,7 +40,7 @@ func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string
 		return nil, err
 	}
 
-	receiveTxs, err := a.b.Transactions().GetTransactedCount(ctx, p.Receiver.WalletID, "%")
+	receiveTxs, err := a.b.Transactions().CountReceiveTransactions(ctx, p.Receiver.WalletID)
 	if err != nil {
 		return nil, err
 	}
