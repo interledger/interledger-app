@@ -839,7 +839,7 @@ func TestCountReferralsInPastDay(t *testing.T) {
 	assert.Equal(t, 0, newCount)
 }
 
-func TestCountReceiveTransactions(t *testing.T) {
+func TestCountSendReceiveTransactions(t *testing.T) {
 	ctx := context.Background()
 	dbc := db.MigrateTestDB(t, ctx)
 
@@ -868,4 +868,28 @@ func TestCountReceiveTransactions(t *testing.T) {
 	count, err = ops.CountReceiveTransactions(ctx, b, wallets.ReferralsWalletID)
 	require.NoError(t, err)
 	assert.Equal(t, 1, count)
+
+	sendCount, err := ops.CountSendTransactions(ctx, b, wallets.ReferralsWalletID)
+	require.NoError(t, err)
+	assert.Equal(t, 0, sendCount)
+
+	_, err = ops.CreateTransaction(ctx, b, transactions.CreateTransactionArgs{
+		WalletID:    wallets.ReferralsWalletID,
+		ForeignID:   uuid.NewString(),
+		ForeignType: transactions.TransactionTypeOutgoing,
+		Provider:    transactions.ProviderGMT,
+		State:       transactions.StateCompleted,
+		Source:      "$fynbos.me/referrals",
+		Destination: "$fynbos.me/bob",
+		Amount: currency.Amount{
+			Value:    1000,
+			Currency: currency.USD,
+			Scale:    2,
+		},
+	})
+	require.NoError(t, err)
+
+	sendCount, err = ops.CountSendTransactions(ctx, b, wallets.ReferralsWalletID)
+	require.NoError(t, err)
+	assert.Equal(t, 1, sendCount)
 }

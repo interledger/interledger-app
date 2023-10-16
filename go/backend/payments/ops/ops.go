@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -417,19 +418,35 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	return transformPayment(ctx, b, dbp, senderWallet, receiverWallet)
 }
 
-// Hard coded to be calculated as 3%.
-// TODO: Make it dynamic by looking at senders payment history
-func applyPaymentProtection(_ context.Context, _ Backends, _ payments.Identity, amount currency.Amount) (currency.Amount, float64, error) {
-	rate := float64(0.03)
+func SellerRisk(sendTransactions int) float64 {
+	const (
+		k = float64(0.1198)
+		A = float64(0.04)
+		B = float64(0.01)
+	)
+	return A*math.Exp(-k*float64(sendTransactions)) + B
+}
+
+func applyPaymentProtection(ctx context.Context, b Backends, sender payments.Identity, amount currency.Amount) (currency.Amount, float64, error) {
 	smallest := currency.FromUInt64(1, amount.Currency)
-	fee := amount.Float64() * rate
+	sellerTransactions, err := b.Transactions().CountSendTransactions(ctx, sender.WalletID)
+	if err != nil {
+		return amount, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	sellerRisk := float64(0.01)
+	if sellerTransactions < 60 {
+		sellerRisk = SellerRisk(sellerTransactions)
+	}
+
+	fee := amount.Float64() * sellerRisk
 	if fee < smallest.Float64() {
 		fee = 0
 	}
 
 	feeAmount := currency.FromFloat64(fee, amount.Currency)
 
-	return currency.FromUInt64(feeAmount.Value+amount.Value, amount.Currency), rate, nil
+	return currency.FromUInt64(feeAmount.Value+amount.Value, amount.Currency), sellerRisk, nil
 }
 
 func reversePaymentProtection(appliedRate float64, amount currency.Amount) currency.Amount {
