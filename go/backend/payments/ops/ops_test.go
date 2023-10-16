@@ -3,6 +3,7 @@ package ops_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
@@ -49,6 +50,7 @@ func TestCreate(t *testing.T) {
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes() // Require OTP
+	b.Txc.EXPECT().CountSendTransactions(gomock.Any(), gomock.Any()).Return(60, nil).AnyTimes()             // for payment protection calcs
 	cases := []struct {
 		name    string
 		args    payments.CreateArgs
@@ -121,7 +123,7 @@ func TestCreate(t *testing.T) {
 			}
 
 			if tc.args.AddPaymentProtection {
-				expectedPaymentProtectionFeePercentage := float64(0.03)
+				expectedPaymentProtectionFeePercentage := float64(0.01)
 				assert.Equal(t, expectedPaymentProtectionFeePercentage, p.ProtectionFeePercentage)
 
 				expectedPaymentProtection := tc.args.SenderAmount.Float64() * (1 + expectedPaymentProtectionFeePercentage)
@@ -415,6 +417,7 @@ func TestUpdate(t *testing.T) {
 		ID: receiverWalletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(ctx, gomock.Any(), gomock.Any()).Return(true, nil)
+	b.Txc.EXPECT().CountSendTransactions(ctx, gomock.Any()).Return(0, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -473,8 +476,8 @@ func TestUpdate(t *testing.T) {
 		ID: p.ID, UpdatePaymentProtection: true, AddPaymentProtection: true,
 	})
 	require.NoError(t, err)
-	assert.Equal(t, float64(0.03), p.ProtectionFeePercentage)
-	assert.Equal(t, uint64(5562), p.SenderAmount.Value)
+	assert.Equal(t, float64(0.05), p.ProtectionFeePercentage)
+	assert.Equal(t, uint64(5670), p.SenderAmount.Value)
 
 	// remove payment protection
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
@@ -490,8 +493,8 @@ func TestUpdate(t *testing.T) {
 		ID: p.ID, UpdatePaymentProtection: true, AddPaymentProtection: true,
 	})
 	require.NoError(t, err)
-	assert.Equal(t, float64(0.03), p.ProtectionFeePercentage)
-	assert.Equal(t, uint64(5562), p.SenderAmount.Value)
+	assert.Equal(t, float64(0.05), p.ProtectionFeePercentage)
+	assert.Equal(t, uint64(5670), p.SenderAmount.Value)
 
 	// update send amount
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
@@ -500,8 +503,8 @@ func TestUpdate(t *testing.T) {
 		ReceiverAmount: currency.FromFloat64(51, currency.USD),
 	})
 	require.NoError(t, err)
-	assert.Equal(t, float64(0.03), p.ProtectionFeePercentage)
-	assert.Equal(t, uint64(5253), p.SenderAmount.Value)
+	assert.Equal(t, float64(0.05), p.ProtectionFeePercentage)
+	assert.Equal(t, uint64(5355), p.SenderAmount.Value)
 
 	// remove payment protection
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
@@ -520,6 +523,16 @@ func TestUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, float64(0), p.ProtectionFeePercentage)
 	assert.Equal(t, uint64(5500), p.SenderAmount.Value)
+}
+
+func TestSellerRisk(t *testing.T) {
+	sellerSendTransactions := []int{0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65}
+	risk := []string{"0.0500", "0.0320", "0.0221", "0.0166", "0.0136", "0.0120", "0.0111", "0.0106", "0.0103", "0.0102", "0.0101", "0.0101", "0.0100", "0.0100"}
+
+	for i, trxs := range sellerSendTransactions {
+		sellerRisk := ops.SellerRisk(trxs)
+		assert.Equal(t, fmt.Sprintf("%.4f", sellerRisk), risk[i])
+	}
 }
 
 func TestUpdateFX(t *testing.T) {
