@@ -11,6 +11,7 @@ import (
 	aws_mock "gitlab.com/fynbos/backend/aws/client/mock"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/workflows"
 )
 
@@ -38,4 +39,12 @@ func TestActivity_LoadFXRatesFromS3(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, cnt)
+
+	var eurRate tabapay.NetworkRate
+	err = b.DB().Get(&eurRate, "SELECT buy_rate, buy_rate_inverted, sell_rate, sell_rate_inverted FROM tabapay_fx_rates WHERE currency_code='EUR' AND network='Visa';")
+	require.NoError(t, err)
+	assert.Equal(t, float64(1.07340), eurRate.BuyRate)
+	assert.Equal(t, float64(1.06850), eurRate.SellRate)
+	assert.Equal(t, float64(0.931619), eurRate.BuyRateInv)
+	assert.Equal(t, float64(0.935891), eurRate.SellRateInv)
 }

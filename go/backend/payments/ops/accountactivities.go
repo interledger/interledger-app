@@ -167,5 +167,5 @@ func (a *Activity) RollbackPullFromAccount(ctx context.Context, paymentID string
 		return nil
 	}
 	// TODO: Get if the transaction was actually settled from the reports.
-	return a.b.Tabapay().ReverseTransaction(ctx, externalTX, false)
+	return a.b.Tabapay().ReverseTransaction(ctx, externalTX, false, p.SenderAmount.Currency)
 }
