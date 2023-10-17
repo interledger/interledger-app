@@ -142,3 +142,42 @@ func (b UpdateBuilder) GetStatement() (string, []interface{}, error) {
 		returning,
 	), vals, nil
 }
+
+type BatchInsertBuilder struct {
+	table     string
+	fields    []string
+	returning []string
+}
+
+func NewBatchInsert(table string, fields string) *BatchInsertBuilder {
+	fieldsArr := strings.Split(fields, ",")
+	for i, f := range fieldsArr {
+		fieldsArr[i] = strings.TrimSpace(f)
+	}
+
+	return &BatchInsertBuilder{
+		table:  table,
+		fields: fieldsArr,
+	}
+}
+
+func (b BatchInsertBuilder) GetStatement() string {
+	var returning string
+	if len(b.returning) > 0 {
+		returning = fmt.Sprintf("RETURNING %s", strings.Join(b.returning, ","))
+	}
+
+	return fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s) %s;",
+		b.table,
+		strings.Join(b.fields, ", "),
+		":"+strings.Join(b.fields, ", :"),
+		returning,
+	)
+}
+
+func (b *BatchInsertBuilder) Returning(field string) *BatchInsertBuilder {
+	b.returning = append(b.returning, field)
+
+	return b
+}
