@@ -4,10 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"testing"
-
-	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
-
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -21,11 +17,13 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	temporal_client "go.temporal.io/sdk/client"
+	"testing"
 )
 
 func TestCreate(t *testing.T) {
@@ -611,4 +609,26 @@ func TestUpdateFX(t *testing.T) {
 
 	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(101, currency.USD)))
 	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(1929.72, currency.ZAR)))
+}
+
+func TestSeed(t *testing.T) {
+	ctx := context.Background()
+	b := &ops.TestAdminBackends{
+		DBC: db.MigrateTestDB(t, ctx),
+	}
+
+	seedPs := []payments.SeedPayment{
+		{
+			ID:       uuid.NewString(),
+			PublicID: uuid.NewString(),
+		},
+		{
+			ID:       uuid.NewString(),
+			PublicID: uuid.NewString(),
+		},
+	}
+
+	ps, err := ops.Seed(ctx, b, seedPs)
+	assert.NoError(t, err)
+	assert.Len(t, ps, len(seedPs))
 }

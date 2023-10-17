@@ -61,6 +61,36 @@ type Payment struct {
 	ProtectionFeePercentage float64
 }
 
+type SeedPayment struct {
+	ID                      string
+	PublicID                string
+	State                   State
+	ThreeDSRequired         bool
+	ThreeDSID               string
+	SenderID                string
+	SenderIDType            IdentityType
+	SenderAmount            uint64
+	SenderCurrency          string
+	SenderAccount           string
+	ReceiverID              string
+	ReceiverIDType          IdentityType
+	ReceiverAmount          uint64
+	ReceiverCurrency        string
+	ReceiverAccount         string
+	SendTransactionID       string
+	ReceiveTransactionID    string
+	Note                    string
+	OTPRequired             bool
+	OTP                     string
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
+	IPAddress               string
+	Type                    Type
+	FXRate                  float64
+	FXFeePercentage         float64
+	ProtectionFeePercentage float64
+}
+
 // This works out the payment protection amount from the send amount as
 // x_paymentprotection
 // = x_sendamount - x_sendamountwithoutpaymentprotection

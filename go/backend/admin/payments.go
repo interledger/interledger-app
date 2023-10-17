@@ -2,7 +2,8 @@ package admin
 
 import (
 	"context"
-
+	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/env"
 	pb "gitlab.com/fynbos/proto/backend/admin/v1"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -53,4 +54,48 @@ func (s *AdminRpcService) ListPaymentsAwaitingSignal(ctx context.Context, _ *emp
 	}
 
 	return &pb.ListPaymentsAwaitingSignalResponse{Payments: resp}, nil
+}
+
+func (s *AdminRpcService) SeedPayments(ctx context.Context, req *pb.SeedPaymentsRequest) (*pb.Empty, error) {
+	if env.IsProd() {
+		return nil, UnimplementedError("")
+	}
+
+	var seedPs []payments.SeedPayment
+	for _, p := range req.Payments {
+		seedPs = append(seedPs, payments.SeedPayment{
+			ID:                      p.Id,
+			PublicID:                p.PublicId,
+			State:                   payments.State(p.State),
+			ThreeDSRequired:         p.ThreeDsRequired,
+			ThreeDSID:               p.ThreeDsId,
+			SenderID:                p.SenderId,
+			SenderIDType:            payments.IdentityType(p.SenderIdType),
+			SenderAmount:            p.SenderAmount,
+			SenderCurrency:          p.SenderCurrency,
+			SenderAccount:           p.SenderAccount,
+			ReceiverID:              p.ReceiverId,
+			ReceiverIDType:          payments.IdentityType(p.ReceiverIdType),
+			ReceiverAmount:          p.ReceiverAmount,
+			ReceiverCurrency:        p.ReceiverCurrency,
+			ReceiverAccount:         p.ReceiverAccount,
+			SendTransactionID:       p.SendTransactionId,
+			ReceiveTransactionID:    p.ReceiveTransactionId,
+			Note:                    p.Note,
+			OTPRequired:             p.OtpRequired,
+			OTP:                     p.Otp,
+			IPAddress:               p.IpAddress,
+			Type:                    payments.Type(p.Type),
+			FXRate:                  p.FxRate,
+			FXFeePercentage:         p.FxFeePercentage,
+			ProtectionFeePercentage: p.ProtectionFeePercentage,
+		})
+	}
+
+	_, err := s.b.AdminPayments().Seed(ctx, seedPs)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
 }

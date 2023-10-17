@@ -15,6 +15,120 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.PaymentDetails
+ */
+export interface PaymentDetails {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string public_id = 2;
+     */
+    publicId: string;
+    /**
+     * @generated from protobuf field: int32 state = 3;
+     */
+    state: number;
+    /**
+     * @generated from protobuf field: string sender_id = 4;
+     */
+    senderId: string;
+    /**
+     * @generated from protobuf field: int32 sender_id_type = 5;
+     */
+    senderIdType: number;
+    /**
+     * @generated from protobuf field: uint64 sender_amount = 6;
+     */
+    senderAmount: string;
+    /**
+     * @generated from protobuf field: string sender_currency = 7;
+     */
+    senderCurrency: string;
+    /**
+     * @generated from protobuf field: string sender_account = 8;
+     */
+    senderAccount: string;
+    /**
+     * @generated from protobuf field: string receiver_id = 9;
+     */
+    receiverId: string;
+    /**
+     * @generated from protobuf field: int32 receiver_id_type = 10;
+     */
+    receiverIdType: number;
+    /**
+     * @generated from protobuf field: uint64 receiver_amount = 11;
+     */
+    receiverAmount: string;
+    /**
+     * @generated from protobuf field: string receiver_currency = 12;
+     */
+    receiverCurrency: string;
+    /**
+     * @generated from protobuf field: string receiver_account = 13;
+     */
+    receiverAccount: string;
+    /**
+     * @generated from protobuf field: string send_transaction_id = 14;
+     */
+    sendTransactionId: string;
+    /**
+     * @generated from protobuf field: string receive_transaction_id = 15;
+     */
+    receiveTransactionId: string;
+    /**
+     * @generated from protobuf field: string note = 16;
+     */
+    note: string;
+    /**
+     * @generated from protobuf field: bool three_ds_required = 17;
+     */
+    threeDsRequired: boolean;
+    /**
+     * @generated from protobuf field: string three_ds_id = 18;
+     */
+    threeDsId: string;
+    /**
+     * @generated from protobuf field: bool otp_required = 19;
+     */
+    otpRequired: boolean;
+    /**
+     * @generated from protobuf field: string otp = 20;
+     */
+    otp: string;
+    /**
+     * @generated from protobuf field: string ip_address = 21;
+     */
+    ipAddress: string;
+    /**
+     * @generated from protobuf field: int32 type = 22;
+     */
+    type: number;
+    /**
+     * @generated from protobuf field: double fx_rate = 23;
+     */
+    fxRate: number;
+    /**
+     * @generated from protobuf field: double fx_fee_percentage = 24;
+     */
+    fxFeePercentage: number;
+    /**
+     * @generated from protobuf field: double protection_fee_percentage = 25;
+     */
+    protectionFeePercentage: number;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.SeedPaymentsRequest
+ */
+export interface SeedPaymentsRequest {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.PaymentDetails payments = 1;
+     */
+    payments: PaymentDetails[];
+}
+/**
  * @generated from protobuf message backend.admin.v1.SeedLinkedAccountsRequest
  */
 export interface SeedLinkedAccountsRequest {
@@ -893,6 +1007,268 @@ export interface FormSubmissionDetails {
      */
     timestamp?: Timestamp;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class PaymentDetails$Type extends MessageType<PaymentDetails> {
+    constructor() {
+        super("backend.admin.v1.PaymentDetails", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "public_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "state", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "sender_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "sender_id_type", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 6, name: "sender_amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 7, name: "sender_currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "sender_account", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "receiver_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "receiver_id_type", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 11, name: "receiver_amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 12, name: "receiver_currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "receiver_account", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "send_transaction_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 15, name: "receive_transaction_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 17, name: "three_ds_required", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 18, name: "three_ds_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 19, name: "otp_required", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 20, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 21, name: "ip_address", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 22, name: "type", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 23, name: "fx_rate", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
+            { no: 24, name: "fx_fee_percentage", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
+            { no: 25, name: "protection_fee_percentage", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PaymentDetails>): PaymentDetails {
+        const message = { id: "", publicId: "", state: 0, senderId: "", senderIdType: 0, senderAmount: "0", senderCurrency: "", senderAccount: "", receiverId: "", receiverIdType: 0, receiverAmount: "0", receiverCurrency: "", receiverAccount: "", sendTransactionId: "", receiveTransactionId: "", note: "", threeDsRequired: false, threeDsId: "", otpRequired: false, otp: "", ipAddress: "", type: 0, fxRate: 0, fxFeePercentage: 0, protectionFeePercentage: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PaymentDetails>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PaymentDetails): PaymentDetails {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string public_id */ 2:
+                    message.publicId = reader.string();
+                    break;
+                case /* int32 state */ 3:
+                    message.state = reader.int32();
+                    break;
+                case /* string sender_id */ 4:
+                    message.senderId = reader.string();
+                    break;
+                case /* int32 sender_id_type */ 5:
+                    message.senderIdType = reader.int32();
+                    break;
+                case /* uint64 sender_amount */ 6:
+                    message.senderAmount = reader.uint64().toString();
+                    break;
+                case /* string sender_currency */ 7:
+                    message.senderCurrency = reader.string();
+                    break;
+                case /* string sender_account */ 8:
+                    message.senderAccount = reader.string();
+                    break;
+                case /* string receiver_id */ 9:
+                    message.receiverId = reader.string();
+                    break;
+                case /* int32 receiver_id_type */ 10:
+                    message.receiverIdType = reader.int32();
+                    break;
+                case /* uint64 receiver_amount */ 11:
+                    message.receiverAmount = reader.uint64().toString();
+                    break;
+                case /* string receiver_currency */ 12:
+                    message.receiverCurrency = reader.string();
+                    break;
+                case /* string receiver_account */ 13:
+                    message.receiverAccount = reader.string();
+                    break;
+                case /* string send_transaction_id */ 14:
+                    message.sendTransactionId = reader.string();
+                    break;
+                case /* string receive_transaction_id */ 15:
+                    message.receiveTransactionId = reader.string();
+                    break;
+                case /* string note */ 16:
+                    message.note = reader.string();
+                    break;
+                case /* bool three_ds_required */ 17:
+                    message.threeDsRequired = reader.bool();
+                    break;
+                case /* string three_ds_id */ 18:
+                    message.threeDsId = reader.string();
+                    break;
+                case /* bool otp_required */ 19:
+                    message.otpRequired = reader.bool();
+                    break;
+                case /* string otp */ 20:
+                    message.otp = reader.string();
+                    break;
+                case /* string ip_address */ 21:
+                    message.ipAddress = reader.string();
+                    break;
+                case /* int32 type */ 22:
+                    message.type = reader.int32();
+                    break;
+                case /* double fx_rate */ 23:
+                    message.fxRate = reader.double();
+                    break;
+                case /* double fx_fee_percentage */ 24:
+                    message.fxFeePercentage = reader.double();
+                    break;
+                case /* double protection_fee_percentage */ 25:
+                    message.protectionFeePercentage = reader.double();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PaymentDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string public_id = 2; */
+        if (message.publicId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.publicId);
+        /* int32 state = 3; */
+        if (message.state !== 0)
+            writer.tag(3, WireType.Varint).int32(message.state);
+        /* string sender_id = 4; */
+        if (message.senderId !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.senderId);
+        /* int32 sender_id_type = 5; */
+        if (message.senderIdType !== 0)
+            writer.tag(5, WireType.Varint).int32(message.senderIdType);
+        /* uint64 sender_amount = 6; */
+        if (message.senderAmount !== "0")
+            writer.tag(6, WireType.Varint).uint64(message.senderAmount);
+        /* string sender_currency = 7; */
+        if (message.senderCurrency !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.senderCurrency);
+        /* string sender_account = 8; */
+        if (message.senderAccount !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.senderAccount);
+        /* string receiver_id = 9; */
+        if (message.receiverId !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.receiverId);
+        /* int32 receiver_id_type = 10; */
+        if (message.receiverIdType !== 0)
+            writer.tag(10, WireType.Varint).int32(message.receiverIdType);
+        /* uint64 receiver_amount = 11; */
+        if (message.receiverAmount !== "0")
+            writer.tag(11, WireType.Varint).uint64(message.receiverAmount);
+        /* string receiver_currency = 12; */
+        if (message.receiverCurrency !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.receiverCurrency);
+        /* string receiver_account = 13; */
+        if (message.receiverAccount !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.receiverAccount);
+        /* string send_transaction_id = 14; */
+        if (message.sendTransactionId !== "")
+            writer.tag(14, WireType.LengthDelimited).string(message.sendTransactionId);
+        /* string receive_transaction_id = 15; */
+        if (message.receiveTransactionId !== "")
+            writer.tag(15, WireType.LengthDelimited).string(message.receiveTransactionId);
+        /* string note = 16; */
+        if (message.note !== "")
+            writer.tag(16, WireType.LengthDelimited).string(message.note);
+        /* bool three_ds_required = 17; */
+        if (message.threeDsRequired !== false)
+            writer.tag(17, WireType.Varint).bool(message.threeDsRequired);
+        /* string three_ds_id = 18; */
+        if (message.threeDsId !== "")
+            writer.tag(18, WireType.LengthDelimited).string(message.threeDsId);
+        /* bool otp_required = 19; */
+        if (message.otpRequired !== false)
+            writer.tag(19, WireType.Varint).bool(message.otpRequired);
+        /* string otp = 20; */
+        if (message.otp !== "")
+            writer.tag(20, WireType.LengthDelimited).string(message.otp);
+        /* string ip_address = 21; */
+        if (message.ipAddress !== "")
+            writer.tag(21, WireType.LengthDelimited).string(message.ipAddress);
+        /* int32 type = 22; */
+        if (message.type !== 0)
+            writer.tag(22, WireType.Varint).int32(message.type);
+        /* double fx_rate = 23; */
+        if (message.fxRate !== 0)
+            writer.tag(23, WireType.Bit64).double(message.fxRate);
+        /* double fx_fee_percentage = 24; */
+        if (message.fxFeePercentage !== 0)
+            writer.tag(24, WireType.Bit64).double(message.fxFeePercentage);
+        /* double protection_fee_percentage = 25; */
+        if (message.protectionFeePercentage !== 0)
+            writer.tag(25, WireType.Bit64).double(message.protectionFeePercentage);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.PaymentDetails
+ */
+export const PaymentDetails = new PaymentDetails$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SeedPaymentsRequest$Type extends MessageType<SeedPaymentsRequest> {
+    constructor() {
+        super("backend.admin.v1.SeedPaymentsRequest", [
+            { no: 1, name: "payments", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PaymentDetails }
+        ]);
+    }
+    create(value?: PartialMessage<SeedPaymentsRequest>): SeedPaymentsRequest {
+        const message = { payments: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SeedPaymentsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SeedPaymentsRequest): SeedPaymentsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.PaymentDetails payments */ 1:
+                    message.payments.push(PaymentDetails.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SeedPaymentsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.PaymentDetails payments = 1; */
+        for (let i = 0; i < message.payments.length; i++)
+            PaymentDetails.internalBinaryWrite(message.payments[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.SeedPaymentsRequest
+ */
+export const SeedPaymentsRequest = new SeedPaymentsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SeedLinkedAccountsRequest$Type extends MessageType<SeedLinkedAccountsRequest> {
     constructor() {
@@ -3912,5 +4288,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse },
     { name: "ClearIdentities", options: {}, I: ClearIdentitiesRequest, O: Empty },
     { name: "SetKYCStatus", options: {}, I: SetKYCStatusRequest, O: Empty },
-    { name: "SeedLinkedAccounts", options: {}, I: SeedLinkedAccountsRequest, O: Empty }
+    { name: "SeedLinkedAccounts", options: {}, I: SeedLinkedAccountsRequest, O: Empty },
+    { name: "SeedPayments", options: {}, I: SeedPaymentsRequest, O: Empty }
 ]);

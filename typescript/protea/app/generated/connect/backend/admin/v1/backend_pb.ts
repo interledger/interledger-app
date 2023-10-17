@@ -4,7 +4,225 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+
+/**
+ * @generated from message backend.admin.v1.PaymentDetails
+ */
+export class PaymentDetails extends Message<PaymentDetails> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string public_id = 2;
+   */
+  publicId = "";
+
+  /**
+   * @generated from field: int32 state = 3;
+   */
+  state = 0;
+
+  /**
+   * @generated from field: string sender_id = 4;
+   */
+  senderId = "";
+
+  /**
+   * @generated from field: int32 sender_id_type = 5;
+   */
+  senderIdType = 0;
+
+  /**
+   * @generated from field: uint64 sender_amount = 6;
+   */
+  senderAmount = protoInt64.zero;
+
+  /**
+   * @generated from field: string sender_currency = 7;
+   */
+  senderCurrency = "";
+
+  /**
+   * @generated from field: string sender_account = 8;
+   */
+  senderAccount = "";
+
+  /**
+   * @generated from field: string receiver_id = 9;
+   */
+  receiverId = "";
+
+  /**
+   * @generated from field: int32 receiver_id_type = 10;
+   */
+  receiverIdType = 0;
+
+  /**
+   * @generated from field: uint64 receiver_amount = 11;
+   */
+  receiverAmount = protoInt64.zero;
+
+  /**
+   * @generated from field: string receiver_currency = 12;
+   */
+  receiverCurrency = "";
+
+  /**
+   * @generated from field: string receiver_account = 13;
+   */
+  receiverAccount = "";
+
+  /**
+   * @generated from field: string send_transaction_id = 14;
+   */
+  sendTransactionId = "";
+
+  /**
+   * @generated from field: string receive_transaction_id = 15;
+   */
+  receiveTransactionId = "";
+
+  /**
+   * @generated from field: string note = 16;
+   */
+  note = "";
+
+  /**
+   * @generated from field: bool three_ds_required = 17;
+   */
+  threeDsRequired = false;
+
+  /**
+   * @generated from field: string three_ds_id = 18;
+   */
+  threeDsId = "";
+
+  /**
+   * @generated from field: bool otp_required = 19;
+   */
+  otpRequired = false;
+
+  /**
+   * @generated from field: string otp = 20;
+   */
+  otp = "";
+
+  /**
+   * @generated from field: string ip_address = 21;
+   */
+  ipAddress = "";
+
+  /**
+   * @generated from field: int32 type = 22;
+   */
+  type = 0;
+
+  /**
+   * @generated from field: double fx_rate = 23;
+   */
+  fxRate = 0;
+
+  /**
+   * @generated from field: double fx_fee_percentage = 24;
+   */
+  fxFeePercentage = 0;
+
+  /**
+   * @generated from field: double protection_fee_percentage = 25;
+   */
+  protectionFeePercentage = 0;
+
+  constructor(data?: PartialMessage<PaymentDetails>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.PaymentDetails";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "public_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "state", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 4, name: "sender_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "sender_id_type", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 6, name: "sender_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "sender_currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "sender_account", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "receiver_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "receiver_id_type", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 11, name: "receiver_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 12, name: "receiver_currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: "receiver_account", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 14, name: "send_transaction_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 15, name: "receive_transaction_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 17, name: "three_ds_required", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 18, name: "three_ds_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 19, name: "otp_required", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 20, name: "otp", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 21, name: "ip_address", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 22, name: "type", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 23, name: "fx_rate", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 24, name: "fx_fee_percentage", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 25, name: "protection_fee_percentage", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentDetails {
+    return new PaymentDetails().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentDetails {
+    return new PaymentDetails().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentDetails {
+    return new PaymentDetails().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentDetails | PlainMessage<PaymentDetails> | undefined, b: PaymentDetails | PlainMessage<PaymentDetails> | undefined): boolean {
+    return proto3.util.equals(PaymentDetails, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.SeedPaymentsRequest
+ */
+export class SeedPaymentsRequest extends Message<SeedPaymentsRequest> {
+  /**
+   * @generated from field: repeated backend.admin.v1.PaymentDetails payments = 1;
+   */
+  payments: PaymentDetails[] = [];
+
+  constructor(data?: PartialMessage<SeedPaymentsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.SeedPaymentsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payments", kind: "message", T: PaymentDetails, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SeedPaymentsRequest {
+    return new SeedPaymentsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SeedPaymentsRequest {
+    return new SeedPaymentsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SeedPaymentsRequest {
+    return new SeedPaymentsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SeedPaymentsRequest | PlainMessage<SeedPaymentsRequest> | undefined, b: SeedPaymentsRequest | PlainMessage<SeedPaymentsRequest> | undefined): boolean {
+    return proto3.util.equals(SeedPaymentsRequest, a, b);
+  }
+}
 
 /**
  * @generated from message backend.admin.v1.SeedLinkedAccountsRequest

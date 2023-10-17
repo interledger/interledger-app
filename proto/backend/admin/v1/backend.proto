@@ -34,6 +34,39 @@ service Backend {
   rpc ClearIdentities(ClearIdentitiesRequest) returns (Empty);
   rpc SetKYCStatus(SetKYCStatusRequest) returns (Empty);
   rpc SeedLinkedAccounts(SeedLinkedAccountsRequest) returns (Empty);
+  rpc SeedPayments(SeedPaymentsRequest) returns (Empty);
+}
+
+message PaymentDetails {
+  string id = 1;
+  string public_id = 2;
+  int32 state = 3;
+  string sender_id = 4;
+  int32 sender_id_type = 5;
+  uint64 sender_amount = 6;
+  string sender_currency = 7;
+  string sender_account = 8;
+  string receiver_id = 9;
+  int32 receiver_id_type = 10;
+  uint64 receiver_amount = 11;
+  string receiver_currency = 12;
+  string receiver_account = 13;
+  string send_transaction_id = 14;
+  string receive_transaction_id = 15;
+  string note = 16;
+  bool three_ds_required = 17;
+  string three_ds_id = 18;
+  bool otp_required = 19;
+  string otp = 20;
+  string ip_address = 21;
+  int32 type = 22;
+  double fx_rate = 23;
+  double fx_fee_percentage = 24;
+  double protection_fee_percentage = 25;
+}
+
+message SeedPaymentsRequest {
+  repeated PaymentDetails payments = 1;
 }
 
 message SeedLinkedAccountsRequest {

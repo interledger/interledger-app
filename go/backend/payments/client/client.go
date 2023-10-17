@@ -11,13 +11,24 @@ import (
 )
 
 var _ payments.Client = client{}
+var _ payments.AdminClient = adminClient{}
 
 type client struct {
 	b ops.Backends
 }
 
+type adminClient struct {
+	b ops.AdminBackends
+}
+
 func New(b ops.Backends) payments.Client {
 	return &client{
+		b: b,
+	}
+}
+
+func NewAdmin(b ops.AdminBackends) payments.AdminClient {
+	return &adminClient{
 		b: b,
 	}
 }
@@ -62,6 +73,10 @@ func (c client) AdminListAwaitingSignal(ctx context.Context) ([]payments.Payment
 
 func (c client) SignalExternalPayoutComplete(ctx context.Context, id string, success bool) error {
 	return ops.SignalExternalPayoutComplete(ctx, c.b, id, success)
+}
+
+func (c adminClient) Seed(ctx context.Context, ps []payments.SeedPayment) ([]payments.SeedPayment, error) {
+	return ops.Seed(ctx, c.b, ps)
 }
 
 var maxRetries = 3

@@ -1128,3 +1128,101 @@ func NewSoftDescriptor(date time.Time) (string, error) {
 	// Trim key to 12 characters, we don't care about the last 4 bits
 	return key[:12], nil
 }
+
+func Seed(ctx context.Context, b AdminBackends, seedPs []payments.SeedPayment) ([]payments.SeedPayment, error) {
+	if len(seedPs) <= 0 {
+		return nil, fmt.Errorf("%w no payments to seed", payments.ErrInternal)
+	}
+
+	var dbps []dbPayment
+	for _, p := range seedPs {
+		if p.ID == "" {
+			p.ID = uuid.NewString()
+		}
+
+		dbps = append(dbps, dbPayment{
+			ID:                      p.ID,
+			PublicID:                p.PublicID,
+			State:                   p.State,
+			ThreeDSRequired:         p.ThreeDSRequired,
+			ThreeDSID:               db.NullStrFromStr(p.ThreeDSID),
+			SenderID:                p.SenderID,
+			SenderIDType:            p.SenderIDType,
+			SenderAmount:            p.SenderAmount,
+			SenderCurrency:          p.SenderCurrency,
+			SenderAccount:           db.NullStrFromStr(p.SenderAccount),
+			ReceiverID:              p.ReceiverID,
+			ReceiverIDType:          p.ReceiverIDType,
+			ReceiverAmount:          p.ReceiverAmount,
+			ReceiverCurrency:        p.ReceiverCurrency,
+			ReceiverAccount:         db.NullStrFromStr(p.ReceiverAccount),
+			SendTransactionID:       db.NullStrFromStr(p.SendTransactionID),
+			ReceiveTransactionID:    db.NullStrFromStr(p.ReceiveTransactionID),
+			Note:                    db.NullStrFromStr(p.Note),
+			OTPRequired:             p.OTPRequired,
+			OTP:                     db.NullStrFromStr(p.OTP),
+			IPAddress:               db.NullStrFromStr(p.IPAddress),
+			Type:                    p.Type,
+			FXRate:                  db.NullFloat64FromFloat64(p.FXRate),
+			FXFeePercentage:         db.NullFloat64FromFloat64(p.FXFeePercentage),
+			ProtectionFeePercentage: p.ProtectionFeePercentage,
+			CreatedAt:               p.CreatedAt,
+			UpdatedAt:               p.UpdatedAt,
+		})
+	}
+
+	stmnt := db.NewBatchInsert("payments", cols)
+	for _, f := range strings.Split(cols, ",") {
+		stmnt.Returning(strings.TrimSpace(f))
+	}
+
+	rows, err := b.DB().NamedQueryContext(
+		ctx,
+		stmnt.GetStatement(),
+		dbps,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	var ret []payments.SeedPayment
+	for rows.Next() {
+		var dbp dbPayment
+		err = rows.StructScan(&dbp)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
+
+		ret = append(ret, payments.SeedPayment{
+			ID:                      dbp.ID,
+			PublicID:                dbp.PublicID,
+			State:                   dbp.State,
+			ThreeDSRequired:         dbp.ThreeDSRequired,
+			ThreeDSID:               dbp.ThreeDSID.String,
+			SenderID:                dbp.SenderID,
+			SenderIDType:            dbp.SenderIDType,
+			SenderAmount:            dbp.SenderAmount,
+			SenderCurrency:          dbp.SenderCurrency,
+			SenderAccount:           dbp.SenderAccount.String,
+			ReceiverID:              dbp.ReceiverID,
+			ReceiverIDType:          dbp.ReceiverIDType,
+			ReceiverAmount:          dbp.ReceiverAmount,
+			ReceiverCurrency:        dbp.ReceiverCurrency,
+			ReceiverAccount:         dbp.ReceiverAccount.String,
+			SendTransactionID:       dbp.SendTransactionID.String,
+			ReceiveTransactionID:    dbp.ReceiveTransactionID.String,
+			Note:                    dbp.Note.String,
+			OTPRequired:             dbp.OTPRequired,
+			OTP:                     dbp.OTP.String,
+			CreatedAt:               dbp.CreatedAt,
+			UpdatedAt:               dbp.UpdatedAt,
+			IPAddress:               dbp.IPAddress.String,
+			Type:                    dbp.Type,
+			FXRate:                  dbp.FXRate.Float64,
+			FXFeePercentage:         dbp.FXFeePercentage.Float64,
+			ProtectionFeePercentage: dbp.ProtectionFeePercentage,
+		})
+	}
+
+	return ret, nil
+}

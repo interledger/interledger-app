@@ -15,3 +15,7 @@ type Client interface {
 
 	AdminListAwaitingSignal(ctx context.Context) ([]Payment, error)
 }
+
+type AdminClient interface {
+	Seed(ctx context.Context, payments []SeedPayment) ([]SeedPayment, error)
+}

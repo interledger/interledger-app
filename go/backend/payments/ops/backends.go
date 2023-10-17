@@ -39,6 +39,18 @@ type Backends interface {
 	Rafiki() rafiki.Client
 }
 
+type AdminBackends interface {
+	DB() *sqlx.DB
+}
+
+type TestAdminBackends struct {
+	DBC *sqlx.DB
+}
+
+func (t TestAdminBackends) DB() *sqlx.DB {
+	return t.DBC
+}
+
 type TestBackends struct {
 	DBC *sqlx.DB
 	val *validator.Validate
