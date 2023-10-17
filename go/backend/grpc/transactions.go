@@ -100,6 +100,7 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) *
 
 func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 	amt := tx.Amount.Format()
+	subTotal := amt
 
 	// transform identity types to twitter/wallet for the frontend
 	destinationIdentityType := tx.DestinationIdentityType
@@ -113,6 +114,13 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 	fees := currency.FromFloat64(0, tx.Amount.Currency)
 
 	paymentProtection := tx.PaymentProtectionAmount()
+
+	// For outgoing transactions we need to minus the payment protection fee from the amount for the subtotal
+	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment || tx.Type == transactions.TransactionTypeOutgoing {
+		subTotalAmount := currency.FromUInt64(tx.Amount.Value-paymentProtection.Value, tx.Amount.Currency)
+		subTotal = subTotalAmount.Format()
+	}
+
 	return &pb.Transaction{
 		Id:                      tx.ID,
 		Type:                    string(tx.Type),
@@ -126,7 +134,7 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 		FormattedAmount:         amt,
 		FormattedTime:           tx.Timestamp.Format("15:04"),
 		FormattedDate:           tx.Timestamp.Format("02 Jan 2006"),
-		Subtotal:                amt,
+		Subtotal:                subTotal,
 		Fees:                    fees.Format(),
 		AccountTitle:            tx.LinkedAccountTitle,
 		Reference:               tx.Reference,
