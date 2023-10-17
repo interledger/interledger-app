@@ -10,19 +10,19 @@ import (
 )
 
 type LinkedAccount struct {
-	ID                  string
-	WalletID            string `db:"wallet_id"`
-	Name                string
-	Nickname            string `db:"nickname"`
-	Mask                string
-	Provider            string
-	ProviderID          string `db:"provider_id"`
-	Type                string
-	CanSend             bool `db:"can_send"`
-	CanReceive          bool `db:"can_receive"`
-	DefaultReceive      bool `db:"default_receive"`
-	DefaultSend         bool `db:"default_send"`
-	State               State
+	ID                  string            `db:"id"`
+	WalletID            string            `db:"wallet_id"`
+	Name                string            `db:"name"`
+	Nickname            string            `db:"nickname"`
+	Mask                string            `db:"mask"`
+	Provider            string            `db:"provider"`
+	ProviderID          string            `db:"provider_id"`
+	Type                string            `db:"type"`
+	CanSend             bool              `db:"can_send"`
+	CanReceive          bool              `db:"can_receive"`
+	DefaultReceive      bool              `db:"default_receive"`
+	DefaultSend         bool              `db:"default_send"`
+	State               State             `db:"state"`
 	SendCountry         country.Country   `db:"send_country"`
 	SendCurrency        currency.Currency `db:"send_currency"`
 	SendAvailability    string            `db:"send_availability"`

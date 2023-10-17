@@ -113,63 +113,48 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 		return nil, nil
 	}
 
+	var insertLas []linkedaccounts.LinkedAccount
 	for _, arg := range args {
 		err := b.Validator().Struct(arg)
 		if err != nil {
 			return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInvalidArgument, err.Error())
 		}
-	}
 
-	var placeholders []string
-	var values []interface{}
-	for i, arg := range args {
-		placeholders = append(placeholders, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d,$%d, $%d, $%d, $%d, $%d, $%d, $%d, $%d)", i*insertColumns+1, i*insertColumns+2, i*insertColumns+3, i*insertColumns+4, i*insertColumns+5, i*insertColumns+6, i*insertColumns+7, i*insertColumns+8, i*insertColumns+9, i*insertColumns+10, i*insertColumns+11, i*insertColumns+12, i*insertColumns+13, i*insertColumns+14, i*insertColumns+15, i*insertColumns+16, i*insertColumns+17, i*insertColumns+18, i*insertColumns+19))
-
-		linkedAccountID := arg.ID
-		if linkedAccountID == "" {
-			linkedAccountID = uuid.NewString()
-		}
 		state := arg.State
 		if state == "" {
 			state = linkedaccounts.Verified
 		}
 
-		values = append(
-			values,
-			linkedAccountID,
-			arg.WalletID,
-			arg.Name,
-			arg.Nickname,
-			arg.Mask,
-			arg.Provider,
-			arg.ProviderID,
-			arg.Type,
-			arg.CanSend,
-			arg.CanReceive,
-			state,
-			arg.SendCountry,
-			arg.SendCurrency,
-			arg.SendNetwork,
-			arg.SendAvailability,
-			arg.ReceiveCountry,
-			arg.ReceiveCurrency,
-			arg.ReceiveNetwork,
-			arg.ReceiveAvailability)
+		insertLas = append(insertLas, linkedaccounts.LinkedAccount{
+			ID:                  arg.ID,
+			WalletID:            arg.WalletID,
+			Name:                arg.Name,
+			Nickname:            arg.Nickname,
+			Mask:                arg.Mask,
+			Provider:            arg.Provider,
+			ProviderID:          arg.ProviderID,
+			Type:                arg.Type,
+			CanSend:             arg.CanSend,
+			CanReceive:          arg.CanReceive,
+			State:               state,
+			SendCountry:         arg.SendCountry,
+			SendCurrency:        arg.SendCurrency,
+			SendAvailability:    string(arg.SendAvailability),
+			SendNetwork:         arg.SendNetwork,
+			ReceiveCountry:      arg.ReceiveCountry,
+			ReceiveCurrency:     arg.ReceiveCurrency,
+			ReceiveAvailability: string(arg.ReceiveAvailability),
+			ReceiveNetwork:      arg.ReceiveNetwork,
+		})
 	}
 
-	var linkedAccounts []linkedaccounts.LinkedAccount
-	err := b.DB().SelectContext(
-		ctx,
-		&linkedAccounts,
-		fmt.Sprintf("INSERT INTO linked_accounts (%s) VALUES %s RETURNING %s;", insertFields, strings.Join(placeholders, ","), allFields),
-		values...,
-	)
+	las, err := createBatch(ctx, b, insertLas)
 	if err != nil {
-		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err.Error())
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
 	}
 
 	notifiedWallets := map[string]bool{}
-	for _, la := range linkedAccounts {
+	for _, la := range las {
 		notified := notifiedWallets[la.WalletID]
 		if notified {
 			continue
@@ -190,7 +175,7 @@ func CreateBatch(ctx context.Context, b Backends, args []linkedaccounts.CreateAr
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", la.Name, la.Provider, env.AdminURL()+"/wallet/"+la.WalletID+"/linked-accounts"))
 	}
 
-	return linkedAccounts, nil
+	return las, nil
 }
 
 func Get(ctx context.Context, b Backends, id string) (*linkedaccounts.LinkedAccount, error) {
@@ -664,4 +649,46 @@ func SetDefaultSend(ctx context.Context, b Backends, id string) (*linkedaccounts
 	}
 
 	return Get(ctx, b, id)
+}
+
+func createBatch(ctx context.Context, b AdminBackends, las []linkedaccounts.LinkedAccount) ([]linkedaccounts.LinkedAccount, error) {
+	if len(las) <= 0 {
+		return nil, nil
+	}
+
+	for i, la := range las {
+		if la.ID == "" {
+			las[i].ID = uuid.NewString()
+		}
+	}
+
+	stmnt := db.NewBatchInsert("linked_accounts", insertFields)
+	for _, f := range strings.Split(allFields, ",") {
+		stmnt.Returning(strings.TrimSpace(f))
+	}
+
+	rows, err := b.DB().NamedQueryContext(
+		ctx,
+		stmnt.GetStatement(),
+		las,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	var dbLas []linkedaccounts.LinkedAccount
+	for rows.Next() {
+		var la linkedaccounts.LinkedAccount
+		err = rows.StructScan(&la)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+		}
+		dbLas = append(dbLas, la)
+	}
+
+	return dbLas, nil
+}
+
+func Seed(ctx context.Context, b AdminBackends, las []linkedaccounts.LinkedAccount) ([]linkedaccounts.LinkedAccount, error) {
+	return createBatch(ctx, b, las)
 }

@@ -45,6 +45,7 @@ type BackendClient interface {
 	ListPaymentsAwaitingSignal(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPaymentsAwaitingSignalResponse, error)
 	ClearIdentities(ctx context.Context, in *ClearIdentitiesRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetKYCStatus(ctx context.Context, in *SetKYCStatusRequest, opts ...grpc.CallOption) (*Empty, error)
+	SeedLinkedAccounts(ctx context.Context, in *SeedLinkedAccountsRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -276,6 +277,15 @@ func (c *backendClient) SetKYCStatus(ctx context.Context, in *SetKYCStatusReques
 	return out, nil
 }
 
+func (c *backendClient) SeedLinkedAccounts(ctx context.Context, in *SeedLinkedAccountsRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/SeedLinkedAccounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -302,6 +312,7 @@ type BackendServer interface {
 	ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error)
 	ClearIdentities(context.Context, *ClearIdentitiesRequest) (*Empty, error)
 	SetKYCStatus(context.Context, *SetKYCStatusRequest) (*Empty, error)
+	SeedLinkedAccounts(context.Context, *SeedLinkedAccountsRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -373,6 +384,9 @@ func (UnimplementedBackendServer) ClearIdentities(context.Context, *ClearIdentit
 }
 func (UnimplementedBackendServer) SetKYCStatus(context.Context, *SetKYCStatusRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetKYCStatus not implemented")
+}
+func (UnimplementedBackendServer) SeedLinkedAccounts(context.Context, *SeedLinkedAccountsRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SeedLinkedAccounts not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -785,6 +799,24 @@ func _Backend_SetKYCStatus_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_SeedLinkedAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SeedLinkedAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).SeedLinkedAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/SeedLinkedAccounts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).SeedLinkedAccounts(ctx, req.(*SeedLinkedAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -875,6 +907,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetKYCStatus",
 			Handler:    _Backend_SetKYCStatus_Handler,
+		},
+		{
+			MethodName: "SeedLinkedAccounts",
+			Handler:    _Backend_SeedLinkedAccounts_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

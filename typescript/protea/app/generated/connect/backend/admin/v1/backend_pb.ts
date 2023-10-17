@@ -7,6 +7,43 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.SeedLinkedAccountsRequest
+ */
+export class SeedLinkedAccountsRequest extends Message<SeedLinkedAccountsRequest> {
+  /**
+   * @generated from field: repeated backend.admin.v1.LinkedAccount linked_accounts = 1;
+   */
+  linkedAccounts: LinkedAccount[] = [];
+
+  constructor(data?: PartialMessage<SeedLinkedAccountsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.SeedLinkedAccountsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "linked_accounts", kind: "message", T: LinkedAccount, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SeedLinkedAccountsRequest {
+    return new SeedLinkedAccountsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SeedLinkedAccountsRequest {
+    return new SeedLinkedAccountsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SeedLinkedAccountsRequest {
+    return new SeedLinkedAccountsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SeedLinkedAccountsRequest | PlainMessage<SeedLinkedAccountsRequest> | undefined, b: SeedLinkedAccountsRequest | PlainMessage<SeedLinkedAccountsRequest> | undefined): boolean {
+    return proto3.util.equals(SeedLinkedAccountsRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.SetKYCStatusRequest
  */
 export class SetKYCStatusRequest extends Message<SetKYCStatusRequest> {
@@ -1050,14 +1087,14 @@ export class LinkedAccount extends Message<LinkedAccount> {
   state = "";
 
   /**
-   * @generated from field: string canSend = 10;
+   * @generated from field: bool canSend = 10;
    */
-  canSend = "";
+  canSend = false;
 
   /**
-   * @generated from field: string canReceive = 11;
+   * @generated from field: bool canReceive = 11;
    */
-  canReceive = "";
+  canReceive = false;
 
   /**
    * e.g. USD
@@ -1098,6 +1135,26 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   defaultReceive = false;
 
+  /**
+   * @generated from field: string SendAvailability = 19;
+   */
+  SendAvailability = "";
+
+  /**
+   * @generated from field: string SendNetwork = 20;
+   */
+  SendNetwork = "";
+
+  /**
+   * @generated from field: string ReceiveAvailability = 21;
+   */
+  ReceiveAvailability = "";
+
+  /**
+   * @generated from field: string ReceiveNetwork = 22;
+   */
+  ReceiveNetwork = "";
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1115,8 +1172,8 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 7, name: "providerID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "canSend", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 11, name: "canReceive", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "canSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 11, name: "canReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 12, name: "sendCurrencyCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 13, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 14, name: "receiveCurrencyCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
@@ -1124,6 +1181,10 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 16, name: "deletedAt", kind: "message", T: Timestamp },
     { no: 17, name: "defaultSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 18, name: "defaultReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 19, name: "SendAvailability", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 20, name: "SendNetwork", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 21, name: "ReceiveAvailability", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 22, name: "ReceiveNetwork", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {

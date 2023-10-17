@@ -318,46 +318,47 @@ func startWorker(args *cli.StartArgs) {
 }
 
 type backends struct {
-	val             *validator.Validate
-	db              *sqlx.DB
-	twitter         twitter.Client
-	adminAuth       auth.Service
-	agreements      agreements.Client
-	linkedaccounts  linkedaccounts.Client
-	healthcheck     healthcheck.Service
-	signup          signup.Client
-	supportTickets  supporttickets.Client
-	temporal        client.Client
-	twilio          _twilio.Service
-	users           user.Client
-	waitlist        waitlist.Client
-	kyc             kyc.Client
-	keys            keys.Client
-	email           email.Client
-	transactions    transactions.Client
-	notify          notify.Client
-	statements      statements.Client
-	auth            authorisation.InternalClient
-	analytics       analytics.Client
-	contacts        contacts.Client
-	limits          limits.Client
-	ident           identities.Client
-	mx              mx.Client
-	gmt             gmt.Client
-	tabapay         tabapay.Client
-	vault           vault.Client
-	basistheory     basistheory.Client
-	feat            features.Client
-	img             images.Client
-	wallet          wallets.Client
-	payment         payments.Client
-	discord         discord.Client
-	dynamicforms    dynamicforms.Client
-	slack           slack.Client
-	rafiki          rafiki.Client
-	aws             aws.Client
-	adminIdentities identities.AdminClient
-	adminKYC        kyc.AdminClient
+	val                 *validator.Validate
+	db                  *sqlx.DB
+	twitter             twitter.Client
+	adminAuth           auth.Service
+	agreements          agreements.Client
+	linkedaccounts      linkedaccounts.Client
+	healthcheck         healthcheck.Service
+	signup              signup.Client
+	supportTickets      supporttickets.Client
+	temporal            client.Client
+	twilio              _twilio.Service
+	users               user.Client
+	waitlist            waitlist.Client
+	kyc                 kyc.Client
+	keys                keys.Client
+	email               email.Client
+	transactions        transactions.Client
+	notify              notify.Client
+	statements          statements.Client
+	auth                authorisation.InternalClient
+	analytics           analytics.Client
+	contacts            contacts.Client
+	limits              limits.Client
+	ident               identities.Client
+	mx                  mx.Client
+	gmt                 gmt.Client
+	tabapay             tabapay.Client
+	vault               vault.Client
+	basistheory         basistheory.Client
+	feat                features.Client
+	img                 images.Client
+	wallet              wallets.Client
+	payment             payments.Client
+	discord             discord.Client
+	dynamicforms        dynamicforms.Client
+	slack               slack.Client
+	rafiki              rafiki.Client
+	aws                 aws.Client
+	adminIdentities     identities.AdminClient
+	adminKYC            kyc.AdminClient
+	adminLinkedaccounts linkedaccounts.AdminClient
 }
 
 func (b backends) AdminIdentities() identities.AdminClient {
@@ -366,6 +367,10 @@ func (b backends) AdminIdentities() identities.AdminClient {
 
 func (b backends) AdminKYC() kyc.AdminClient {
 	return b.adminKYC
+}
+
+func (b backends) AdminLinkedAccounts() linkedaccounts.AdminClient {
+	return b.adminLinkedaccounts
 }
 
 func (b backends) AWS() aws.Client {
@@ -551,6 +556,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.adminIdentities = identities_client.NewAdmin(b)
 
 	b.adminKYC = kyc_client.NewAdmin(b)
+
+	b.adminLinkedaccounts = linked_account_client.NewAdmin(b)
 
 	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 

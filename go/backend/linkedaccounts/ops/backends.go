@@ -19,3 +19,7 @@ type Backends interface {
 	KYC() kyc.Client
 	Payments() payments.Client
 }
+
+type AdminBackends interface {
+	DB() *sqlx.DB
+}

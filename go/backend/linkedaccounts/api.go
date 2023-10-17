@@ -29,3 +29,7 @@ type Client interface {
 	ListIncompleteReviews(ctx context.Context, pagination db.Pagination) ([]Review, error)
 	CompleteReview(ctx context.Context, args CompleteReviewArgs) (*Review, error)
 }
+
+type AdminClient interface {
+	Seed(ctx context.Context, las []LinkedAccount) ([]LinkedAccount, error)
+}

@@ -15,6 +15,15 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.SeedLinkedAccountsRequest
+ */
+export interface SeedLinkedAccountsRequest {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.LinkedAccount linked_accounts = 1;
+     */
+    linkedAccounts: LinkedAccount[];
+}
+/**
  * @generated from protobuf message backend.admin.v1.SetKYCStatusRequest
  */
 export interface SetKYCStatusRequest {
@@ -403,13 +412,13 @@ export interface LinkedAccount {
      */
     state: string;
     /**
-     * @generated from protobuf field: string canSend = 10;
+     * @generated from protobuf field: bool canSend = 10;
      */
-    canSend: string;
+    canSend: boolean;
     /**
-     * @generated from protobuf field: string canReceive = 11;
+     * @generated from protobuf field: bool canReceive = 11;
      */
-    canReceive: string;
+    canReceive: boolean;
     /**
      * @generated from protobuf field: string sendCurrencyCode = 12;
      */
@@ -438,6 +447,22 @@ export interface LinkedAccount {
      * @generated from protobuf field: bool defaultReceive = 18;
      */
     defaultReceive: boolean;
+    /**
+     * @generated from protobuf field: string SendAvailability = 19 [json_name = "SendAvailability"];
+     */
+    sendAvailability: string;
+    /**
+     * @generated from protobuf field: string SendNetwork = 20 [json_name = "SendNetwork"];
+     */
+    sendNetwork: string;
+    /**
+     * @generated from protobuf field: string ReceiveAvailability = 21 [json_name = "ReceiveAvailability"];
+     */
+    receiveAvailability: string;
+    /**
+     * @generated from protobuf field: string ReceiveNetwork = 22 [json_name = "ReceiveNetwork"];
+     */
+    receiveNetwork: string;
 }
 /**
  * @generated from protobuf message backend.admin.v1.GetTransactionDetailsRequest
@@ -868,6 +893,53 @@ export interface FormSubmissionDetails {
      */
     timestamp?: Timestamp;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class SeedLinkedAccountsRequest$Type extends MessageType<SeedLinkedAccountsRequest> {
+    constructor() {
+        super("backend.admin.v1.SeedLinkedAccountsRequest", [
+            { no: 1, name: "linked_accounts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => LinkedAccount }
+        ]);
+    }
+    create(value?: PartialMessage<SeedLinkedAccountsRequest>): SeedLinkedAccountsRequest {
+        const message = { linkedAccounts: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SeedLinkedAccountsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SeedLinkedAccountsRequest): SeedLinkedAccountsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.LinkedAccount linked_accounts */ 1:
+                    message.linkedAccounts.push(LinkedAccount.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SeedLinkedAccountsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.LinkedAccount linked_accounts = 1; */
+        for (let i = 0; i < message.linkedAccounts.length; i++)
+            LinkedAccount.internalBinaryWrite(message.linkedAccounts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.SeedLinkedAccountsRequest
+ */
+export const SeedLinkedAccountsRequest = new SeedLinkedAccountsRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SetKYCStatusRequest$Type extends MessageType<SetKYCStatusRequest> {
     constructor() {
@@ -2101,19 +2173,23 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 7, name: "providerID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 8, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "canSend", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "canReceive", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "canSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 11, name: "canReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 12, name: "sendCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 13, name: "sendCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 14, name: "receiveCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 15, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 16, name: "deletedAt", kind: "message", T: () => Timestamp },
             { no: 17, name: "defaultSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 18, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 18, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 19, name: "SendAvailability", kind: "scalar", jsonName: "SendAvailability", T: 9 /*ScalarType.STRING*/ },
+            { no: 20, name: "SendNetwork", kind: "scalar", jsonName: "SendNetwork", T: 9 /*ScalarType.STRING*/ },
+            { no: 21, name: "ReceiveAvailability", kind: "scalar", jsonName: "ReceiveAvailability", T: 9 /*ScalarType.STRING*/ },
+            { no: 22, name: "ReceiveNetwork", kind: "scalar", jsonName: "ReceiveNetwork", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "", canSend: "", canReceive: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false };
+        const message = { id: "", walletID: "", name: "", nickname: "", mask: "", provider: "", providerID: "", type: "", state: "", canSend: false, canReceive: false, sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false, sendAvailability: "", sendNetwork: "", receiveAvailability: "", receiveNetwork: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -2151,11 +2227,11 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                 case /* string state */ 9:
                     message.state = reader.string();
                     break;
-                case /* string canSend */ 10:
-                    message.canSend = reader.string();
+                case /* bool canSend */ 10:
+                    message.canSend = reader.bool();
                     break;
-                case /* string canReceive */ 11:
-                    message.canReceive = reader.string();
+                case /* bool canReceive */ 11:
+                    message.canReceive = reader.bool();
                     break;
                 case /* string sendCurrencyCode */ 12:
                     message.sendCurrencyCode = reader.string();
@@ -2177,6 +2253,18 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* bool defaultReceive */ 18:
                     message.defaultReceive = reader.bool();
+                    break;
+                case /* string SendAvailability = 19 [json_name = "SendAvailability"];*/ 19:
+                    message.sendAvailability = reader.string();
+                    break;
+                case /* string SendNetwork = 20 [json_name = "SendNetwork"];*/ 20:
+                    message.sendNetwork = reader.string();
+                    break;
+                case /* string ReceiveAvailability = 21 [json_name = "ReceiveAvailability"];*/ 21:
+                    message.receiveAvailability = reader.string();
+                    break;
+                case /* string ReceiveNetwork = 22 [json_name = "ReceiveNetwork"];*/ 22:
+                    message.receiveNetwork = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2217,12 +2305,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* string state = 9; */
         if (message.state !== "")
             writer.tag(9, WireType.LengthDelimited).string(message.state);
-        /* string canSend = 10; */
-        if (message.canSend !== "")
-            writer.tag(10, WireType.LengthDelimited).string(message.canSend);
-        /* string canReceive = 11; */
-        if (message.canReceive !== "")
-            writer.tag(11, WireType.LengthDelimited).string(message.canReceive);
+        /* bool canSend = 10; */
+        if (message.canSend !== false)
+            writer.tag(10, WireType.Varint).bool(message.canSend);
+        /* bool canReceive = 11; */
+        if (message.canReceive !== false)
+            writer.tag(11, WireType.Varint).bool(message.canReceive);
         /* string sendCurrencyCode = 12; */
         if (message.sendCurrencyCode !== "")
             writer.tag(12, WireType.LengthDelimited).string(message.sendCurrencyCode);
@@ -2244,6 +2332,18 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* bool defaultReceive = 18; */
         if (message.defaultReceive !== false)
             writer.tag(18, WireType.Varint).bool(message.defaultReceive);
+        /* string SendAvailability = 19 [json_name = "SendAvailability"]; */
+        if (message.sendAvailability !== "")
+            writer.tag(19, WireType.LengthDelimited).string(message.sendAvailability);
+        /* string SendNetwork = 20 [json_name = "SendNetwork"]; */
+        if (message.sendNetwork !== "")
+            writer.tag(20, WireType.LengthDelimited).string(message.sendNetwork);
+        /* string ReceiveAvailability = 21 [json_name = "ReceiveAvailability"]; */
+        if (message.receiveAvailability !== "")
+            writer.tag(21, WireType.LengthDelimited).string(message.receiveAvailability);
+        /* string ReceiveNetwork = 22 [json_name = "ReceiveNetwork"]; */
+        if (message.receiveNetwork !== "")
+            writer.tag(22, WireType.LengthDelimited).string(message.receiveNetwork);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3811,5 +3911,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse },
     { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse },
     { name: "ClearIdentities", options: {}, I: ClearIdentitiesRequest, O: Empty },
-    { name: "SetKYCStatus", options: {}, I: SetKYCStatusRequest, O: Empty }
+    { name: "SetKYCStatus", options: {}, I: SetKYCStatusRequest, O: Empty },
+    { name: "SeedLinkedAccounts", options: {}, I: SeedLinkedAccountsRequest, O: Empty }
 ]);

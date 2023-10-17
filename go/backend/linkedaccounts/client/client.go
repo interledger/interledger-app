@@ -12,13 +12,24 @@ import (
 )
 
 var _ linkedaccounts.Client = client{}
+var _ linkedaccounts.AdminClient = adminClient{}
 
 type client struct {
 	b ops.Backends
 }
 
+type adminClient struct {
+	b ops.AdminBackends
+}
+
 func New(b ops.Backends) linkedaccounts.Client {
 	return &client{
+		b: b,
+	}
+}
+
+func NewAdmin(b ops.AdminBackends) linkedaccounts.AdminClient {
+	return &adminClient{
 		b: b,
 	}
 }
@@ -158,4 +169,8 @@ func (c client) SetDefaultSend(ctx context.Context, id string) (*linkedaccounts.
 
 func (c client) SetDefaultReceive(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
 	return ops.SetDefaultReceive(ctx, c.b, id)
+}
+
+func (c adminClient) Seed(ctx context.Context, las []linkedaccounts.LinkedAccount) ([]linkedaccounts.LinkedAccount, error) {
+	return ops.Seed(ctx, c.b, las)
 }

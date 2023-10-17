@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { AllowWaitlistSignupRequest, ClearIdentitiesRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SetKYCStatusRequest, WalletDetails } from "./backend_pb.js";
+import { AllowWaitlistSignupRequest, ClearIdentitiesRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SeedLinkedAccountsRequest, SetKYCStatusRequest, WalletDetails } from "./backend_pb.js";
 
 /**
  * @generated from service backend.admin.v1.Backend
@@ -207,6 +207,15 @@ export const Backend = {
     setKYCStatus: {
       name: "SetKYCStatus",
       I: SetKYCStatusRequest,
+      O: Empty$1,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.SeedLinkedAccounts
+     */
+    seedLinkedAccounts: {
+      name: "SeedLinkedAccounts",
+      I: SeedLinkedAccountsRequest,
       O: Empty$1,
       kind: MethodKind.Unary,
     },

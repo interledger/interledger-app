@@ -33,6 +33,11 @@ service Backend {
   rpc ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (ListPaymentsAwaitingSignalResponse);
   rpc ClearIdentities(ClearIdentitiesRequest) returns (Empty);
   rpc SetKYCStatus(SetKYCStatusRequest) returns (Empty);
+  rpc SeedLinkedAccounts(SeedLinkedAccountsRequest) returns (Empty);
+}
+
+message SeedLinkedAccountsRequest {
+  repeated LinkedAccount linked_accounts = 1;
 }
 
 message SetKYCStatusRequest {
@@ -166,8 +171,8 @@ message LinkedAccount {
   string providerID = 7;
   string type = 8;
   string state = 9;
-  string canSend = 10;
-  string canReceive = 11;
+  bool canSend = 10;
+  bool canReceive = 11;
   string sendCurrencyCode = 12; // e.g. USD
   string sendCurrencyCountryCode = 13; // e.g. US
   string receiveCurrencyCode = 14;
@@ -175,6 +180,10 @@ message LinkedAccount {
   google.protobuf.Timestamp deletedAt = 16;
   bool defaultSend = 17;
   bool defaultReceive = 18;
+  string SendAvailability = 19;
+  string SendNetwork = 20;
+  string ReceiveAvailability = 21;
+  string ReceiveNetwork = 22;
 }
 
 message GetTransactionDetailsRequest {
