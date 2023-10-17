@@ -698,3 +698,60 @@ func GenerateTransactionTitle(ctx context.Context, wc wallets.Client, args Gener
 
 	return title
 }
+
+func SeedTransactions(ctx context.Context, b AdminBackends, txs []transactions.Transaction) ([]transactions.Transaction, error) {
+	if len(txs) <= 0 {
+		return nil, fmt.Errorf("%w no transactions to seed", transactions.ErrInvalidArgument)
+	}
+
+	var dbTxs []dbTransaction
+	for _, tx := range txs {
+		if tx.ID == "" {
+			tx.ID = uuid.NewString()
+		}
+
+		dbTxs = append(dbTxs, dbTransaction{
+			ID:                             tx.ID,
+			ForeignID:                      db.NullStrFromStr(tx.ForeignID),
+			Type:                           tx.Type,
+			State:                          tx.State,
+			Provider:                       tx.Provider,
+			Note:                           db.NullStrFromStr(tx.Note),
+			Source:                         db.NullStrFromStr(tx.Source),
+			Destination:                    db.NullStrFromStr(tx.Destination),
+			Title:                          db.NullStrFromStr(tx.Title),
+			Amount:                         tx.Amount.Value,
+			Scale:                          tx.Amount.Scale,
+			Asset:                          tx.Amount.Currency.String(),
+			Timestamp:                      tx.Timestamp,
+			LinkedAccountTitle:             db.NullStrFromStr(tx.LinkedAccountTitle),
+			DestinationIdentityType:        db.NullStrFromStr(tx.DestinationIdentityType),
+			DestinationIdentity:            db.NullStrFromStr(tx.DestinationIdentity),
+			Reference:                      db.NullStrFromStr(tx.Reference),
+			RefundState:                    tx.RefundState,
+			PaymentProtectionFeePercentage: tx.PaymentProtectionFeePercentage,
+		})
+	}
+
+	stmnt := db.NewBatchInsert("transactions", transactionCols)
+	for _, f := range strings.Split(transactionCols, ",") {
+		stmnt.Returning(strings.TrimSpace(f))
+	}
+
+	rows, err := b.DB().NamedQueryContext(ctx, stmnt.GetStatement(), dbTxs)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+	}
+
+	var seededTxs []transactions.Transaction
+	for rows.Next() {
+		var tx dbTransaction
+		err = rows.StructScan(&tx)
+		if err != nil {
+			return nil, fmt.Errorf("%w %s", transactions.ErrInternal, err)
+		}
+		seededTxs = append(seededTxs, transformTransaction(tx))
+	}
+
+	return seededTxs, nil
+}

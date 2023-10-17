@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { SeedTransactionsRequest } from "./backend";
 import type { SeedPaymentsRequest } from "./backend";
 import type { SeedLinkedAccountsRequest } from "./backend";
 import type { SetKYCStatusRequest } from "./backend";
@@ -146,6 +147,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: SeedPayments(backend.admin.v1.SeedPaymentsRequest) returns (backend.admin.v1.Empty);
      */
     seedPayments(input: SeedPaymentsRequest, options?: RpcOptions): UnaryCall<SeedPaymentsRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: SeedTransactions(backend.admin.v1.SeedTransactionsRequest) returns (backend.admin.v1.Empty);
+     */
+    seedTransactions(input: SeedTransactionsRequest, options?: RpcOptions): UnaryCall<SeedTransactionsRequest, Empty$>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -323,5 +328,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     seedPayments(input: SeedPaymentsRequest, options?: RpcOptions): UnaryCall<SeedPaymentsRequest, Empty$> {
         const method = this.methods[23], opt = this._transport.mergeOptions(options);
         return stackIntercept<SeedPaymentsRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SeedTransactions(backend.admin.v1.SeedTransactionsRequest) returns (backend.admin.v1.Empty);
+     */
+    seedTransactions(input: SeedTransactionsRequest, options?: RpcOptions): UnaryCall<SeedTransactionsRequest, Empty$> {
+        const method = this.methods[24], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SeedTransactionsRequest, Empty$>("unary", this._transport, method, opt, input);
     }
 }

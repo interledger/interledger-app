@@ -43,3 +43,7 @@ type Client interface {
 	GetTransactionByForeignID(ctx context.Context, walletID string, foreignID string) (*Transaction, error)
 	ListTransfers(ctx context.Context, trxID string) ([]Transfer, error)
 }
+
+type AdminClient interface {
+	Seed(ctx context.Context, txs []Transaction) ([]Transaction, error)
+}

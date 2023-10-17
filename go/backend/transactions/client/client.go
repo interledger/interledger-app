@@ -13,13 +13,24 @@ import (
 )
 
 var _ transactions.Client = &client{}
+var _ transactions.AdminClient = &adminClient{}
 
 type client struct {
 	b ops.Backends
 }
 
+type adminClient struct {
+	b ops.Backends
+}
+
 func New(b ops.Backends) transactions.Client {
 	return &client{
+		b: b,
+	}
+}
+
+func NewAdmin(b ops.Backends) transactions.AdminClient {
+	return &adminClient{
 		b: b,
 	}
 }
@@ -122,4 +133,8 @@ func (c *client) CountSendTransactions(ctx context.Context, walletID string) (in
 
 func (c *client) ListAll(ctx context.Context, page db.Pagination) ([]transactions.Transaction, error) {
 	return ops.ListAllTransactions(ctx, c.b, page)
+}
+
+func (c *adminClient) Seed(ctx context.Context, txs []transactions.Transaction) ([]transactions.Transaction, error) {
+	return ops.SeedTransactions(ctx, c.b, txs)
 }

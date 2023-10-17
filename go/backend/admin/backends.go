@@ -35,4 +35,5 @@ type Backends interface {
 	AdminKYC() kyc.AdminClient
 	AdminLinkedAccounts() linkedaccounts.AdminClient
 	AdminPayments() payments.AdminClient
+	AdminTransactions() transactions.AdminClient
 }

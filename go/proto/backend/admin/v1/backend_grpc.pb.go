@@ -47,6 +47,7 @@ type BackendClient interface {
 	SetKYCStatus(ctx context.Context, in *SetKYCStatusRequest, opts ...grpc.CallOption) (*Empty, error)
 	SeedLinkedAccounts(ctx context.Context, in *SeedLinkedAccountsRequest, opts ...grpc.CallOption) (*Empty, error)
 	SeedPayments(ctx context.Context, in *SeedPaymentsRequest, opts ...grpc.CallOption) (*Empty, error)
+	SeedTransactions(ctx context.Context, in *SeedTransactionsRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -296,6 +297,15 @@ func (c *backendClient) SeedPayments(ctx context.Context, in *SeedPaymentsReques
 	return out, nil
 }
 
+func (c *backendClient) SeedTransactions(ctx context.Context, in *SeedTransactionsRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/SeedTransactions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -324,6 +334,7 @@ type BackendServer interface {
 	SetKYCStatus(context.Context, *SetKYCStatusRequest) (*Empty, error)
 	SeedLinkedAccounts(context.Context, *SeedLinkedAccountsRequest) (*Empty, error)
 	SeedPayments(context.Context, *SeedPaymentsRequest) (*Empty, error)
+	SeedTransactions(context.Context, *SeedTransactionsRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -401,6 +412,9 @@ func (UnimplementedBackendServer) SeedLinkedAccounts(context.Context, *SeedLinke
 }
 func (UnimplementedBackendServer) SeedPayments(context.Context, *SeedPaymentsRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SeedPayments not implemented")
+}
+func (UnimplementedBackendServer) SeedTransactions(context.Context, *SeedTransactionsRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SeedTransactions not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -849,6 +863,24 @@ func _Backend_SeedPayments_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_SeedTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SeedTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).SeedTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/SeedTransactions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).SeedTransactions(ctx, req.(*SeedTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -947,6 +979,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SeedPayments",
 			Handler:    _Backend_SeedPayments_Handler,
+		},
+		{
+			MethodName: "SeedTransactions",
+			Handler:    _Backend_SeedTransactions_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

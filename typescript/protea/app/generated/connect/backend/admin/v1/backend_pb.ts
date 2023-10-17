@@ -7,6 +7,188 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.SeedTransactionsRequest
+ */
+export class SeedTransactionsRequest extends Message<SeedTransactionsRequest> {
+  /**
+   * @generated from field: repeated backend.admin.v1.TransactionDetails transactions = 1;
+   */
+  transactions: TransactionDetails[] = [];
+
+  constructor(data?: PartialMessage<SeedTransactionsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.SeedTransactionsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transactions", kind: "message", T: TransactionDetails, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SeedTransactionsRequest {
+    return new SeedTransactionsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SeedTransactionsRequest {
+    return new SeedTransactionsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SeedTransactionsRequest {
+    return new SeedTransactionsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SeedTransactionsRequest | PlainMessage<SeedTransactionsRequest> | undefined, b: SeedTransactionsRequest | PlainMessage<SeedTransactionsRequest> | undefined): boolean {
+    return proto3.util.equals(SeedTransactionsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.TransactionDetails
+ */
+export class TransactionDetails extends Message<TransactionDetails> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string foreign_id = 2;
+   */
+  foreignId = "";
+
+  /**
+   * @generated from field: string source = 3;
+   */
+  source = "";
+
+  /**
+   * @generated from field: string destination = 4;
+   */
+  destination = "";
+
+  /**
+   * @generated from field: string title = 5;
+   */
+  title = "";
+
+  /**
+   * @generated from field: string note = 6;
+   */
+  note = "";
+
+  /**
+   * @generated from field: string type = 7;
+   */
+  type = "";
+
+  /**
+   * @generated from field: string provider = 8;
+   */
+  provider = "";
+
+  /**
+   * @generated from field: string state = 9;
+   */
+  state = "";
+
+  /**
+   * @generated from field: uint64 amount = 10;
+   */
+  amount = protoInt64.zero;
+
+  /**
+   * @generated from field: string asset_scale = 11;
+   */
+  assetScale = "";
+
+  /**
+   * @generated from field: string asset_code = 12;
+   */
+  assetCode = "";
+
+  /**
+   * @generated from field: string linked_account_title = 13;
+   */
+  linkedAccountTitle = "";
+
+  /**
+   * @generated from field: string destination_identity = 14;
+   */
+  destinationIdentity = "";
+
+  /**
+   * @generated from field: string destination_identity_type = 15;
+   */
+  destinationIdentityType = "";
+
+  /**
+   * @generated from field: string reference = 16;
+   */
+  reference = "";
+
+  /**
+   * @generated from field: int32 refund_state = 17;
+   */
+  refundState = 0;
+
+  /**
+   * @generated from field: double payment_protection_fee_percentage = 18;
+   */
+  paymentProtectionFeePercentage = 0;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp timestamp = 19;
+   */
+  timestamp?: Timestamp;
+
+  constructor(data?: PartialMessage<TransactionDetails>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.TransactionDetails";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "foreign_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "destination", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "provider", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 11, name: "asset_scale", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "asset_code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: "linked_account_title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 14, name: "destination_identity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 15, name: "destination_identity_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "reference", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 17, name: "refund_state", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 18, name: "payment_protection_fee_percentage", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 19, name: "timestamp", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransactionDetails {
+    return new TransactionDetails().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransactionDetails {
+    return new TransactionDetails().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransactionDetails {
+    return new TransactionDetails().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TransactionDetails | PlainMessage<TransactionDetails> | undefined, b: TransactionDetails | PlainMessage<TransactionDetails> | undefined): boolean {
+    return proto3.util.equals(TransactionDetails, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.PaymentDetails
  */
 export class PaymentDetails extends Message<PaymentDetails> {

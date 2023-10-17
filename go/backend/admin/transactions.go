@@ -2,10 +2,11 @@ package admin
 
 import (
 	"context"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
-
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/env"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "gitlab.com/fynbos/proto/backend/admin/v1"
 )
@@ -79,4 +80,40 @@ func (s *AdminRpcService) GetTransactionDetails(ctx context.Context, req *pb.Get
 		},
 		Transfers: transResp,
 	}, nil
+}
+
+func (s *AdminRpcService) SeedTransactions(ctx context.Context, req *pb.SeedTransactionsRequest) (*pb.Empty, error) {
+	if env.IsProd() {
+		return nil, UnimplementedError("")
+	}
+
+	var txs []transactions.Transaction
+	for _, tx := range req.Transactions {
+		txs = append(txs, transactions.Transaction{
+			ID:                             tx.Id,
+			ForeignID:                      tx.ForeignId,
+			Source:                         tx.Source,
+			Destination:                    tx.Destination,
+			Title:                          tx.Title,
+			Note:                           tx.Note,
+			Type:                           transactions.TransactionType(tx.Type),
+			Timestamp:                      tx.Timestamp.AsTime(),
+			Provider:                       transactions.Provider(tx.Provider),
+			State:                          transactions.State(tx.State),
+			Amount:                         currency.FromUInt64(tx.Amount, currency.ParseCurrency(tx.AssetCode)),
+			LinkedAccountTitle:             tx.LinkedAccountTitle,
+			DestinationIdentity:            tx.DestinationIdentity,
+			DestinationIdentityType:        tx.DestinationIdentityType,
+			Reference:                      tx.Reference,
+			RefundState:                    transactions.RefundState(tx.RefundState),
+			PaymentProtectionFeePercentage: tx.PaymentProtectionFeePercentage,
+		})
+	}
+
+	_, err := s.b.AdminTransactions().Seed(ctx, txs)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
 }

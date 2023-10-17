@@ -360,6 +360,7 @@ type backends struct {
 	adminKYC            kyc.AdminClient
 	adminLinkedaccounts linkedaccounts.AdminClient
 	adminPayments       payments.AdminClient
+	adminTransactions   transactions.AdminClient
 }
 
 func (b backends) AdminIdentities() identities.AdminClient {
@@ -376,6 +377,10 @@ func (b backends) AdminLinkedAccounts() linkedaccounts.AdminClient {
 
 func (b backends) AdminPayments() payments.AdminClient {
 	return b.adminPayments
+}
+
+func (b backends) AdminTransactions() transactions.AdminClient {
+	return b.adminTransactions
 }
 
 func (b backends) AWS() aws.Client {
@@ -565,6 +570,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.adminLinkedaccounts = linked_account_client.NewAdmin(b)
 
 	b.adminPayments = payments_client.NewAdmin(b)
+
+	b.adminTransactions = transactions_client.NewAdmin(b)
 
 	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 

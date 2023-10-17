@@ -35,6 +35,33 @@ service Backend {
   rpc SetKYCStatus(SetKYCStatusRequest) returns (Empty);
   rpc SeedLinkedAccounts(SeedLinkedAccountsRequest) returns (Empty);
   rpc SeedPayments(SeedPaymentsRequest) returns (Empty);
+  rpc SeedTransactions(SeedTransactionsRequest) returns (Empty);
+}
+
+message SeedTransactionsRequest {
+  repeated TransactionDetails transactions = 1;
+}
+
+message TransactionDetails {
+  string id = 1;
+  string foreign_id = 2;
+  string source = 3;
+  string destination = 4;
+  string title = 5;
+  string note = 6;
+  string type = 7;
+  string provider = 8;
+  string state = 9;
+  uint64 amount = 10;
+  string asset_scale = 11;
+  string asset_code = 12;
+  string linked_account_title = 13;
+  string destination_identity = 14;
+  string destination_identity_type = 15;
+  string reference = 16;
+  int32 refund_state = 17;
+  double payment_protection_fee_percentage = 18;
+  google.protobuf.Timestamp timestamp = 19;
 }
 
 message PaymentDetails {
@@ -132,7 +159,7 @@ message LinkedAccountReview {
   string walletID = 9;
   string walletName = 10;
   string mask = 11;
-  google.protobuf.Timestamp createdAt = 7; 
+  google.protobuf.Timestamp createdAt = 7;
   google.protobuf.Timestamp completedAt = 8;
 }
 

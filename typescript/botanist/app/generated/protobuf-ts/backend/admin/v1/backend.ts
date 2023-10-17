@@ -15,6 +15,96 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.SeedTransactionsRequest
+ */
+export interface SeedTransactionsRequest {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.TransactionDetails transactions = 1;
+     */
+    transactions: TransactionDetails[];
+}
+/**
+ * @generated from protobuf message backend.admin.v1.TransactionDetails
+ */
+export interface TransactionDetails {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string foreign_id = 2;
+     */
+    foreignId: string;
+    /**
+     * @generated from protobuf field: string source = 3;
+     */
+    source: string;
+    /**
+     * @generated from protobuf field: string destination = 4;
+     */
+    destination: string;
+    /**
+     * @generated from protobuf field: string title = 5;
+     */
+    title: string;
+    /**
+     * @generated from protobuf field: string note = 6;
+     */
+    note: string;
+    /**
+     * @generated from protobuf field: string type = 7;
+     */
+    type: string;
+    /**
+     * @generated from protobuf field: string provider = 8;
+     */
+    provider: string;
+    /**
+     * @generated from protobuf field: string state = 9;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: uint64 amount = 10;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string asset_scale = 11;
+     */
+    assetScale: string;
+    /**
+     * @generated from protobuf field: string asset_code = 12;
+     */
+    assetCode: string;
+    /**
+     * @generated from protobuf field: string linked_account_title = 13;
+     */
+    linkedAccountTitle: string;
+    /**
+     * @generated from protobuf field: string destination_identity = 14;
+     */
+    destinationIdentity: string;
+    /**
+     * @generated from protobuf field: string destination_identity_type = 15;
+     */
+    destinationIdentityType: string;
+    /**
+     * @generated from protobuf field: string reference = 16;
+     */
+    reference: string;
+    /**
+     * @generated from protobuf field: int32 refund_state = 17;
+     */
+    refundState: number;
+    /**
+     * @generated from protobuf field: double payment_protection_fee_percentage = 18;
+     */
+    paymentProtectionFeePercentage: number;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp timestamp = 19;
+     */
+    timestamp?: Timestamp;
+}
+/**
  * @generated from protobuf message backend.admin.v1.PaymentDetails
  */
 export interface PaymentDetails {
@@ -1007,6 +1097,226 @@ export interface FormSubmissionDetails {
      */
     timestamp?: Timestamp;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class SeedTransactionsRequest$Type extends MessageType<SeedTransactionsRequest> {
+    constructor() {
+        super("backend.admin.v1.SeedTransactionsRequest", [
+            { no: 1, name: "transactions", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => TransactionDetails }
+        ]);
+    }
+    create(value?: PartialMessage<SeedTransactionsRequest>): SeedTransactionsRequest {
+        const message = { transactions: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SeedTransactionsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SeedTransactionsRequest): SeedTransactionsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.TransactionDetails transactions */ 1:
+                    message.transactions.push(TransactionDetails.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SeedTransactionsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.TransactionDetails transactions = 1; */
+        for (let i = 0; i < message.transactions.length; i++)
+            TransactionDetails.internalBinaryWrite(message.transactions[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.SeedTransactionsRequest
+ */
+export const SeedTransactionsRequest = new SeedTransactionsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TransactionDetails$Type extends MessageType<TransactionDetails> {
+    constructor() {
+        super("backend.admin.v1.TransactionDetails", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "foreign_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "source", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "destination", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "title", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "provider", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 11, name: "asset_scale", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "asset_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "linked_account_title", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "destination_identity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 15, name: "destination_identity_type", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 17, name: "refund_state", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 18, name: "payment_protection_fee_percentage", kind: "scalar", T: 1 /*ScalarType.DOUBLE*/ },
+            { no: 19, name: "timestamp", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<TransactionDetails>): TransactionDetails {
+        const message = { id: "", foreignId: "", source: "", destination: "", title: "", note: "", type: "", provider: "", state: "", amount: "0", assetScale: "", assetCode: "", linkedAccountTitle: "", destinationIdentity: "", destinationIdentityType: "", reference: "", refundState: 0, paymentProtectionFeePercentage: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TransactionDetails>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TransactionDetails): TransactionDetails {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string foreign_id */ 2:
+                    message.foreignId = reader.string();
+                    break;
+                case /* string source */ 3:
+                    message.source = reader.string();
+                    break;
+                case /* string destination */ 4:
+                    message.destination = reader.string();
+                    break;
+                case /* string title */ 5:
+                    message.title = reader.string();
+                    break;
+                case /* string note */ 6:
+                    message.note = reader.string();
+                    break;
+                case /* string type */ 7:
+                    message.type = reader.string();
+                    break;
+                case /* string provider */ 8:
+                    message.provider = reader.string();
+                    break;
+                case /* string state */ 9:
+                    message.state = reader.string();
+                    break;
+                case /* uint64 amount */ 10:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string asset_scale */ 11:
+                    message.assetScale = reader.string();
+                    break;
+                case /* string asset_code */ 12:
+                    message.assetCode = reader.string();
+                    break;
+                case /* string linked_account_title */ 13:
+                    message.linkedAccountTitle = reader.string();
+                    break;
+                case /* string destination_identity */ 14:
+                    message.destinationIdentity = reader.string();
+                    break;
+                case /* string destination_identity_type */ 15:
+                    message.destinationIdentityType = reader.string();
+                    break;
+                case /* string reference */ 16:
+                    message.reference = reader.string();
+                    break;
+                case /* int32 refund_state */ 17:
+                    message.refundState = reader.int32();
+                    break;
+                case /* double payment_protection_fee_percentage */ 18:
+                    message.paymentProtectionFeePercentage = reader.double();
+                    break;
+                case /* google.protobuf.Timestamp timestamp */ 19:
+                    message.timestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.timestamp);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TransactionDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string foreign_id = 2; */
+        if (message.foreignId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.foreignId);
+        /* string source = 3; */
+        if (message.source !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.source);
+        /* string destination = 4; */
+        if (message.destination !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.destination);
+        /* string title = 5; */
+        if (message.title !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.title);
+        /* string note = 6; */
+        if (message.note !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.note);
+        /* string type = 7; */
+        if (message.type !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.type);
+        /* string provider = 8; */
+        if (message.provider !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.provider);
+        /* string state = 9; */
+        if (message.state !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.state);
+        /* uint64 amount = 10; */
+        if (message.amount !== "0")
+            writer.tag(10, WireType.Varint).uint64(message.amount);
+        /* string asset_scale = 11; */
+        if (message.assetScale !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.assetScale);
+        /* string asset_code = 12; */
+        if (message.assetCode !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.assetCode);
+        /* string linked_account_title = 13; */
+        if (message.linkedAccountTitle !== "")
+            writer.tag(13, WireType.LengthDelimited).string(message.linkedAccountTitle);
+        /* string destination_identity = 14; */
+        if (message.destinationIdentity !== "")
+            writer.tag(14, WireType.LengthDelimited).string(message.destinationIdentity);
+        /* string destination_identity_type = 15; */
+        if (message.destinationIdentityType !== "")
+            writer.tag(15, WireType.LengthDelimited).string(message.destinationIdentityType);
+        /* string reference = 16; */
+        if (message.reference !== "")
+            writer.tag(16, WireType.LengthDelimited).string(message.reference);
+        /* int32 refund_state = 17; */
+        if (message.refundState !== 0)
+            writer.tag(17, WireType.Varint).int32(message.refundState);
+        /* double payment_protection_fee_percentage = 18; */
+        if (message.paymentProtectionFeePercentage !== 0)
+            writer.tag(18, WireType.Bit64).double(message.paymentProtectionFeePercentage);
+        /* google.protobuf.Timestamp timestamp = 19; */
+        if (message.timestamp)
+            Timestamp.internalBinaryWrite(message.timestamp, writer.tag(19, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.TransactionDetails
+ */
+export const TransactionDetails = new TransactionDetails$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class PaymentDetails$Type extends MessageType<PaymentDetails> {
     constructor() {
@@ -4289,5 +4599,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ClearIdentities", options: {}, I: ClearIdentitiesRequest, O: Empty },
     { name: "SetKYCStatus", options: {}, I: SetKYCStatusRequest, O: Empty },
     { name: "SeedLinkedAccounts", options: {}, I: SeedLinkedAccountsRequest, O: Empty },
-    { name: "SeedPayments", options: {}, I: SeedPaymentsRequest, O: Empty }
+    { name: "SeedPayments", options: {}, I: SeedPaymentsRequest, O: Empty },
+    { name: "SeedTransactions", options: {}, I: SeedTransactionsRequest, O: Empty }
 ]);
