@@ -12,3 +12,7 @@ type Client interface {
 	GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*PersonaInquiry, error)
 	GetPersonaIDNumbers(ctx context.Context, walletID string) (*PersonaIDNumbers, error)
 }
+
+type AdminClient interface {
+	SetKYCStatus(ctx context.Context, walletID string, status Status) error
+}

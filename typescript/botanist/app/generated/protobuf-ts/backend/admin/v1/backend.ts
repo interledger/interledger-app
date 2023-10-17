@@ -15,6 +15,19 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.SetKYCStatusRequest
+ */
+export interface SetKYCStatusRequest {
+    /**
+     * @generated from protobuf field: string wallet_id = 1;
+     */
+    walletId: string;
+    /**
+     * @generated from protobuf field: int32 status = 2;
+     */
+    status: number;
+}
+/**
  * @generated from protobuf message backend.admin.v1.ClearIdentitiesRequest
  */
 export interface ClearIdentitiesRequest {
@@ -855,6 +868,60 @@ export interface FormSubmissionDetails {
      */
     timestamp?: Timestamp;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class SetKYCStatusRequest$Type extends MessageType<SetKYCStatusRequest> {
+    constructor() {
+        super("backend.admin.v1.SetKYCStatusRequest", [
+            { no: 1, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "status", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetKYCStatusRequest>): SetKYCStatusRequest {
+        const message = { walletId: "", status: 0 };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetKYCStatusRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetKYCStatusRequest): SetKYCStatusRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string wallet_id */ 1:
+                    message.walletId = reader.string();
+                    break;
+                case /* int32 status */ 2:
+                    message.status = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetKYCStatusRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string wallet_id = 1; */
+        if (message.walletId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
+        /* int32 status = 2; */
+        if (message.status !== 0)
+            writer.tag(2, WireType.Varint).int32(message.status);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.SetKYCStatusRequest
+ */
+export const SetKYCStatusRequest = new SetKYCStatusRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ClearIdentitiesRequest$Type extends MessageType<ClearIdentitiesRequest> {
     constructor() {
@@ -3743,5 +3810,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "GetFormSubmissionDetails", options: {}, I: GetFormSubmissionDetailsRequest, O: FormSubmissionDetails },
     { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse },
     { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse },
-    { name: "ClearIdentities", options: {}, I: ClearIdentitiesRequest, O: Empty }
+    { name: "ClearIdentities", options: {}, I: ClearIdentitiesRequest, O: Empty },
+    { name: "SetKYCStatus", options: {}, I: SetKYCStatusRequest, O: Empty }
 ]);

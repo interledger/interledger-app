@@ -32,4 +32,5 @@ type Backends interface {
 	DynamicForms() dynamicforms.Client
 	Payments() payments.Client
 	AdminIdentities() identities.AdminClient
+	AdminKYC() kyc.AdminClient
 }

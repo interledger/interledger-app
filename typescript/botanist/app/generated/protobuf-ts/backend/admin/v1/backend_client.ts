@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { SetKYCStatusRequest } from "./backend";
 import type { ClearIdentitiesRequest } from "./backend";
 import type { ListPaymentsAwaitingSignalResponse } from "./backend";
 import type { ListExternalApiCallsResponse } from "./backend";
@@ -131,6 +132,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ClearIdentities(backend.admin.v1.ClearIdentitiesRequest) returns (backend.admin.v1.Empty);
      */
     clearIdentities(input: ClearIdentitiesRequest, options?: RpcOptions): UnaryCall<ClearIdentitiesRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: SetKYCStatus(backend.admin.v1.SetKYCStatusRequest) returns (backend.admin.v1.Empty);
+     */
+    setKYCStatus(input: SetKYCStatusRequest, options?: RpcOptions): UnaryCall<SetKYCStatusRequest, Empty$>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -287,5 +292,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     clearIdentities(input: ClearIdentitiesRequest, options?: RpcOptions): UnaryCall<ClearIdentitiesRequest, Empty$> {
         const method = this.methods[20], opt = this._transport.mergeOptions(options);
         return stackIntercept<ClearIdentitiesRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SetKYCStatus(backend.admin.v1.SetKYCStatusRequest) returns (backend.admin.v1.Empty);
+     */
+    setKYCStatus(input: SetKYCStatusRequest, options?: RpcOptions): UnaryCall<SetKYCStatusRequest, Empty$> {
+        const method = this.methods[21], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SetKYCStatusRequest, Empty$>("unary", this._transport, method, opt, input);
     }
 }

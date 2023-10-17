@@ -357,10 +357,15 @@ type backends struct {
 	rafiki          rafiki.Client
 	aws             aws.Client
 	adminIdentities identities.AdminClient
+	adminKYC        kyc.AdminClient
 }
 
 func (b backends) AdminIdentities() identities.AdminClient {
 	return b.adminIdentities
+}
+
+func (b backends) AdminKYC() kyc.AdminClient {
+	return b.adminKYC
 }
 
 func (b backends) AWS() aws.Client {
@@ -544,6 +549,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.temporal = tp
 
 	b.adminIdentities = identities_client.NewAdmin(b)
+
+	b.adminKYC = kyc_client.NewAdmin(b)
 
 	b.users = user_client.New(b, args.KratosUrl, args.KratosAdminUrl)
 

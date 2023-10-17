@@ -44,6 +44,7 @@ type BackendClient interface {
 	ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPaymentsAwaitingSignalResponse, error)
 	ClearIdentities(ctx context.Context, in *ClearIdentitiesRequest, opts ...grpc.CallOption) (*Empty, error)
+	SetKYCStatus(ctx context.Context, in *SetKYCStatusRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -266,6 +267,15 @@ func (c *backendClient) ClearIdentities(ctx context.Context, in *ClearIdentities
 	return out, nil
 }
 
+func (c *backendClient) SetKYCStatus(ctx context.Context, in *SetKYCStatusRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/SetKYCStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -291,6 +301,7 @@ type BackendServer interface {
 	ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error)
 	ClearIdentities(context.Context, *ClearIdentitiesRequest) (*Empty, error)
+	SetKYCStatus(context.Context, *SetKYCStatusRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -359,6 +370,9 @@ func (UnimplementedBackendServer) ListPaymentsAwaitingSignal(context.Context, *e
 }
 func (UnimplementedBackendServer) ClearIdentities(context.Context, *ClearIdentitiesRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClearIdentities not implemented")
+}
+func (UnimplementedBackendServer) SetKYCStatus(context.Context, *SetKYCStatusRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetKYCStatus not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -753,6 +767,24 @@ func _Backend_ClearIdentities_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_SetKYCStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetKYCStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).SetKYCStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/SetKYCStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).SetKYCStatus(ctx, req.(*SetKYCStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -839,6 +871,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClearIdentities",
 			Handler:    _Backend_ClearIdentities_Handler,
+		},
+		{
+			MethodName: "SetKYCStatus",
+			Handler:    _Backend_SetKYCStatus_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

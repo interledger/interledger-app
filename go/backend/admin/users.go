@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"errors"
+	"gitlab.com/fynbos/env"
 	"time"
 
 	"gitlab.com/fynbos/backend/user"
@@ -140,4 +141,17 @@ func (s *AdminRpcService) ListAudit(ctx context.Context, req *adminv1.ListAuditR
 	}
 
 	return &adminv1.ListAuditResponse{Operations: resp}, nil
+}
+
+func (s *AdminRpcService) SetKYCStatus(ctx context.Context, req *adminv1.SetKYCStatusRequest) (*adminv1.Empty, error) {
+	if env.IsProd() {
+		return nil, UnimplementedError("")
+	}
+
+	err := s.b.AdminKYC().SetKYCStatus(ctx, req.WalletId, kyc.Status(req.Status))
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &adminv1.Empty{}, nil
 }

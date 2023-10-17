@@ -247,3 +247,14 @@ func StartKYC(ctx context.Context, b Backends, walletID string) error {
 
 	return err
 }
+
+func AdminSetKYCStatus(ctx context.Context, b AdminBackends, walletID string, status kyc.Status) error {
+	_, err := b.DB().ExecContext(ctx,
+		"INSERT INTO wallet_kyc_status (wallet_id, status) VALUES ($1, $2) ON CONFLICT (wallet_id) DO UPDATE SET status = excluded.status;",
+		walletID, status)
+	if err != nil {
+		return fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	return nil
+}

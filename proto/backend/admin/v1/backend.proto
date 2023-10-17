@@ -32,6 +32,12 @@ service Backend {
   rpc ListExternalApiCalls(ListExternalApiCallsRequest) returns (ListExternalApiCallsResponse);
   rpc ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (ListPaymentsAwaitingSignalResponse);
   rpc ClearIdentities(ClearIdentitiesRequest) returns (Empty);
+  rpc SetKYCStatus(SetKYCStatusRequest) returns (Empty);
+}
+
+message SetKYCStatusRequest {
+  string wallet_id = 1;
+  int32 status = 2;
 }
 
 message ClearIdentitiesRequest{

@@ -27,6 +27,10 @@ type Backends interface {
 	Wallets() wallets.Client
 }
 
+type AdminBackends interface {
+	DB() *sqlx.DB
+}
+
 type testBackends struct {
 	db  *sqlx.DB
 	val *validator.Validate

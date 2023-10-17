@@ -7,6 +7,49 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.SetKYCStatusRequest
+ */
+export class SetKYCStatusRequest extends Message<SetKYCStatusRequest> {
+  /**
+   * @generated from field: string wallet_id = 1;
+   */
+  walletId = "";
+
+  /**
+   * @generated from field: int32 status = 2;
+   */
+  status = 0;
+
+  constructor(data?: PartialMessage<SetKYCStatusRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.SetKYCStatusRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "status", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetKYCStatusRequest {
+    return new SetKYCStatusRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetKYCStatusRequest {
+    return new SetKYCStatusRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetKYCStatusRequest {
+    return new SetKYCStatusRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetKYCStatusRequest | PlainMessage<SetKYCStatusRequest> | undefined, b: SetKYCStatusRequest | PlainMessage<SetKYCStatusRequest> | undefined): boolean {
+    return proto3.util.equals(SetKYCStatusRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.ClearIdentitiesRequest
  */
 export class ClearIdentitiesRequest extends Message<ClearIdentitiesRequest> {

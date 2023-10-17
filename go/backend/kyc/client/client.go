@@ -14,11 +14,16 @@ import (
 )
 
 var _ kyc.Client = client{}
+var _ kyc.AdminClient = adminClient{}
 
 type client struct {
 	b   ops.Backends
 	val address.Validator
 	pc  persona.Client
+}
+
+type adminClient struct {
+	b ops.AdminBackends
 }
 
 func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, error) {
@@ -32,6 +37,12 @@ func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, erro
 		val: address.New(smartyAuthID, smartyAuthToken),
 		pc:  persona.New(),
 	}, nil
+}
+
+func NewAdmin(b ops.AdminBackends) kyc.AdminClient {
+	return &adminClient{
+		b: b,
+	}
 }
 
 func (c client) IsUSPSAddress(ctx context.Context, address kyc.Address) (bool, error) {
@@ -64,4 +75,8 @@ func (c client) GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey 
 
 func (c client) GetPersonaIDNumbers(ctx context.Context, walletID string) (*kyc.PersonaIDNumbers, error) {
 	return ops.GetPersonaIDNumbers(ctx, c.b, c.pc, walletID)
+}
+
+func (c adminClient) SetKYCStatus(ctx context.Context, walletID string, status kyc.Status) error {
+	return ops.AdminSetKYCStatus(ctx, c.b, walletID, status)
 }
