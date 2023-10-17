@@ -190,11 +190,18 @@ func (a *Amount) ToPB() *pb.Amount {
 	if a == nil {
 		return nil
 	}
+
+	cntry := country.ParseCountry(a.Currency.ISO4217()).String()
+	// EUR is a special case where we want to show the Euro flag on the frontend
+	if a.Currency == EUR {
+		cntry = "EU"
+	}
+
 	return &pb.Amount{
 		Amount:     a.Value,
 		Asset:      a.Currency.String(),
 		AssetScale: int32(a.Scale),
-		Country:    country.ParseCountry(a.Currency.ISO4217()).String(),
+		Country:    cntry,
 	}
 }
 

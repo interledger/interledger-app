@@ -29,7 +29,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		ReferenceID: uuid.NewString(),
 	}, nil).AnyTimes()
 
-	cl.EXPECT().DeleteTransaction(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string, deleteType external.DeleteType) (*external.DeleteTransactionResponse, error) {
+	cl.EXPECT().DeleteTransaction(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string, deleteType external.DeleteType, cc string) (*external.DeleteTransactionResponse, error) {
 		_, ok := txIDAmounts[id]
 		if !ok {
 			return &external.DeleteTransactionResponse{
@@ -70,7 +70,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 		}, nil
 	}).AnyTimes()
 
-	cl.EXPECT().RetrieveTransaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*external.RetrieveTransactionResponse, error) {
+	cl.EXPECT().RetrieveTransaction(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, id string, cc string) (*external.RetrieveTransactionResponse, error) {
 		amt := "10.00"
 		if _, ok := txIDAmounts[id]; ok {
 			amt = txIDAmounts[id]

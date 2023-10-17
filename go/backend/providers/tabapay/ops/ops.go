@@ -144,8 +144,8 @@ func PushToCard(ctx context.Context, b Backends, args PullFromCardArgs) (*tabapa
 	}, nil
 }
 
-func GetTransaction(ctx context.Context, b Backends, id string) (*tabapay.Transaction, error) {
-	trxResp, err := b.External().RetrieveTransaction(ctx, id)
+func GetTransaction(ctx context.Context, b Backends, id string, cc currency.Currency) (*tabapay.Transaction, error) {
+	trxResp, err := b.External().RetrieveTransaction(ctx, id, cc.ISO4217())
 	if errors.Is(err, external.ErrNotFound) {
 		return nil, tabapay.ErrNotFound
 	}
@@ -538,13 +538,13 @@ func merge3DSSession(
 	return merged, noop, err
 }
 
-func ReverseTransaction(ctx context.Context, b Backends, id string, isSettled bool) error {
+func ReverseTransaction(ctx context.Context, b Backends, id string, isSettled bool, currency currency.Currency) error {
 	deleteType := external.DeleteTypeVoid
 	if isSettled {
 		deleteType = external.DeleteTypeReversal
 	}
 
-	resp, err := b.External().DeleteTransaction(ctx, id, deleteType)
+	resp, err := b.External().DeleteTransaction(ctx, id, deleteType, currency.ISO4217())
 	if err != nil {
 		return fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}

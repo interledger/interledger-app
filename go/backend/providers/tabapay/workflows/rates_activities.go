@@ -91,5 +91,9 @@ func convertRate(rt string) float64 {
 	rate, _ := strconv.ParseFloat(rt[len(rt)-6:], 64)
 	pow, _ := strconv.ParseFloat(rt[:len(rt)-6], 64)
 
-	return math.Pow(10, pow) * rate
+	val := math.Pow(10, -pow) * rate
+
+	// convert to integer and round. Then go back to float.
+	precision := math.Pow(10, float64(pow))
+	return math.Round(val*precision) / precision
 }

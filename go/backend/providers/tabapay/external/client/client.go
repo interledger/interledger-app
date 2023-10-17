@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	"gitlab.com/fynbos/env"
@@ -28,6 +29,7 @@ type client struct {
 	bearerToken       string
 	clientID          string
 	subClientID       string
+	subClientIDNonUSD string
 	api               *http.Client
 }
 
@@ -35,6 +37,7 @@ type NewClientArgs struct {
 	BasisTheoryProxyApiKey string
 	ClientID               string
 	SubClientID            string
+	SubClientIDNonUSD      string
 	BearerToken            string
 	Transport              http.RoundTripper
 }
@@ -55,6 +58,7 @@ func New(args NewClientArgs) (*client, error) {
 		basisTheoryApiKey: args.BasisTheoryProxyApiKey,
 		clientID:          args.ClientID,
 		subClientID:       args.SubClientID,
+		subClientIDNonUSD: args.SubClientIDNonUSD,
 		api: &http.Client{
 			Transport: t,
 			Timeout:   95 * time.Second, // set high as Tabapay may be waiting for transactions process
@@ -87,7 +91,12 @@ func (c *client) CreateTransaction(
 		})
 	}
 
-	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions")
+	subClientID := c.subClientID
+	if args.Currency != currency.USD.ISO4217() {
+		subClientID = c.subClientIDNonUSD
+	}
+
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, subClientID}, "_"), "transactions")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -124,7 +133,7 @@ func (c *client) CreateTransaction(
 }
 
 func (c *client) RetrieveTransaction(
-	ctx context.Context, id string,
+	ctx context.Context, id string, cc string,
 ) (*external.RetrieveTransactionResponse, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
@@ -136,7 +145,12 @@ func (c *client) RetrieveTransaction(
 			Provider: "tabapay",
 		})
 	}
-	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions", id)
+	subClientID := c.subClientID
+	if cc != currency.USD.ISO4217() {
+		subClientID = c.subClientIDNonUSD
+	}
+
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, subClientID}, "_"), "transactions", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
@@ -473,7 +487,7 @@ func (c *client) Authenticate3DS(ctx context.Context, args external.Authenticate
 	return &authResp, nil
 }
 
-func (c *client) DeleteTransaction(ctx context.Context, id string, deleteType external.DeleteType) (*external.DeleteTransactionResponse, error) {
+func (c *client) DeleteTransaction(ctx context.Context, id string, deleteType external.DeleteType, cc string) (*external.DeleteTransactionResponse, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "DELETE"
@@ -485,7 +499,12 @@ func (c *client) DeleteTransaction(ctx context.Context, id string, deleteType ex
 		})
 	}
 
-	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, c.subClientID}, "_"), "transactions", id)
+	subClientID := c.subClientID
+	if cc != currency.USD.ISO4217() {
+		subClientID = c.subClientIDNonUSD
+	}
+
+	endpoint, err := url.JoinPath(c.baseUrl, "v1", "clients", strings.Join([]string{c.clientID, subClientID}, "_"), "transactions", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", external.ErrInternal, err)
 	}
