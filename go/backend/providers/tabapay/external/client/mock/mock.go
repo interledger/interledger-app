@@ -81,18 +81,18 @@ func (mr *MockClientMockRecorder) CreateTransaction(ctx, args interface{}) *gomo
 }
 
 // DeleteTransaction mocks base method.
-func (m *MockClient) DeleteTransaction(ctx context.Context, id string, deleteType external.DeleteType) (*external.DeleteTransactionResponse, error) {
+func (m *MockClient) DeleteTransaction(ctx context.Context, id string, deleteType external.DeleteType, currency string) (*external.DeleteTransactionResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteTransaction", ctx, id, deleteType)
+	ret := m.ctrl.Call(m, "DeleteTransaction", ctx, id, deleteType, currency)
 	ret0, _ := ret[0].(*external.DeleteTransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeleteTransaction indicates an expected call of DeleteTransaction.
-func (mr *MockClientMockRecorder) DeleteTransaction(ctx, id, deleteType interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) DeleteTransaction(ctx, id, deleteType, currency interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTransaction", reflect.TypeOf((*MockClient)(nil).DeleteTransaction), ctx, id, deleteType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteTransaction", reflect.TypeOf((*MockClient)(nil).DeleteTransaction), ctx, id, deleteType, currency)
 }
 
 // Init3DS mocks base method.

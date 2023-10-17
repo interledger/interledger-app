@@ -538,13 +538,13 @@ func merge3DSSession(
 	return merged, noop, err
 }
 
-func ReverseTransaction(ctx context.Context, b Backends, id string, isSettled bool) error {
+func ReverseTransaction(ctx context.Context, b Backends, id string, isSettled bool, currency currency.Currency) error {
 	deleteType := external.DeleteTypeVoid
 	if isSettled {
 		deleteType = external.DeleteTypeReversal
 	}
 
-	resp, err := b.External().DeleteTransaction(ctx, id, deleteType)
+	resp, err := b.External().DeleteTransaction(ctx, id, deleteType, currency.ISO4217())
 	if err != nil {
 		return fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}

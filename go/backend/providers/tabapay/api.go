@@ -15,6 +15,6 @@ type Client interface {
 	Lookup3DS(ctx context.Context, args Lookup3DSArgs) (*Lookup3DSResponse, error)
 	Authenticate3DS(ctx context.Context, args Authenticate3DSArgs) (*Authenticate3DSResponse, error)
 	Get3DSSession(ctx context.Context, id string) (*ThreeDSSession, error)
-	ReverseTransaction(ctx context.Context, id string, txSettled bool) error
+	ReverseTransaction(ctx context.Context, id string, txSettled bool, currency currency.Currency) error
 	GetFXRate(ctx context.Context, cc currency.Currency) (*FXRate, error)
 }

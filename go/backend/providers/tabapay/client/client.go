@@ -28,6 +28,7 @@ type NewClientArgs struct {
 	BasisTheoryProxyApiKey string
 	ClientID               string
 	SubClientID            string
+	SubClientIDNonUSD      string
 	BearerToken            string
 	SettlementAccountID    string
 }
@@ -75,6 +76,7 @@ func New(args NewClientArgs, b Backends) (*Client, error) {
 			BasisTheoryProxyApiKey: args.BasisTheoryProxyApiKey,
 			ClientID:               args.ClientID,
 			SubClientID:            args.SubClientID,
+			SubClientIDNonUSD:      args.SubClientIDNonUSD,
 			BearerToken:            args.BearerToken,
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -188,8 +190,8 @@ func (c *Client) Get3DSSession(ctx context.Context, id string) (*tabapay.ThreeDS
 	return ops.Get3DSSession(ctx, c.b, id)
 }
 
-func (c *Client) ReverseTransaction(ctx context.Context, id string, txSettled bool) error {
-	return ops.ReverseTransaction(ctx, c.b, id, txSettled)
+func (c *Client) ReverseTransaction(ctx context.Context, id string, txSettled bool, currency currency.Currency) error {
+	return ops.ReverseTransaction(ctx, c.b, id, txSettled, currency)
 }
 
 func (c *Client) GetFXRate(ctx context.Context, cc currency.Currency) (*tabapay.FXRate, error) {

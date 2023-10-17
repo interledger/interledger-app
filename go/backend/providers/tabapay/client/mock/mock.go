@@ -172,15 +172,15 @@ func (mr *MockClientMockRecorder) PushToCard(ctx, args interface{}) *gomock.Call
 }
 
 // ReverseTransaction mocks base method.
-func (m *MockClient) ReverseTransaction(ctx context.Context, id string, txSettled bool) error {
+func (m *MockClient) ReverseTransaction(ctx context.Context, id string, txSettled bool, currency currency.Currency) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReverseTransaction", ctx, id, txSettled)
+	ret := m.ctrl.Call(m, "ReverseTransaction", ctx, id, txSettled, currency)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReverseTransaction indicates an expected call of ReverseTransaction.
-func (mr *MockClientMockRecorder) ReverseTransaction(ctx, id, txSettled interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ReverseTransaction(ctx, id, txSettled, currency interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReverseTransaction", reflect.TypeOf((*MockClient)(nil).ReverseTransaction), ctx, id, txSettled)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReverseTransaction", reflect.TypeOf((*MockClient)(nil).ReverseTransaction), ctx, id, txSettled, currency)
 }
