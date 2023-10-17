@@ -225,7 +225,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			// check again in 90 sec
 			_ = workflow.Sleep(ctx, time.Second*90)
 			logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
-			err = workflow.ExecuteActivity(accountsCtx, a.GetCardTransaction, accountTX.ID).Get(accountsCtx, &accountTX)
+			err = workflow.ExecuteActivity(accountsCtx, a.GetSenderCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
 			if err != nil {
 				logger.Error("failed to get tabapay send transaction", "err", err)
 				// Notify the Payout worklfow of failure
@@ -430,7 +430,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		// check again in 90 sec
 		_ = workflow.Sleep(ctx, time.Second*90)
 		logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
-		err = workflow.ExecuteActivity(accountsCtx, a.GetCardTransaction, accountTX.ID).Get(accountsCtx, &accountTX)
+		err = workflow.ExecuteActivity(accountsCtx, a.GetReceiverCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
 		if err != nil {
 			logger.Error("failed to get tabapay receive transaction", "err", err)
 			// Notify the Payout worklfow of failure

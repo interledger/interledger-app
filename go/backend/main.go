@@ -644,6 +644,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 		BearerToken:            args.TabapayBearerToken,
 		SettlementAccountID:    args.TabapaySettlementAccountID,
 		SubClientID:            args.TabapaySubClientID,
+		SubClientIDNonUSD:      args.TabapaySubClientIDNonUSD,
 	}, b)
 	if err != nil {
 		log.Fatalln(err)

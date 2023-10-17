@@ -95,8 +95,8 @@ func (a *Activity) PushToCard(ctx context.Context, args PushToCard) (*tabapay.Tr
 	return externalTransaction, nil
 }
 
-func (a *Activity) GetTabapayTransaction(ctx context.Context, id string) (*tabapay.Transaction, error) {
-	externalTransaction, err := a.b.Tabapay().GetTransaction(ctx, id)
+func (a *Activity) GetTabapayTransaction(ctx context.Context, id string, cc currency.Currency) (*tabapay.Transaction, error) {
+	externalTransaction, err := a.b.Tabapay().GetTransaction(ctx, id, cc)
 	if err != nil {
 		return nil, err
 	}
@@ -106,5 +106,5 @@ func (a *Activity) GetTabapayTransaction(ctx context.Context, id string) (*tabap
 
 func (a *Activity) ReverseTabapayTransaction(ctx context.Context, id string) error {
 	// TODO: Get if the transaction was actually settled from the reports.
-	return a.b.Tabapay().ReverseTransaction(ctx, id, false)
+	return a.b.Tabapay().ReverseTransaction(ctx, id, false, currency.USD)
 }

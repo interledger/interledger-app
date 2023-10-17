@@ -97,18 +97,18 @@ func (mr *MockClientMockRecorder) GetFXRate(ctx, cc interface{}) *gomock.Call {
 }
 
 // GetTransaction mocks base method.
-func (m *MockClient) GetTransaction(ctx context.Context, id string) (*tabapay.Transaction, error) {
+func (m *MockClient) GetTransaction(ctx context.Context, id string, cc currency.Currency) (*tabapay.Transaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTransaction", ctx, id)
+	ret := m.ctrl.Call(m, "GetTransaction", ctx, id, cc)
 	ret0, _ := ret[0].(*tabapay.Transaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetTransaction indicates an expected call of GetTransaction.
-func (mr *MockClientMockRecorder) GetTransaction(ctx, id interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetTransaction(ctx, id, cc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockClient)(nil).GetTransaction), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransaction", reflect.TypeOf((*MockClient)(nil).GetTransaction), ctx, id, cc)
 }
 
 // Init3DS mocks base method.
@@ -172,15 +172,15 @@ func (mr *MockClientMockRecorder) PushToCard(ctx, args interface{}) *gomock.Call
 }
 
 // ReverseTransaction mocks base method.
-func (m *MockClient) ReverseTransaction(ctx context.Context, id string, txSettled bool) error {
+func (m *MockClient) ReverseTransaction(ctx context.Context, id string, txSettled bool, currency currency.Currency) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReverseTransaction", ctx, id, txSettled)
+	ret := m.ctrl.Call(m, "ReverseTransaction", ctx, id, txSettled, currency)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReverseTransaction indicates an expected call of ReverseTransaction.
-func (mr *MockClientMockRecorder) ReverseTransaction(ctx, id, txSettled interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) ReverseTransaction(ctx, id, txSettled, currency interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReverseTransaction", reflect.TypeOf((*MockClient)(nil).ReverseTransaction), ctx, id, txSettled)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReverseTransaction", reflect.TypeOf((*MockClient)(nil).ReverseTransaction), ctx, id, txSettled, currency)
 }
