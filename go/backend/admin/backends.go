@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/features"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -30,4 +31,5 @@ type Backends interface {
 	Wallets() wallets.Client
 	DynamicForms() dynamicforms.Client
 	Payments() payments.Client
+	AdminIdentities() identities.AdminClient
 }

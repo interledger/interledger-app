@@ -7,6 +7,43 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.ClearIdentitiesRequest
+ */
+export class ClearIdentitiesRequest extends Message<ClearIdentitiesRequest> {
+  /**
+   * @generated from field: string wallet_id = 1;
+   */
+  walletId = "";
+
+  constructor(data?: PartialMessage<ClearIdentitiesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ClearIdentitiesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ClearIdentitiesRequest {
+    return new ClearIdentitiesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ClearIdentitiesRequest {
+    return new ClearIdentitiesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ClearIdentitiesRequest {
+    return new ClearIdentitiesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ClearIdentitiesRequest | PlainMessage<ClearIdentitiesRequest> | undefined, b: ClearIdentitiesRequest | PlainMessage<ClearIdentitiesRequest> | undefined): boolean {
+    return proto3.util.equals(ClearIdentitiesRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.ListPaymentsAwaitingSignalResponse
  */
 export class ListPaymentsAwaitingSignalResponse extends Message<ListPaymentsAwaitingSignalResponse> {

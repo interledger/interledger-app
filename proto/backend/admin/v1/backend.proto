@@ -31,6 +31,11 @@ service Backend {
   rpc GetFormSubmissionDetails(GetFormSubmissionDetailsRequest) returns (FormSubmissionDetails);
   rpc ListExternalApiCalls(ListExternalApiCallsRequest) returns (ListExternalApiCallsResponse);
   rpc ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (ListPaymentsAwaitingSignalResponse);
+  rpc ClearIdentities(ClearIdentitiesRequest) returns (Empty);
+}
+
+message ClearIdentitiesRequest{
+  string wallet_id = 1;
 }
 
 message ListPaymentsAwaitingSignalResponse {

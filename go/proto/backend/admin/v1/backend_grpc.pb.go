@@ -43,6 +43,7 @@ type BackendClient interface {
 	GetFormSubmissionDetails(ctx context.Context, in *GetFormSubmissionDetailsRequest, opts ...grpc.CallOption) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPaymentsAwaitingSignalResponse, error)
+	ClearIdentities(ctx context.Context, in *ClearIdentitiesRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -256,6 +257,15 @@ func (c *backendClient) ListPaymentsAwaitingSignal(ctx context.Context, in *empt
 	return out, nil
 }
 
+func (c *backendClient) ClearIdentities(ctx context.Context, in *ClearIdentitiesRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/ClearIdentities", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -280,6 +290,7 @@ type BackendServer interface {
 	GetFormSubmissionDetails(context.Context, *GetFormSubmissionDetailsRequest) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error)
+	ClearIdentities(context.Context, *ClearIdentitiesRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -345,6 +356,9 @@ func (UnimplementedBackendServer) ListExternalApiCalls(context.Context, *ListExt
 }
 func (UnimplementedBackendServer) ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPaymentsAwaitingSignal not implemented")
+}
+func (UnimplementedBackendServer) ClearIdentities(context.Context, *ClearIdentitiesRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearIdentities not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -721,6 +735,24 @@ func _Backend_ListPaymentsAwaitingSignal_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_ClearIdentities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearIdentitiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).ClearIdentities(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/ClearIdentities",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).ClearIdentities(ctx, req.(*ClearIdentitiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -803,6 +835,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPaymentsAwaitingSignal",
 			Handler:    _Backend_ListPaymentsAwaitingSignal_Handler,
+		},
+		{
+			MethodName: "ClearIdentities",
+			Handler:    _Backend_ClearIdentities_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

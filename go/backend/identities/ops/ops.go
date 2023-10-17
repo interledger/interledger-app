@@ -449,3 +449,12 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 
 	return resp, nil
 }
+
+func Clear(ctx context.Context, b AdminBackends, walletID string) error {
+	_, err := b.DB().ExecContext(ctx, "DELETE FROM identities WHERE wallet_id=$1", walletID)
+	if err != nil {
+		return fmt.Errorf("%w %s", identities.ErrInternal, err)
+	}
+
+	return nil
+}

@@ -8,13 +8,24 @@ import (
 )
 
 var _ identities.Client = client{}
+var _ identities.AdminClient = adminClient{}
 
 type client struct {
 	b ops.Backends
 }
 
+type adminClient struct {
+	b ops.AdminBackends
+}
+
 func New(b ops.Backends) identities.Client {
 	return &client{
+		b: b,
+	}
+}
+
+func NewAdmin(b ops.Backends) identities.AdminClient {
+	return &adminClient{
 		b: b,
 	}
 }
@@ -65,4 +76,8 @@ func (c client) GetByIdentifier(ctx context.Context, identifier string) (*identi
 
 func (c client) Search(ctx context.Context, walletID, term string) ([]identities.SearchResult, error) {
 	return ops.Search(ctx, c.b, walletID, term)
+}
+
+func (c adminClient) Clear(ctx context.Context, walletID string) error {
+	return ops.Clear(ctx, c.b, walletID)
 }

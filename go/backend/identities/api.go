@@ -18,3 +18,7 @@ type Client interface {
 	GetByIdentifier(ctx context.Context, identifier string) (*Identity, error)
 	Search(ctx context.Context, walletID, term string) ([]SearchResult, error)
 }
+
+type AdminClient interface {
+	Clear(ctx context.Context, walletID string) error
+}

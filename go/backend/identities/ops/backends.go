@@ -44,6 +44,10 @@ type Backends interface {
 	Payments() payments.Client
 }
 
+type AdminBackends interface {
+	DB() *sqlx.DB
+}
+
 type testBackends struct {
 	db  *sqlx.DB
 	val *validator.Validate

@@ -144,3 +144,8 @@ func UnauthenticatedError(message string) error {
 func NotFoundError(message string) error {
 	return status.Error(codes.NotFound, "Not found: "+message)
 }
+
+// Not found error will build an immutable error representing the status of the response.
+func UnimplementedError(message string) error {
+	return status.Error(codes.Unimplemented, "Method Not Implemented: "+message)
+}

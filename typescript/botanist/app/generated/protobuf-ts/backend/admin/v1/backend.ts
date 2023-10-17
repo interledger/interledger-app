@@ -15,6 +15,15 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.ClearIdentitiesRequest
+ */
+export interface ClearIdentitiesRequest {
+    /**
+     * @generated from protobuf field: string wallet_id = 1;
+     */
+    walletId: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.ListPaymentsAwaitingSignalResponse
  */
 export interface ListPaymentsAwaitingSignalResponse {
@@ -846,6 +855,53 @@ export interface FormSubmissionDetails {
      */
     timestamp?: Timestamp;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class ClearIdentitiesRequest$Type extends MessageType<ClearIdentitiesRequest> {
+    constructor() {
+        super("backend.admin.v1.ClearIdentitiesRequest", [
+            { no: 1, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ClearIdentitiesRequest>): ClearIdentitiesRequest {
+        const message = { walletId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ClearIdentitiesRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ClearIdentitiesRequest): ClearIdentitiesRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string wallet_id */ 1:
+                    message.walletId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ClearIdentitiesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string wallet_id = 1; */
+        if (message.walletId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ClearIdentitiesRequest
+ */
+export const ClearIdentitiesRequest = new ClearIdentitiesRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListPaymentsAwaitingSignalResponse$Type extends MessageType<ListPaymentsAwaitingSignalResponse> {
     constructor() {
@@ -3686,5 +3742,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListFormSubmissions", options: {}, I: ListFormSubmissionsRequest, O: ListFormSubmissionsResponse },
     { name: "GetFormSubmissionDetails", options: {}, I: GetFormSubmissionDetailsRequest, O: FormSubmissionDetails },
     { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse },
-    { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse }
+    { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse },
+    { name: "ClearIdentities", options: {}, I: ClearIdentitiesRequest, O: Empty }
 ]);
