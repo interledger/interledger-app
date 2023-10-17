@@ -136,8 +136,27 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 	return externalTransaction, nil
 }
 
-func (a *Activity) GetCardTransaction(ctx context.Context, id string) (*tabapay.Transaction, error) {
-	externalTransaction, err := a.b.Tabapay().GetTransaction(ctx, id)
+func (a *Activity) GetSenderCardTransaction(ctx context.Context, txID, paymentID string) (*tabapay.Transaction, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	externalTransaction, err := a.b.Tabapay().GetTransaction(ctx, txID, p.SenderAmount.Currency)
+	if err != nil {
+		return nil, err
+	}
+
+	return externalTransaction, nil
+}
+
+func (a *Activity) GetReceiverCardTransaction(ctx context.Context, txID, paymentID string) (*tabapay.Transaction, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	externalTransaction, err := a.b.Tabapay().GetTransaction(ctx, txID, p.ReceiverAmount.Currency)
 	if err != nil {
 		return nil, err
 	}
@@ -167,5 +186,5 @@ func (a *Activity) RollbackPullFromAccount(ctx context.Context, paymentID string
 		return nil
 	}
 	// TODO: Get if the transaction was actually settled from the reports.
-	return a.b.Tabapay().ReverseTransaction(ctx, externalTX, false)
+	return a.b.Tabapay().ReverseTransaction(ctx, externalTX, false, p.SenderAmount.Currency)
 }
