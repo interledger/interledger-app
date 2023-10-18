@@ -36,7 +36,7 @@ const AlertBody = forwardRef<
   HTMLParagraphElement,
   HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => {
-  return <h2 ref={ref} className={clsx('text-medium', className)} {...props} />
+  return <p ref={ref} className={clsx('text-medium', className)} {...props} />
 })
 AlertBody.displayName = 'AlertBody'
 
