@@ -32,4 +32,5 @@ type Client interface {
 
 type AdminClient interface {
 	Seed(ctx context.Context, las []LinkedAccount) ([]LinkedAccount, error)
+	BulkDelete(ctx context.Context, walletID string) ([]string, error)
 }

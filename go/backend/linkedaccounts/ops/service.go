@@ -692,3 +692,13 @@ func createBatch(ctx context.Context, b AdminBackends, las []linkedaccounts.Link
 func Seed(ctx context.Context, b AdminBackends, las []linkedaccounts.LinkedAccount) ([]linkedaccounts.LinkedAccount, error) {
 	return createBatch(ctx, b, las)
 }
+
+func BulkDelete(ctx context.Context, b AdminBackends, walletID string) ([]string, error) {
+	var ids []string
+	err := b.DB().SelectContext(ctx, &ids, "DELETE FROM linked_accounts WHERE wallet_id=$1 RETURNING id;", walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
+	}
+
+	return ids, nil
+}

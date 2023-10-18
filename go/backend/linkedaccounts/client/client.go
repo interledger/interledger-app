@@ -174,3 +174,7 @@ func (c client) SetDefaultReceive(ctx context.Context, id string) (*linkedaccoun
 func (c adminClient) Seed(ctx context.Context, las []linkedaccounts.LinkedAccount) ([]linkedaccounts.LinkedAccount, error) {
 	return ops.Seed(ctx, c.b, las)
 }
+
+func (c adminClient) BulkDelete(ctx context.Context, walletID string) ([]string, error) {
+	return ops.BulkDelete(ctx, c.b, walletID)
+}
