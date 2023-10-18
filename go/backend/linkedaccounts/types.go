@@ -31,8 +31,8 @@ type LinkedAccount struct {
 	ReceiveCurrency     currency.Currency `db:"receive_currency"`
 	ReceiveAvailability string            `db:"receive_availability"`
 	ReceiveNetwork      string            `db:"receive_network"`
-	CreatedAt           string            `db:"created_at"`
-	UpdatedAt           string            `db:"updated_at"`
+	CreatedAt           sql.NullTime      `db:"created_at"`
+	UpdatedAt           sql.NullTime      `db:"updated_at"`
 	DeletedAt           sql.NullTime      `db:"deleted_at"`
 }
 
