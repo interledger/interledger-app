@@ -138,3 +138,7 @@ func (c *client) ListAll(ctx context.Context, page db.Pagination) ([]transaction
 func (c *adminClient) Seed(ctx context.Context, txs []transactions.Transaction) ([]transactions.Transaction, error) {
 	return ops.SeedTransactions(ctx, c.b, txs)
 }
+
+func (c *adminClient) BulkDelete(ctx context.Context, ids []string) error {
+	return ops.BulkDelete(ctx, c.b, ids)
+}

@@ -46,4 +46,5 @@ type Client interface {
 
 type AdminClient interface {
 	Seed(ctx context.Context, txs []Transaction) ([]Transaction, error)
+	BulkDelete(ctx context.Context, ids []string) error
 }

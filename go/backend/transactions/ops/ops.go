@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/payments"
 	"strings"
 	"time"
 
@@ -754,4 +755,18 @@ func SeedTransactions(ctx context.Context, b AdminBackends, txs []transactions.T
 	}
 
 	return seededTxs, nil
+}
+
+func BulkDelete(ctx context.Context, b AdminBackends, ids []string) error {
+	query, args, err := sqlx.In(`DELETE FROM transactions WHERE id IN (?)`, ids)
+	if err != nil {
+		return fmt.Errorf("%w: %v", transactions.ErrInternal, err)
+	}
+	query = b.DB().Rebind(query)
+	_, err = b.DB().ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%w: %v", payments.ErrInternal, err)
+	}
+
+	return nil
 }
