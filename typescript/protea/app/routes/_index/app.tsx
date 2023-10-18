@@ -162,8 +162,8 @@ export function AppPage() {
             </div>
             <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               <CardHeader>
-                <CardTitle>Latest transactions</CardTitle>
-                <Router className='flex max-h-fit' to={route('/transactions')}>
+                <CardTitle>Latest payments</CardTitle>
+                <Router className='flex max-h-fit' to={route('/payments')}>
                   <Icon className='text-medium'>read_more</Icon>
                 </Router>
               </CardHeader>
@@ -186,8 +186,8 @@ export function AppPage() {
               {transactions.map((transaction, index) => (
                 <CardLink
                   key={transaction.id}
-                  to={route('/transactions/:transactionId', {
-                    transactionId: transaction.id
+                  to={route('/payments/:paymentId', {
+                    paymentId: transaction.id
                   })}
                   className='justify-between'
                 >

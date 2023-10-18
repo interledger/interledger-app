@@ -209,8 +209,8 @@ export function Scaffold() {
             <NavDrawer.ListItem to={route('/identities')}>
               Identities
             </NavDrawer.ListItem>
-            <NavDrawer.ListItem to={route('/transactions')}>
-              Transactions
+            <NavDrawer.ListItem to={route('/payments')}>
+              Payments
             </NavDrawer.ListItem>
             <NavDrawer.ListItem to={route('/settings')}>
               Settings
@@ -524,8 +524,8 @@ export function Scaffold() {
                 <NavDrawer.ListItem to={route('/identities')}>
                   Identities
                 </NavDrawer.ListItem>
-                <NavDrawer.ListItem to={route('/transactions')}>
-                  Transactions
+                <NavDrawer.ListItem to={route('/payments')}>
+                  Payments
                 </NavDrawer.ListItem>
                 <NavDrawer.ListItem to={route('/settings')}>
                   Settings

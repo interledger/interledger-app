@@ -1,6 +1,7 @@
 declare module "routes-gen" {
   export type RouteParams = {
     "/": Record<string, never>;
+    "/:slug": { "slug": string };
     "/about": Record<string, never>;
     "/accounts": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
@@ -35,6 +36,8 @@ declare module "routes-gen" {
     "/pay": Record<string, never>;
     "/pay/:paymentId": { "paymentId": string };
     "/pay/3ds": Record<string, never>;
+    "/payments": Record<string, never>;
+    "/payments/:paymentId": { "paymentId": string };
     "/personal-details": Record<string, never>;
     "/recovery": Record<string, never>;
     "/recovery/password": Record<string, never>;
@@ -66,6 +69,7 @@ declare module "routes-gen" {
   export function route<
     T extends
       | ["/"]
+      | ["/:slug", RouteParams["/:slug"]]
       | ["/about"]
       | ["/accounts"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
@@ -100,6 +104,8 @@ declare module "routes-gen" {
       | ["/pay"]
       | ["/pay/:paymentId", RouteParams["/pay/:paymentId"]]
       | ["/pay/3ds"]
+      | ["/payments"]
+      | ["/payments/:paymentId", RouteParams["/payments/:paymentId"]]
       | ["/personal-details"]
       | ["/recovery"]
       | ["/recovery/password"]
