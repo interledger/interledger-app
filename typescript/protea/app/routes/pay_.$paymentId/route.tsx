@@ -170,7 +170,7 @@ export function links() {
 }
 
 export default function Page() {
-  const { features, sendAccounts, payment } = useLoaderData<typeof loader>()
+  const { features, sendAccounts } = useLoaderData<typeof loader>()
   const [step, reset] = usePayStore((state) => [state.step, state.reset])
   const [commandPaletteOpen, setCommandPaletteOpen] = useScaffoldStore(
     (state) => [state.commandPalletOpen, state.setCommandPalletOpen]
