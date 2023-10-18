@@ -328,8 +328,7 @@ export default function Page() {
                           : 'text-medium'
                       )}
                     >
-                      {transaction.type.includes('outgoing') && '- '}
-                      {transaction.formattedAmount}
+                      {transaction.subtotal}
                     </span>
                     <Icon>navigate_next</Icon>
                   </div>
