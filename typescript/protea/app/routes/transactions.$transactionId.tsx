@@ -7,11 +7,14 @@ import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
+  Alert,
+  AlertBody,
+  AlertContent,
+  AlertTitle,
   Card,
   CardButton,
   CardContent,
   CardHeader,
-  CardIcon,
   CardLink,
   Chip,
   ChipColor,
@@ -21,35 +24,41 @@ import {
   Icon,
   Layouts,
   LinkedInIcon,
+  Router,
   SlackIcon,
   TextButton,
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import {getTransaction} from '~/data/wallet.server'
 import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const transaction = await getTransaction(
-    request,
-    params.transactionId as string
-  )
+  const transaction = await grpc.lookupTransaction(request, {
+    id: params.transactionId as string
+  })
+
+  if (isConnectError(transaction)) throw transaction.errorResponse
+
+  const walletUrl = transaction.type.includes('outgoing')
+    ? transaction.destination
+    : transaction.source
 
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
 
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
-    walletAddress: transaction.walletUrl
+    walletAddress: walletUrl
   })
 
   if (isConnectError(publicWalletInfoResponse)) {
     publicWalletInfo = {
       walletID: 'not-found',
-      address: transaction.walletUrl,
+      address: walletUrl,
       shortAddress: '',
       publicName: '',
       identities: [],
@@ -69,7 +78,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export enum TransactionRefundState {
   NA = 0,
   PENDING = 1,
-  COMPLETED = 2,
+  COMPLETED = 2
 }
 
 export const handle: ApplicationProps = {
@@ -79,18 +88,22 @@ export const handle: ApplicationProps = {
       back: route('/transactions'),
       title: 'Sent payment',
       actions: (match: UIMatch<typeof loader>) => {
-        if (match.data.transaction.refundState == TransactionRefundState.PENDING) {
+        if (
+          match.data.transaction.refundState == TransactionRefundState.PENDING
+        ) {
           return {
             key: 'Pending refund',
             nodes: <Chip color={ChipColor.red}>Pending refund</Chip>
           }
-        } else if (match.data.transaction.refundState == TransactionRefundState.COMPLETED) {
+        } else if (
+          match.data.transaction.refundState == TransactionRefundState.COMPLETED
+        ) {
           return {
             key: 'Refunded',
             nodes: <Chip color={ChipColor.red}>Refunded</Chip>
           }
         }
-        switch (match.data.transaction.status) {
+        switch (match.data.transaction.state) {
           case 'Completed':
             return {
               key: 'Complete',
@@ -121,8 +134,8 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
       typeof data == 'undefined'
         ? 'Transaction'
         : data.transaction.type.includes('outgoing')
-        ? `- ${data.transaction.total} to ${data.transaction.title}`
-        : `${data.transaction.total} from ${data.transaction.title}`
+        ? `${data.transaction.subtotal} to ${data.transaction.title}`
+        : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
 ])
 
@@ -208,215 +221,372 @@ export default function Page() {
 
 function Outgoing({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
+
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
   return (
     <>
       <Card>
         <CardContent>
           <div className='flex items-center justify-between'>
             <h2 className='text-4xl font-medium text-error'>
-              - {transaction.total}
+              {transaction.subtotal}
             </h2>
-            {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
-            {transaction.icon === 'linkedin' && <TwitterIcon height='h-12' />}
-            {transaction.icon === 'twitter' && <LinkedInIcon height='h-12' />}
-            {transaction.icon === 'discord' && <DiscordIcon height='h-12' />}
-            {transaction.icon === 'slack' && <SlackIcon height='h-12' />}
+            <div className='flex flex-col items-end space-y-1'>
+              <span className='text-sm font-medium text-medium'>
+                {transaction.formattedDate}
+              </span>
+              <span className='text-xs text-weak'>
+                {transaction.formattedTime}
+              </span>
+            </div>
           </div>
         </CardContent>
         <Label className='mt-2'>Payment to</Label>
         <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
-            <span>{transaction.title}</span>
+            <div className='flex space-x-2'>
+              {transaction.destinationIdentityType === 'wallet' && (
+                <FynbosIcon />
+              )}
+              {transaction.destinationIdentityType === 'linkedin' && (
+                <TwitterIcon />
+              )}
+              {transaction.destinationIdentityType === 'twitter' && (
+                <LinkedInIcon />
+              )}
+              {transaction.destinationIdentityType === 'discord' && (
+                <DiscordIcon />
+              )}
+              {transaction.destinationIdentityType === 'slack' && <SlackIcon />}
+              <span>{transaction.title}</span>
+            </div>
             <Icon>navigate_next</Icon>
           </div>
         </CardButton>
       </Card>
       {transaction.refundState == TransactionRefundState.PENDING && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <CardIcon className='!bg-error'>
-                <Icon className='text-error'>exclamation</Icon>
-              </CardIcon>
-              <div className='flex flex-col space-y-1'>
-                <h3 className='font-medium text-medium'>Pending refund</h3>
-                <p className='text-sm text-medium'>
-                  Any money, including fees, debited from your account will be
-                  returned.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Alert>
+          <Icon>error</Icon>
+          <AlertContent>
+            <AlertTitle>Pending refund</AlertTitle>
+            <AlertBody>
+              Any money, including fees, debited from your account will be
+              returned.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
       )}
       {transaction.refundState == TransactionRefundState.COMPLETED && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <CardIcon className='!bg-error'>
-                <Icon className='text-error'>exclamation</Icon>
-              </CardIcon>
-              <div className='flex flex-col space-y-1'>
-                <h3 className='font-medium text-medium'>
-                  Payment unsuccessful
-                </h3>
-                <p className='text-sm text-medium'>
-                  All money, including fees, debited from your account has been
-                  returned.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Alert>
+          <Icon>error</Icon>
+          <AlertContent>
+            <AlertTitle>Payment unsuccessful</AlertTitle>
+            <AlertBody>
+              All money, including fees, debited from your account has been
+              returned.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
       )}
-      {transaction.refundState == TransactionRefundState.NA && transaction.status == 'Failed' && (
-        <Card>
-          <CardContent>
-            <div className='flex items-start space-x-4'>
-              <CardIcon className='!bg-error'>
-                <Icon className='text-error'>exclamation</Icon>
-              </CardIcon>
-              <div className='flex flex-col space-y-1'>
-                <h3 className='font-medium text-medium'>
-                  Payment unsuccessful
-                </h3>
-                <p className='text-sm text-medium'>
-                  No need to worry. Nothing has been debited from your account.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      {transaction.refundState != TransactionRefundState.NA && transaction.status == 'Failed' && (
-        <Card>
-          <CardContent>
-            <div className='flex w-full justify-between'>
-              <span className='text-weak'>Total fees</span>
-              <span className='text-medium'>
-                Free <sup>*</sup>
+      {transaction.refundState == TransactionRefundState.NA &&
+        transaction.state == 'Failed' && (
+          <Alert>
+            <Icon>error</Icon>
+            <AlertContent>
+              <AlertTitle>Payment unsuccessful</AlertTitle>
+              <AlertBody>
+                No need to worry. Nothing has been debited from your account.
+              </AlertBody>
+            </AlertContent>
+          </Alert>
+        )}
+      {transaction.refundState != TransactionRefundState.NA &&
+        transaction.state == 'Failed' && (
+          <Card>
+            <Label>Payment ID</Label>
+            <CardButton
+              noHover
+              type='button'
+              onClick={() => {
+                if (typeof navigator.clipboard == 'undefined') {
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    canShow: true
+                  })
+                } else
+                  navigator.clipboard.writeText(transaction.id).then(
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-wallet-address-success',
+                        message: 'Payment ID copied to clipboard.',
+                        icon: 'close',
+                        canShow: true
+                      })
+                    },
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-to-clipboard-fail',
+                        message: "Couldn't copy to clipboard.",
+                        icon: 'close',
+                        canShow: true
+                      })
+                    }
+                  )
+              }}
+              className='items-center justify-between'
+            >
+              <span className='text-left font-medium text-medium'>
+                {transaction.id}
               </span>
+              <Icon className='text-medium'>content_copy</Icon>
+            </CardButton>
+            <CardContent>
+              <div className='flex w-full justify-between'>
+                <span className='text-weak'>Total fees</span>
+                <span className='text-medium'>{transaction.fees}</span>
+              </div>
+              <div className='mt-2 flex w-full justify-between'>
+                <span className='text-weak'>You paid</span>
+                <span className='text-medium'>
+                  {transaction.formattedAmount}
+                </span>
+              </div>
+              {transaction.refundState == TransactionRefundState.COMPLETED && (
+                <div className='mt-2 flex w-full justify-between'>
+                  <span className='text-weak'>Your refund</span>
+                  <span className='text-medium'>
+                    {transaction.formattedAmount}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      {transaction.state != 'Failed' && (
+        <Card>
+          <Label>Payment ID</Label>
+          <CardButton
+            noHover
+            type='button'
+            onClick={() => {
+              if (typeof navigator.clipboard == 'undefined') {
+                pushSnackbar({
+                  id: 'copy-to-clipboard-fail',
+                  message: "Couldn't copy to clipboard.",
+                  icon: 'close',
+                  canShow: true
+                })
+              } else
+                navigator.clipboard.writeText(transaction.id).then(
+                  () => {
+                    pushSnackbar({
+                      id: 'copy-wallet-address-success',
+                      message: 'Payment ID copied to clipboard.',
+                      icon: 'close',
+                      canShow: true
+                    })
+                  },
+                  () => {
+                    pushSnackbar({
+                      id: 'copy-to-clipboard-fail',
+                      message: "Couldn't copy to clipboard.",
+                      icon: 'close',
+                      canShow: true
+                    })
+                  }
+                )
+            }}
+            className='items-center justify-between'
+          >
+            <span className='text-left font-medium text-medium'>
+              {transaction.id}
+            </span>
+            <Icon className='text-medium'>content_copy</Icon>
+          </CardButton>
+          <CardContent>
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Payment from</span>
+              <span className='text-medium'>{transaction.accountTitle}</span>
             </div>
             <div className='mt-2 flex w-full justify-between'>
-              <span className='text-weak'>You paid</span>
-              <span className='text-medium'>{transaction.total}</span>
+              <span className='text-weak'>Amount sent</span>
+              <span className='text-medium'>{transaction.subtotal}</span>
             </div>
-            {transaction.refundState == TransactionRefundState.COMPLETED && (
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Fees</span>
+              <span className='text-medium'>{transaction.fees}</span>
+            </div>
+            {transaction.hasPaymentProtection && (
               <div className='mt-2 flex w-full justify-between'>
-                <span className='text-weak'>Your refund</span>
-                <span className='text-medium'>{transaction.total}</span>
+                <span className='text-weak'>Payment protection (3%)</span>
+                <span className='text-medium'>
+                  {transaction.paymentProtectionAmount}
+                </span>
               </div>
             )}
-            <div className='mt-4 flex w-full space-x-2'>
-              <span className='text-xs text-medium'>*</span>
-              <span className='text-xs text-medium'>
-                For a limited time, Fynbos will absorb the fees associated with
-                making a payment.
-              </span>
+            <div className='mt-4 flex w-full justify-between font-medium'>
+              <span className='text-medium'>Total amount to debit</span>
+              <span className='text-medium'>{transaction.formattedAmount}</span>
             </div>
           </CardContent>
         </Card>
       )}
-      {transaction.status != 'Failed' && (
+
+      {transaction.reference && (
         <Card>
           <CardContent>
-            <div className='flex w-full justify-between'>
-              <span className='text-weak'>Total fees</span>
-              <span className='text-medium'>
-                Free <sup>*</sup>
-              </span>
-            </div>
-            <div className='mt-2 flex w-full justify-between'>
-              <span className='text-weak'>You paid</span>
-              <span className='text-medium'>{transaction.total}</span>
-            </div>
-            <div className='mt-4 flex w-full space-x-2'>
-              <span className='text-xs text-medium'>*</span>
-              <span className='text-xs text-medium'>
-                For a limited time, Fynbos will absorb the fees associated with
-                making a payment.
-              </span>
+            <div className='flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Payment note</span>
+              <span className='text-medium'>{transaction.reference}</span>
             </div>
           </CardContent>
         </Card>
       )}
-      <Card>
-        <CardContent>
-          <div className='flex w-full flex-col justify-between space-y-1'>
-            <span className='text-weak'>Source</span>
-            <span className='text-medium'>{transaction.accountTitle}</span>
-          </div>
-          {transaction.reference && (
-            <div className='mt-4 flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Note</span>
-              <span className='text-medium'>{transaction.reference}</span>
+      {transaction.hasPaymentProtection && (
+        <Card>
+          <CardContent>
+            <div className='flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Payment protection</span>
+              <Router
+                to='/payment-protection'
+                className='font-medium text-primary'
+              >
+                Eligible
+              </Router>
             </div>
-          )}
-          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
-            <span className='text-weak'>Date</span>
-            <span className='text-medium'>
-              {transaction.date} at {transaction.time}
-            </span>
-          </div>
-          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
-            <span className='text-weak'>Transaction ID</span>
-            <span className='text-medium'>{transaction.id}</span>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }
 
 function Incoming({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
+
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
   return (
     <>
       <Card>
         <CardContent>
           <div className='flex items-center justify-between'>
-            <h2 className='text-4xl font-medium text-strong'>
-              {transaction.total}
-            </h2>
-            {transaction.icon === 'wallet' && <FynbosIcon height='h-12' />}
-            {transaction.icon === 'linkedin' && <TwitterIcon height='h-12' />}
-            {transaction.icon === 'twitter' && <LinkedInIcon height='h-12' />}
-            {transaction.icon === 'discord' && <DiscordIcon height='h-12' />}
-            {transaction.icon === 'slack' && <SlackIcon height='h-12' />}
+            <h2 className='text-4xl font-medium'>{transaction.subtotal}</h2>
+            <div className='flex flex-col items-end space-y-1'>
+              <span className='text-sm font-medium text-medium'>
+                {transaction.formattedDate}
+              </span>
+              <span className='text-xs text-weak'>
+                {transaction.formattedTime}
+              </span>
+            </div>
           </div>
         </CardContent>
         <Label className='mt-2'>Payment from</Label>
         <CardButton noHover onClick={openDialog}>
           <div className='flex w-full items-center justify-between text-medium'>
-            <span>{transaction.title}</span>
+            <div className='flex space-x-2'>
+              {transaction.destinationIdentityType === 'wallet' && (
+                <FynbosIcon />
+              )}
+              {transaction.destinationIdentityType === 'linkedin' && (
+                <TwitterIcon />
+              )}
+              {transaction.destinationIdentityType === 'twitter' && (
+                <LinkedInIcon />
+              )}
+              {transaction.destinationIdentityType === 'discord' && (
+                <DiscordIcon />
+              )}
+              {transaction.destinationIdentityType === 'slack' && <SlackIcon />}
+              <span>{transaction.title}</span>
+            </div>
             <Icon>navigate_next</Icon>
           </div>
         </CardButton>
       </Card>
       <Card>
+        <Label>Payment ID</Label>
+        <CardButton
+          noHover
+          type='button'
+          onClick={() => {
+            if (typeof navigator.clipboard == 'undefined') {
+              pushSnackbar({
+                id: 'copy-to-clipboard-fail',
+                message: "Couldn't copy to clipboard.",
+                icon: 'close',
+                canShow: true
+              })
+            } else
+              navigator.clipboard.writeText(transaction.id).then(
+                () => {
+                  pushSnackbar({
+                    id: 'copy-wallet-address-success',
+                    message: 'Payment ID copied to clipboard.',
+                    icon: 'close',
+                    canShow: true
+                  })
+                },
+                () => {
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    canShow: true
+                  })
+                }
+              )
+          }}
+          className='items-center justify-between'
+        >
+          <span className='text-left font-medium text-medium'>
+            {transaction.id}
+          </span>
+          <Icon className='text-medium'>content_copy</Icon>
+        </CardButton>
         <CardContent>
-          <div className='flex w-full flex-col justify-between space-y-1'>
+          <div className='mt-2 flex justify-between'>
             <span className='text-weak'>Paid to</span>
             <span className='text-medium'>{transaction.accountTitle}</span>
           </div>
-          {transaction.reference && (
-            <div className='mt-4 flex w-full flex-col space-y-1'>
-              <span className='text-weak'>Note</span>
-              <span className='text-medium'>{transaction.reference}</span>
-            </div>
-          )}
-          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
-            <span className='text-weak'>Date</span>
-            <span className='text-medium'>
-              {transaction.date} at {transaction.time}
-            </span>
-          </div>
-          <div className='mt-4 flex w-full flex-col justify-between space-y-1'>
-            <span className='text-weak'>Transaction ID</span>
-            <span className='text-medium'>{transaction.id}</span>
-          </div>
         </CardContent>
       </Card>
+      {transaction.reference && (
+        <Card>
+          <CardContent>
+            <div className='flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Payment note</span>
+              <span className='text-medium'>{transaction.reference}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {transaction.hasPaymentProtection && (
+        <Card>
+          <CardContent>
+            <div className='mb-4 flex w-full justify-between'>
+              <span className='text-weak'>Payment protection</span>
+              <Router
+                to='/payment-protection'
+                className='font-medium text-primary'
+              >
+                Eligible
+              </Router>
+            </div>
+            <span className='text-medium'>
+              For any disputes, please{' '}
+              <Router to='/support' className='font-medium text-primary'>
+                contact support
+              </Router>
+              .
+            </span>
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }
