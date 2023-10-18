@@ -17,8 +17,16 @@ if (process.env.NODE_ENV === 'production') {
   redisClient.connect()
 } else {
   if (!global.__redisClient) {
-    global.__redisClient = createClient({ url })
+    global.__redisClient = createClient({
+      url,
+      socket: {
+        reconnectStrategy: 5000
+      }
+    })
     global.__redisClient.connect()
+    global.__redisClient.on('error', (err) => {
+      console.error('Redis error:', err)
+    })
   }
   redisClient = global.__redisClient
 }
