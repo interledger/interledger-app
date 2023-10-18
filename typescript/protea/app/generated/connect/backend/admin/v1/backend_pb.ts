@@ -7,6 +7,43 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.ClearLinkedAccountsRequest
+ */
+export class ClearLinkedAccountsRequest extends Message<ClearLinkedAccountsRequest> {
+  /**
+   * @generated from field: string wallet_id = 1;
+   */
+  walletId = "";
+
+  constructor(data?: PartialMessage<ClearLinkedAccountsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ClearLinkedAccountsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ClearLinkedAccountsRequest {
+    return new ClearLinkedAccountsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ClearLinkedAccountsRequest {
+    return new ClearLinkedAccountsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ClearLinkedAccountsRequest {
+    return new ClearLinkedAccountsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ClearLinkedAccountsRequest | PlainMessage<ClearLinkedAccountsRequest> | undefined, b: ClearLinkedAccountsRequest | PlainMessage<ClearLinkedAccountsRequest> | undefined): boolean {
+    return proto3.util.equals(ClearLinkedAccountsRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.SeedTransactionsRequest
  */
 export class SeedTransactionsRequest extends Message<SeedTransactionsRequest> {

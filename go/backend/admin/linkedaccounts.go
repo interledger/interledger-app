@@ -75,6 +75,29 @@ func (s *AdminRpcService) SeedLinkedAccounts(ctx context.Context, req *pb.SeedLi
 	return &pb.Empty{}, nil
 }
 
+func (s *AdminRpcService) ClearLinkedAccounts(ctx context.Context, req *pb.ClearLinkedAccountsRequest) (*pb.Empty, error) {
+	if env.IsProd() {
+		return nil, NotFoundError("")
+	}
+
+	ids, err := s.b.AdminLinkedAccounts().BulkDelete(ctx, req.WalletId)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	txIDs, err := s.b.AdminPayments().DeleteByLinkedAccountIDs(ctx, ids)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = s.b.AdminTransactions().BulkDelete(ctx, txIDs)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
 func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
 	ret := pb.LinkedAccount{
 		Id:                         la.ID,

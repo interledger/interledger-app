@@ -36,6 +36,11 @@ service Backend {
   rpc SeedLinkedAccounts(SeedLinkedAccountsRequest) returns (Empty);
   rpc SeedPayments(SeedPaymentsRequest) returns (Empty);
   rpc SeedTransactions(SeedTransactionsRequest) returns (Empty);
+  rpc ClearLinkedAccounts(ClearLinkedAccountsRequest) returns (Empty);
+}
+
+message ClearLinkedAccountsRequest {
+  string wallet_id = 1;
 }
 
 message SeedTransactionsRequest {
