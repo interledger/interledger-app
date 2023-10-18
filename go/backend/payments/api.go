@@ -18,4 +18,5 @@ type Client interface {
 
 type AdminClient interface {
 	Seed(ctx context.Context, payments []SeedPayment) ([]SeedPayment, error)
+	DeleteByLinkedAccountIDs(ctx context.Context, ids []string) ([]string, error) // returns tx ids of deleted payments
 }

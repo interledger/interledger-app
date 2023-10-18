@@ -79,6 +79,10 @@ func (c adminClient) Seed(ctx context.Context, ps []payments.SeedPayment) ([]pay
 	return ops.Seed(ctx, c.b, ps)
 }
 
+func (c adminClient) DeleteByLinkedAccountIDs(ctx context.Context, ids []string) ([]string, error) {
+	return ops.DeleteByLinkedAccountIDs(ctx, c.b, ids)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

@@ -1226,3 +1226,33 @@ func Seed(ctx context.Context, b AdminBackends, seedPs []payments.SeedPayment) (
 
 	return ret, nil
 }
+
+type dbPaymentTxIDs struct {
+	SendTransactionID    sql.NullString `db:"send_transaction_id"`
+	ReceiveTransactionID sql.NullString `db:"receive_transaction_id"`
+}
+
+func DeleteByLinkedAccountIDs(ctx context.Context, b AdminBackends, ids []string) ([]string, error) {
+	query, args, err := sqlx.In("DELETE FROM payments WHERE sender_id IN (?) OR receiver_id in (?) RETURNING send_transaction_id, receive_transaction_id", ids, ids)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", payments.ErrInternal, err)
+	}
+	query = b.DB().Rebind(query)
+	var dbTxIDs []dbPaymentTxIDs
+	err = b.DB().SelectContext(ctx, &dbTxIDs, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", payments.ErrInternal, err)
+	}
+
+	var txIDs []string
+	for _, txID := range dbTxIDs {
+		if txID.SendTransactionID.Valid {
+			txIDs = append(txIDs, txID.SendTransactionID.String)
+		}
+		if txID.ReceiveTransactionID.Valid {
+			txIDs = append(txIDs, txID.ReceiveTransactionID.String)
+		}
+	}
+
+	return txIDs, nil
+}
