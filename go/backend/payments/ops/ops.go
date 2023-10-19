@@ -65,6 +65,8 @@ func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (
 	var resp *wallets.Wallet
 	var err error
 	switch identity.Type {
+	case payments.IdentityTypeExternalWalletURL:
+		return nil, fmt.Errorf("%w external wallet URL %s", identities.ErrNotFound, identity.Identifier)
 	case payments.IdentityTypeWalletID:
 		resp, err = b.Wallets().Get(ctx, identity.Identifier)
 	case payments.IdentityTypeWalletURL:
