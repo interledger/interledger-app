@@ -282,7 +282,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	// Signal Rafiki that we pulled
-	err = workflow.ExecuteActivity(accountsCtx, a.SignalRafikiPayIn, paymentID, paymentID).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SignalRafikiPayIn, paymentID, paymentID).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
