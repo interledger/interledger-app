@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/env"
 	"time"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -49,26 +48,24 @@ func (s *rpcService) CreateCard(
 		}
 	}
 
-	if env.IsProd() {
-		// limit the number of cards that can be connected to fynbos
-		// active cards are cards that are not deleted
-		// cards created this week are cards that were created in the last week whether they are active or not
-		var activeCardCount int
-		var cardsCreatedWK int
-		for _, la := range linkedCards {
-			if !la.DeletedAt.Valid {
-				activeCardCount++
-			}
-			if time.Since(la.CreatedAt.Time) < 7*24*time.Hour {
-				cardsCreatedWK++
-			}
+	// limit the number of cards that can be connected to fynbos
+	// active cards are cards that are not deleted
+	// cards created this week are cards that were created in the last week whether they are active or not
+	var activeCardCount int
+	var cardsCreatedWK int
+	for _, la := range linkedCards {
+		if !la.DeletedAt.Valid {
+			activeCardCount++
 		}
-		if activeCardCount >= 5 {
-			return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
+		if time.Since(la.CreatedAt.Time) < 7*24*time.Hour {
+			cardsCreatedWK++
 		}
-		if cardsCreatedWK >= 2 {
-			return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos this week.")
-		}
+	}
+	if activeCardCount >= 5 {
+		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
+	}
+	if cardsCreatedWK >= 2 {
+		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos this week.")
 	}
 
 	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
