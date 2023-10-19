@@ -81,6 +81,43 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.GetSmileIDTokenResponse
+ */
+export class GetSmileIDTokenResponse extends Message<GetSmileIDTokenResponse> {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token = "";
+
+  constructor(data?: PartialMessage<GetSmileIDTokenResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetSmileIDTokenResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetSmileIDTokenResponse {
+    return new GetSmileIDTokenResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetSmileIDTokenResponse {
+    return new GetSmileIDTokenResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetSmileIDTokenResponse {
+    return new GetSmileIDTokenResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetSmileIDTokenResponse | PlainMessage<GetSmileIDTokenResponse> | undefined, b: GetSmileIDTokenResponse | PlainMessage<GetSmileIDTokenResponse> | undefined): boolean {
+    return proto3.util.equals(GetSmileIDTokenResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.SetDefaultSendLinkedAccountRequest
  */
 export class SetDefaultSendLinkedAccountRequest extends Message<SetDefaultSendLinkedAccountRequest> {

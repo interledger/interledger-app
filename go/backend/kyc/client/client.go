@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"gitlab.com/fynbos/backend/kyc/persona"
+	"gitlab.com/fynbos/backend/kyc/smileid"
 
 	"gitlab.com/fynbos/env"
 
@@ -19,6 +20,7 @@ type client struct {
 	b   ops.Backends
 	val address.Validator
 	pc  persona.Client
+	sc  smileid.Client
 }
 
 func New(b ops.Backends, smartyAuthID, smartyAuthToken string) (kyc.Client, error) {
@@ -64,4 +66,8 @@ func (c client) GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey 
 
 func (c client) GetPersonaIDNumbers(ctx context.Context, walletID string) (*kyc.PersonaIDNumbers, error) {
 	return ops.GetPersonaIDNumbers(ctx, c.b, c.pc, walletID)
+}
+
+func (c client) GetSmileIDToken(ctx context.Context, walletID string) (string, error) {
+	return ops.GetSmileIDToken(ctx, c.sc, walletID)
 }

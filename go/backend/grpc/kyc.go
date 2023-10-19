@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/backend/kyc/persona"
 	"math"
 	"time"
+
+	"gitlab.com/fynbos/backend/kyc/persona"
 
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -274,6 +275,35 @@ func (s *rpcService) SetKYCStatusPending(ctx context.Context, req *pb.Empty) (*p
 	}
 
 	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) GetSmileIDToken(ctx context.Context, req *pb.Empty) (*pb.GetSmileIDTokenResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	kycStatus, err := s.b.KYC().GetKYCStatus(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if kycStatus != kyc.StatusUnknown && kycStatus != kyc.StatusDenied {
+		return nil, FailedPreconditionError("KYC already completed.")
+	}
+
+	token, err := s.b.KYC().GetSmileIDToken(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.GetSmileIDTokenResponse{
+		Token: token,
+	}, nil
 }
 
 var maxRetries = 3

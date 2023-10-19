@@ -94,6 +94,7 @@ service BackendService {
   rpc SetKYCStatusPending(Empty) returns (Empty);
   rpc StartKYC(Empty) returns (Empty);
   rpc GetPersonaInquiry(KYCPersonaInquiryRequest) returns (KYCPersonaInquiryResponse);
+  rpc GetSmileIDToken(Empty) returns (GetSmileIDTokenResponse);
 
   // MX
   rpc GetMXWidget(Empty) returns (MXWidgetResponse);
@@ -141,6 +142,10 @@ service BackendService {
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
+}
+
+message GetSmileIDTokenResponse {
+  string token = 1;
 }
 
 message SetDefaultSendLinkedAccountRequest {

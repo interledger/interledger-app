@@ -95,6 +95,21 @@ func (mr *MockClientMockRecorder) GetPersonaInquiry(ctx, walletID, idempotencyKe
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPersonaInquiry", reflect.TypeOf((*MockClient)(nil).GetPersonaInquiry), ctx, walletID, idempotencyKey)
 }
 
+// GetSmileIDToken mocks base method.
+func (m *MockClient) GetSmileIDToken(ctx context.Context, walletID string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSmileIDToken", ctx, walletID)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSmileIDToken indicates an expected call of GetSmileIDToken.
+func (mr *MockClientMockRecorder) GetSmileIDToken(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSmileIDToken", reflect.TypeOf((*MockClient)(nil).GetSmileIDToken), ctx, walletID)
+}
+
 // IsUSPSAddress mocks base method.
 func (m *MockClient) IsUSPSAddress(ctx context.Context, address kyc.Address) (bool, error) {
 	m.ctrl.T.Helper()

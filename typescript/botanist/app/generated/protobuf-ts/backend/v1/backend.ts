@@ -32,6 +32,15 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetSmileIDTokenResponse
+ */
+export interface GetSmileIDTokenResponse {
+    /**
+     * @generated from protobuf field: string token = 1;
+     */
+    token: string;
+}
+/**
  * @generated from protobuf message backend.v1.SetDefaultSendLinkedAccountRequest
  */
 export interface SetDefaultSendLinkedAccountRequest {
@@ -2136,6 +2145,53 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetSmileIDTokenResponse$Type extends MessageType<GetSmileIDTokenResponse> {
+    constructor() {
+        super("backend.v1.GetSmileIDTokenResponse", [
+            { no: 1, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetSmileIDTokenResponse>): GetSmileIDTokenResponse {
+        const message = { token: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetSmileIDTokenResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetSmileIDTokenResponse): GetSmileIDTokenResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string token */ 1:
+                    message.token = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetSmileIDTokenResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string token = 1; */
+        if (message.token !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.token);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetSmileIDTokenResponse
+ */
+export const GetSmileIDTokenResponse = new GetSmileIDTokenResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SetDefaultSendLinkedAccountRequest$Type extends MessageType<SetDefaultSendLinkedAccountRequest> {
     constructor() {
@@ -9450,5 +9506,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateDiscordAuthURL", options: {}, I: Empty, O: CreateDiscordAuthURLResponse },
     { name: "SubmitForm", options: {}, I: SubmitFormRequest, O: Empty },
     { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
-    { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse }
+    { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse },
+    { name: "GetSmileIDToken", options: {}, I: Empty, O: GetSmileIDTokenResponse }
 ]);

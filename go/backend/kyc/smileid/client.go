@@ -19,20 +19,24 @@ import (
 const prodEndpoint = "https://api.smileidentity.com/v1"
 const sandboxEndpoint = "https://testapi.smileidentity.com/v1"
 
-type Client struct {
+type Client interface {
+	GetToken(ctx context.Context, userID, jobID string, product Product) (string, error)
+}
+
+type client struct {
 	baseURL    string
 	partnerID  string
 	apiKey     string
 	webhookURL string
 }
 
-func New(partnerID, apiKey string) *Client {
+func New(partnerID, apiKey string) Client {
 	baseURL := prodEndpoint
 	if !env.IsProd() {
 		baseURL = sandboxEndpoint
 	}
 
-	return &Client{
+	return &client{
 		baseURL:    baseURL,
 		partnerID:  partnerID,
 		apiKey:     apiKey,
@@ -40,7 +44,7 @@ func New(partnerID, apiKey string) *Client {
 	}
 }
 
-func (c Client) GetToken(ctx context.Context, userID, jobID string, product Product) (string, error) {
+func (c client) GetToken(ctx context.Context, userID, jobID string, product Product) (string, error) {
 	endpoint, err := url.JoinPath(c.baseURL, "token")
 	if err != nil {
 		return "", err

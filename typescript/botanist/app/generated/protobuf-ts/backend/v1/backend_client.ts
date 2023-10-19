@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { GetSmileIDTokenResponse } from "./backend";
 import type { SlackCallbackResponse } from "./backend";
 import type { SlackCallbackRequest } from "./backend";
 import type { CreateSlackAuthURLResponse } from "./backend";
@@ -484,6 +485,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: SlackCallback(backend.v1.SlackCallbackRequest) returns (backend.v1.SlackCallbackResponse);
      */
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse>;
+    /**
+     * SmileID
+     *
+     * @generated from protobuf rpc: GetSmileIDToken(backend.v1.Empty) returns (backend.v1.GetSmileIDTokenResponse);
+     */
+    getSmileIDToken(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetSmileIDTokenResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1096,5 +1103,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse> {
         const method = this.methods[78], opt = this._transport.mergeOptions(options);
         return stackIntercept<SlackCallbackRequest, SlackCallbackResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * SmileID
+     *
+     * @generated from protobuf rpc: GetSmileIDToken(backend.v1.Empty) returns (backend.v1.GetSmileIDTokenResponse);
+     */
+    getSmileIDToken(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetSmileIDTokenResponse> {
+        const method = this.methods[79], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GetSmileIDTokenResponse>("unary", this._transport, method, opt, input);
     }
 }
