@@ -154,6 +154,27 @@ func ValidationError(err error, description func(validator.FieldError) string) e
 	return status.Error(codes.Internal, "Internal server error: Validation error")
 }
 
+func CardPreconditionError(subject, description string) error {
+	st := status.New(codes.FailedPrecondition, "Failed precondition")
+	p := &errdetails.PreconditionFailure{
+		Violations: []*errdetails.PreconditionFailure_Violation{
+			{
+				Type:        "Card",
+				Subject:     subject,
+				Description: description,
+			},
+		},
+	}
+
+	st, err := st.WithDetails(p)
+	if err != nil {
+		log.Error("failed to encode card precondition error", zap.Error(err))
+		return status.Error(codes.Internal, "Internal server error: precondition error")
+	}
+
+	return st.Err()
+}
+
 func PaymentPreconditionError(preconditions []payments.RequiredActionType) error {
 	st := status.New(codes.FailedPrecondition, "Failed precondition")
 	p := &errdetails.PreconditionFailure{}
