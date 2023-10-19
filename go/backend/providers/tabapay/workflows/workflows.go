@@ -128,10 +128,12 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		return nil, err
 	}
 
+	// check for duplicate linked cards
 	var externalAccountID string
 	for _, providerID := range externalAccount.DuplicateAccountIDs {
 		var las []linkedaccounts.LinkedAccount
 		externalAccountID = providerID
+		// list linked accounts whether they are soft deleted
 		err = workflow.ExecuteActivity(ctx, a.ListLinkedAccountsByProviderID, tabapay.ProviderName, providerID).Get(ctx, &las)
 		if err != nil {
 			logger.Error("Failed to check for duplicate linked cards.")
@@ -147,6 +149,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 			}
 		}
 	}
+	// if no duplicate linked cards found, create a new linked account
 	if externalAccountID == "" {
 		externalAccountID = externalAccount.AccountID
 	}
