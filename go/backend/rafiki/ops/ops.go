@@ -56,7 +56,7 @@ func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (s
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
 	var eventID string
-	err := b.DB().GetContext(ctx, &paymentID, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	err := b.DB().GetContext(ctx, &eventID, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
