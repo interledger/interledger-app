@@ -45,7 +45,7 @@ type outgoingPaymentData struct {
 		Quote            struct {
 			IncomingPaymentID string `json:"receiver"`
 		} `json:"quote"`
-	} `json:"incomingPayment"`
+	} `json:"payment"`
 }
 
 type amount struct {
