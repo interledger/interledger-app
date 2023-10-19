@@ -44,7 +44,7 @@ func (s *rpcService) CreateCard(
 	}
 	var linkedCards []linkedaccounts.LinkedAccount
 	for _, la := range las {
-		if la.Type == "card" {
+		if la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard {
 			linkedCards = append(linkedCards, la)
 		}
 	}
@@ -64,10 +64,10 @@ func (s *rpcService) CreateCard(
 			}
 		}
 		if activeCardCount >= 5 {
-			return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
+			return nil, FailedPreconditionError("You have connected the maximum number of cards to Fynbos")
 		}
 		if cardsCreatedWK >= 2 {
-			return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos this week.")
+			return nil, FailedPreconditionError("You have connected the maximum number of cards to Fynbos this week")
 		}
 	}
 
