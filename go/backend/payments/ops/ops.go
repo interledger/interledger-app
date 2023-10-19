@@ -1098,7 +1098,7 @@ func SignalExternalPayoutComplete(ctx context.Context, b Backends, id string, su
 	}
 
 	// Nothing to signal if it's not a external payment
-	if dbp.Type == payments.TypeRafiki2External {
+	if dbp.Type != payments.TypeRafiki2External {
 		return nil
 	}
 
