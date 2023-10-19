@@ -116,7 +116,7 @@ func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Walle
 func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Wallet, error) {
 	address, err := wallets.ParseAddress(url)
 	if err != nil {
-		return nil, fmt.Errorf("%w address(%s) invalid", wallets.ErrNoWalletFound, address.String())
+		return nil, fmt.Errorf("%w address(%s) invalid", wallets.ErrNoWalletFound, url)
 	}
 
 	var wid string
