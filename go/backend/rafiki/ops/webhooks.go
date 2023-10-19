@@ -97,6 +97,15 @@ func EventWebhook(b Backends) http.HandlerFunc {
 	}
 }
 
+func extractWalletURL(receiver string) string {
+	const urlPart = "incoming-payments"
+	if strings.Contains(receiver, urlPart) {
+		return receiver[:strings.Index(receiver, urlPart)]
+	}
+
+	return receiver
+}
+
 func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook) error {
 	var op outgoingPaymentData
 	err := json.Unmarshal(hook.Data, &op)
@@ -117,9 +126,11 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 	}
 
 	typ := payments.TypeRafikiPeer2Peer
-	_, err = b.Wallets().GetFromAddress(ctx, op.Payment.Receiver)
+	receiverID := payments.Identity{Type: payments.IdentityTypeWalletURL, Identifier: extractWalletURL(op.Payment.Receiver)}
+	_, err = b.Wallets().GetFromAddress(ctx, receiverID.Identifier)
 	if errors.Is(err, wallets.ErrNoWalletFound) {
 		typ = payments.TypeRafiki2External
+		receiverID.Type = payments.IdentityTypeExternalWalletURL
 	} else if err != nil {
 		return err
 	}
@@ -139,7 +150,7 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 	p, err := b.Payments().Create(ctx, payments.CreateArgs{
 		IdempotencyKey: op.Payment.ID,
 		Sender:         payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: senderWallet},
-		Receiver:       payments.Identity{Type: payments.IdentityTypeWalletURL, Identifier: op.Payment.Receiver},
+		Receiver:       receiverID,
 		SenderAmount:   currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.DebitAmount.AssetCode)),
 		SenderAccount:  senderAcc.ID,
 		ReceiverAmount: currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.ReceiveAmount.AssetCode)),
@@ -152,8 +163,7 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 			log.Error("failed to lookup existing payment from rafiki outoing payment")
 			return err
 		}
-	}
-	if err != nil {
+	} else if err != nil {
 		log.Error("failed to create payment from rafiki outoing payment")
 		return err
 	}
