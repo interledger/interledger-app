@@ -2,7 +2,9 @@
 
 package payments
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
@@ -14,12 +16,13 @@ func _() {
 	_ = x[IdentityTypeWalletURL-3]
 	_ = x[IdentityTypeSlack-4]
 	_ = x[IdentityTypeDiscord-5]
-	_ = x[identityTypeSentinel-6]
+	_ = x[IdentityTypeExternalWalletURL-6]
+	_ = x[identityTypeSentinel-7]
 }
 
-const _IdentityType_name = "UnknownTwitterWalletIDWalletURLSlackDiscordidentityTypeSentinel"
+const _IdentityType_name = "UnknownTwitterWalletIDWalletURLSlackDiscordExternalWalletURLidentityTypeSentinel"
 
-var _IdentityType_index = [...]uint8{0, 7, 14, 22, 31, 36, 43, 63}
+var _IdentityType_index = [...]uint8{0, 7, 14, 22, 31, 36, 43, 60, 80}
 
 func (i IdentityType) String() string {
 	if i < 0 || i >= IdentityType(len(_IdentityType_index)-1) {
