@@ -40,11 +40,12 @@ type outgoingPaymentData struct {
 		State            string `json:"state"`
 		Receiver         string `json:"receiver"`
 		CreatedAt        string `json:"createdAt"`
-		SentAmount       amount `json:"sentAmount"`
+		DebitAmount      amount `json:"debitAmount"`
+		ReceiveAmount    amount `json:"receiveAmount"`
 		Quote            struct {
 			IncomingPaymentID string `json:"receiver"`
 		} `json:"quote"`
-	} `json:"incomingPayment"`
+	} `json:"payment"`
 }
 
 type amount struct {
@@ -105,7 +106,7 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 	}
 
 	var amt uint64
-	amt, err = strconv.ParseUint(op.Payment.SentAmount.Value, 10, 64)
+	amt, err = strconv.ParseUint(op.Payment.DebitAmount.Value, 10, 64)
 	if err != nil {
 		log.Error("failed to convert rafiki outgoing payment amount", zap.Error(err))
 		return err
@@ -139,9 +140,9 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 		IdempotencyKey: op.Payment.ID,
 		Sender:         payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: senderWallet},
 		Receiver:       payments.Identity{Type: payments.IdentityTypeWalletURL, Identifier: op.Payment.Receiver},
-		SenderAmount:   currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.SentAmount.AssetCode)),
+		SenderAmount:   currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.DebitAmount.AssetCode)),
 		SenderAccount:  senderAcc.ID,
-		ReceiverAmount: currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.SentAmount.AssetCode)),
+		ReceiverAmount: currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.ReceiveAmount.AssetCode)),
 		IPAddress:      "41.71.7.104", // TODO: get IP address from somewhere
 		Type:           typ,
 	})
