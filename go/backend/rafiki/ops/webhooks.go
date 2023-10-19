@@ -178,12 +178,12 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, payment_id, event_id) VALUES ($1, $2, $3)", op.Payment.ID, p.ID, hook.ID)
 	if err != nil {
-		log.Error("failed to add outgoing payment from rafiki outoing payment hook")
+		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
 	}
 
-	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_incoming_payments SET payment_id=$1 WHERE id = $2", p.ID, op.Payment.Quote.IncomingPaymentID)
+	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_incoming_payments SET payment_id=$1 WHERE id=$2", p.ID, op.Payment.Quote.IncomingPaymentID)
 	if err != nil {
-		log.Error("failed to confirm payment from rafiki outoing payment hook")
+		log.Error("failed to set incoming payment ID for rafiki outgoing payment", zap.Error(err))
 	}
 
 	return nil
