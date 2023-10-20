@@ -5,6 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"path"
+	"strings"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/keys"
@@ -12,11 +18,6 @@ import (
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
-	"net/url"
-	"path"
-	"strings"
 )
 
 type Backends interface {
@@ -106,9 +107,15 @@ func NewWalletRedirectHandler(b Backends) http.HandlerFunc {
 		}
 
 		jsonResponse := JsonResponse{
-			Id:         wallet.AddressString(),
-			PublicName: wallet.Name,
-			Identities: jsonIds,
+			Id:            wallet.AddressString(),
+			PublicName:    wallet.Name,
+			Identities:    jsonIds,
+			AssetCode:     "USD",
+			AssetScale:    2,
+			AuthServerURL: env.AuthURL(),
+		}
+		if env.IsDev() {
+			jsonResponse.Identities = nil
 		}
 
 		// Fallback to get payment pointer
@@ -355,7 +362,10 @@ type Jwk struct {
 	Use string `json:"use,omitempty"`
 }
 type JsonResponse struct {
-	Id         string             `json:"id"`
-	PublicName string             `json:"publicName"`
-	Identities []IdentityResponse `json:"identities"`
+	Id            string             `json:"id"`
+	PublicName    string             `json:"publicName"`
+	Identities    []IdentityResponse `json:"identities,omitempty"`
+	AssetCode     string             `json:"assetCode"`
+	AssetScale    uint               `json:"assetScale"`
+	AuthServerURL string             `json:"authServer"`
 }
