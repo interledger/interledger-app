@@ -34,6 +34,9 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID, externalID st
 	if err != nil {
 		return nil, err
 	}
+	if linkedCard.SendCurrency != currency.ParseCurrency(dbp.SenderCurrency) {
+		return nil, temporal.NewNonRetryableApplicationError("Sender currency does not match that of sending linked account.", "ErrInternal", payments.ErrInternal)
+	}
 
 	if linkedCard.Provider != tabapay.ProviderName {
 		return nil, temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
@@ -90,13 +93,14 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 			return nil, err
 		}
 
-		accountID, err = defaultReceiveAccount(ctx, a.b, w)
+		account, err := defaultReceiveAccount(ctx, a.b, w)
 		if err != nil {
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				return nil, temporal.NewNonRetryableApplicationError("Default linked card not found.", "ErrNotFound", err)
 			}
 			return nil, err
 		}
+		accountID = account.ID
 
 		// Set the linked account ID on the payment
 		_, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: accountID}, p)
@@ -111,6 +115,9 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 	}
 	if err != nil {
 		return nil, err
+	}
+	if linkedCard.ReceiveCurrency != currency.ParseCurrency(p.ReceiverCurrency) {
+		return nil, temporal.NewNonRetryableApplicationError("Receiver currency does not match that of receiving linked account.", "ErrInternal", payments.ErrInternal)
 	}
 
 	if linkedCard.Provider != tabapay.ProviderName {
