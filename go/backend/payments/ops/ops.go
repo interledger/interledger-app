@@ -65,6 +65,8 @@ func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (
 	var resp *wallets.Wallet
 	var err error
 	switch identity.Type {
+	case payments.IdentityTypeExternalWalletURL:
+		return nil, fmt.Errorf("%w external wallet URL %s", identities.ErrNotFound, identity.Identifier)
 	case payments.IdentityTypeWalletID:
 		resp, err = b.Wallets().Get(ctx, identity.Identifier)
 	case payments.IdentityTypeWalletURL:
@@ -1067,7 +1069,7 @@ func SignalExternalPayoutComplete(ctx context.Context, b Backends, id string, su
 	}
 
 	// Nothing to signal if it's not a external payment
-	if dbp.Type == payments.TypeRafiki2External {
+	if dbp.Type != payments.TypeRafiki2External {
 		return nil
 	}
 
