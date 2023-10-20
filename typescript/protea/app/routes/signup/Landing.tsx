@@ -29,7 +29,7 @@ export function Landing() {
               color='bg-indigo-400'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Profile details</h3>
+              <h2 className='mb-1 font-medium text-strong'>Profile details</h2>
               <p className='text-xs text-medium'>
                 Submit your legal name, email, and country of residence.
               </p>
@@ -49,9 +49,9 @@ export function Landing() {
               color='bg-lime-400'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>
+              <h2 className='mb-1 font-medium text-strong'>
                 Mobile phone number
-              </h3>
+              </h2>
               <p className='text-xs text-medium'>
                 Provide a mobile phone number we can verify.
               </p>
@@ -71,7 +71,7 @@ export function Landing() {
               color='bg-slate-300'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Password</h3>
+              <h2 className='mb-1 font-medium text-strong'>Password</h2>
               <p className='text-xs text-medium'>
                 Create a password we can verify.
               </p>
@@ -91,7 +91,7 @@ export function Landing() {
               color='bg-lime-300'
             />
             <div className='ml-5'>
-              <h3 className='mb-1 font-medium text-strong'>Wallet address</h3>
+              <h2 className='mb-1 font-medium text-strong'>Wallet address</h2>
               <p className='text-xs text-medium'>
                 Create a unique wallet address.
               </p>

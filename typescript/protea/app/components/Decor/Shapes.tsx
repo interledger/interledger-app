@@ -323,7 +323,12 @@ export function WalletShapes() {
     return null
   }
   return (
-    <ul ref={scope} className='flex items-center justify-center'>
+    <ul
+      aria-label='Loading shapes'
+      data-state={loading ? 'loading' : 'complete'}
+      ref={scope}
+      className='flex items-center justify-center'
+    >
       <li
         style={{
           opacity: 0,
