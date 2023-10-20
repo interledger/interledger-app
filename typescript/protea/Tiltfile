@@ -6,7 +6,7 @@ local_resource('protea port forward debugging', serve_cmd = 'kubectl port-forwar
 
 docker_build('protea', '.', target = "dev", live_update = [
   sync_app, sync_public, sync_generated
-], ignore = ["deploy/"])
+], ignore = ["deploy/", "integration/", "test-results/", "playwright-report/"])
 
 k8s_custom_deploy(
   "protea",

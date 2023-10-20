@@ -50,3 +50,6 @@ yarn-error.log*
 
 build-storybook.log
 .env.sentry
+/test-results/
+/playwright-report/
+/playwright/.cache/
