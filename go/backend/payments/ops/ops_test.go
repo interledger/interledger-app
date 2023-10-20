@@ -417,7 +417,12 @@ func TestUpdate(t *testing.T) {
 		ID: receiverWalletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(ctx, gomock.Any(), gomock.Any()).Return(true, nil)
-	b.Txc.EXPECT().CountSendTransactions(ctx, gomock.Any()).Return(0, nil).AnyTimes()
+	b.Txc.EXPECT().CountSendTransactions(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (int, error) {
+		if walletID == "" {
+			t.Fatal("walletID is empty for CountSendTransactions")
+		}
+		return 0, nil
+	}).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
