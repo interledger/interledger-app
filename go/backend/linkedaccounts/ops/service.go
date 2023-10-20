@@ -600,7 +600,7 @@ func ListByProviderID(ctx context.Context, b Backends, provider, providerID stri
 	err := b.DB().SelectContext(
 		ctx,
 		&linkedAccounts,
-		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE deleted_at IS NULL AND provider=$1 AND provider_id=$2;", allFields),
+		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE provider=$1 AND provider_id=$2;", allFields),
 		provider, providerID,
 	)
 	if err != nil {

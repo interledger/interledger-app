@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -34,6 +35,37 @@ func (s *rpcService) CreateCard(
 
 	if !feats.AddCardsEnabled {
 		return nil, NewValidationError("Form", "You have connected the maximum number of cards to Fynbos.")
+	}
+
+	las, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	var linkedCards []linkedaccounts.LinkedAccount
+	for _, la := range las {
+		if la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard {
+			linkedCards = append(linkedCards, la)
+		}
+	}
+
+	// limit the number of cards that can be connected to fynbos
+	// active cards are cards that are not deleted
+	// cards created this week are cards that were created in the last week whether they are active or not
+	var activeCardCount int
+	var cardsCreatedWK int
+	for _, la := range linkedCards {
+		if !la.DeletedAt.Valid {
+			activeCardCount++
+		}
+		if time.Since(la.CreatedAt.Time) < 7*24*time.Hour {
+			cardsCreatedWK++
+		}
+	}
+	if activeCardCount >= 5 {
+		return nil, FailedPreconditionError("You have connected the maximum number of cards to Fynbos")
+	}
+	if cardsCreatedWK >= 2 {
+		return nil, FailedPreconditionError("You have connected the maximum number of cards to Fynbos this week")
 	}
 
 	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
