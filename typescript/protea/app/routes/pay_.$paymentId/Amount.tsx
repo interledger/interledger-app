@@ -368,6 +368,7 @@ export const Amount = () => {
             </div>
             <div className='flex w-full gap-x-2'>
               <Switch
+                srLabel='Payment protection switch'
                 checked={localPayment.hasPaymentProtection}
                 disabled={updatePaymentFetcher.state !== 'idle'}
                 onChange={() =>

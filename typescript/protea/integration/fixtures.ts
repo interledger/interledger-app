@@ -4,6 +4,7 @@ import { LoginPage, PayPage, SignupPage } from './models'
 interface TestFixtures {
   signupPage: SignupPage
   loginPage: LoginPage
+  payPage: PayPage
 }
 
 export * from '@playwright/test'
@@ -14,5 +15,8 @@ export const test = base.extend<TestFixtures>({
   },
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  payPage: async ({ page }, use) => {
+    await use(new PayPage(page))
   }
 })

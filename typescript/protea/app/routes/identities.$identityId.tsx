@@ -214,6 +214,7 @@ function Twitter() {
                   Show Twitter handle on your Fynbos public profile
                 </span>
                 <Switch
+                  srLabel='Publish switch'
                   checked={identity.public}
                   disabled={false}
                   onChange={() => _onChangeSwitch('publish', !identity.public)}
@@ -446,6 +447,7 @@ function Domain() {
                   Show domain on your Fynbos public profile
                 </span>
                 <Switch
+                  srLabel='Publish switch'
                   checked={identity.public}
                   disabled={false}
                   onChange={() => _onChangeSwitch('publish', !identity.public)}
@@ -721,6 +723,7 @@ function Discord() {
                 Show Discord handle on your Fynbos public profile
               </span>
               <Switch
+                srLabel='Publish switch'
                 checked={identity.public}
                 disabled={false}
                 onChange={() => _onChangeSwitch('publish', !identity.public)}
@@ -825,6 +828,7 @@ function Slack() {
                 Show Slack handle on your Fynbos public profile
               </span>
               <Switch
+                srLabel='Publish switch'
                 checked={identity.public}
                 disabled={false}
                 onChange={() => _onChangeSwitch('publish', !identity.public)}

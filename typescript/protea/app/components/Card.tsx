@@ -8,6 +8,7 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
       <div
+        data-testid='card'
         ref={ref}
         className={clsx(
           'flex w-full flex-col rounded-[1.25rem] bg-container-strong p-2',
