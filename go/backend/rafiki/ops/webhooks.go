@@ -40,11 +40,12 @@ type outgoingPaymentData struct {
 		State            string `json:"state"`
 		Receiver         string `json:"receiver"`
 		CreatedAt        string `json:"createdAt"`
-		SentAmount       amount `json:"sentAmount"`
+		DebitAmount      amount `json:"debitAmount"`
+		ReceiveAmount    amount `json:"receiveAmount"`
 		Quote            struct {
 			IncomingPaymentID string `json:"receiver"`
 		} `json:"quote"`
-	} `json:"incomingPayment"`
+	} `json:"payment"`
 }
 
 type amount struct {
@@ -96,6 +97,24 @@ func EventWebhook(b Backends) http.HandlerFunc {
 	}
 }
 
+func extractWalletURL(receiver string) string {
+	const urlPart = "incoming-payments"
+	if strings.Contains(receiver, urlPart) {
+		return receiver[:strings.Index(receiver, urlPart)]
+	}
+
+	return receiver
+}
+
+func extractIncomingPaymentID(receiver string) string {
+	const urlPart = "incoming-payments"
+	if strings.Contains(receiver, urlPart) {
+		return receiver[strings.Index(receiver, urlPart)+len(urlPart)+1:]
+	}
+
+	return receiver
+}
+
 func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook) error {
 	var op outgoingPaymentData
 	err := json.Unmarshal(hook.Data, &op)
@@ -105,7 +124,7 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 	}
 
 	var amt uint64
-	amt, err = strconv.ParseUint(op.Payment.SentAmount.Value, 10, 64)
+	amt, err = strconv.ParseUint(op.Payment.DebitAmount.Value, 10, 64)
 	if err != nil {
 		log.Error("failed to convert rafiki outgoing payment amount", zap.Error(err))
 		return err
@@ -116,9 +135,11 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 	}
 
 	typ := payments.TypeRafikiPeer2Peer
-	_, err = b.Wallets().GetFromAddress(ctx, op.Payment.Receiver)
+	receiverID := payments.Identity{Type: payments.IdentityTypeWalletURL, Identifier: extractWalletURL(op.Payment.Receiver)}
+	_, err = b.Wallets().GetFromAddress(ctx, receiverID.Identifier)
 	if errors.Is(err, wallets.ErrNoWalletFound) {
 		typ = payments.TypeRafiki2External
+		receiverID.Type = payments.IdentityTypeExternalWalletURL
 	} else if err != nil {
 		return err
 	}
@@ -135,25 +156,24 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 		return err
 	}
 
-	p, err := b.Payments().Create(ctx, payments.CreateArgs{
-		IdempotencyKey: op.Payment.ID,
-		Sender:         payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: senderWallet},
-		Receiver:       payments.Identity{Type: payments.IdentityTypeWalletURL, Identifier: op.Payment.Receiver},
-		SenderAmount:   currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.SentAmount.AssetCode)),
-		SenderAccount:  senderAcc.ID,
-		ReceiverAmount: currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.SentAmount.AssetCode)),
-		IPAddress:      "41.71.7.104", // TODO: get IP address from somewhere
-		Type:           typ,
-	})
-	if errors.Is(err, payments.ErrIdempotencyViolation) {
-		p, err = b.Payments().Lookup(ctx, op.Payment.ID)
+	p, err := b.Payments().Lookup(ctx, op.Payment.ID)
+	if errors.Is(err, payments.ErrNotFound) {
+		p, err = b.Payments().Create(ctx, payments.CreateArgs{
+			IdempotencyKey: op.Payment.ID,
+			Sender:         payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: senderWallet},
+			Receiver:       receiverID,
+			SenderAmount:   currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.DebitAmount.AssetCode)),
+			SenderAccount:  senderAcc.ID,
+			ReceiverAmount: currency.FromUInt64(amt, currency.ParseCurrency(op.Payment.ReceiveAmount.AssetCode)),
+			IPAddress:      "41.71.7.104", // TODO: get IP address from somewhere
+			Type:           typ,
+		})
 		if err != nil {
-			log.Error("failed to lookup existing payment from rafiki outoing payment")
+			log.Error("failed to create payment from rafiki outoing payment")
 			return err
 		}
-	}
-	if err != nil {
-		log.Error("failed to create payment from rafiki outoing payment")
+	} else if err != nil {
+		log.Error("failed to lookup existing payment from rafiki outoing payment")
 		return err
 	}
 
@@ -167,12 +187,12 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, payment_id, event_id) VALUES ($1, $2, $3)", op.Payment.ID, p.ID, hook.ID)
 	if err != nil {
-		log.Error("failed to add outgoing payment from rafiki outoing payment hook")
+		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
 	}
 
-	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_incoming_payments SET payment_id=$1 WHERE id = $2", p.ID, op.Payment.Quote.IncomingPaymentID)
+	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_incoming_payments SET payment_id=$1 WHERE id=$2", p.ID, extractIncomingPaymentID(op.Payment.Receiver))
 	if err != nil {
-		log.Error("failed to confirm payment from rafiki outoing payment hook")
+		log.Error("failed to set incoming payment ID for rafiki outgoing payment", zap.Error(err))
 	}
 
 	return nil
