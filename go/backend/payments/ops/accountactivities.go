@@ -90,13 +90,14 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 			return nil, err
 		}
 
-		accountID, err = defaultReceiveAccount(ctx, a.b, w)
+		account, err := defaultReceiveAccount(ctx, a.b, w)
 		if err != nil {
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				return nil, temporal.NewNonRetryableApplicationError("Default linked card not found.", "ErrNotFound", err)
 			}
 			return nil, err
 		}
+		accountID = account.ID
 
 		// Set the linked account ID on the payment
 		_, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: accountID}, p)
