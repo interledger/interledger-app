@@ -31,7 +31,7 @@ RUN --mount=type=secret,id=sentry,dst=.env.sentry SENTRY_DOTENV_PATH=.env.sentry
 RUN --mount=type=secret,id=cdn,dst=.env.rclone rclone --config=.env.rclone --progress sync public/build cdn:protea/build/
 
 ## Production image, copy all the files and run remix
-FROM node:alpine AS runner
+FROM node:18-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
