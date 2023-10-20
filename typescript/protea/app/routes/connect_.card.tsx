@@ -396,7 +396,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
-      return response.error({ errors }, mapping)
+      return response.error({errors}, mapping)
+    } else if (response.code == Code.FailedPrecondition) {
+      return response.error({errors}, mapping)
     } else if (response.code == Code.AlreadyExists) {
       errors.form = 'This card is already connected to Fynbos.'
       return response.error({ errors }, mapping)
