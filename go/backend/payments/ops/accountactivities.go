@@ -34,6 +34,9 @@ func (a *Activity) PullFromAccount(ctx context.Context, paymentID, externalID st
 	if err != nil {
 		return nil, err
 	}
+	if linkedCard.SendCurrency != currency.ParseCurrency(dbp.SenderCurrency) {
+		return nil, temporal.NewNonRetryableApplicationError("Sender currency does not match that of sending linked account.", "ErrInternal", payments.ErrInternal)
+	}
 
 	if linkedCard.Provider != tabapay.ProviderName {
 		return nil, temporal.NewNonRetryableApplicationError("Linked account is not a card.", "ErrInternal", err)
@@ -112,6 +115,9 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 	}
 	if err != nil {
 		return nil, err
+	}
+	if linkedCard.ReceiveCurrency != currency.ParseCurrency(p.ReceiverCurrency) {
+		return nil, temporal.NewNonRetryableApplicationError("Receiver currency does not match that of receiving linked account.", "ErrInternal", payments.ErrInternal)
 	}
 
 	if linkedCard.Provider != tabapay.ProviderName {
