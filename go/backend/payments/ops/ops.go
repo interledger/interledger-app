@@ -880,6 +880,25 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		senderAmtUpdated = true
 	}
 
+	// ensure senderWalletID is set to recalc payment protection
+	var paymentProtectionSenderWalletID string
+	if recalcProtection {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			senderWallet, err := lookupWallet(ctx, b, payments.Identity{
+				Type:       payment.SenderIDType,
+				Identifier: payment.SenderID,
+			})
+			if err != nil {
+				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
+				return
+			}
+			fmt.Println("looked up sender Wallet", senderWallet.ID)
+			paymentProtectionSenderWalletID = senderWallet.ID
+		}()
+	}
+
 	// Wait for parallel checks to complete
 	wg.Wait()
 	if pErr != nil {
@@ -899,7 +918,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	}
 
 	if recalcProtection {
-		amt, fee, err := applyPaymentProtection(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType}, currency.FromUInt64(payment.SenderAmount, currency.Currency(payment.SenderCurrency)))
+		amt, fee, err := applyPaymentProtection(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType, WalletID: paymentProtectionSenderWalletID}, currency.FromUInt64(payment.SenderAmount, currency.Currency(payment.SenderCurrency)))
 		if err != nil {
 			return nil, err
 		}
