@@ -194,6 +194,24 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 		return nil, NewValidationError("amount", description)
 	}
 
+	senderAccount := req.GetSenderAccount()
+	sendAmount := currency.FromPB(req.SenderAmount)
+	if senderAccount == "" {
+		defaultSendAccount, _ := s.b.LinkedAccounts().GetDefaultSend(ctx, w.ID)
+		if defaultSendAccount != nil {
+			senderAccount = defaultSendAccount.ID
+		}
+
+		if sendAmount.Currency.String() == "" && defaultSendAccount != nil {
+			sendAmount.Currency = defaultSendAccount.SendCurrency
+		}
+	} else if senderAccount != "" && sendAmount.Currency.String() == "" {
+		sendAcc, _ := s.b.LinkedAccounts().Get(ctx, senderAccount)
+		if sendAcc != nil && sendAcc.WalletID == w.ID {
+			sendAmount.Currency = sendAcc.SendCurrency
+		}
+	}
+
 	args := payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
@@ -203,8 +221,8 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 			Type:       payments.IdentityType(req.ReceiverIdentityType),
 			Identifier: req.ReceiverIdentity,
 		},
-		SenderAmount:         currency.FromPB(req.SenderAmount),
-		SenderAccount:        req.GetSenderAccount(),
+		SenderAmount:         sendAmount,
+		SenderAccount:        senderAccount,
 		ReceiverAmount:       currency.FromPB(req.GetReceiverAmount()),
 		ReceiverAccount:      req.GetReceiverAccount(),
 		Note:                 req.GetNote(),
