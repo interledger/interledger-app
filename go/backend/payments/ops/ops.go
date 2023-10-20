@@ -242,19 +242,19 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 	return transformPayment(ctx, b, *dbp, nil, nil)
 }
 
-func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, error) {
+func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, currency.Currency, error) {
 	if accountID == "" || w == nil {
-		return false, nil
+		return false, currency.USD, nil
 	}
 	acc, err := b.LinkedAccounts().Get(ctx, accountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return false, nil
+		return false, currency.USD, nil
 	}
 	if err != nil {
-		return false, err
+		return false, currency.USD, err
 	}
 
-	return acc.CanSend && w.ID == acc.WalletID, nil
+	return acc.CanSend && w.ID == acc.WalletID, acc.SendCurrency, nil
 }
 
 func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, error) {
@@ -272,20 +272,20 @@ func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accou
 	return acc.CanReceive && w.ID == acc.WalletID, nil
 }
 
-func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (string, error) {
+func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (*linkedaccounts.LinkedAccount, error) {
 	if w == nil {
-		return "", nil
+		return nil, nil
 	}
 
 	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, w.ID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return "", nil
+		return nil, nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("%w %s", payments.ErrInternal, err)
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	return la.ID, nil
+	return la, nil
 }
 
 func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
@@ -330,12 +330,15 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
-	canSend, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount)
+	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 	if !canSend {
 		p.SenderAccount = ""
+	}
+	if p.SenderAmount.Currency.String() == "" && canSend {
+		p.SenderAmount.Currency = sendCurrency
 	}
 
 	receiverWallet, err := lookupWallet(ctx, b, p.Receiver)
@@ -349,7 +352,14 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	if p.ReceiverAccount == "" || !canReceive {
-		p.ReceiverAccount, _ = defaultReceiveAccount(ctx, b, receiverWallet)
+		defaultReceive, _ := defaultReceiveAccount(ctx, b, receiverWallet)
+		if defaultReceive != nil {
+			p.ReceiverAccount = defaultReceive.ID
+		}
+
+		if defaultReceive != nil && p.ReceiverAmount.Currency.String() == "" {
+			p.ReceiverAmount.Currency = defaultReceive.ReceiveCurrency
+		}
 	}
 
 	requireOTP, err := requiresOTP(ctx, b, p.Type, senderWallet, receiverWallet)
@@ -816,7 +826,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canSend, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
+			canSend, _, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
 			if err != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
@@ -880,6 +890,25 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		senderAmtUpdated = true
 	}
 
+	// ensure senderWalletID is set to recalc payment protection
+	var paymentProtectionSenderWalletID string
+	if recalcProtection {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			senderWallet, err := lookupWallet(ctx, b, payments.Identity{
+				Type:       payment.SenderIDType,
+				Identifier: payment.SenderID,
+			})
+			if err != nil {
+				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
+				return
+			}
+			fmt.Println("looked up sender Wallet", senderWallet.ID)
+			paymentProtectionSenderWalletID = senderWallet.ID
+		}()
+	}
+
 	// Wait for parallel checks to complete
 	wg.Wait()
 	if pErr != nil {
@@ -899,7 +928,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	}
 
 	if recalcProtection {
-		amt, fee, err := applyPaymentProtection(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType}, currency.FromUInt64(payment.SenderAmount, currency.Currency(payment.SenderCurrency)))
+		amt, fee, err := applyPaymentProtection(ctx, b, payments.Identity{Identifier: payment.SenderID, Type: payment.SenderIDType, WalletID: paymentProtectionSenderWalletID}, currency.FromUInt64(payment.SenderAmount, currency.Currency(payment.SenderCurrency)))
 		if err != nil {
 			return nil, err
 		}
