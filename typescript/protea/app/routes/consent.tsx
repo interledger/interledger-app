@@ -1,0 +1,152 @@
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
+import { json, redirect } from '@remix-run/node'
+import { Form, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { Button, Card, CardContent, Layouts, TextButton } from '~/components'
+import { mergeMeta } from '~/lib/meta'
+import { Amount, Consent, GetInteraction } from '~/lib/rafikiauth'
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  if (process.env.FYNBOS_ENV == 'prod') {
+    return redirect(route('/'))
+  }
+
+  let interactId = params.interactId || ''
+  let nonce = params.interactId || ''
+  let clientName = params.interactId || ''
+  let clientUri = params.interactId || ''
+  let grant = await GetInteraction(interactId, nonce)
+
+  return json({
+    ...grant,
+    clientName,
+    clientUri,
+    interactId,
+    nonce
+  })
+}
+
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus
+}
+
+export const meta: MetaFunction = mergeMeta(() => [
+  {
+    title: 'Consent'
+  }
+])
+
+export default function Page() {
+  const { type, interactId, nonce } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      <Form
+        id='consent'
+        action={route('/consent')}
+        method='post'
+        className='hidden'
+      />
+      <input
+        form='consent'
+        value={interactId}
+        name='interactId'
+        type='hidden'
+      />
+      <input form='consent' value={nonce} name='nonce' type='hidden' />
+
+      {type == 'outgoing-payment' && <OutgoingPaymentGrant />}
+      {type == 'incoming-payment' && <IncomingPaymentGrant />}
+      {type == 'quote' && <QuoteGrant />}
+
+      <CardContent className='mt-2 flex w-full justify-end space-x-6'>
+        <TextButton form='consent' type='submit' name='action' value='deny'>
+          Cancel
+        </TextButton>
+        <Button form='consent' type='submit' name='action' value='approve'>
+          Approve
+        </Button>
+      </CardContent>
+    </>
+  )
+}
+
+function QuoteGrant() {
+  const { clientName } = useLoaderData<typeof loader>()
+  return (
+    <>
+      <Card>
+        <CardContent>
+          {clientName} is requesting access to get quotes on your behalf.
+        </CardContent>
+      </Card>
+    </>
+  )
+}
+
+function IncomingPaymentGrant() {
+  const { clientName } = useLoaderData<typeof loader>()
+  return (
+    <>
+      <Card>
+        <CardContent>
+          {clientName} is requesting access to create incoming payments on your
+          account.
+        </CardContent>
+      </Card>
+    </>
+  )
+}
+
+function OutgoingPaymentGrant() {
+  const { clientName, limits } = useLoaderData<typeof loader>()
+  return (
+    <>
+      <Card>
+        <CardContent>
+          {clientName} is requesting access to make a payment on your behalf.
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <div className='flex w-full justify-between'>
+            <span className='text-weak'>Total amount to debit</span>
+            <span className='text-medium'>{limits && limits.debitAmount && formatAmount(limits.debitAmount)}</span>
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  )
+}
+
+function formatAmount(amount: Amount): string {
+  let currency = '$'
+  if (amount.assetCode != 'US') {
+    currency = amount.assetCode
+  } 
+
+  let amt = parseInt(amount.value) / Math.pow(10, -amount.assetScale)
+  return `${currency} ${amt.toFixed(2)}`
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const form = await request.formData()
+  const action = String(form.get('action') || '')
+  const interactId = String(form.get('interactId') || '')
+  const nonce = String(form.get('nonce') || '')
+  const rafikiAuthEndpoint =
+    process.env.RAFIKI_AUTH_ENDPOINT || 'http://rafiki-rafiki-auth.rafiki:3006'
+
+  let userDecision: 'accept' | 'reject' =
+    action == 'approve' ? 'accept' : 'reject'
+  await Consent(interactId, nonce, userDecision)
+
+  return redirect(
+    `https://${rafikiAuthEndpoint}/interact/${interactId}/${nonce}/finish`
+  )
+}
