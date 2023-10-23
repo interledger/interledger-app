@@ -322,8 +322,10 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 			Kid: k.ID,
 			Crv: "Ed25519",
 			Alg: "EdDSA",
-			Use: "sig",
 			X:   k.PublicKey,
+		}
+		if !env.IsDev() {
+			jwks[i].Use = "sig"
 		}
 	}
 
