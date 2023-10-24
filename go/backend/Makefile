@@ -24,6 +24,11 @@ generatetestmigrations:
 	atlas migrate diff create_all --dir "file://db/testmigrations" --to "file://db/schema.hcl" --dev-url="postgres://root@$(CRDB_HOST):26257?sslmode=disable"
 	@echo "Done"
 
+generatequeries: testenvup generatetestmigrations
+	@echo "Generating database queries"
+	sqlc generate
+	@echo "Done"
+
 test: testenvup generatetestmigrations
 	@echo "Running tests"
 	go test ./... -p 4
@@ -64,6 +69,9 @@ generate:
 	@echo "Generating graphl"
 	go generate ./...
 	@echo "Graphql generated"
+
+generate-queries:
+	@echo "Generating database queries"
 
 port-forward-crdb:
 	@echo "Port forwarding cockroachdb"
