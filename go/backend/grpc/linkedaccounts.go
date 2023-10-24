@@ -157,7 +157,7 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if la.WalletID != wallet.ID || la.Type != tabapay.ProviderName || la.DeletedAt.Valid {
+	if la.WalletID != wallet.ID || la.Type != tabapay.TypeCard || la.DeletedAt.Valid {
 		return nil, NotFoundError("ErrNotFound")
 	}
 
