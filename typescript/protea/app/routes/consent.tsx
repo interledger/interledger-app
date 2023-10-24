@@ -6,24 +6,30 @@ import type {
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts, TextButton } from '~/components'
+import { ApplicationProps, Button, Card, CardButton, CardContent, Icon, Layouts, TextButton } from '~/components'
+import { Label } from '~/components/Label'
 import { mergeMeta } from '~/lib/meta'
 import { Amount, Consent, GetInteraction } from '~/lib/rafikiauth'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod') {
     return redirect(route('/'))
   }
 
-  let interactId = params.interactId || ''
-  let nonce = params.interactId || ''
-  let clientName = params.interactId || ''
-  let clientUri = params.interactId || ''
-  let grant = await GetInteraction(interactId, nonce)
+  const url = new URL(request.url)
+  let interactId = url.searchParams.get('interactId') || ''
+  let nonce = url.searchParams.get('nonce') || ''
+  let clientName = url.searchParams.get('clientName') || ''
+  let clientUri = url.searchParams.get('clientUri') || ''
+  let grants = await GetInteraction(interactId, nonce)
+
+  // there should be a grant. Throw 404 for now.
+  if (grants.length < 1) {
+    throw json({}, 404)
+  }
 
   return json({
-    ...grant,
+    ...grants[0],
     clientName,
     clientUri,
     interactId,
@@ -77,20 +83,27 @@ export default function Page() {
 }
 
 function QuoteGrant() {
-  const { clientName } = useLoaderData<typeof loader>()
+  const { clientName, clientUri } = useLoaderData<typeof loader>()
   return (
     <>
       <Card>
         <CardContent>
           {clientName} is requesting access to get quotes on your behalf.
         </CardContent>
+        <CardButton noHover onClick={() => { /* do nothing  */ }}>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <span>{clientUri}</span>
+            </div>
+          </div>
+        </CardButton>
       </Card>
     </>
   )
 }
 
 function IncomingPaymentGrant() {
-  const { clientName } = useLoaderData<typeof loader>()
+  const { clientName, clientUri } = useLoaderData<typeof loader>()
   return (
     <>
       <Card>
@@ -98,25 +111,39 @@ function IncomingPaymentGrant() {
           {clientName} is requesting access to create incoming payments on your
           account.
         </CardContent>
+        <CardButton noHover onClick={() => { /* do nothing  */ }}>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <span>{clientUri}</span>
+            </div>
+          </div>
+        </CardButton>
       </Card>
     </>
   )
 }
 
 function OutgoingPaymentGrant() {
-  const { clientName, limits } = useLoaderData<typeof loader>()
+  const { clientName, limits, clientUri } = useLoaderData<typeof loader>()
   return (
     <>
       <Card>
         <CardContent>
           {clientName} is requesting access to make a payment on your behalf.
         </CardContent>
+        <CardButton noHover onClick={() => { /* do nothing  */ }}>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <span>{clientUri}</span>
+            </div>
+          </div>
+        </CardButton>
       </Card>
       <Card>
         <CardContent>
           <div className='flex w-full justify-between'>
-            <span className='text-weak'>Total amount to debit</span>
-            <span className='text-medium'>{limits && limits.debitAmount && formatAmount(limits.debitAmount)}</span>
+            <span className='text-medium'>Total amount to debit</span>
+            <span className='text-error'>{limits && limits.debitAmount && formatAmount(limits.debitAmount)}</span>
           </div>
         </CardContent>
       </Card>
@@ -126,11 +153,11 @@ function OutgoingPaymentGrant() {
 
 function formatAmount(amount: Amount): string {
   let currency = '$'
-  if (amount.assetCode != 'US') {
+  if (amount.assetCode != 'USD') {
     currency = amount.assetCode
   } 
 
-  let amt = parseInt(amount.value) / Math.pow(10, -amount.assetScale)
+  let amt = parseInt(amount.value) * Math.pow(10, -amount.assetScale)
   return `${currency} ${amt.toFixed(2)}`
 }
 
@@ -146,7 +173,14 @@ export async function action({ request }: ActionFunctionArgs) {
     action == 'approve' ? 'accept' : 'reject'
   await Consent(interactId, nonce, userDecision)
 
+  let publicOpenPaymentsAuthHost = "fynbos.me"
+  if (process.env.FYNBOS_ENV == "dev") {
+    publicOpenPaymentsAuthHost = "eu1.fynbos.me"
+  } else if (process.env.FYNBOS_ENV == "local") {
+    publicOpenPaymentsAuthHost = "local.fynbos.me"
+  }
+
   return redirect(
-    `https://${rafikiAuthEndpoint}/interact/${interactId}/${nonce}/finish`
+    `https://${publicOpenPaymentsAuthHost}/interact/${interactId}/${nonce}/finish`
   )
 }
