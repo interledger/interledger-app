@@ -6,8 +6,16 @@ import type {
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
-import { ApplicationProps, Button, Card, CardButton, CardContent, Icon, Layouts, TextButton } from '~/components'
-import { Label } from '~/components/Label'
+import {
+  ApplicationProps,
+  Button,
+  Card,
+  CardButton,
+  CardContent,
+  Layouts,
+  TextButton
+} from '~/components'
+import { getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 import { Amount, Consent, GetInteraction } from '~/lib/rafikiauth'
 
@@ -26,6 +34,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
     throw json({}, 404)
+  }
+
+  let walletInfo = await getWalletInfo(request)
+  let ownsResource = true
+  grants.forEach((a) => {
+    if (!a.identifier) {
+      ownsResource = false
+    } else if (!a.identifier.includes(walletInfo.url)) {
+      ownsResource = false
+    }
+  })
+  if (!ownsResource) {
+    throw json({}, 403)
   }
 
   return json({
@@ -90,7 +111,12 @@ function QuoteGrant() {
         <CardContent>
           {clientName} is requesting access to get quotes on your behalf.
         </CardContent>
-        <CardButton noHover onClick={() => { /* do nothing  */ }}>
+        <CardButton
+          noHover
+          onClick={() => {
+            /* do nothing  */
+          }}
+        >
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <span>{clientUri}</span>
@@ -111,7 +137,12 @@ function IncomingPaymentGrant() {
           {clientName} is requesting access to create incoming payments on your
           account.
         </CardContent>
-        <CardButton noHover onClick={() => { /* do nothing  */ }}>
+        <CardButton
+          noHover
+          onClick={() => {
+            /* do nothing  */
+          }}
+        >
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <span>{clientUri}</span>
@@ -131,7 +162,12 @@ function OutgoingPaymentGrant() {
         <CardContent>
           {clientName} is requesting access to make a payment on your behalf.
         </CardContent>
-        <CardButton noHover onClick={() => { /* do nothing  */ }}>
+        <CardButton
+          noHover
+          onClick={() => {
+            /* do nothing  */
+          }}
+        >
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <span>{clientUri}</span>
@@ -143,7 +179,9 @@ function OutgoingPaymentGrant() {
         <CardContent>
           <div className='flex w-full justify-between'>
             <span className='text-medium'>Total amount to debit</span>
-            <span className='text-error'>{limits && limits.debitAmount && formatAmount(limits.debitAmount)}</span>
+            <span className='text-error'>
+              {limits && limits.debitAmount && formatAmount(limits.debitAmount)}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -155,7 +193,7 @@ function formatAmount(amount: Amount): string {
   let currency = '$'
   if (amount.assetCode != 'USD') {
     currency = amount.assetCode
-  } 
+  }
 
   let amt = parseInt(amount.value) * Math.pow(10, -amount.assetScale)
   return `${currency} ${amt.toFixed(2)}`
@@ -169,15 +207,35 @@ export async function action({ request }: ActionFunctionArgs) {
   const rafikiAuthEndpoint =
     process.env.RAFIKI_AUTH_ENDPOINT || 'http://rafiki-rafiki-auth.rafiki:3006'
 
+  let grants = await GetInteraction(interactId, nonce)
+
+  // there should be a grant. Throw 404 for now.
+  if (grants.length < 1) {
+    throw json({}, 404)
+  }
+
+  let walletInfo = await getWalletInfo(request)
+  let ownsResource = true
+  grants.forEach((a) => {
+    if (!a.identifier) {
+      ownsResource = false
+    } else if (!a.identifier.includes(walletInfo.url)) {
+      ownsResource = false
+    }
+  })
+  if (!ownsResource) {
+    throw json({}, 403)
+  }
+
   let userDecision: 'accept' | 'reject' =
     action == 'approve' ? 'accept' : 'reject'
   await Consent(interactId, nonce, userDecision)
 
-  let publicOpenPaymentsAuthHost = "fynbos.me"
-  if (process.env.FYNBOS_ENV == "dev") {
-    publicOpenPaymentsAuthHost = "eu1.fynbos.me"
-  } else if (process.env.FYNBOS_ENV == "local") {
-    publicOpenPaymentsAuthHost = "local.fynbos.me"
+  let publicOpenPaymentsAuthHost = 'fynbos.me'
+  if (process.env.FYNBOS_ENV == 'dev') {
+    publicOpenPaymentsAuthHost = 'eu1.fynbos.me'
+  } else if (process.env.FYNBOS_ENV == 'local') {
+    publicOpenPaymentsAuthHost = 'local.fynbos.me'
   }
 
   return redirect(
