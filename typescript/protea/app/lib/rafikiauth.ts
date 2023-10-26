@@ -1,8 +1,11 @@
+import { json } from '@remix-run/node'
+
 const RAFIKI_AUTH_ENDPOINT =
   process.env.RAFIKI_AUTH_ENDPOINT || 'http://rafiki-rafiki-auth.rafiki:3006'
+const RAFIKI_AUTH_SECRET = process.env.RAFIKI_AUTH_SECRET || 'replace-me'
 
 export type GrantDetails = {
-  access: Access
+  access: Access[]
 }
 
 export type Access = {
@@ -36,9 +39,12 @@ type AccessAction =
 export async function GetInteraction(
   interactionId: string,
   nonce: string
-): Promise<Access> {
+): Promise<Access[]> {
   let rpc = await fetch(
-    `${RAFIKI_AUTH_ENDPOINT}/grant/${interactionId}/${nonce}`
+    `${RAFIKI_AUTH_ENDPOINT}/grant/${interactionId}/${nonce}`,
+    {
+      headers: { 'x-idp-secret': RAFIKI_AUTH_SECRET }
+    }
   )
   let body = (await rpc.json()) as GrantDetails
 
@@ -50,7 +56,16 @@ export async function Consent(
   nonce: string,
   userDecision: 'accept' | 'reject'
 ): Promise<void> {
-  await fetch(
-    `${RAFIKI_AUTH_ENDPOINT}/grant/${interactionId}/${nonce}/${userDecision}`
+  let rpc = await fetch(
+    `${RAFIKI_AUTH_ENDPOINT}/grant/${interactionId}/${nonce}/${userDecision}`,
+    {
+      body: JSON.stringify({}),
+      method: 'POST',
+      headers: { 'x-idp-secret': RAFIKI_AUTH_SECRET }
+    }
   )
+
+  if (rpc.status != 202) {
+    throw json({}, rpc.status)
+  }
 }
