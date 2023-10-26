@@ -48,6 +48,16 @@ func New(b Backends, kratosURL, kratosAdminURL string) user.Client {
 	}
 }
 
+func (c *client) UserForToken(ctx context.Context, token string) (usr *user.User, err error) {
+	defer func(begin time.Time) {
+		if err != nil {
+			log.Debug("failed to parse user token", zap.Error(err))
+		}
+	}(time.Now())
+
+	return ops.UserForToken(ctx, c.b, token)
+}
+
 func (c *client) UserForCookie(ctx context.Context, cookie string) (usr *user.User, err error) {
 	defer func(begin time.Time) {
 		if err != nil {

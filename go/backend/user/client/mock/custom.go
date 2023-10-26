@@ -61,6 +61,21 @@ func (mc *MockClient) ListUsers(ctx context.Context, walletID string) ([]user.Us
 	}, nil
 }
 
+func (mc MockClient) UserForToken(ctx context.Context, token string) (*user.User, error) {
+	usr := user.User{}
+	unescapedCookie, err := url.QueryUnescape(token)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal([]byte(unescapedCookie), &usr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &usr, nil
+}
+
 func (mc MockClient) UserForCookie(ctx context.Context, cookie string) (*user.User, error) {
 	usr := user.User{}
 	unescapedCookie, err := url.QueryUnescape(cookie)

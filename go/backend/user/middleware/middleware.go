@@ -15,6 +15,7 @@ import (
 
 const (
 	cookieMetadataKey = "cookies"
+	tokenMetadataKey  = "token"
 )
 
 // Our front-end will forward the raw http cookies in the metadata.
@@ -35,35 +36,59 @@ func MakeUnaryInterceptor(client user.Client) grpc.ServerOption {
 			return nil, status.Error(codes.Internal, "Failed to parse metadata.")
 		}
 		rawCookies := meta.Get(cookieMetadataKey) // must match the metadata field key set on the front-end
+		rawTokens := meta.Get(tokenMetadataKey)   // must match the metadata field key set on the client
 
-		if len(rawCookies) == 0 {
-			return handler(ctx, req)
-		}
-		// cookies now contain the individual cookie names plus values in format <Name=Value>
-		cookies := strings.Split(rawCookies[0], ";")
+		if len(rawCookies) > 0 {
+			// cookies now contain the individual cookie names plus values in format <Name=Value>
+			cookies := strings.Split(rawCookies[0], ";")
 
-		var kratosCookie string
-		for _, c := range cookies {
-			k, v, _ := strings.Cut(c, "=")
-			trimmed := strings.Trim(k, " ")
-			if trimmed == "ory_kratos_session" {
-				kratosCookie = v
+			var kratosCookie string
+			for _, c := range cookies {
+				k, v, _ := strings.Cut(c, "=")
+				trimmed := strings.Trim(k, " ")
+				if trimmed == "ory_kratos_session" {
+					kratosCookie = v
+				}
 			}
-		}
 
-		u, err := client.UserForCookie(ctx, kratosCookie)
-		if err != nil {
-			if !errors.Is(err, user.ErrNoUserFound) {
-				return nil, status.Error(codes.Internal, "Error parsing session.")
+			u, err := client.UserForCookie(ctx, kratosCookie)
+			if err != nil {
+				if !errors.Is(err, user.ErrNoUserFound) {
+					return nil, status.Error(codes.Internal, "Error parsing session.")
+				}
 			}
+
+			if u == nil {
+				return handler(ctx, req)
+			}
+
+			newCtx := context.WithValue(ctx, user.CtxKey, u)
+
+			return handler(newCtx, req)
 		}
 
-		if u == nil {
-			return handler(ctx, req)
+		if len(rawTokens) > 0 {
+			token := rawTokens[0]
+
+			u, err := client.UserForToken(ctx, token)
+
+			if err != nil {
+				if !errors.Is(err, user.ErrNoUserFound) {
+					return nil, status.Error(codes.Internal, "Error parsing session.")
+				}
+			}
+
+			if u == nil {
+				return handler(ctx, req)
+			}
+
+			newCtx := context.WithValue(ctx, user.CtxKey, u)
+
+			return handler(newCtx, req)
 		}
 
-		newCtx := context.WithValue(ctx, user.CtxKey, u)
+		// Didn't find tokens or cookies, so just return the handler.
+		return handler(ctx, req)
 
-		return handler(newCtx, req)
 	})
 }
