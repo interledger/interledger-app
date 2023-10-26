@@ -1,4 +1,4 @@
-import { json } from "@remix-run/node"
+import { json } from '@remix-run/node'
 
 const RAFIKI_AUTH_ENDPOINT =
   process.env.RAFIKI_AUTH_ENDPOINT || 'http://rafiki-rafiki-auth.rafiki:3006'
@@ -69,5 +69,3 @@ export async function Consent(
     throw json({}, rpc.status)
   }
 }
-
-
