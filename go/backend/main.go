@@ -72,6 +72,8 @@ import (
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
+	"gitlab.com/fynbos/backend/providers/xago"
+	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
@@ -177,6 +179,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
+	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 	router.Handle("/webhooks/slack/bot/install", b.slack.BotInstallWebhook())
@@ -356,6 +359,11 @@ type backends struct {
 	slack          slack.Client
 	rafiki         rafiki.Client
 	aws            aws.Client
+	xago           xago.Client
+}
+
+func (b backends) Xago() xago.Client {
+	return b.xago
 }
 
 func (b backends) AWS() aws.Client {
@@ -664,6 +672,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.val = validator.New()
 
 	b.rafiki = rafiki_client.New(b)
+
+	b.xago = xago_client.New(b)
 
 	return b
 }
