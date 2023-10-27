@@ -373,7 +373,7 @@ export function Scaffold() {
                       stiffness: 400,
                       damping: 20
                     }}
-                    className='flex items-center space-x-4'
+                    className='flex items-center space-x-2'
                   >
                     {Array.isArray(actions.nodes) &&
                       actions.nodes.map((action, index) => {
