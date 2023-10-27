@@ -7,6 +7,141 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.SetWalletCountryRequest
+ */
+export class SetWalletCountryRequest extends Message<SetWalletCountryRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string countryCode = 2;
+   */
+  countryCode = "";
+
+  constructor(data?: PartialMessage<SetWalletCountryRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.SetWalletCountryRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "countryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetWalletCountryRequest {
+    return new SetWalletCountryRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetWalletCountryRequest {
+    return new SetWalletCountryRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetWalletCountryRequest {
+    return new SetWalletCountryRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetWalletCountryRequest | PlainMessage<SetWalletCountryRequest> | undefined, b: SetWalletCountryRequest | PlainMessage<SetWalletCountryRequest> | undefined): boolean {
+    return proto3.util.equals(SetWalletCountryRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.Country
+ */
+export class Country extends Message<Country> {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string numeric = 3;
+   */
+  numeric = "";
+
+  /**
+   * @generated from field: bool supported = 4;
+   */
+  supported = false;
+
+  constructor(data?: PartialMessage<Country>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.Country";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "numeric", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "supported", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Country {
+    return new Country().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Country {
+    return new Country().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Country {
+    return new Country().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Country | PlainMessage<Country> | undefined, b: Country | PlainMessage<Country> | undefined): boolean {
+    return proto3.util.equals(Country, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.ListCountriesResponse
+ */
+export class ListCountriesResponse extends Message<ListCountriesResponse> {
+  /**
+   * @generated from field: repeated backend.admin.v1.Country countries = 1;
+   */
+  countries: Country[] = [];
+
+  constructor(data?: PartialMessage<ListCountriesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.ListCountriesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "countries", kind: "message", T: Country, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListCountriesResponse {
+    return new ListCountriesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListCountriesResponse {
+    return new ListCountriesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListCountriesResponse {
+    return new ListCountriesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListCountriesResponse | PlainMessage<ListCountriesResponse> | undefined, b: ListCountriesResponse | PlainMessage<ListCountriesResponse> | undefined): boolean {
+    return proto3.util.equals(ListCountriesResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.ListPaymentsAwaitingSignalResponse
  */
 export class ListPaymentsAwaitingSignalResponse extends Message<ListPaymentsAwaitingSignalResponse> {
