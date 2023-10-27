@@ -841,6 +841,11 @@ table "wallets" {
     null = false
     type = text
   }
+  column "country" {
+    null = false
+    type = text
+    default = ""
+  }
   column "created_at" {
     null    = false
     type    = timestamp
