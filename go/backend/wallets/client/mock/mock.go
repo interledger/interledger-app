@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	country "gitlab.com/fynbos/backend/country"
 	db "gitlab.com/fynbos/backend/db"
 	wallets "gitlab.com/fynbos/backend/wallets"
 )
@@ -139,6 +140,21 @@ func (m *MockClient) ListAll(ctx context.Context, page db.Pagination) ([]wallets
 func (mr *MockClientMockRecorder) ListAll(ctx, page interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockClient)(nil).ListAll), ctx, page)
+}
+
+// SetCountry mocks base method.
+func (m *MockClient) SetCountry(ctx context.Context, id string, country country.Country) (*wallets.Wallet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetCountry", ctx, id, country)
+	ret0, _ := ret[0].(*wallets.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetCountry indicates an expected call of SetCountry.
+func (mr *MockClientMockRecorder) SetCountry(ctx, id, country interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCountry", reflect.TypeOf((*MockClient)(nil).SetCountry), ctx, id, country)
 }
 
 // SetWalletName mocks base method.
