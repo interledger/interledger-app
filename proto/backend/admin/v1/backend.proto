@@ -33,6 +33,26 @@ service Backend {
   rpc ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (ListPaymentsAwaitingSignalResponse);
   rpc SetWalletXagoBalanceEnabled(SetWalletXagoBalanceEnabledRequest) returns (Empty);
   rpc GetWalletXagoBalance(GetWalletXagoBalanceRequest) returns (GetWalletXagoBalanceResponse);
+
+  
+  rpc SetWalletCountry(SetWalletCountryRequest) returns (Empty);
+  rpc ListCountries(Empty) returns (ListCountriesResponse);
+}
+
+message SetWalletCountryRequest {
+  string id = 1;
+  string countryCode = 2;
+}
+
+message Country {
+  string code = 1;
+  string name = 2;
+  string numeric = 3;
+  bool supported = 4;
+}
+
+message ListCountriesResponse {
+  repeated Country countries = 1;
 }
 
 message ListPaymentsAwaitingSignalResponse {
