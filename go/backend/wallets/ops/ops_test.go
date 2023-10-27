@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	users_mock "gitlab.com/fynbos/backend/user/client/mock"
@@ -38,6 +39,7 @@ func TestCreateWallet(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "test1", w.Name)
+	assert.Equal(t, country.US, w.Country)
 
 	// Duplicate name should fail
 	_, err = ops.Create(ctx, b, wallets.CreateArgs{
@@ -45,6 +47,16 @@ func TestCreateWallet(t *testing.T) {
 		Name:   "test1",
 	})
 	require.ErrorIs(t, err, wallets.ErrDuplicateWallet)
+
+	zaWalletID, zaUserID := uuid.NewString(), uuid.NewString()
+	zaWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+		ID:      zaWalletID,
+		UserID:  zaUserID,
+		Name:    "ZA Wallet",
+		Country: country.ZA,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, country.ZA, zaWallet.Country)
 }
 
 func TestWalletForContext(t *testing.T) {
@@ -54,14 +66,16 @@ func TestWalletForContext(t *testing.T) {
 	require.ErrorIs(t, err, wallets.ErrNoWalletFound)
 
 	ctx = context.WithValue(ctx, wallets.CtxKey, &wallets.Wallet{
-		ID:   "1235",
-		Name: "Default name",
+		ID:      "1235",
+		Name:    "Default name",
+		Country: country.US,
 	})
 
 	w, err := ops.WalletForContext(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, w.ID, "1235")
 	assert.Equal(t, w.Name, "Default name")
+	assert.Equal(t, country.US, w.Country)
 }
 
 func TestListWallets(t *testing.T) {
@@ -76,23 +90,33 @@ func TestListWallets(t *testing.T) {
 
 	userID := "80629e7b-276b-4e38-82d5-8f73ef8c3806"
 
-	w, err := ops.Create(ctx, b, wallets.CreateArgs{
+	usWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
 		UserID: userID,
 		Name:   "test1",
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "test1", w.Name)
+	assert.Equal(t, "test1", usWallet.Name)
+	assert.Equal(t, country.US, usWallet.Country)
 
-	w, err = ops.Create(ctx, b, wallets.CreateArgs{
-		UserID: userID,
-		Name:   "",
+	zaWallet, err := ops.Create(ctx, b, wallets.CreateArgs{
+		UserID:  userID,
+		Name:    "",
+		Country: country.ZA,
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "default", w.Name)
+	assert.Equal(t, "default", zaWallet.Name)
+	assert.Equal(t, country.ZA, zaWallet.Country)
 
 	wallets, err := ops.List(ctx, b, userID)
 	require.NoError(t, err)
 	require.Len(t, wallets, 2)
+	for _, w := range wallets {
+		if w.ID == usWallet.ID {
+			assert.Equal(t, country.US, w.Country)
+		} else {
+			assert.Equal(t, country.ZA, w.Country)
+		}
+	}
 }
 
 func TestGetWallet(t *testing.T) {
@@ -118,6 +142,7 @@ func TestGetWallet(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, w.ID, wallet.ID)
 	require.Equal(t, w.Name, wallet.Name)
+	assert.Equal(t, w.Country, wallet.Country)
 }
 
 func TestSetWalletName(t *testing.T) {

@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/backend/wallets/ops"
@@ -50,4 +51,8 @@ func (c client) GetFromAddress(ctx context.Context, address string) (*wallets.Wa
 
 func (c client) AddAddress(ctx context.Context, id, address string) (*wallets.Wallet, error) {
 	return ops.AddAddress(ctx, c.b, id, address)
+}
+
+func (c client) SetCountry(ctx context.Context, id string, country country.Country) (*wallets.Wallet, error) {
+	return ops.SetCountry(ctx, c.b, id, country)
 }

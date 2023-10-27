@@ -3,6 +3,7 @@ package wallets
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
 )
 
@@ -15,4 +16,5 @@ type Client interface {
 	SetWalletName(ctx context.Context, id, name string) (*Wallet, error)
 	GetFromAddress(ctx context.Context, address string) (*Wallet, error)
 	AddAddress(ctx context.Context, id, address string) (*Wallet, error)
+	SetCountry(ctx context.Context, id string, country country.Country) (*Wallet, error)
 }
