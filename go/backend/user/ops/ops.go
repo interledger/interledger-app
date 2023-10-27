@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/wallets"
 
 	client "github.com/ory/kratos-client-go"
@@ -56,6 +57,7 @@ func convertTraits(userID string, traits interface{}) user.User {
 		ID:          userID,
 		Email:       traitsMap["email"].(string),
 		PhoneNumber: traitsMap["phone"].(string),
+		Country:     country.ParseCountry(traitsMap["countryCode"].(string)),
 	}
 	// All trait values:  "email", "phone", "firstName", "lastName", "countryCode"
 	return u
