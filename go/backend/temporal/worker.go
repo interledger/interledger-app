@@ -7,6 +7,7 @@ import (
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
+	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
 	"go.temporal.io/sdk/worker"
@@ -73,6 +74,10 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(rafiki_workflows.PayoutIncomingPaymentsWorkflow)
 
 	rafiki_workflows.StartRafikiIncomingPaymentsPolling(b)
+
+	// Xago
+	w.RegisterActivity(xago_workflows.NewActivity(b))
+	w.RegisterWorkflow(xago_workflows.CreateSubAccount)
 
 	return w, nil
 }

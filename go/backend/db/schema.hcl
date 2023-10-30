@@ -2807,6 +2807,48 @@ table "rafiki_incoming_payments" {
   }
 }
 
+table "xago_sub_accounts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "account_id" {
+    null    = false
+    type    = uuid
+  }
+  column "deposit_address" {
+    null = false
+    type = text
+  }
+  column "deposit_tag" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "xago_sub_accounts_wallet_id_idx" {
+    unique  = true
+    columns = [column.wallet_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
