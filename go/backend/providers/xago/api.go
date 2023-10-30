@@ -1,7 +1,11 @@
 package xago
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type Client interface {
 	WebhookHandler() http.HandlerFunc
+	CreateSubAccount(ctx context.Context, walletID string) (Await, error)
 }
