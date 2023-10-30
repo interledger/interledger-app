@@ -22,7 +22,7 @@
     --text-weak: 100 116 139;
     --text-disabled: 148 163 184;
     --text-primary: 59 130 246;
-    --text-error: 185 28 28;
+    --text-error: 220 38 38;
     --text-success: 34 197 94;
     --text-on-color: 255 255 255;
     --text-primary-hover: 96 165 250;
@@ -47,7 +47,8 @@
     --bg-snackbar: 30 41 59;
     --bg-container-secondary: 255 247 237;
     --bg-footer: 23 37 84;
-    --bg-error: 254 226 226;
+    --bg-error: 254 202 202;
+    --bg-error-hover: 254 226 226;
     /* Border */
     --border: 203 213 225;
     --border-focus: 59 130 246;
@@ -104,7 +105,7 @@
     --text-weak: 148 163 184;
     --text-disabled: 100 116 139;
     --text-primary: 59 130 246;
-    --text-error: 252 165 165;
+    --text-error: 248 113 113;
     --text-success: 34 197 94;
     --text-on-color: 255 255 255;
     --text-primary-hover: 96 165 250;
@@ -128,7 +129,8 @@
     --bg-scrim: 2 6 23;
     --bg-footer: 23 37 84;
     --bg-container-secondary: 255 247 237;
-    --bg-error: 69 10 10;
+    --bg-error: 153 27 27;
+    --bg-error-hover: 185 28 28;
     /* Border */
     --border: 100 116 139;
     --border-focus: 59 130 246;
@@ -186,7 +188,7 @@
       --text-weak: 148 163 184;
       --text-disabled: 100 116 139;
       --text-primary: 59 130 246;
-      --text-error: 252 165 165;
+      --text-error: 248 113 113;
       --text-success: 34 197 94;
       --text-on-color: 255 255 255;
       --text-primary-hover: 96 165 250;
@@ -210,7 +212,8 @@
       --bg-scrim: 2 6 23;
       --bg-footer: 23 37 84;
       --bg-container-secondary: 255 247 237;
-      --bg-error: 69 10 10;
+      --bg-error: 153 27 27;
+      --bg-error-hover: 127 29 29;
       /* Border */
       --border: 100 116 139;
       --border-focus: 59 130 246;
