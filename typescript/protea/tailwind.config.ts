@@ -79,6 +79,7 @@ module.exports = {
         snackbar: 'rgb(var(--bg-snackbar) / <alpha-value>)',
         nav: 'rgb(var(--bg-nav) / <alpha-value>)',
         error: 'rgb(var(--bg-error) / <alpha-value>)',
+        'error-hover': 'rgb(var(--bg-error-hover) / <alpha-value>)',
         'nav-active': 'rgb(var(--bg-nav-active) / <alpha-value>)',
         'nav-hover': 'rgb(var(--bg-nav-hover) / <alpha-value>)',
         'nav-disabled': 'rgb(var(--bg-nav-disabled) / <alpha-value>)',
