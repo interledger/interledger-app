@@ -1,16 +1,22 @@
-import type { LoaderFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
-import { useLoaderData, useParams } from '@remix-run/react'
-import { useState } from 'react'
+import { Form, useFetcher, useLoaderData, useParams } from '@remix-run/react'
+import { useCallback, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
+  Alert,
+  AlertBody,
+  AlertContent,
+  AlertTitle,
+  Button,
   Card,
   CardContent,
   CardHeader,
   CardLink,
   CardTitle,
+  Checkbox,
   Chip,
   ChipColor,
   Dialog,
@@ -20,18 +26,27 @@ import {
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  // TODO optimise these RPCs
   const card = await grpc.getCardDetails(request, {
     id: params.accountId as string
   })
-
   if (isConnectError(card)) throw card.errorResponse
 
-  return json({
-    card
+  const account = await grpc.getLinkedAccount(request, {
+    id: params.accountId as string
+  })
+
+  if (isConnectError(account)) throw account.errorResponse
+
+  return jsonWithCSRF(request, {
+    card,
+    account
   })
 }
 
@@ -86,66 +101,93 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { card } = useLoaderData<typeof loader>()
+  const { card, account, csrfToken } = useLoaderData<typeof loader>()
   const params = useParams()
   const [limitationsDialog, setLimitationsDialog] = useState<boolean>(false)
+  const [showDialog, setShowDialog] = useState<boolean>(false)
+
+  const updateAccountFetcher = useFetcher<typeof action>()
+
+  const _onChangeLinkedAccount = useCallback(
+    (updateType: 'defaultSend' | 'defaultReceive') => {
+      updateAccountFetcher.submit(
+        {
+          formName: updateType,
+          csrfToken
+        },
+        { method: 'post' }
+      )
+    },
+    [csrfToken, updateAccountFetcher]
+  )
 
   return (
     <>
+      <Form
+        id='account'
+        action={route('/accounts/:accountId', {
+          accountId: params.accountId as string
+        })}
+        method='post'
+        className='hidden'
+      />
       {card.state == 'OwnershipReviewRequired' && (
-        <Card>
-          <CardContent>
-            <p>
-              This card is currently in review. You will be unable transact
-              until verified. We will email you once the verification is
-              complete.
-            </p>
-          </CardContent>
-        </Card>
+        <Alert>
+          <Icon>error</Icon>
+          <AlertBody>
+            This card is currently in review, and you will be unable to send or
+            receive payments with it. We will notify you once verified.
+          </AlertBody>
+        </Alert>
       )}
       {card.state == 'Rejected' && (
-        <Card>
-          <CardContent className='flex flex-col gap-y-4'>
-            <p>
+        <Alert>
+          <Icon>error</Icon>
+          <AlertContent>
+            <AlertBody>
               This card cannot process payments because of an address mismatch.
-            </p>
+            </AlertBody>
             <Router className='text-primary' to={route('/support')}>
               Contact support
             </Router>
-          </CardContent>
-        </Card>
+          </AlertContent>
+        </Alert>
       )}
       {card.state == 'Verified' && card.canSend && !card.canReceive && (
-        <Card>
-          <CardContent>
-            <p>
+        <Alert>
+          <Icon>error</Icon>
+          <AlertContent className='items-start'>
+            <AlertTitle>Send only</AlertTitle>
+            <AlertBody>
               This card is enabled to send payments, but unable to receive
               payments.
-            </p>
+            </AlertBody>
             <TextButton
-              className='mt-4 text-primary'
+              className='text-primary'
               onClick={() => setLimitationsDialog(true)}
             >
               More information
             </TextButton>
-          </CardContent>
-        </Card>
+          </AlertContent>
+        </Alert>
       )}
       {card.state == 'Verified' && !card.canSend && card.canReceive && (
-        <Card>
-          <CardContent>
-            <p>
+        <Alert>
+          <Icon>error</Icon>
+          <AlertContent className='items-start'>
+            <AlertTitle>Receive only</AlertTitle>
+            <AlertBody>
               This card is enabled to receive payments, but unable to make
               payments.
-            </p>
+            </AlertBody>
             <TextButton
-              className='mt-4 text-primary'
+              className='text-primary'
               onClick={() => setLimitationsDialog(true)}
             >
               More information
             </TextButton>
-          </CardContent>
-        </Card>
+          </AlertContent>
+        </Alert>
       )}
       <Card>
         <CardHeader>
@@ -171,7 +213,7 @@ export default function Page() {
         </CardContent>
       </Card>
       <Card>
-        <Label>Nickname</Label>
+        <Label>Card nickname</Label>
         <CardLink
           className='flex items-center justify-between'
           to={route('/accounts/:accountId/name', {
@@ -182,6 +224,70 @@ export default function Page() {
           <Icon>navigate_next</Icon>
         </CardLink>
       </Card>
+      <Card>
+        <CardContent>
+          <p>Set as the default for sending or receiving payments.</p>
+          {account.canSend && (
+            <Checkbox
+              id='service-agreement'
+              name='serviceAgreement'
+              form='pay-confirm'
+              className='mt-6 flex items-center'
+              disabled={account.defaultSend}
+              checked={account.defaultSend}
+              onChange={() => _onChangeLinkedAccount('defaultSend')}
+            >
+              <span className='text-sm'>Default send</span>
+            </Checkbox>
+          )}
+          {account.canReceive && (
+            <Checkbox
+              id='service-agreement'
+              name='serviceAgreement'
+              form='pay-confirm'
+              className='mt-6 flex items-center'
+              disabled={account.defaultReceive}
+              checked={account.defaultReceive}
+              onChange={() => _onChangeLinkedAccount('defaultReceive')}
+            >
+              <span className='text-sm'>Default receive</span>
+            </Checkbox>
+          )}
+        </CardContent>
+      </Card>
+      <Button error type='button' onClick={() => setShowDialog(true)}>
+        Remove card
+      </Button>
+      <Dialog open={showDialog} setOpen={setShowDialog}>
+        <CardHeader>
+          <h1 className='text-xl font-medium'>Remove card</h1>
+        </CardHeader>
+        <CardContent>
+          <span className='text-medium'>
+            Are you sure you want to remove the card? This action cannot be
+            undone.
+          </span>
+
+          <div className='flex w-full justify-end space-x-6 pt-4'>
+            <TextButton
+              type='button'
+              className='!text-medium'
+              onClick={() => setShowDialog(false)}
+            >
+              Cancel
+            </TextButton>
+            <TextButton
+              name='formName'
+              className='!text-error'
+              value='delete'
+              form='account'
+              type='submit'
+            >
+              Remove card
+            </TextButton>
+          </div>
+        </CardContent>
+      </Dialog>
       <Dialog open={limitationsDialog} setOpen={setLimitationsDialog}>
         <CardHeader>
           <h1 className='text-xl font-medium'>Card limitations</h1>
@@ -205,4 +311,56 @@ export default function Page() {
       </Dialog>
     </>
   )
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const form = await request.formData()
+  const formName = form.get('formName') as string
+  const accountId = params.accountId as string
+
+  await validateCSRFToken(request, form)
+
+  let response
+  switch (formName) {
+    case 'defaultSend':
+      response = await grpc.setDefaultSendLinkedAccount(request, {
+        id: accountId
+      })
+      if (isConnectError(response)) throw response.errorResponse
+      return jsonWithSnackbar(
+        request,
+        {},
+        {
+          message: 'Card set as default send.',
+          icon: 'close'
+        }
+      )
+    case 'defaultReceive':
+      response = await grpc.setDefaultReceiveLinkedAccount(request, {
+        id: accountId
+      })
+      if (isConnectError(response)) throw response.errorResponse
+      return jsonWithSnackbar(
+        request,
+        {},
+        {
+          message: 'Card set as default receive.',
+          icon: 'close'
+        }
+      )
+    case 'delete':
+      response = await grpc.deleteLinkedAccount(request, { id: accountId })
+      if (isConnectError(response)) throw response.errorResponse
+      return redirectWithSnackbar(request, route('/accounts'), {
+        message: 'Card deleted successfully.',
+        icon: 'close'
+      })
+    default:
+      throw json(
+        { title: "Submitted a form that doesn't exist" },
+        {
+          status: 400
+        }
+      )
+  }
 }
