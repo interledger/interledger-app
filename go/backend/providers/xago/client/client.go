@@ -1,7 +1,11 @@
 package client
 
 import (
+	"context"
 	"net/http"
+
+	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/user"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -19,6 +23,8 @@ type Backends interface {
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Wallets() wallets.Client
+	Users() user.Client
+	KYC() kyc.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -49,4 +55,8 @@ func New(b Backends) xago.Client {
 
 func (c *client) WebhookHandler() http.HandlerFunc {
 	return ops.EventWebhook(c.b)
+}
+
+func (c *client) CreateSubAccount(ctx context.Context, walletID string) (xago.Await, error) {
+	return ops.CreateSubAccount(ctx, c.b, walletID)
 }
