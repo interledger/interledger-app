@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { InputHTMLAttributes } from 'react'
 import { forwardRef } from 'react'
@@ -12,17 +13,23 @@ interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Checkbox = forwardRef<any, CheckboxProps>(
   ({ className, errorMessage, children, ...inputProps }, ref) => {
     return (
-      <div className={className || 'min-w-full'}>
+      <div className={clsx(className || 'min-w-full')}>
         <div className='flex h-6 w-6 items-center justify-center'>
           <input
             ref={ref}
             {...inputProps}
             type='checkbox'
-            className='h-[1.125rem] w-[1.125rem] cursor-pointer rounded-sm border-2 border-base bg-container-strong text-transparent focus:ring-offset-container-strong focus-visible:ring-focus'
+            className='h-[1.125rem] w-[1.125rem] cursor-pointer rounded-sm border-2 border-base bg-container-strong text-transparent focus:ring-offset-container-strong focus-visible:ring-focus disabled:cursor-not-allowed'
           />
         </div>
         <div className='ml-2 text-sm'>
-          <label htmlFor={inputProps.id} className='cursor-pointer text-xs'>
+          <label
+            htmlFor={inputProps.id}
+            className={clsx(
+              'text-xs',
+              inputProps.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+            )}
+          >
             {children}
           </label>
           <AnimatePresence>
