@@ -97,7 +97,7 @@ func (s *rpcService) GetPublicWalletInfo(ctx context.Context, req *pb.GetPublicW
 func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.WalletInfo, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
-		return nil, ForbiddenError("Unauthenticated.")
+		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
 	w, err := s.b.Wallets().ForContext(ctx)
