@@ -5,9 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	"go.uber.org/zap"
-
 	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 )
 
 type Webhook struct {
