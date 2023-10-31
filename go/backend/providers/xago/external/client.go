@@ -23,7 +23,7 @@ import (
 type Client interface {
 	AccessToken(ctx context.Context) (*AccessToken, error)
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumbers kyc.PersonaIDNumbers) (*SubAccount, error)
-	AddBeneficiary(ctx context.Context, details kyc.IndividualDetails) (*AccountBeneficiaries, error)
+	AddBeneficiary(ctx context.Context, details kyc.IndividualDetails) (*CreateBeneficiaryResp, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (*Transaction, error)
 }
 
@@ -202,7 +202,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	return &respData, nil
 }
 
-func (c *client) AddBeneficiary(ctx context.Context, details kyc.IndividualDetails) (*AccountBeneficiaries, error) {
+func (c *client) AddBeneficiary(ctx context.Context, details kyc.IndividualDetails) (*CreateBeneficiaryResp, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "beneficiaries")
 	if err != nil {
 		return nil, err
@@ -261,7 +261,7 @@ func (c *client) AddBeneficiary(ctx context.Context, details kyc.IndividualDetai
 		return nil, err
 	}
 
-	var respData AccountBeneficiaries
+	var respData CreateBeneficiaryResp
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
 		return nil, err
