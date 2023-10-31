@@ -1,6 +1,9 @@
 package external
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type SubAccount struct {
 	AccountID      string          `json:"accountId,omitempty"`
@@ -19,6 +22,7 @@ type Beneficiaries struct {
 	BeneficiaryAction  string `json:"beneficiaryAction,omitempty"`
 	DestinationAddress string `json:"destinationAddress,omitempty"`
 	DestinationTag     string `json:"destinationTag,omitempty"`
+	Reference          string `json:"reference,omitempty"`
 }
 
 type AccessToken struct {
@@ -72,9 +76,23 @@ type CreateBeneficiaryReq struct {
 	AccountType                string `json:"accountType,omitempty"`
 }
 
+type CreateBeneficiaryResp struct {
+	Status        int                    `json:"status,omitempty"`
+	Beneficiaries []AccountBeneficiaries `json:"beneficiaries"`
+}
+
 type AccountBeneficiaries struct {
-	AccountID     string          `json:"accountId,omitempty"`
-	Beneficiaries []Beneficiaries `json:"beneficiaries,omitempty"`
+	BranchCode         string          `json:"branchCode"`
+	Reference          string          `json:"reference"`
+	BeneficiaryAddress string          `json:"beneficiaryAddress"`
+	BankName           string          `json:"bankName"`
+	AccountNumber      string          `json:"accountNumber"`
+	Status             string          `json:"status"`
+	CurrencyCode       string          `json:"currencyCode"`
+	ID                 string          `json:"uuid"`
+	Scope              string          `json:"scope"`
+	Name               string          `json:"name"`
+	Wallet             json.RawMessage `json:"wallet"`
 }
 
 type Transaction struct {

@@ -2,13 +2,13 @@ package ops
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gitlab.com/fynbos/backend/db"
-
-	"gitlab.com/fynbos/backend/providers/xago/external"
-
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/xago/external"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -57,7 +57,7 @@ func CreateSubAccountWorkflow(ctx workflow.Context, walletID string) (*linkedacc
 	}
 
 	var la linkedaccounts.LinkedAccount
-	err = workflow.ExecuteActivity(ctx, a.AddLinkedAccount, walletID, subAcc).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.AddSubAccLinkedAccount, walletID, subAcc).Get(ctx, &la)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func CreateSubAccountWorkflow(ctx workflow.Context, walletID string) (*linkedacc
 	return &la, nil
 }
 
-func (a *Activity) AddLinkedAccount(ctx context.Context, walletID string, sa external.SubAccount) (*linkedaccounts.LinkedAccount, error) {
+func (a *Activity) AddSubAccLinkedAccount(ctx context.Context, walletID string, sa external.SubAccount) (*linkedaccounts.LinkedAccount, error) {
 	return a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
 		WalletID:        walletID,
 		Name:            "Xago Account",
@@ -75,7 +75,7 @@ func (a *Activity) AddLinkedAccount(ctx context.Context, walletID string, sa ext
 		ProviderID:      sa.DepositAddress,
 		Type:            "bank_account",
 		CanSend:         true,
-		CanReceive:      true,
+		CanReceive:      false,
 		State:           linkedaccounts.Verified,
 		SendCountry:     "ZA",
 		SendCurrency:    "ZAR",
@@ -110,4 +110,85 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*exte
 	}
 
 	return a.b.External().CreateSubAccount(ctx, ul[0], *id, *idNum)
+}
+
+func CreateBeneficiaryWorkflow(ctx workflow.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating xago beneficiary.")
+
+	var ben external.CreateBeneficiaryResp
+	err := workflow.ExecuteActivity(ctx, a.CreateExternalBeneficiaries, walletID).Get(ctx, &ben)
+	if err != nil {
+		return nil, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SaveBeneficiary, walletID, ben).Get(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var la linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(ctx, a.AddBeneficiaryLinkedAccount, walletID, ben).Get(ctx, &la)
+	if err != nil {
+		return nil, err
+	}
+
+	return &la, nil
+}
+
+func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, walletID string) (*external.CreateBeneficiaryResp, error) {
+	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.b.External().AddBeneficiary(ctx, *id)
+}
+
+func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa external.CreateBeneficiaryResp) error {
+	if len(sa.Beneficiaries) != 1 {
+		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("incorrect number of beneficiaries, expected 1 got %d", len(sa.Beneficiaries)), "external", nil)
+	}
+	b := sa.Beneficiaries[0]
+	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO xago_beneficiaries (id, wallet_id, address, bank_name, account_number, status, currency, scope, name) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		b.ID, walletID, b.BeneficiaryAddress, b.BankName, b.AccountNumber, b.Status, b.CurrencyCode, b.Scope, b.Name)
+	if db.IsErrorCode(err, db.UniqueViolationError) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID string, sa external.CreateBeneficiaryResp) (*linkedaccounts.LinkedAccount, error) {
+	if len(sa.Beneficiaries) != 1 {
+		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("incorrect number of beneficiaries, expected 1 got %d", len(sa.Beneficiaries)), "external", nil)
+	}
+	b := sa.Beneficiaries[0]
+	return a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		WalletID:        walletID,
+		Name:            "Xago Beneficiary",
+		Nickname:        "Xago Beneficiary",
+		Mask:            "",
+		Provider:        "xago",
+		ProviderID:      b.ID,
+		Type:            "bank_account",
+		CanSend:         false,
+		CanReceive:      true,
+		State:           linkedaccounts.Verified,
+		SendCountry:     "ZA",
+		SendCurrency:    "ZAR",
+		ReceiveCountry:  "ZA",
+		ReceiveCurrency: "ZAR",
+	})
 }
