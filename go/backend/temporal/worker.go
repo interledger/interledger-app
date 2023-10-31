@@ -78,6 +78,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	// Xago
 	w.RegisterActivity(xago_workflows.NewActivity(b))
 	w.RegisterWorkflow(xago_workflows.CreateSubAccount)
+	w.RegisterWorkflow(xago_workflows.CreateBeneficiaryWorkflow)
 
 	return w, nil
 }
