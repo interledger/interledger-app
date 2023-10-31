@@ -2,4 +2,6 @@ package xago
 
 import "errors"
 
-var ErrInternal = errors.New("xago: internal error")
+var (
+	ErrInternal = errors.New("xago: internal error")
+)

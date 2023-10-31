@@ -2845,7 +2845,7 @@ table "xago_sub_accounts" {
   }
   index "xago_sub_accounts_wallet_id_idx" {
     unique  = true
-    columns = [column.wallet_id]
+    columns = [column.wallet_id, column.account_id]
   }
 }
 
@@ -2864,7 +2864,15 @@ table "xago_beneficiaries" {
     null    = false
     type    = text
   }
+  column "reference" {
+    null    = false
+    type    = text
+  }
   column "bank_name" {
+    null    = false
+    type    = text
+  }
+  column "branch_code" {
     null    = false
     type    = text
   }
