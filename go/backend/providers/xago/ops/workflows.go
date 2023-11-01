@@ -2,6 +2,7 @@ package ops
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -36,44 +37,13 @@ func NewActivity(ab ActivityBackends) *Activity {
 	}}
 }
 
-func CreateSubAccountWorkflow(ctx workflow.Context, walletID string) (*xago.SubAccount, error) {
-	var a *Activity
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
+func (a *Activity) WalletHasSubAccount(ctx context.Context, walletID string) (bool, error) {
+	acc, err := LookupSubAccount(ctx, a.b, walletID)
+	if err != nil && !errors.Is(err, xago.ErrNotFound) {
+		return false, err
 	}
 
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	logger := workflow.GetLogger(ctx)
-	logger.Info("Creating xago sub account.")
-
-	var subAcc external.SubAccount
-	err := workflow.ExecuteActivity(ctx, a.CreateSubAccount, walletID).Get(ctx, &subAcc)
-	if err != nil {
-		return nil, err
-	}
-
-	var accID string
-	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&accID)
-	if err != nil {
-		logger.Error("error generating sub account ID as side effect", "Error", err)
-		return nil, err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.SaveSubAccount, walletID, accID, subAcc).Get(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &xago.SubAccount{
-		ID:             accID,
-		AccountID:      subAcc.AccountID,
-		DepositAddress: subAcc.DepositAddress,
-		DepositTag:     subAcc.DepositTag,
-		WalletID:       walletID,
-	}, nil
+	return acc != nil, nil
 }
 
 func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID string, sa external.SubAccount) error {
@@ -104,7 +74,7 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*exte
 	return a.b.External().CreateSubAccount(ctx, ul[0], *id, *idNum)
 }
 
-func CreateBeneficiaryWorkflow(ctx workflow.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
+func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAccountArgs) (*linkedaccounts.LinkedAccount, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
@@ -115,13 +85,41 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, walletID string) (*linkedac
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating xago beneficiary.")
 
-	var ben external.CreateBeneficiaryResp
-	err := workflow.ExecuteActivity(ctx, a.CreateExternalBeneficiaries, walletID).Get(ctx, &ben)
+	var hasSubAcc bool
+	err := workflow.ExecuteActivity(ctx, a.WalletHasSubAccount, bankAcc.WalletID).Get(ctx, &hasSubAcc)
 	if err != nil {
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.SaveBeneficiary, walletID, ben).Get(ctx, nil)
+	if !hasSubAcc {
+		var subAcc external.SubAccount
+		err = workflow.ExecuteActivity(ctx, a.CreateSubAccount, bankAcc.WalletID).Get(ctx, &subAcc)
+		if err != nil {
+			return nil, err
+		}
+
+		var accID string
+		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+			return uuid.NewString()
+		}).Get(&accID)
+		if err != nil {
+			logger.Error("error generating sub account ID as side effect", "Error", err)
+			return nil, err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.SaveSubAccount, bankAcc.WalletID, accID, subAcc).Get(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var ben external.CreateBeneficiaryResp
+	err = workflow.ExecuteActivity(ctx, a.CreateExternalBeneficiaries, bankAcc).Get(ctx, &ben)
+	if err != nil {
+		return nil, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.SaveBeneficiary, bankAcc.WalletID, ben).Get(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, walletID string) (*linkedac
 	}
 
 	var la linkedaccounts.LinkedAccount
-	err = workflow.ExecuteActivity(ctx, a.AddBeneficiaryLinkedAccount, walletID, ben).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.AddBeneficiaryLinkedAccount, bankAcc.WalletID, ben).Get(ctx, &la)
 	if err != nil {
 		return nil, err
 	}
@@ -144,13 +142,36 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, walletID string) (*linkedac
 	return &la, nil
 }
 
-func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, walletID string) (*external.CreateBeneficiaryResp, error) {
-	id, err := a.b.KYC().GetIndividualDetails(ctx, walletID)
+func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (*external.CreateBeneficiaryResp, error) {
+	details, err := a.b.KYC().GetIndividualDetails(ctx, bankAcc.WalletID)
 	if err != nil {
 		return nil, err
 	}
 
-	return a.b.External().AddBeneficiary(ctx, *id)
+	reqStruct := external.CreateBeneficiaryReq{
+		Name:                details.LastName + " " + details.LastName,
+		Scope:               "bank",
+		CurrencyCode:        "ZAR",
+		AccountNumber:       bankAcc.AccountNumber,
+		BranchCode:          bankAcc.BranchCode,
+		BankName:            bankAcc.BankName,
+		BankCountry:         "ZA",
+		AccountName:         details.FirstName,
+		BankBeneficiaryType: "IBAN",
+		Reference:           details.FirstName + " " + details.LastName[:1],
+		Iban:                bankAcc.IBAN,
+		Bic:                 bankAcc.BIC,
+		AccountType:         "typeAccountNumber",
+	}
+	if details.Address != nil {
+		reqStruct.BeneficiaryPhysicalAddress = details.Address.Line1
+		reqStruct.BeneficiaryCity = details.Address.City
+		reqStruct.BeneficiaryCountry = details.Address.CountryCode
+		reqStruct.BeneficiaryPostalCode = details.Address.ZipCode
+		reqStruct.BeneficiaryAddress = details.Address.Line1
+	}
+
+	return a.b.External().AddBeneficiary(ctx, reqStruct)
 }
 
 func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa external.CreateBeneficiaryResp) error {
@@ -158,9 +179,9 @@ func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa exte
 		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("incorrect number of beneficiaries, expected 1 got %d", len(sa.Beneficiaries)), "external", nil)
 	}
 	b := sa.Beneficiaries[0]
-	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO xago_beneficiaries (id, wallet_id, address, reference, bank_name, branch_code, account_number, status, currency, scope, name) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-		b.ID, walletID, b.BeneficiaryAddress, b.Reference, b.BankName, b.BranchCode, b.AccountNumber, b.Status, b.CurrencyCode, b.Scope, b.Name)
+	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO xago_beneficiaries (id, wallet_id, address, reference, status, currency, scope, name) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		b.ID, walletID, b.BeneficiaryAddress, b.Reference, b.Status, b.CurrencyCode, b.Scope, b.Name)
 	if db.IsErrorCode(err, db.UniqueViolationError) {
 		return nil
 	}
@@ -191,7 +212,7 @@ func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id
 		Provider:        "xago",
 		ProviderID:      b.ID,
 		Type:            "bank_account",
-		CanSend:         false,
+		CanSend:         true,
 		CanReceive:      true,
 		State:           linkedaccounts.Verified,
 		SendCountry:     "ZA",

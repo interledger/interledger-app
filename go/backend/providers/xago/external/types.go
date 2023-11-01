@@ -49,9 +49,6 @@ type SubAccountReq struct {
 	Country                    string `json:"country,omitempty"`
 	Nationality                string `json:"nationality,omitempty"`
 	DateOfBirth                int    `json:"dateOfBirth,omitempty"`
-	DestinationAddress         string `json:"destinationAddress,omitempty"`
-	DestinationTag             string `json:"destinationTag,omitempty"`
-	BeneficiaryAction          string `json:"beneficiaryAction,omitempty"`
 }
 
 type CreateBeneficiaryReq struct {

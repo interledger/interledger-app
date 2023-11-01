@@ -141,6 +141,17 @@ service BackendService {
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
+
+  // Xago
+  rpc AddXagoBankAccount(AddXagoBankAccountRequest) returns (LinkedAccount);
+}
+
+message AddXagoBankAccountRequest {
+  string accountNumber = 1;
+  string branchCode = 2;
+  string bankName = 3;
+  string iban = 4;
+  string bic = 5;
 }
 
 message SetDefaultSendLinkedAccountRequest {
