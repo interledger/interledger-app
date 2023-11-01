@@ -47,13 +47,11 @@ func TestActivity_SaveBeneficiary(t *testing.T) {
 	require.NoError(t, err)
 
 	var entry xago.Beneficiary
-	err = b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, address, reference, bank_name, branch_code, account_number, status, currency, scope, name FROM xago_beneficiaries WHERE id =$1", beneficiaryID)
+	err = b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, address, reference, status, currency, scope, name FROM xago_beneficiaries WHERE id =$1", beneficiaryID)
 	require.NoError(t, err)
 
-	assert.Equal(t, "branchy face", entry.BranchCode)
 	assert.Equal(t, "Ref me", entry.Reference)
 	assert.Equal(t, "Dark side of the moon", entry.Address)
-	assert.Equal(t, "acc_1234", entry.AccountNumber)
 	assert.Equal(t, "ZAR", entry.Currency)
 	assert.Equal(t, "open", entry.Status)
 	assert.Equal(t, beneficiaryID, entry.ID)

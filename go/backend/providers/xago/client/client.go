@@ -57,10 +57,6 @@ func (c *client) WebhookHandler() http.HandlerFunc {
 	return ops.EventWebhook(c.b)
 }
 
-func (c *client) CreateSubAccount(ctx context.Context, walletID string) (xago.Await, error) {
-	return ops.CreateSubAccount(ctx, c.b, walletID)
-}
-
-func (c *client) CreateBeneficiary(ctx context.Context, walletID string) (xago.Await, error) {
-	return ops.CreateBeneficiary(ctx, c.b, walletID)
+func (c *client) CreateBeneficiary(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (xago.Await, error) {
+	return ops.CreateBeneficiary(ctx, c.b, bankAcc)
 }

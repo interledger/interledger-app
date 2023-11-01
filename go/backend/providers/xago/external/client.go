@@ -23,7 +23,7 @@ import (
 type Client interface {
 	AccessToken(ctx context.Context) (*AccessToken, error)
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumbers kyc.PersonaIDNumbers) (*SubAccount, error)
-	AddBeneficiary(ctx context.Context, details kyc.IndividualDetails) (*CreateBeneficiaryResp, error)
+	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (*Transaction, error)
 }
 
@@ -152,9 +152,6 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 		Country:                    idNumbers.IssuingCountry,
 		Nationality:                idNumbers.IssuingCountry,
 		DateOfBirth:                dob,
-		DestinationAddress:         "TODO",
-		DestinationTag:             "TODO",
-		BeneficiaryAction:          "transit",
 	}
 	if details.Address != nil {
 		reqStruct.Address = details.Address.Line1
@@ -202,32 +199,10 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	return &respData, nil
 }
 
-func (c *client) AddBeneficiary(ctx context.Context, details kyc.IndividualDetails) (*CreateBeneficiaryResp, error) {
+func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "beneficiaries")
 	if err != nil {
 		return nil, err
-	}
-	reqStruct := CreateBeneficiaryReq{
-		Name:                details.LastName + " " + details.LastName,
-		Scope:               "bank",
-		CurrencyCode:        "ZAR",
-		AccountNumber:       "TODO",
-		BranchCode:          "TODO",
-		BankName:            "TODO",
-		BankCountry:         "TODO",
-		AccountName:         details.FirstName,
-		BankBeneficiaryType: "IBAN",
-		Reference:           details.FirstName + " " + details.LastName[:1],
-		Iban:                "TODO",
-		Bic:                 "TODO",
-		AccountType:         "typeAccountNumber",
-	}
-	if details.Address != nil {
-		reqStruct.BeneficiaryPhysicalAddress = details.Address.Line1
-		reqStruct.BeneficiaryCity = details.Address.City
-		reqStruct.BeneficiaryCountry = details.Address.CountryCode
-		reqStruct.BeneficiaryPostalCode = details.Address.ZipCode
-		reqStruct.BeneficiaryAddress = details.Address.Line1
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
