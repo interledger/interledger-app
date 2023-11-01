@@ -99,7 +99,7 @@ export function Scaffold() {
   const matches = useMatches()
   const navigate = useNavigate()
   const [search] = useSearchParams()
-  const { isUser, snackbar } = useRouteLoaderData('root') as SerializeFrom<
+  const { isUser, snackbar, env } = useRouteLoaderData('root') as SerializeFrom<
     typeof rootLoader
   >
 
@@ -650,7 +650,7 @@ export function Scaffold() {
           open={commandPaletteOpen}
           setOpen={() => setCommandPaletteOpen(false)}
         >
-          <Search />
+          <Search fynbosEnv={env.fynbosEnv} />
         </CommandPalette>
       </div>
     </div>
