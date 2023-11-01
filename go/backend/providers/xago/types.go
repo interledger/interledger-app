@@ -13,15 +13,21 @@ type SubAccount struct {
 }
 
 type Beneficiary struct {
-	WalletID      string `db:"wallet_id"`
-	BranchCode    string `db:"branch_code"`
-	Reference     string `db:"reference"`
-	Address       string `db:"address"`
-	BankName      string `db:"bank_name"`
-	AccountNumber string `db:"account_number"`
-	Status        string `db:"status"`
-	Currency      string `db:"currency"`
-	ID            string `db:"id"`
-	Scope         string `db:"scope"`
-	Name          string `db:"name"`
+	WalletID  string `db:"wallet_id"`
+	Reference string `db:"reference"`
+	Address   string `db:"address"`
+	Status    string `db:"status"`
+	Currency  string `db:"currency"`
+	ID        string `db:"id"`
+	Scope     string `db:"scope"`
+	Name      string `db:"name"`
+}
+
+type CreateBankAccountArgs struct {
+	WalletID      string
+	AccountNumber string
+	BranchCode    string
+	BankName      string
+	IBAN          string
+	BIC           string
 }

@@ -4,4 +4,5 @@ import "errors"
 
 var (
 	ErrInternal = errors.New("xago: internal error")
+	ErrNotFound = errors.New("xago: not found")
 )

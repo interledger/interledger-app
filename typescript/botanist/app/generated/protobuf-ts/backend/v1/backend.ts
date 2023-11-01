@@ -32,6 +32,31 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.AddXagoBankAccountRequest
+ */
+export interface AddXagoBankAccountRequest {
+    /**
+     * @generated from protobuf field: string accountNumber = 1;
+     */
+    accountNumber: string;
+    /**
+     * @generated from protobuf field: string branchCode = 2;
+     */
+    branchCode: string;
+    /**
+     * @generated from protobuf field: string bankName = 3;
+     */
+    bankName: string;
+    /**
+     * @generated from protobuf field: string iban = 4;
+     */
+    iban: string;
+    /**
+     * @generated from protobuf field: string bic = 5;
+     */
+    bic: string;
+}
+/**
  * @generated from protobuf message backend.v1.SetDefaultSendLinkedAccountRequest
  */
 export interface SetDefaultSendLinkedAccountRequest {
@@ -2136,6 +2161,81 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AddXagoBankAccountRequest$Type extends MessageType<AddXagoBankAccountRequest> {
+    constructor() {
+        super("backend.v1.AddXagoBankAccountRequest", [
+            { no: 1, name: "accountNumber", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "branchCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "bankName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "iban", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "bic", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AddXagoBankAccountRequest>): AddXagoBankAccountRequest {
+        const message = { accountNumber: "", branchCode: "", bankName: "", iban: "", bic: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AddXagoBankAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AddXagoBankAccountRequest): AddXagoBankAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string accountNumber */ 1:
+                    message.accountNumber = reader.string();
+                    break;
+                case /* string branchCode */ 2:
+                    message.branchCode = reader.string();
+                    break;
+                case /* string bankName */ 3:
+                    message.bankName = reader.string();
+                    break;
+                case /* string iban */ 4:
+                    message.iban = reader.string();
+                    break;
+                case /* string bic */ 5:
+                    message.bic = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AddXagoBankAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string accountNumber = 1; */
+        if (message.accountNumber !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.accountNumber);
+        /* string branchCode = 2; */
+        if (message.branchCode !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.branchCode);
+        /* string bankName = 3; */
+        if (message.bankName !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.bankName);
+        /* string iban = 4; */
+        if (message.iban !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.iban);
+        /* string bic = 5; */
+        if (message.bic !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.bic);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AddXagoBankAccountRequest
+ */
+export const AddXagoBankAccountRequest = new AddXagoBankAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SetDefaultSendLinkedAccountRequest$Type extends MessageType<SetDefaultSendLinkedAccountRequest> {
     constructor() {
@@ -9450,5 +9550,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateDiscordAuthURL", options: {}, I: Empty, O: CreateDiscordAuthURLResponse },
     { name: "SubmitForm", options: {}, I: SubmitFormRequest, O: Empty },
     { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
-    { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse }
+    { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse },
+    { name: "AddXagoBankAccount", options: {}, I: AddXagoBankAccountRequest, O: LinkedAccount }
 ]);
