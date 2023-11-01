@@ -69,7 +69,7 @@ type CreateTransactionArgs struct {
 	GrantID                        string
 	LinkedAccountTitle             string
 	DestinationIdentity            string
-	DestinationIdentityType        string `validate:"omitempty,oneof=Twitter Slack Discord wallet WalletID WalletURL ExternalWalletURL"`
+	DestinationIdentityType        string `validate:"omitempty,oneof=Twitter Slack Discord wallet WalletID WalletURL ExternalWalletURL Unknown"`
 	Reference                      string
 	PaymentProtectionFeePercentage float64
 	Title                          string

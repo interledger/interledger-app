@@ -736,7 +736,7 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAmount)
 	}
 
-	if payment.ReceiverAmount < 1 || !currency.ParseCurrency(payment.ReceiverCurrency).Valid() {
+	if payment.ReceiverAccount.String != "" && (payment.ReceiverAmount < 1 || !currency.ParseCurrency(payment.ReceiverCurrency).Valid()) {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
 	}
 

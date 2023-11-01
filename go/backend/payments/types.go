@@ -112,7 +112,7 @@ const (
 )
 
 func (i IdentityType) Valid() bool {
-	return i > IdentityTypeUnknown && i < identityTypeSentinel
+	return i >= IdentityTypeUnknown && i < identityTypeSentinel
 }
 
 type Identity struct {
