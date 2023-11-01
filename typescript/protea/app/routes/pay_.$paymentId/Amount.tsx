@@ -20,6 +20,7 @@ import type {
   Payment,
   Amount as RpcAmount
 } from '~/generated/connect/backend/v1/backend_pb'
+import { PaymentIdentityType } from '~/lib/types/payment'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import { PaySelect } from './PaySelect'
@@ -45,16 +46,18 @@ type AmountState = {
   hasPaymentProtection: boolean
   paymentProtectionAmount: string
   totalSendAmount: string
+  unknownReceiverName: string
 }
 
 type Action = {
   type:
-    | 'focussed'
-    | 'send'
-    | 'receive'
-    | 'hasPaymentProtection'
-    | 'linkedAccount'
-    | 'network'
+  | 'focussed'
+  | 'send'
+  | 'receive'
+  | 'hasPaymentProtection'
+  | 'linkedAccount'
+  | 'network'
+  | 'unknownReceiverName'
 } & Partial<AmountState>
 
 type InitialState = {
@@ -72,7 +75,8 @@ function createInitialState({ account, payment }: InitialState): AmountState {
     linkedAccount: account,
     hasPaymentProtection: payment.hasPaymentProtection,
     paymentProtectionAmount: payment.paymentProtectionAmount,
-    totalSendAmount: payment.totalSendAmount
+    totalSendAmount: payment.totalSendAmount,
+    unknownReceiverName: payment.receiverIdentity
   }
 }
 
@@ -112,6 +116,11 @@ function reducer(state: AmountState, action: Action): AmountState {
         hasPaymentProtection: newHasPaymentProtection,
         paymentProtectionAmount: action.paymentProtectionAmount!,
         totalSendAmount: action.totalSendAmount!
+      }
+    case 'unknownReceiverName':
+      return {
+        ...state,
+        unknownReceiverName: action.unknownReceiverName!
       }
     default:
       return state
@@ -236,6 +245,35 @@ export const Amount = () => {
     [csrfToken, updatePaymentFetcher]
   )
 
+  let onChangeUnknownReceiverNameDismissRef = useRef<NodeJS.Timeout>()
+  const _onChangeUnknownReceiverName = useCallback<
+    ChangeEventHandler<HTMLInputElement>
+  >(
+    (event) => {
+      let receiverName = event.target.value
+      dispatchPayment({
+        type: 'unknownReceiverName',
+        unknownReceiverName: receiverName
+      })
+
+      if (onChangeUnknownReceiverNameDismissRef.current) {
+        clearTimeout(onChangeUnknownReceiverNameDismissRef.current)
+      }
+      onChangeUnknownReceiverNameDismissRef.current = setTimeout(() => {
+        updatePaymentFetcher.submit(
+          {
+            formName: 'updatePayment',
+            unknownReceiverName: receiverName,
+            hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
+            csrfToken
+          },
+          { method: 'post' }
+        )
+      }, DEBOUNCE_WAIT)
+    },
+    [csrfToken, localPayment.hasPaymentProtection, updatePaymentFetcher]
+  )
+
   useEffect(() => {
     return () => {
       if (onChangeSendAmountDismissRef.current) {
@@ -310,7 +348,39 @@ export const Amount = () => {
         value={localPayment.hasPaymentProtection.toString()}
         form='amount-form'
       />
-      <PaymentDetailsCard />
+      {payment.receiverIdentityType !== PaymentIdentityType.Unknown && (
+        <PaymentDetailsCard />
+      )}
+      {payment.receiverIdentityType === PaymentIdentityType.Unknown && (
+        <Card>
+          <CardContent>
+            Please provide the receiver's name to personalize the payment.
+          </CardContent>
+          <TextField
+            id='receiverIdentifier'
+            label="Receiver's name"
+            name='receiverIdentifier'
+            type='text'
+            form='amount-form'
+            className='mt-2'
+            value={localPayment.unknownReceiverName}
+            onChange={_onChangeUnknownReceiverName}
+            aria-invalid={
+              Boolean(updatePaymentFetcher.data?.errors?.unknownReceiverName) ||
+              undefined
+            }
+            aria-describedby={
+              updatePaymentFetcher.data?.errors?.unknownReceiverName
+                ? 'unknownReceiverName-error'
+                : undefined
+            }
+            required
+            errorMessage={
+              updatePaymentFetcher.data?.errors?.unknownReceiverName
+            }
+          />
+        </Card>
+      )}
       <Card>
         <PaySelect
           id='send'
