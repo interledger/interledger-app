@@ -20,8 +20,8 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
+import { PaymentIdentityType } from '~/lib/types/payment'
 import type { loader } from './route'
-import { PaymentIdentityType } from './route'
 
 export const PaymentDetailsCard = () => {
   const { publicWalletInfo, payment } = useLoaderData<typeof loader>()

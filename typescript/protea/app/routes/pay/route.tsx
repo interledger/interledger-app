@@ -36,9 +36,9 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
+import { PaymentIdentityType } from '~/lib/types/payment'
 import { KycStatus } from '~/routes/_index/route'
 import { Search } from '~/routes/pay/Search'
-import { PaymentIdentityType } from '~/routes/pay_.$paymentId/route'
 
 export async function loader(args: LoaderFunctionArgs) {
   const url = new URL(args.request.url)
@@ -115,7 +115,8 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { features, sendAccounts } = useLoaderData<typeof payLoader>()
+  const { features, sendAccounts, fynbosEnv } =
+    useLoaderData<typeof payLoader>()
 
   if (features && !features.sendEnabled)
     return (
@@ -177,13 +178,16 @@ export default function Page() {
       </Card>
     )
 
-  return <Search />
+  return <Search fynbosEnv={fynbosEnv} />
 }
 
 export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const type = form.get('type') as string
-  const walletUrl = form.get('walletUrl') as string
+  const receiverIdentifier = String(form.get('receiverIdentifier') || '')
+  const receiverIdentifierType = Number(
+    form.get('receiverIdentifierType') || PaymentIdentityType.Unknown
+  )
 
   const errors = {
     form: '',
@@ -196,8 +200,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const clientIpAddress = getClientIP(request)
 
   let payment = await grpc.createPayment(request, {
-    receiverIdentity: walletUrl,
-    receiverIdentityType: PaymentIdentityType.WalletURL,
+    receiverIdentity: receiverIdentifier,
+    receiverIdentityType: receiverIdentifierType,
     ipAddress: clientIpAddress
   })
   if (isConnectError(payment)) {
