@@ -615,7 +615,7 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
 	}
 
-	if payment.ReceiverID == "" || payment.ReceiverIDType == payments.IdentityTypeUnknown {
+	if payment.ReceiverID == "" {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	}
 
@@ -623,7 +623,7 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAmount)
 	}
 
-	if payment.ReceiverAmount < 1 || !currency.ParseCurrency(payment.ReceiverCurrency).Valid() {
+	if payment.ReceiverAccount.String != "" && (payment.ReceiverAmount < 1 || !currency.ParseCurrency(payment.ReceiverCurrency).Valid()) {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverAmount)
 	}
 
@@ -820,6 +820,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 			}
 			payment.ReceiverAccount.String = args.ReceiverAccount
 			payment.ReceiverAccount.Valid = canReceive
+			senderAmtUpdated = true // force fx recalc
 			noop = false
 		}()
 	}
@@ -906,7 +907,6 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
 			}
-			fmt.Println("looked up sender Wallet", senderWallet.ID)
 			paymentProtectionSenderWalletID = senderWallet.ID
 		}()
 	}
