@@ -60,3 +60,7 @@ func (c *client) WebhookHandler() http.HandlerFunc {
 func (c *client) CreateBeneficiary(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (xago.Await, error) {
 	return ops.CreateBeneficiary(ctx, c.b, bankAcc)
 }
+
+func (c *client) CreateTransaction(ctx context.Context, args xago.CreateTransactionArgs) (*xago.Transaction, error) {
+	return ops.CreateTransaction(ctx, c.b, args)
+}

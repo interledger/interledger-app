@@ -3,11 +3,14 @@ package ops
 import (
 	"testing"
 
+	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/xago/external"
+	external_mock "gitlab.com/fynbos/backend/providers/xago/external/mock"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 	temporal "go.temporal.io/sdk/client"
@@ -35,7 +38,9 @@ type ActivityBackends interface {
 }
 
 type TestBackends struct {
-	DBC *sqlx.DB
+	DBC  *sqlx.DB
+	Extr *external_mock.MockClient
+	La   *linkedaccounts_mock.MockClient
 }
 
 func (t TestBackends) DB() *sqlx.DB {
@@ -43,7 +48,7 @@ func (t TestBackends) DB() *sqlx.DB {
 }
 
 func (t TestBackends) External() external.Client {
-	return nil
+	return t.Extr
 }
 
 func (t TestBackends) Payments() payments.Client {
@@ -51,7 +56,7 @@ func (t TestBackends) Payments() payments.Client {
 }
 
 func (t TestBackends) LinkedAccounts() linkedaccounts.Client {
-	return nil
+	return t.La
 }
 
 func (t TestBackends) Wallets() wallets.Client {
