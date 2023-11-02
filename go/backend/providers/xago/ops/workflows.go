@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,7 +49,7 @@ func (a *Activity) WalletHasSubAccount(ctx context.Context, walletID string) (bo
 
 func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID string, sa external.SubAccount) error {
 	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag) VALUES ($1, $2, $3, $4, $5)",
-		accountID, walletID, sa.AccountID, sa.DepositAddress, sa.DepositTag)
+		accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag))
 	if db.IsErrorCode(err, db.UniqueViolationError) {
 		return nil
 	}
