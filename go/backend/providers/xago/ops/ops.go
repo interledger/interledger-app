@@ -63,3 +63,33 @@ func CreateBeneficiary(ctx context.Context, b Backends, bankAcc xago.CreateBankA
 
 	return await.Get, nil
 }
+
+func CreateTransaction(ctx context.Context, b Backends, args xago.CreateTransactionArgs) (*xago.Transaction, error) {
+	la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	if la.WalletID != args.WalletID {
+		return nil, fmt.Errorf("%w linked account not found", xago.ErrNotFound)
+	}
+
+	txID, err := b.External().CreateTransaction(ctx, args.Amount, args.TransactionID, la.ProviderID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO xago_transactions (id, wallet_id, linked_account_id, transaction_id, amount, currency) VALUES ($1, $2, $3, $4, $5, $6)",
+		txID, args.WalletID, args.LinkedAccountID, args.TransactionID, args.Amount.Value, args.Amount.Currency)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	return &xago.Transaction{
+		ID:              txID,
+		WalletID:        args.WalletID,
+		LinkedAccountID: la.ID,
+		TransactionID:   args.TransactionID,
+		Amount:          args.Amount,
+	}, nil
+}
