@@ -8,7 +8,7 @@ import (
 type SubAccount struct {
 	AccountID      string          `json:"accountId,omitempty"`
 	DepositAddress string          `json:"depositAddress,omitempty"`
-	DepositTag     string          `json:"depositTag,omitempty"`
+	DepositTag     int             `json:"depositTag,omitempty"`
 	Beneficiaries  []Beneficiaries `json:"beneficiaries,omitempty"`
 }
 
