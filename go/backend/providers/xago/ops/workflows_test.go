@@ -4,13 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"gitlab.com/fynbos/backend/providers/xago"
-
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/providers/xago/ops"
 )
@@ -73,7 +71,7 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 	err := a.SaveSubAccount(ctx, walletID, accountID, external.SubAccount{
 		AccountID:      accountID,
 		DepositAddress: "Fluffy",
-		DepositTag:     "Super Fluffy",
+		DepositTag:     1945,
 		Beneficiaries:  nil,
 	})
 	require.NoError(t, err)
@@ -86,5 +84,5 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 	assert.Equal(t, accountID, entry.ID)
 	assert.Equal(t, accountID, entry.AccountID)
 	assert.Equal(t, "Fluffy", entry.DepositAddress)
-	assert.Equal(t, "Super Fluffy", entry.DepositTag)
+	assert.Equal(t, 1945, entry.DepositTag)
 }

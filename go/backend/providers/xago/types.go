@@ -8,7 +8,7 @@ type SubAccount struct {
 	ID             string `db:"id"`
 	AccountID      string `db:"account_id"`
 	DepositAddress string `db:"deposit_address"`
-	DepositTag     string `db:"deposit_tag"`
+	DepositTag     int    `db:"deposit_tag"`
 	WalletID       string `db:"wallet_id"`
 }
 
