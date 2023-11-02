@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,7 +25,7 @@ type Client interface {
 	AccessToken(ctx context.Context) (*AccessToken, error)
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumbers kyc.PersonaIDNumbers) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
-	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (*Transaction, error)
+	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error)
 }
 
 type client struct {
@@ -245,10 +246,10 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	return &respData, nil
 }
 
-func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (*Transaction, error) {
+func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "transactions", "transfer")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	reqStruct := CreateTransactionReq{
 		Values: []TransactionValues{
@@ -264,16 +265,16 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 
 	reqBody, err := json.Marshal(reqStruct)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	token, err := c.AccessToken(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
@@ -281,28 +282,24 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 
 	resp, err := c.api.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
 		// Idempotency issue, maybe return something else
 		// TODO: lookup transaction
-		return nil, fmt.Errorf("failed to add xargo transaction, transaction already exists")
+		return "", fmt.Errorf("failed to add xargo transaction, transaction already exists")
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to add xargo transaction (%d - %s)", resp.StatusCode, resp.Status)
+		return "", fmt.Errorf("failed to add xargo transaction (%d - %s)", resp.StatusCode, resp.Status)
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	var respData Transaction
-	err = json.Unmarshal(respBody, &respData)
-	if err != nil {
-		return nil, err
-	}
+	txID := strings.Replace(string(respBody), "\"", "", -1)
 
-	return &respData, nil
+	return txID, nil
 }
