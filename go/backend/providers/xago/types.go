@@ -1,6 +1,10 @@
 package xago
 
-import "context"
+import (
+	"context"
+
+	"gitlab.com/fynbos/backend/currency"
+)
 
 type Await func(ctx context.Context, result interface{}) error
 
@@ -30,4 +34,19 @@ type CreateBankAccountArgs struct {
 	BankName      string
 	IBAN          string
 	BIC           string
+}
+
+type CreateTransactionArgs struct {
+	WalletID        string
+	LinkedAccountID string
+	TransactionID   string
+	Amount          currency.Amount
+}
+
+type Transaction struct {
+	ID              string
+	WalletID        string
+	LinkedAccountID string
+	TransactionID   string
+	Amount          currency.Amount
 }

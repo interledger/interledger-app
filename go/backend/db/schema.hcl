@@ -2902,6 +2902,51 @@ table "xago_beneficiaries" {
   }
 }
 
+table "xago_transactions" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "linked_account_id" {
+    null    = false
+    type    = text
+  }
+  column "transaction_id" {
+    null    = false
+    type    = text
+  }
+  column "amount" {
+    null = false
+    type = bigint
+  }
+  column "currency" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "xago_transactions_wallet_id_idx" {
+    columns = [column.wallet_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {
