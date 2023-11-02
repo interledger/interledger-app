@@ -92,13 +92,6 @@ type AccountBeneficiaries struct {
 	Wallet             json.RawMessage `json:"wallet"`
 }
 
-type Transaction struct {
-	AccountID      string          `json:"accountId,omitempty"`
-	DepositAddress string          `json:"depositAddress,omitempty"`
-	DepositTag     string          `json:"depositTag,omitempty"`
-	Beneficiaries  []Beneficiaries `json:"beneficiaries,omitempty"`
-}
-
 type CreateTransactionReq struct {
 	Values []TransactionValues `json:"values,omitempty"`
 }
