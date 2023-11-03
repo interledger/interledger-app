@@ -152,6 +152,32 @@ service BackendService {
 
   // Receive payment link
   rpc CreatePaymentLink(CreatePaymentLinkRequest) returns (PaymentLink);
+  rpc GetPaymentLink(GetPaymentLinkRequest) returns (PaymentLink);
+  rpc ConsumePaymentLink(ConsumePaymentLinkRequest) returns (ConsumePaymentLinkResponse);
+  rpc Introspect(IntrospectRequest) returns (IntrospectResponse);
+}
+
+message GetPaymentLinkRequest {
+  string id = 1;
+}
+
+message ConsumePaymentLinkRequest {
+  string id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string email = 4;
+}
+
+message ConsumePaymentLinkResponse {
+  string token = 1;
+}
+
+message IntrospectRequest {
+  string token = 1;
+}
+
+message IntrospectResponse {
+  string walletId = 1;
 }
 
 message CreatePaymentLinkRequest {
@@ -159,7 +185,11 @@ message CreatePaymentLinkRequest {
 }
 
 message PaymentLink {
-  string url = 1;
+  string url = 1;  
+  string formattedAmount = 2;
+  string note = 3;
+  string senderWalletUrl = 4;
+  string receiverIdentifier = 5;
 }
 
 message GetLinkedAccountsForPaymentRequest {
