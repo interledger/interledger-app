@@ -6,6 +6,12 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 )
 
+var (
+	ProviderName   = "xago"
+	AccTypeBalance = "balance"
+	AccTypeBank    = "bank_account"
+)
+
 type Await func(ctx context.Context, result interface{}) error
 
 type SubAccount struct {
