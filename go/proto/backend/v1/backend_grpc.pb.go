@@ -104,6 +104,7 @@ const (
 	BackendService_WithdrawXagoBalance_FullMethodName            = "/backend.v1.BackendService/WithdrawXagoBalance"
 	BackendService_GetXagoBalances_FullMethodName                = "/backend.v1.BackendService/GetXagoBalances"
 	BackendService_GetXagoDepositDetails_FullMethodName          = "/backend.v1.BackendService/GetXagoDepositDetails"
+	BackendService_CreatePaymentLink_FullMethodName              = "/backend.v1.BackendService/CreatePaymentLink"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -221,6 +222,8 @@ type BackendServiceClient interface {
 	WithdrawXagoBalance(ctx context.Context, in *WithdrawXagoBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
 	GetXagoBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error)
 	GetXagoDepositDetails(ctx context.Context, in *GetXagoDepositDetailsRequest, opts ...grpc.CallOption) (*GetXagoDepositDetailsResponse, error)
+	// Receive payment link
+	CreatePaymentLink(ctx context.Context, in *CreatePaymentLinkRequest, opts ...grpc.CallOption) (*PaymentLink, error)
 }
 
 type backendServiceClient struct {
@@ -996,6 +999,15 @@ func (c *backendServiceClient) GetXagoDepositDetails(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *backendServiceClient) CreatePaymentLink(ctx context.Context, in *CreatePaymentLinkRequest, opts ...grpc.CallOption) (*PaymentLink, error) {
+	out := new(PaymentLink)
+	err := c.cc.Invoke(ctx, BackendService_CreatePaymentLink_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1111,6 +1123,8 @@ type BackendServiceServer interface {
 	WithdrawXagoBalance(context.Context, *WithdrawXagoBalanceRequest) (*Payment, error)
 	GetXagoBalances(context.Context, *Empty) (*GetXagoBalanceResponse, error)
 	GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error)
+	// Receive payment link
+	CreatePaymentLink(context.Context, *CreatePaymentLinkRequest) (*PaymentLink, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1371,6 +1385,9 @@ func (UnimplementedBackendServiceServer) GetXagoBalances(context.Context, *Empty
 }
 func (UnimplementedBackendServiceServer) GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetXagoDepositDetails not implemented")
+}
+func (UnimplementedBackendServiceServer) CreatePaymentLink(context.Context, *CreatePaymentLinkRequest) (*PaymentLink, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentLink not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2914,6 +2931,24 @@ func _BackendService_GetXagoDepositDetails_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreatePaymentLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreatePaymentLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreatePaymentLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreatePaymentLink(ctx, req.(*CreatePaymentLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3260,6 +3295,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetXagoDepositDetails",
 			Handler:    _BackendService_GetXagoDepositDetails_Handler,
+		},
+		{
+			MethodName: "CreatePaymentLink",
+			Handler:    _BackendService_CreatePaymentLink_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
