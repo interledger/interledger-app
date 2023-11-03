@@ -32,6 +32,23 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.AddXagoBalanceAccountRequest
+ */
+export interface AddXagoBalanceAccountRequest {
+    /**
+     * @generated from protobuf field: string currencyCode = 1;
+     */
+    currencyCode: string; // e.g. USD or ZAR
+    /**
+     * @generated from protobuf field: string nickname = 2;
+     */
+    nickname: string;
+    /**
+     * @generated from protobuf field: string title = 3;
+     */
+    title: string;
+}
+/**
  * @generated from protobuf message backend.v1.AddXagoBankAccountRequest
  */
 export interface AddXagoBankAccountRequest {
@@ -2161,6 +2178,67 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AddXagoBalanceAccountRequest$Type extends MessageType<AddXagoBalanceAccountRequest> {
+    constructor() {
+        super("backend.v1.AddXagoBalanceAccountRequest", [
+            { no: 1, name: "currencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "nickname", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "title", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AddXagoBalanceAccountRequest>): AddXagoBalanceAccountRequest {
+        const message = { currencyCode: "", nickname: "", title: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AddXagoBalanceAccountRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AddXagoBalanceAccountRequest): AddXagoBalanceAccountRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string currencyCode */ 1:
+                    message.currencyCode = reader.string();
+                    break;
+                case /* string nickname */ 2:
+                    message.nickname = reader.string();
+                    break;
+                case /* string title */ 3:
+                    message.title = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AddXagoBalanceAccountRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string currencyCode = 1; */
+        if (message.currencyCode !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.currencyCode);
+        /* string nickname = 2; */
+        if (message.nickname !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.nickname);
+        /* string title = 3; */
+        if (message.title !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.title);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AddXagoBalanceAccountRequest
+ */
+export const AddXagoBalanceAccountRequest = new AddXagoBalanceAccountRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AddXagoBankAccountRequest$Type extends MessageType<AddXagoBankAccountRequest> {
     constructor() {
@@ -9551,5 +9629,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SubmitForm", options: {}, I: SubmitFormRequest, O: Empty },
     { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
     { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse },
-    { name: "AddXagoBankAccount", options: {}, I: AddXagoBankAccountRequest, O: LinkedAccount }
+    { name: "AddXagoBankAccount", options: {}, I: AddXagoBankAccountRequest, O: LinkedAccount },
+    { name: "AddXagoBalanceAccount", options: {}, I: AddXagoBalanceAccountRequest, O: LinkedAccount }
 ]);

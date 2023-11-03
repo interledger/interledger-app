@@ -144,6 +144,13 @@ service BackendService {
 
   // Xago
   rpc AddXagoBankAccount(AddXagoBankAccountRequest) returns (LinkedAccount);
+  rpc AddXagoBalanceAccount(AddXagoBalanceAccountRequest) returns (LinkedAccount);
+}
+
+message AddXagoBalanceAccountRequest {
+  string currencyCode = 1; // e.g. USD or ZAR
+  string nickname = 2;
+  string title = 3;
 }
 
 message AddXagoBankAccountRequest {

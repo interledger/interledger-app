@@ -191,6 +191,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 
 	if shouldPull {
 		// TODO: decouple this from tabapay.
+		// TODO: Switch here on linked acount provider
 		var externalRef string
 		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 			return tabapay.NewReferenceID()
@@ -400,6 +401,8 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 			PayOutSuccess: false,
 		}).Get(ctx, nil)
 	}
+
+	// TODO: Switch here on provider of the receiver linkedAcc
 
 	// Funding was a success, the receiver has all the relevant information, now payout
 	var externalRef string

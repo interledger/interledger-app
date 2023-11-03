@@ -7,6 +7,9 @@ import (
 	"strconv"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
+
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -204,21 +207,37 @@ func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id
 		return la, nil
 	}
 
+	cc := currency.ParseCurrency(b.CurrencyCode)
+	nation := country.ZA
+	if cc == currency.USD {
+		nation = country.US
+	}
+
+	var mask string
+	idx := len(b.AccountNumber) - 3
+	for i := range b.AccountNumber {
+		if i == 0 || i >= idx {
+			mask += string(b.AccountNumber[i])
+		} else {
+			mask += "*"
+		}
+	}
+
 	return a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
 		ID:              id,
 		WalletID:        walletID,
-		Name:            "Xago Beneficiary",
-		Nickname:        "Xago Beneficiary",
-		Mask:            "",
-		Provider:        "xago",
+		Name:            fmt.Sprintf("Xago %s Beneficiary", cc),
+		Nickname:        fmt.Sprintf("Xago %s Beneficiary", cc),
+		Mask:            mask,
+		Provider:        xago.ProviderName,
 		ProviderID:      b.ID,
-		Type:            "bank_account",
-		CanSend:         true,
-		CanReceive:      true,
+		Type:            xago.AccTypeBank,
+		CanSend:         false,
+		CanReceive:      false,
 		State:           linkedaccounts.Verified,
-		SendCountry:     "ZA",
-		SendCurrency:    "ZAR",
-		ReceiveCountry:  "ZA",
-		ReceiveCurrency: "ZAR",
+		SendCountry:     nation,
+		SendCurrency:    cc,
+		ReceiveCountry:  nation,
+		ReceiveCurrency: cc,
 	})
 }
