@@ -7,6 +7,5 @@ import (
 
 type Backends interface {
 	DB() *sqlx.DB
-	// TigerBeetle() tigerbeetle_go.Client
 	Validator() *validator.Validate
 }

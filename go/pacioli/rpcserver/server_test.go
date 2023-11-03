@@ -3,11 +3,11 @@ package rpcserver
 import (
 	"context"
 	"fmt"
+	"gitlab.com/fynbos/pacioli"
 	"testing"
 	"time"
 
 	"github.com/bxcodec/faker/v3"
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	pacioliv1 "gitlab.com/fynbos/proto/pacioli/v1"
@@ -129,11 +129,9 @@ func TestRpc(s *testing.T) {
 					CreditAccountId: accountBID,
 					Amount:          100,
 					Code:            1,
-					Flags: &pacioliv1.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(10 * time.Millisecond),
-					Ledger:  ledgerID,
+					Pending:         true,
+					Timeout:         uint64(10 * time.Millisecond),
+					Ledger:          ledgerID,
 				},
 				{ // This one will fail as the account IDs are the same.
 					Id:              transferB,
@@ -154,7 +152,7 @@ func TestRpc(s *testing.T) {
 		}
 		assert.Len(t, errors, 1)
 		assert.Equal(t, uint32(1), errors[0].Index)
-		assert.Equal(t, tb_types.TransferAccountsMustBeDifferent, tb_types.CreateTransferResult(errors[0].Code))
+		assert.Equal(t, pacioli.TransferAccountsMustBeDifferent, pacioli.TransferResultCode(errors[0].Code))
 
 		response, err := c.Client.GetTransfers(ctx, &pacioliv1.GetTransfersRequest{
 			Ids: []string{transferA, transferB},
@@ -168,10 +166,7 @@ func TestRpc(s *testing.T) {
 		assert.Equal(t, accountBID, transfers[0].GetCreditAccountId())
 		assert.Equal(t, uint64(100), transfers[0].GetAmount())
 		assert.Equal(t, uint32(1), transfers[0].GetCode())
-
-		flags := transfers[0].GetFlags()
-		assert.Equal(t, false, flags.GetLinked())
-		assert.Equal(t, true, flags.Pending)
+		assert.Equal(t, true, transfers[0].Pending)
 	})
 
 	s.Run("can commit transfers", func(t *testing.T) {
@@ -194,11 +189,9 @@ func TestRpc(s *testing.T) {
 						CreditAccountId: accountBID,
 						Amount:          100,
 						Code:            1,
-						Flags: &pacioliv1.TransferFlags{
-							Pending: true,
-						},
-						Timeout: uint64(1 * time.Second),
-						Ledger:  ledgerID,
+						Pending:         true,
+						Timeout:         uint64(1 * time.Second),
+						Ledger:          ledgerID,
 					},
 				},
 			})
@@ -239,11 +232,9 @@ func TestRpc(s *testing.T) {
 						CreditAccountId: accountBID,
 						Amount:          100,
 						Code:            1,
-						Flags: &pacioliv1.TransferFlags{
-							Pending: true,
-						},
-						Timeout: uint64(1 * time.Second),
-						Ledger:  ledgerID,
+						Pending:         true,
+						Timeout:         uint64(1 * time.Second),
+						Ledger:          ledgerID,
 					},
 				},
 			})

@@ -13,6 +13,7 @@ type Client interface {
 	// different fields.
 	ConfigureAccounts(ctx context.Context, args []ConfigureAccountArgs) ([]AccountResult, error)
 	GetAccounts(ctx context.Context, accountIDs []string) ([]Account, error)
+
 	CreateTransfers(ctx context.Context, args []CreateTransferArgs) ([]TransferResult, error)
 	GetTransfers(ctx context.Context, transferIDs []string) ([]Transfer, error)
 	PostTransfers(ctx context.Context, transferIDs []string) ([]TransferResult, error)

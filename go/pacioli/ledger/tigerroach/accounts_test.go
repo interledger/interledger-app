@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/pacioli"
@@ -17,7 +16,7 @@ func TestConfigureAccounts(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := db.MigrateTestDB(t, ctx)
-	b := test_utils.NewBackends(t, db, nil)
+	b := test_utils.NewBackends(t, db)
 
 	// Configure Ledger
 	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
@@ -73,19 +72,17 @@ func TestConfigureAccounts(t *testing.T) {
 			name: "mutually exclusive flags",
 			input: []pacioli.ConfigureAccountArgs{
 				{
-					ID:       "aace20cf-177d-418d-93bd-f6d9cb0d49d1",
-					LedgerID: 1,
-					Code:     1,
-					Flags: tb_types.AccountFlags{
-						DebitsMustNotExceedCredits: true,
-						CreditsMustNotExceedDebits: true,
-					},
+					ID:                         "aace20cf-177d-418d-93bd-f6d9cb0d49d1",
+					LedgerID:                   1,
+					Code:                       1,
+					DebitsMustNotExceedCredits: true,
+					CreditsMustNotExceedDebits: true,
 				},
 			},
 			res: []pacioli.AccountResult{
 				{
 					Index: 0,
-					Code:  tb_types.AccountMutuallyExclusiveFlags,
+					Code:  pacioli.AccountMutuallyExclusiveFlags,
 				},
 			},
 		},
@@ -108,24 +105,24 @@ func TestConfigureAccounts(t *testing.T) {
 					Code:     1,
 				},
 				{
-					ID:       "1d46eea1-d0b8-40fe-9a6b-11650e7e2d62",
-					LedgerID: 1,
-					Code:     1,
-					Flags:    pacioli.AccountFlags{Linked: true},
+					ID:                         "1d46eea1-d0b8-40fe-9a6b-11650e7e2d62",
+					LedgerID:                   1,
+					Code:                       1,
+					DebitsMustNotExceedCredits: true,
 				},
 			},
 			res: []pacioli.AccountResult{
 				{
 					Index: 1,
-					Code:  tb_types.AccountExistsWithDifferentCode,
+					Code:  pacioli.AccountExistsWithDifferentCode,
 				},
 				{
 					Index: 2,
-					Code:  tb_types.AccountExistsWithDifferentLedger,
+					Code:  pacioli.AccountExistsWithDifferentLedger,
 				},
 				{
 					Index: 3,
-					Code:  tb_types.AccountExistsWithDifferentFlags,
+					Code:  pacioli.AccountExistsWithDifferentFlags,
 				},
 			},
 		},

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/bxcodec/faker/v3"
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -129,12 +128,10 @@ func TestPacioli(s *testing.T) {
 				Code:     1,
 			},
 			{
-				ID:       account2ID,
-				LedgerID: ledgerID,
-				Code:     1,
-				Flags: pacioli.AccountFlags{
-					DebitsMustNotExceedCredits: true,
-				},
+				ID:                         account2ID,
+				LedgerID:                   ledgerID,
+				Code:                       1,
+				DebitsMustNotExceedCredits: true,
 			},
 			{ // this shouldn't fail as it will exist
 				ID:       account1ID,
@@ -151,7 +148,7 @@ func TestPacioli(s *testing.T) {
 		// the error events may not correspond to the order the []CreateAccountArgs
 		for _, err := range confAccountErrs {
 			switch err.Code {
-			case tb_types.AccountExistsWithDifferentCode:
+			case pacioli.AccountExistsWithDifferentCode:
 				assert.Equal(t, uint32(1), err.Index, "The create account error mapping is broken.")
 			case pacioli.AccountLedgerDoesNotExist:
 				assert.Equal(t, uint32(2), err.Index, "The create account error mapping is broken.")
@@ -173,7 +170,6 @@ func TestPacioli(s *testing.T) {
 				assert.Equal(t, accounts[i].DebitsPending, uint64(0))
 				assert.Equal(t, accounts[i].CreditsPosted, uint64(0))
 				assert.Equal(t, accounts[i].CreditsPending, uint64(0))
-				assert.Equal(t, accounts[i].Flags, pacioli.AccountFlags{})
 			} else if accounts[i].ID == account2ID {
 				assert.Equal(t, accounts[i].ID, account2ID)
 				assert.Equal(t, accounts[i].Code, uint16(1))
@@ -182,7 +178,7 @@ func TestPacioli(s *testing.T) {
 				assert.Equal(t, accounts[i].DebitsPending, uint64(0))
 				assert.Equal(t, accounts[i].CreditsPosted, uint64(0))
 				assert.Equal(t, accounts[i].CreditsPending, uint64(0))
-				assert.Equal(t, pacioli.AccountFlags{DebitsMustNotExceedCredits: true}, accounts[i].Flags)
+				assert.True(t, accounts[i].DebitsMustNotExceedCredits)
 			} else {
 				assert.Fail(t, "unkown account in results")
 			}
@@ -246,12 +242,10 @@ func TestPacioli(s *testing.T) {
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
-				Flags: pacioli.TransferFlags{
-					Pending: true,
-				},
-				Timeout: uint64(10 * time.Microsecond),
-				Ledger:  ledgerID,
-				Code:    1,
+				Pending:         true,
+				Timeout:         uint64(10 * time.Microsecond),
+				Ledger:          ledgerID,
+				Code:            1,
 			},
 		}
 
@@ -262,7 +256,7 @@ func TestPacioli(s *testing.T) {
 
 		assert.Len(t, createTransErrs, 1)
 		assert.Equal(t, createTransErrs[0].Index, uint32(1))
-		assert.Equal(t, createTransErrs[0].Code, tb_types.TransferExistsWithDifferentAmount)
+		assert.Equal(t, createTransErrs[0].Code, pacioli.TransferExistsWithDifferentAmount)
 
 		accounts, err := ledger.GetAccounts(ctx, c.b, []string{accountA.ID, accountB.ID})
 		if err != nil {
@@ -326,12 +320,10 @@ func TestPacioli(s *testing.T) {
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
-				Flags: pacioli.TransferFlags{
-					Pending: true,
-				},
-				Timeout: uint64(time.Second),
-				Ledger:  ledgerID,
-				Code:    1,
+				Pending:         true,
+				Timeout:         uint64(time.Second),
+				Ledger:          ledgerID,
+				Code:            1,
 			},
 		}
 
@@ -393,7 +385,7 @@ func TestPacioli(s *testing.T) {
 		}
 		assert.Len(t, erList, 1)
 		assert.Equal(t, erList[0].Index, uint32(0))
-		assert.Equal(t, erList[0].Code, tb_types.TransferPendingTransferAlreadyPosted)
+		assert.Equal(t, erList[0].Code, pacioli.TransferPendingTransferAlreadyPosted)
 	})
 
 	s.Run("transfer void is idempotent", func(t *testing.T) {
@@ -437,12 +429,10 @@ func TestPacioli(s *testing.T) {
 				Amount:          13,
 				DebitAccountID:  accountA.ID,
 				CreditAccountID: accountB.ID,
-				Flags: pacioli.TransferFlags{
-					Pending: true,
-				},
-				Timeout: uint64(time.Second),
-				Ledger:  ledgerID,
-				Code:    1,
+				Pending:         true,
+				Timeout:         uint64(time.Second),
+				Ledger:          ledgerID,
+				Code:            1,
 			},
 		}
 
@@ -506,6 +496,6 @@ func TestPacioli(s *testing.T) {
 		}
 		assert.Len(t, erList, 1)
 		assert.Equal(t, erList[0].Index, uint32(0))
-		assert.Equal(t, erList[0].Code, tb_types.TransferPendingTransferAlreadyVoided)
+		assert.Equal(t, erList[0].Code, pacioli.TransferPendingTransferAlreadyVoided)
 	})
 }

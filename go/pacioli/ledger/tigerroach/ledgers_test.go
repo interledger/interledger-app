@@ -16,7 +16,7 @@ func TestConfigureLedgers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := db.MigrateTestDB(t, ctx)
-	b := test_utils.NewBackends(t, db, nil)
+	b := test_utils.NewBackends(t, db)
 
 	cases := []struct {
 		name  string

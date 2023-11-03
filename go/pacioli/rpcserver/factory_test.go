@@ -7,7 +7,6 @@ import (
 
 	"google.golang.org/grpc/credentials/insecure"
 
-	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/pacioli/healthcheck"
@@ -17,9 +16,7 @@ import (
 )
 
 type TestContainer struct {
-	TbClient   tigerbeetle_go.Client
 	Ctx        context.Context
-	Tb         *test_utils.TigerBeetleContainer
 	Db         *sqlx.DB
 	Server     *grpc.Server
 	Client     pacioliv1.PacioliServiceClient
@@ -32,13 +29,7 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	_, c.Db = db.MigrateTestDB(t, ctx)
 
-	tbClient, err := tigerbeetle_go.NewClient(0, []string{"0.0.0.0:3000"}, 1000)
-	if err != nil {
-		return nil, err
-	}
-	c.TbClient = tbClient
-
-	b := test_utils.NewBackends(t, c.Db, tbClient)
+	b := test_utils.NewBackends(t, c.Db)
 
 	listener, err := net.Listen("tcp", "127.0.0.1:8081")
 	if err != nil {
@@ -71,8 +62,6 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 func (c *TestContainer) Cleanup() error {
 	c.Server.Stop()
-
-	c.TbClient.Close()
 
 	return nil
 }
