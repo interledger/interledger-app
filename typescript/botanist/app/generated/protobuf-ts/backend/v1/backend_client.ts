@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { PaymentLink } from "./backend";
+import type { CreatePaymentLinkRequest } from "./backend";
 import type { SlackCallbackResponse } from "./backend";
 import type { SlackCallbackRequest } from "./backend";
 import type { CreateSlackAuthURLResponse } from "./backend";
@@ -484,6 +486,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: SlackCallback(backend.v1.SlackCallbackRequest) returns (backend.v1.SlackCallbackResponse);
      */
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse>;
+    /**
+     * Receive payment link
+     *
+     * @generated from protobuf rpc: CreatePaymentLink(backend.v1.CreatePaymentLinkRequest) returns (backend.v1.PaymentLink);
+     */
+    createPaymentLink(input: CreatePaymentLinkRequest, options?: RpcOptions): UnaryCall<CreatePaymentLinkRequest, PaymentLink>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1096,5 +1104,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse> {
         const method = this.methods[78], opt = this._transport.mergeOptions(options);
         return stackIntercept<SlackCallbackRequest, SlackCallbackResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Receive payment link
+     *
+     * @generated from protobuf rpc: CreatePaymentLink(backend.v1.CreatePaymentLinkRequest) returns (backend.v1.PaymentLink);
+     */
+    createPaymentLink(input: CreatePaymentLinkRequest, options?: RpcOptions): UnaryCall<CreatePaymentLinkRequest, PaymentLink> {
+        const method = this.methods[79], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreatePaymentLinkRequest, PaymentLink>("unary", this._transport, method, opt, input);
     }
 }

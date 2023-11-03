@@ -141,6 +141,17 @@ service BackendService {
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
+
+  // Receive payment link
+  rpc CreatePaymentLink(CreatePaymentLinkRequest) returns (PaymentLink);
+}
+
+message CreatePaymentLinkRequest {
+  string transactionId = 1;
+}
+
+message PaymentLink {
+  string url = 1;
 }
 
 message SetDefaultSendLinkedAccountRequest {

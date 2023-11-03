@@ -81,6 +81,80 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.CreatePaymentLinkRequest
+ */
+export class CreatePaymentLinkRequest extends Message<CreatePaymentLinkRequest> {
+  /**
+   * @generated from field: string transactionId = 1;
+   */
+  transactionId = "";
+
+  constructor(data?: PartialMessage<CreatePaymentLinkRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePaymentLinkRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transactionId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePaymentLinkRequest {
+    return new CreatePaymentLinkRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePaymentLinkRequest {
+    return new CreatePaymentLinkRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePaymentLinkRequest {
+    return new CreatePaymentLinkRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePaymentLinkRequest | PlainMessage<CreatePaymentLinkRequest> | undefined, b: CreatePaymentLinkRequest | PlainMessage<CreatePaymentLinkRequest> | undefined): boolean {
+    return proto3.util.equals(CreatePaymentLinkRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PaymentLink
+ */
+export class PaymentLink extends Message<PaymentLink> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<PaymentLink>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PaymentLink";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentLink {
+    return new PaymentLink().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentLink {
+    return new PaymentLink().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentLink {
+    return new PaymentLink().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentLink | PlainMessage<PaymentLink> | undefined, b: PaymentLink | PlainMessage<PaymentLink> | undefined): boolean {
+    return proto3.util.equals(PaymentLink, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.SetDefaultSendLinkedAccountRequest
  */
 export class SetDefaultSendLinkedAccountRequest extends Message<SetDefaultSendLinkedAccountRequest> {
