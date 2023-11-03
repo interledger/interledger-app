@@ -5,7 +5,6 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"gitlab.com/fynbos/pacioli"
 	pb "gitlab.com/fynbos/proto/pacioli/v1"
 	"google.golang.org/grpc"
@@ -82,14 +81,11 @@ func (c client) ConfigureAccounts(ctx context.Context, args []pacioli.ConfigureA
 	aa := make([]*pb.ConfigureAccountsArgs, len(args))
 	for i, a := range args {
 		aa[i] = &pb.ConfigureAccountsArgs{
-			Id:       a.ID,
-			LedgerId: a.LedgerID,
-			Code:     uint32(a.Code),
-			Flags: &pb.AccountFlags{
-				Linked:                     a.Flags.Linked,
-				DebitsMustNotExceedCredits: a.Flags.DebitsMustNotExceedCredits,
-				CreditsMustNotExceedDebits: a.Flags.CreditsMustNotExceedDebits,
-			},
+			Id:                         a.ID,
+			LedgerId:                   a.LedgerID,
+			Code:                       uint32(a.Code),
+			DebitsMustNotExceedCredits: a.DebitsMustNotExceedCredits,
+			CreditsMustNotExceedDebits: a.CreditsMustNotExceedDebits,
 		}
 	}
 
@@ -102,7 +98,7 @@ func (c client) ConfigureAccounts(ctx context.Context, args []pacioli.ConfigureA
 	for i, le := range res.Errors {
 		resp[i] = pacioli.AccountResult{
 			Index: le.Index,
-			Code:  tb_types.CreateAccountResult(le.Code),
+			Code:  pacioli.AccountResultCode(le.Code),
 		}
 	}
 
@@ -118,22 +114,15 @@ func (c client) GetAccounts(ctx context.Context, accountIDs []string) ([]pacioli
 	res := make([]pacioli.Account, len(aresp.Accounts))
 	for i, l := range aresp.Accounts {
 		res[i] = pacioli.Account{
-			ID:             l.Id,
-			LedgerID:       l.LedgerId,
-			Code:           uint16(l.Code),
-			DebitsPending:  l.DebitsReserved,
-			DebitsPosted:   l.DebitsAccepted,
-			CreditsPending: l.CreditsReserved,
-			CreditsPosted:  l.CreditsAccepted,
-		}
-		if l.Flags == nil {
-			continue
-		}
-
-		res[i].Flags = pacioli.AccountFlags{
-			Linked:                     l.Flags.Linked,
-			DebitsMustNotExceedCredits: l.Flags.DebitsMustNotExceedCredits,
-			CreditsMustNotExceedDebits: l.Flags.CreditsMustNotExceedDebits,
+			ID:                         l.Id,
+			LedgerID:                   l.LedgerId,
+			Code:                       uint16(l.Code),
+			DebitsPending:              l.DebitsReserved,
+			DebitsPosted:               l.DebitsAccepted,
+			CreditsPending:             l.CreditsReserved,
+			CreditsPosted:              l.CreditsAccepted,
+			DebitsMustNotExceedCredits: l.DebitsMustNotExceedCredits,
+			CreditsMustNotExceedDebits: l.CreditsMustNotExceedDebits,
 		}
 	}
 
@@ -151,12 +140,7 @@ func (c client) CreateTransfers(ctx context.Context, args []pacioli.CreateTransf
 			Code:            uint32(a.Code),
 			Timeout:         a.Timeout,
 			Ledger:          a.Ledger,
-			Flags: &pb.TransferFlags{
-				Linked:      a.Flags.Linked,
-				Pending:     a.Flags.Pending,
-				PostPending: a.Flags.PostPendingTransfer,
-				VoidPending: a.Flags.VoidPendingTransfer,
-			},
+			Pending:         a.Pending,
 		}
 	}
 
@@ -169,7 +153,7 @@ func (c client) CreateTransfers(ctx context.Context, args []pacioli.CreateTransf
 	for i, le := range res.Errors {
 		resp[i] = pacioli.TransferResult{
 			Index: le.Index,
-			Code:  tb_types.CreateTransferResult(le.Code),
+			Code:  pacioli.TransferResultCode(le.Code),
 		}
 	}
 
@@ -186,23 +170,12 @@ func (c client) GetTransfers(ctx context.Context, transferIDs []string) ([]pacio
 	for i, l := range tresp.Transfers {
 		res[i] = pacioli.Transfer{
 			ID:              l.Id,
-			PendingID:       l.PendingId,
 			LedgerID:        uint16(l.Ledger),
 			DebitAccountID:  l.DebitAccountId,
 			CreditAccountID: l.CreditAccountId,
 			Amount:          l.Amount,
 			Code:            uint16(l.Code),
 			Timeout:         l.Timeout,
-		}
-
-		if l.Flags == nil {
-			continue
-		}
-		res[i].Flags = pacioli.TransferFlags{
-			Linked:              l.Flags.Linked,
-			Pending:             l.Flags.Pending,
-			PostPendingTransfer: l.Flags.PostPending,
-			VoidPendingTransfer: l.Flags.VoidPending,
 		}
 	}
 
@@ -219,7 +192,7 @@ func (c client) PostTransfers(ctx context.Context, transferIDs []string) ([]paci
 	for i, le := range presp.Errors {
 		resp[i] = pacioli.TransferResult{
 			Index: le.Index,
-			Code:  tb_types.CreateTransferResult(le.Code),
+			Code:  pacioli.TransferResultCode(le.Code),
 		}
 	}
 
@@ -236,7 +209,7 @@ func (c client) VoidTransfers(ctx context.Context, transferIDs []string) ([]paci
 	for i, le := range vresp.Errors {
 		resp[i] = pacioli.TransferResult{
 			Index: le.Index,
-			Code:  tb_types.CreateTransferResult(le.Code),
+			Code:  pacioli.TransferResultCode(le.Code),
 		}
 	}
 

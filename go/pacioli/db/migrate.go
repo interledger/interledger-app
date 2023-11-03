@@ -39,7 +39,7 @@ func Migrate(ctx context.Context, connString string) error {
 		"-u",
 		connString,
 		"-f",
-		filepath.Join(moduleDir, "../schema.hcl"),
+		filepath.Join(moduleDir, "../schema.sql"),
 	}
 
 	out, err := exec.CommandContext(ctx, "atlas", args...).CombinedOutput()

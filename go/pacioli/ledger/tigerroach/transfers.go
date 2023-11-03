@@ -13,8 +13,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
 )
@@ -22,29 +20,11 @@ import (
 /*
  * Pending(init)───────────┬────────────►Voided(final)
  *                         │
- *                         ├────────────►Replaced(final)
- *                         │
  *                         └────────────►Timedout(final)
  * Posted(init/final)
  */
 
-type transferState int
-
-const (
-	transferStateUnknown  transferState = 0
-	transferStatePending  transferState = 1
-	transferStateVoided   transferState = 2
-	transferStateReplaced transferState = 3
-	transferStateTimeout  transferState = 4
-	transferStatePosted   transferState = 5
-	transferStateSentinel transferState = 6 // Sanity check value
-)
-
-func (ts transferState) IsValid() bool {
-	return ts > transferStateUnknown && ts < transferStateSentinel
-}
-
-func validStateTransition(init, target transferState) bool {
+func validStateTransition(init, target pacioli.TransferState) bool {
 	if !init.IsValid() || !target.IsValid() {
 		return false
 	}
@@ -55,13 +35,13 @@ func validStateTransition(init, target transferState) bool {
 	}
 
 	// Only state the machine can transition from
-	if init != transferStatePending {
+	if init != pacioli.TransferStatePending {
 		return false
 	}
 
-	return target == transferStateVoided ||
-		target == transferStateReplaced ||
-		target == transferStateTimeout
+	return target == pacioli.TransferStateVoided ||
+		target == pacioli.TransferStateTimeout ||
+		target == pacioli.TransferStatePosted
 }
 
 func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTransferArgs) ([]pacioli.TransferResult, error) {
@@ -74,16 +54,12 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 			return nil, fmt.Errorf("%s %w", err, pacioli.ErrInvalidArg)
 		}
 
-		if ta.Flags.Pending && ta.Timeout == 0 {
+		if ta.Pending && ta.Timeout == 0 {
 			resMap[i] = pacioli.TransferResult{
 				Index: uint32(i),
-				Code:  tb_types.TransferPendingTransferMustTimeout,
+				Code:  pacioli.TransferPendingTransferMustTimeout,
 			}
 			continue
-		}
-
-		if ta.Flags.Linked {
-			return nil, fmt.Errorf("%s %w", "linked transfers are not supported", pacioli.ErrInvalidArg)
 		}
 	}
 
@@ -93,6 +69,7 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 			continue
 		}
 
+		// TODO: better handle optimistic updates
 		code, err := createTransfer(ctx, b, ta)
 		if err != nil {
 			return nil, fmt.Errorf("%s %d %s %w", "transfer index: ", i, err, pacioli.ErrInternal)
@@ -121,7 +98,7 @@ func CreateTransfers(ctx context.Context, b Backends, args []pacioli.CreateTrans
 func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransferArgs) (pacioli.TransferResultCode, error) {
 	debitAcc, err := GetAccount(ctx, b, args.DebitAccountID)
 	if errors.Is(err, pacioli.ErrNotFound) {
-		return tb_types.TransferDebitAccountNotFound, nil
+		return pacioli.TransferDebitAccountNotFound, nil
 	}
 	if err != nil {
 		return 0, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
@@ -129,28 +106,28 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 	creditAcc, err := GetAccount(ctx, b, args.CreditAccountID)
 	if errors.Is(err, pacioli.ErrNotFound) {
-		return tb_types.TransferCreditAccountNotFound, nil
+		return pacioli.TransferCreditAccountNotFound, nil
 	} else if err != nil {
 		return 0, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 
 	if debitAcc.ID == creditAcc.ID {
-		return tb_types.TransferAccountsMustBeDifferent, nil
+		return pacioli.TransferAccountsMustBeDifferent, nil
 	}
 
 	if debitAcc.LedgerID != creditAcc.LedgerID {
-		return tb_types.TransferAccountsMustHaveTheSameLedger, nil
+		return pacioli.TransferAccountsMustHaveTheSameLedger, nil
 	}
 
 	if debitAcc.LedgerID != args.Ledger {
-		return tb_types.TransferTransferMustHaveTheSameLedgerAsAccounts, nil
+		return pacioli.TransferTransferMustHaveTheSameLedgerAsAccounts, nil
 	}
 
 	code, err := transferExists(ctx, b, args)
 	if err != nil && !errors.Is(err, pacioli.ErrNotFound) {
 		return 0, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
-	if code == tb_types.TransferExists {
+	if code == pacioli.TransferExists {
 		return 0, nil
 	}
 	if code != 0 {
@@ -160,49 +137,49 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 	// Transfer with that ID doesn't exist.
 
 	// Check for overflows
-	if args.Flags.Pending {
+	if args.Pending {
 		_, carry := bits.Add64(args.Amount, debitAcc.DebitsPending, 0)
 		if carry > 0 {
-			return tb_types.TransferOverflowsDebitsPending, nil
+			return pacioli.TransferOverflowsDebitsPending, nil
 		}
 		_, carry = bits.Add64(args.Amount, creditAcc.CreditsPending, 0)
 		if carry > 0 {
-			return tb_types.TransferOverflowsCreditsPending, nil
+			return pacioli.TransferOverflowsCreditsPending, nil
 		}
 	}
 	_, carry := bits.Add64(args.Amount, debitAcc.DebitsPosted, 0)
 	if carry > 0 {
-		return tb_types.TransferOverflowsDebitsPosted, nil
+		return pacioli.TransferOverflowsDebitsPosted, nil
 	}
 	_, carry = bits.Add64(args.Amount, creditAcc.CreditsPosted, 0)
 	if carry > 0 {
-		return tb_types.TransferOverflowsCreditsPosted, nil
+		return pacioli.TransferOverflowsCreditsPosted, nil
 	}
 	_, carry = bits.Add64(args.Amount+debitAcc.DebitsPosted, debitAcc.DebitsPending, 0)
 	if carry > 0 {
-		return tb_types.TransferOverflowsDebits, nil
+		return pacioli.TransferOverflowsDebits, nil
 	}
 	_, carry = bits.Add64(args.Amount+creditAcc.CreditsPosted, creditAcc.CreditsPending, 0)
 	if carry > 0 {
-		return tb_types.TransferOverflowsCredits, nil
+		return pacioli.TransferOverflowsCredits, nil
 	}
 
-	if debitAcc.Flags.DebitsMustNotExceedCredits &&
+	if debitAcc.DebitsMustNotExceedCredits &&
 		debitAcc.DebitsPosted+debitAcc.DebitsPending+args.Amount > debitAcc.CreditsPosted {
-		return tb_types.TransferExceedsCredits, nil
+		return pacioli.TransferExceedsCredits, nil
 	}
 
-	if creditAcc.Flags.CreditsMustNotExceedDebits &&
+	if creditAcc.CreditsMustNotExceedDebits &&
 		debitAcc.CreditsPending+debitAcc.CreditsPosted+args.Amount > debitAcc.DebitsPosted {
-		return tb_types.TransferExceedsDebits, nil
+		return pacioli.TransferExceedsDebits, nil
 	}
 
 	// All validation passed, create entry and update account values
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		state := transferStatePosted
+		state := pacioli.TransferStatePosted
 		var timeoutAt sql.NullTime
-		if args.Flags.Pending {
-			state = transferStatePending
+		if args.Pending {
+			state = pacioli.TransferStatePending
 
 			timeout := time.Now().Add(time.Nanosecond * time.Duration(args.Timeout)) // This is not a time that we will round to the nearest minute
 			timeoutAt = sql.NullTime{
@@ -218,7 +195,7 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 		// Update Credit account
 		sql := "UPDATE ledger_accounts SET credits_posted=credits_posted+$1, updated_at=now() WHERE id=$2 and credits_pending=$3 and credits_posted=$4"
-		if state == transferStatePending {
+		if state == pacioli.TransferStatePending {
 			sql = "UPDATE ledger_accounts SET credits_pending=credits_pending+$1, updated_at=now() WHERE id=$2 and credits_pending=$3 and credits_posted=$4"
 		}
 
@@ -236,7 +213,7 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 		// Update Debit account
 		sql = "UPDATE ledger_accounts SET debits_posted=debits_posted+$1, updated_at=now() WHERE id=$2 and debits_pending=$3 and debits_posted=$4"
-		if state == transferStatePending {
+		if state == pacioli.TransferStatePending {
 			sql = "UPDATE ledger_accounts SET debits_pending=debits_pending+$1, updated_at=now() WHERE id=$2 and debits_pending=$3 and debits_posted=$4"
 		}
 
@@ -261,11 +238,11 @@ func createTransfer(ctx context.Context, b Backends, args pacioli.CreateTransfer
 
 type ledgerTransfer struct {
 	pacioli.Transfer
-	PendingID sql.NullString `db:"pending_id"`
-	State     transferState  `db:"state"`
-	Timeout   sql.NullTime   `db:"timeout_at"`
-	CreatedAt time.Time      `db:"created_at"`
-	UpdatedAt time.Time      `db:"updated_at"`
+	PendingID sql.NullString        `db:"pending_id"`
+	State     pacioli.TransferState `db:"state"`
+	Timeout   sql.NullTime          `db:"timeout_at"`
+	CreatedAt time.Time             `db:"created_at"`
+	UpdatedAt time.Time             `db:"updated_at"`
 }
 
 func getTransfer(ctx context.Context, b Backends, id string) (*ledgerTransfer, error) {
@@ -289,16 +266,13 @@ func GetTransfer(ctx context.Context, b Backends, id string) (*pacioli.Transfer,
 
 	return &pacioli.Transfer{
 		ID:              tr.ID,
-		PendingID:       tr.PendingID.String,
 		LedgerID:        tr.LedgerID,
 		DebitAccountID:  tr.DebitAccountID,
 		CreditAccountID: tr.CreditAccountID,
 		Amount:          tr.Amount,
-		Flags: pacioli.TransferFlags{
-			Pending: tr.State == transferStatePending,
-		},
-		Code:    tr.Code,
-		Timeout: uint64(tr.Timeout.Time.UnixNano()),
+		State:           tr.State,
+		Code:            tr.Code,
+		Timeout:         uint64(tr.Timeout.Time.UnixNano()),
 	}, nil
 }
 
@@ -317,16 +291,13 @@ func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 	for i, tr := range transfers {
 		resp[i] = pacioli.Transfer{
 			ID:              tr.ID,
-			PendingID:       tr.PendingID.String,
 			LedgerID:        tr.LedgerID,
 			DebitAccountID:  tr.DebitAccountID,
 			CreditAccountID: tr.CreditAccountID,
 			Amount:          tr.Amount,
-			Flags: pacioli.TransferFlags{
-				Pending: tr.State == transferStatePending,
-			},
-			Code:    tr.Code,
-			Timeout: uint64(tr.Timeout.Time.UnixNano()),
+			State:           tr.State,
+			Code:            tr.Code,
+			Timeout:         uint64(tr.Timeout.Time.UnixNano()),
 		}
 	}
 
@@ -336,7 +307,7 @@ func ListTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 func ListTimedoutTransferIDs(ctx context.Context, b Backends) ([]string, error) {
 	var transfers []string
 	err := b.DB().SelectContext(ctx, &transfers,
-		"SELECT id FROM ledger_transfers WHERE state=$1 and timeout_at < now()", transferStatePending)
+		"SELECT id FROM ledger_transfers WHERE state=$1 and timeout_at < now()", pacioli.TransferStatePending)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -364,7 +335,7 @@ func TryTimeoutTransfers(ctx context.Context, b Backends, ids []string) ([]strin
 		err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 
 			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3 and timeout_at<now()",
-				transferStateTimeout, ex.ID, transferStatePending)
+				pacioli.TransferStateTimeout, ex.ID, pacioli.TransferStatePending)
 			if err != nil {
 				return fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 			}
@@ -421,33 +392,30 @@ func transferExists(ctx context.Context, b Backends, args pacioli.CreateTransfer
 		return 0, err
 	}
 
-	if ex.Flags.ToUint16() != args.Flags.ToUint16() {
-		return tb_types.TransferExistsWithDifferentFlags, nil
-	}
 	if ex.DebitAccountID != args.DebitAccountID {
-		return tb_types.TransferExistsWithDifferentDebitAccountId, nil
+		return pacioli.TransferExistsWithDifferentDebitAccountId, nil
 	}
 	if ex.CreditAccountID != args.CreditAccountID {
-		return tb_types.TransferExistsWithDifferentCreditAccountId, nil
+		return pacioli.TransferExistsWithDifferentCreditAccountId, nil
 	}
-	if args.Flags.Pending {
+	if args.Pending {
 		// Compare timeouts with a minute grace period.
 		newTimeout := time.Now().Add(time.Millisecond * time.Duration(args.Timeout))
 		existingTimeout := time.Unix(0, int64(ex.Timeout))
 		if newTimeout.Before(existingTimeout.Add(time.Minute)) &&
 			newTimeout.After(existingTimeout.Add(time.Minute*-1)) {
-			return tb_types.TransferExistsWithDifferentTimeout, nil
+			return pacioli.TransferExistsWithDifferentTimeout, nil
 		}
 	}
 
 	if ex.Amount != args.Amount {
-		return tb_types.TransferExistsWithDifferentAmount, nil
+		return pacioli.TransferExistsWithDifferentAmount, nil
 	}
 	if ex.Code != args.Code {
-		return tb_types.TransferExistsWithDifferentCode, nil
+		return pacioli.TransferExistsWithDifferentCode, nil
 	}
 
-	return tb_types.TransferExists, nil
+	return pacioli.TransferExists, nil
 }
 
 func PostTransfers(ctx context.Context, b Backends, ids []string) (pendingPostedIDs map[string]string, res []pacioli.TransferResult, err error) {
@@ -458,7 +426,7 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (pendingPosted
 		if errors.Is(err, pacioli.ErrNotFound) {
 			resMap[i] = pacioli.TransferResult{
 				Index: uint32(i),
-				Code:  tb_types.TransferPendingTransferNotFound,
+				Code:  pacioli.TransferPendingTransferNotFound,
 			}
 			continue
 		}
@@ -466,55 +434,46 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (pendingPosted
 			return nil, nil, err
 		}
 
-		if !validStateTransition(ex.State, transferStateReplaced) {
-			if ex.State == transferStateReplaced {
+		if !validStateTransition(ex.State, pacioli.TransferStatePosted) {
+			if ex.State == pacioli.TransferStatePosted {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferAlreadyPosted,
+					Code:  pacioli.TransferPendingTransferAlreadyPosted,
 				}
 				continue
 			}
-			if ex.State == transferStateVoided {
+			if ex.State == pacioli.TransferStateVoided {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferAlreadyVoided,
+					Code:  pacioli.TransferPendingTransferAlreadyVoided,
 				}
 				continue
 			}
-			if ex.State != transferStatePending {
+			if ex.State != pacioli.TransferStatePending {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferNotPending,
+					Code:  pacioli.TransferPendingTransferNotPending,
 				}
 				continue
 			}
-			if ex.State == transferStateTimeout || ex.Timeout.Time.Before(time.Now().UTC()) {
+			if ex.State == pacioli.TransferStateTimeout || ex.Timeout.Time.Before(time.Now().UTC()) {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferExpired,
+					Code:  pacioli.TransferPendingTransferExpired,
 				}
 				continue
 			}
 			// Default catch all shouldn't execute
 			resMap[i] = pacioli.TransferResult{
 				Index: uint32(i),
-				Code:  tb_types.TransferPendingTransferNotPending,
+				Code:  pacioli.TransferPendingTransferNotPending,
 			}
 			continue
 		}
 
 		err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-
-			// Insert the new transaction
-			newID := uuid.NewString()
-			_, err = tx.ExecContext(ctx, "INSERT INTO ledger_transfers (id, ledger_id, code, debit_account_id, credit_account_id, amount, state, pending_id) "+
-				"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", newID, ex.LedgerID, ex.Code, ex.DebitAccountID, ex.CreditAccountID, ex.Amount, transferStatePosted, ex.ID)
-			if err != nil {
-				return err
-			}
-
 			// Update the old transaction's state
-			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3", transferStateReplaced, ex.ID, transferStatePending)
+			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3", pacioli.TransferStatePosted, ex.ID, pacioli.TransferStatePending)
 			if err != nil {
 				return err
 			}
@@ -551,7 +510,7 @@ func PostTransfers(ctx context.Context, b Backends, ids []string) (pendingPosted
 			if updateCnt != 1 {
 				return fmt.Errorf("%s %s %w", "unable to update debit account balances", ex.CreditAccountID, pacioli.ErrInternal)
 			}
-			pendingPostedIDs[ex.ID] = newID
+			pendingPostedIDs[ex.ID] = ex.ID
 
 			return nil
 		})
@@ -577,39 +536,39 @@ func VoidTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 		if errors.Is(err, pacioli.ErrNotFound) {
 			resMap[i] = pacioli.TransferResult{
 				Index: uint32(i),
-				Code:  tb_types.TransferPendingTransferNotFound,
+				Code:  pacioli.TransferPendingTransferNotFound,
 			}
 			continue
 		}
 		if err != nil {
 			return nil, err
 		}
-		if !validStateTransition(ex.State, transferStateVoided) {
-			if ex.State == transferStateVoided {
+		if !validStateTransition(ex.State, pacioli.TransferStateVoided) {
+			if ex.State == pacioli.TransferStateVoided {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferAlreadyVoided,
+					Code:  pacioli.TransferPendingTransferAlreadyVoided,
 				}
 				continue
 			}
-			if ex.State == transferStateReplaced {
+			if ex.State == pacioli.TransferStatePosted {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferAlreadyPosted,
+					Code:  pacioli.TransferPendingTransferAlreadyPosted,
 				}
 				continue
 			}
-			if ex.State == transferStateTimeout || ex.Timeout.Time.Before(time.Now().UTC()) {
+			if ex.State == pacioli.TransferStateTimeout || ex.Timeout.Time.Before(time.Now().UTC()) {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferExpired,
+					Code:  pacioli.TransferPendingTransferExpired,
 				}
 				continue
 			}
-			if ex.State != transferStatePending {
+			if ex.State != pacioli.TransferStatePending {
 				resMap[i] = pacioli.TransferResult{
 					Index: uint32(i),
-					Code:  tb_types.TransferPendingTransferNotPending,
+					Code:  pacioli.TransferPendingTransferNotPending,
 				}
 				continue
 			}
@@ -617,7 +576,7 @@ func VoidTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 			// Catch all error, shouldn't happen.
 			resMap[i] = pacioli.TransferResult{
 				Index: uint32(i),
-				Code:  tb_types.TransferPendingTransferNotPending,
+				Code:  pacioli.TransferPendingTransferNotPending,
 			}
 			continue
 		}
@@ -625,7 +584,7 @@ func VoidTransfers(ctx context.Context, b Backends, ids []string) ([]pacioli.Tra
 		err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
 
 			// Update the old transaction's state
-			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3", transferStateVoided, ex.ID, transferStatePending)
+			rows, err := tx.ExecContext(ctx, "UPDATE ledger_transfers SET state=$1, updated_at=now() WHERE id=$2 and state=$3", pacioli.TransferStateVoided, ex.ID, pacioli.TransferStatePending)
 			if err != nil {
 				return err
 			}

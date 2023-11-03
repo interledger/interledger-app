@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/pacioli/db"
@@ -14,7 +13,7 @@ import (
 	test_utils "gitlab.com/fynbos/pacioli/utils"
 )
 
-func TestTigerBeetle(t *testing.T) {
+func TestSeed(t *testing.T) {
 	//ctx := context.Background()
 
 	/*ctrl := gomock.NewController(t)
@@ -116,7 +115,7 @@ func TestTigerBeetle(t *testing.T) {
 
 	//return test_utils.NewBackends(t, dbc, tbClient), nil
 	fmt.Println("XXXXXXX")
-	err = seed.TigerBeetle(c.b, "example.yml")
+	err = seed.Seed(c.b, "example.yml")
 	fmt.Println("YYYYYYYYYYYY")
 	assert.NoError(t, err)
 }
@@ -124,7 +123,6 @@ func TestTigerBeetle(t *testing.T) {
 type TestContainer struct {
 	b   ledger.Backends
 	Ctx context.Context
-	Tb  *test_utils.TigerBeetleContainer
 }
 
 func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error) {
@@ -133,42 +131,10 @@ func NewTestContainer(ctx context.Context, t *testing.T) (*TestContainer, error)
 
 	_, db := db.MigrateTestDB(t, ctx)
 
-	tbClient, err := tigerbeetle_go.NewClient(0, []string{"0.0.0.0:3000"}, 1000)
-	if err != nil {
-		fmt.Println()
-		fmt.Println("0.0.0.0:3000")
-		fmt.Println(err)
-		fmt.Println()
-		return nil, err
-	}
-
-	c.b = test_utils.NewBackends(t, db, tbClient)
+	c.b = test_utils.NewBackends(t, db)
 	return c, nil
 }
 
 func (c *TestContainer) Cleanup() error {
-	// c.b.TigerBeetle().Close()
-
 	return nil
 }
-
-/*
-
-	func setupTestEnv(ctx context.Context, t *testing.T) (ledger.Backends, error) {
-		_, dbc := test_utils.MigrateCockroachDB(t, ctx)
-
-		tb, err := test_utils.SetupTigerBeetle(ctx, 0, "pacioli-test")
-		if err != nil {
-			return nil, err
-		}
-
-		t.Cleanup(func() {
-			_ = tb.Terminate(ctx)
-		})
-
-		tbClient, err := tigerbeetle_go.NewClient(0, []string{tb.URI}, 10)
-		if err != nil {
-			return nil, err
-		}
-
-		return test_utils.NewBackends(t, dbc, tbClient), nil*/
