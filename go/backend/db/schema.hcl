@@ -3049,6 +3049,43 @@ table "xago_deposits" {
   }
 }
 
+table "payment_links" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "expires_at" {
+    null    = false
+    type    = timestamp
+  }
+  column "completed_at" {
+    null    = true
+    type    = timestamp
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "payment_links_payment_id_idx" {
+    columns = [column.payment_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

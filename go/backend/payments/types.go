@@ -177,3 +177,12 @@ const (
 	TypeRafiki2External Type = 5
 	TypeWithdrawal      Type = 6
 )
+
+type PaymentLink struct {
+	ID          string
+	PaymentID   string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	ExpiresAt   time.Time
+	CompletedAt time.Time
+}

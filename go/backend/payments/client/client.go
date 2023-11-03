@@ -64,6 +64,10 @@ func (c client) SignalExternalPayoutComplete(ctx context.Context, id string, suc
 	return ops.SignalExternalPayoutComplete(ctx, c.b, id, success)
 }
 
+func (c client) CreatePaymentLink(ctx context.Context, id string) (*payments.PaymentLink, error) {
+	return ops.CreatePaymentLink(ctx, c.b, id)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

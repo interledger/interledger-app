@@ -1282,6 +1282,51 @@ func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, er
 	return res, nil
 }
 
+type dbPaymentLink struct {
+	ID          string       `db:"id"`
+	PaymentID   string       `db:"payment_id"`
+	CreatedAt   time.Time    `db:"created_at"`
+	UpdatedAt   time.Time    `db:"updated_at"`
+	ExpiresAt   time.Time    `db:"expires_at"`
+	CompletedAt sql.NullTime `db:"completed_at"`
+}
+
+const dbPaymentLinkFields = "id, payment_id, expires_at, created_at, updated_at"
+
+func transformPaymentLink(l dbPaymentLink) *payments.PaymentLink {
+	return &payments.PaymentLink{
+		ID:          l.ID,
+		PaymentID:   l.PaymentID,
+		CreatedAt:   l.CreatedAt,
+		UpdatedAt:   l.UpdatedAt,
+		ExpiresAt:   l.ExpiresAt,
+		CompletedAt: l.CompletedAt.Time,
+	}
+}
+
+func CreatePaymentLink(ctx context.Context, b Backends, id string) (*payments.PaymentLink, error) {
+	p, err := Lookup(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+	var link dbPaymentLink
+	err = b.DB().GetContext(ctx, &link, fmt.Sprintf("SELECT %s FROM payment_links WHERE payment_id=$1 AND completed_at IS NULL;", dbPaymentLinkFields), p.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if link.ID != "" {
+		return transformPaymentLink(link), nil
+	}
+
+	expiresAt := time.Now().Add(2 * 24 * time.Hour)
+	err = b.DB().GetContext(ctx, &link, fmt.Sprintf("INSERT INTO payment_links (payment_id, expires_at) VALUES ($1, $2) RETURNING %s", dbPaymentLinkFields), p.ID, expiresAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPaymentLink(link), nil
+}
+
 const (
 	geohashBase32Alphabet = "0123456789bcdefghjkmnpqrstuvwxyz"
 	hoursInUnixTimestamp  = 60 * 60
