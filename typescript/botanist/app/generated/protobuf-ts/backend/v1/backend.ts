@@ -32,6 +32,63 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetPaymentLinkRequest
+ */
+export interface GetPaymentLinkRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ConsumePaymentLinkRequest
+ */
+export interface ConsumePaymentLinkRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string firstName = 2;
+     */
+    firstName: string;
+    /**
+     * @generated from protobuf field: string lastName = 3;
+     */
+    lastName: string;
+    /**
+     * @generated from protobuf field: string email = 4;
+     */
+    email: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ConsumePaymentLinkResponse
+ */
+export interface ConsumePaymentLinkResponse {
+    /**
+     * @generated from protobuf field: string token = 1;
+     */
+    token: string;
+}
+/**
+ * @generated from protobuf message backend.v1.IntrospectRequest
+ */
+export interface IntrospectRequest {
+    /**
+     * @generated from protobuf field: string token = 1;
+     */
+    token: string;
+}
+/**
+ * @generated from protobuf message backend.v1.IntrospectResponse
+ */
+export interface IntrospectResponse {
+    /**
+     * @generated from protobuf field: string walletId = 1;
+     */
+    walletId: string;
+}
+/**
  * @generated from protobuf message backend.v1.CreatePaymentLinkRequest
  */
 export interface CreatePaymentLinkRequest {
@@ -48,6 +105,22 @@ export interface PaymentLink {
      * @generated from protobuf field: string url = 1;
      */
     url: string;
+    /**
+     * @generated from protobuf field: string formattedAmount = 2;
+     */
+    formattedAmount: string;
+    /**
+     * @generated from protobuf field: string note = 3;
+     */
+    note: string;
+    /**
+     * @generated from protobuf field: string senderWalletUrl = 4;
+     */
+    senderWalletUrl: string;
+    /**
+     * @generated from protobuf field: string receiverIdentifier = 5;
+     */
+    receiverIdentifier: string;
 }
 /**
  * @generated from protobuf message backend.v1.SetDefaultSendLinkedAccountRequest
@@ -2155,6 +2228,262 @@ class Empty$Type extends MessageType<Empty> {
  */
 export const Empty = new Empty$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class GetPaymentLinkRequest$Type extends MessageType<GetPaymentLinkRequest> {
+    constructor() {
+        super("backend.v1.GetPaymentLinkRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetPaymentLinkRequest>): GetPaymentLinkRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPaymentLinkRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPaymentLinkRequest): GetPaymentLinkRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPaymentLinkRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPaymentLinkRequest
+ */
+export const GetPaymentLinkRequest = new GetPaymentLinkRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ConsumePaymentLinkRequest$Type extends MessageType<ConsumePaymentLinkRequest> {
+    constructor() {
+        super("backend.v1.ConsumePaymentLinkRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ConsumePaymentLinkRequest>): ConsumePaymentLinkRequest {
+        const message = { id: "", firstName: "", lastName: "", email: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ConsumePaymentLinkRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConsumePaymentLinkRequest): ConsumePaymentLinkRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string firstName */ 2:
+                    message.firstName = reader.string();
+                    break;
+                case /* string lastName */ 3:
+                    message.lastName = reader.string();
+                    break;
+                case /* string email */ 4:
+                    message.email = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ConsumePaymentLinkRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string firstName = 2; */
+        if (message.firstName !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.firstName);
+        /* string lastName = 3; */
+        if (message.lastName !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.lastName);
+        /* string email = 4; */
+        if (message.email !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.email);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ConsumePaymentLinkRequest
+ */
+export const ConsumePaymentLinkRequest = new ConsumePaymentLinkRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ConsumePaymentLinkResponse$Type extends MessageType<ConsumePaymentLinkResponse> {
+    constructor() {
+        super("backend.v1.ConsumePaymentLinkResponse", [
+            { no: 1, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<ConsumePaymentLinkResponse>): ConsumePaymentLinkResponse {
+        const message = { token: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ConsumePaymentLinkResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ConsumePaymentLinkResponse): ConsumePaymentLinkResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string token */ 1:
+                    message.token = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ConsumePaymentLinkResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string token = 1; */
+        if (message.token !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.token);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ConsumePaymentLinkResponse
+ */
+export const ConsumePaymentLinkResponse = new ConsumePaymentLinkResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IntrospectRequest$Type extends MessageType<IntrospectRequest> {
+    constructor() {
+        super("backend.v1.IntrospectRequest", [
+            { no: 1, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IntrospectRequest>): IntrospectRequest {
+        const message = { token: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<IntrospectRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IntrospectRequest): IntrospectRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string token */ 1:
+                    message.token = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IntrospectRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string token = 1; */
+        if (message.token !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.token);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.IntrospectRequest
+ */
+export const IntrospectRequest = new IntrospectRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IntrospectResponse$Type extends MessageType<IntrospectResponse> {
+    constructor() {
+        super("backend.v1.IntrospectResponse", [
+            { no: 1, name: "walletId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IntrospectResponse>): IntrospectResponse {
+        const message = { walletId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<IntrospectResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IntrospectResponse): IntrospectResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletId */ 1:
+                    message.walletId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IntrospectResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletId = 1; */
+        if (message.walletId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.IntrospectResponse
+ */
+export const IntrospectResponse = new IntrospectResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CreatePaymentLinkRequest$Type extends MessageType<CreatePaymentLinkRequest> {
     constructor() {
         super("backend.v1.CreatePaymentLinkRequest", [
@@ -2205,11 +2534,15 @@ export const CreatePaymentLinkRequest = new CreatePaymentLinkRequest$Type();
 class PaymentLink$Type extends MessageType<PaymentLink> {
     constructor() {
         super("backend.v1.PaymentLink", [
-            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "formattedAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "senderWalletUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "receiverIdentifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PaymentLink>): PaymentLink {
-        const message = { url: "" };
+        const message = { url: "", formattedAmount: "", note: "", senderWalletUrl: "", receiverIdentifier: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<PaymentLink>(this, message, value);
@@ -2222,6 +2555,18 @@ class PaymentLink$Type extends MessageType<PaymentLink> {
             switch (fieldNo) {
                 case /* string url */ 1:
                     message.url = reader.string();
+                    break;
+                case /* string formattedAmount */ 2:
+                    message.formattedAmount = reader.string();
+                    break;
+                case /* string note */ 3:
+                    message.note = reader.string();
+                    break;
+                case /* string senderWalletUrl */ 4:
+                    message.senderWalletUrl = reader.string();
+                    break;
+                case /* string receiverIdentifier */ 5:
+                    message.receiverIdentifier = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2238,6 +2583,18 @@ class PaymentLink$Type extends MessageType<PaymentLink> {
         /* string url = 1; */
         if (message.url !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.url);
+        /* string formattedAmount = 2; */
+        if (message.formattedAmount !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.formattedAmount);
+        /* string note = 3; */
+        if (message.note !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.note);
+        /* string senderWalletUrl = 4; */
+        if (message.senderWalletUrl !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.senderWalletUrl);
+        /* string receiverIdentifier = 5; */
+        if (message.receiverIdentifier !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.receiverIdentifier);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -9563,5 +9920,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "SubmitForm", options: {}, I: SubmitFormRequest, O: Empty },
     { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
     { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse },
-    { name: "CreatePaymentLink", options: {}, I: CreatePaymentLinkRequest, O: PaymentLink }
+    { name: "CreatePaymentLink", options: {}, I: CreatePaymentLinkRequest, O: PaymentLink },
+    { name: "GetPaymentLink", options: {}, I: GetPaymentLinkRequest, O: PaymentLink },
+    { name: "ConsumePaymentLink", options: {}, I: ConsumePaymentLinkRequest, O: ConsumePaymentLinkResponse },
+    { name: "Introspect", options: {}, I: IntrospectRequest, O: IntrospectResponse }
 ]);
