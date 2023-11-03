@@ -2,15 +2,47 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"math"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/env"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func (s *rpcService) CreatePaymentLink(ctx context.Context, req *pb.CreatePaymentLinkRequest) (*pb.PaymentLink, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	t, err := s.b.Transactions().GetTransaction(ctx, w.ID, req.GetTransactionId())
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if t.Provider != "payments_engine" {
+		return nil, NotFoundError("")
+	}
+
+	// insert receive payment link into db
+	link, err := s.b.Payments().CreatePaymentLink(ctx, t.ForeignID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.PaymentLink{
+		Url: fmt.Sprintf("%s/collect/%s", env.GetUrl(), link.ID),
+	}, nil
+}
 
 func (s *rpcService) ListTransactions(ctx context.Context, req *pb.PaginationRequest) (*pb.ListTransactionsResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
