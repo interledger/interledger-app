@@ -53,7 +53,8 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			log.Error("failed to unmarshal xago webhook", zap.Error(err))
 		}
 
+		log.Info("Xago webhook recieved", zap.Any("hook", hook), zap.Any("raw", string(raw)))
 		log.Info("xago webhook unsupported")
-		w.WriteHeader(http.StatusNotImplemented)
+		w.WriteHeader(http.StatusOK)
 	}
 }
