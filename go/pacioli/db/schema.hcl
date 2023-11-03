@@ -13,9 +13,15 @@ table "ledger_accounts" {
     null = false
     type = bigint
   }
-  column "flags" {
-    null = true
-    type = smallint
+  column "debits_must_not_exceed_credits" {
+    null = false
+    type = bool
+    default = sql("false:::BOOL")
+  }
+  column "credits_must_not_exceed_debits" {
+    null = false
+    type = bool
+    default = sql("false:::BOOL")
   }
   column "debits_pending" {
     null    = false

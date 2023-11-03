@@ -8,14 +8,12 @@ import (
 	"sort"
 	"time"
 
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/pacioli"
 )
 
 type ledgerAccount struct {
 	pacioli.Account
-	FlagsRaw  uint16    `db:"flags"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -45,10 +43,10 @@ func ConfigureAccounts(
 			return nil, fmt.Errorf("%s %d %s %w", "index: ", i, err, pacioli.ErrInternal)
 		}
 
-		if aa.Flags.DebitsMustNotExceedCredits && aa.Flags.CreditsMustNotExceedDebits {
+		if aa.DebitsMustNotExceedCredits && aa.CreditsMustNotExceedDebits {
 			resMap[i] = pacioli.AccountResult{
 				Index: uint32(i),
-				Code:  tb_types.AccountMutuallyExclusiveFlags,
+				Code:  pacioli.AccountMutuallyExclusiveFlags,
 			}
 		}
 	}
@@ -95,12 +93,13 @@ func configureAccount(
 		return 0, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
 	if ex != nil {
-		if ex.Flags.ToUint16() != args.Flags.ToUint16() {
-			return tb_types.AccountExistsWithDifferentFlags, nil
-		} else if ex.LedgerID != args.LedgerID {
-			return tb_types.AccountExistsWithDifferentLedger, nil
+		if ex.LedgerID != args.LedgerID {
+			return pacioli.AccountExistsWithDifferentLedger, nil
 		} else if ex.Code != args.Code {
-			return tb_types.AccountExistsWithDifferentCode, nil
+			return pacioli.AccountExistsWithDifferentCode, nil
+		} else if ex.DebitsMustNotExceedCredits != args.DebitsMustNotExceedCredits ||
+			ex.CreditsMustNotExceedDebits != args.CreditsMustNotExceedDebits {
+			return pacioli.AccountExistsWithDifferentFlags, nil
 		}
 
 		// Account exists with all the same params, do nothing.
@@ -116,8 +115,8 @@ func configureAccount(
 	}
 
 	_, err = b.DB().ExecContext(ctx,
-		"INSERT INTO ledger_accounts (id, ledger_id, code, flags)VALUES ($1, $2, $3, $4)",
-		args.ID, args.LedgerID, args.Code, args.Flags.ToUint16())
+		"INSERT INTO ledger_accounts (id, ledger_id, code, debits_must_not_exceed_credits, credits_must_not_exceed_debits)VALUES ($1, $2, $3, $4, $5)",
+		args.ID, args.LedgerID, args.Code, args.DebitsMustNotExceedCredits, args.CreditsMustNotExceedDebits)
 	if err != nil {
 		return pacioli.AccountOK, fmt.Errorf("%s %w", err, pacioli.ErrInternal)
 	}
@@ -136,14 +135,15 @@ func GetAccount(ctx context.Context, b Backends, id string) (*pacioli.Account, e
 	}
 
 	return &pacioli.Account{
-		ID:             acc.ID,
-		LedgerID:       acc.LedgerID,
-		Flags:          pacioli.ToAccountFlags(acc.FlagsRaw),
-		Code:           acc.Code,
-		DebitsPending:  acc.DebitsPending,
-		DebitsPosted:   acc.DebitsPosted,
-		CreditsPending: acc.CreditsPending,
-		CreditsPosted:  acc.CreditsPosted,
+		ID:                         acc.ID,
+		LedgerID:                   acc.LedgerID,
+		DebitsMustNotExceedCredits: acc.DebitsMustNotExceedCredits,
+		CreditsMustNotExceedDebits: acc.CreditsMustNotExceedDebits,
+		Code:                       acc.Code,
+		DebitsPending:              acc.DebitsPending,
+		DebitsPosted:               acc.DebitsPosted,
+		CreditsPending:             acc.CreditsPending,
+		CreditsPosted:              acc.CreditsPosted,
 	}, nil
 }
 
@@ -161,14 +161,15 @@ func ListAccounts(ctx context.Context, b Backends, ids []string) ([]pacioli.Acco
 
 	for _, acc := range accs {
 		resp = append(resp, pacioli.Account{
-			ID:             acc.ID,
-			LedgerID:       acc.LedgerID,
-			Flags:          pacioli.ToAccountFlags(acc.FlagsRaw),
-			Code:           acc.Code,
-			DebitsPending:  acc.DebitsPending,
-			DebitsPosted:   acc.DebitsPosted,
-			CreditsPending: acc.CreditsPending,
-			CreditsPosted:  acc.CreditsPosted,
+			ID:                         acc.ID,
+			LedgerID:                   acc.LedgerID,
+			DebitsMustNotExceedCredits: acc.DebitsMustNotExceedCredits,
+			CreditsMustNotExceedDebits: acc.CreditsMustNotExceedDebits,
+			Code:                       acc.Code,
+			DebitsPending:              acc.DebitsPending,
+			DebitsPosted:               acc.DebitsPosted,
+			CreditsPending:             acc.CreditsPending,
+			CreditsPosted:              acc.CreditsPosted,
 		})
 	}
 	return resp, nil

@@ -48,20 +48,16 @@ message Account {
   uint64 debitsAccepted = 5;
   uint64 creditsReserved = 6;
   uint64 creditsAccepted = 7;
-  AccountFlags flags = 8;
-}
-
-message AccountFlags {
-  bool linked = 1;
-  bool debitsMustNotExceedCredits = 2;
-  bool creditsMustNotExceedDebits = 3;
+  bool debitsMustNotExceedCredits = 8;
+  bool creditsMustNotExceedDebits = 9;
 }
 
 message ConfigureAccountsArgs {
   string id = 1;
   uint32 ledgerId = 2;
   uint32 code = 3;
-  AccountFlags flags = 4;
+  bool debitsMustNotExceedCredits = 4;
+  bool creditsMustNotExceedDebits = 5;
 }
 
 message ConfigureAccountsRequest {
@@ -86,17 +82,10 @@ message Transfer {
   string creditAccountId = 3;
   uint64 amount = 4;
   uint32 code = 5;
-  TransferFlags flags = 6;
   uint64 timeout = 7;
   uint32 ledger = 8;
   string pendingId = 9;
-}
-
-message TransferFlags {
-  bool linked = 1;
-  bool pending = 2;
-  bool postPending = 3;
-  bool voidPending = 4;
+  bool pending = 10;
 }
 
 message CreateTransfersRequest {

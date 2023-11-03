@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
-
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger"
 	"gopkg.in/yaml.v2"
 )
 
-func TigerBeetle(b ledger.Backends, filePath string) error {
+func Seed(b ledger.Backends, filePath string) error {
 	ctx := context.Background()
 	confRaw, err := os.ReadFile(filePath)
 	if err != nil {
@@ -113,14 +111,11 @@ func accounts(ctx context.Context, b ledger.Backends, confRaw []byte) error {
 	accIds := make([]string, len(conf.Accounts))
 	for i, accConf := range conf.Accounts {
 		accArgs[i] = pacioli.ConfigureAccountArgs{
-			ID:       accConf.ID,
-			LedgerID: accConf.LedgerID,
-			Code:     accConf.Code,
-			Flags: pacioli.AccountFlags{
-				Linked:                     accConf.Linked,
-				DebitsMustNotExceedCredits: accConf.DebitsMustNotExceedCredits,
-				CreditsMustNotExceedDebits: accConf.CreditsMustNotExceedDebits,
-			},
+			ID:                         accConf.ID,
+			LedgerID:                   accConf.LedgerID,
+			Code:                       accConf.Code,
+			DebitsMustNotExceedCredits: accConf.DebitsMustNotExceedCredits,
+			CreditsMustNotExceedDebits: accConf.CreditsMustNotExceedDebits,
 		}
 		accIds[i] = accConf.ID
 	}
@@ -132,10 +127,10 @@ func accounts(ctx context.Context, b ledger.Backends, confRaw []byte) error {
 
 	for _, el := range el {
 		switch el.Code {
-		case tb_types.AccountExistsWithDifferentDebitsPending,
-			tb_types.AccountExistsWithDifferentDebitsPosted,
-			tb_types.AccountExistsWithDifferentCreditsPending,
-			tb_types.AccountExistsWithDifferentCreditsPosted:
+		case pacioli.AccountExistsWithDifferentDebitsPending,
+			pacioli.AccountExistsWithDifferentDebitsPosted,
+			pacioli.AccountExistsWithDifferentCreditsPending,
+			pacioli.AccountExistsWithDifferentCreditsPosted:
 			continue
 		}
 		return fmt.Errorf("error at index:%d code:%d", el.Index, el.Code)
@@ -157,9 +152,8 @@ func accounts(ctx context.Context, b ledger.Backends, confRaw []byte) error {
 
 			if acc.LedgerID == accConf.LedgerID &&
 				acc.Code == accConf.Code &&
-				acc.Flags.Linked == accConf.Linked &&
-				acc.Flags.DebitsMustNotExceedCredits == accConf.DebitsMustNotExceedCredits &&
-				acc.Flags.CreditsMustNotExceedDebits == accConf.CreditsMustNotExceedDebits {
+				acc.DebitsMustNotExceedCredits == accConf.DebitsMustNotExceedCredits &&
+				acc.CreditsMustNotExceedDebits == accConf.CreditsMustNotExceedDebits {
 				match = true
 			}
 			break

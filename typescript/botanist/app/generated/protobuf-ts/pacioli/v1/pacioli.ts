@@ -107,24 +107,11 @@ export interface Account {
      */
     creditsAccepted: string;
     /**
-     * @generated from protobuf field: pacioli.v1.AccountFlags flags = 8;
-     */
-    flags?: AccountFlags;
-}
-/**
- * @generated from protobuf message pacioli.v1.AccountFlags
- */
-export interface AccountFlags {
-    /**
-     * @generated from protobuf field: bool linked = 1;
-     */
-    linked: boolean;
-    /**
-     * @generated from protobuf field: bool debitsMustNotExceedCredits = 2;
+     * @generated from protobuf field: bool debitsMustNotExceedCredits = 8;
      */
     debitsMustNotExceedCredits: boolean;
     /**
-     * @generated from protobuf field: bool creditsMustNotExceedDebits = 3;
+     * @generated from protobuf field: bool creditsMustNotExceedDebits = 9;
      */
     creditsMustNotExceedDebits: boolean;
 }
@@ -145,9 +132,13 @@ export interface ConfigureAccountsArgs {
      */
     code: number;
     /**
-     * @generated from protobuf field: pacioli.v1.AccountFlags flags = 4;
+     * @generated from protobuf field: bool debitsMustNotExceedCredits = 4;
      */
-    flags?: AccountFlags;
+    debitsMustNotExceedCredits: boolean;
+    /**
+     * @generated from protobuf field: bool creditsMustNotExceedDebits = 5;
+     */
+    creditsMustNotExceedDebits: boolean;
 }
 /**
  * @generated from protobuf message pacioli.v1.ConfigureAccountsRequest
@@ -210,10 +201,6 @@ export interface Transfer {
      */
     code: number;
     /**
-     * @generated from protobuf field: pacioli.v1.TransferFlags flags = 6;
-     */
-    flags?: TransferFlags;
-    /**
      * @generated from protobuf field: uint64 timeout = 7;
      */
     timeout: string;
@@ -225,27 +212,10 @@ export interface Transfer {
      * @generated from protobuf field: string pendingId = 9;
      */
     pendingId: string;
-}
-/**
- * @generated from protobuf message pacioli.v1.TransferFlags
- */
-export interface TransferFlags {
     /**
-     * @generated from protobuf field: bool linked = 1;
-     */
-    linked: boolean;
-    /**
-     * @generated from protobuf field: bool pending = 2;
+     * @generated from protobuf field: bool pending = 10;
      */
     pending: boolean;
-    /**
-     * @generated from protobuf field: bool postPending = 3;
-     */
-    postPending: boolean;
-    /**
-     * @generated from protobuf field: bool voidPending = 4;
-     */
-    voidPending: boolean;
 }
 /**
  * @generated from protobuf message pacioli.v1.CreateTransfersRequest
@@ -633,11 +603,12 @@ class Account$Type extends MessageType<Account> {
             { no: 5, name: "debitsAccepted", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 6, name: "creditsReserved", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 7, name: "creditsAccepted", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
-            { no: 8, name: "flags", kind: "message", T: () => AccountFlags }
+            { no: 8, name: "debitsMustNotExceedCredits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 9, name: "creditsMustNotExceedDebits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Account>): Account {
-        const message = { id: "", ledgerId: 0, code: 0, debitsReserved: "0", debitsAccepted: "0", creditsReserved: "0", creditsAccepted: "0" };
+        const message = { id: "", ledgerId: 0, code: 0, debitsReserved: "0", debitsAccepted: "0", creditsReserved: "0", creditsAccepted: "0", debitsMustNotExceedCredits: false, creditsMustNotExceedDebits: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Account>(this, message, value);
@@ -669,8 +640,11 @@ class Account$Type extends MessageType<Account> {
                 case /* uint64 creditsAccepted */ 7:
                     message.creditsAccepted = reader.uint64().toString();
                     break;
-                case /* pacioli.v1.AccountFlags flags */ 8:
-                    message.flags = AccountFlags.internalBinaryRead(reader, reader.uint32(), options, message.flags);
+                case /* bool debitsMustNotExceedCredits */ 8:
+                    message.debitsMustNotExceedCredits = reader.bool();
+                    break;
+                case /* bool creditsMustNotExceedDebits */ 9:
+                    message.creditsMustNotExceedDebits = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -705,9 +679,12 @@ class Account$Type extends MessageType<Account> {
         /* uint64 creditsAccepted = 7; */
         if (message.creditsAccepted !== "0")
             writer.tag(7, WireType.Varint).uint64(message.creditsAccepted);
-        /* pacioli.v1.AccountFlags flags = 8; */
-        if (message.flags)
-            AccountFlags.internalBinaryWrite(message.flags, writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* bool debitsMustNotExceedCredits = 8; */
+        if (message.debitsMustNotExceedCredits !== false)
+            writer.tag(8, WireType.Varint).bool(message.debitsMustNotExceedCredits);
+        /* bool creditsMustNotExceedDebits = 9; */
+        if (message.creditsMustNotExceedDebits !== false)
+            writer.tag(9, WireType.Varint).bool(message.creditsMustNotExceedDebits);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -719,78 +696,18 @@ class Account$Type extends MessageType<Account> {
  */
 export const Account = new Account$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class AccountFlags$Type extends MessageType<AccountFlags> {
-    constructor() {
-        super("pacioli.v1.AccountFlags", [
-            { no: 1, name: "linked", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "debitsMustNotExceedCredits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 3, name: "creditsMustNotExceedDebits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<AccountFlags>): AccountFlags {
-        const message = { linked: false, debitsMustNotExceedCredits: false, creditsMustNotExceedDebits: false };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<AccountFlags>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AccountFlags): AccountFlags {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* bool linked */ 1:
-                    message.linked = reader.bool();
-                    break;
-                case /* bool debitsMustNotExceedCredits */ 2:
-                    message.debitsMustNotExceedCredits = reader.bool();
-                    break;
-                case /* bool creditsMustNotExceedDebits */ 3:
-                    message.creditsMustNotExceedDebits = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: AccountFlags, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool linked = 1; */
-        if (message.linked !== false)
-            writer.tag(1, WireType.Varint).bool(message.linked);
-        /* bool debitsMustNotExceedCredits = 2; */
-        if (message.debitsMustNotExceedCredits !== false)
-            writer.tag(2, WireType.Varint).bool(message.debitsMustNotExceedCredits);
-        /* bool creditsMustNotExceedDebits = 3; */
-        if (message.creditsMustNotExceedDebits !== false)
-            writer.tag(3, WireType.Varint).bool(message.creditsMustNotExceedDebits);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message pacioli.v1.AccountFlags
- */
-export const AccountFlags = new AccountFlags$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class ConfigureAccountsArgs$Type extends MessageType<ConfigureAccountsArgs> {
     constructor() {
         super("pacioli.v1.ConfigureAccountsArgs", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "ledgerId", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
             { no: 3, name: "code", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
-            { no: 4, name: "flags", kind: "message", T: () => AccountFlags }
+            { no: 4, name: "debitsMustNotExceedCredits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "creditsMustNotExceedDebits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<ConfigureAccountsArgs>): ConfigureAccountsArgs {
-        const message = { id: "", ledgerId: 0, code: 0 };
+        const message = { id: "", ledgerId: 0, code: 0, debitsMustNotExceedCredits: false, creditsMustNotExceedDebits: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ConfigureAccountsArgs>(this, message, value);
@@ -810,8 +727,11 @@ class ConfigureAccountsArgs$Type extends MessageType<ConfigureAccountsArgs> {
                 case /* uint32 code */ 3:
                     message.code = reader.uint32();
                     break;
-                case /* pacioli.v1.AccountFlags flags */ 4:
-                    message.flags = AccountFlags.internalBinaryRead(reader, reader.uint32(), options, message.flags);
+                case /* bool debitsMustNotExceedCredits */ 4:
+                    message.debitsMustNotExceedCredits = reader.bool();
+                    break;
+                case /* bool creditsMustNotExceedDebits */ 5:
+                    message.creditsMustNotExceedDebits = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -834,9 +754,12 @@ class ConfigureAccountsArgs$Type extends MessageType<ConfigureAccountsArgs> {
         /* uint32 code = 3; */
         if (message.code !== 0)
             writer.tag(3, WireType.Varint).uint32(message.code);
-        /* pacioli.v1.AccountFlags flags = 4; */
-        if (message.flags)
-            AccountFlags.internalBinaryWrite(message.flags, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* bool debitsMustNotExceedCredits = 4; */
+        if (message.debitsMustNotExceedCredits !== false)
+            writer.tag(4, WireType.Varint).bool(message.debitsMustNotExceedCredits);
+        /* bool creditsMustNotExceedDebits = 5; */
+        if (message.creditsMustNotExceedDebits !== false)
+            writer.tag(5, WireType.Varint).bool(message.creditsMustNotExceedDebits);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1044,14 +967,14 @@ class Transfer$Type extends MessageType<Transfer> {
             { no: 3, name: "creditAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 5, name: "code", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
-            { no: 6, name: "flags", kind: "message", T: () => TransferFlags },
             { no: 7, name: "timeout", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
             { no: 8, name: "ledger", kind: "scalar", T: 13 /*ScalarType.UINT32*/ },
-            { no: 9, name: "pendingId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 9, name: "pendingId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "pending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Transfer>): Transfer {
-        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0, pendingId: "" };
+        const message = { id: "", debitAccountId: "", creditAccountId: "", amount: "0", code: 0, timeout: "0", ledger: 0, pendingId: "", pending: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transfer>(this, message, value);
@@ -1077,9 +1000,6 @@ class Transfer$Type extends MessageType<Transfer> {
                 case /* uint32 code */ 5:
                     message.code = reader.uint32();
                     break;
-                case /* pacioli.v1.TransferFlags flags */ 6:
-                    message.flags = TransferFlags.internalBinaryRead(reader, reader.uint32(), options, message.flags);
-                    break;
                 case /* uint64 timeout */ 7:
                     message.timeout = reader.uint64().toString();
                     break;
@@ -1088,6 +1008,9 @@ class Transfer$Type extends MessageType<Transfer> {
                     break;
                 case /* string pendingId */ 9:
                     message.pendingId = reader.string();
+                    break;
+                case /* bool pending */ 10:
+                    message.pending = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1116,9 +1039,6 @@ class Transfer$Type extends MessageType<Transfer> {
         /* uint32 code = 5; */
         if (message.code !== 0)
             writer.tag(5, WireType.Varint).uint32(message.code);
-        /* pacioli.v1.TransferFlags flags = 6; */
-        if (message.flags)
-            TransferFlags.internalBinaryWrite(message.flags, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
         /* uint64 timeout = 7; */
         if (message.timeout !== "0")
             writer.tag(7, WireType.Varint).uint64(message.timeout);
@@ -1128,6 +1048,9 @@ class Transfer$Type extends MessageType<Transfer> {
         /* string pendingId = 9; */
         if (message.pendingId !== "")
             writer.tag(9, WireType.LengthDelimited).string(message.pendingId);
+        /* bool pending = 10; */
+        if (message.pending !== false)
+            writer.tag(10, WireType.Varint).bool(message.pending);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1138,74 +1061,6 @@ class Transfer$Type extends MessageType<Transfer> {
  * @generated MessageType for protobuf message pacioli.v1.Transfer
  */
 export const Transfer = new Transfer$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class TransferFlags$Type extends MessageType<TransferFlags> {
-    constructor() {
-        super("pacioli.v1.TransferFlags", [
-            { no: 1, name: "linked", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 2, name: "pending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 3, name: "postPending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 4, name: "voidPending", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
-        ]);
-    }
-    create(value?: PartialMessage<TransferFlags>): TransferFlags {
-        const message = { linked: false, pending: false, postPending: false, voidPending: false };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<TransferFlags>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TransferFlags): TransferFlags {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* bool linked */ 1:
-                    message.linked = reader.bool();
-                    break;
-                case /* bool pending */ 2:
-                    message.pending = reader.bool();
-                    break;
-                case /* bool postPending */ 3:
-                    message.postPending = reader.bool();
-                    break;
-                case /* bool voidPending */ 4:
-                    message.voidPending = reader.bool();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TransferFlags, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* bool linked = 1; */
-        if (message.linked !== false)
-            writer.tag(1, WireType.Varint).bool(message.linked);
-        /* bool pending = 2; */
-        if (message.pending !== false)
-            writer.tag(2, WireType.Varint).bool(message.pending);
-        /* bool postPending = 3; */
-        if (message.postPending !== false)
-            writer.tag(3, WireType.Varint).bool(message.postPending);
-        /* bool voidPending = 4; */
-        if (message.voidPending !== false)
-            writer.tag(4, WireType.Varint).bool(message.voidPending);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message pacioli.v1.TransferFlags
- */
-export const TransferFlags = new TransferFlags$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class CreateTransfersRequest$Type extends MessageType<CreateTransfersRequest> {
     constructor() {

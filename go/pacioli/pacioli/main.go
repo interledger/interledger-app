@@ -14,7 +14,6 @@ import (
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
-	tigerbeetle_go "github.com/coilhq/tigerbeetle-go"
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -76,16 +75,10 @@ func runInit(args *cli.InitArgs) {
 		log.Fatalln(err)
 	}
 
-	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls, 100)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer tbClient.Close()
-
-	b := NewBackends(db, tbClient)
+	b := NewBackends(db)
 
 	log.Info("tigerbeetle seeding starting")
-	err = seed.TigerBeetle(b, args.TbSeedFile)
+	err = seed.Seed(b, args.SeedFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -129,13 +122,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 
-	tbClient, err := tigerbeetle_go.NewClient(args.TbClusterID, args.TbUrls, 1000)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer tbClient.Close()
-
-	b := NewBackends(db, tbClient)
+	b := NewBackends(db)
 
 	// Start time-ing out transactions
 	go ledger.TimeoutTransfersForever(b)
@@ -159,7 +146,6 @@ func start(args *cli.StartArgs) {
 
 type Backends interface {
 	DB() *sqlx.DB
-	TigerBeetle() tigerbeetle_go.Client
 	Validator() *validator.Validate
 }
 
@@ -167,24 +153,18 @@ var _ Backends = backends{}
 
 type backends struct {
 	db  *sqlx.DB
-	tbc tigerbeetle_go.Client
 	val *validator.Validate
 }
 
-func NewBackends(db *sqlx.DB, tbc tigerbeetle_go.Client) Backends {
+func NewBackends(db *sqlx.DB) Backends {
 	return &backends{
 		db:  db,
-		tbc: tbc,
 		val: validator.New(),
 	}
 }
 
 func (b backends) DB() *sqlx.DB {
 	return b.db
-}
-
-func (b backends) TigerBeetle() tigerbeetle_go.Client {
-	return b.tbc
 }
 
 func (b backends) Validator() *validator.Validate {

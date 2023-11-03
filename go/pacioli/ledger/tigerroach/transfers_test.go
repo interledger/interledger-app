@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	tb_types "github.com/coilhq/tigerbeetle-go/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/pacioli"
@@ -18,7 +17,7 @@ func TestCreateTransfers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := db.MigrateTestDB(t, ctx)
-	b := test_utils.NewBackends(t, db, nil)
+	b := test_utils.NewBackends(t, db)
 
 	// Configure Ledger
 	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
@@ -67,10 +66,8 @@ func TestCreateTransfers(t *testing.T) {
 					CreditAccountID: "aad81360-b31a-4d70-ab28-acd8fb0e3d26",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 			},
 		},
@@ -105,10 +102,8 @@ func TestCreateTransfers(t *testing.T) {
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 				{
 					ID:              "7f000ca0-c6e8-4e9b-993c-a27aca075b97",
@@ -117,10 +112,8 @@ func TestCreateTransfers(t *testing.T) {
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 			},
 		},
@@ -176,19 +169,19 @@ func TestCreateTransfers(t *testing.T) {
 			res: []pacioli.TransferResult{
 				{
 					Index: 1,
-					Code:  tb_types.TransferExistsWithDifferentAmount,
+					Code:  pacioli.TransferExistsWithDifferentAmount,
 				},
 				{
 					Index: 2,
-					Code:  tb_types.TransferExistsWithDifferentDebitAccountId,
+					Code:  pacioli.TransferExistsWithDifferentDebitAccountId,
 				},
 				{
 					Index: 3,
-					Code:  tb_types.TransferExistsWithDifferentCreditAccountId,
+					Code:  pacioli.TransferExistsWithDifferentCreditAccountId,
 				},
 				{
 					Index: 4,
-					Code:  tb_types.TransferExistsWithDifferentCode,
+					Code:  pacioli.TransferExistsWithDifferentCode,
 				},
 			},
 		},
@@ -210,7 +203,7 @@ func TestCreateTransfers(t *testing.T) {
 					CreditAccountID: "b0288fe7-9198-43f0-af9e-1e54ec2ab16a",
 					Code:            1,
 					Ledger:          1,
-					Flags:           pacioli.TransferFlags{Pending: true},
+					Pending:         true,
 				},
 				{
 					ID:              "e78c6564-7562-47c3-9452-0f42a4be177c",
@@ -224,15 +217,15 @@ func TestCreateTransfers(t *testing.T) {
 			res: []pacioli.TransferResult{
 				{
 					Index: 0,
-					Code:  tb_types.TransferAccountsMustBeDifferent,
+					Code:  pacioli.TransferAccountsMustBeDifferent,
 				},
 				{
 					Index: 1,
-					Code:  tb_types.TransferPendingTransferMustTimeout,
+					Code:  pacioli.TransferPendingTransferMustTimeout,
 				},
 				{
 					Index: 2,
-					Code:  tb_types.TransferTransferMustHaveTheSameLedgerAsAccounts,
+					Code:  pacioli.TransferTransferMustHaveTheSameLedgerAsAccounts,
 				},
 			},
 		},
@@ -292,7 +285,7 @@ func TestCreateTransfers(t *testing.T) {
 
 				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
 				assert.NoError(t, err)
-				if args.Flags.Pending {
+				if args.Pending {
 					assert.Equal(t, args.Amount, da.DebitsPending)
 				} else {
 					assert.Equal(t, args.Amount, da.DebitsPosted)
@@ -300,7 +293,7 @@ func TestCreateTransfers(t *testing.T) {
 
 				ca, err := tigerroach.GetAccount(ctx, b, args.CreditAccountID)
 				assert.NoError(t, err)
-				if args.Flags.Pending {
+				if args.Pending {
 					assert.Equal(t, args.Amount, ca.CreditsPending)
 				} else {
 					assert.Equal(t, args.Amount, ca.CreditsPosted)
@@ -314,7 +307,7 @@ func TestPostTransfers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := db.MigrateTestDB(t, ctx)
-	b := test_utils.NewBackends(t, db, nil)
+	b := test_utils.NewBackends(t, db)
 
 	// Configure Ledger
 	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
@@ -343,10 +336,8 @@ func TestPostTransfers(t *testing.T) {
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 			},
 		},
@@ -360,10 +351,8 @@ func TestPostTransfers(t *testing.T) {
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 				{
 					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
@@ -372,16 +361,14 @@ func TestPostTransfers(t *testing.T) {
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 			},
 			res: []pacioli.TransferResult{
 				{
 					Index: 1,
-					Code:  tb_types.TransferPendingTransferAlreadyPosted,
+					Code:  pacioli.TransferPendingTransferAlreadyPosted,
 				},
 			},
 		},
@@ -446,7 +433,7 @@ func TestPostTransfers(t *testing.T) {
 				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
 				assert.NoError(t, err)
 				assert.Equal(t, tr.ID, args.ID)
-				assert.False(t, tr.Flags.Pending)
+				assert.NotEqual(t, pacioli.TransferStatePending, tr.State)
 
 				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
 				assert.NoError(t, err)
@@ -466,7 +453,7 @@ func TestVoidTransfers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := db.MigrateTestDB(t, ctx)
-	b := test_utils.NewBackends(t, db, nil)
+	b := test_utils.NewBackends(t, db)
 
 	// Configure Ledger
 	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
@@ -495,10 +482,8 @@ func TestVoidTransfers(t *testing.T) {
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 			},
 		},
@@ -512,10 +497,8 @@ func TestVoidTransfers(t *testing.T) {
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 				{
 					ID:              "7ccaf0be-d114-4e66-b2b9-21389f5ca996",
@@ -524,16 +507,14 @@ func TestVoidTransfers(t *testing.T) {
 					CreditAccountID: "025f782d-6389-4307-a08d-43fee5b1ec34",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 			},
 			res: []pacioli.TransferResult{
 				{
 					Index: 1,
-					Code:  tb_types.TransferPendingTransferAlreadyVoided,
+					Code:  pacioli.TransferPendingTransferAlreadyVoided,
 				},
 			},
 		},
@@ -597,7 +578,7 @@ func TestVoidTransfers(t *testing.T) {
 				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
 				assert.NoError(t, err)
 				assert.Equal(t, tr.ID, args.ID)
-				assert.False(t, tr.Flags.Pending)
+				assert.NotEqual(t, pacioli.TransferStatePending, tr.State)
 
 				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
 				assert.NoError(t, err)
@@ -615,7 +596,7 @@ func TestTimeoutTransfers(t *testing.T) {
 	ctx := context.Background()
 
 	_, db := db.MigrateTestDB(t, ctx)
-	b := test_utils.NewBackends(t, db, nil)
+	b := test_utils.NewBackends(t, db)
 
 	// Configure Ledger
 	lr, err := tigerroach.ConfigureLedgers(ctx, b, []pacioli.ConfigureLedgerArgs{
@@ -643,10 +624,8 @@ func TestTimeoutTransfers(t *testing.T) {
 					CreditAccountID: "35993786-91e0-49bd-8699-dd0c4870dd30",
 					Code:            1,
 					Ledger:          1,
-					Flags: pacioli.TransferFlags{
-						Pending: true,
-					},
-					Timeout: uint64(time.Minute * 20),
+					Pending:         true,
+					Timeout:         uint64(time.Minute * 20),
 				},
 			},
 		},
@@ -685,7 +664,7 @@ func TestTimeoutTransfers(t *testing.T) {
 				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
 				assert.NoError(t, err)
 				assert.Equal(t, tr.ID, args.ID)
-				assert.True(t, tr.Flags.Pending)
+				assert.Equal(t, pacioli.TransferStatePending, tr.State)
 
 				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
 				assert.NoError(t, err)
@@ -712,7 +691,7 @@ func TestTimeoutTransfers(t *testing.T) {
 				tr, err := tigerroach.GetTransfer(ctx, b, args.ID)
 				assert.NoError(t, err)
 				assert.Equal(t, tr.ID, args.ID)
-				assert.False(t, tr.Flags.Pending)
+				assert.NotEqual(t, pacioli.TransferStatePending, tr.State)
 
 				da, err := tigerroach.GetAccount(ctx, b, args.DebitAccountID)
 				assert.NoError(t, err)

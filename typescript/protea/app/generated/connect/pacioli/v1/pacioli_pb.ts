@@ -280,9 +280,14 @@ export class Account extends Message<Account> {
   creditsAccepted = protoInt64.zero;
 
   /**
-   * @generated from field: pacioli.v1.AccountFlags flags = 8;
+   * @generated from field: bool debitsMustNotExceedCredits = 8;
    */
-  flags?: AccountFlags;
+  debitsMustNotExceedCredits = false;
+
+  /**
+   * @generated from field: bool creditsMustNotExceedDebits = 9;
+   */
+  creditsMustNotExceedDebits = false;
 
   constructor(data?: PartialMessage<Account>) {
     super();
@@ -299,7 +304,8 @@ export class Account extends Message<Account> {
     { no: 5, name: "debitsAccepted", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 6, name: "creditsReserved", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 7, name: "creditsAccepted", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 8, name: "flags", kind: "message", T: AccountFlags },
+    { no: 8, name: "debitsMustNotExceedCredits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 9, name: "creditsMustNotExceedDebits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Account {
@@ -316,55 +322,6 @@ export class Account extends Message<Account> {
 
   static equals(a: Account | PlainMessage<Account> | undefined, b: Account | PlainMessage<Account> | undefined): boolean {
     return proto3.util.equals(Account, a, b);
-  }
-}
-
-/**
- * @generated from message pacioli.v1.AccountFlags
- */
-export class AccountFlags extends Message<AccountFlags> {
-  /**
-   * @generated from field: bool linked = 1;
-   */
-  linked = false;
-
-  /**
-   * @generated from field: bool debitsMustNotExceedCredits = 2;
-   */
-  debitsMustNotExceedCredits = false;
-
-  /**
-   * @generated from field: bool creditsMustNotExceedDebits = 3;
-   */
-  creditsMustNotExceedDebits = false;
-
-  constructor(data?: PartialMessage<AccountFlags>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "pacioli.v1.AccountFlags";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "linked", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "debitsMustNotExceedCredits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 3, name: "creditsMustNotExceedDebits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountFlags {
-    return new AccountFlags().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AccountFlags {
-    return new AccountFlags().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AccountFlags {
-    return new AccountFlags().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AccountFlags | PlainMessage<AccountFlags> | undefined, b: AccountFlags | PlainMessage<AccountFlags> | undefined): boolean {
-    return proto3.util.equals(AccountFlags, a, b);
   }
 }
 
@@ -388,9 +345,14 @@ export class ConfigureAccountsArgs extends Message<ConfigureAccountsArgs> {
   code = 0;
 
   /**
-   * @generated from field: pacioli.v1.AccountFlags flags = 4;
+   * @generated from field: bool debitsMustNotExceedCredits = 4;
    */
-  flags?: AccountFlags;
+  debitsMustNotExceedCredits = false;
+
+  /**
+   * @generated from field: bool creditsMustNotExceedDebits = 5;
+   */
+  creditsMustNotExceedDebits = false;
 
   constructor(data?: PartialMessage<ConfigureAccountsArgs>) {
     super();
@@ -403,7 +365,8 @@ export class ConfigureAccountsArgs extends Message<ConfigureAccountsArgs> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "ledgerId", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 3, name: "code", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
-    { no: 4, name: "flags", kind: "message", T: AccountFlags },
+    { no: 4, name: "debitsMustNotExceedCredits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "creditsMustNotExceedDebits", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConfigureAccountsArgs {
@@ -601,11 +564,6 @@ export class Transfer extends Message<Transfer> {
   code = 0;
 
   /**
-   * @generated from field: pacioli.v1.TransferFlags flags = 6;
-   */
-  flags?: TransferFlags;
-
-  /**
    * @generated from field: uint64 timeout = 7;
    */
   timeout = protoInt64.zero;
@@ -620,6 +578,11 @@ export class Transfer extends Message<Transfer> {
    */
   pendingId = "";
 
+  /**
+   * @generated from field: bool pending = 10;
+   */
+  pending = false;
+
   constructor(data?: PartialMessage<Transfer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -633,10 +596,10 @@ export class Transfer extends Message<Transfer> {
     { no: 3, name: "creditAccountId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 5, name: "code", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
-    { no: 6, name: "flags", kind: "message", T: TransferFlags },
     { no: 7, name: "timeout", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 8, name: "ledger", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 9, name: "pendingId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "pending", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transfer {
@@ -653,61 +616,6 @@ export class Transfer extends Message<Transfer> {
 
   static equals(a: Transfer | PlainMessage<Transfer> | undefined, b: Transfer | PlainMessage<Transfer> | undefined): boolean {
     return proto3.util.equals(Transfer, a, b);
-  }
-}
-
-/**
- * @generated from message pacioli.v1.TransferFlags
- */
-export class TransferFlags extends Message<TransferFlags> {
-  /**
-   * @generated from field: bool linked = 1;
-   */
-  linked = false;
-
-  /**
-   * @generated from field: bool pending = 2;
-   */
-  pending = false;
-
-  /**
-   * @generated from field: bool postPending = 3;
-   */
-  postPending = false;
-
-  /**
-   * @generated from field: bool voidPending = 4;
-   */
-  voidPending = false;
-
-  constructor(data?: PartialMessage<TransferFlags>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "pacioli.v1.TransferFlags";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "linked", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "pending", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 3, name: "postPending", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 4, name: "voidPending", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransferFlags {
-    return new TransferFlags().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransferFlags {
-    return new TransferFlags().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransferFlags {
-    return new TransferFlags().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: TransferFlags | PlainMessage<TransferFlags> | undefined, b: TransferFlags | PlainMessage<TransferFlags> | undefined): boolean {
-    return proto3.util.equals(TransferFlags, a, b);
   }
 }
 
