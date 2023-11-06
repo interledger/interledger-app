@@ -32,6 +32,23 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.WithdrawXagoBalanceRequest
+ */
+export interface WithdrawXagoBalanceRequest {
+    /**
+     * @generated from protobuf field: string fromLinkedAccount = 1;
+     */
+    fromLinkedAccount: string;
+    /**
+     * @generated from protobuf field: string toLinkedAccount = 2;
+     */
+    toLinkedAccount: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount amount = 3;
+     */
+    amount?: Amount;
+}
+/**
  * @generated from protobuf message backend.v1.AddXagoBalanceAccountRequest
  */
 export interface AddXagoBalanceAccountRequest {
@@ -2178,6 +2195,67 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class WithdrawXagoBalanceRequest$Type extends MessageType<WithdrawXagoBalanceRequest> {
+    constructor() {
+        super("backend.v1.WithdrawXagoBalanceRequest", [
+            { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "amount", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<WithdrawXagoBalanceRequest>): WithdrawXagoBalanceRequest {
+        const message = { fromLinkedAccount: "", toLinkedAccount: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<WithdrawXagoBalanceRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: WithdrawXagoBalanceRequest): WithdrawXagoBalanceRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fromLinkedAccount */ 1:
+                    message.fromLinkedAccount = reader.string();
+                    break;
+                case /* string toLinkedAccount */ 2:
+                    message.toLinkedAccount = reader.string();
+                    break;
+                case /* backend.v1.Amount amount */ 3:
+                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: WithdrawXagoBalanceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fromLinkedAccount = 1; */
+        if (message.fromLinkedAccount !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fromLinkedAccount);
+        /* string toLinkedAccount = 2; */
+        if (message.toLinkedAccount !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.toLinkedAccount);
+        /* backend.v1.Amount amount = 3; */
+        if (message.amount)
+            Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.WithdrawXagoBalanceRequest
+ */
+export const WithdrawXagoBalanceRequest = new WithdrawXagoBalanceRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AddXagoBalanceAccountRequest$Type extends MessageType<AddXagoBalanceAccountRequest> {
     constructor() {
@@ -9630,5 +9708,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreateSlackAuthURL", options: {}, I: Empty, O: CreateSlackAuthURLResponse },
     { name: "SlackCallback", options: {}, I: SlackCallbackRequest, O: SlackCallbackResponse },
     { name: "AddXagoBankAccount", options: {}, I: AddXagoBankAccountRequest, O: LinkedAccount },
-    { name: "AddXagoBalanceAccount", options: {}, I: AddXagoBalanceAccountRequest, O: LinkedAccount }
+    { name: "AddXagoBalanceAccount", options: {}, I: AddXagoBalanceAccountRequest, O: LinkedAccount },
+    { name: "WithdrawXagoBalance", options: {}, I: WithdrawXagoBalanceRequest, O: Payment }
 ]);

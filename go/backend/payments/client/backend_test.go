@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/rafiki"
 
 	images_client "gitlab.com/fynbos/backend/images/client"
@@ -148,6 +150,10 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.CreateReferralsWorkflow)
 
 	b.env = env
+}
+
+func (b *TestBackends) Xago() xago.Client {
+	return nil
 }
 
 func (b *TestBackends) Twilio() twilio.Service {

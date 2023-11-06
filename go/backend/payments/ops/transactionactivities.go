@@ -64,6 +64,8 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 
 	transferType := transactions.TransferTypeDebitCard
 	switch p.Type {
+	case payments.TypeWithdrawal:
+		transferType = transactions.TransferTypeDebitBalance
 	case payments.TypePeer2Peer:
 		transferType = transactions.TransferTypeDebitCard
 	case payments.TypeWebMonetization:
@@ -106,6 +108,10 @@ func (a *Activity) AddPayInRollbackTransfer(ctx context.Context, paymentID, fkID
 		return err
 	}
 
+	if p.Type == payments.TypeWithdrawal {
+		return nil
+	}
+
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: p.SenderAccount,
@@ -123,8 +129,8 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, fkID 
 		return "", err
 	}
 
-	// Already created, nothing to do
-	if p.ReceiveTransactionID != "" {
+	// Already created and we do not create payout transactions for withdrawals, nothing to do
+	if p.ReceiveTransactionID != "" || p.Type == payments.TypeWithdrawal {
 		return "", nil
 	}
 
@@ -174,6 +180,10 @@ func (a *Activity) SetTransactionRefundState(ctx context.Context, paymentID stri
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
+	}
+
+	if p.Type == payments.TypeWithdrawal {
+		return nil
 	}
 
 	return a.b.Transactions().SetTransactionRefundState(ctx, p.SendTransactionID, state)

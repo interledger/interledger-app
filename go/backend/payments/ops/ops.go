@@ -293,7 +293,7 @@ func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (
 func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
 
 	// Web monetization payouts don't need an OTP
-	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External {
+	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal {
 		return false, nil
 	}
 
@@ -311,7 +311,7 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 }
 
 func requires3DS(typ payments.Type, sender payments.Identity) bool {
-	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer && typ != payments.TypeRafiki2External
+	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer && typ != payments.TypeRafiki2External && typ != payments.TypeWithdrawal
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -615,7 +615,7 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
 	}
 
-	if payment.ReceiverID == "" || payment.ReceiverIDType == payments.IdentityTypeUnknown {
+	if (payment.ReceiverID == "" || payment.ReceiverIDType == payments.IdentityTypeUnknown) && payment.Type != payments.TypeWithdrawal {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	}
 

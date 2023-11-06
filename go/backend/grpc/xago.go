@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 
@@ -102,4 +104,47 @@ func (s *rpcService) AddXagoBalanceAccount(ctx context.Context, req *pb.AddXagoB
 	}
 
 	return transformLinkedAccount(*la), nil
+}
+
+func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXagoBalanceRequest) (*pb.Payment, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	fromLA, err := s.b.LinkedAccounts().Get(ctx, req.FromLinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if fromLA.WalletID != w.ID || fromLA.Provider != xago.ProviderName || fromLA.Type != xago.AccTypeBalance {
+		return nil, NotFoundError("from linked account not found for xago")
+	}
+
+	toLA, err := s.b.LinkedAccounts().Get(ctx, req.FromLinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if toLA.WalletID != w.ID || fromLA.Provider != xago.ProviderName || fromLA.Type != xago.AccTypeBank {
+		return nil, NotFoundError("to linked account not found for xago")
+	}
+
+	p, err := s.b.Payments().Create(ctx, payments.CreateArgs{
+		Sender:          payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: w.ID},
+		Receiver:        payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: w.ID},
+		SenderAmount:    currency.FromPB(req.Amount),
+		SenderAccount:   fromLA.ID,
+		ReceiverAmount:  currency.FromPB(req.Amount),
+		ReceiverAccount: toLA.ID,
+		Type:            payments.TypeWithdrawal,
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformPayment(ctx, s.b, p)
 }
