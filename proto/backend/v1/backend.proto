@@ -145,6 +145,13 @@ service BackendService {
   // Xago
   rpc AddXagoBankAccount(AddXagoBankAccountRequest) returns (LinkedAccount);
   rpc AddXagoBalanceAccount(AddXagoBalanceAccountRequest) returns (LinkedAccount);
+  rpc WithdrawXagoBalance(WithdrawXagoBalanceRequest) returns (Payment);
+}
+
+message WithdrawXagoBalanceRequest {
+  string fromLinkedAccount = 1;
+  string toLinkedAccount = 2;
+  Amount amount = 3;
 }
 
 message AddXagoBalanceAccountRequest {

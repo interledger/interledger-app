@@ -35,6 +35,11 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
+	// No emails configured for withdrawal
+	if payment.Type == payments.TypeWithdrawal {
+		return nil
+	}
+
 	if payment.Type != payments.TypeWebMonetization {
 		a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
 	}
@@ -73,6 +78,11 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
+	// No emails configured for withdrawal
+	if payment.Type == payments.TypeWithdrawal {
+		return nil
+	}
+
 	a.b.Email().SendPaymentFailedEmail(ctx, payment.Sender.WalletID)
 
 	return nil
@@ -82,6 +92,19 @@ func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (b
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return false, err
+	}
+
+	if p.Type == payments.TypeWithdrawal {
+		if p.SendTransactionID == "" {
+			return false, nil
+		}
+
+		senderTx, err := a.b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+		if err != nil {
+			return false, err
+		}
+
+		return senderTx.State == transactions.StateCompleted, nil
 	}
 
 	// If both transactions aren't present something failed.
@@ -184,7 +207,7 @@ func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) 
 		return false, err
 	}
 
-	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External, nil
+	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External || p.Type == payments.TypeWithdrawal, nil
 }
 
 func (a *Activity) ConfirmPaymentsEnginePayment(ctx context.Context, id string) ([]payments.RequiredActionType, error) {
@@ -212,4 +235,22 @@ func (a *Activity) ShouldPushToAccount(ctx context.Context, paymentID string) (b
 	}
 
 	return p.Type != payments.TypeRafiki2External, nil
+}
+
+func (a *Activity) LookupPayInAccount(ctx context.Context, paymentID string) (*linkedaccounts.LinkedAccount, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+}
+
+func (a *Activity) LookupPayOutAccount(ctx context.Context, paymentID string) (*linkedaccounts.LinkedAccount, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
 }

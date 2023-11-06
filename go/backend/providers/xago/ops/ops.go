@@ -26,6 +26,19 @@ func LookupSubAccount(ctx context.Context, b Backends, walletID string) (*xago.S
 	return &entry, nil
 }
 
+func LookupByAccountID(ctx context.Context, b Backends, accountID string) (*xago.SubAccount, error) {
+	var entry xago.SubAccount
+	err := b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, account_id, deposit_address, deposit_tag FROM xago_sub_accounts WHERE account_id=$1", accountID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, xago.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	return &entry, nil
+}
+
 func CreateBeneficiary(ctx context.Context, b Backends, bankAcc xago.CreateBankAccountArgs) (xago.Await, error) {
 	wo := client.StartWorkflowOptions{
 		ID:                       "xago_create_beneficiary_" + bankAcc.WalletID + "_" + bankAcc.AccountNumber,

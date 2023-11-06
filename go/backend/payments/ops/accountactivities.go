@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/env"
@@ -194,4 +196,24 @@ func (a *Activity) RollbackPullFromAccount(ctx context.Context, paymentID string
 	}
 	// TODO: Get if the transaction was actually settled from the reports.
 	return a.b.Tabapay().ReverseTransaction(ctx, externalTX, false, p.SenderAmount.Currency)
+}
+
+func (a *Activity) WithdrawFromXagoBalance(ctx context.Context, paymentID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	tx, err := a.b.Xago().CreateTransaction(ctx, xago.CreateTransactionArgs{
+		WalletID:        p.Sender.WalletID,
+		LinkedAccountID: p.ReceiverAccount,
+		TransactionID:   p.SendTransactionID,
+		Amount:          p.ReceiverAmount,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tx.ID, nil
+
 }
