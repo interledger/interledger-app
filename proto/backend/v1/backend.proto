@@ -155,6 +155,12 @@ service BackendService {
   rpc GetPaymentLink(GetPaymentLinkRequest) returns (PaymentLink);
   rpc ConsumePaymentLink(ConsumePaymentLinkRequest) returns (ConsumePaymentLinkResponse);
   rpc Introspect(IntrospectRequest) returns (IntrospectResponse);
+  rpc CreatePaymentLinkCard(CreatePaymentLinkCardReqeust) returns (LinkedAccount);
+}
+
+message CreatePaymentLinkCardReqeust {
+  string token = 1;
+  string basisTheoryTokenId = 2;
 }
 
 message GetPaymentLinkRequest {

@@ -50,6 +50,21 @@ func (mr *MockClientMockRecorder) AdminListAwaitingSignal(ctx interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AdminListAwaitingSignal", reflect.TypeOf((*MockClient)(nil).AdminListAwaitingSignal), ctx)
 }
 
+// CompletePaymentLink mocks base method.
+func (m *MockClient) CompletePaymentLink(ctx context.Context, id, receiverLinkedAccountID string) (*payments.PaymentLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CompletePaymentLink", ctx, id, receiverLinkedAccountID)
+	ret0, _ := ret[0].(*payments.PaymentLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CompletePaymentLink indicates an expected call of CompletePaymentLink.
+func (mr *MockClientMockRecorder) CompletePaymentLink(ctx, id, receiverLinkedAccountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompletePaymentLink", reflect.TypeOf((*MockClient)(nil).CompletePaymentLink), ctx, id, receiverLinkedAccountID)
+}
+
 // Confirm mocks base method.
 func (m *MockClient) Confirm(ctx context.Context, id string) (*payments.Payment, []payments.RequiredActionType, error) {
 	m.ctrl.T.Helper()

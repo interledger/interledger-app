@@ -180,15 +180,16 @@ const (
 
 type (
 	PaymentLink struct {
-		ID               string
-		PaymentID        string
-		CreatedAt        time.Time
-		UpdatedAt        time.Time
-		ExpiresAt        time.Time
-		CompletedAt      time.Time
-		ReceiverWalletID string
-		Token            string
-		Email            string
+		ID                      string
+		PaymentID               string
+		CreatedAt               time.Time
+		UpdatedAt               time.Time
+		ExpiresAt               time.Time
+		CompletedAt             time.Time
+		ReceiverWalletID        string
+		ReceiverLinkedAccountID string
+		Token                   string
+		Email                   string
 	}
 
 	ConsumePaymentLinkArgs struct {

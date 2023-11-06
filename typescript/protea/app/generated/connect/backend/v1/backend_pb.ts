@@ -81,6 +81,49 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.CreatePaymentLinkCardReqeust
+ */
+export class CreatePaymentLinkCardReqeust extends Message<CreatePaymentLinkCardReqeust> {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token = "";
+
+  /**
+   * @generated from field: string basisTheoryTokenId = 2;
+   */
+  basisTheoryTokenId = "";
+
+  constructor(data?: PartialMessage<CreatePaymentLinkCardReqeust>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CreatePaymentLinkCardReqeust";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "basisTheoryTokenId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreatePaymentLinkCardReqeust {
+    return new CreatePaymentLinkCardReqeust().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreatePaymentLinkCardReqeust {
+    return new CreatePaymentLinkCardReqeust().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreatePaymentLinkCardReqeust {
+    return new CreatePaymentLinkCardReqeust().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreatePaymentLinkCardReqeust | PlainMessage<CreatePaymentLinkCardReqeust> | undefined, b: CreatePaymentLinkCardReqeust | PlainMessage<CreatePaymentLinkCardReqeust> | undefined): boolean {
+    return proto3.util.equals(CreatePaymentLinkCardReqeust, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetPaymentLinkRequest
  */
 export class GetPaymentLinkRequest extends Message<GetPaymentLinkRequest> {

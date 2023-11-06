@@ -3087,6 +3087,10 @@ table "payment_links" {
     null = true
     type = uuid
   }
+  column "receiver_linked_account_id" {
+    null = true
+    type = uuid
+  }
   column "token" {
     null = true
     type = text

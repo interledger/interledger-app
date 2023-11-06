@@ -32,6 +32,19 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.CreatePaymentLinkCardReqeust
+ */
+export interface CreatePaymentLinkCardReqeust {
+    /**
+     * @generated from protobuf field: string token = 1;
+     */
+    token: string;
+    /**
+     * @generated from protobuf field: string basisTheoryTokenId = 2;
+     */
+    basisTheoryTokenId: string;
+}
+/**
  * @generated from protobuf message backend.v1.GetPaymentLinkRequest
  */
 export interface GetPaymentLinkRequest {
@@ -2419,6 +2432,60 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class CreatePaymentLinkCardReqeust$Type extends MessageType<CreatePaymentLinkCardReqeust> {
+    constructor() {
+        super("backend.v1.CreatePaymentLinkCardReqeust", [
+            { no: 1, name: "token", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "basisTheoryTokenId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CreatePaymentLinkCardReqeust>): CreatePaymentLinkCardReqeust {
+        const message = { token: "", basisTheoryTokenId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CreatePaymentLinkCardReqeust>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CreatePaymentLinkCardReqeust): CreatePaymentLinkCardReqeust {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string token */ 1:
+                    message.token = reader.string();
+                    break;
+                case /* string basisTheoryTokenId */ 2:
+                    message.basisTheoryTokenId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CreatePaymentLinkCardReqeust, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string token = 1; */
+        if (message.token !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.token);
+        /* string basisTheoryTokenId = 2; */
+        if (message.basisTheoryTokenId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.basisTheoryTokenId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CreatePaymentLinkCardReqeust
+ */
+export const CreatePaymentLinkCardReqeust = new CreatePaymentLinkCardReqeust$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetPaymentLinkRequest$Type extends MessageType<GetPaymentLinkRequest> {
     constructor() {
@@ -10832,5 +10899,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreatePaymentLink", options: {}, I: CreatePaymentLinkRequest, O: PaymentLink },
     { name: "GetPaymentLink", options: {}, I: GetPaymentLinkRequest, O: PaymentLink },
     { name: "ConsumePaymentLink", options: {}, I: ConsumePaymentLinkRequest, O: ConsumePaymentLinkResponse },
-    { name: "Introspect", options: {}, I: IntrospectRequest, O: IntrospectResponse }
+    { name: "Introspect", options: {}, I: IntrospectRequest, O: IntrospectResponse },
+    { name: "CreatePaymentLinkCard", options: {}, I: CreatePaymentLinkCardReqeust, O: LinkedAccount }
 ]);
