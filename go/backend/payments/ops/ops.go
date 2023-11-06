@@ -1129,30 +1129,32 @@ func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, er
 }
 
 type dbPaymentLink struct {
-	ID               string         `db:"id"`
-	PaymentID        string         `db:"payment_id"`
-	CreatedAt        time.Time      `db:"created_at"`
-	UpdatedAt        time.Time      `db:"updated_at"`
-	ExpiresAt        time.Time      `db:"expires_at"`
-	CompletedAt      sql.NullTime   `db:"completed_at"`
-	ReceiverWalletID sql.NullString `db:"receiver_wallet_id"`
-	Token            sql.NullString `db:"token"`
-	Email            sql.NullString `db:"email"`
+	ID                      string         `db:"id"`
+	PaymentID               string         `db:"payment_id"`
+	CreatedAt               time.Time      `db:"created_at"`
+	UpdatedAt               time.Time      `db:"updated_at"`
+	ExpiresAt               time.Time      `db:"expires_at"`
+	CompletedAt             sql.NullTime   `db:"completed_at"`
+	ReceiverWalletID        sql.NullString `db:"receiver_wallet_id"`
+	Token                   sql.NullString `db:"token"`
+	Email                   sql.NullString `db:"email"`
+	ReceiverLinkedAccountID sql.NullString `db:"receiver_linked_account_id"`
 }
 
-const dbPaymentLinkFields = "id, payment_id, expires_at, created_at, updated_at, receiver_wallet_id, token, email"
+const dbPaymentLinkFields = "id, payment_id, expires_at, created_at, updated_at, receiver_wallet_id, token, email, receiver_linked_account_id"
 
 func transformPaymentLink(l dbPaymentLink) *payments.PaymentLink {
 	return &payments.PaymentLink{
-		ID:               l.ID,
-		PaymentID:        l.PaymentID,
-		CreatedAt:        l.CreatedAt,
-		UpdatedAt:        l.UpdatedAt,
-		ExpiresAt:        l.ExpiresAt,
-		CompletedAt:      l.CompletedAt.Time,
-		ReceiverWalletID: l.ReceiverWalletID.String,
-		Token:            l.Token.String,
-		Email:            l.Email.String,
+		ID:                      l.ID,
+		PaymentID:               l.PaymentID,
+		CreatedAt:               l.CreatedAt,
+		UpdatedAt:               l.UpdatedAt,
+		ExpiresAt:               l.ExpiresAt,
+		CompletedAt:             l.CompletedAt.Time,
+		ReceiverWalletID:        l.ReceiverWalletID.String,
+		Token:                   l.Token.String,
+		Email:                   l.Email.String,
+		ReceiverLinkedAccountID: l.ReceiverLinkedAccountID.String,
 	}
 }
 
@@ -1268,6 +1270,24 @@ func GetPaymentLinkByToken(ctx context.Context, b Backends, token string) (*paym
 	}
 
 	return transformPaymentLink(link), nil
+}
+
+func CompletePaymentLink(ctx context.Context, b Backends, id, receiverLinkedAccountID string) (*payments.PaymentLink, error) {
+	link, err := GetPaymentLink(ctx, b, id)
+	if err != nil {
+		return nil, err
+	}
+	if !link.CompletedAt.IsZero() {
+		return link, nil
+	}
+
+	var dbLink dbPaymentLink
+	err = b.DB().GetContext(ctx, &dbLink, fmt.Sprintf("UPDATE payment_links set completed_at=now(), receiver_linked_account_id=$1 WHERE id=$2 RETURNING %s;", dbPaymentLinkFields), receiverLinkedAccountID, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPaymentLink(dbLink), nil
 }
 
 const (

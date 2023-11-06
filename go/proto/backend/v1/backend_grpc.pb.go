@@ -102,6 +102,7 @@ const (
 	BackendService_GetPaymentLink_FullMethodName                 = "/backend.v1.BackendService/GetPaymentLink"
 	BackendService_ConsumePaymentLink_FullMethodName             = "/backend.v1.BackendService/ConsumePaymentLink"
 	BackendService_Introspect_FullMethodName                     = "/backend.v1.BackendService/Introspect"
+	BackendService_CreatePaymentLinkCard_FullMethodName          = "/backend.v1.BackendService/CreatePaymentLinkCard"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -212,11 +213,12 @@ type BackendServiceClient interface {
 	// Slack
 	CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error)
-	// Receive payment link
+	// Payment link
 	CreatePaymentLink(ctx context.Context, in *CreatePaymentLinkRequest, opts ...grpc.CallOption) (*PaymentLink, error)
 	GetPaymentLink(ctx context.Context, in *GetPaymentLinkRequest, opts ...grpc.CallOption) (*PaymentLink, error)
 	ConsumePaymentLink(ctx context.Context, in *ConsumePaymentLinkRequest, opts ...grpc.CallOption) (*ConsumePaymentLinkResponse, error)
 	Introspect(ctx context.Context, in *IntrospectRequest, opts ...grpc.CallOption) (*IntrospectResponse, error)
+	CreatePaymentLinkCard(ctx context.Context, in *CreatePaymentLinkCardReqeust, opts ...grpc.CallOption) (*LinkedAccount, error)
 }
 
 type backendServiceClient struct {
@@ -974,6 +976,15 @@ func (c *backendServiceClient) Introspect(ctx context.Context, in *IntrospectReq
 	return out, nil
 }
 
+func (c *backendServiceClient) CreatePaymentLinkCard(ctx context.Context, in *CreatePaymentLinkCardReqeust, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, BackendService_CreatePaymentLinkCard_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1082,11 +1093,12 @@ type BackendServiceServer interface {
 	// Slack
 	CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error)
-	// Receive payment link
+	// Payment link
 	CreatePaymentLink(context.Context, *CreatePaymentLinkRequest) (*PaymentLink, error)
 	GetPaymentLink(context.Context, *GetPaymentLinkRequest) (*PaymentLink, error)
 	ConsumePaymentLink(context.Context, *ConsumePaymentLinkRequest) (*ConsumePaymentLinkResponse, error)
 	Introspect(context.Context, *IntrospectRequest) (*IntrospectResponse, error)
+	CreatePaymentLinkCard(context.Context, *CreatePaymentLinkCardReqeust) (*LinkedAccount, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1341,6 +1353,9 @@ func (UnimplementedBackendServiceServer) ConsumePaymentLink(context.Context, *Co
 }
 func (UnimplementedBackendServiceServer) Introspect(context.Context, *IntrospectRequest) (*IntrospectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Introspect not implemented")
+}
+func (UnimplementedBackendServiceServer) CreatePaymentLinkCard(context.Context, *CreatePaymentLinkCardReqeust) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePaymentLinkCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2848,6 +2863,24 @@ func _BackendService_Introspect_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_CreatePaymentLinkCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentLinkCardReqeust)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CreatePaymentLinkCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CreatePaymentLinkCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CreatePaymentLinkCard(ctx, req.(*CreatePaymentLinkCardReqeust))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3186,6 +3219,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Introspect",
 			Handler:    _BackendService_Introspect_Handler,
+		},
+		{
+			MethodName: "CreatePaymentLinkCard",
+			Handler:    _BackendService_CreatePaymentLinkCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
