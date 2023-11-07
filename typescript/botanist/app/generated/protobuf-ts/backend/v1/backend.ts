@@ -498,6 +498,30 @@ export interface Transaction {
      * @generated from protobuf field: bool hasPaymentProtection = 22;
      */
     hasPaymentProtection: boolean;
+    /**
+     * @generated from protobuf field: bool hasPaymentLink = 23;
+     */
+    hasPaymentLink: boolean;
+    /**
+     * @generated from protobuf field: string paymentLinkId = 24;
+     */
+    paymentLinkId: string;
+    /**
+     * @generated from protobuf field: string formattedPaymentLinkExpiryDate = 25;
+     */
+    formattedPaymentLinkExpiryDate: string;
+    /**
+     * @generated from protobuf field: bool paymentLinkExpired = 26;
+     */
+    paymentLinkExpired: boolean;
+    /**
+     * @generated from protobuf field: bool paymentLinkCompleted = 27;
+     */
+    paymentLinkCompleted: boolean;
+    /**
+     * @generated from protobuf field: string paymentLinkUrl = 28;
+     */
+    paymentLinkUrl: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListTransactionsResponse
@@ -3920,11 +3944,17 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 20, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 21, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 22, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 22, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 23, name: "hasPaymentLink", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 24, name: "paymentLinkId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 25, name: "formattedPaymentLinkExpiryDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 26, name: "paymentLinkExpired", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 27, name: "paymentLinkCompleted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 28, name: "paymentLinkUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, paymentProtectionAmount: "", hasPaymentProtection: false };
+        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, paymentProtectionAmount: "", hasPaymentProtection: false, hasPaymentLink: false, paymentLinkId: "", formattedPaymentLinkExpiryDate: "", paymentLinkExpired: false, paymentLinkCompleted: false, paymentLinkUrl: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -3997,6 +4027,24 @@ class Transaction$Type extends MessageType<Transaction> {
                     break;
                 case /* bool hasPaymentProtection */ 22:
                     message.hasPaymentProtection = reader.bool();
+                    break;
+                case /* bool hasPaymentLink */ 23:
+                    message.hasPaymentLink = reader.bool();
+                    break;
+                case /* string paymentLinkId */ 24:
+                    message.paymentLinkId = reader.string();
+                    break;
+                case /* string formattedPaymentLinkExpiryDate */ 25:
+                    message.formattedPaymentLinkExpiryDate = reader.string();
+                    break;
+                case /* bool paymentLinkExpired */ 26:
+                    message.paymentLinkExpired = reader.bool();
+                    break;
+                case /* bool paymentLinkCompleted */ 27:
+                    message.paymentLinkCompleted = reader.bool();
+                    break;
+                case /* string paymentLinkUrl */ 28:
+                    message.paymentLinkUrl = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4073,6 +4121,24 @@ class Transaction$Type extends MessageType<Transaction> {
         /* bool hasPaymentProtection = 22; */
         if (message.hasPaymentProtection !== false)
             writer.tag(22, WireType.Varint).bool(message.hasPaymentProtection);
+        /* bool hasPaymentLink = 23; */
+        if (message.hasPaymentLink !== false)
+            writer.tag(23, WireType.Varint).bool(message.hasPaymentLink);
+        /* string paymentLinkId = 24; */
+        if (message.paymentLinkId !== "")
+            writer.tag(24, WireType.LengthDelimited).string(message.paymentLinkId);
+        /* string formattedPaymentLinkExpiryDate = 25; */
+        if (message.formattedPaymentLinkExpiryDate !== "")
+            writer.tag(25, WireType.LengthDelimited).string(message.formattedPaymentLinkExpiryDate);
+        /* bool paymentLinkExpired = 26; */
+        if (message.paymentLinkExpired !== false)
+            writer.tag(26, WireType.Varint).bool(message.paymentLinkExpired);
+        /* bool paymentLinkCompleted = 27; */
+        if (message.paymentLinkCompleted !== false)
+            writer.tag(27, WireType.Varint).bool(message.paymentLinkCompleted);
+        /* string paymentLinkUrl = 28; */
+        if (message.paymentLinkUrl !== "")
+            writer.tag(28, WireType.LengthDelimited).string(message.paymentLinkUrl);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

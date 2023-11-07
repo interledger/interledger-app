@@ -322,6 +322,13 @@ message Transaction {
   int32 refundState = 20; // NA , PENDING , COMPLETE
   string paymentProtectionAmount = 21;
   bool hasPaymentProtection = 22;
+
+  bool hasPaymentLink = 23;
+  string paymentLinkId = 24;
+  string formattedPaymentLinkExpiryDate = 25;
+  bool paymentLinkExpired = 26;
+  bool paymentLinkCompleted = 27;
+  string paymentLinkUrl = 28;
 }
 
 message ListTransactionsResponse {

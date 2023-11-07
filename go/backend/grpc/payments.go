@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -492,11 +493,12 @@ func (s *rpcService) GetPaymentLink(ctx context.Context, req *pb.GetPaymentLinkR
 
 	return &pb.PaymentLink{
 		Id:                 link.ID,
-		Url:                fmt.Sprintf("%s/%s", env.GetUrl(), link.ID),
 		FormattedAmount:    p.SenderAmount.Format(),
 		Note:               p.Note,
 		SenderWalletUrl:    senderWallet.AddressString(),
 		ReceiverIdentifier: p.Receiver.Identifier,
+		Expired:            time.Now().After(link.ExpiresAt),
+		Completed:          !link.CompletedAt.IsZero(),
 	}, nil
 }
 
@@ -569,7 +571,7 @@ func (s *rpcService) Introspect(ctx context.Context, req *pb.IntrospectRequest) 
 		Id:                 link.ID,
 		ReceiverWalletId:   link.ReceiverWalletID,
 		ReceiverIdentifier: p.Receiver.Identifier,
-		Expired:            !link.ExpiresAt.IsZero(),
+		Expired:            time.Now().After(link.ExpiresAt),
 		Completed:          !link.CompletedAt.IsZero(),
 		SenderWalletUrl:    senderWallet.AddressString(),
 		Note:               p.Note,
