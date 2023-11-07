@@ -301,6 +301,7 @@ message Payment {
   Amount receiverAmount = 14;
   string totalSendAmount = 15; // total debit amount
   string receiverLinkedAccountCountryCode = 16;
+  string senderTransactionId = 17;
 }
 
 message CreatePaymentRequest {

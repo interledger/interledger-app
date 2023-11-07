@@ -1204,6 +1204,11 @@ export class Payment extends Message<Payment> {
    */
   receiverLinkedAccountCountryCode = "";
 
+  /**
+   * @generated from field: string senderTransactionId = 17;
+   */
+  senderTransactionId = "";
+
   constructor(data?: PartialMessage<Payment>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1228,6 +1233,7 @@ export class Payment extends Message<Payment> {
     { no: 14, name: "receiverAmount", kind: "message", T: Amount },
     { no: 15, name: "totalSendAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 16, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 17, name: "senderTransactionId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payment {

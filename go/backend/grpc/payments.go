@@ -431,6 +431,7 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		PaymentProtectionAmount: paymentProtection.Format(),
 		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
 		ReceiverAmount:          p.ReceiverAmount.ToPB(),
+		SenderTransactionId:     p.SendTransactionID,
 	}, nil
 }
 
