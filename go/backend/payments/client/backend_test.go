@@ -101,6 +101,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	tp := temporal_mock.NewMockClient(ctrl)
 	tp.EXPECT().ExecuteWorkflow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(arg1 interface{}, arg2 interface{}, arg3 interface{}, arg4 ...interface{}) (*workflow.Execution, error) {
 		require.Len(t, arg4, 1)
+
 		b.env.ExecuteWorkflow(ops.PaymentWorkflow, arg4[0].(string))
 
 		return nil, nil
@@ -145,6 +146,27 @@ func NewTestBackends(t *testing.T) *TestBackends {
 			IPAddress: "198.0.0.1",
 		}, nil
 	}).AnyTimes()
+	kc.EXPECT().UpdateIndividualDetails(gomock.Any(), gomock.Any()).Return(&kyc.IndividualDetails{
+		FirstName:    "Test",
+		LastName:     "McTestFace",
+		CountryCode:  "US",
+		PlaceOfBirth: "US",
+		Nationality:  "US",
+		Gender:       kyc.GenderMale,
+		DateOfBirth:  time.Date(1990, time.April, 1, 0, 0, 0, 0, time.UTC),
+		Address: &kyc.Address{
+			Line1:       "Lincon",
+			Line2:       "Nebraska",
+			Building:    "",
+			Apartment:   "",
+			City:        "Tallens",
+			State:       "US-MO",
+			ZipCode:     "9010",
+			CountryCode: "US",
+			PlaceID:     "",
+		},
+		IPAddress: "198.0.0.1",
+	}, nil).AnyTimes()
 
 	b.kyc = kc
 

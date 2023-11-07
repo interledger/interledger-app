@@ -711,6 +711,103 @@ func TestReferrals(t *testing.T) {
 	}
 }
 
+func TestPayAnyone(t *testing.T) {
+	env.SetEnv(t, "local")
+	ctx := context.Background()
+	b := NewTestBackends(t)
+	b.RestoreTemporalEnv()
+
+	pc := client.New(b)
+
+	sendWalletID, sendLinkedAccount := createTestWallet(t, b)
+
+	payment, err := pc.Create(ctx, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: sendWalletID,
+		},
+		SenderAccount: sendLinkedAccount,
+		Receiver: payments.Identity{
+			Type:       payments.IdentityTypeUnknown,
+			Identifier: "Justin",
+		},
+		SenderAmount: currency.FromUInt64(100, currency.ParseCurrency("USD")),
+		IPAddress:    "192.36.8.4",
+	})
+	require.NoError(t, err)
+
+	// generate 3DS session
+	threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
+		Amount:  currency.FromUInt64(100, currency.ParseCurrency("USD")),
+		OrderID: payment.ID,
+		CardID:  sendLinkedAccount,
+	})
+	require.NoError(t, err)
+
+	payment, err = pc.Update(ctx, payments.UpdateArgs{
+		ID:        payment.ID,
+		ThreeDSID: threeDSSession.ID,
+		OTP:       "123456",
+	})
+	require.NoError(t, err)
+
+	link, err := b.Payments().CreatePaymentLink(ctx, payment.ID)
+	require.NoError(t, err)
+	var receiverLinkAccountID string
+	b.env.RegisterDelayedCallback(func() {
+		link, err = b.Payments().ConsumePaymentLink(ctx, payments.ConsumePaymentLinkArgs{
+			ID:        link.ID,
+			FirstName: "Justin",
+			LastName:  "Time",
+			Email:     "justin@test.com",
+			IpAddress: "10.0.10.10",
+		})
+		require.NoError(t, err)
+
+		la, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+			WalletID:        link.ReceiverWalletID,
+			Name:            "default",
+			Provider:        tabapay.ProviderName,
+			ProviderID:      uuid.NewString(),
+			CanSend:         true,
+			CanReceive:      true,
+			Type:            tabapay.TypeCard,
+			SendCurrency:    currency.USD,
+			ReceiveCurrency: currency.USD,
+		})
+		require.NoError(t, err)
+		receiverLinkAccountID = la.ID
+
+		link, err = b.Payments().CompletePaymentLink(ctx, link.ID, la.ID)
+		require.NoError(t, err)
+	}, time.Hour)
+
+	payment, requireActions, err := pc.Confirm(ctx, payment.ID)
+	require.NoError(t, err)
+	require.Empty(t, requireActions)
+
+	for {
+		// Just so we don't spin on IsWorkflowCompleted
+		time.Sleep(100 * time.Millisecond)
+
+		if b.env.IsWorkflowCompleted() {
+			break
+		}
+	}
+	require.NoError(t, b.env.GetWorkflowError())
+
+	require.False(t, link.CompletedAt.IsZero())
+
+	payment, err = b.Payments().Lookup(ctx, payment.ID)
+	require.NoError(t, err)
+	assert.Equal(t, payments.StateCompleted, payment.State)
+	assert.NotEmpty(t, link.ReceiverWalletID)
+	assert.Equal(t, link.ReceiverWalletID, payment.Receiver.WalletID)
+
+	assert.NotEmpty(t, link.ReceiverLinkedAccountID)
+	assert.Equal(t, receiverLinkAccountID, payment.ReceiverAccount)
+}
+
 /*
 Seeds a user:
 - user client returns user for userID
