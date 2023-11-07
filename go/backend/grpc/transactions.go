@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 
@@ -193,6 +194,20 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
+	ret := transformTransaction(*tx)
 
-	return transformTransaction(*tx), nil
+	link, err := s.b.Payments().GetPaymentLinkByPaymentID(ctx, tx.ForeignID)
+	if err != nil && !errors.Is(err, payments.ErrNotFound) {
+		return nil, toGRPCError(err)
+	}
+	if link != nil {
+		ret.HasPaymentLink = true
+		ret.PaymentLinkCompleted = !link.CompletedAt.IsZero()
+		ret.PaymentLinkExpired = !link.ExpiresAt.IsZero()
+		ret.FormattedPaymentLinkExpiryDate = link.ExpiresAt.Format("02 Jan 2006")
+		ret.PaymentLinkId = link.ID
+		ret.PaymentLinkUrl = fmt.Sprintf("%s/collect/%s", env.GetUrl(), link.ID)
+	}
+
+	return ret, nil
 }

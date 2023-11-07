@@ -794,6 +794,36 @@ export class Transaction extends Message<Transaction> {
    */
   hasPaymentProtection = false;
 
+  /**
+   * @generated from field: bool hasPaymentLink = 23;
+   */
+  hasPaymentLink = false;
+
+  /**
+   * @generated from field: string paymentLinkId = 24;
+   */
+  paymentLinkId = "";
+
+  /**
+   * @generated from field: string formattedPaymentLinkExpiryDate = 25;
+   */
+  formattedPaymentLinkExpiryDate = "";
+
+  /**
+   * @generated from field: bool paymentLinkExpired = 26;
+   */
+  paymentLinkExpired = false;
+
+  /**
+   * @generated from field: bool paymentLinkCompleted = 27;
+   */
+  paymentLinkCompleted = false;
+
+  /**
+   * @generated from field: string paymentLinkUrl = 28;
+   */
+  paymentLinkUrl = "";
+
   constructor(data?: PartialMessage<Transaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -823,6 +853,12 @@ export class Transaction extends Message<Transaction> {
     { no: 20, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
     { no: 21, name: "paymentProtectionAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 22, name: "hasPaymentProtection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 23, name: "hasPaymentLink", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 24, name: "paymentLinkId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 25, name: "formattedPaymentLinkExpiryDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 26, name: "paymentLinkExpired", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 27, name: "paymentLinkCompleted", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 28, name: "paymentLinkUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
