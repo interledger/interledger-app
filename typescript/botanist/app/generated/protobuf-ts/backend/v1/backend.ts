@@ -679,6 +679,10 @@ export interface Payment {
      * @generated from protobuf field: string formattedFees = 17;
      */
     formattedFees: string;
+    /**
+     * @generated from protobuf field: string senderTransactionId = 18;
+     */
+    senderTransactionId: string;
 }
 /**
  * @generated from protobuf message backend.v1.CreatePaymentRequest
@@ -4441,11 +4445,12 @@ class Payment$Type extends MessageType<Payment> {
             { no: 14, name: "receiverAmount", kind: "message", T: () => Amount },
             { no: 15, name: "totalSendAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 16, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 17, name: "formattedFees", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 17, name: "formattedFees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 18, name: "senderTransactionId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "", fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "" };
+        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "", fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "", senderTransactionId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -4510,6 +4515,9 @@ class Payment$Type extends MessageType<Payment> {
                     break;
                 case /* string formattedFees */ 17:
                     message.formattedFees = reader.string();
+                    break;
+                case /* string senderTransactionId */ 18:
+                    message.senderTransactionId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4578,6 +4586,9 @@ class Payment$Type extends MessageType<Payment> {
         /* string formattedFees = 17; */
         if (message.formattedFees !== "")
             writer.tag(17, WireType.LengthDelimited).string(message.formattedFees);
+        /* string senderTransactionId = 18; */
+        if (message.senderTransactionId !== "")
+            writer.tag(18, WireType.LengthDelimited).string(message.senderTransactionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

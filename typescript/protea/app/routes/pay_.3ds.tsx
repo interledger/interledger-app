@@ -22,6 +22,7 @@ import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { PaymentIdentityType } from '~/lib/types/payment'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
@@ -94,8 +95,8 @@ function cleanupSongbirdScript(script: ScriptElt) {
   }
 
   if (typeof window !== 'undefined' && (window as any).Cardinal) {
-    ;(window as any).Cardinal.off('payments.setupComplete')
-    ;(window as any).Cardinal.off('payments.validated')
+    ; (window as any).Cardinal.off('payments.setupComplete')
+      ; (window as any).Cardinal.off('payments.validated')
     delete (window as any).Cardinal
   }
 }
@@ -436,6 +437,15 @@ export async function action({ request }: ActionFunctionArgs) {
         action: 'Contact support'
       }
     )
+  }
+
+  if (response.receiverIdentityType == PaymentIdentityType.Unknown) {
+    return redirectWithSnackbar(request, route('/payments/:paymentId/share', {
+      paymentId: response.senderTransactionId
+    }), {
+      message: 'Payment created successfully.',
+      icon: 'close'
+    })
   }
 
   return redirectWithSnackbar(request, route('/'), {
