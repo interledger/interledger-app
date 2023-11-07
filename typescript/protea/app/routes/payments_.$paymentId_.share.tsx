@@ -28,7 +28,8 @@ import {
   Router,
   SlackIcon,
   TextButton,
-  TwitterIcon
+  TwitterIcon,
+  UnknownIcon
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
@@ -158,7 +159,7 @@ function ShareDetails() {
         </CardContent>
         <Label className='mt-2 text-weak'>Payment to</Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
-          <Icon className='text-medium'>account_circle</Icon>
+          <UnknownIcon />
           <span>{transaction.destination}</span>
         </div>
       </Card>

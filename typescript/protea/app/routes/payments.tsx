@@ -31,6 +31,7 @@ import {
   Router,
   SlackIcon,
   TwitterIcon,
+  UnknownIcon,
   WalletGrid
 } from '~/components'
 import { Label } from '~/components/Label'
@@ -309,6 +310,11 @@ export default function Page() {
                       transaction.state != 'Failed' &&
                       transaction.destinationIdentityType == 'Slack' && (
                         <SlackIcon />
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'Unknown' && (
+                        <UnknownIcon />
                       )}
                     <div className='flex w-full flex-col space-y-1'>
                       <span className='truncate text-medium'>

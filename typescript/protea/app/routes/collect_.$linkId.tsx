@@ -92,9 +92,11 @@ export default function Page() {
       <>
         <Alert color={ChipColor.slate}>
           <Icon>notification_important</Icon>
-          <AlertBody>            
+          <AlertBody>
             <AlertTitle>Payment {expired ? 'Expired' : 'Completed'}</AlertTitle>
-            <AlertBody>Please contact our support team for any queries.</AlertBody>
+            <AlertBody>
+              Please contact our support team for any queries.
+            </AlertBody>
           </AlertBody>
         </Alert>
         <Card>
