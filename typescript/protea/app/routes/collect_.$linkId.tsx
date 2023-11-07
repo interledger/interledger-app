@@ -8,7 +8,8 @@ import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
 import type {
-  ApplicationProps} from '~/components';
+  ApplicationProps
+} from '~/components'
 import {
   Button,
   Card,
@@ -34,6 +35,7 @@ import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { commitSession, getSession } from '~/session.server'
@@ -80,14 +82,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function Page() {
-  const { note, receiverIdentifier, publicWalletInfo, formattedAmount } =
+  const { id, note, receiverIdentifier, publicWalletInfo, formattedAmount } =
     useLoaderData<typeof loader>()
   const [showDialog, setShowDialog] = useState<boolean>(false)
   const actionData = useActionData<typeof action>()
 
   return (
     <>
-      <Form id='details' action={`/collect`} method='post' className='hidden' />
+      <Form id='details' action={route('/collect/:linkId', { linkId: id })} method='post' className='hidden' />
       <Card>
         <CardContent className='space-y-4 text-medium'>
           <p>Hello Jus,</p>
@@ -106,7 +108,7 @@ export default function Page() {
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <FynbosIcon />
-              <span>{receiverIdentifier}</span>
+              <span>{publicWalletInfo.publicName}</span>
             </div>
             <Icon>navigate_next</Icon>
           </div>
@@ -257,11 +259,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
     email: ''
   }
 
+  let ipAddress = await getClientIP(request)
   let tokenResponse = await grpc.consumePaymentLink(request, {
     id: params.linkId,
     email,
     firstName,
-    lastName
+    lastName,
+    ipAddress
   })
   if (isConnectError(tokenResponse)) {
     return tokenResponse.error({ errors }, {}, { action: 'Contact support' })

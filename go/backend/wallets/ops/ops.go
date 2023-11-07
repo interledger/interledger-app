@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/user"
 
@@ -101,21 +100,12 @@ func CreateAnonymous(ctx context.Context, b Backends, args wallets.CreateAnonymo
 		walletID = uuid.NewString()
 	}
 
-	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name, anonymous) VALUES ($1, $2, true)", walletID, name)
-		if err != nil {
-			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
-		}
-
-		_, err = tx.ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, url) VALUES ($1, $2)", walletID, fmt.Sprintf("%s/%s", env.GetUrl(), walletID))
-		if err != nil {
-			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
-		}
-
-		return nil
-	})
+	result, err := b.DB().ExecContext(ctx, "INSERT INTO wallets (id, name, anonymous) VALUES ($1, $2, true)", walletID, name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", wallets.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return nil, fmt.Errorf("%w Failed to insert anonymous wallet.", wallets.ErrInternal)
 	}
 
 	err = b.Keys().ProvisionPrivateKey(ctx, walletID)

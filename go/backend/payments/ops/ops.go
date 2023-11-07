@@ -1296,7 +1296,7 @@ type dbPaymentLink struct {
 	ReceiverLinkedAccountID sql.NullString `db:"receiver_linked_account_id"`
 }
 
-const dbPaymentLinkFields = "id, payment_id, expires_at, created_at, updated_at, receiver_wallet_id, token, email, receiver_linked_account_id"
+const dbPaymentLinkFields = "id, payment_id, expires_at, created_at, updated_at, receiver_wallet_id, token, email, receiver_linked_account_id, completed_at"
 
 func transformPaymentLink(l dbPaymentLink) *payments.PaymentLink {
 	return &payments.PaymentLink{
@@ -1346,7 +1346,7 @@ func ConsumePaymentLink(ctx context.Context, b Backends, args payments.ConsumePa
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	if link.ExpiresAt.After(time.Now()) {
+	if time.Now().After(link.ExpiresAt) {
 		return nil, payments.ErrPaymentLinkExpired
 	}
 	if link.CompletedAt.Valid {
@@ -1369,6 +1369,7 @@ func ConsumePaymentLink(ctx context.Context, b Backends, args payments.ConsumePa
 		WalletID:  w.ID,
 		FirstName: args.FirstName,
 		LastName:  args.LastName,
+		IPAddress: args.IpAddress,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
@@ -1384,12 +1385,17 @@ func ConsumePaymentLink(ctx context.Context, b Backends, args payments.ConsumePa
 			return fmt.Errorf("%w Failed to update receiver details on payment.", payments.ErrInternal)
 		}
 
-		result, err = tx.ExecContext(ctx, fmt.Sprintf("UPDATE payment_links SET token=$1, updated_at=now(), receiver_wallet_id=$2, email=$3 WHERE id=$4 RETURNING %s;", dbPaymentLinkFields), uuid.NewString(), w.ID, args.Email, link.ID)
+		result, err = tx.ExecContext(ctx, "UPDATE payments_workflow_refs SET wallet_id=$1, updated_at=now() WHERE payment_id=$2", w.ID, p.ID)
 		if err != nil {
 			return fmt.Errorf("%w %s", payments.ErrInternal, err)
 		}
 		if rows, _ := result.RowsAffected(); rows < 1 {
-			return fmt.Errorf("%w Failed to set token for payment link.", payments.ErrInternal)
+			return fmt.Errorf("%w Failed to update receiver details on payment.", payments.ErrInternal)
+		}
+
+		err = tx.GetContext(ctx, &consumedLink, fmt.Sprintf("UPDATE payment_links SET token=$1, updated_at=now(), receiver_wallet_id=$2, email=$3 WHERE id=$4 RETURNING %s;", dbPaymentLinkFields), uuid.NewString(), w.ID, args.Email, link.ID)
+		if err != nil {
+			return fmt.Errorf("%w %s", payments.ErrInternal, err)
 		}
 
 		return nil

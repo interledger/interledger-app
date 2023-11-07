@@ -184,6 +184,11 @@ export class ConsumePaymentLinkRequest extends Message<ConsumePaymentLinkRequest
    */
   email = "";
 
+  /**
+   * @generated from field: string ipAddress = 5;
+   */
+  ipAddress = "";
+
   constructor(data?: PartialMessage<ConsumePaymentLinkRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -196,6 +201,7 @@ export class ConsumePaymentLinkRequest extends Message<ConsumePaymentLinkRequest
     { no: 2, name: "firstName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "lastName", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "ipAddress", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConsumePaymentLinkRequest {

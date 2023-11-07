@@ -73,6 +73,10 @@ export interface ConsumePaymentLinkRequest {
      * @generated from protobuf field: string email = 4;
      */
     email: string;
+    /**
+     * @generated from protobuf field: string ipAddress = 5;
+     */
+    ipAddress: string;
 }
 /**
  * @generated from protobuf message backend.v1.ConsumePaymentLinkResponse
@@ -2559,11 +2563,12 @@ class ConsumePaymentLinkRequest$Type extends MessageType<ConsumePaymentLinkReque
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ConsumePaymentLinkRequest>): ConsumePaymentLinkRequest {
-        const message = { id: "", firstName: "", lastName: "", email: "" };
+        const message = { id: "", firstName: "", lastName: "", email: "", ipAddress: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ConsumePaymentLinkRequest>(this, message, value);
@@ -2585,6 +2590,9 @@ class ConsumePaymentLinkRequest$Type extends MessageType<ConsumePaymentLinkReque
                     break;
                 case /* string email */ 4:
                     message.email = reader.string();
+                    break;
+                case /* string ipAddress */ 5:
+                    message.ipAddress = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2610,6 +2618,9 @@ class ConsumePaymentLinkRequest$Type extends MessageType<ConsumePaymentLinkReque
         /* string email = 4; */
         if (message.email !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.email);
+        /* string ipAddress = 5; */
+        if (message.ipAddress !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.ipAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
