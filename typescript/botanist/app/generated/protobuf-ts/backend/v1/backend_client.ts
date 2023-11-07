@@ -4,6 +4,13 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { CreatePaymentLinkCardReqeust } from "./backend";
+import type { IntrospectRequest } from "./backend";
+import type { ConsumePaymentLinkResponse } from "./backend";
+import type { ConsumePaymentLinkRequest } from "./backend";
+import type { GetPaymentLinkRequest } from "./backend";
+import type { PaymentLink } from "./backend";
+import type { CreatePaymentLinkRequest } from "./backend";
 import type { SlackCallbackResponse } from "./backend";
 import type { SlackCallbackRequest } from "./backend";
 import type { CreateSlackAuthURLResponse } from "./backend";
@@ -484,6 +491,28 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: SlackCallback(backend.v1.SlackCallbackRequest) returns (backend.v1.SlackCallbackResponse);
      */
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse>;
+    /**
+     * Payment link
+     *
+     * @generated from protobuf rpc: CreatePaymentLink(backend.v1.CreatePaymentLinkRequest) returns (backend.v1.PaymentLink);
+     */
+    createPaymentLink(input: CreatePaymentLinkRequest, options?: RpcOptions): UnaryCall<CreatePaymentLinkRequest, PaymentLink>;
+    /**
+     * @generated from protobuf rpc: GetPaymentLink(backend.v1.GetPaymentLinkRequest) returns (backend.v1.PaymentLink);
+     */
+    getPaymentLink(input: GetPaymentLinkRequest, options?: RpcOptions): UnaryCall<GetPaymentLinkRequest, PaymentLink>;
+    /**
+     * @generated from protobuf rpc: ConsumePaymentLink(backend.v1.ConsumePaymentLinkRequest) returns (backend.v1.ConsumePaymentLinkResponse);
+     */
+    consumePaymentLink(input: ConsumePaymentLinkRequest, options?: RpcOptions): UnaryCall<ConsumePaymentLinkRequest, ConsumePaymentLinkResponse>;
+    /**
+     * @generated from protobuf rpc: Introspect(backend.v1.IntrospectRequest) returns (backend.v1.PaymentLink);
+     */
+    introspect(input: IntrospectRequest, options?: RpcOptions): UnaryCall<IntrospectRequest, PaymentLink>;
+    /**
+     * @generated from protobuf rpc: CreatePaymentLinkCard(backend.v1.CreatePaymentLinkCardReqeust) returns (backend.v1.LinkedAccount);
+     */
+    createPaymentLinkCard(input: CreatePaymentLinkCardReqeust, options?: RpcOptions): UnaryCall<CreatePaymentLinkCardReqeust, LinkedAccount>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1096,5 +1125,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse> {
         const method = this.methods[78], opt = this._transport.mergeOptions(options);
         return stackIntercept<SlackCallbackRequest, SlackCallbackResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Payment link
+     *
+     * @generated from protobuf rpc: CreatePaymentLink(backend.v1.CreatePaymentLinkRequest) returns (backend.v1.PaymentLink);
+     */
+    createPaymentLink(input: CreatePaymentLinkRequest, options?: RpcOptions): UnaryCall<CreatePaymentLinkRequest, PaymentLink> {
+        const method = this.methods[79], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreatePaymentLinkRequest, PaymentLink>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetPaymentLink(backend.v1.GetPaymentLinkRequest) returns (backend.v1.PaymentLink);
+     */
+    getPaymentLink(input: GetPaymentLinkRequest, options?: RpcOptions): UnaryCall<GetPaymentLinkRequest, PaymentLink> {
+        const method = this.methods[80], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPaymentLinkRequest, PaymentLink>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ConsumePaymentLink(backend.v1.ConsumePaymentLinkRequest) returns (backend.v1.ConsumePaymentLinkResponse);
+     */
+    consumePaymentLink(input: ConsumePaymentLinkRequest, options?: RpcOptions): UnaryCall<ConsumePaymentLinkRequest, ConsumePaymentLinkResponse> {
+        const method = this.methods[81], opt = this._transport.mergeOptions(options);
+        return stackIntercept<ConsumePaymentLinkRequest, ConsumePaymentLinkResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: Introspect(backend.v1.IntrospectRequest) returns (backend.v1.PaymentLink);
+     */
+    introspect(input: IntrospectRequest, options?: RpcOptions): UnaryCall<IntrospectRequest, PaymentLink> {
+        const method = this.methods[82], opt = this._transport.mergeOptions(options);
+        return stackIntercept<IntrospectRequest, PaymentLink>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: CreatePaymentLinkCard(backend.v1.CreatePaymentLinkCardReqeust) returns (backend.v1.LinkedAccount);
+     */
+    createPaymentLinkCard(input: CreatePaymentLinkCardReqeust, options?: RpcOptions): UnaryCall<CreatePaymentLinkCardReqeust, LinkedAccount> {
+        const method = this.methods[83], opt = this._transport.mergeOptions(options);
+        return stackIntercept<CreatePaymentLinkCardReqeust, LinkedAccount>("unary", this._transport, method, opt, input);
     }
 }

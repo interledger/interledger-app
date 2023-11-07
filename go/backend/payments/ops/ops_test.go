@@ -289,6 +289,7 @@ func TestGetRequiredActions(t *testing.T) {
 	b := &ops.TestBackends{
 		DBC: db.MigrateTestDB(t, ctx),
 		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
@@ -302,6 +303,32 @@ func TestGetRequiredActions(t *testing.T) {
 	require.NoError(t, err)
 
 	requiredActions, err := ops.GetRequiredActions(ctx, b, p.ID)
+	require.NoError(t, err)
+	assert.NotContains(t, requiredActions, payments.RequiredActionTypeReceiverAmount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeThreeDS)
+	assert.Contains(t, requiredActions, payments.RequiredActionTypeIPAddress)
+
+	// check that setting the receive linked account will make the receive amount a required field
+	receiverLinkedAccountID := uuid.NewString()
+	b.Lac.EXPECT().Get(ctx, receiverLinkedAccountID).Return(&linkedaccounts.LinkedAccount{
+		ID:              receiverLinkedAccountID,
+		CanReceive:      true,
+		ReceiveCurrency: currency.USD,
+	}, nil).AnyTimes()
+	p, err = ops.Create(ctx, b, payments.CreateArgs{
+		Sender: payments.Identity{
+			Type:       payments.IdentityTypeWalletID,
+			Identifier: walletID,
+		},
+		ReceiverAccount: receiverLinkedAccountID,
+	})
+	require.NoError(t, err)
+
+	requiredActions, err = ops.GetRequiredActions(ctx, b, p.ID)
 	require.NoError(t, err)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
@@ -347,7 +374,6 @@ func TestConfirm(t *testing.T) {
 
 	_, requiredActions, err := ops.Confirm(ctx, b, paymentID)
 	require.Error(t, err)
-	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
