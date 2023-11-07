@@ -205,8 +205,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const action = String(form.get('action') || '')
   const interactId = String(form.get('interactId') || '')
   const nonce = String(form.get('nonce') || '')
-  const rafikiAuthEndpoint =
-    process.env.RAFIKI_AUTH_ENDPOINT || 'http://rafiki-rafiki-auth.rafiki:3006'
 
   let grants = await GetInteraction(interactId, nonce)
 
