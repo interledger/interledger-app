@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
 
@@ -47,8 +50,8 @@ func TestClient(t *testing.T) {
 	pc := client.New(b)
 
 	b.user.MapUserWallet(context.Background(), uuid.NewString(), wallets.WebMonetizationWalletID)
-	sendWalletID, sendLinkedAccount := createTestWallet(t, b)
-	receiveWalletID, receiveLinkedAccount := createTestWallet(t, b)
+	sendWalletID, sendLinkedAccount, sendBalance, sendBank := createTestWallet(t, b)
+	receiveWalletID, receiveLinkedAccount, _, _ := createTestWallet(t, b)
 	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID)
 	require.NoError(t, err)
 
@@ -257,6 +260,70 @@ func TestClient(t *testing.T) {
 				ReceiveTransactionState: transactions.StateCompleted,
 			},
 		},
+		{
+			Name: "Golden path Xago withdrawal",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendBalance,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				ReceiverAccount: sendBank,
+				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("ZAR")),
+				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("ZAR")),
+				IPAddress:       "192.36.8.4",
+				Type:            payments.TypeWithdrawal,
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitBalance,
+						State:        transactions.StateCompleted,
+					},
+				},
+			},
+		},
+		/*
+			Temporal test environment doesn't accurately throw Max Retry errors so cannot test the failure case
+			{
+				Name: "Xago withdrawal fails",
+				Args: payments.CreateArgs{
+					Sender: payments.Identity{
+						Type:       payments.IdentityTypeWalletID,
+						Identifier: sendWalletID,
+					},
+					SenderAccount: sendBalance,
+					Receiver: payments.Identity{
+						Type:       payments.IdentityTypeWalletID,
+						Identifier: sendWalletID,
+					},
+					ReceiverAccount: sendBank,
+					SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("ZAR")),
+					ReceiverAmount:  currency.FromUInt64(666, currency.ParseCurrency("ZAR")),
+					IPAddress:       "192.36.8.4",
+					Type:            payments.TypeWithdrawal,
+				},
+				Assertions: Assertions{
+					PaymentState:         payments.StateFailed,
+					SendTransactionState: transactions.StateFailed,
+					SendTransfers: []AssertTransfer{
+						{
+							TransferType: transactions.TransferTypeDebitBalance,
+							State:        transactions.StateCompleted,
+						},
+						{
+							TransferType: transactions.TransferTypeCreditBalance,
+							State:        transactions.StateCompleted,
+						},
+					},
+				},
+			},*/
 	}
 
 	for _, tc := range cases {
@@ -453,8 +520,8 @@ func TestReferrals(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(st *testing.T) {
 			b.RestoreTemporalEnv()
-			sendWalletID, sendLinkedAccount := createTestWallet(t, b)
-			receiveWalletID, receiveLinkedAccount := createTestWallet(t, b)
+			sendWalletID, sendLinkedAccount, _, _ := createTestWallet(t, b)
+			receiveWalletID, receiveLinkedAccount, _, _ := createTestWallet(t, b)
 			if tc.AddIdentity {
 				id, err := b.Identities().Add(ctx, identities.AddArgs{
 					WalletID:   receiveWalletID,
@@ -614,8 +681,9 @@ Seeds a user:
 - wallet is created for userID
 - linked card is created
 - tabapay account is created
+- xago account and balance account is created
 */
-func createTestWallet(t *testing.T, b *TestBackends) (string, string) {
+func createTestWallet(t *testing.T, b *TestBackends) (string, string, string, string) {
 	userID := uuid.NewString()
 	address, err := wallets.ParseAddress(fmt.Sprintf("%s/%s", env.OpenPaymentsURL(), faker.FirstName()))
 	if err != nil {
@@ -645,5 +713,36 @@ func createTestWallet(t *testing.T, b *TestBackends) (string, string) {
 	})
 	require.NoError(t, err)
 
-	return wallet.ID, la.ID
+	xBalance, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+		WalletID:        wallet.ID,
+		Name:            "xago_balance",
+		Provider:        xago.ProviderName,
+		ProviderID:      uuid.NewString(),
+		Type:            xago.AccTypeBalance,
+		CanSend:         true,
+		CanReceive:      true,
+		State:           linkedaccounts.Verified,
+		SendCountry:     country.ZA,
+		SendCurrency:    currency.ZAR,
+		ReceiveCountry:  country.ZA,
+		ReceiveCurrency: currency.ZAR,
+	})
+	require.NoError(t, err)
+
+	xBank, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+		WalletID:        wallet.ID,
+		Name:            "xago_bank",
+		Provider:        xago.ProviderName,
+		ProviderID:      uuid.NewString(),
+		Type:            xago.AccTypeBank,
+		CanReceive:      true,
+		State:           linkedaccounts.Verified,
+		SendCountry:     country.ZA,
+		SendCurrency:    currency.ZAR,
+		ReceiveCountry:  country.ZA,
+		ReceiveCurrency: currency.ZAR,
+	})
+	require.NoError(t, err)
+
+	return wallet.ID, la.ID, xBalance.ID, xBank.ID
 }

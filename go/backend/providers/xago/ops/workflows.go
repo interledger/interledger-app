@@ -232,7 +232,7 @@ func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id
 		Provider:        xago.ProviderName,
 		ProviderID:      b.ID,
 		Type:            xago.AccTypeBank,
-		CanSend:         true,
+		CanSend:         false,
 		CanReceive:      true,
 		State:           linkedaccounts.Verified,
 		SendCountry:     nation,

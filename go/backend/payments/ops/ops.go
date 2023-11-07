@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -391,6 +393,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		p.SenderAmount.Value = amount.Value
 	}
 
+	err = validateWithdrawal(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO Calculate more actions required
 	id := p.IdempotencyKey
 	if id == "" {
@@ -434,6 +441,34 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	return transformPayment(ctx, b, dbp, senderWallet, receiverWallet)
+}
+
+func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
+	if typ != payments.TypeWithdrawal {
+		return nil
+	}
+
+	if senderAccID == "" || receiverAccID == "" {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if senderAcc.Provider != xago.ProviderName || senderAcc.Type != xago.AccTypeBalance {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if receiverAcc.Provider != xago.ProviderName || receiverAcc.Type != xago.AccTypeBank || senderAcc.WalletID != receiverAcc.WalletID {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	return nil
 }
 
 func SellerRisk(sendTransactions int) float64 {
@@ -484,7 +519,7 @@ func reversePaymentProtection(appliedRate float64, amount currency.Amount) curre
 }
 
 func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (payments.CreateArgs, float64, float64, error) {
-	if args.SenderAccount == "" || args.ReceiverAccount == "" {
+	if args.SenderAccount == "" || args.ReceiverAccount == "" || args.Type == payments.TypeWithdrawal {
 		return args, 0, 0, nil
 	}
 
@@ -938,6 +973,11 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		payment.ProtectionFeePercentage = fee
 	}
 
+	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
+	if err != nil {
+		return nil, err
+	}
+
 	payment.UpdatedAt = time.Now()
 	stmt, values, err := db.NewUpdate("payments").ID(payment.ID).
 		Value("sender_amount", payment.SenderAmount).
@@ -977,7 +1017,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 }
 
 func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receiverAmtUpdated bool) (*dbPayment, error) {
-	if !existing.SenderAccount.Valid || !existing.ReceiverAccount.Valid {
+	if !existing.SenderAccount.Valid || !existing.ReceiverAccount.Valid || existing.Type == payments.TypeWithdrawal {
 		return existing, nil
 	}
 
