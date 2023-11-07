@@ -6,8 +6,8 @@ import type {
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
-  ApplicationProps,
   Button,
   Card,
   CardButton,
@@ -17,7 +17,8 @@ import {
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
-import { Amount, Consent, GetInteraction } from '~/lib/rafikiauth'
+import type { Amount } from '~/lib/rafikiauth'
+import { Consent, GetInteraction } from '~/lib/rafikiauth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod') {

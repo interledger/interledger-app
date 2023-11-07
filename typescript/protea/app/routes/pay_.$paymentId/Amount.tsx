@@ -51,13 +51,13 @@ type AmountState = {
 
 type Action = {
   type:
-  | 'focussed'
-  | 'send'
-  | 'receive'
-  | 'hasPaymentProtection'
-  | 'linkedAccount'
-  | 'network'
-  | 'unknownReceiverName'
+    | 'focussed'
+    | 'send'
+    | 'receive'
+    | 'hasPaymentProtection'
+    | 'linkedAccount'
+    | 'network'
+    | 'unknownReceiverName'
 } & Partial<AmountState>
 
 type InitialState = {

@@ -6,6 +6,10 @@ import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
+  Alert,
+  AlertBody,
+  AlertContent,
+  AlertTitle,
   Button,
   Card,
   CardButton,
@@ -401,18 +405,18 @@ function ShareSummary() {
           <Icon className='text-medium'>share</Icon>
         </CardButton>
       </Card>
-      <div className='flex flex w-full space-x-2 rounded-lg bg-nav-active p-4'>
+      <Alert>
         <Icon>notification_important</Icon>
-        <div className='space-y-2'>
-          <p className='font-medium'>
+        <AlertContent>
+          <AlertTitle>
             Only share the payment with the intended receiver
-          </p>
-          <p>
+          </AlertTitle>
+          <AlertBody>
             Anyone with the link can collect the payment, therefore only share
             it with the intended receiver.
-          </p>
-        </div>
-      </div>
+          </AlertBody>
+        </AlertContent>
+      </Alert>
     </>
   )
 }

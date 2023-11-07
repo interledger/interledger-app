@@ -51,8 +51,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   if (introspect.completed) {
     return redirect(route('/collect/success'))
-  } else if (introspect.expired) {
-    
   }
 
   return jsonWithCSRF(request, {

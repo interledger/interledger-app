@@ -7,9 +7,7 @@ import type {
 import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
-import type {
-  ApplicationProps
-} from '~/components'
+import type { ApplicationProps } from '~/components'
 import {
   Button,
   Card,
@@ -89,10 +87,15 @@ export default function Page() {
 
   return (
     <>
-      <Form id='details' action={route('/collect/:linkId', { linkId: id })} method='post' className='hidden' />
+      <Form
+        id='details'
+        action={route('/collect/:linkId', { linkId: id })}
+        method='post'
+        className='hidden'
+      />
       <Card>
         <CardContent className='space-y-4 text-medium'>
-          <p>Hello Jus,</p>
+          <p>Hello {receiverIdentifier},</p>
           <h2 className='text-xl font-medium'>You've been sent a payment</h2>
           <h2 className='text-4xl font-medium'>{formattedAmount}</h2>
         </CardContent>
