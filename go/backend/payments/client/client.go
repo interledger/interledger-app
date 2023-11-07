@@ -68,6 +68,18 @@ func (c client) CreatePaymentLink(ctx context.Context, id string) (*payments.Pay
 	return ops.CreatePaymentLink(ctx, c.b, id)
 }
 
+func (c client) ConsumePaymentLink(ctx context.Context, args payments.ConsumePaymentLinkArgs) (*payments.PaymentLink, error) {
+	return ops.ConsumePaymentLink(ctx, c.b, args)
+}
+
+func (c client) GetPaymentLinkByToken(ctx context.Context, token string) (*payments.PaymentLink, error) {
+	return ops.GetPaymentLinkByToken(ctx, c.b, token)
+}
+
+func (c client) GetPaymentLink(ctx context.Context, id string) (*payments.PaymentLink, error) {
+	return ops.GetPaymentLink(ctx, c.b, id)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

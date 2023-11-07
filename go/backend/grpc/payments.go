@@ -9,6 +9,9 @@ import (
 
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/twilio"
 
@@ -455,5 +458,88 @@ func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.Ge
 
 	return &pb.GetLinkedAccountsForPaymentResponse{
 		LinkedAccounts: las,
+	}, nil
+}
+
+func (s *rpcService) GetPaymentLink(ctx context.Context, req *pb.GetPaymentLinkRequest) (*pb.PaymentLink, error) {
+	link, err := s.b.Payments().GetPaymentLink(ctx, req.GetId())
+	if errors.Is(err, payments.ErrPaymentLinkExpired) {
+		return nil, FailedPreconditionError("Payment expired")
+	}
+	if errors.Is(err, payments.ErrPaymentLinkCompleted) {
+		return nil, FailedPreconditionError("Payment already completed")
+	}
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, NotFoundError("")
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if link.ReceiverWalletID != "" || link.Token != "" {
+		return nil, FailedPreconditionError("Link expired")
+	}
+
+	p, err := s.b.Payments().Lookup(ctx, link.PaymentID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.PaymentLink{
+		Url:                fmt.Sprintf("%s/%s", env.GetUrl(), link.ID),
+		FormattedAmount:    p.SenderAmount.Format(),
+		Note:               p.Note,
+		SenderWalletUrl:    p.Sender.Identifier,
+		ReceiverIdentifier: p.Receiver.Identifier,
+	}, nil
+}
+
+func (s *rpcService) ConsumePaymentLink(ctx context.Context, req *pb.ConsumePaymentLinkRequest) (*pb.ConsumePaymentLinkResponse, error) {
+	consumedLink, err := s.b.Payments().ConsumePaymentLink(ctx, payments.ConsumePaymentLinkArgs{
+		ID:        req.GetId(),
+		FirstName: req.GetFirstName(),
+		LastName:  req.GetLastName(),
+		Email:     req.GetEmail(),
+	})
+	if errors.Is(err, payments.ErrPaymentLinkExpired) {
+		return nil, FailedPreconditionError("Payment expired")
+	}
+	if errors.Is(err, payments.ErrPaymentLinkCompleted) {
+		return nil, FailedPreconditionError("Payment already completed")
+	}
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, NotFoundError("")
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.ConsumePaymentLinkResponse{
+		Token: consumedLink.Token,
+	}, nil
+}
+
+func (s *rpcService) Introspect(ctx context.Context, req *pb.IntrospectRequest) (*pb.IntrospectResponse, error) {
+	link, err := s.b.Payments().GetPaymentLinkByToken(ctx, req.GetToken())
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, NotFoundError("")
+	}
+	if errors.Is(err, payments.ErrPaymentLinkExpired) {
+		return nil, FailedPreconditionError("Payment expired")
+	}
+	if errors.Is(err, payments.ErrPaymentLinkCompleted) {
+		return nil, FailedPreconditionError("Payment already completed")
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if link.ReceiverWalletID == "" {
+		log.Error("Payment link has token but no receiver wallet id", zap.String("paymentLinkID", link.ID))
+		return nil, InternalError("Failed to introspect token")
+	}
+
+	return &pb.IntrospectResponse{
+		WalletId: link.ReceiverWalletID,
 	}, nil
 }

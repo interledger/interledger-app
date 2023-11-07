@@ -178,11 +178,23 @@ const (
 	TypeWithdrawal      Type = 6
 )
 
-type PaymentLink struct {
-	ID          string
-	PaymentID   string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	ExpiresAt   time.Time
-	CompletedAt time.Time
-}
+type (
+	PaymentLink struct {
+		ID               string
+		PaymentID        string
+		CreatedAt        time.Time
+		UpdatedAt        time.Time
+		ExpiresAt        time.Time
+		CompletedAt      time.Time
+		ReceiverWalletID string
+		Token            string
+		Email            string
+	}
+
+	ConsumePaymentLinkArgs struct {
+		ID        string
+		FirstName string
+		LastName  string
+		Email     string
+	}
+)

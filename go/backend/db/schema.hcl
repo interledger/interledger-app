@@ -841,6 +841,11 @@ table "wallets" {
     null = false
     type = text
   }
+  column "anonymous" {
+    null = false
+    type = boolean
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamp
@@ -3078,11 +3083,27 @@ table "payment_links" {
     null    = true
     type    = timestamp
   }
+  column "receiver_wallet_id" {
+    null = true
+    type = uuid
+  }
+  column "token" {
+    null = true
+    type = text
+  }
+  column "email" {
+    null = true
+    type = text
+  }
   primary_key {
     columns = [column.id]
   }
   index "payment_links_payment_id_idx" {
     columns = [column.payment_id]
+  }
+  index "payment_links_token_idx" {
+    unique = true
+    columns = [column.token]
   }
 }
 

@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/kyc"
+	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/rafiki"
@@ -40,6 +42,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Rafiki() rafiki.Client
 	Xago() xago.Client
+	KYC() kyc.Client
 }
 
 type TestBackends struct {
@@ -54,6 +57,7 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Tbp *tabapay_mock.MockClient
+	Kyc *kyc_mock.MockClient
 }
 
 func (t TestBackends) Xago() xago.Client {
@@ -109,6 +113,10 @@ func (t TestBackends) Email() email.Client {
 
 func (t TestBackends) Wallets() wallets.Client {
 	return t.Wc
+}
+
+func (t TestBackends) KYC() kyc.Client {
+	return t.Kyc
 }
 
 func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {

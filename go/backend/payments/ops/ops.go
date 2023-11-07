@@ -23,6 +23,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/identities"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/slack"
@@ -1283,24 +1284,30 @@ func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, er
 }
 
 type dbPaymentLink struct {
-	ID          string       `db:"id"`
-	PaymentID   string       `db:"payment_id"`
-	CreatedAt   time.Time    `db:"created_at"`
-	UpdatedAt   time.Time    `db:"updated_at"`
-	ExpiresAt   time.Time    `db:"expires_at"`
-	CompletedAt sql.NullTime `db:"completed_at"`
+	ID               string         `db:"id"`
+	PaymentID        string         `db:"payment_id"`
+	CreatedAt        time.Time      `db:"created_at"`
+	UpdatedAt        time.Time      `db:"updated_at"`
+	ExpiresAt        time.Time      `db:"expires_at"`
+	CompletedAt      sql.NullTime   `db:"completed_at"`
+	ReceiverWalletID sql.NullString `db:"receiver_wallet_id"`
+	Token            sql.NullString `db:"token"`
+	Email            sql.NullString `db:"email"`
 }
 
-const dbPaymentLinkFields = "id, payment_id, expires_at, created_at, updated_at"
+const dbPaymentLinkFields = "id, payment_id, expires_at, created_at, updated_at, receiver_wallet_id, token, email"
 
 func transformPaymentLink(l dbPaymentLink) *payments.PaymentLink {
 	return &payments.PaymentLink{
-		ID:          l.ID,
-		PaymentID:   l.PaymentID,
-		CreatedAt:   l.CreatedAt,
-		UpdatedAt:   l.UpdatedAt,
-		ExpiresAt:   l.ExpiresAt,
-		CompletedAt: l.CompletedAt.Time,
+		ID:               l.ID,
+		PaymentID:        l.PaymentID,
+		CreatedAt:        l.CreatedAt,
+		UpdatedAt:        l.UpdatedAt,
+		ExpiresAt:        l.ExpiresAt,
+		CompletedAt:      l.CompletedAt.Time,
+		ReceiverWalletID: l.ReceiverWalletID.String,
+		Token:            l.Token.String,
+		Email:            l.Email.String,
 	}
 }
 
@@ -1320,6 +1327,97 @@ func CreatePaymentLink(ctx context.Context, b Backends, id string) (*payments.Pa
 
 	expiresAt := time.Now().Add(2 * 24 * time.Hour)
 	err = b.DB().GetContext(ctx, &link, fmt.Sprintf("INSERT INTO payment_links (payment_id, expires_at) VALUES ($1, $2) RETURNING %s", dbPaymentLinkFields), p.ID, expiresAt)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPaymentLink(link), nil
+}
+
+func ConsumePaymentLink(ctx context.Context, b Backends, args payments.ConsumePaymentLinkArgs) (*payments.PaymentLink, error) {
+	var link dbPaymentLink
+	err := b.DB().GetContext(ctx, &link, fmt.Sprintf("SELECT %s from payment_links WHERE id=$1;", dbPaymentLinkFields), args.ID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	if link.ExpiresAt.After(time.Now()) {
+		return nil, payments.ErrPaymentLinkExpired
+	}
+	if link.CompletedAt.Valid {
+		return nil, payments.ErrPaymentLinkCompleted
+	}
+
+	p, err := Lookup(ctx, b, link.PaymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	w, err := b.Wallets().CreateAnonymous(ctx, wallets.CreateAnonymousArgs{
+		Name: p.Receiver.Identifier,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	_, err = b.KYC().UpdateIndividualDetails(ctx, kyc.IndividualDetails{
+		WalletID:  w.ID,
+		FirstName: args.FirstName,
+		LastName:  args.LastName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	var consumedLink dbPaymentLink
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		result, err := tx.ExecContext(ctx, "UPDATE payments set receiver_id=$1, receiver_id_type=$2 WHERE id=$3;", w.ID, payments.IdentityTypeWalletID, p.ID)
+		if err != nil {
+			return fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
+		if rows, _ := result.RowsAffected(); rows < 1 {
+			return fmt.Errorf("%w Failed to update receiver details on payment.", payments.ErrInternal)
+		}
+
+		result, err = tx.ExecContext(ctx, fmt.Sprintf("UPDATE payment_links SET token=$1, updated_at=now(), receiver_wallet_id=$2, email=$3 WHERE id=$4 RETURNING %s;", dbPaymentLinkFields), uuid.NewString(), w.ID, args.Email, link.ID)
+		if err != nil {
+			return fmt.Errorf("%w %s", payments.ErrInternal, err)
+		}
+		if rows, _ := result.RowsAffected(); rows < 1 {
+			return fmt.Errorf("%w Failed to set token for payment link.", payments.ErrInternal)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPaymentLink(consumedLink), nil
+}
+
+func GetPaymentLink(ctx context.Context, b Backends, id string) (*payments.PaymentLink, error) {
+	var link dbPaymentLink
+	err := b.DB().GetContext(ctx, &link, fmt.Sprintf("SELECT %s from payment_links WHERE id=$1;", dbPaymentLinkFields), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPaymentLink(link), nil
+}
+
+func GetPaymentLinkByToken(ctx context.Context, b Backends, token string) (*payments.PaymentLink, error) {
+	var link dbPaymentLink
+	err := b.DB().GetContext(ctx, &link, fmt.Sprintf("SELECT %s from payment_links WHERE token=$1;", dbPaymentLinkFields), token)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}

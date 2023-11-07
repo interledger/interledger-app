@@ -14,4 +14,6 @@ var (
 	ErrInvalidWithdrawal      = errors.New("payments: Invalid withdrawal accounts")
 	ErrIncompatibleAccounts   = errors.New("payments: Incompatible sender receiver accounts")
 	ErrInsufficientFunds      = errors.New("payments: Insufficient funds")
+	ErrPaymentLinkExpired     = errors.New("payments: link expired")
+	ErrPaymentLinkCompleted   = errors.New("payments: link completed")
 )
