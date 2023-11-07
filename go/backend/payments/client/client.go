@@ -80,6 +80,10 @@ func (c client) GetPaymentLink(ctx context.Context, id string) (*payments.Paymen
 	return ops.GetPaymentLink(ctx, c.b, id)
 }
 
+func (c client) GetPaymentLinkByPaymentID(ctx context.Context, id string) (*payments.PaymentLink, error) {
+	return ops.GetPaymentLinkByPaymentID(ctx, c.b, id)
+}
+
 func (c client) CompletePaymentLink(ctx context.Context, id, receiverLinkedAccountID string) (*payments.PaymentLink, error) {
 	return ops.CompletePaymentLink(ctx, c.b, id, receiverLinkedAccountID)
 }

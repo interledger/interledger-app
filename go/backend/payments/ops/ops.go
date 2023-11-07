@@ -1272,6 +1272,19 @@ func GetPaymentLinkByToken(ctx context.Context, b Backends, token string) (*paym
 	return transformPaymentLink(link), nil
 }
 
+func GetPaymentLinkByPaymentID(ctx context.Context, b Backends, id string) (*payments.PaymentLink, error) {
+	var link dbPaymentLink
+	err := b.DB().GetContext(ctx, &link, fmt.Sprintf("SELECT %s from payment_links WHERE payment_id=$1;", dbPaymentLinkFields), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return transformPaymentLink(link), nil
+}
+
 func CompletePaymentLink(ctx context.Context, b Backends, id, receiverLinkedAccountID string) (*payments.PaymentLink, error) {
 	link, err := GetPaymentLink(ctx, b, id)
 	if err != nil {
