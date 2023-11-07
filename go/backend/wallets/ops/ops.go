@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"gitlab.com/fynbos/backend/db"
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/user"
 
@@ -84,6 +85,48 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	return Get(ctx, b, walletID)
 }
 
+func CreateAnonymous(ctx context.Context, b Backends, args wallets.CreateAnonymousArgs) (*wallets.Wallet, error) {
+	err := b.Validator().StructCtx(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	name := args.Name
+	if name == "" {
+		name = "default"
+	}
+
+	walletID := args.ID
+	if walletID == "" {
+		walletID = uuid.NewString()
+	}
+
+	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name, anonymous) VALUES ($1, $2, true)", walletID, name)
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO wallet_addresses(wallet_id, url) VALUES ($1, $2)", walletID, fmt.Sprintf("%s/%s", env.GetUrl(), walletID))
+		if err != nil {
+			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = b.Keys().ProvisionPrivateKey(ctx, walletID)
+	if err != nil {
+		log.Error("could not provision private key", zap.Error(err))
+		return nil, err
+	}
+
+	return Get(ctx, b, walletID)
+}
+
 func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Wallet, error) {
 	// Check if it already exists
 	w, err := GetFromAddress(ctx, b, url)
@@ -134,7 +177,7 @@ func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Walle
 func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 	var wallet wallets.Wallet
 	err := b.DB().GetContext(ctx, &wallet,
-		"SELECT id, name FROM wallets WHERE id=$1", id)
+		"SELECT id, name, anonymous FROM wallets WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wallets.ErrNoWalletFound
 	}
