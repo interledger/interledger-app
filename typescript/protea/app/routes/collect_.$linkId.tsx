@@ -9,12 +9,17 @@ import { useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
+  Alert,
+  AlertBody,
+  AlertTitle,
+  AnchorRouter,
   Button,
   Card,
   CardButton,
   CardContent,
   CardHeader,
   CardLink,
+  CardTitle,
   Chip,
   ChipColor,
   Dialog,
@@ -80,11 +85,59 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function Page() {
+  const { completed, expired } = useLoaderData<typeof loader>()
+
+  if (completed || expired) {
+    return (
+      <>
+        <Alert color={ChipColor.slate}>
+          <Icon>notification_important</Icon>
+          <AlertBody>            
+            <AlertTitle>Payment {expired ? 'Expired' : 'Completed'}</AlertTitle>
+            <AlertBody>Please contact our support team for any queries.</AlertBody>
+          </AlertBody>
+        </Alert>
+        <Card>
+          <CardHeader>
+            <CardTitle>Support details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>
+              Our telephone support lines are open Monday to Friday between 9am
+              and 5pm EST.
+            </p>
+            <div className='mt-4 flex items-center space-x-2 text-medium'>
+              <Icon>call</Icon>
+              <AnchorRouter
+                to='tel:+1 (856) 249-3067'
+                className='text-sm text-primary'
+              >
+                +1 (856) 249-3067
+              </AnchorRouter>
+            </div>
+            <div className='mt-4 flex items-center space-x-2 text-medium'>
+              <Icon>mail</Icon>
+              <AnchorRouter
+                to='mailto:support@fynbos.app'
+                className='text-sm text-primary'
+              >
+                support@fynbos.app
+              </AnchorRouter>
+            </div>
+          </CardContent>
+        </Card>
+      </>
+    )
+  } else {
+    return <PaymentLink />
+  }
+}
+
+function PaymentLink() {
   const { id, note, receiverIdentifier, publicWalletInfo, formattedAmount } =
     useLoaderData<typeof loader>()
   const [showDialog, setShowDialog] = useState<boolean>(false)
   const actionData = useActionData<typeof action>()
-
   return (
     <>
       <Form

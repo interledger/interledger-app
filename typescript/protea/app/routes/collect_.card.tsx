@@ -42,19 +42,19 @@ import { getSession } from '~/session.server'
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let s = await getSession(request.headers.get('Cookie'))
   let token = s.get('paymentLinkToken')
-  let introspect = await grpc.introspect(request, { token })
+  let link = await grpc.introspect(request, { token })
 
   // TODO: exhaustive precondition failure handling
-  if (isConnectError(introspect)) {
-    throw introspect.errorResponse
+  if (isConnectError(link)) {
+    throw link.errorResponse
   }
 
-  if (introspect.completed) {
-    return redirect(route('/collect/success'))
+  if (link.completed || link.expired) {
+    return redirect(route('/collect/:linkId', { linkId: link.id }))
   }
 
   return jsonWithCSRF(request, {
-    walletId: introspect.receiverWalletId,
+    walletId: link.receiverWalletId,
     token: process.env.BT_TOKEN || '',
     fynbosEnv: process.env.FYNBOS_ENV
   })
