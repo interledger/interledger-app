@@ -7,6 +7,10 @@ import {
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
+  Alert,
+  AlertBody,
+  AlertContent,
+  AlertTitle,
   Button,
   Card,
   CardContent,
@@ -153,13 +157,16 @@ export function Confirm() {
         </CardContent>
       </Card>
       {payment.receiverIdentityType === PaymentIdentityType.Unknown && (
-        <div className='bg-nav-active flex w-full flex rounded-lg p-4 space-x-2'>
+        <Alert>
           <Icon>keyboard_double_arrow_right</Icon>
-          <div className='space-y-2'>
-            <p className='font-medium'>What happens next</p>
-            <p>After you confirm the payment, your card will be debited and you will be given a link to share with {payment.receiverIdentity}.</p>
-          </div>
-        </div>
+          <AlertContent>
+            <AlertTitle>What happens next</AlertTitle>
+            <AlertBody>
+              After you confirm the payment, your card will be debited and you
+              will be given a link to share with {payment.receiverIdentity}.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
       )}
       {requiresOTP && (
         <Button form='pay-phone-otp' type='submit'>
