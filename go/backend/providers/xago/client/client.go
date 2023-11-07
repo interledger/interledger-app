@@ -4,16 +4,17 @@ import (
 	"context"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/kyc"
-	"gitlab.com/fynbos/backend/user"
-
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
+	mock_client "gitlab.com/fynbos/backend/providers/xago/external/mock"
 	"gitlab.com/fynbos/backend/providers/xago/ops"
+	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/env"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -46,6 +47,9 @@ type client struct {
 
 func New(b Backends) xago.Client {
 	ex := external.New()
+	if env.IsLocal() {
+		ex = mock_client.SetupDevMock(nil)
+	}
 
 	return &client{b: &opsBackends{
 		Backends: b,

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
+
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/rafiki"
@@ -69,6 +71,7 @@ type TestBackends struct {
 	temporal temporal_client.Client
 	env      *testsuite.TestWorkflowEnvironment
 	kyc      kyc.Client
+	xgo      xago.Client
 }
 
 func NewTestBackends(t *testing.T) *TestBackends {
@@ -103,6 +106,8 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	tc, err := tabapay_client.New(tabapay_client.NewClientArgs{}, b)
 	require.NoError(t, err)
 	b.tabapay = tc
+
+	b.xgo = xago_client.New(b)
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
@@ -153,7 +158,7 @@ func (b *TestBackends) RestoreTemporalEnv() {
 }
 
 func (b *TestBackends) Xago() xago.Client {
-	return nil
+	return b.xgo
 }
 
 func (b *TestBackends) Twilio() twilio.Service {

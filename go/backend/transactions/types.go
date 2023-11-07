@@ -42,6 +42,7 @@ const (
 	TransferTypeDebitWebMonetization TransferType = "debit_web_monetization"
 	TransferTypeDebitReferral        TransferType = "debit_referral"
 	TransferTypeDebitBalance         TransferType = "debit_balance"
+	TransferTypeCreditBalance        TransferType = "credit_balance"
 )
 
 type RefundState int16

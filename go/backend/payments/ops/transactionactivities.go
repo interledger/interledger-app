@@ -108,15 +108,16 @@ func (a *Activity) AddPayInRollbackTransfer(ctx context.Context, paymentID, fkID
 		return err
 	}
 
+	typ := transactions.TransferTypeCreditCard
 	if p.Type == payments.TypeWithdrawal {
-		return nil
+		typ = transactions.TransferTypeCreditBalance
 	}
 
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: p.SenderAccount,
 			ForeignID:       fkID,
-			Type:            transactions.TransferTypeCreditCard,
+			Type:            typ,
 			Amount:          p.SenderAmount,
 			State:           transactions.StateCompleted,
 		},
