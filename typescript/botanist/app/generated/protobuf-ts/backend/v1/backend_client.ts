@@ -5,7 +5,6 @@ import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
 import type { CreatePaymentLinkCardReqeust } from "./backend";
-import type { IntrospectResponse } from "./backend";
 import type { IntrospectRequest } from "./backend";
 import type { ConsumePaymentLinkResponse } from "./backend";
 import type { ConsumePaymentLinkRequest } from "./backend";
@@ -541,9 +540,9 @@ export interface IBackendServiceClient {
      */
     consumePaymentLink(input: ConsumePaymentLinkRequest, options?: RpcOptions): UnaryCall<ConsumePaymentLinkRequest, ConsumePaymentLinkResponse>;
     /**
-     * @generated from protobuf rpc: Introspect(backend.v1.IntrospectRequest) returns (backend.v1.IntrospectResponse);
+     * @generated from protobuf rpc: Introspect(backend.v1.IntrospectRequest) returns (backend.v1.PaymentLink);
      */
-    introspect(input: IntrospectRequest, options?: RpcOptions): UnaryCall<IntrospectRequest, IntrospectResponse>;
+    introspect(input: IntrospectRequest, options?: RpcOptions): UnaryCall<IntrospectRequest, PaymentLink>;
     /**
      * @generated from protobuf rpc: CreatePaymentLinkCard(backend.v1.CreatePaymentLinkCardReqeust) returns (backend.v1.LinkedAccount);
      */
@@ -1229,11 +1228,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<ConsumePaymentLinkRequest, ConsumePaymentLinkResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: Introspect(backend.v1.IntrospectRequest) returns (backend.v1.IntrospectResponse);
+     * @generated from protobuf rpc: Introspect(backend.v1.IntrospectRequest) returns (backend.v1.PaymentLink);
      */
-    introspect(input: IntrospectRequest, options?: RpcOptions): UnaryCall<IntrospectRequest, IntrospectResponse> {
+    introspect(input: IntrospectRequest, options?: RpcOptions): UnaryCall<IntrospectRequest, PaymentLink> {
         const method = this.methods[88], opt = this._transport.mergeOptions(options);
-        return stackIntercept<IntrospectRequest, IntrospectResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<IntrospectRequest, PaymentLink>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: CreatePaymentLinkCard(backend.v1.CreatePaymentLinkCardReqeust) returns (backend.v1.LinkedAccount);

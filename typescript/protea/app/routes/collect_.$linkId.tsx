@@ -1,5 +1,5 @@
-import { PlainMessage } from '@bufbuild/protobuf'
-import {
+import type { PlainMessage } from '@bufbuild/protobuf'
+import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   MetaFunction
@@ -7,8 +7,9 @@ import {
 import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { useState } from 'react'
 import { route } from 'routes-gen'
+import type {
+  ApplicationProps} from '~/components';
 import {
-  ApplicationProps,
   Button,
   Card,
   CardButton,
@@ -29,7 +30,7 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'

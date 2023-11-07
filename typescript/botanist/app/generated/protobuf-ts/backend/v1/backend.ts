@@ -93,15 +93,6 @@ export interface IntrospectRequest {
     token: string;
 }
 /**
- * @generated from protobuf message backend.v1.IntrospectResponse
- */
-export interface IntrospectResponse {
-    /**
-     * @generated from protobuf field: string walletId = 1;
-     */
-    walletId: string;
-}
-/**
  * @generated from protobuf message backend.v1.CreatePaymentLinkRequest
  */
 export interface CreatePaymentLinkRequest {
@@ -115,25 +106,53 @@ export interface CreatePaymentLinkRequest {
  */
 export interface PaymentLink {
     /**
-     * @generated from protobuf field: string url = 1;
+     * @generated from protobuf field: string id = 1;
      */
-    url: string;
+    id: string;
     /**
-     * @generated from protobuf field: string formattedAmount = 2;
+     * @generated from protobuf field: string receiverWalletId = 2;
      */
-    formattedAmount: string;
+    receiverWalletId: string;
     /**
-     * @generated from protobuf field: string note = 3;
+     * @generated from protobuf field: bool expired = 3;
      */
-    note: string;
+    expired: boolean;
     /**
-     * @generated from protobuf field: string senderWalletUrl = 4;
+     * @generated from protobuf field: bool completed = 4;
+     */
+    completed: boolean;
+    /**
+     * @generated from protobuf field: string senderWalletUrl = 5;
      */
     senderWalletUrl: string;
     /**
-     * @generated from protobuf field: string receiverIdentifier = 5;
+     * @generated from protobuf field: string note = 6;
+     */
+    note: string;
+    /**
+     * @generated from protobuf field: string formattedDate = 7;
+     */
+    formattedDate: string;
+    /**
+     * @generated from protobuf field: string formattedTime = 8;
+     */
+    formattedTime: string;
+    /**
+     * @generated from protobuf field: string formattedAmount = 9;
+     */
+    formattedAmount: string;
+    /**
+     * @generated from protobuf field: string mask = 10;
+     */
+    mask: string;
+    /**
+     * @generated from protobuf field: string receiverIdentifier = 11;
      */
     receiverIdentifier: string;
+    /**
+     * @generated from protobuf field: string url = 12;
+     */
+    url: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetLinkedAccountsForPaymentRequest
@@ -2696,53 +2715,6 @@ class IntrospectRequest$Type extends MessageType<IntrospectRequest> {
  */
 export const IntrospectRequest = new IntrospectRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class IntrospectResponse$Type extends MessageType<IntrospectResponse> {
-    constructor() {
-        super("backend.v1.IntrospectResponse", [
-            { no: 1, name: "walletId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<IntrospectResponse>): IntrospectResponse {
-        const message = { walletId: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<IntrospectResponse>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IntrospectResponse): IntrospectResponse {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string walletId */ 1:
-                    message.walletId = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: IntrospectResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string walletId = 1; */
-        if (message.walletId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.IntrospectResponse
- */
-export const IntrospectResponse = new IntrospectResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class CreatePaymentLinkRequest$Type extends MessageType<CreatePaymentLinkRequest> {
     constructor() {
         super("backend.v1.CreatePaymentLinkRequest", [
@@ -2793,15 +2765,22 @@ export const CreatePaymentLinkRequest = new CreatePaymentLinkRequest$Type();
 class PaymentLink$Type extends MessageType<PaymentLink> {
     constructor() {
         super("backend.v1.PaymentLink", [
-            { no: 1, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "formattedAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "senderWalletUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "receiverIdentifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "receiverWalletId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "expired", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 4, name: "completed", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 5, name: "senderWalletUrl", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 7, name: "formattedDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 8, name: "formattedTime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 9, name: "formattedAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 10, name: "mask", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "receiverIdentifier", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "url", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PaymentLink>): PaymentLink {
-        const message = { url: "", formattedAmount: "", note: "", senderWalletUrl: "", receiverIdentifier: "" };
+        const message = { id: "", receiverWalletId: "", expired: false, completed: false, senderWalletUrl: "", note: "", formattedDate: "", formattedTime: "", formattedAmount: "", mask: "", receiverIdentifier: "", url: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<PaymentLink>(this, message, value);
@@ -2812,20 +2791,41 @@ class PaymentLink$Type extends MessageType<PaymentLink> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string url */ 1:
-                    message.url = reader.string();
+                case /* string id */ 1:
+                    message.id = reader.string();
                     break;
-                case /* string formattedAmount */ 2:
-                    message.formattedAmount = reader.string();
+                case /* string receiverWalletId */ 2:
+                    message.receiverWalletId = reader.string();
                     break;
-                case /* string note */ 3:
-                    message.note = reader.string();
+                case /* bool expired */ 3:
+                    message.expired = reader.bool();
                     break;
-                case /* string senderWalletUrl */ 4:
+                case /* bool completed */ 4:
+                    message.completed = reader.bool();
+                    break;
+                case /* string senderWalletUrl */ 5:
                     message.senderWalletUrl = reader.string();
                     break;
-                case /* string receiverIdentifier */ 5:
+                case /* string note */ 6:
+                    message.note = reader.string();
+                    break;
+                case /* string formattedDate */ 7:
+                    message.formattedDate = reader.string();
+                    break;
+                case /* string formattedTime */ 8:
+                    message.formattedTime = reader.string();
+                    break;
+                case /* string formattedAmount */ 9:
+                    message.formattedAmount = reader.string();
+                    break;
+                case /* string mask */ 10:
+                    message.mask = reader.string();
+                    break;
+                case /* string receiverIdentifier */ 11:
                     message.receiverIdentifier = reader.string();
+                    break;
+                case /* string url */ 12:
+                    message.url = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2839,21 +2839,42 @@ class PaymentLink$Type extends MessageType<PaymentLink> {
         return message;
     }
     internalBinaryWrite(message: PaymentLink, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string url = 1; */
-        if (message.url !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.url);
-        /* string formattedAmount = 2; */
-        if (message.formattedAmount !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.formattedAmount);
-        /* string note = 3; */
-        if (message.note !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.note);
-        /* string senderWalletUrl = 4; */
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string receiverWalletId = 2; */
+        if (message.receiverWalletId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.receiverWalletId);
+        /* bool expired = 3; */
+        if (message.expired !== false)
+            writer.tag(3, WireType.Varint).bool(message.expired);
+        /* bool completed = 4; */
+        if (message.completed !== false)
+            writer.tag(4, WireType.Varint).bool(message.completed);
+        /* string senderWalletUrl = 5; */
         if (message.senderWalletUrl !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.senderWalletUrl);
-        /* string receiverIdentifier = 5; */
+            writer.tag(5, WireType.LengthDelimited).string(message.senderWalletUrl);
+        /* string note = 6; */
+        if (message.note !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.note);
+        /* string formattedDate = 7; */
+        if (message.formattedDate !== "")
+            writer.tag(7, WireType.LengthDelimited).string(message.formattedDate);
+        /* string formattedTime = 8; */
+        if (message.formattedTime !== "")
+            writer.tag(8, WireType.LengthDelimited).string(message.formattedTime);
+        /* string formattedAmount = 9; */
+        if (message.formattedAmount !== "")
+            writer.tag(9, WireType.LengthDelimited).string(message.formattedAmount);
+        /* string mask = 10; */
+        if (message.mask !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.mask);
+        /* string receiverIdentifier = 11; */
         if (message.receiverIdentifier !== "")
-            writer.tag(5, WireType.LengthDelimited).string(message.receiverIdentifier);
+            writer.tag(11, WireType.LengthDelimited).string(message.receiverIdentifier);
+        /* string url = 12; */
+        if (message.url !== "")
+            writer.tag(12, WireType.LengthDelimited).string(message.url);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -10899,6 +10920,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "CreatePaymentLink", options: {}, I: CreatePaymentLinkRequest, O: PaymentLink },
     { name: "GetPaymentLink", options: {}, I: GetPaymentLinkRequest, O: PaymentLink },
     { name: "ConsumePaymentLink", options: {}, I: ConsumePaymentLinkRequest, O: ConsumePaymentLinkResponse },
-    { name: "Introspect", options: {}, I: IntrospectRequest, O: IntrospectResponse },
+    { name: "Introspect", options: {}, I: IntrospectRequest, O: PaymentLink },
     { name: "CreatePaymentLinkCard", options: {}, I: CreatePaymentLinkCardReqeust, O: LinkedAccount }
 ]);
