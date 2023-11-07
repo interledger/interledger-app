@@ -196,5 +196,6 @@ type (
 		FirstName string
 		LastName  string
 		Email     string
+		IpAddress string
 	}
 )

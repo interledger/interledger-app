@@ -44,12 +44,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   } else publicWalletInfo = publicWalletInfoResponse
 
   return json({
-    senderWalletUrl: "walletURL",
-    formattedAmount: "$ 10.00",
-    formattedDate: "21 Oct 2023",
-    formattedTime: "10:45",
-    note: "note",
-    mask: "1234",
+    senderWalletUrl: link.senderWalletUrl,
+    formattedAmount: link.formattedAmount,
+    formattedDate: link.formattedDate,
+    formattedTime: link.formattedTime,
+    note: link.note,
+    mask: link.mask,
     publicWalletInfo
   })
 }

@@ -164,6 +164,7 @@ message ConsumePaymentLinkRequest {
   string firstName = 2;
   string lastName = 3;
   string email = 4;
+  string ipAddress = 5;
 }
 
 message ConsumePaymentLinkResponse {

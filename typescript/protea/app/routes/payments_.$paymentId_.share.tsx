@@ -241,7 +241,7 @@ function ShareDetails() {
               type='button'
               onClick={() => {
                 if (typeof navigator.share == 'undefined') {
-                  navigator.clipboard.writeText(transaction.id).then(
+                  navigator.clipboard.writeText(shareUrl).then(
                     () => {
                       pushSnackbar({
                         id: 'copy-wallet-address-success',
@@ -375,7 +375,7 @@ function ShareSummary() {
           type='button'
           onClick={() => {
             if (typeof navigator.share == 'undefined') {
-              navigator.clipboard.writeText(transaction.id).then(
+              navigator.clipboard.writeText(shareUrl).then(
                 () => {
                   pushSnackbar({
                     id: 'copy-wallet-address-success',

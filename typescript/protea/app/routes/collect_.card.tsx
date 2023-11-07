@@ -46,7 +46,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   // TODO: exhaustive precondition failure handling
   if (isConnectError(introspect)) {
-    console.log(introspect)
     throw introspect.errorResponse
   }
 
@@ -155,7 +154,7 @@ export default function Page() {
           formData.append('tokenId', token.id as string)
           formData.append('csrfToken', csrfToken)
           submit(formData, {
-            action: `/connect/card`,
+            action: route('/collect/card'),
             method: 'post'
           })
         }
@@ -435,7 +434,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirectWithSnackbar(request, '/collect/success', {
+  return redirectWithSnackbar(request, route('/collect/success'), {
     message: 'New card successfully saved.',
     icon: 'close'
   })

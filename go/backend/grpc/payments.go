@@ -458,12 +458,17 @@ func (s *rpcService) GetPaymentLink(ctx context.Context, req *pb.GetPaymentLinkR
 		return nil, toGRPCError(err)
 	}
 
+	senderWallet, err := s.b.Wallets().Get(ctx, p.Sender.Identifier)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	return &pb.PaymentLink{
 		Id:                 link.ID,
 		Url:                fmt.Sprintf("%s/%s", env.GetUrl(), link.ID),
 		FormattedAmount:    p.SenderAmount.Format(),
 		Note:               p.Note,
-		SenderWalletUrl:    p.Sender.Identifier,
+		SenderWalletUrl:    senderWallet.AddressString(),
 		ReceiverIdentifier: p.Receiver.Identifier,
 	}, nil
 }
@@ -474,6 +479,7 @@ func (s *rpcService) ConsumePaymentLink(ctx context.Context, req *pb.ConsumePaym
 		FirstName: req.GetFirstName(),
 		LastName:  req.GetLastName(),
 		Email:     req.GetEmail(),
+		IpAddress: req.GetIpAddress(),
 	})
 	if errors.Is(err, payments.ErrPaymentLinkExpired) {
 		return nil, FailedPreconditionError("Payment expired")

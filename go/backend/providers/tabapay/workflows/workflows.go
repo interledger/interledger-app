@@ -37,7 +37,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		WalletID:       args.WalletID,
 		CardNumber:     fmt.Sprintf("{{ %s | json: '$.number' }}", args.BasisTheoryTokenID),
 		ExpirationDate: fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", args.BasisTheoryTokenID, args.BasisTheoryTokenID),
-		AVS:            true,
+		AVS:            args.AVS,
 	}).Get(ctx, &cardInfo)
 	if err != nil {
 		logger.Error("Failed to query card.")
@@ -51,7 +51,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 
 	// https://developers.tabapay.com/reference/avs-response-codes
 	linkedAccountState := linkedaccounts.Verified
-	if cardInfo.AVS.CodeAVS != external.AVSResponseCodeY && cardInfo.AVS.CodeAVS != external.AVSResponseCodeA {
+	if args.AVS && cardInfo.AVS.CodeAVS != external.AVSResponseCodeY && cardInfo.AVS.CodeAVS != external.AVSResponseCodeA {
 		logger.Warn("AVS failed.", "AVSCode", cardInfo.AVS.CodeAVS)
 		linkedAccountState = linkedaccounts.OwnershipReviewRequired
 	}
