@@ -290,43 +290,6 @@ export class IntrospectRequest extends Message<IntrospectRequest> {
 }
 
 /**
- * @generated from message backend.v1.IntrospectResponse
- */
-export class IntrospectResponse extends Message<IntrospectResponse> {
-  /**
-   * @generated from field: string walletId = 1;
-   */
-  walletId = "";
-
-  constructor(data?: PartialMessage<IntrospectResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "backend.v1.IntrospectResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "walletId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IntrospectResponse {
-    return new IntrospectResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IntrospectResponse {
-    return new IntrospectResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IntrospectResponse {
-    return new IntrospectResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: IntrospectResponse | PlainMessage<IntrospectResponse> | undefined, b: IntrospectResponse | PlainMessage<IntrospectResponse> | undefined): boolean {
-    return proto3.util.equals(IntrospectResponse, a, b);
-  }
-}
-
-/**
  * @generated from message backend.v1.CreatePaymentLinkRequest
  */
 export class CreatePaymentLinkRequest extends Message<CreatePaymentLinkRequest> {
@@ -368,29 +331,64 @@ export class CreatePaymentLinkRequest extends Message<CreatePaymentLinkRequest> 
  */
 export class PaymentLink extends Message<PaymentLink> {
   /**
-   * @generated from field: string url = 1;
+   * @generated from field: string id = 1;
    */
-  url = "";
+  id = "";
 
   /**
-   * @generated from field: string formattedAmount = 2;
+   * @generated from field: string receiverWalletId = 2;
    */
-  formattedAmount = "";
+  receiverWalletId = "";
 
   /**
-   * @generated from field: string note = 3;
+   * @generated from field: bool expired = 3;
    */
-  note = "";
+  expired = false;
 
   /**
-   * @generated from field: string senderWalletUrl = 4;
+   * @generated from field: bool completed = 4;
+   */
+  completed = false;
+
+  /**
+   * @generated from field: string senderWalletUrl = 5;
    */
   senderWalletUrl = "";
 
   /**
-   * @generated from field: string receiverIdentifier = 5;
+   * @generated from field: string note = 6;
+   */
+  note = "";
+
+  /**
+   * @generated from field: string formattedDate = 7;
+   */
+  formattedDate = "";
+
+  /**
+   * @generated from field: string formattedTime = 8;
+   */
+  formattedTime = "";
+
+  /**
+   * @generated from field: string formattedAmount = 9;
+   */
+  formattedAmount = "";
+
+  /**
+   * @generated from field: string mask = 10;
+   */
+  mask = "";
+
+  /**
+   * @generated from field: string receiverIdentifier = 11;
    */
   receiverIdentifier = "";
+
+  /**
+   * @generated from field: string url = 12;
+   */
+  url = "";
 
   constructor(data?: PartialMessage<PaymentLink>) {
     super();
@@ -400,11 +398,18 @@ export class PaymentLink extends Message<PaymentLink> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.PaymentLink";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "formattedAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "senderWalletUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "receiverIdentifier", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "receiverWalletId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "expired", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "completed", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "senderWalletUrl", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "formattedDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "formattedTime", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "formattedAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "mask", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "receiverIdentifier", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentLink {

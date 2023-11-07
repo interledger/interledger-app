@@ -459,6 +459,7 @@ func (s *rpcService) GetPaymentLink(ctx context.Context, req *pb.GetPaymentLinkR
 	}
 
 	return &pb.PaymentLink{
+		Id:                 link.ID,
 		Url:                fmt.Sprintf("%s/%s", env.GetUrl(), link.ID),
 		FormattedAmount:    p.SenderAmount.Format(),
 		Note:               p.Note,
@@ -492,7 +493,7 @@ func (s *rpcService) ConsumePaymentLink(ctx context.Context, req *pb.ConsumePaym
 	}, nil
 }
 
-func (s *rpcService) Introspect(ctx context.Context, req *pb.IntrospectRequest) (*pb.IntrospectResponse, error) {
+func (s *rpcService) Introspect(ctx context.Context, req *pb.IntrospectRequest) (*pb.PaymentLink, error) {
 	link, err := s.b.Payments().GetPaymentLinkByToken(ctx, req.GetToken())
 	if errors.Is(err, payments.ErrNotFound) {
 		return nil, NotFoundError("")
@@ -512,7 +513,34 @@ func (s *rpcService) Introspect(ctx context.Context, req *pb.IntrospectRequest) 
 		return nil, InternalError("Failed to introspect token")
 	}
 
-	return &pb.IntrospectResponse{
-		WalletId: link.ReceiverWalletID,
+	p, err := s.b.Payments().Lookup(ctx, link.PaymentID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var accountMask string
+	if link.ReceiverLinkedAccountID != "" {
+		la, err := s.b.LinkedAccounts().Get(ctx, link.ReceiverLinkedAccountID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		accountMask = la.Mask
+	}
+
+	senderWallet, err := s.b.Wallets().Get(ctx, p.Sender.Identifier)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.PaymentLink{
+		Id:                 link.ID,
+		ReceiverWalletId:   link.ReceiverWalletID,
+		ReceiverIdentifier: p.Receiver.Identifier,
+		Expired:            !link.ExpiresAt.IsZero(),
+		Completed:          !link.CompletedAt.IsZero(),
+		SenderWalletUrl:    senderWallet.AddressString(),
+		Note:               p.Note,
+		FormattedAmount:    p.SenderAmount.Format(),
+		Mask:               accountMask,
 	}, nil
 }

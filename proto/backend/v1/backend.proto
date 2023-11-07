@@ -146,7 +146,7 @@ service BackendService {
   rpc CreatePaymentLink(CreatePaymentLinkRequest) returns (PaymentLink);
   rpc GetPaymentLink(GetPaymentLinkRequest) returns (PaymentLink);
   rpc ConsumePaymentLink(ConsumePaymentLinkRequest) returns (ConsumePaymentLinkResponse);
-  rpc Introspect(IntrospectRequest) returns (IntrospectResponse);
+  rpc Introspect(IntrospectRequest) returns (PaymentLink);
   rpc CreatePaymentLinkCard(CreatePaymentLinkCardReqeust) returns (LinkedAccount);
 }
 
@@ -174,20 +174,23 @@ message IntrospectRequest {
   string token = 1;
 }
 
-message IntrospectResponse {
-  string walletId = 1;
-}
-
 message CreatePaymentLinkRequest {
   string transactionId = 1;
 }
 
 message PaymentLink {
-  string url = 1;  
-  string formattedAmount = 2;
-  string note = 3;
-  string senderWalletUrl = 4;
-  string receiverIdentifier = 5;
+  string id = 1;
+  string receiverWalletId = 2;
+  bool expired = 3;
+  bool completed = 4;
+  string senderWalletUrl = 5;
+  string note = 6;
+  string formattedDate = 7;
+  string formattedTime = 8;
+  string formattedAmount = 9;
+  string mask = 10;
+  string receiverIdentifier = 11;
+  string url = 12;
 }
 
 message SetDefaultSendLinkedAccountRequest {

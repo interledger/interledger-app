@@ -217,7 +217,7 @@ type BackendServiceClient interface {
 	CreatePaymentLink(ctx context.Context, in *CreatePaymentLinkRequest, opts ...grpc.CallOption) (*PaymentLink, error)
 	GetPaymentLink(ctx context.Context, in *GetPaymentLinkRequest, opts ...grpc.CallOption) (*PaymentLink, error)
 	ConsumePaymentLink(ctx context.Context, in *ConsumePaymentLinkRequest, opts ...grpc.CallOption) (*ConsumePaymentLinkResponse, error)
-	Introspect(ctx context.Context, in *IntrospectRequest, opts ...grpc.CallOption) (*IntrospectResponse, error)
+	Introspect(ctx context.Context, in *IntrospectRequest, opts ...grpc.CallOption) (*PaymentLink, error)
 	CreatePaymentLinkCard(ctx context.Context, in *CreatePaymentLinkCardReqeust, opts ...grpc.CallOption) (*LinkedAccount, error)
 }
 
@@ -967,8 +967,8 @@ func (c *backendServiceClient) ConsumePaymentLink(ctx context.Context, in *Consu
 	return out, nil
 }
 
-func (c *backendServiceClient) Introspect(ctx context.Context, in *IntrospectRequest, opts ...grpc.CallOption) (*IntrospectResponse, error) {
-	out := new(IntrospectResponse)
+func (c *backendServiceClient) Introspect(ctx context.Context, in *IntrospectRequest, opts ...grpc.CallOption) (*PaymentLink, error) {
+	out := new(PaymentLink)
 	err := c.cc.Invoke(ctx, BackendService_Introspect_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1097,7 +1097,7 @@ type BackendServiceServer interface {
 	CreatePaymentLink(context.Context, *CreatePaymentLinkRequest) (*PaymentLink, error)
 	GetPaymentLink(context.Context, *GetPaymentLinkRequest) (*PaymentLink, error)
 	ConsumePaymentLink(context.Context, *ConsumePaymentLinkRequest) (*ConsumePaymentLinkResponse, error)
-	Introspect(context.Context, *IntrospectRequest) (*IntrospectResponse, error)
+	Introspect(context.Context, *IntrospectRequest) (*PaymentLink, error)
 	CreatePaymentLinkCard(context.Context, *CreatePaymentLinkCardReqeust) (*LinkedAccount, error)
 }
 
@@ -1351,7 +1351,7 @@ func (UnimplementedBackendServiceServer) GetPaymentLink(context.Context, *GetPay
 func (UnimplementedBackendServiceServer) ConsumePaymentLink(context.Context, *ConsumePaymentLinkRequest) (*ConsumePaymentLinkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConsumePaymentLink not implemented")
 }
-func (UnimplementedBackendServiceServer) Introspect(context.Context, *IntrospectRequest) (*IntrospectResponse, error) {
+func (UnimplementedBackendServiceServer) Introspect(context.Context, *IntrospectRequest) (*PaymentLink, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Introspect not implemented")
 }
 func (UnimplementedBackendServiceServer) CreatePaymentLinkCard(context.Context, *CreatePaymentLinkCardReqeust) (*LinkedAccount, error) {
