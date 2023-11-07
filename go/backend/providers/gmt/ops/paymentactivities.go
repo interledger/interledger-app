@@ -116,7 +116,14 @@ func (a *Activity) PaymentCompliance(ctx context.Context, paymentID string) (*Co
 		return nil, err
 	}
 
-	gmtReceiver, err := receiverFromWallet(ctx, a.b, receiverAcc.WalletID)
+	var gmtReceiver *external.WsReceiver
+	link, err := a.b.Payments().GetPaymentLinkByPaymentID(ctx, paymentID)
+	if err != nil {
+		gmtReceiver, err = receiverFromWallet(ctx, a.b, receiverAcc.WalletID)
+	} else {
+		gmtReceiver, err = receiverFromPaymentLink(ctx, a.b, link.ID)
+		receiverKYC.Address = &kyc.Address{}
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -210,9 +217,9 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		return nil, err
 	}
 
-	var address string
+	var addressDetails kyc.Address
 	if senderID.Address != nil {
-		address = senderID.Address.String()
+		addressDetails = *senderID.Address
 	}
 
 	trackingNumber := p.SendTransactionID
@@ -220,7 +227,7 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		trackingNumber = p.ID
 	}
 	sender := &external.WsSender{
-		SenderAddress:               address,
+		SenderAddress:               addressDetails.String(),
 		SenderAddressStreet:         senderID.Address.Apartment,
 		SenderBirthDate:             external.GMTDate(senderID.DateOfBirth),
 		SenderCity:                  senderID.Address.City,
@@ -235,14 +242,14 @@ func senderFromPayment(ctx context.Context, b Backends, paymentID string) (*exte
 		SenderLastName:              senderID.LastName,
 		SenderMobile:                senderUsers[0].PhoneNumber,
 		SenderName:                  senderID.FirstName,
-		SenderResidenceAddress:      address,
-		SenderResidenceAddressExtra: senderID.Address.Apartment,
-		SenderResidenceCity:         senderID.Address.City,
-		SenderResidenceCountryCode:  senderID.Address.CountryCode,
-		SenderResidenceState:        senderID.Address.State,
-		SenderResidenceZip:          senderID.Address.ZipCode,
-		SenderState:                 senderID.Address.State,
-		SenderZip:                   senderID.Address.ZipCode,
+		SenderResidenceAddress:      addressDetails.String(),
+		SenderResidenceAddressExtra: addressDetails.Apartment,
+		SenderResidenceCity:         addressDetails.City,
+		SenderResidenceCountryCode:  addressDetails.CountryCode,
+		SenderResidenceState:        addressDetails.State,
+		SenderResidenceZip:          addressDetails.ZipCode,
+		SenderState:                 addressDetails.State,
+		SenderZip:                   addressDetails.ZipCode,
 		SenderCountryNationallity:   senderID.Nationality,
 		SenderPOB:                   senderID.PlaceOfBirth,
 		SenderTrackingNumber:        trackingNumber,

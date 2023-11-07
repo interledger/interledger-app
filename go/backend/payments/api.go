@@ -16,6 +16,7 @@ type Client interface {
 	ConsumePaymentLink(ctx context.Context, args ConsumePaymentLinkArgs) (*PaymentLink, error)
 	GetPaymentLink(ctx context.Context, id string) (*PaymentLink, error)
 	GetPaymentLinkByToken(ctx context.Context, token string) (*PaymentLink, error)
+	GetPaymentLinkByPaymentID(ctx context.Context, id string) (*PaymentLink, error)
 	CompletePaymentLink(ctx context.Context, id string, receiverLinkedAccountID string) (*PaymentLink, error)
 
 	AdminListAwaitingSignal(ctx context.Context) ([]Payment, error)

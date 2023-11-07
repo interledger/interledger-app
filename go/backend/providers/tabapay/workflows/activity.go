@@ -9,12 +9,15 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
+	mock_external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
@@ -36,9 +39,15 @@ func NewActivity(cb InputBackends) *Activity {
 		),
 	}
 
-	externalClient, err := external_client.New(clientArgs)
-	if err != nil {
-		log.Fatal("Failed to create Tabapay activity.", zap.Error(err))
+	var externalClient external.Client
+	if env.IsLocal() {
+		externalClient = mock_external_client.SetupDevMock(nil)
+	} else {
+		c, err := external_client.New(clientArgs)
+		if err != nil {
+			log.Fatal("Failed to create Tabapay activity.", zap.Error(err))
+		}
+		externalClient = c
 	}
 
 	return &Activity{b: &backends{
@@ -100,20 +109,25 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
+	address := kyc.Address{
+		CountryCode: country.US.String(),
+	}
 	if owner.Address == nil {
-		return nil, fmt.Errorf("%w require address for wallet.", tabapay.ErrInternal)
+		log.Warn("no address found in kyc", zap.String("walletID", args.WalletID))
+	} else {
+		address = *owner.Address
 	}
 
-	ctry, err := country.Country(owner.Address.CountryCode).Numeric()
+	ctry, err := country.Country(address.CountryCode).Numeric()
 	if err != nil {
-		err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+		err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, address.CountryCode)
 		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
 	}
-	if !country.Country(owner.Address.CountryCode).IsSupported() {
-		err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+	if !country.Country(address.CountryCode).IsSupported() {
+		err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, address.CountryCode)
 		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
 	}
-	stateParts := strings.Split(owner.Address.State, "-")
+	stateParts := strings.Split(address.State, "-")
 	state := stateParts[0]
 	if len(stateParts) == 2 {
 		state = stateParts[1]
@@ -133,11 +147,11 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 				Last:  owner.LastName,
 			},
 			Address: &external.Address{
-				Line1:   owner.Address.Line1,
-				Line2:   owner.Address.Line2,
-				City:    owner.Address.City,
+				Line1:   address.Line1,
+				Line2:   address.Line2,
+				City:    address.City,
 				State:   state,
-				ZipCode: owner.Address.ZipCode,
+				ZipCode: address.ZipCode,
 				Country: ctry,
 			},
 		},

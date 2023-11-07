@@ -141,6 +141,21 @@ func (mr *MockClientMockRecorder) GetPaymentLink(ctx, id interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPaymentLink", reflect.TypeOf((*MockClient)(nil).GetPaymentLink), ctx, id)
 }
 
+// GetPaymentLinkByPaymentID mocks base method.
+func (m *MockClient) GetPaymentLinkByPaymentID(ctx context.Context, id string) (*payments.PaymentLink, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPaymentLinkByPaymentID", ctx, id)
+	ret0, _ := ret[0].(*payments.PaymentLink)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPaymentLinkByPaymentID indicates an expected call of GetPaymentLinkByPaymentID.
+func (mr *MockClientMockRecorder) GetPaymentLinkByPaymentID(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPaymentLinkByPaymentID", reflect.TypeOf((*MockClient)(nil).GetPaymentLinkByPaymentID), ctx, id)
+}
+
 // GetPaymentLinkByToken mocks base method.
 func (m *MockClient) GetPaymentLinkByToken(ctx context.Context, token string) (*payments.PaymentLink, error) {
 	m.ctrl.T.Helper()
