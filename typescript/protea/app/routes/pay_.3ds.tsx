@@ -446,7 +446,7 @@ export async function action({ request }: ActionFunctionArgs) {
         paymentId: response.senderTransactionId
       }),
       {
-        message: 'Payment created successfully.',
+        message: 'Success. The link has been copied to your clipboard.',
         icon: 'close'
       }
     )

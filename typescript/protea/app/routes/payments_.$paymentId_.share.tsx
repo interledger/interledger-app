@@ -2,7 +2,7 @@ import type { PlainMessage } from '@bufbuild/protobuf'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { useLoaderData, useNavigate } from '@remix-run/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -97,7 +97,29 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const [showDetails, setShowDetails] = useState<Boolean>(false)
   const nav = useNavigate()
-  const { transaction } = useLoaderData<typeof loader>()
+  const { transaction, shareUrl } = useLoaderData<typeof loader>()
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
+  useEffect(() => {
+    navigator.clipboard.writeText(shareUrl).then(
+      () => {
+        pushSnackbar({
+          id: 'copy-payment-link-success',
+          message: 'The link has been copied to your clipboard.',
+          icon: 'close',
+          canShow: true
+        })
+      },
+      () => {
+        pushSnackbar({
+          id: 'copy-to-clipboard-fail',
+          message: "Couldn't copy to clipboard.",
+          icon: 'close',
+          canShow: true
+        })
+      }
+    )
+  }, [pushSnackbar, shareUrl])
 
   return (
     <>
@@ -248,7 +270,7 @@ function ShareDetails() {
                   navigator.clipboard.writeText(shareUrl).then(
                     () => {
                       pushSnackbar({
-                        id: 'copy-wallet-address-success',
+                        id: 'copy-payment-link-success',
                         message: 'The link has been copied to your clipboard.',
                         icon: 'close',
                         canShow: true
@@ -382,7 +404,7 @@ function ShareSummary() {
               navigator.clipboard.writeText(shareUrl).then(
                 () => {
                   pushSnackbar({
-                    id: 'copy-wallet-address-success',
+                    id: 'copy-payment-link-success',
                     message: 'The link has been copied to your clipboard.',
                     icon: 'close',
                     canShow: true
