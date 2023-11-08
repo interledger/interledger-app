@@ -41,7 +41,6 @@ import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
-import { commitSession, getSession } from '~/session.server'
 
 export const handle: ApplicationProps = {
   layout: Layouts.Focus,
@@ -329,12 +328,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return tokenResponse.error({ errors }, {}, { action: 'Contact support' })
   }
 
-  let s = await getSession(request.headers.get('Cookie'))
-  s.set('paymentLinkToken', tokenResponse.token)
-  await commitSession(s)
-
-  return redirectWithSnackbar(request, route('/collect/card'), {
-    message: 'Personal details provided.',
-    icon: 'close'
-  })
+  return redirectWithSnackbar(
+    request,
+    `${route('/collect/card')}?token=${tokenResponse.token}`,
+    {
+      message: 'Personal details provided.',
+      icon: 'close'
+    }
+  )
 }
