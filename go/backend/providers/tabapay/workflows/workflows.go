@@ -122,6 +122,7 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 		CardNumber:          fmt.Sprintf("{{ %s | json: '$.number' }}", tokenizedCard.TokenID),
 		ExpirationDate:      fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", tokenizedCard.TokenID, tokenizedCard.TokenID),
 		ReferenceID:         tabapayReferenceID,
+		AddAddress:          args.AVS,
 	}).Get(ctx, &externalAccount)
 	if err != nil {
 		logger.Error("Failed to create card on tabapay.")
