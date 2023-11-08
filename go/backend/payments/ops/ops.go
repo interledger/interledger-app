@@ -1366,10 +1366,11 @@ func ConsumePaymentLink(ctx context.Context, b Backends, args payments.ConsumePa
 	}
 
 	_, err = b.KYC().UpdateIndividualDetails(ctx, kyc.IndividualDetails{
-		WalletID:  w.ID,
-		FirstName: args.FirstName,
-		LastName:  args.LastName,
-		IPAddress: args.IpAddress,
+		WalletID:    w.ID,
+		FirstName:   args.FirstName,
+		LastName:    args.LastName,
+		IPAddress:   args.IpAddress,
+		CountryCode: args.Country.String(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)

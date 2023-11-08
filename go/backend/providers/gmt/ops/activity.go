@@ -635,6 +635,7 @@ func receiverFromPaymentLink(ctx context.Context, b Backends, id string) (*exter
 		ReceiverId:        int32(rid),
 		ReceiverLastName:  recvID.LastName,
 		ReceiverName:      recvID.FirstName,
+		ReceiverCountry:   recvID.CountryCode,
 		SenderID:          int32(sid),
 	}, nil
 }
