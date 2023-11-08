@@ -32,11 +32,10 @@ import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { getSession } from '~/session.server'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  let s = await getSession(request.headers.get('Cookie'))
-  let token = s.get('paymentLinkToken')
+  const url = new URL(request.url)
+  const token = url.searchParams.get('token') || ''
   let link = await grpc.introspect(request, { token })
 
   // TODO: exhaustive precondition failure handling

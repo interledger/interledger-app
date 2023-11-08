@@ -37,11 +37,10 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { getSession } from '~/session.server'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  let s = await getSession(request.headers.get('Cookie'))
-  let token = s.get('paymentLinkToken')
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url)
+  const token = url.searchParams.get('token') || ''
   let link = await grpc.introspect(request, { token })
 
   // TODO: exhaustive precondition failure handling
@@ -55,8 +54,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   return jsonWithCSRF(request, {
     walletId: link.receiverWalletId,
-    token: process.env.BT_TOKEN || '',
-    fynbosEnv: process.env.FYNBOS_ENV
+    btToken: process.env.BT_TOKEN || '',
+    fynbosEnv: process.env.FYNBOS_ENV,
+    paymentLinkToken: token
   })
 }
 
@@ -77,7 +77,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { walletId, token, csrfToken, fynbosEnv } =
+  const { walletId, btToken, paymentLinkToken, csrfToken, fynbosEnv } =
     useLoaderData<typeof loader>()
   const submit = useSubmit()
   const actionData = useActionData<typeof action>()
@@ -96,7 +96,7 @@ export default function Page() {
   const [cardVerificationCodeFocus, setVerificationCodeFocus] =
     useState<boolean>(false)
 
-  const { bt, error } = useBasisTheory(token, { elements: true })
+  const { bt, error } = useBasisTheory(btToken, { elements: true })
 
   const cardNumberRef = useRef<CardNumberElementType>(null)
   const cardExpirationDateRef = useRef<CardExpirationDateElementType>(null)
@@ -152,7 +152,7 @@ export default function Page() {
           formData.append('tokenId', token.id as string)
           formData.append('csrfToken', csrfToken)
           submit(formData, {
-            action: route('/collect/card'),
+            action: `${route('/collect/card')}?token=${paymentLinkToken}`,
             method: 'post'
           })
         }
@@ -399,8 +399,8 @@ export async function action({ request }: ActionFunctionArgs) {
     number: 'CardNumber'
   }
 
-  let s = await getSession(request.headers.get('Cookie'))
-  let token = s.get('paymentLinkToken')
+  const url = new URL(request.url)
+  const token = url.searchParams.get('token') || ''
   let response = await grpc.createPaymentLinkCard(
     request,
     {
@@ -432,8 +432,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirectWithSnackbar(request, route('/collect/success'), {
-    message: 'New card successfully saved.',
-    icon: 'close'
-  })
+  return redirectWithSnackbar(
+    request,
+    `${route('/collect/success')}?token=${token}`,
+    {
+      message: 'New card successfully saved.',
+      icon: 'close'
+    }
+  )
 }
