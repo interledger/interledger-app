@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/country"
-	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -109,31 +108,8 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
-	address := kyc.Address{
-		CountryCode: country.US.String(),
-	}
-	if owner.Address == nil {
-		log.Warn("no address found in kyc", zap.String("walletID", args.WalletID))
-	} else {
-		address = *owner.Address
-	}
 
-	ctry, err := country.Country(address.CountryCode).Numeric()
-	if err != nil {
-		err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, address.CountryCode)
-		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
-	}
-	if !country.Country(address.CountryCode).IsSupported() {
-		err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, address.CountryCode)
-		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
-	}
-	stateParts := strings.Split(address.State, "-")
-	state := stateParts[0]
-	if len(stateParts) == 2 {
-		state = stateParts[1]
-	}
-
-	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
+	externalArgs := external.CreateAccountArgs{
 		RejectDuplicateCard:  args.RejectDuplicateCard,
 		OKToAddDuplicateCard: !args.RejectDuplicateCard,
 		ReferenceID:          args.ReferenceID,
@@ -146,16 +122,38 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 				First: owner.FirstName,
 				Last:  owner.LastName,
 			},
-			Address: &external.Address{
-				Line1:   address.Line1,
-				Line2:   address.Line2,
-				City:    address.City,
-				State:   state,
-				ZipCode: address.ZipCode,
-				Country: ctry,
-			},
 		},
-	})
+	}
+
+	if args.AddAddress && owner.Address == nil {
+		log.Warn("no address found in kyc. Address will not be submitted to Tabapay.", zap.String("walletID", args.WalletID))
+	} else if args.AddAddress {
+		ctry, err := country.Country(owner.Address.CountryCode).Numeric()
+		if err != nil {
+			err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+			return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
+		}
+		if !country.Country(owner.Address.CountryCode).IsSupported() {
+			err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+			return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
+		}
+		stateParts := strings.Split(owner.Address.State, "-")
+		state := stateParts[0]
+		if len(stateParts) == 2 {
+			state = stateParts[1]
+		}
+
+		externalArgs.Owner.Address = &external.Address{
+			Line1:   owner.Address.Line1,
+			Line2:   owner.Address.Line2,
+			City:    owner.Address.City,
+			State:   state,
+			ZipCode: owner.Address.ZipCode,
+			Country: ctry,
+		}
+	}
+
+	resp, err := a.b.External().CreateAccount(ctx, externalArgs)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
