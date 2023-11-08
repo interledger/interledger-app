@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
@@ -104,5 +105,68 @@ func CreateTransaction(ctx context.Context, b Backends, args xago.CreateTransact
 		LinkedAccountID: la.ID,
 		TransactionID:   args.TransactionID,
 		Amount:          args.Amount,
+	}, nil
+}
+
+func CreateBalanceAccount(ctx context.Context, b Backends, args xago.CreateBalanceAccArgs) (xago.Await, error) {
+	wo := client.StartWorkflowOptions{
+		ID:                       "xago_create_balance_acc_" + args.WalletID + "_" + args.Currency.String(),
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: 2 * time.Minute,
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateBalanceAccountWorkflow, args)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	return await.Get, nil
+}
+
+func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*xago.Balance, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	if la.Provider != xago.ProviderName || la.Type != xago.AccTypeBalance {
+		return nil, fmt.Errorf("%w linked account not correct type", xago.ErrNotFound)
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	if len(accs) != 0 {
+		return nil, fmt.Errorf("%w account not found", xago.ErrNotFound)
+	}
+
+	return &xago.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
 	}, nil
 }

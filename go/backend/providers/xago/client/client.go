@@ -4,7 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/pacioli"
+
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
@@ -26,6 +29,7 @@ type Backends interface {
 	Wallets() wallets.Client
 	Users() user.Client
 	KYC() kyc.Client
+	Pacioli() pacioli.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -45,16 +49,35 @@ type client struct {
 	b ops.Backends
 }
 
-func New(b Backends) xago.Client {
+func New(ctx context.Context, b Backends) (xago.Client, error) {
 	ex := external.New()
 	if env.IsLocal() {
 		ex = mock_client.SetupDevMock(nil)
 	}
 
+	// TODO: Move to migrate step in startup
+	_, err := b.Pacioli().ConfigureLedgers(ctx, []pacioli.ConfigureLedgerArgs{
+		{
+			ID:    xago.LedgerIDZAR,
+			Name:  "Xago ZAR Ledger",
+			Asset: currency.ZAR.String(),
+			Scale: uint8(currency.ZAR.Scale()),
+		},
+		{
+			ID:    xago.LedgerIDUSD,
+			Name:  "Xago USD Ledger",
+			Asset: currency.USD.String(),
+			Scale: uint8(currency.USD.Scale()),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &client{b: &opsBackends{
 		Backends: b,
 		xagoExt:  ex,
-	}}
+	}}, nil
 }
 
 func (c *client) WebhookHandler() http.HandlerFunc {
@@ -67,4 +90,12 @@ func (c *client) CreateBeneficiary(ctx context.Context, bankAcc xago.CreateBankA
 
 func (c *client) CreateTransaction(ctx context.Context, args xago.CreateTransactionArgs) (*xago.Transaction, error) {
 	return ops.CreateTransaction(ctx, c.b, args)
+}
+
+func (c *client) GetBalance(ctx context.Context, linkedAccountID string) (*xago.Balance, error) {
+	return ops.GetBalance(ctx, c.b, linkedAccountID)
+}
+
+func (c *client) CreateBalanceAccount(ctx context.Context, args xago.CreateBalanceAccArgs) (xago.Await, error) {
+	return ops.CreateBalanceAccount(ctx, c.b, args)
 }

@@ -100,6 +100,8 @@ import (
 	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 	wallet_handler "gitlab.com/fynbos/backend/wallets/handler"
 	"gitlab.com/fynbos/log"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -360,6 +362,11 @@ type backends struct {
 	rafiki         rafiki.Client
 	aws            aws.Client
 	xago           xago.Client
+	pac            pacioli.Client
+}
+
+func (b backends) Pacioli() pacioli.Client {
+	return b.pac
 }
 
 func (b backends) Xago() xago.Client {
@@ -673,7 +680,16 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 
 	b.rafiki = rafiki_client.New(b)
 
-	b.xago = xago_client.New(b)
+	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.pac = pacioli_client.NewLocal(pacDB)
+
+	b.xago, err = xago_client.New(context.Background(), b)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	return b
 }

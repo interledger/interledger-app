@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 
+	"gitlab.com/fynbos/pacioli"
+
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -52,6 +54,19 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		if err != nil {
 			log.Error("failed to unmarshal xago webhook", zap.Error(err))
 		}
+
+		b.Pacioli().CreateTransfers(r.Context(), []pacioli.CreateTransferArgs{
+			{
+				ID:              hook.TransactionID,
+				Amount:          0,
+				DebitAccountID:  "",
+				CreditAccountID: "",
+				Pending:         false,
+				Code:            0,
+				Timeout:         0,
+				Ledger:          0,
+			},
+		})
 
 		log.Info("xago webhook unsupported")
 		w.WriteHeader(http.StatusNotImplemented)

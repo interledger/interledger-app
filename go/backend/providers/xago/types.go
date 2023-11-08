@@ -10,6 +10,9 @@ var (
 	ProviderName   = "xago"
 	AccTypeBalance = "balance"
 	AccTypeBank    = "bank_account"
+
+	LedgerIDZAR uint32 = 9246927 // Spells xagozar on a Nokia 3310 keyboard
+	LedgerIDUSD uint32 = 9246873 // Spells xagousd on a Nokia 3320 keyboard
 )
 
 type Await func(ctx context.Context, result interface{}) error
@@ -49,10 +52,22 @@ type CreateTransactionArgs struct {
 	Amount          currency.Amount
 }
 
+type CreateBalanceAccArgs struct {
+	WalletID string
+	Nickname string
+	Title    string
+	Currency currency.Currency
+}
+
 type Transaction struct {
 	ID              string
 	WalletID        string
 	LinkedAccountID string
 	TransactionID   string
 	Amount          currency.Amount
+}
+
+type Balance struct {
+	Total     currency.Amount
+	Available currency.Amount
 }

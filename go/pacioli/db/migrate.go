@@ -20,15 +20,15 @@ import (
 
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
 
-func Migrate(ctx context.Context, connString string) error {
+func Migrate(ctx context.Context, connString string) (*sqlx.DB, error) {
 	_, moduleDir, _, ok := runtime.Caller(0)
 	if !ok {
-		return fmt.Errorf("Could not get directory path for utils/testing.")
+		return nil, fmt.Errorf("Could not get directory path for utils/testing.")
 	}
 
 	_, err := exec.LookPath("atlas")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	args := []string{
 		"schema",
@@ -44,12 +44,13 @@ func Migrate(ctx context.Context, connString string) error {
 
 	out, err := exec.CommandContext(ctx, "atlas", args...).CombinedOutput()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	log.Info("atlas output", zap.String("out", fmt.Sprintf("out: %s", out)))
 
-	return nil
+	// TODO:THe things where we connect to the DB and run the migration.
+	return nil, nil
 }
 
 func MigrateTestDB(t *testing.T, ctx context.Context) (string, *sqlx.DB) {
