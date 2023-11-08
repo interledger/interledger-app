@@ -5,7 +5,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
@@ -13,6 +13,7 @@ import {
   AlertBody,
   AlertTitle,
   AnchorRouter,
+  Autocomplete,
   Button,
   Card,
   CardButton,
@@ -34,7 +35,10 @@ import {
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
+import type {
+  Country,
+  PublicWalletInfo
+} from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -64,6 +68,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   })
   if (isConnectError(link)) throw link.errorResponse
 
+  let countriesRpc = await grpc.getCountries(request, {})
+
+  if (isConnectError(countriesRpc)) throw countriesRpc.errorResponse
+
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
   const publicWalletInfoResponse = await grpc.getPublicWalletInfo(request, {
     walletAddress: link.senderWalletUrl
@@ -80,7 +88,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   } else publicWalletInfo = publicWalletInfoResponse
 
-  return jsonWithCSRF(request, { ...link, publicWalletInfo })
+  return jsonWithCSRF(request, {
+    ...link,
+    publicWalletInfo,
+    countries: countriesRpc.countries
+  })
 }
 
 export default function Page() {
@@ -135,10 +147,41 @@ export default function Page() {
 }
 
 function PaymentLink() {
-  const { id, note, receiverIdentifier, publicWalletInfo, formattedAmount } =
-    useLoaderData<typeof loader>()
+  const {
+    id,
+    note,
+    receiverIdentifier,
+    publicWalletInfo,
+    formattedAmount,
+    countries
+  } = useLoaderData<typeof loader>()
   const [showDialog, setShowDialog] = useState<boolean>(false)
   const actionData = useActionData<typeof action>()
+
+  const [query, setQuery] = useState<string>('')
+  const [filteredCountries, setFilteredCountries] = useState(countries)
+  const [country, setCountry] = useState<PlainMessage<Country>>()
+
+  useEffect(() => {
+    if (query === '') setFilteredCountries(countries)
+    else {
+      setFilteredCountries(
+        countries.filter((country) => {
+          return (
+            country.name
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, '')) ||
+            country.id
+              .toLowerCase()
+              .replace(/\s+/g, '')
+              .includes(query.toLowerCase().replace(/\s+/g, ''))
+          )
+        })
+      )
+    }
+  }, [query, countries])
+
   return (
     <>
       <Form
@@ -228,6 +271,26 @@ function PaymentLink() {
           required
           errorMessage={actionData?.errors?.email}
         />
+        <Autocomplete
+          id='country'
+          value={country as Country}
+          onChange={setCountry}
+          onQuery={setQuery}
+          options={filteredCountries}
+          label='Country of residence'
+          className='mt-4'
+          aria-invalid={Boolean(actionData?.errors?.country) || undefined}
+          aria-describedby={
+            actionData?.errors?.country ? 'country-error' : undefined
+          }
+          errorMessage={actionData?.errors?.country}
+        />
+        <input
+          form='details'
+          value={String(country?.id)}
+          name='country'
+          type='hidden'
+        />
       </Card>
       <Button form='details' type='submit'>
         Continue
@@ -309,11 +372,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const firstName = String(form.get('firstName') || '')
   const lastName = String(form.get('lastName') || '')
   const email = String(form.get('email') || '')
+  const country = String(form.get('country') || '')
 
   let errors = {
     firstName: '',
     lastName: '',
-    email: ''
+    email: '',
+    country: ''
   }
 
   let ipAddress = await getClientIP(request)
@@ -322,7 +387,8 @@ export async function action({ request, params }: ActionFunctionArgs) {
     email,
     firstName,
     lastName,
-    ipAddress
+    ipAddress,
+    countryCode: country
   })
   if (isConnectError(tokenResponse)) {
     return tokenResponse.error({ errors }, {}, { action: 'Contact support' })
