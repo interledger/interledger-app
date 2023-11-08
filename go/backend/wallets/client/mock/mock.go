@@ -66,6 +66,21 @@ func (mr *MockClientMockRecorder) Create(ctx, args interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClient)(nil).Create), ctx, args)
 }
 
+// CreateAnonymous mocks base method.
+func (m *MockClient) CreateAnonymous(ctx context.Context, args wallets.CreateAnonymousArgs) (*wallets.Wallet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAnonymous", ctx, args)
+	ret0, _ := ret[0].(*wallets.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAnonymous indicates an expected call of CreateAnonymous.
+func (mr *MockClientMockRecorder) CreateAnonymous(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAnonymous", reflect.TypeOf((*MockClient)(nil).CreateAnonymous), ctx, args)
+}
+
 // ForContext mocks base method.
 func (m *MockClient) ForContext(ctx context.Context) (*wallets.Wallet, error) {
 	m.ctrl.T.Helper()

@@ -84,6 +84,39 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 	return Get(ctx, b, walletID)
 }
 
+func CreateAnonymous(ctx context.Context, b Backends, args wallets.CreateAnonymousArgs) (*wallets.Wallet, error) {
+	err := b.Validator().StructCtx(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	name := args.Name
+	if name == "" {
+		name = "default"
+	}
+
+	walletID := args.ID
+	if walletID == "" {
+		walletID = uuid.NewString()
+	}
+
+	result, err := b.DB().ExecContext(ctx, "INSERT INTO wallets (id, name, anonymous) VALUES ($1, $2, true)", walletID, name)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", wallets.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return nil, fmt.Errorf("%w Failed to insert anonymous wallet.", wallets.ErrInternal)
+	}
+
+	err = b.Keys().ProvisionPrivateKey(ctx, walletID)
+	if err != nil {
+		log.Error("could not provision private key", zap.Error(err))
+		return nil, err
+	}
+
+	return Get(ctx, b, walletID)
+}
+
 func AddAddress(ctx context.Context, b Backends, id, url string) (*wallets.Wallet, error) {
 	// Check if it already exists
 	w, err := GetFromAddress(ctx, b, url)
@@ -134,7 +167,7 @@ func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Walle
 func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 	var wallet wallets.Wallet
 	err := b.DB().GetContext(ctx, &wallet,
-		"SELECT id, name FROM wallets WHERE id=$1", id)
+		"SELECT id, name, anonymous FROM wallets WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wallets.ErrNoWalletFound
 	}

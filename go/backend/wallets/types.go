@@ -16,10 +16,16 @@ type CreateArgs struct {
 	Addresses []Address
 }
 
+type CreateAnonymousArgs struct {
+	ID   string `validate:"omitempty,uuid4"`
+	Name string
+}
+
 type Wallet struct {
 	ID        string
 	Name      string
 	Addresses []Address
+	Anonymous bool
 }
 
 func (w Wallet) AddressShortString() string {

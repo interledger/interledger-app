@@ -1,16 +1,14 @@
 import clsx from 'clsx'
 import type { HTMLAttributes } from 'react'
 import { forwardRef } from 'react'
+import { ChipColor } from './Chip'
 
 const Alert = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
+  ({ color = ChipColor.slate, className, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        className={clsx(
-          'flex w-full gap-x-2 rounded-lg bg-nav-active p-4',
-          className
-        )}
+        className={clsx('flex w-full gap-x-2 rounded-lg p-4', className, color)}
         {...props}
       />
     )

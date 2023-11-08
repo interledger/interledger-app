@@ -20,6 +20,7 @@ import {
 import type { SearchResult } from '~/generated/connect/backend/v1/backend_pb'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
+import { PaymentIdentityType } from '~/lib/types/payment'
 import type { searchLoader } from './route'
 
 export function Search() {
@@ -33,11 +34,7 @@ export function Search() {
   const [term, setTerm] = useState<string>('')
   const [results, setResults] = useState<PlainMessage<SearchResult>[]>([])
 
-  const [pushSnackbar, setLoading] = useScaffoldStore((state) => [
-    state.pushSnackbar,
-    state.setLoading
-  ])
-
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
   const _onChangeInput = useCallback<ChangeEventHandler<HTMLInputElement>>(
     (event) => {
       let term = event.target.value
@@ -59,7 +56,10 @@ export function Search() {
     <Combobox
       onChange={(result: PlainMessage<SearchResult>) => {
         submit.submit(
-          { walletUrl: result.walletUrl },
+          {
+            receiverIdentifier: result.walletUrl,
+            receiverIdentifierType: PaymentIdentityType.WalletURL
+          },
           {
             action: route('/pay'),
             method: 'POST'
@@ -92,18 +92,47 @@ export function Search() {
         />
       </Card>
       <Card>
-        <CardHeader>
-          <CardTitle>Results</CardTitle>
-        </CardHeader>
         {results.length == 0 && term.length < 3 && (
-          <CardContent>Type at least 3 characters to search.</CardContent>
-        )}
-        {results.length == 0 && term.length >= 3 && search.state == 'idle' && (
-          <CardContent>Your search returned no results.</CardContent>
+          <>
+            <CardHeader>
+              <CardTitle>Results</CardTitle>
+            </CardHeader>
+            <CardContent>Type at least 3 characters to search.</CardContent>
+          </>
         )}
         {results.length == 0 &&
           term.length >= 3 &&
-          search.state == 'loading' && <CardContent>Searching...</CardContent>}
+          search.state == 'loading' && (
+            <>
+              <CardHeader>
+                <CardTitle>Results</CardTitle>
+              </CardHeader>
+              <CardContent>Searching...</CardContent>
+            </>
+          )}
+        {results.length == 0 && term.length >= 3 && search.state == 'idle' && (
+          <CardButton
+            noHover
+            type='button'
+            className='items-center justify-between'
+            onClick={async () => {
+              setLoading(true)
+              submit.submit(
+                {
+                  receiverIdentifier: term,
+                  receiverIdentifierType: PaymentIdentityType.Unknown
+                },
+                {
+                  action: route('/pay'),
+                  method: 'POST'
+                }
+              )
+            }}
+          >
+            <span className='text-medium'>Send money to anyone</span>
+            <Icon className={'text-medium'}>navigate_next</Icon>
+          </CardButton>
+        )}
         <Combobox.Options static className='contents w-full'>
           {results.map((result: PlainMessage<SearchResult>) => {
             return (
@@ -165,45 +194,6 @@ export function Search() {
             )
           })}
         </Combobox.Options>
-      </Card>
-      <Card>
-        <CardContent>Or share this link with them to join Fynbos.</CardContent>
-        <CardButton
-          noHover
-          type='button'
-          className='items-center justify-between'
-          onClick={async () => {
-            if (typeof navigator.clipboard == 'undefined') {
-              pushSnackbar({
-                id: 'copy-to-clipboard-fail',
-                message: "Couldn't copy to clipboard.",
-                icon: 'close',
-                canShow: true
-              })
-            } else
-              navigator.clipboard.writeText('https://fynbos.app/signup').then(
-                () => {
-                  pushSnackbar({
-                    id: 'copy-signup-link',
-                    message: 'Sign up link copied to clipboard.',
-                    icon: 'close',
-                    canShow: true
-                  })
-                },
-                () => {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                }
-              )
-          }}
-        >
-          <span className='text-medium'>fynbos.app/signup</span>
-          <Icon className={'text-medium'}>content_copy</Icon>
-        </CardButton>
       </Card>
     </Combobox>
   )

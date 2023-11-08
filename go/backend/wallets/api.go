@@ -8,6 +8,7 @@ import (
 
 type Client interface {
 	Create(ctx context.Context, args CreateArgs) (*Wallet, error)
+	CreateAnonymous(ctx context.Context, args CreateAnonymousArgs) (*Wallet, error)
 	ForContext(ctx context.Context) (*Wallet, error)
 	Get(ctx context.Context, id string) (*Wallet, error)
 	List(ctx context.Context, userID string) ([]Wallet, error)

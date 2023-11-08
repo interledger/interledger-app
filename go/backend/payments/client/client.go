@@ -64,6 +64,30 @@ func (c client) SignalExternalPayoutComplete(ctx context.Context, id string, suc
 	return ops.SignalExternalPayoutComplete(ctx, c.b, id, success)
 }
 
+func (c client) CreatePaymentLink(ctx context.Context, id string) (*payments.PaymentLink, error) {
+	return ops.CreatePaymentLink(ctx, c.b, id)
+}
+
+func (c client) ConsumePaymentLink(ctx context.Context, args payments.ConsumePaymentLinkArgs) (*payments.PaymentLink, error) {
+	return ops.ConsumePaymentLink(ctx, c.b, args)
+}
+
+func (c client) GetPaymentLinkByToken(ctx context.Context, token string) (*payments.PaymentLink, error) {
+	return ops.GetPaymentLinkByToken(ctx, c.b, token)
+}
+
+func (c client) GetPaymentLink(ctx context.Context, id string) (*payments.PaymentLink, error) {
+	return ops.GetPaymentLink(ctx, c.b, id)
+}
+
+func (c client) GetPaymentLinkByPaymentID(ctx context.Context, id string) (*payments.PaymentLink, error) {
+	return ops.GetPaymentLinkByPaymentID(ctx, c.b, id)
+}
+
+func (c client) CompletePaymentLink(ctx context.Context, id, receiverLinkedAccountID string) (*payments.PaymentLink, error) {
+	return ops.CompletePaymentLink(ctx, c.b, id, receiverLinkedAccountID)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

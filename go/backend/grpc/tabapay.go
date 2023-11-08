@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/env"
 	"time"
+
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -99,6 +100,61 @@ func (s *rpcService) CreateCard(
 	}
 	if la.ID == "" {
 		return nil, toGRPCError(errors.New("Linked account not returned from create card workflow."))
+	}
+
+	return transformLinkedAccount(la), nil
+}
+
+func (s *rpcService) CreatePaymentLinkCard(
+	ctx context.Context, req *backendv1.CreatePaymentLinkCardReqeust,
+) (*backendv1.LinkedAccount, error) {
+	link, err := s.b.Payments().GetPaymentLinkByToken(ctx, req.GetToken())
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, NotFoundError("")
+	}
+	if errors.Is(err, payments.ErrPaymentLinkExpired) {
+		return nil, FailedPreconditionError("Payment expired")
+	}
+	if errors.Is(err, payments.ErrPaymentLinkCompleted) {
+		return nil, FailedPreconditionError("Payment already completed")
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
+		WalletID:           link.ReceiverWalletID,
+		BasisTheoryTokenID: req.GetBasisTheoryTokenId(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var la linkedaccounts.LinkedAccount
+	err = await(ctx, &la)
+	var applicationError *temporal.ApplicationError
+	if errors.As(err, &applicationError) {
+		switch applicationError.Type() {
+		case "ErrDuplicateCard":
+			return nil, AlreadyExistsError("ErrDuplicateCard")
+		case "ErrUnsupportedCard":
+			return nil, NewValidationError("CardNumber", "Your card is unsupported and cannot be connected to Fynbos.")
+		case "ErrUnsupportedCountry":
+			return nil, NewValidationError("CardNumber", "Your card originates from an unsupported country and cannot be connected to Fynbos.")
+		case "ErrMultiStatus":
+			return nil, UnavailableError("ErrMultiStatus")
+		}
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if la.ID == "" {
+		return nil, toGRPCError(errors.New("Linked account not returned from create card workflow."))
+	}
+
+	_, err = s.b.Payments().CompletePaymentLink(ctx, link.ID, la.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
 	}
 
 	return transformLinkedAccount(la), nil

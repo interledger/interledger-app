@@ -3,6 +3,7 @@ package payments
 import (
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 )
 
@@ -112,7 +113,7 @@ const (
 )
 
 func (i IdentityType) Valid() bool {
-	return i > IdentityTypeUnknown && i < identityTypeSentinel
+	return i >= IdentityTypeUnknown && i < identityTypeSentinel
 }
 
 type Identity struct {
@@ -175,4 +176,28 @@ const (
 	TypeReferral        Type = 3
 	TypeRafikiPeer2Peer Type = 4
 	TypeRafiki2External Type = 5
+)
+
+type (
+	PaymentLink struct {
+		ID                      string
+		PaymentID               string
+		CreatedAt               time.Time
+		UpdatedAt               time.Time
+		ExpiresAt               time.Time
+		CompletedAt             time.Time
+		ReceiverWalletID        string
+		ReceiverLinkedAccountID string
+		Token                   string
+		Email                   string
+	}
+
+	ConsumePaymentLinkArgs struct {
+		ID        string
+		FirstName string
+		LastName  string
+		Email     string
+		IpAddress string
+		Country   country.Country
+	}
 )
