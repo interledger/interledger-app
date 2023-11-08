@@ -77,6 +77,10 @@ export interface ConsumePaymentLinkRequest {
      * @generated from protobuf field: string ipAddress = 5;
      */
     ipAddress: string;
+    /**
+     * @generated from protobuf field: string countryCode = 6;
+     */
+    countryCode: string;
 }
 /**
  * @generated from protobuf message backend.v1.ConsumePaymentLinkResponse
@@ -2400,11 +2404,12 @@ class ConsumePaymentLinkRequest$Type extends MessageType<ConsumePaymentLinkReque
             { no: 2, name: "firstName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "lastName", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "email", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 5, name: "ipAddress", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<ConsumePaymentLinkRequest>): ConsumePaymentLinkRequest {
-        const message = { id: "", firstName: "", lastName: "", email: "", ipAddress: "" };
+        const message = { id: "", firstName: "", lastName: "", email: "", ipAddress: "", countryCode: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<ConsumePaymentLinkRequest>(this, message, value);
@@ -2429,6 +2434,9 @@ class ConsumePaymentLinkRequest$Type extends MessageType<ConsumePaymentLinkReque
                     break;
                 case /* string ipAddress */ 5:
                     message.ipAddress = reader.string();
+                    break;
+                case /* string countryCode */ 6:
+                    message.countryCode = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2457,6 +2465,9 @@ class ConsumePaymentLinkRequest$Type extends MessageType<ConsumePaymentLinkReque
         /* string ipAddress = 5; */
         if (message.ipAddress !== "")
             writer.tag(5, WireType.LengthDelimited).string(message.ipAddress);
+        /* string countryCode = 6; */
+        if (message.countryCode !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.countryCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

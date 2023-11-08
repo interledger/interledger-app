@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -488,6 +489,7 @@ func (s *rpcService) ConsumePaymentLink(ctx context.Context, req *pb.ConsumePaym
 		LastName:  req.GetLastName(),
 		Email:     req.GetEmail(),
 		IpAddress: req.GetIpAddress(),
+		Country:   country.ParseCountry(req.GetCountryCode()),
 	})
 	if errors.Is(err, payments.ErrPaymentLinkExpired) {
 		return nil, FailedPreconditionError("Payment expired")

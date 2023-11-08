@@ -3,6 +3,7 @@ package payments
 import (
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 )
 
@@ -197,5 +198,6 @@ type (
 		LastName  string
 		Email     string
 		IpAddress string
+		Country   country.Country
 	}
 )
