@@ -27,8 +27,7 @@ import {
   Router,
   SlackIcon,
   TextButton,
-  TwitterIcon,
-  UnknownIcon
+  TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { PublicWalletInfo } from '~/generated/connect/backend/v1/backend_pb'
@@ -277,7 +276,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           <CardButton noHover onClick={openDialog} disabled>
             <div className='flex w-full items-center justify-between text-medium'>
               <div className='flex space-x-2'>
-                <UnknownIcon />
+                <Icon className=''>account_circle</Icon>
                 <span>{transaction.title}</span>
               </div>
             </div>
