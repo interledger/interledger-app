@@ -13,6 +13,7 @@ import (
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -143,8 +144,17 @@ func CreateTabapayCardWorkflow(ctx workflow.Context, args tabapay.CreateCardArgs
 
 		for _, la := range las {
 			if la.WalletID != args.WalletID {
-				logger.Error("Duplicate card found.")
-				return nil, temporal.NewNonRetryableApplicationError("tabapay: Duplicate card.", "ErrDuplicateCard", nil)
+				var wallet wallets.Wallet
+				err = workflow.ExecuteActivity(ctx, a.GetWallet, la.WalletID).Get(ctx, &wallet)
+				if err != nil {
+					logger.Error("Failed to get wallet for linked account.", "walletID", la.WalletID)
+					return nil, err
+				}
+
+				if !wallet.Anonymous {
+					logger.Error("Duplicate card found.")
+					return nil, temporal.NewNonRetryableApplicationError("tabapay: Duplicate card.", "ErrDuplicateCard", nil)
+				}
 			} else {
 				return &la, nil
 			}

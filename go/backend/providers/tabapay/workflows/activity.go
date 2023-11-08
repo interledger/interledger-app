@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
 	mock_external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -210,4 +211,8 @@ func (a *Activity) ListLinkedAccountsByProviderID(ctx context.Context, provider,
 	}
 
 	return las, nil
+}
+
+func (a *Activity) GetWallet(ctx context.Context, id string) (*wallets.Wallet, error) {
+	return a.b.Wallets().Get(ctx, id)
 }
