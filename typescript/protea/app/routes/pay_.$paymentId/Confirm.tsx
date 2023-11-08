@@ -19,8 +19,7 @@ import {
   Dialog,
   Icon,
   TextButton,
-  TextField,
-  UnknownIcon
+  TextField
 } from '~/components'
 import { Label } from '~/components/Label'
 import type { action as otpAction } from '~/routes/api_.sendOtp'
@@ -82,7 +81,7 @@ export function Confirm() {
         <Card>
           <Label className='mt-2'>Receiver's name</Label>
           <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
-            <UnknownIcon />
+            <Icon>account_circle</Icon>
             <span>{payment.receiverIdentity}</span>
           </div>
         </Card>
