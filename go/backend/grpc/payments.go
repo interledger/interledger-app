@@ -435,23 +435,28 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 	}, nil
 }
 
+// This endpoint does not require any auth.
 func (s *rpcService) GetPaymentLink(ctx context.Context, req *pb.GetPaymentLinkRequest) (*pb.PaymentLink, error) {
 	link, err := s.b.Payments().GetPaymentLink(ctx, req.GetId())
-	if errors.Is(err, payments.ErrPaymentLinkExpired) {
-		return nil, FailedPreconditionError("Payment expired")
-	}
-	if errors.Is(err, payments.ErrPaymentLinkCompleted) {
-		return nil, FailedPreconditionError("Payment already completed")
-	}
 	if errors.Is(err, payments.ErrNotFound) {
-		return nil, NotFoundError("")
+		return &pb.PaymentLink{
+			Expired: true,
+		}, nil
 	}
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	if link.ReceiverWalletID != "" || link.Token != "" {
-		return nil, FailedPreconditionError("Link expired")
+	if !link.CompletedAt.IsZero() {
+		return &pb.PaymentLink{
+			Completed: true,
+		}, nil
+
+		// This link has already been consumed. We therefore show it as expired.
+	} else if link.ReceiverWalletID != "" || link.Token != "" {
+		return &pb.PaymentLink{
+			Expired: true,
+		}, nil
 	}
 
 	p, err := s.b.Payments().Lookup(ctx, link.PaymentID)
@@ -464,6 +469,7 @@ func (s *rpcService) GetPaymentLink(ctx context.Context, req *pb.GetPaymentLinkR
 		return nil, toGRPCError(err)
 	}
 
+	// Only return public information
 	return &pb.PaymentLink{
 		Id:                 link.ID,
 		FormattedAmount:    p.SenderAmount.Format(),
@@ -505,12 +511,6 @@ func (s *rpcService) Introspect(ctx context.Context, req *pb.IntrospectRequest) 
 	link, err := s.b.Payments().GetPaymentLinkByToken(ctx, req.GetToken())
 	if errors.Is(err, payments.ErrNotFound) {
 		return nil, NotFoundError("")
-	}
-	if errors.Is(err, payments.ErrPaymentLinkExpired) {
-		return nil, FailedPreconditionError("Payment expired")
-	}
-	if errors.Is(err, payments.ErrPaymentLinkCompleted) {
-		return nil, FailedPreconditionError("Payment already completed")
 	}
 	if err != nil {
 		return nil, toGRPCError(err)

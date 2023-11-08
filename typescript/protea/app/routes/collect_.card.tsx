@@ -42,8 +42,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const token = url.searchParams.get('token') || ''
   let link = await grpc.introspect(request, { token })
-
-  // TODO: exhaustive precondition failure handling
   if (isConnectError(link)) {
     throw link.errorResponse
   }
