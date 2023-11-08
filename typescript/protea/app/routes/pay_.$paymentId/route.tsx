@@ -307,6 +307,19 @@ export async function confirmPaymentAction({
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
+  if (response.receiverIdentityType == PaymentIdentityType.Unknown) {
+    return redirectWithSnackbar(
+      request,
+      route('/payments/:paymentId/share', {
+        paymentId: response.senderTransactionId
+      }),
+      {
+        message: 'Success. The link has been copied to your clipboard.',
+        icon: 'close'
+      }
+    )
+  }
+
   return redirectWithSnackbar(request, route('/'), {
     message: 'Payment created successfully.',
     icon: 'close'

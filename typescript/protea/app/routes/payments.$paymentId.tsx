@@ -115,7 +115,7 @@ export const handle: ApplicationProps = {
               nodes: (
                 <Chip color={ChipColor.orange}>
                   Pending
-                  {match.data.transaction.hasPaymentLink && ' Collection'}
+                  {match.data.transaction.hasPaymentLink && ' collection'}
                 </Chip>
               )
             }
