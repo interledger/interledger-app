@@ -95,8 +95,8 @@ function cleanupSongbirdScript(script: ScriptElt) {
   }
 
   if (typeof window !== 'undefined' && (window as any).Cardinal) {
-    ; (window as any).Cardinal.off('payments.setupComplete')
-      ; (window as any).Cardinal.off('payments.validated')
+    ;(window as any).Cardinal.off('payments.setupComplete')
+    ;(window as any).Cardinal.off('payments.validated')
     delete (window as any).Cardinal
   }
 }
@@ -440,12 +440,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (response.receiverIdentityType == PaymentIdentityType.Unknown) {
-    return redirectWithSnackbar(request, route('/payments/:paymentId/share', {
-      paymentId: response.senderTransactionId
-    }), {
-      message: 'Payment created successfully.',
-      icon: 'close'
-    })
+    return redirectWithSnackbar(
+      request,
+      route('/payments/:paymentId/share', {
+        paymentId: response.senderTransactionId
+      }),
+      {
+        message: 'Payment created successfully.',
+        icon: 'close'
+      }
+    )
   }
 
   return redirectWithSnackbar(request, route('/'), {
