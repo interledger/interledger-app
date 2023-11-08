@@ -140,8 +140,8 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
       typeof data == 'undefined'
         ? 'Payment'
         : data.transaction.type.includes('outgoing')
-          ? `${data.transaction.subtotal} to ${data.transaction.title}`
-          : `${data.transaction.formattedAmount} from ${data.transaction.title}`
+        ? `${data.transaction.subtotal} to ${data.transaction.title}`
+        : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
 ])
 

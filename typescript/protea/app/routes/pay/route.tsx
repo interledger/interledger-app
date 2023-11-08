@@ -115,8 +115,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { features, sendAccounts, fynbosEnv } =
-    useLoaderData<typeof payLoader>()
+  const { features, sendAccounts } = useLoaderData<typeof payLoader>()
 
   if (features && !features.sendEnabled)
     return (
@@ -178,7 +177,7 @@ export default function Page() {
       </Card>
     )
 
-  return <Search fynbosEnv={fynbosEnv} />
+  return <Search />
 }
 
 export async function action({ request }: ActionFunctionArgs) {
