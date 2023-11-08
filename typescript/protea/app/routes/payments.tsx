@@ -310,6 +310,11 @@ export default function Page() {
                       transaction.destinationIdentityType == 'Slack' && (
                         <SlackIcon />
                       )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'Unknown' && (
+                        <Icon>account_circle</Icon>
+                      )}
                     <div className='flex w-full flex-col space-y-1'>
                       <span className='truncate text-medium'>
                         {transaction.title}

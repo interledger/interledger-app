@@ -841,6 +841,11 @@ table "wallets" {
     null = false
     type = text
   }
+  column "anonymous" {
+    null = false
+    type = boolean
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamp
@@ -2804,6 +2809,63 @@ table "rafiki_incoming_payments" {
   }
   index "rafiki_incoming_payments_payment_pointers_id_idx" {
     columns = [column.payment_pointer_id]
+  }
+}
+
+table "payment_links" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "payment_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "expires_at" {
+    null    = false
+    type    = timestamp
+  }
+  column "completed_at" {
+    null    = true
+    type    = timestamp
+  }
+  column "receiver_wallet_id" {
+    null = true
+    type = uuid
+  }
+  column "receiver_linked_account_id" {
+    null = true
+    type = uuid
+  }
+  column "token" {
+    null = true
+    type = text
+  }
+  column "email" {
+    null = true
+    type = text
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "payment_links_payment_id_idx" {
+    columns = [column.payment_id]
+  }
+  index "payment_links_token_idx" {
+    unique = true
+    columns = [column.token]
   }
 }
 

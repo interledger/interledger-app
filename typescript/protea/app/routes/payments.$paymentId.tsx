@@ -112,7 +112,12 @@ export const handle: ApplicationProps = {
           case 'Pending':
             return {
               key: 'Pending',
-              nodes: <Chip color={ChipColor.orange}>Pending</Chip>
+              nodes: (
+                <Chip color={ChipColor.orange}>
+                  Pending
+                  {match.data.transaction.hasPaymentLink && ' collection'}
+                </Chip>
+              )
             }
           case 'Failed':
             return {
@@ -223,7 +228,6 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
   return (
     <>
       <Card>
@@ -243,28 +247,56 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
           </div>
         </CardContent>
         <Label className='mt-2'>Payment to</Label>
-        <CardButton noHover onClick={openDialog}>
-          <div className='flex w-full items-center justify-between text-medium'>
-            <div className='flex space-x-2'>
-              {transaction.destinationIdentityType === 'wallet' && (
-                <FynbosIcon />
-              )}
-              {transaction.destinationIdentityType === 'linkedin' && (
-                <TwitterIcon />
-              )}
-              {transaction.destinationIdentityType === 'twitter' && (
-                <LinkedInIcon />
-              )}
-              {transaction.destinationIdentityType === 'discord' && (
-                <DiscordIcon />
-              )}
-              {transaction.destinationIdentityType === 'slack' && <SlackIcon />}
-              <span>{transaction.title}</span>
+        {transaction.destinationIdentityType !== 'Unknown' && (
+          <CardButton noHover onClick={openDialog}>
+            <div className='flex w-full items-center justify-between text-medium'>
+              <div className='flex space-x-2'>
+                {transaction.destinationIdentityType === 'wallet' && (
+                  <FynbosIcon />
+                )}
+                {transaction.destinationIdentityType === 'linkedin' && (
+                  <TwitterIcon />
+                )}
+                {transaction.destinationIdentityType === 'twitter' && (
+                  <LinkedInIcon />
+                )}
+                {transaction.destinationIdentityType === 'discord' && (
+                  <DiscordIcon />
+                )}
+                {transaction.destinationIdentityType === 'slack' && (
+                  <SlackIcon />
+                )}
+                <span>{transaction.title}</span>
+              </div>
+              <Icon>navigate_next</Icon>
             </div>
-            <Icon>navigate_next</Icon>
-          </div>
-        </CardButton>
+          </CardButton>
+        )}
+        {transaction.destinationIdentityType === 'Unknown' && (
+          <CardButton noHover onClick={openDialog} disabled>
+            <div className='flex w-full items-center justify-between text-medium'>
+              <div className='flex space-x-2'>
+                <Icon className=''>account_circle</Icon>
+                <span>{transaction.title}</span>
+              </div>
+            </div>
+          </CardButton>
+        )}
       </Card>
+      {transaction.state == 'Pending' && transaction.hasPaymentLink && (
+        <Alert>
+          <Icon>schedule</Icon>
+          <AlertContent>
+            <AlertTitle>
+              Payment expires {transaction.formattedPaymentLinkExpiryDate}
+            </AlertTitle>
+            <AlertBody>
+              Uncollected payments will automatically be refunded on the date
+              indicated.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
+      )}
       {transaction.refundState == TransactionRefundState.PENDING && (
         <Alert>
           <Icon>error</Icon>
@@ -459,6 +491,64 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
             </div>
           </CardContent>
         </Card>
+      )}
+      {transaction.state == 'Pending' && transaction.hasPaymentLink && (
+        <>
+          <Card>
+            <CardContent className='space-y-2'>
+              <div className='flex w-full flex-col space-y-1'>
+                <span className='text-weak'>Share payment</span>
+                <CardButton
+                  noHover
+                  type='button'
+                  onClick={() => {
+                    if (typeof navigator.share == 'undefined') {
+                      navigator.clipboard
+                        .writeText(transaction.paymentLinkUrl)
+                        .then(
+                          () => {
+                            pushSnackbar({
+                              id: 'copy-wallet-address-success',
+                              message:
+                                'The link has been copied to your clipboard.',
+                              icon: 'close',
+                              canShow: true
+                            })
+                          },
+                          () => {
+                            pushSnackbar({
+                              id: 'copy-to-clipboard-fail',
+                              message: "Couldn't copy to clipboard.",
+                              icon: 'close',
+                              canShow: true
+                            })
+                          }
+                        )
+                    } else navigator.share({ url: transaction.paymentLinkUrl })
+                  }}
+                  className='items-center justify-between'
+                >
+                  <span className='text-left font-medium text-medium'>
+                    {transaction.paymentLinkUrl}
+                  </span>
+                  <Icon className='text-medium'>share</Icon>
+                </CardButton>
+              </div>
+            </CardContent>
+          </Card>
+          <Alert>
+            <Icon>notification_important</Icon>
+            <AlertContent>
+              <AlertTitle>
+                Only share the payment with the intended receiver
+              </AlertTitle>
+              <AlertBody>
+                Anyone with the link can collect the payment, therefore only
+                share it with the intended receiver.
+              </AlertBody>
+            </AlertContent>
+          </Alert>
+        </>
       )}
     </>
   )

@@ -12,6 +12,8 @@ import (
 	mock_bt "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	mock_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	mock_wallets "gitlab.com/fynbos/backend/wallets/client/mock"
 )
 
 type Backends interface {
@@ -21,6 +23,7 @@ type Backends interface {
 	BasisTheory() basistheory.Client
 	DB() *sqlx.DB
 	AWS() aws.Client
+	Wallets() wallets.Client
 }
 
 type InputBackends interface {
@@ -29,6 +32,7 @@ type InputBackends interface {
 	LinkedAccounts() linkedaccounts.Client
 	BasisTheory() basistheory.Client
 	AWS() aws.Client
+	Wallets() wallets.Client
 }
 
 type backends struct {
@@ -47,6 +51,7 @@ type TestBackends struct {
 	Linkedaccounts *linkedaccount_mock.MockClient
 	Basistheory    *mock_bt.MockClient
 	AwsCliet       *aws_mock.MockClient
+	Wc             *mock_wallets.MockClient
 }
 
 func (tb *TestBackends) AWS() aws.Client {
@@ -71,6 +76,10 @@ func (tb *TestBackends) KYC() kyc.Client {
 
 func (tb *TestBackends) LinkedAccounts() linkedaccounts.Client {
 	return tb.Linkedaccounts
+}
+
+func (tb *TestBackends) Wallets() wallets.Client {
+	return tb.Wc
 }
 
 func NewTestBackends(opts ...func(b *TestBackends)) *TestBackends {

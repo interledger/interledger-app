@@ -7,6 +7,10 @@ import {
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import {
+  Alert,
+  AlertBody,
+  AlertContent,
+  AlertTitle,
   Button,
   Card,
   CardContent,
@@ -21,6 +25,7 @@ import { Label } from '~/components/Label'
 import type { action as otpAction } from '~/routes/api_.sendOtp'
 
 import { DateTime } from 'luxon'
+import { PaymentIdentityType } from '~/lib/types/payment'
 import { PaymentDetailsCard } from './PaymentDetailsCard'
 import type { confirmPaymentAction, loader } from './route'
 
@@ -69,7 +74,18 @@ export function Confirm() {
         type='hidden'
       />
 
-      <PaymentDetailsCard />
+      {payment.receiverIdentityType !== PaymentIdentityType.Unknown && (
+        <PaymentDetailsCard />
+      )}
+      {payment.receiverIdentityType === PaymentIdentityType.Unknown && (
+        <Card>
+          <Label className='mt-2'>Receiver's name</Label>
+          <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
+            <Icon>account_circle</Icon>
+            <span>{payment.receiverIdentity}</span>
+          </div>
+        </Card>
+      )}
       <Card>
         <CardContent>
           <div className='flex w-full justify-between'>
@@ -140,6 +156,18 @@ export function Confirm() {
           </Checkbox>
         </CardContent>
       </Card>
+      {payment.receiverIdentityType === PaymentIdentityType.Unknown && (
+        <Alert>
+          <Icon>keyboard_double_arrow_right</Icon>
+          <AlertContent>
+            <AlertTitle>What happens next</AlertTitle>
+            <AlertBody>
+              After you confirm the payment, your card will be debited and you
+              will be given a link to share with {payment.receiverIdentity}.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
+      )}
       {requiresOTP && (
         <Button form='pay-phone-otp' type='submit'>
           Confirm payment

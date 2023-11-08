@@ -22,6 +22,7 @@ import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { PaymentIdentityType } from '~/lib/types/payment'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { ScriptElt } from '~/lib/useScript'
 import { useScript } from '~/lib/useScript'
@@ -434,6 +435,19 @@ export async function action({ request }: ActionFunctionArgs) {
       {
         message: 'There was an error processing your payment.',
         action: 'Contact support'
+      }
+    )
+  }
+
+  if (response.receiverIdentityType == PaymentIdentityType.Unknown) {
+    return redirectWithSnackbar(
+      request,
+      route('/payments/:paymentId/share', {
+        paymentId: response.senderTransactionId
+      }),
+      {
+        message: 'Success. The link has been copied to your clipboard.',
+        icon: 'close'
       }
     )
   }

@@ -575,15 +575,15 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 		gender = "Female"
 	}
 
-	var address string
+	var addressDetails kyc.Address
 	if recvID.Address != nil {
-		address = recvID.Address.String()
+		addressDetails = *recvID.Address
 	}
 	return &external.WsReceiver{
-		ReceiverAddress:             address,
+		ReceiverAddress:             addressDetails.String(),
 		ReceiverBirthDate:           external.GMTDate(recvID.DateOfBirth),
-		ReceiverCity:                recvID.Address.City,
-		ReceiverCountry:             recvID.Address.CountryCode,
+		ReceiverCity:                addressDetails.City,
+		ReceiverCountry:             addressDetails.CountryCode,
 		ReceiverCurrency:            "USD",
 		ReceiverEmail:               recvUsers[0].Email,
 		ReceiverGender:              gender,
@@ -591,11 +591,51 @@ func receiverFromWallet(ctx context.Context, b Backends, walletID string) (*exte
 		ReceiverLastName:            recvID.LastName,
 		ReceiverMobile:              recvUsers[0].PhoneNumber,
 		ReceiverName:                recvID.FirstName,
-		ReceiverState:               recvID.Address.State,
-		ReceiverZip:                 recvID.Address.ZipCode,
+		ReceiverState:               addressDetails.State,
+		ReceiverZip:                 addressDetails.ZipCode,
 		SenderID:                    int32(sid),
 		ReceiverCountryNationallity: recvID.Nationality,
 		ReceiverPOB:                 recvID.PlaceOfBirth,
+	}, nil
+}
+
+func receiverFromPaymentLink(ctx context.Context, b Backends, id string) (*external.WsReceiver, error) {
+	link, err := b.Payments().GetPaymentLink(ctx, id)
+	if err != nil {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	recvID, err := b.KYC().GetIndividualDetails(ctx, link.ReceiverWalletID)
+	if errors.Is(err, kyc.ErrNoKYCInfo) {
+		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	sid, err := getSenderID(ctx, b, link.ReceiverWalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	rid, err := getReceiverID(ctx, b, link.ReceiverWalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	gender := "Male"
+	if recvID.Gender == kyc.GenderFemale {
+		gender = "Female"
+	}
+
+	return &external.WsReceiver{
+		ReceiverBirthDate: external.GMTDate(recvID.DateOfBirth),
+		ReceiverCurrency:  "USD",
+		ReceiverEmail:     link.Email,
+		ReceiverGender:    gender,
+		ReceiverId:        int32(rid),
+		ReceiverLastName:  recvID.LastName,
+		ReceiverName:      recvID.FirstName,
+		SenderID:          int32(sid),
 	}, nil
 }
 
@@ -633,12 +673,12 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		return nil, err
 	}
 
-	var address string
+	var addressDetails kyc.Address
 	if senderID.Address != nil {
-		address = senderID.Address.String()
+		addressDetails = *senderID.Address
 	}
 	sender := &external.WsSender{
-		SenderAddress:               address,
+		SenderAddress:               addressDetails.String(),
 		SenderAddressStreet:         senderID.Address.Apartment,
 		SenderBirthDate:             external.GMTDate(senderID.DateOfBirth),
 		SenderCity:                  senderID.Address.City,
@@ -653,14 +693,14 @@ func senderFromWallet(ctx context.Context, b Backends, args providers.TransfersA
 		SenderLastName:              senderID.LastName,
 		SenderMobile:                senderUsers[0].PhoneNumber,
 		SenderName:                  senderID.FirstName,
-		SenderResidenceAddress:      address,
-		SenderResidenceAddressExtra: senderID.Address.Apartment,
-		SenderResidenceCity:         senderID.Address.City,
-		SenderResidenceCountryCode:  senderID.Address.CountryCode,
-		SenderResidenceState:        senderID.Address.State,
-		SenderResidenceZip:          senderID.Address.ZipCode,
-		SenderState:                 senderID.Address.State,
-		SenderZip:                   senderID.Address.ZipCode,
+		SenderResidenceAddress:      addressDetails.String(),
+		SenderResidenceAddressExtra: addressDetails.Apartment,
+		SenderResidenceCity:         addressDetails.City,
+		SenderResidenceCountryCode:  addressDetails.CountryCode,
+		SenderResidenceState:        addressDetails.State,
+		SenderResidenceZip:          addressDetails.ZipCode,
+		SenderState:                 addressDetails.State,
+		SenderZip:                   addressDetails.ZipCode,
 		SenderCountryNationallity:   senderID.Nationality,
 		SenderPOB:                   senderID.PlaceOfBirth,
 	}

@@ -12,6 +12,9 @@ declare module "routes-gen" {
     "/api/sendOtp": Record<string, never>;
     "/blog": Record<string, never>;
     "/blog/:slug": { "slug": string };
+    "/collect/:linkId": { "linkId": string };
+    "/collect/card": Record<string, never>;
+    "/collect/success": Record<string, never>;
     "/collectables": Record<string, never>;
     "/connect/bank": Record<string, never>;
     "/connect/card": Record<string, never>;
@@ -39,6 +42,7 @@ declare module "routes-gen" {
     "/pay/3ds": Record<string, never>;
     "/payments": Record<string, never>;
     "/payments/:paymentId": { "paymentId": string };
+    "/payments/:paymentId/share": { "paymentId": string };
     "/personal-details": Record<string, never>;
     "/recovery": Record<string, never>;
     "/recovery/password": Record<string, never>;
@@ -81,6 +85,9 @@ declare module "routes-gen" {
       | ["/api/sendOtp"]
       | ["/blog"]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
+      | ["/collect/:linkId", RouteParams["/collect/:linkId"]]
+      | ["/collect/card"]
+      | ["/collect/success"]
       | ["/collectables"]
       | ["/connect/bank"]
       | ["/connect/card"]
@@ -108,6 +115,7 @@ declare module "routes-gen" {
       | ["/pay/3ds"]
       | ["/payments"]
       | ["/payments/:paymentId", RouteParams["/payments/:paymentId"]]
+      | ["/payments/:paymentId/share", RouteParams["/payments/:paymentId/share"]]
       | ["/personal-details"]
       | ["/recovery"]
       | ["/recovery/password"]

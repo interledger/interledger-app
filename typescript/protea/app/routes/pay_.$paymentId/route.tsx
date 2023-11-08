@@ -40,33 +40,13 @@ import { getClientIP } from '~/lib/ip.server'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { PaymentIdentityType, PaymentRequiredAction } from '~/lib/types/payment'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { KycStatus } from '~/routes/_index/route'
 import styles from '~/styles/flags.css'
 import { Amount } from './Amount'
 import { Confirm } from './Confirm'
-
-export enum PaymentRequiredAction {
-  Unknown,
-  ThreeDS,
-  SenderIdentifier,
-  SenderAccount,
-  ReceiverIdentifier,
-  SenderAmount,
-  ReceiverAmount,
-  OTP,
-  IPAddress
-}
-export enum PaymentIdentityType {
-  Unknown,
-  Twitter,
-  WalletID,
-  WalletURL,
-  Slack,
-  Discord,
-  Sentinel // End of range value must be last, no need to public
-}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let account: FormattedLinkedAccount
@@ -324,6 +304,19 @@ export async function confirmPaymentAction({
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
+  if (response.receiverIdentityType == PaymentIdentityType.Unknown) {
+    return redirectWithSnackbar(
+      request,
+      route('/payments/:paymentId/share', {
+        paymentId: response.senderTransactionId
+      }),
+      {
+        message: 'Success. The link has been copied to your clipboard.',
+        icon: 'close'
+      }
+    )
+  }
+
   return redirectWithSnackbar(request, route('/'), {
     message: 'Payment created successfully.',
     icon: 'close'
@@ -351,6 +344,7 @@ export async function updatePaymentAction({
   const note = String(form.get('note') || '')
   const accountId = String(form.get('accountId') || '')
   const intent = form.get('intent') as string
+  const unknownReceiverName = String(form.get('unknownReceiverName') || '')
 
   const sendToSubmit = stringToBigInt(send)
   const receiveToSubmit = stringToBigInt(receive)
@@ -359,7 +353,8 @@ export async function updatePaymentAction({
     form: '',
     amount: '',
     linkedAccount: '',
-    note: ''
+    note: '',
+    unknownReceiverName: ''
   }
 
   if (intent == 'submit' && sendToSubmit == 0n) {
@@ -369,7 +364,7 @@ export async function updatePaymentAction({
 
   const clientIpAddress = getClientIP(request)
 
-  let senderAmount, receiverAmount
+  let senderAmount, receiverAmount, receiverIdentity, receiverIdentityType
   if (send != '') {
     senderAmount = {
       amount: sendToSubmit,
@@ -384,6 +379,10 @@ export async function updatePaymentAction({
       asset: 'USD'
     }
   }
+  if (unknownReceiverName != '') {
+    receiverIdentity = unknownReceiverName
+    receiverIdentityType = PaymentIdentityType.Unknown
+  }
 
   let response = await grpc.updatePayment(request, {
     id: params.paymentId,
@@ -392,7 +391,9 @@ export async function updatePaymentAction({
     addPaymentProtection: hasPaymentProtection == 'true',
     senderAmount,
     receiverAmount,
-    ipAddress: clientIpAddress
+    ipAddress: clientIpAddress,
+    receiverIdentity,
+    receiverIdentityType
   })
 
   if (isConnectError(response)) {

@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/backend/limits"
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
 
 	"gitlab.com/fynbos/backend/twilio"
 
@@ -428,5 +431,124 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		PaymentProtectionAmount: paymentProtection.Format(),
 		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
 		ReceiverAmount:          p.ReceiverAmount.ToPB(),
+		SenderTransactionId:     p.SendTransactionID,
+	}, nil
+}
+
+// This endpoint does not require any auth.
+func (s *rpcService) GetPaymentLink(ctx context.Context, req *pb.GetPaymentLinkRequest) (*pb.PaymentLink, error) {
+	link, err := s.b.Payments().GetPaymentLink(ctx, req.GetId())
+	if errors.Is(err, payments.ErrNotFound) {
+		return &pb.PaymentLink{
+			Expired: true,
+		}, nil
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if !link.CompletedAt.IsZero() {
+		return &pb.PaymentLink{
+			Completed: true,
+		}, nil
+
+		// This link has already been consumed. We therefore show it as expired.
+	} else if link.ReceiverWalletID != "" || link.Token != "" {
+		return &pb.PaymentLink{
+			Expired: true,
+		}, nil
+	}
+
+	p, err := s.b.Payments().Lookup(ctx, link.PaymentID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	senderWallet, err := s.b.Wallets().Get(ctx, p.Sender.Identifier)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	// Only return public information
+	return &pb.PaymentLink{
+		Id:                 link.ID,
+		FormattedAmount:    p.SenderAmount.Format(),
+		Note:               p.Note,
+		SenderWalletUrl:    senderWallet.AddressString(),
+		ReceiverIdentifier: p.Receiver.Identifier,
+		Expired:            time.Now().After(link.ExpiresAt),
+		Completed:          !link.CompletedAt.IsZero(),
+	}, nil
+}
+
+func (s *rpcService) ConsumePaymentLink(ctx context.Context, req *pb.ConsumePaymentLinkRequest) (*pb.ConsumePaymentLinkResponse, error) {
+	consumedLink, err := s.b.Payments().ConsumePaymentLink(ctx, payments.ConsumePaymentLinkArgs{
+		ID:        req.GetId(),
+		FirstName: req.GetFirstName(),
+		LastName:  req.GetLastName(),
+		Email:     req.GetEmail(),
+		IpAddress: req.GetIpAddress(),
+	})
+	if errors.Is(err, payments.ErrPaymentLinkExpired) {
+		return nil, FailedPreconditionError("Payment expired")
+	}
+	if errors.Is(err, payments.ErrPaymentLinkCompleted) {
+		return nil, FailedPreconditionError("Payment already completed")
+	}
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, NotFoundError("")
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.ConsumePaymentLinkResponse{
+		Token: consumedLink.Token,
+	}, nil
+}
+
+func (s *rpcService) Introspect(ctx context.Context, req *pb.IntrospectRequest) (*pb.PaymentLink, error) {
+	link, err := s.b.Payments().GetPaymentLinkByToken(ctx, req.GetToken())
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, NotFoundError("")
+	}
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if link.ReceiverWalletID == "" {
+		log.Error("Payment link has token but no receiver wallet id", zap.String("paymentLinkID", link.ID))
+		return nil, InternalError("Failed to introspect token")
+	}
+
+	p, err := s.b.Payments().Lookup(ctx, link.PaymentID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var accountMask string
+	if link.ReceiverLinkedAccountID != "" {
+		la, err := s.b.LinkedAccounts().Get(ctx, link.ReceiverLinkedAccountID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+		accountMask = la.Mask
+	}
+
+	senderWallet, err := s.b.Wallets().Get(ctx, p.Sender.Identifier)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.PaymentLink{
+		Id:                 link.ID,
+		ReceiverWalletId:   link.ReceiverWalletID,
+		ReceiverIdentifier: p.Receiver.Identifier,
+		Expired:            time.Now().After(link.ExpiresAt),
+		Completed:          !link.CompletedAt.IsZero(),
+		SenderWalletUrl:    senderWallet.AddressString(),
+		Note:               p.Note,
+		FormattedAmount:    p.SenderAmount.Format(),
+		Mask:               accountMask,
 	}, nil
 }

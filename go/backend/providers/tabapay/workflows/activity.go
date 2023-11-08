@@ -15,6 +15,9 @@ import (
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/tabapay/external"
 	external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client"
+	mock_external_client "gitlab.com/fynbos/backend/providers/tabapay/external/client/mock"
+	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
@@ -36,9 +39,15 @@ func NewActivity(cb InputBackends) *Activity {
 		),
 	}
 
-	externalClient, err := external_client.New(clientArgs)
-	if err != nil {
-		log.Fatal("Failed to create Tabapay activity.", zap.Error(err))
+	var externalClient external.Client
+	if env.IsLocal() {
+		externalClient = mock_external_client.SetupDevMock(nil)
+	} else {
+		c, err := external_client.New(clientArgs)
+		if err != nil {
+			log.Fatal("Failed to create Tabapay activity.", zap.Error(err))
+		}
+		externalClient = c
 	}
 
 	return &Activity{b: &backends{
@@ -100,26 +109,8 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
-	if owner.Address == nil {
-		return nil, fmt.Errorf("%w require address for wallet.", tabapay.ErrInternal)
-	}
 
-	ctry, err := country.Country(owner.Address.CountryCode).Numeric()
-	if err != nil {
-		err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
-		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
-	}
-	if !country.Country(owner.Address.CountryCode).IsSupported() {
-		err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
-		return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
-	}
-	stateParts := strings.Split(owner.Address.State, "-")
-	state := stateParts[0]
-	if len(stateParts) == 2 {
-		state = stateParts[1]
-	}
-
-	resp, err := a.b.External().CreateAccount(ctx, external.CreateAccountArgs{
+	externalArgs := external.CreateAccountArgs{
 		RejectDuplicateCard:  args.RejectDuplicateCard,
 		OKToAddDuplicateCard: !args.RejectDuplicateCard,
 		ReferenceID:          args.ReferenceID,
@@ -132,16 +123,38 @@ func (a *Activity) CreateExternalCard(ctx context.Context, args CreateExternalCa
 				First: owner.FirstName,
 				Last:  owner.LastName,
 			},
-			Address: &external.Address{
-				Line1:   owner.Address.Line1,
-				Line2:   owner.Address.Line2,
-				City:    owner.Address.City,
-				State:   state,
-				ZipCode: owner.Address.ZipCode,
-				Country: ctry,
-			},
 		},
-	})
+	}
+
+	if args.AddAddress && owner.Address == nil {
+		log.Warn("no address found in kyc. Address will not be submitted to Tabapay.", zap.String("walletID", args.WalletID))
+	} else if args.AddAddress {
+		ctry, err := country.Country(owner.Address.CountryCode).Numeric()
+		if err != nil {
+			err = fmt.Errorf("%w invalid country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+			return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
+		}
+		if !country.Country(owner.Address.CountryCode).IsSupported() {
+			err = fmt.Errorf("%w unsupported country=%s", tabapay.ErrInternal, owner.Address.CountryCode)
+			return nil, temporal.NewNonRetryableApplicationError("tabapay: Unsupported country.", "ErrUnsupportedCountry", err)
+		}
+		stateParts := strings.Split(owner.Address.State, "-")
+		state := stateParts[0]
+		if len(stateParts) == 2 {
+			state = stateParts[1]
+		}
+
+		externalArgs.Owner.Address = &external.Address{
+			Line1:   owner.Address.Line1,
+			Line2:   owner.Address.Line2,
+			City:    owner.Address.City,
+			State:   state,
+			ZipCode: owner.Address.ZipCode,
+			Country: ctry,
+		}
+	}
+
+	resp, err := a.b.External().CreateAccount(ctx, externalArgs)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", tabapay.ErrInternal, err)
 	}
@@ -198,4 +211,8 @@ func (a *Activity) ListLinkedAccountsByProviderID(ctx context.Context, provider,
 	}
 
 	return las, nil
+}
+
+func (a *Activity) GetWallet(ctx context.Context, id string) (*wallets.Wallet, error) {
+	return a.b.Wallets().Get(ctx, id)
 }

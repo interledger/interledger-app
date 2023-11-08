@@ -12,6 +12,12 @@ type Client interface {
 	SignalIdentityCreated(ctx context.Context, identifier string) error
 	SignalAccountLinked(ctx context.Context, walletID string) error
 	SignalExternalPayoutComplete(ctx context.Context, id string, success bool) error
+	CreatePaymentLink(ctx context.Context, id string) (*PaymentLink, error)
+	ConsumePaymentLink(ctx context.Context, args ConsumePaymentLinkArgs) (*PaymentLink, error)
+	GetPaymentLink(ctx context.Context, id string) (*PaymentLink, error)
+	GetPaymentLinkByToken(ctx context.Context, token string) (*PaymentLink, error)
+	GetPaymentLinkByPaymentID(ctx context.Context, id string) (*PaymentLink, error)
+	CompletePaymentLink(ctx context.Context, id string, receiverLinkedAccountID string) (*PaymentLink, error)
 
 	AdminListAwaitingSignal(ctx context.Context) ([]Payment, error)
 }
