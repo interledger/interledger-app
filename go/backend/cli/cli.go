@@ -11,16 +11,22 @@ import (
 )
 
 type MigrationArgs struct {
-	ConnectionString string
-	KratosUrl        string
-	LogLevel         string
-	LogOutputPath    string
+	ConnectionString        string
+	PacioliConnectionString string
+	KratosUrl               string
+	LogLevel                string
+	LogOutputPath           string
 }
 
 func ParseMigrationArgs() (*MigrationArgs, error) {
 	dbUrl := os.Getenv("DB_URL_WITH_CERTS")
 	if dbUrl == "" {
 		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
+	}
+
+	pacDB := os.Getenv("PACIOLI_DB_URL_WITH_CERTS")
+	if pacDB == "" {
+		dbUrl = "cockroach://backend@cockroachdb-public:26257/pacioli?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
 
 	kratosUrl := os.Getenv("KRATOS_URL")
@@ -37,10 +43,11 @@ func ParseMigrationArgs() (*MigrationArgs, error) {
 	}
 
 	return &MigrationArgs{
-		ConnectionString: dbUrl,
-		KratosUrl:        kratosUrl,
-		LogLevel:         logLevel,
-		LogOutputPath:    logOutputPath,
+		ConnectionString:        dbUrl,
+		KratosUrl:               kratosUrl,
+		LogLevel:                logLevel,
+		LogOutputPath:           logOutputPath,
+		PacioliConnectionString: pacDB,
 	}, nil
 }
 
@@ -48,6 +55,7 @@ type StartArgs struct {
 	Port                       string
 	AuthorisationPort          string
 	DbConnectionString         string
+	PacioliDBConString         string
 	KratosUrl                  string
 	KratosAdminUrl             string
 	LogLevel                   string
@@ -104,6 +112,11 @@ func ParseStartArgs() (*StartArgs, error) {
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		dbUrl = "cockroach://backend@cockroachdb-public:26257/backend?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
+	}
+
+	pacDB := os.Getenv("PACIOLI_DB_URL_WITH_CERTS")
+	if pacDB == "" {
+		dbUrl = "cockroach://backend@cockroachdb-public:26257/pacioli?sslmode=verify-full&sslrootcert=/cockroach-certs/ca.crt&sslcert=/cockroach-certs/client.backend.crt&sslkey=/cockroach-certs/client.backend.key&max_conns=20&max_idle_conns=4"
 	}
 
 	kratosUrl := os.Getenv("KRATOS_URL")
@@ -198,6 +211,7 @@ func ParseStartArgs() (*StartArgs, error) {
 		Port:                       port,
 		AuthorisationPort:          authorisationPort,
 		DbConnectionString:         dbUrl,
+		PacioliDBConString:         pacDB,
 		KratosUrl:                  kratosUrl,
 		KratosAdminUrl:             kratosAdminUrl,
 		LogLevel:                   logLevel,

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/pacioli"
+
 	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
 
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -107,7 +109,8 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	require.NoError(t, err)
 	b.tabapay = tc
 
-	b.xgo = xago_client.New(b)
+	b.xgo, err = xago_client.New(b)
+	require.NoError(t, err)
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
@@ -155,6 +158,10 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.CreateReferralsWorkflow)
 
 	b.env = env
+}
+
+func (b *TestBackends) Pacioli() pacioli.Client {
+	return nil
 }
 
 func (b *TestBackends) Xago() xago.Client {

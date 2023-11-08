@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"gitlab.com/fynbos/pacioli"
+
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 
@@ -78,6 +80,130 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*exte
 	return a.b.External().CreateSubAccount(ctx, ul[0], *id, *idNum)
 }
 
+func CreateBalanceAccountWorkflow(ctx workflow.Context, args xago.CreateBalanceAccArgs) (*linkedaccounts.LinkedAccount, error) {
+	var a *Activity
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Second,
+	}
+
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	logger := workflow.GetLogger(ctx)
+	logger.Info("Creating xago beneficiary.")
+
+	var hasSubAcc bool
+	err := workflow.ExecuteActivity(ctx, a.WalletHasSubAccount, args.WalletID).Get(ctx, &hasSubAcc)
+	if err != nil {
+		return nil, err
+	}
+
+	if !hasSubAcc {
+		var subAcc external.SubAccount
+		err = workflow.ExecuteActivity(ctx, a.CreateSubAccount, args.WalletID).Get(ctx, &subAcc)
+		if err != nil {
+			return nil, err
+		}
+
+		var accID string
+		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+			return uuid.NewString()
+		}).Get(&accID)
+		if err != nil {
+			logger.Error("error generating sub account ID as side effect", "Error", err)
+			return nil, err
+		}
+
+		err = workflow.ExecuteActivity(ctx, a.SaveSubAccount, args.WalletID, accID, subAcc).Get(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var laID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&laID)
+	if err != nil {
+		logger.Error("error generating linked account ID as side effect for xago beneficiary", "Error", err)
+		return nil, err
+	}
+
+	var la linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(ctx, a.AddBalanceLinkedAccount, laID, args).Get(ctx, &la)
+	if err != nil {
+		return nil, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddBalanceAccount, laID, args).Get(ctx, nil)
+
+	return &la, err
+}
+
+func (a *Activity) AddBalanceAccount(ctx context.Context, id string, args xago.CreateBalanceAccArgs) error {
+
+	ledgerID := xago.LedgerIDUSD
+	if args.Currency == currency.ZAR {
+		ledgerID = xago.LedgerIDZAR
+	}
+
+	accs, err := a.b.Pacioli().ConfigureAccounts(ctx, []pacioli.ConfigureAccountArgs{
+		{
+			ID:                         id,
+			LedgerID:                   ledgerID,
+			Code:                       1,
+			DebitsMustNotExceedCredits: true,
+			CreditsMustNotExceedDebits: false,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(accs) != 1 {
+		return fmt.Errorf("%w failed to setup accounts", xago.ErrInternal)
+	}
+
+	if accs[0].Code != pacioli.AccountOK {
+		return fmt.Errorf("%w failed to setup account status(%s)", xago.ErrInternal, accs[0].Code)
+	}
+
+	return nil
+}
+
+func (a *Activity) AddBalanceLinkedAccount(ctx context.Context, id string, args xago.CreateBalanceAccArgs) (*linkedaccounts.LinkedAccount, error) {
+	la, _ := a.b.LinkedAccounts().Get(ctx, id)
+	if la != nil {
+		return la, nil
+	}
+
+	if args.Currency != currency.ZAR && args.Currency != currency.USD {
+		return nil, temporal.NewNonRetryableApplicationError("invalid currency", "invalid_argument", xago.ErrInternal, "currency", args.Currency)
+	}
+
+	cc := args.Currency
+	nation := country.ZA
+	if cc == currency.USD {
+		nation = country.US
+	}
+
+	return a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		ID:              id,
+		WalletID:        args.WalletID,
+		Name:            args.Title,
+		Nickname:        args.Nickname,
+		Provider:        xago.ProviderName,
+		ProviderID:      fmt.Sprintf("xago_%s_%s", cc.String(), args.WalletID), // Deterministic providerID stops duplicate accounts from being created.
+		Type:            xago.AccTypeBalance,
+		CanSend:         true,
+		CanReceive:      true,
+		State:           linkedaccounts.Verified,
+		SendCountry:     nation,
+		SendCurrency:    cc,
+		ReceiveCountry:  nation,
+		ReceiveCurrency: cc,
+	})
+}
+
 func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAccountArgs) (*linkedaccounts.LinkedAccount, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
@@ -138,7 +264,7 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 	}
 
 	var la linkedaccounts.LinkedAccount
-	err = workflow.ExecuteActivity(ctx, a.AddBeneficiaryLinkedAccount, bankAcc.WalletID, ben).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.AddBeneficiaryLinkedAccount, bankAcc.WalletID, laID, ben).Get(ctx, &la)
 	if err != nil {
 		return nil, err
 	}
