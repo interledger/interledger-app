@@ -159,8 +159,9 @@ func (a *Activity) AddBalanceAccount(ctx context.Context, id string, args xago.C
 		return err
 	}
 
-	if len(accs) != 1 {
-		return fmt.Errorf("%w failed to setup accounts", xago.ErrInternal)
+	if len(accs) == 0 {
+		// No error codes to speak of
+		return nil
 	}
 
 	if accs[0].Code != pacioli.AccountOK {

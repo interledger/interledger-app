@@ -5,9 +5,11 @@ import (
 	"io"
 	"net/http"
 
-	"gitlab.com/fynbos/pacioli"
-
+	"gitlab.com/fynbos/backend/currency"
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/log"
+	"gitlab.com/fynbos/pacioli"
 	"go.uber.org/zap"
 )
 
@@ -53,22 +55,85 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		err = json.Unmarshal(raw, &hook)
 		if err != nil {
 			log.Error("failed to unmarshal xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
-		b.Pacioli().CreateTransfers(r.Context(), []pacioli.CreateTransferArgs{
+		if hook.StatusMessage != "New deposit received into master account (rollup)" || hook.StatusCode != "104" {
+			log.Error("unsupported xago webhook received", zap.String("webhook", string(raw)))
+			w.WriteHeader(http.StatusNotImplemented)
+			return
+		}
+
+		subAcc, err := LookupByAccountID(r.Context(), b, hook.AccountID)
+		if err != nil {
+			log.Error("failed to find sub account for xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		lal, err := b.LinkedAccounts().ListByWalletId(r.Context(), subAcc.WalletID)
+		if err != nil {
+			log.Error("failed to list linked accounts for xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		cc := currency.ParseCurrency(hook.Currency)
+		if cc != currency.ZAR && cc != currency.USD {
+			log.Error("invalid currency for xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		amt := currency.FromFloat64(hook.Amount, cc)
+		var acc linkedaccounts.LinkedAccount
+		for _, la := range lal {
+			if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance && la.SendCurrency == cc {
+				acc = la
+				break
+			}
+		}
+		if acc.ID == "" {
+			log.Error("failed to find balance linked account for xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		opsAcc := xago.USDOpsAccount
+		ledger := xago.LedgerIDUSD
+		if cc == currency.ZAR {
+			opsAcc = xago.ZAROpsAccount
+			ledger = xago.LedgerIDZAR
+		}
+
+		tr, err := b.Pacioli().CreateTransfers(r.Context(), []pacioli.CreateTransferArgs{
 			{
 				ID:              hook.TransactionID,
-				Amount:          0,
-				DebitAccountID:  "",
-				CreditAccountID: "",
+				Amount:          amt.Value,
+				DebitAccountID:  opsAcc,
+				CreditAccountID: acc.ID,
 				Pending:         false,
-				Code:            0,
-				Timeout:         0,
-				Ledger:          0,
+				Code:            1,
+				Ledger:          ledger,
 			},
 		})
+		if err != nil {
+			log.Error("failed to find create pacioli transactions for xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if len(tr) != 1 {
+			log.Error("incorrect number of results for pacioli transactions", zap.Int("len", len(tr)))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if tr[0].Code != 0 {
+			log.Error("failed to find create pacioli transactions for xago webhook", zap.String("code", tr[0].Code.String()))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-		log.Info("xago webhook unsupported")
-		w.WriteHeader(http.StatusNotImplemented)
+		w.WriteHeader(http.StatusOK)
 	}
 }

@@ -13,6 +13,9 @@ var (
 
 	LedgerIDZAR uint32 = 9246927 // Spells xagozar on a Nokia 3310 keyboard
 	LedgerIDUSD uint32 = 9246873 // Spells xagousd on a Nokia 3320 keyboard
+
+	USDOpsAccount = "868196c3-f6b4-4920-bbfb-d1c7f6a98183"
+	ZAROpsAccount = "b0944908-16e6-4ef4-8677-192165e33c59"
 )
 
 type Await func(ctx context.Context, result interface{}) error

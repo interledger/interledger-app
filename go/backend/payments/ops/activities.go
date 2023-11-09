@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
@@ -253,4 +255,48 @@ func (a *Activity) LookupPayOutAccount(ctx context.Context, paymentID string) (*
 	}
 
 	return a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+}
+
+func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return nil
+	}
+
+	_, err = a.b.Xago().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount)
+	if errors.Is(err, xago.ErrInsufficientBalance) {
+		return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
+	}
+
+	return nil
+}
+
+func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return nil
+	}
+
+	return a.b.Xago().FinaliseReserve(ctx, p.SendTransactionID)
+}
+
+func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return nil
+	}
+
+	return a.b.Xago().RollbackReserve(ctx, p.SendTransactionID)
 }

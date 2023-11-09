@@ -208,7 +208,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		case tabapay.ProviderName:
 			txID, success, err = tabapayPayIn(ctx, accountsCtx, a, paymentID)
 		case xago.ProviderName:
-			txID, success, err = xagoPayIn(ctx)
+			txID, success, err = xagoPayIn(ctx, a, paymentID)
 		default:
 			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 		}
@@ -301,12 +301,17 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	return workflow.ExecuteChildWorkflow(childCtx, RollbackPayInWorkflow, paymentID).Get(childCtx, nil)
 }
 
-func xagoPayIn(ctx workflow.Context) (string, bool, error) {
-	// TODO: Check balance is sufficient. Debit Balance
+func xagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
 	var txID string
 	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 		return uuid.NewString()
 	}).Get(&txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Check balance is sufficient. Debit Balance
+	err = workflow.ExecuteActivity(ctx, a.ReserveBalance, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
@@ -461,11 +466,11 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	case tabapay.ProviderName:
 		externalTXID, success, err = tabapayPayOut(ctx, accountsCtx, a, paymentID)
 	case xago.ProviderName:
-		externalTXID, success, err = xagoPayOut(accountsCtx, a, paymentID)
+		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID)
 	default:
 		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 	}
-	fmt.Println("XXXXXX", temporal_utils.IsNonRetryableError(err), temporal_utils.IsMaxRetryError(err))
+
 	if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 		// Signal the Pay In workflow that the payout has failed, it will know what to do.
 		innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, paymentID), "", signalChanName, PaySignal{
@@ -515,9 +520,15 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	return nil
 }
 
-func xagoPayOut(accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
 	var txID string
 	err := workflow.ExecuteActivity(accountsCtx, a.WithdrawFromXagoBalance, paymentID).Get(accountsCtx, &txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Check balance is sufficient. Debit Balance
+	err = workflow.ExecuteActivity(ctx, a.FinalizeBalance, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
@@ -610,6 +621,12 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 			logger.Error("Final failure to rollback tabapay card transaction", "err", err, "payment_id", paymentID)
 		}
 
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.RollbackBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("error rolling back balance reserve", "Error", err)
 		return err
 	}
 
