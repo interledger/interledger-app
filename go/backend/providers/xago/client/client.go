@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
@@ -29,6 +31,7 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	Pacioli() pacioli.Client
+	Transactions() transactions.Client
 }
 
 var _ ops.Backends = opsBackends{}
