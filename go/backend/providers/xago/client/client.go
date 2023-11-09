@@ -94,3 +94,7 @@ func (c *client) FinaliseReserve(ctx context.Context, txID string) error {
 func (c *client) RollbackReserve(ctx context.Context, txID string) error {
 	return ops.RollbackReserve(ctx, c.b, txID)
 }
+
+func (c *client) AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*xago.Balance, error) {
+	return ops.AssignBalance(ctx, c.b, linkedAccountID, txID, amt)
+}

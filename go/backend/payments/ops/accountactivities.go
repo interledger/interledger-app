@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/identities"
@@ -106,6 +108,9 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 
 		// Set the linked account ID on the payment
 		_, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: accountID}, p)
+		if errors.Is(err, payments.ErrIncompatibleAccounts) {
+			return nil, temporal.NewNonRetryableApplicationError("default receive account incompatible", "ErrIncompatible", err)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -202,6 +207,10 @@ func (a *Activity) WithdrawFromXagoBalance(ctx context.Context, paymentID string
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return "", err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return uuid.NewString(), nil
 	}
 
 	tx, err := a.b.Xago().CreateTransaction(ctx, xago.CreateTransactionArgs{

@@ -263,7 +263,7 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 		return err
 	}
 
-	if p.Type != payments.TypeWithdrawal {
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
 		return nil
 	}
 
@@ -275,13 +275,27 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 	return nil
 }
 
+func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypePeer2Peer {
+		return nil
+	}
+
+	_, err = a.b.Xago().AssignBalance(ctx, p.ReceiverAccount, txID, p.ReceiverAmount)
+	return err
+}
+
 func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return err
 	}
 
-	if p.Type != payments.TypeWithdrawal {
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
 		return nil
 	}
 
@@ -294,7 +308,15 @@ func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error 
 		return err
 	}
 
-	if p.Type != payments.TypeWithdrawal {
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
+		return nil
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if err != nil {
+		return err
+	}
+	if la.Provider != xago.ProviderName {
 		return nil
 	}
 

@@ -53,7 +53,7 @@ func TestClient(t *testing.T) {
 
 	b.user.MapUserWallet(context.Background(), uuid.NewString(), wallets.WebMonetizationWalletID)
 	sendWalletID, sendLinkedAccount, sendBalance, sendBank := createTestWallet(t, b)
-	receiveWalletID, receiveLinkedAccount, _, _ := createTestWallet(t, b)
+	receiveWalletID, receiveLinkedAccount, receiveBalance, _ := createTestWallet(t, b)
 	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID)
 	require.NoError(t, err)
 
@@ -289,6 +289,41 @@ func TestClient(t *testing.T) {
 						State:        transactions.StateCompleted,
 					},
 				},
+			},
+		},
+		{
+			Name: "Golden path xago wallets",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWalletID,
+				},
+				SenderAccount: sendBalance,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveBalance,
+				SenderAmount:    currency.FromUInt64(10000, currency.ParseCurrency("ZAR")),
+				ReceiverAmount:  currency.FromUInt64(10000, currency.ParseCurrency("ZAR")),
+				IPAddress:       "192.36.8.4",
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitBalance,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeCreditBalance,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransactionState: transactions.StateCompleted,
 			},
 		},
 		/*
