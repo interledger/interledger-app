@@ -451,6 +451,15 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		}).Get(ctx, nil)
 	}
 
+	// Generate the transactionID used for transactions service as well as Xago
+	var txID string
+	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&txID)
+	if err != nil {
+		return err
+	}
+
 	// Funding was a success, the receiver has all the relevant information, now payout
 
 	// Switch here on provider of the receiver linkedAcc
@@ -466,7 +475,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	case tabapay.ProviderName:
 		externalTXID, success, err = tabapayPayOut(ctx, accountsCtx, a, paymentID)
 	case xago.ProviderName:
-		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID)
+		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 	default:
 		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 	}
@@ -500,8 +509,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	// Create the incoming transaction
-	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, externalTXID).Get(ctx, &txID)
+	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, txID, externalTXID).Get(ctx, &txID)
 	if err != nil {
 		return err
 	}
@@ -520,20 +528,26 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	return nil
 }
 
-func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	var txID string
-	err := workflow.ExecuteActivity(accountsCtx, a.WithdrawFromXagoBalance, paymentID).Get(accountsCtx, &txID)
+func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID string) (string, bool, error) {
+	var externalTX string
+	err := workflow.ExecuteActivity(accountsCtx, a.WithdrawFromXagoBalance, paymentID).Get(accountsCtx, &externalTX)
 	if err != nil {
 		return "", false, err
 	}
 
-	// Check balance is sufficient. Debit Balance
+	// Finalize the debit on the balance
 	err = workflow.ExecuteActivity(ctx, a.FinalizeBalance, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
 
-	return txID, true, nil
+	// Assign the new balance if transfer and not withdrawal
+	err = workflow.ExecuteActivity(ctx, a.AssignBalance, paymentID, txID).Get(ctx, nil)
+	if err != nil {
+		return txID, false, err
+	}
+
+	return externalTX, true, nil
 }
 
 func tabapayPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
