@@ -50,14 +50,18 @@ func (c *client) SendConnectedAccountDocumentsNeededEmail(ctx context.Context, w
 	ops.SendConnectedAccountDocumentsNeededEmail(ctx, c.b, walletID)
 }
 
-func (c *client) SendPaymentSentEmailV2(ctx context.Context, walletID string, payment *payments.Payment) {
-	ops.SendPaymentSentEmailV2(ctx, c.b, walletID, payment)
+func (c *client) PaymentSent(ctx context.Context, to []sendgrid.Email, greeting string, payment *payments.Payment) {
+	ops.PaymentSent(ctx, c.b, to, greeting, payment)
 }
 
-func (c *client) SendPaymentReceivedEmailV2(ctx context.Context, walletID string, payment *payments.Payment) {
-	ops.SendPaymentReceivedEmailV2(ctx, c.b, walletID, payment)
+func (c *client) PaymentReceived(ctx context.Context, to []sendgrid.Email, greeting string, payment *payments.Payment) {
+	ops.PaymentReceived(ctx, c.b, to, greeting, payment)
 }
 
-func (c *client) SendPaymentFailedEmail(ctx context.Context, walletID string) {
-	ops.SendPaymentFailedEmail(ctx, c.b, walletID)
+func (c *client) PaymentFailed(ctx context.Context, to []sendgrid.Email, greeting string) {
+	ops.PaymentFailed(ctx, c.b, to, greeting)
+}
+
+func (c *client) GetEmailsAndGreetingForWallet(ctx context.Context, walletID string) ([]sendgrid.Email, string, error) {
+	return ops.GetEmailsAndGreeting(ctx, c.b, walletID)
 }

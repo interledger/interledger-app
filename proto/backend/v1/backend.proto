@@ -141,6 +141,58 @@ service BackendService {
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
+
+  // Payment link
+  rpc CreatePaymentLink(CreatePaymentLinkRequest) returns (PaymentLink);
+  rpc GetPaymentLink(GetPaymentLinkRequest) returns (PaymentLink);
+  rpc ConsumePaymentLink(ConsumePaymentLinkRequest) returns (ConsumePaymentLinkResponse);
+  rpc Introspect(IntrospectRequest) returns (PaymentLink);
+  rpc CreatePaymentLinkCard(CreatePaymentLinkCardReqeust) returns (LinkedAccount);
+}
+
+message CreatePaymentLinkCardReqeust {
+  string token = 1;
+  string basisTheoryTokenId = 2;
+}
+
+message GetPaymentLinkRequest {
+  string id = 1;
+}
+
+message ConsumePaymentLinkRequest {
+  string id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string email = 4;
+  string ipAddress = 5;
+  string countryCode = 6;
+}
+
+message ConsumePaymentLinkResponse {
+  string token = 1;
+}
+
+message IntrospectRequest {
+  string token = 1;
+}
+
+message CreatePaymentLinkRequest {
+  string transactionId = 1;
+}
+
+message PaymentLink {
+  string id = 1;
+  string receiverWalletId = 2;
+  bool expired = 3;
+  bool completed = 4;
+  string senderWalletUrl = 5;
+  string note = 6;
+  string formattedDate = 7;
+  string formattedTime = 8;
+  string formattedAmount = 9;
+  string mask = 10;
+  string receiverIdentifier = 11;
+  string url = 12;
 }
 
 message SetDefaultSendLinkedAccountRequest {
@@ -196,6 +248,13 @@ message Transaction {
   int32 refundState = 20; // NA , PENDING , COMPLETE
   string paymentProtectionAmount = 21;
   bool hasPaymentProtection = 22;
+
+  bool hasPaymentLink = 23;
+  string paymentLinkId = 24;
+  string formattedPaymentLinkExpiryDate = 25;
+  bool paymentLinkExpired = 26;
+  bool paymentLinkCompleted = 27;
+  string paymentLinkUrl = 28;
 }
 
 message ListTransactionsResponse {
@@ -243,6 +302,7 @@ message Payment {
   Amount receiverAmount = 14;
   string totalSendAmount = 15; // total debit amount
   string receiverLinkedAccountCountryCode = 16;
+  string senderTransactionId = 17;
 }
 
 message CreatePaymentRequest {

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { Address, Agreement, Authenticate3DSRequest, Authenticate3DSResponse, CanSignupRequest, CanSignupResponse, CardDetails, CompleteSignupRequest, ConfirmPaymentRequest, Connection, ConnectionLimits, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateMXBankAccountsRequest, CreateMXBankAccountsResponse, CreatePaymentRequest, CreateSlackAuthURLResponse, CreateSupportTicketRequest, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, GetAgreementRequest, GetCardDetailsRequest, GetConnectionLimitsRequest, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetLinkedAccountRequest, GetLinkedAccountsResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetSignupRequest, Identity, IndividualKYCResponse, Init3DSRequest, Init3DSResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCStatusResponse, LinkedAccount, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListLimitsResponse, ListPublicIdentitiesRequest, ListTransactionsResponse, Lookup3DSRequest, Lookup3DSResponse, LookupTransactionRequest, MXWidgetResponse, PaginationRequest, Payment, PublicWalletInfo, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, SubmitFormRequest, Transaction, TwitterCallbackRequest, TwitterCallbackResponse, UpdateClientLimitsRequest, UpdateConnectionLimitsRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressExistsRequest, WalletAddressExistsResponse, WalletInfo } from "./backend_pb.js";
+import { Address, Agreement, Authenticate3DSRequest, Authenticate3DSResponse, CanSignupRequest, CanSignupResponse, CardDetails, CompleteSignupRequest, ConfirmPaymentRequest, Connection, ConnectionLimits, ConsumePaymentLinkRequest, ConsumePaymentLinkResponse, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreateMXBankAccountsRequest, CreateMXBankAccountsResponse, CreatePaymentLinkCardReqeust, CreatePaymentLinkRequest, CreatePaymentRequest, CreateSlackAuthURLResponse, CreateSupportTicketRequest, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, GetAgreementRequest, GetCardDetailsRequest, GetConnectionLimitsRequest, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetLinkedAccountRequest, GetLinkedAccountsResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentLinkRequest, GetPaymentRequest, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetSignupRequest, Identity, IndividualKYCResponse, Init3DSRequest, Init3DSResponse, IntrospectRequest, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCStatusResponse, LinkedAccount, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListLimitsResponse, ListPublicIdentitiesRequest, ListTransactionsResponse, Lookup3DSRequest, Lookup3DSResponse, LookupTransactionRequest, MXWidgetResponse, PaginationRequest, Payment, PaymentLink, PublicWalletInfo, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, SubmitFormRequest, Transaction, TwitterCallbackRequest, TwitterCallbackResponse, UpdateClientLimitsRequest, UpdateConnectionLimitsRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressExistsRequest, WalletAddressExistsResponse, WalletInfo } from "./backend_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -771,6 +771,53 @@ export const BackendService = {
       name: "SlackCallback",
       I: SlackCallbackRequest,
       O: SlackCallbackResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Payment link
+     *
+     * @generated from rpc backend.v1.BackendService.CreatePaymentLink
+     */
+    createPaymentLink: {
+      name: "CreatePaymentLink",
+      I: CreatePaymentLinkRequest,
+      O: PaymentLink,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.GetPaymentLink
+     */
+    getPaymentLink: {
+      name: "GetPaymentLink",
+      I: GetPaymentLinkRequest,
+      O: PaymentLink,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.ConsumePaymentLink
+     */
+    consumePaymentLink: {
+      name: "ConsumePaymentLink",
+      I: ConsumePaymentLinkRequest,
+      O: ConsumePaymentLinkResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.Introspect
+     */
+    introspect: {
+      name: "Introspect",
+      I: IntrospectRequest,
+      O: PaymentLink,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.CreatePaymentLinkCard
+     */
+    createPaymentLinkCard: {
+      name: "CreatePaymentLinkCard",
+      I: CreatePaymentLinkCardReqeust,
+      O: LinkedAccount,
       kind: MethodKind.Unary,
     },
   }

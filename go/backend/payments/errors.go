@@ -11,4 +11,6 @@ var (
 	ErrInvalidAmount          = errors.New("payments: Invalid amount")
 	ErrInvalidIdentifier      = errors.New("payments: Invalid identifier")
 	ErrIdempotencyViolation   = errors.New("payments: Idempotency create violation")
+	ErrPaymentLinkExpired     = errors.New("payments: link expired")
+	ErrPaymentLinkCompleted   = errors.New("payments: link completed")
 )

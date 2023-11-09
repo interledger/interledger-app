@@ -8,6 +8,7 @@ type CreateExternalCardArgs struct {
 	ExpirationDate      string
 	RejectDuplicateCard bool
 	ReferenceID         string
+	AddAddress          bool
 }
 
 type QueryCard struct {
