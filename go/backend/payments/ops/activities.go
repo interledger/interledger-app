@@ -3,13 +3,17 @@ package ops
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"gitlab.com/fynbos/backend/providers/xago"
-
+    "gitlab.com/fynbos/backend/email/sendgrid"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
+	"go.uber.org/zap"
 )
 
 type Activity struct {
@@ -43,12 +47,47 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 	}
 
 	if payment.Type != payments.TypeWebMonetization {
-		a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
+		sendPaymentSentEmail(ctx, a.b, payment)
 	}
 
-	a.b.Email().SendPaymentReceivedEmailV2(ctx, payment.Receiver.WalletID, payment)
+	sendPaymentReceivedEmail(ctx, a.b, payment)
 
 	return nil
+}
+
+func sendPaymentSentEmail(ctx context.Context, b Backends, payment *payments.Payment) {
+	emails, greeting, err := b.Email().GetEmailsAndGreetingForWallet(ctx, payment.Sender.WalletID)
+	if err != nil {
+		log.Error("Failed to send payment sent email", zap.String("walletID", payment.Sender.WalletID), zap.String("paymentID", payment.ID))
+		return
+	}
+
+	b.Email().PaymentSent(ctx, emails, greeting, payment)
+}
+
+func sendPaymentReceivedEmail(ctx context.Context, b Backends, payment *payments.Payment) {
+	emails, greeting, err := b.Email().GetEmailsAndGreetingForWallet(ctx, payment.Receiver.WalletID)
+	if err != nil {
+		link, lerr := GetPaymentLinkByPaymentID(ctx, b, payment.ID)
+		if lerr != nil {
+			log.Error("Failed to send payment received email for payment link", zap.String("walletID", payment.Receiver.WalletID), zap.String("paymentID", payment.ID), zap.Error(err))
+			return
+		}
+
+		id, ierr := b.KYC().GetIndividualDetails(ctx, link.ReceiverWalletID)
+		if ierr != nil {
+			log.Error("Failed to send payment received email for payment link. No kyc data.", zap.String("walletID", payment.Receiver.WalletID), zap.String("paymentID", payment.ID), zap.Error(err))
+			return
+		}
+
+		emails = []sendgrid.Email{{
+			Name:    fmt.Sprintf("%s %s", id.FirstName, id.LastName),
+			Address: link.Email,
+		}}
+		greeting = strings.TrimSpace(fmt.Sprintf("Hello %s", id.FirstName)) + ","
+	}
+
+	b.Email().PaymentReceived(ctx, emails, greeting, payment)
 }
 
 func (a *Activity) SetPaymentStateProcessing(ctx context.Context, id string) error {
@@ -85,7 +124,13 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return nil
 	}
 
-	a.b.Email().SendPaymentFailedEmail(ctx, payment.Sender.WalletID)
+	emails, greeting, err := a.b.Email().GetEmailsAndGreetingForWallet(ctx, payment.Sender.WalletID)
+	if err != nil {
+		log.Error("Failed to send payment failed email", zap.String("walletID", payment.Sender.WalletID))
+		return nil
+	}
+
+	a.b.Email().PaymentFailed(ctx, emails, greeting)
 
 	return nil
 }

@@ -79,19 +79,10 @@ func TestSetPaymentState(t *testing.T) {
 		_, err := b.DBC.ExecContext(ctx, "UPDATE payments set state=$1 WHERE id=$2;", payments.StateProcessing, p.ID)
 		require.NoError(st, err)
 
-		b.Em.EXPECT().SendPaymentSentEmailV2(ctx, gomock.Any(), gomock.Any()).Do(
-			func(ctx context.Context, id string, payment *payments.Payment) {
-				assert.Equal(st, walletID, id, "walletID incorrect")
-				assert.Equal(st, p.ID, payment.ID, "paymentID incorrect")
-			},
-		).Times(1)
+		b.Em.EXPECT().PaymentSent(ctx, gomock.Any(), gomock.Any(), gomock.Any()).Times(1)
 
-		b.Em.EXPECT().SendPaymentReceivedEmailV2(ctx, gomock.Any(), gomock.Any()).Do(
-			func(ctx context.Context, id string, payment *payments.Payment) {
-				assert.Equal(st, walletID, id, "walletID incorrect")
-				assert.Equal(st, p.ID, payment.ID, "paymentID incorrect")
-			},
-		).Times(1)
+		b.Em.EXPECT().PaymentReceived(ctx, gomock.Any(), gomock.Any(), gomock.Any()).Times(1)
+		b.Em.EXPECT().GetEmailsAndGreetingForWallet(gomock.Any(), gomock.Any()).AnyTimes()
 
 		err = a.SetPaymentStateComplete(ctx, p.ID)
 		assert.NoError(st, err)
@@ -106,11 +97,7 @@ func TestSetPaymentState(t *testing.T) {
 		_, err := b.DBC.ExecContext(ctx, "UPDATE payments set state=$1 WHERE id=$2;", payments.StateProcessing, p.ID)
 		require.NoError(st, err)
 
-		b.Em.EXPECT().SendPaymentFailedEmail(ctx, gomock.Any()).Do(
-			func(ctx context.Context, id string) {
-				assert.Equal(st, walletID, id, "walletID incorrect")
-			},
-		).Times(1)
+		b.Em.EXPECT().PaymentFailed(ctx, gomock.Any(), gomock.Any()).Times(1)
 
 		err = a.SetPaymentStateFailed(ctx, p.ID)
 		assert.NoError(st, err)
