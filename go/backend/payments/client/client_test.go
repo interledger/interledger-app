@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/pacioli"
+
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/providers/xago"
 
@@ -728,6 +730,16 @@ func createTestWallet(t *testing.T, b *TestBackends) (string, string, string, st
 		ReceiveCurrency: currency.ZAR,
 	})
 	require.NoError(t, err)
+
+	accs, err := b.pac.ConfigureAccounts(context.Background(), []pacioli.ConfigureAccountArgs{
+		{
+			ID:       xBalance.ID,
+			LedgerID: xago.LedgerIDZAR,
+			Code:     1,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, accs, 0)
 
 	xBank, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
 		WalletID:        wallet.ID,

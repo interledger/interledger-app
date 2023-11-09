@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -102,6 +104,7 @@ import (
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	pacioli_db "gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -290,6 +293,70 @@ func migrate(args *cli.MigrationArgs) {
 	err = agreements_migrations.MigrateFromEmbeddedMarkdowns(context.Background(), dbConn)
 	if err != nil {
 		log.Fatalln(err)
+	}
+
+	err = pacioli_db.Migrate(context.Background(), args.PacioliConnectionString)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pacCon, err := sqlx.Connect("postgres", args.PacioliConnectionString)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		if err := pacCon.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
+
+	pc := pacioli_client.NewLocal(pacCon)
+	ledgers, err := pc.ConfigureLedgers(context.Background(), []pacioli.ConfigureLedgerArgs{
+		{
+			ID:    xago.LedgerIDZAR,
+			Name:  "Xago ZAR Ledger",
+			Asset: currency.ZAR.String(),
+			Scale: uint8(currency.ZAR.Scale()),
+		},
+		{
+			ID:    xago.LedgerIDUSD,
+			Name:  "Xago USD Ledger",
+			Asset: currency.USD.String(),
+			Scale: uint8(currency.USD.Scale()),
+		},
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, l := range ledgers {
+		if l.Code != pacioli.LedgerOK {
+			log.Fatal("failed to configure pacioli ledgers", zap.String("code", l.Code.String()))
+		}
+	}
+
+	accs, err := pc.ConfigureAccounts(context.Background(), []pacioli.ConfigureAccountArgs{
+		{
+			ID:                         xago.ZAROpsAccount,
+			LedgerID:                   xago.LedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         xago.USDOpsAccount,
+			LedgerID:                   xago.LedgerIDUSD,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, acc := range accs {
+		if acc.Code != pacioli.AccountExists && acc.Code != pacioli.AccountOK {
+			log.Fatal("failed to configure pacioli accounts", zap.String("code", acc.Code.String()))
+		}
 	}
 }
 
@@ -686,10 +753,7 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	}
 	b.pac = pacioli_client.NewLocal(pacDB)
 
-	b.xago, err = xago_client.New(context.Background(), b)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	b.xago = xago_client.New(b)
 
 	return b
 }
