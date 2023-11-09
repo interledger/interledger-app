@@ -25,8 +25,10 @@ import (
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	temporal_client "go.temporal.io/sdk/client"
+	"go.uber.org/zap"
 )
 
 const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, revision, created_at, updated_at`
@@ -1233,10 +1235,12 @@ func ConsumePaymentLink(ctx context.Context, b Backends, args payments.ConsumePa
 
 		result, err = tx.ExecContext(ctx, "UPDATE payments_workflow_refs SET wallet_id=$1, updated_at=now() WHERE payment_id=$2", w.ID, p.ID)
 		if err != nil {
-			return fmt.Errorf("%w %s", payments.ErrInternal, err)
+			log.Error("Failed to set wallet_id on payment workflow ref", zap.String("wallet_id", w.ID), zap.String("payment_id", p.ID))
+			slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("Payment link is being claimed: Updating of wallet_id on payment workflow ref failed.\nAnonymous walletID=%s\nPaymentID=%s\nPaymentLinkID=%s\n", w.ID, p.ID, link.ID))
 		}
 		if rows, _ := result.RowsAffected(); rows < 1 {
-			return fmt.Errorf("%w Failed to update receiver details on payment.", payments.ErrInternal)
+			log.Error("Failed to set wallet_id on payment workflow ref", zap.String("wallet_id", w.ID), zap.String("payment_id", p.ID))
+			slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf("Payment link is being claimed: Updating of wallet_id on payment workflow ref failed.\nAnonymous walletID=%s\nPaymentID=%s\nPaymentLinkID=%s\n", w.ID, p.ID, link.ID))
 		}
 
 		err = tx.GetContext(ctx, &consumedLink, fmt.Sprintf("UPDATE payment_links SET token=$1, updated_at=now(), receiver_wallet_id=$2, email=$3 WHERE id=$4 RETURNING %s;", dbPaymentLinkFields), uuid.NewString(), w.ID, args.Email, link.ID)
