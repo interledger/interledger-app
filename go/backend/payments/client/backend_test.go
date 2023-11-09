@@ -72,10 +72,11 @@ type TestBackends struct {
 func NewTestBackends(t *testing.T) *TestBackends {
 	ctrl := gomock.NewController(t)
 	em := email_mock.NewMockClient(ctrl)
-	em.EXPECT().SendPaymentReceivedEmailV2(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendPaymentSentEmailV2(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	em.EXPECT().SendPaymentFailedEmail(gomock.Any(), gomock.Any()).AnyTimes()
+	em.EXPECT().PaymentReceived(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	em.EXPECT().PaymentSent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
+	em.EXPECT().PaymentFailed(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
 	em.EXPECT().SendConnectedAccountEmail(gomock.Any(), gomock.Any()).AnyTimes()
+	em.EXPECT().GetEmailsAndGreetingForWallet(gomock.Any(), gomock.Any()).AnyTimes()
 
 	b := &TestBackends{
 		db:    db.MigrateTestDB(t, context.Background()),
