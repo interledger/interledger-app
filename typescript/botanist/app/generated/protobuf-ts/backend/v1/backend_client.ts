@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { GetXagoBalanceResponse } from "./backend";
+import type { GetXagoBalanceRequest } from "./backend";
 import type { WithdrawXagoBalanceRequest } from "./backend";
 import type { AddXagoBalanceAccountRequest } from "./backend";
 import type { AddXagoBankAccountRequest } from "./backend";
@@ -501,6 +503,10 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: WithdrawXagoBalance(backend.v1.WithdrawXagoBalanceRequest) returns (backend.v1.Payment);
      */
     withdrawXagoBalance(input: WithdrawXagoBalanceRequest, options?: RpcOptions): UnaryCall<WithdrawXagoBalanceRequest, Payment>;
+    /**
+     * @generated from protobuf rpc: GetXagoBalance(backend.v1.GetXagoBalanceRequest) returns (backend.v1.GetXagoBalanceResponse);
+     */
+    getXagoBalance(input: GetXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetXagoBalanceRequest, GetXagoBalanceResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1136,5 +1142,12 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     withdrawXagoBalance(input: WithdrawXagoBalanceRequest, options?: RpcOptions): UnaryCall<WithdrawXagoBalanceRequest, Payment> {
         const method = this.methods[81], opt = this._transport.mergeOptions(options);
         return stackIntercept<WithdrawXagoBalanceRequest, Payment>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetXagoBalance(backend.v1.GetXagoBalanceRequest) returns (backend.v1.GetXagoBalanceResponse);
+     */
+    getXagoBalance(input: GetXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetXagoBalanceRequest, GetXagoBalanceResponse> {
+        const method = this.methods[82], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetXagoBalanceRequest, GetXagoBalanceResponse>("unary", this._transport, method, opt, input);
     }
 }

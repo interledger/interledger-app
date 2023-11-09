@@ -148,3 +148,34 @@ func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXa
 
 	return transformPayment(ctx, s.b, p)
 }
+
+func (s *rpcService) GetXagoBalance(ctx context.Context, req *pb.GetXagoBalanceRequest) (*pb.GetXagoBalanceResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().Get(ctx, req.LinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if la.WalletID != w.ID {
+		return nil, NotFoundError("linked account not found")
+	}
+
+	bal, err := s.b.Xago().GetBalance(ctx, req.LinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &pb.GetXagoBalanceResponse{
+		Balance:   bal.Total.ToPB(),
+		Available: bal.Available.ToPB(),
+	}, nil
+}
