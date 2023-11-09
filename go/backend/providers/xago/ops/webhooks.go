@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -100,6 +102,28 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
+		// This is an idempotent call so we can safely do it repeatedly
+		_, err = b.Transactions().CreateTransaction(r.Context(), transactions.CreateTransactionArgs{
+			ID:                      hook.TransactionID,
+			WalletID:                acc.WalletID,
+			ForeignID:               hook.TransactionID,
+			ForeignType:             transactions.TransactionTypeIncoming,
+			Provider:                transactions.ProviderXago,
+			State:                   transactions.StateCompleted,
+			Note:                    "Deposit received",
+			Source:                  "Bank Deposit",
+			Destination:             acc.WalletID,
+			Amount:                  amt,
+			LinkedAccountTitle:      acc.Title(),
+			DestinationIdentity:     acc.WalletID,
+			DestinationIdentityType: "WalletID",
+		})
+		if err != nil {
+			log.Error("failed to create transaction for xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		opsAcc := xago.USDOpsAccount
 		ledger := xago.LedgerIDUSD
 		if cc == currency.ZAR {
@@ -107,6 +131,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			ledger = xago.LedgerIDZAR
 		}
 
+		// Also an idempotent call
 		tr, err := b.Pacioli().CreateTransfers(r.Context(), []pacioli.CreateTransferArgs{
 			{
 				ID:              hook.TransactionID,
@@ -123,9 +148,8 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if len(tr) != 1 {
-			log.Error("incorrect number of results for pacioli transactions", zap.Int("len", len(tr)))
-			w.WriteHeader(http.StatusInternalServerError)
+		if len(tr) == 0 {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 		if tr[0].Code != 0 {
@@ -134,6 +158,5 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
 	}
 }

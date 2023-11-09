@@ -30,6 +30,7 @@ const (
 	ProviderOpenPayments   Provider = "open_payments"
 	ProviderGMT            Provider = "gmt"
 	ProviderPaymentsEngine Provider = "payments_engine"
+	ProviderXago           Provider = "xago"
 )
 
 type TransferType string

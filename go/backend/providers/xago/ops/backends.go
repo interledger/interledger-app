@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/pacioli"
 
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
@@ -28,6 +30,7 @@ type Backends interface {
 	KYC() kyc.Client
 	Temporal() temporal.Client
 	Pacioli() pacioli.Client
+	Transactions() transactions.Client
 }
 
 type ActivityBackends interface {
@@ -39,12 +42,17 @@ type ActivityBackends interface {
 	KYC() kyc.Client
 	Temporal() temporal.Client
 	Pacioli() pacioli.Client
+	Transactions() transactions.Client
 }
 
 type TestBackends struct {
 	DBC  *sqlx.DB
 	Extr *external_mock.MockClient
 	La   *linkedaccounts_mock.MockClient
+}
+
+func (t TestBackends) Transactions() transactions.Client {
+	return nil
 }
 
 func (t TestBackends) Pacioli() pacioli.Client {
