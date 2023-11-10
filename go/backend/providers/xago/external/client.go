@@ -51,8 +51,8 @@ func New(transport *http.Client) Client {
 		baseURL:     baseURL,
 		api:         transport,
 		accessToken: AccessToken{},
-		publicKey:   os.Getenv("XARGO_API_PUBLIC_KEY"),
-		secret:      os.Getenv("XARGO_API_SECRET"),
+		publicKey:   os.Getenv("XAGO_API_PUBLIC_KEY"),
+		secret:      os.Getenv("XAGO_API_SECRET"),
 	}
 }
 
