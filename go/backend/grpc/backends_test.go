@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/dynamicforms"
 	"gitlab.com/fynbos/backend/rafiki"
 
@@ -101,6 +103,10 @@ type TestContainer struct {
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
 	dynamicforms       *dynamicforms_mock.MockClient
+}
+
+func (t TestContainer) Xago() xago.Client {
+	return nil
 }
 
 func (t TestContainer) Rafiki() rafiki.Client {
