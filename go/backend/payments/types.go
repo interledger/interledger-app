@@ -175,4 +175,5 @@ const (
 	TypeReferral        Type = 3
 	TypeRafikiPeer2Peer Type = 4
 	TypeRafiki2External Type = 5
+	TypeWithdrawal      Type = 6
 )

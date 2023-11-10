@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"os"
 	"os/exec"
@@ -20,16 +21,32 @@ import (
 
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
 
-func Migrate(ctx context.Context, connString string) error {
-	_, moduleDir, _, ok := runtime.Caller(0)
-	if !ok {
-		return fmt.Errorf("Could not get directory path for utils/testing.")
-	}
+//go:embed schema.hcl
+var schemaFile embed.FS
 
+func Migrate(ctx context.Context, connString string) error {
 	_, err := exec.LookPath("atlas")
 	if err != nil {
 		return err
 	}
+
+	schemaSQL, err := schemaFile.ReadFile("schema.hcl")
+	if err != nil {
+		return fmt.Errorf("failed to read embedded schema file: %w", err)
+	}
+
+	// Write the schemaSQL to a temporary file
+	tmpFile, err := os.CreateTemp("", "schema-*.hcl")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary file: %w", err)
+	}
+	defer tmpFile.Close()
+	defer os.Remove(tmpFile.Name())
+
+	if _, err := tmpFile.Write(schemaSQL); err != nil {
+		return fmt.Errorf("failed to write to temporary file: %w", err)
+	}
+
 	args := []string{
 		"schema",
 		"apply",
@@ -39,15 +56,15 @@ func Migrate(ctx context.Context, connString string) error {
 		"-u",
 		connString,
 		"-f",
-		filepath.Join(moduleDir, "../schema.sql"),
+		tmpFile.Name(),
 	}
 
 	out, err := exec.CommandContext(ctx, "atlas", args...).CombinedOutput()
+	log.Info("atlas output", zap.String("out", fmt.Sprintf("out: %s", out)))
 	if err != nil {
+		log.Error("atlas error", zap.Error(err))
 		return err
 	}
-
-	log.Info("atlas output", zap.String("out", fmt.Sprintf("out: %s", out)))
 
 	return nil
 }
