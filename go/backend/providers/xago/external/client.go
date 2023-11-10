@@ -14,11 +14,12 @@ import (
 	"sync"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Client interface {
@@ -37,14 +38,18 @@ type client struct {
 	tokenLock   sync.Mutex
 }
 
-func New() Client {
+func New(transport *http.Client) Client {
 	baseURL := "https://test-api.xago.io:9000/v1"
 	if env.IsProd() {
 		baseURL = "https://identity-api.xago.io/v1"
 	}
+	if transport == nil {
+		transport = otelhttp.DefaultClient
+	}
+
 	return &client{
 		baseURL:     baseURL,
-		api:         otelhttp.DefaultClient,
+		api:         transport,
 		accessToken: AccessToken{},
 		publicKey:   os.Getenv("XARGO_API_PUBLIC_KEY"),
 		secret:      os.Getenv("XARGO_API_SECRET"),
