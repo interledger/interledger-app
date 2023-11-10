@@ -1,3 +1,16 @@
+CREATE schema IF NOT EXISTS public;
+
+CREATE TABLE public.ledgers
+(
+    id         BIGINT    NOT NULL,
+    name       TEXT,
+    asset      TEXT      NOT NULL,
+    scale      BIGINT    NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE public.ledger_accounts
 (
     id                             UUID      NOT NULL DEFAULT gen_random_uuid(),
@@ -31,16 +44,3 @@ CREATE TABLE public.ledger_transfers
     CONSTRAINT fk_transfers_accounts_credits FOREIGN KEY (credit_account_id) REFERENCES public.ledger_accounts (id) ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT fk_transfers_accounts_debits FOREIGN KEY (debit_account_id) REFERENCES public.ledger_accounts (id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
-
-CREATE TABLE public.ledgers
-(
-    id         BIGINT    NOT NULL,
-    name       TEXT,
-    asset      TEXT      NOT NULL,
-    scale      BIGINT    NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (id)
-);
-
-CREATE schema public;
