@@ -4,8 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
+
+	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"gitlab.com/fynbos/pacioli"
 
@@ -35,7 +39,11 @@ type Activity struct {
 }
 
 func NewActivity(ab ActivityBackends) *Activity {
-	ex := external.New()
+	ex := external.New(&http.Client{
+		Transport: otelhttp.NewTransport(
+			httplogger.NewTransport(http.DefaultTransport, ab, nil),
+		),
+	})
 
 	return &Activity{b: &opsBackends{
 		ActivityBackends: ab,
@@ -164,7 +172,7 @@ func (a *Activity) AddBalanceAccount(ctx context.Context, id string, args xago.C
 		return nil
 	}
 
-	if accs[0].Code != pacioli.AccountOK {
+	if accs[0].Code != pacioli.AccountOK && accs[0].Code != pacioli.AccountExists {
 		return fmt.Errorf("%w failed to setup account status(%s)", xago.ErrInternal, accs[0].Code)
 	}
 

@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/transactions"
+	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/currency"
@@ -15,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago/external"
 	mock_client "gitlab.com/fynbos/backend/providers/xago/external/mock"
 	"gitlab.com/fynbos/backend/providers/xago/ops"
+	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
@@ -52,7 +54,11 @@ type client struct {
 }
 
 func New(b Backends) xago.Client {
-	ex := external.New()
+	ex := external.New(&http.Client{
+		Transport: otelhttp.NewTransport(
+			httplogger.NewTransport(http.DefaultTransport, b, nil),
+		),
+	})
 	if env.IsLocal() {
 		ex = mock_client.SetupDevMock(nil)
 	}
