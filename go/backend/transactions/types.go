@@ -30,6 +30,7 @@ const (
 	ProviderOpenPayments   Provider = "open_payments"
 	ProviderGMT            Provider = "gmt"
 	ProviderPaymentsEngine Provider = "payments_engine"
+	ProviderXago           Provider = "xago"
 )
 
 type TransferType string
@@ -41,6 +42,8 @@ const (
 	TransferTypeCreditBankAccount    TransferType = "credit_bank_acc"
 	TransferTypeDebitWebMonetization TransferType = "debit_web_monetization"
 	TransferTypeDebitReferral        TransferType = "debit_referral"
+	TransferTypeDebitBalance         TransferType = "debit_balance"
+	TransferTypeCreditBalance        TransferType = "credit_balance"
 )
 
 type RefundState int16
