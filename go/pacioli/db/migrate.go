@@ -21,7 +21,7 @@ import (
 
 const testingCrdbConnectionString = "postgres://root@0.0.0.0:26257/%s?sslmode=disable"
 
-//go:embed schema.sql
+//go:embed schema.hcl
 var schemaFile embed.FS
 
 func Migrate(ctx context.Context, connString string) error {
@@ -30,13 +30,13 @@ func Migrate(ctx context.Context, connString string) error {
 		return err
 	}
 
-	schemaSQL, err := schemaFile.ReadFile("schema.sql")
+	schemaSQL, err := schemaFile.ReadFile("schema.hcl")
 	if err != nil {
 		return fmt.Errorf("failed to read embedded schema file: %w", err)
 	}
 
 	// Write the schemaSQL to a temporary file
-	tmpFile, err := os.CreateTemp("", "schema-*.sql")
+	tmpFile, err := os.CreateTemp("", "schema-*.hcl")
 	if err != nil {
 		return fmt.Errorf("failed to create temporary file: %w", err)
 	}
