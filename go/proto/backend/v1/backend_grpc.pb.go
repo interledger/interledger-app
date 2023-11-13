@@ -126,6 +126,11 @@ type BackendServiceClient interface {
 	// Slack
 	CreateSlackAuthURL(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(ctx context.Context, in *SlackCallbackRequest, opts ...grpc.CallOption) (*SlackCallbackResponse, error)
+	// Xago
+	AddXagoBankAccount(ctx context.Context, in *AddXagoBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	AddXagoBalanceAccount(ctx context.Context, in *AddXagoBalanceAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
+	WithdrawXagoBalance(ctx context.Context, in *WithdrawXagoBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
+	GetXagoBalance(ctx context.Context, in *GetXagoBalanceRequest, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error)
 }
 
 type backendServiceClient struct {
@@ -847,6 +852,42 @@ func (c *backendServiceClient) SlackCallback(ctx context.Context, in *SlackCallb
 	return out, nil
 }
 
+func (c *backendServiceClient) AddXagoBankAccount(ctx context.Context, in *AddXagoBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/AddXagoBankAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) AddXagoBalanceAccount(ctx context.Context, in *AddXagoBalanceAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
+	out := new(LinkedAccount)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/AddXagoBalanceAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) WithdrawXagoBalance(ctx context.Context, in *WithdrawXagoBalanceRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/WithdrawXagoBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetXagoBalance(ctx context.Context, in *GetXagoBalanceRequest, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error) {
+	out := new(GetXagoBalanceResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetXagoBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -955,6 +996,11 @@ type BackendServiceServer interface {
 	// Slack
 	CreateSlackAuthURL(context.Context, *Empty) (*CreateSlackAuthURLResponse, error)
 	SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error)
+	// Xago
+	AddXagoBankAccount(context.Context, *AddXagoBankAccountRequest) (*LinkedAccount, error)
+	AddXagoBalanceAccount(context.Context, *AddXagoBalanceAccountRequest) (*LinkedAccount, error)
+	WithdrawXagoBalance(context.Context, *WithdrawXagoBalanceRequest) (*Payment, error)
+	GetXagoBalance(context.Context, *GetXagoBalanceRequest) (*GetXagoBalanceResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1197,6 +1243,18 @@ func (UnimplementedBackendServiceServer) CreateSlackAuthURL(context.Context, *Em
 }
 func (UnimplementedBackendServiceServer) SlackCallback(context.Context, *SlackCallbackRequest) (*SlackCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SlackCallback not implemented")
+}
+func (UnimplementedBackendServiceServer) AddXagoBankAccount(context.Context, *AddXagoBankAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddXagoBankAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) AddXagoBalanceAccount(context.Context, *AddXagoBalanceAccountRequest) (*LinkedAccount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddXagoBalanceAccount not implemented")
+}
+func (UnimplementedBackendServiceServer) WithdrawXagoBalance(context.Context, *WithdrawXagoBalanceRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawXagoBalance not implemented")
+}
+func (UnimplementedBackendServiceServer) GetXagoBalance(context.Context, *GetXagoBalanceRequest) (*GetXagoBalanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetXagoBalance not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2632,6 +2690,78 @@ func _BackendService_SlackCallback_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_AddXagoBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddXagoBankAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).AddXagoBankAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/AddXagoBankAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).AddXagoBankAccount(ctx, req.(*AddXagoBankAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_AddXagoBalanceAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddXagoBalanceAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).AddXagoBalanceAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/AddXagoBalanceAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).AddXagoBalanceAccount(ctx, req.(*AddXagoBalanceAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_WithdrawXagoBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawXagoBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).WithdrawXagoBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/WithdrawXagoBalance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).WithdrawXagoBalance(ctx, req.(*WithdrawXagoBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetXagoBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetXagoBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetXagoBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetXagoBalance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetXagoBalance(ctx, req.(*GetXagoBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2954,6 +3084,22 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SlackCallback",
 			Handler:    _BackendService_SlackCallback_Handler,
+		},
+		{
+			MethodName: "AddXagoBankAccount",
+			Handler:    _BackendService_AddXagoBankAccount_Handler,
+		},
+		{
+			MethodName: "AddXagoBalanceAccount",
+			Handler:    _BackendService_AddXagoBalanceAccount_Handler,
+		},
+		{
+			MethodName: "WithdrawXagoBalance",
+			Handler:    _BackendService_WithdrawXagoBalance_Handler,
+		},
+		{
+			MethodName: "GetXagoBalance",
+			Handler:    _BackendService_GetXagoBalance_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
