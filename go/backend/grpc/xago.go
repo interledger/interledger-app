@@ -3,11 +3,8 @@ package grpc
 import (
 	"context"
 	"errors"
-	"fmt"
-
 	"gitlab.com/fynbos/backend/payments"
 
-	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -79,31 +76,24 @@ func (s *rpcService) AddXagoBalanceAccount(ctx context.Context, req *pb.AddXagoB
 	}
 
 	cc := currency.ParseCurrency(req.CurrencyCode)
-	nation := country.ZA
-	if cc == currency.USD {
-		nation = country.US
-	}
 
-	la, err := s.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
-		WalletID:        w.ID,
-		Name:            req.Title,
-		Nickname:        req.Nickname,
-		Provider:        xago.ProviderName,
-		ProviderID:      fmt.Sprintf("xago_%s_%s", cc.String(), w.ID), // Deterministic providerID stops duplicate accounts from being created.
-		Type:            xago.AccTypeBalance,
-		CanSend:         true,
-		CanReceive:      true,
-		State:           linkedaccounts.Verified,
-		SendCountry:     nation,
-		SendCurrency:    cc,
-		ReceiveCountry:  nation,
-		ReceiveCurrency: cc,
+	await, err := s.b.Xago().CreateBalanceAccount(ctx, xago.CreateBalanceAccArgs{
+		WalletID: w.ID,
+		Nickname: "ZAR Balance",
+		Title:    "ZAR Balance",
+		Currency: cc,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	return transformLinkedAccount(*la), nil
+	var la linkedaccounts.LinkedAccount
+	err = await(ctx, &la)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformLinkedAccount(la), nil
 }
 
 func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXagoBalanceRequest) (*pb.Payment, error) {
