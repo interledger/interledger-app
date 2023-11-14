@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -131,4 +133,92 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 	}
 
 	return resp, nil
+}
+
+func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
+	var accID string
+	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w no persona account found", kyc.ErrNoKYCInfo)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	acc, err := cl.GetAccount(ctx, accID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	for _, v := range acc.Attributes.IdentificationNumbers {
+		for _, idNum := range v {
+			if idNum.IssuingCountry == "ZA" && isValidZAID(idNum.IdentificationNumber) {
+				return idNum.IdentificationNumber, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("%w no valid ZA ID number on persona account found", kyc.ErrNoKYCInfo)
+}
+
+func isValidZAID(id string) bool {
+	// Check if the ID has 13 digits
+	if len(id) != 13 {
+		return false
+	}
+
+	// Use regular expression to check if the ID consists of only numeric digits
+	if matched, _ := regexp.MatchString("^[0-9]+$", id); !matched {
+		return false
+	}
+
+	// Parse birthdate from the first 6 digits (YYMMDD)
+	birthdate, err := time.Parse("060102", id[:6])
+	if err != nil {
+		return false
+	}
+
+	// Check if the birthdate is in a valid range
+	currentYear := time.Now().Year()
+	if birthdate.Year() > currentYear {
+		return false
+	}
+
+	// Check the gender and sequence digits
+	genderAndSequence, err := strconv.Atoi(id[6:10])
+	if err != nil {
+		return false
+	}
+
+	// The gender and sequence digits should be between 0000 and 9999
+	if genderAndSequence < 0 || genderAndSequence > 9999 {
+		return false
+	}
+
+	// Check the last digit (checksum)
+	checksum, err := strconv.Atoi(id[12:])
+	if err != nil {
+		return false
+	}
+
+	// Calculate the checksum based on the Luhn algorithm
+	sum := 0
+	for i := 0; i < 12; i++ {
+		digit, _ := strconv.Atoi(string(id[i]))
+		if i%2 == 0 {
+			digit *= 2
+			if digit > 9 {
+				digit -= 9
+			}
+		}
+		sum += digit
+	}
+
+	calculatedChecksum := 10 - (sum % 10)
+	if calculatedChecksum == 10 {
+		calculatedChecksum = 0
+	}
+
+	// Compare the calculated checksum with the last digit
+	return checksum == calculatedChecksum
 }
