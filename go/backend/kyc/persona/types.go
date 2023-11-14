@@ -3,6 +3,7 @@ package persona
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"gitlab.com/fynbos/backend/country"
 )
@@ -32,26 +33,34 @@ type CreateInquiryReqData struct {
 }
 
 type IndividualAttributes struct {
-	ReferenceID           string          `json:"reference-id,omitempty"`
-	CreatedAt             string          `json:"created-at,omitempty"`
-	UpdatedAt             string          `json:"updated-at,omitempty"`
-	RedactedAt            string          `json:"redacted-at,omitempty"`
-	NameFirst             string          `json:"name-first,omitempty"`
-	NameMiddle            string          `json:"name-middle,omitempty"`
-	NameLast              string          `json:"name-last,omitempty"`
-	PhoneNumber           string          `json:"phone-number,omitempty"`
-	EmailAddress          string          `json:"email-address,omitempty"`
-	AddressStreet1        string          `json:"address-street-1,omitempty"`
-	AddressStreet2        string          `json:"address-street-2,omitempty"`
-	AddressCity           string          `json:"address-city,omitempty"`
-	AddressSubdivision    string          `json:"address-subdivision,omitempty"`
-	AddressPostalCode     string          `json:"address-postal-code,omitempty"`
-	CountryCode           string          `json:"country-code,omitempty"`
-	Birthdate             string          `json:"birthdate,omitempty"`
-	SocialSecurityNumber  string          `json:"social-security-number,omitempty"`
-	Tags                  []string        `json:"tags,omitempty"`
-	IdentificationNumbers json.RawMessage `json:"identification-numbers,omitempty"`
-	InquiryTemplateID     string          `json:"inquiry-template-id,omitempty"`
+	ReferenceID           string                          `json:"reference-id,omitempty"`
+	CreatedAt             string                          `json:"created-at,omitempty"`
+	UpdatedAt             string                          `json:"updated-at,omitempty"`
+	RedactedAt            string                          `json:"redacted-at,omitempty"`
+	NameFirst             string                          `json:"name-first,omitempty"`
+	NameMiddle            string                          `json:"name-middle,omitempty"`
+	NameLast              string                          `json:"name-last,omitempty"`
+	PhoneNumber           string                          `json:"phone-number,omitempty"`
+	EmailAddress          string                          `json:"email-address,omitempty"`
+	AddressStreet1        string                          `json:"address-street-1,omitempty"`
+	AddressStreet2        string                          `json:"address-street-2,omitempty"`
+	AddressCity           string                          `json:"address-city,omitempty"`
+	AddressSubdivision    string                          `json:"address-subdivision,omitempty"`
+	AddressPostalCode     string                          `json:"address-postal-code,omitempty"`
+	CountryCode           string                          `json:"country-code,omitempty"`
+	Birthdate             string                          `json:"birthdate,omitempty"`
+	SocialSecurityNumber  string                          `json:"social-security-number,omitempty"`
+	Tags                  []string                        `json:"tags,omitempty"`
+	IdentificationNumbers map[string]IdentificationNumber `json:"identification-numbers,omitempty"`
+	InquiryTemplateID     string                          `json:"inquiry-template-id,omitempty"`
+}
+
+type IdentificationNumber struct {
+	IssuingCountry       string    `json:"issuing-country"`
+	IdentificationClass  string    `json:"identification-class"`
+	IdentificationNumber string    `json:"identification-number"`
+	CreatedAt            time.Time `json:"created-at"`
+	UpdatedAt            time.Time `json:"updated-at"`
 }
 
 type Inquiry struct {
