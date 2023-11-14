@@ -69,18 +69,18 @@ func (mr *MockClientMockRecorder) AddBeneficiary(ctx, reqStruct interface{}) *go
 }
 
 // CreateSubAccount mocks base method.
-func (m *MockClient) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumbers kyc.PersonaIDNumbers) (*external.SubAccount, error) {
+func (m *MockClient) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*external.SubAccount, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSubAccount", ctx, user, details, idNumbers)
+	ret := m.ctrl.Call(m, "CreateSubAccount", ctx, user, details, zaIDNum)
 	ret0, _ := ret[0].(*external.SubAccount)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateSubAccount indicates an expected call of CreateSubAccount.
-func (mr *MockClientMockRecorder) CreateSubAccount(ctx, user, details, idNumbers interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) CreateSubAccount(ctx, user, details, zaIDNum interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubAccount", reflect.TypeOf((*MockClient)(nil).CreateSubAccount), ctx, user, details, idNumbers)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubAccount", reflect.TypeOf((*MockClient)(nil).CreateSubAccount), ctx, user, details, zaIDNum)
 }
 
 // CreateTransaction mocks base method.
