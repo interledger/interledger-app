@@ -9,6 +9,7 @@ import (
 
 type Client interface {
 	WebhookHandler() http.HandlerFunc
+	LookupSubAccount(ctx context.Context, walletID string) (*SubAccount, error)
 	CreateBeneficiary(ctx context.Context, bankAcc CreateBankAccountArgs) (Await, error)
 	CreateBalanceAccount(ctx context.Context, args CreateBalanceAccArgs) (Await, error)
 	CreateTransaction(ctx context.Context, args CreateTransactionArgs) (*Transaction, error)

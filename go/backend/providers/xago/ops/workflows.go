@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -61,10 +62,31 @@ func (a *Activity) WalletHasSubAccount(ctx context.Context, walletID string) (bo
 }
 
 func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID string, sa external.SubAccount) error {
-	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag) VALUES ($1, $2, $3, $4, $5)",
-		accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag))
-	if db.IsErrorCode(err, db.UniqueViolationError) {
-		return nil
+	var depositRef string
+	for _, b := range sa.Beneficiaries {
+		if strings.EqualFold(b.BeneficiaryType, "rollup") {
+			depositRef = b.DepositReference
+			break
+		}
+	}
+	if depositRef == "" {
+		return fmt.Errorf("%w no deposit reference provided for xago sub account", xago.ErrInternal)
+	}
+
+	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING ",
+		accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag), depositRef)
+	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+		return err
+	}
+
+	for cc, bdl := range sa.DepositDetails {
+		for _, dd := range bdl {
+			_, err = a.b.DB().ExecContext(ctx, "INSERT INTO xago_deposit_details (wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
+				walletID, accountID, cc, dd.BankName, dd.AccountName, dd.AccountNumber, dd.BranchCode)
+			if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+				return err
+			}
+		}
 	}
 	return err
 }

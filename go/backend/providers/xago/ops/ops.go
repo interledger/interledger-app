@@ -17,12 +17,16 @@ import (
 
 func LookupSubAccount(ctx context.Context, b Backends, walletID string) (*xago.SubAccount, error) {
 	var entry xago.SubAccount
-	err := b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, account_id, deposit_address, deposit_tag FROM xago_sub_accounts WHERE wallet_id=$1", walletID)
+	err := b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference FROM xago_sub_accounts WHERE wallet_id=$1", walletID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, xago.ErrNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+	entry.Details, err = getDepositDetails(ctx, b, entry.AccountID)
+	if err != nil {
+		return nil, err
 	}
 
 	return &entry, nil
@@ -30,15 +34,29 @@ func LookupSubAccount(ctx context.Context, b Backends, walletID string) (*xago.S
 
 func LookupByAccountID(ctx context.Context, b Backends, accountID string) (*xago.SubAccount, error) {
 	var entry xago.SubAccount
-	err := b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, account_id, deposit_address, deposit_tag FROM xago_sub_accounts WHERE account_id=$1", accountID)
+	err := b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference FROM xago_sub_accounts WHERE account_id=$1", accountID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, xago.ErrNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
+	entry.Details, err = getDepositDetails(ctx, b, accountID)
+	if err != nil {
+		return nil, err
+	}
 
 	return &entry, nil
+}
+
+func getDepositDetails(ctx context.Context, b Backends, accountID string) ([]xago.DepositDetails, error) {
+	var entries []xago.DepositDetails
+	err := b.DB().SelectContext(ctx, &entries, "SELECT id, wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code  FROM xago_deposit_details WHERE sub_account_id=$1", accountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	return entries, nil
 }
 
 func CreateBeneficiary(ctx context.Context, b Backends, bankAcc xago.CreateBankAccountArgs) (xago.Await, error) {
