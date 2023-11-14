@@ -305,7 +305,14 @@ func (a *Activity) PaymentGMTTransaction(ctx context.Context, paymentID string) 
 		return nil, err
 	}
 
-	gmtReceiver, err := receiverFromWallet(ctx, a.b, receiverAcc.WalletID)
+	var gmtReceiver *external.WsReceiver
+	link, err := a.b.Payments().GetPaymentLinkByPaymentID(ctx, paymentID)
+	if err != nil {
+		gmtReceiver, err = receiverFromWallet(ctx, a.b, receiverAcc.WalletID)
+	} else {
+		gmtReceiver, err = receiverFromPaymentLink(ctx, a.b, link.ID)
+		receiverKYC.Address = &kyc.Address{}
+	}
 	if err != nil {
 		return nil, err
 	}
