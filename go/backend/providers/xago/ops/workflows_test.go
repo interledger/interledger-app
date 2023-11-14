@@ -72,12 +72,36 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 		AccountID:      accountID,
 		DepositAddress: "Fluffy",
 		DepositTag:     1945,
-		Beneficiaries:  nil,
+		Beneficiaries: []external.Beneficiaries{
+			{
+				DepositReference: "fluffels",
+				BeneficiaryType:  "rollup",
+			},
+		},
+		DepositDetails: map[string][]external.DepositDetails{
+			"ZAR": {
+				{
+					BankName:       "Capitec Business",
+					AccountName:    "Xago Technologies PTY LTD",
+					AccountNumber:  "1050835450",
+					BankAddress:    "142 West Street, Sandown, 2196",
+					AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
+					BranchCode:     "450105",
+				},
+				{
+					BankName:       "Bidvest Bank",
+					AccountName:    "Xago Technologies PTY LTD",
+					AccountNumber:  "13874093401",
+					BankAddress:    "142 West Street, Sandown, 2196",
+					AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
+					BranchCode:     "462005",
+				},
+			},
+		},
 	})
 	require.NoError(t, err)
 
-	var entry xago.SubAccount
-	err = b.DB().GetContext(ctx, &entry, "SELECT id, wallet_id, account_id, deposit_address, deposit_tag FROM xago_sub_accounts WHERE id =$1", accountID)
+	entry, err := ops.LookupByAccountID(ctx, b, accountID)
 	require.NoError(t, err)
 
 	assert.Equal(t, walletID, entry.WalletID)
@@ -85,4 +109,6 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 	assert.Equal(t, accountID, entry.AccountID)
 	assert.Equal(t, "Fluffy", entry.DepositAddress)
 	assert.Equal(t, 1945, entry.DepositTag)
+	assert.Equal(t, "fluffels", entry.DepositReference)
+	require.Len(t, entry.Details, 2)
 }

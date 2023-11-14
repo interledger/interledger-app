@@ -131,6 +131,7 @@ type BackendServiceClient interface {
 	AddXagoBalanceAccount(ctx context.Context, in *AddXagoBalanceAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	WithdrawXagoBalance(ctx context.Context, in *WithdrawXagoBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
 	GetXagoBalance(ctx context.Context, in *GetXagoBalanceRequest, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error)
+	GetXagoDepositDetails(ctx context.Context, in *GetXagoDepositDetailsRequest, opts ...grpc.CallOption) (*GetXagoDepositDetailsResponse, error)
 }
 
 type backendServiceClient struct {
@@ -888,6 +889,15 @@ func (c *backendServiceClient) GetXagoBalance(ctx context.Context, in *GetXagoBa
 	return out, nil
 }
 
+func (c *backendServiceClient) GetXagoDepositDetails(ctx context.Context, in *GetXagoDepositDetailsRequest, opts ...grpc.CallOption) (*GetXagoDepositDetailsResponse, error) {
+	out := new(GetXagoDepositDetailsResponse)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetXagoDepositDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1001,6 +1011,7 @@ type BackendServiceServer interface {
 	AddXagoBalanceAccount(context.Context, *AddXagoBalanceAccountRequest) (*LinkedAccount, error)
 	WithdrawXagoBalance(context.Context, *WithdrawXagoBalanceRequest) (*Payment, error)
 	GetXagoBalance(context.Context, *GetXagoBalanceRequest) (*GetXagoBalanceResponse, error)
+	GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1255,6 +1266,9 @@ func (UnimplementedBackendServiceServer) WithdrawXagoBalance(context.Context, *W
 }
 func (UnimplementedBackendServiceServer) GetXagoBalance(context.Context, *GetXagoBalanceRequest) (*GetXagoBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetXagoBalance not implemented")
+}
+func (UnimplementedBackendServiceServer) GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetXagoDepositDetails not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2762,6 +2776,24 @@ func _BackendService_GetXagoBalance_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetXagoDepositDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetXagoDepositDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetXagoDepositDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/GetXagoDepositDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetXagoDepositDetails(ctx, req.(*GetXagoDepositDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3100,6 +3132,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetXagoBalance",
 			Handler:    _BackendService_GetXagoBalance_Handler,
+		},
+		{
+			MethodName: "GetXagoDepositDetails",
+			Handler:    _BackendService_GetXagoDepositDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -147,6 +147,24 @@ service BackendService {
   rpc AddXagoBalanceAccount(AddXagoBalanceAccountRequest) returns (LinkedAccount);
   rpc WithdrawXagoBalance(WithdrawXagoBalanceRequest) returns (Payment);
   rpc GetXagoBalance(GetXagoBalanceRequest) returns (GetXagoBalanceResponse);
+  rpc GetXagoDepositDetails(GetXagoDepositDetailsRequest) returns (GetXagoDepositDetailsResponse);
+}
+
+message GetXagoDepositDetailsRequest {
+  string linkedAccount = 1;
+}
+
+message GetXagoDepositDetailsResponse {
+  repeated XagoDepositDetails details = 1;
+}
+
+message XagoDepositDetails {
+  string currency = 1;
+  string accountNumber = 2;
+  string branchCode = 3;
+  string bankName = 4;
+  string depositReference = 5;
+
 }
 
 message GetXagoBalanceRequest {

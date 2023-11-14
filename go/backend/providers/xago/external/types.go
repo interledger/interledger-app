@@ -6,14 +6,27 @@ import (
 )
 
 type SubAccount struct {
-	AccountID      string          `json:"accountId,omitempty"`
-	DepositAddress string          `json:"depositAddress,omitempty"`
-	DepositTag     int             `json:"depositTag,omitempty"`
-	Beneficiaries  []Beneficiaries `json:"beneficiaries,omitempty"`
+	AccountID      string                      `json:"accountId,omitempty"`
+	DepositAddress string                      `json:"depositAddress,omitempty"`
+	DepositTag     int                         `json:"depositTag,omitempty"`
+	DepositDetails map[string][]DepositDetails `json:"bankDepositDetails,omitempty"`
+	Beneficiaries  []Beneficiaries             `json:"beneficiaries,omitempty"`
+}
+
+type DepositDetails struct {
+	BankName       string `json:"bankName,omitempty"`
+	AccountName    string `json:"accountName,omitempty"`
+	AccountNumber  string `json:"accountNumber,omitempty"`
+	Iban           string `json:"IBAN,omitempty"`
+	BankAddress    string `json:"bankAddress:,omitempty"`
+	AccountAddress string `json:"accountAddress,omitempty"`
+	SwiftBIC       string `json:"swiftBIC,omitempty"`
+	BranchCode     string `json:"branchCode,omitempty"`
 }
 
 type Beneficiaries struct {
 	BeneficiaryID      string `json:"beneficiaryId,omitempty"`
+	BeneficiaryType    string `json:"beneficiaryType,omitempty"`
 	CurrencyID         string `json:"currencyId,omitempty"`
 	BankName           string `json:"bankName,omitempty"`
 	AccountNumber      string `json:"accountNumber,omitempty"`

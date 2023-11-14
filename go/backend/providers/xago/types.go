@@ -21,11 +21,24 @@ var (
 type Await func(ctx context.Context, result interface{}) error
 
 type SubAccount struct {
-	ID             string `db:"id"`
-	AccountID      string `db:"account_id"`
-	DepositAddress string `db:"deposit_address"`
-	DepositTag     int    `db:"deposit_tag"`
-	WalletID       string `db:"wallet_id"`
+	ID               string `db:"id"`
+	AccountID        string `db:"account_id"`
+	DepositAddress   string `db:"deposit_address"`
+	DepositTag       int    `db:"deposit_tag"`
+	WalletID         string `db:"wallet_id"`
+	DepositReference string `db:"deposit_reference"`
+	Details          []DepositDetails
+}
+
+type DepositDetails struct {
+	ID            string            `db:"id"`
+	WalletID      string            `db:"wallet_id"`
+	SubAccountID  string            `db:"sub_account_id"`
+	CurrencyCode  currency.Currency `db:"currency"`
+	BankName      string            `db:"bank_name"`
+	AccountName   string            `db:"account_name"`
+	AccountNumber string            `db:"account_number"`
+	BranchCode    string            `db:"branch_code"`
 }
 
 type Beneficiary struct {

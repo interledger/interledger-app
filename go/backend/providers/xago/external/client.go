@@ -150,7 +150,7 @@ func (c *client) AccessToken(ctx context.Context) (*AccessToken, error) {
 }
 
 func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error) {
-	reqUrl, err := url.JoinPath(c.baseURL, "company", "users")
+	reqUrl, err := url.JoinPath(c.baseURL, "company", "accounts")
 	if err != nil {
 		return nil, err
 	}

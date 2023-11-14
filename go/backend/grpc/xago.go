@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	"gitlab.com/fynbos/backend/payments"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -168,4 +169,46 @@ func (s *rpcService) GetXagoBalance(ctx context.Context, req *pb.GetXagoBalanceR
 		Balance:   bal.Total.ToPB(),
 		Available: bal.Available.ToPB(),
 	}, nil
+}
+
+func (s *rpcService) GetXagoDepositDetails(ctx context.Context, req *pb.GetXagoDepositDetailsRequest) (*pb.GetXagoDepositDetailsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	la, err := s.b.LinkedAccounts().Get(ctx, req.LinkedAccount)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	if la.WalletID != w.ID || la.Provider != xago.ProviderName || la.Type != xago.AccTypeBalance {
+		return nil, NotFoundError("linked account not found")
+	}
+
+	sa, err := s.b.Xago().LookupSubAccount(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	var resp []*pb.XagoDepositDetails
+	for _, dd := range sa.Details {
+		if la.ReceiveCurrency != dd.CurrencyCode {
+			continue
+		}
+		resp = append(resp, &pb.XagoDepositDetails{
+			Currency:         dd.CurrencyCode.String(),
+			AccountNumber:    dd.AccountNumber,
+			BranchCode:       dd.BranchCode,
+			BankName:         dd.BankName,
+			DepositReference: sa.DepositReference,
+		})
+	}
+
+	return &pb.GetXagoDepositDetailsResponse{Details: resp}, nil
 }
