@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	httplog "gitlab.com/fynbos/backend/providers/http"
+
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -24,7 +26,7 @@ import (
 
 type Client interface {
 	AccessToken(ctx context.Context) (*AccessToken, error)
-	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumbers kyc.PersonaIDNumbers) (*SubAccount, error)
+	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error)
 }
@@ -69,6 +71,17 @@ func (c *client) AccessToken(ctx context.Context) (*AccessToken, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "login")
 	if err != nil {
 		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "xago",
+		})
 	}
 
 	type tokenResp struct {
@@ -136,7 +149,7 @@ func (c *client) AccessToken(ctx context.Context) (*AccessToken, error) {
 	return &c.accessToken, nil
 }
 
-func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, idNumbers kyc.PersonaIDNumbers) (*SubAccount, error) {
+func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "company", "users")
 	if err != nil {
 		return nil, err
@@ -152,11 +165,11 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 		LastName:                   details.LastName,
 		Email:                      user.Email,
 		MobileNumber:               user.PhoneNumber,
-		IdentificationDocumentType: idNumbers.IdentificationNumber,
-		IdentificationNumber:       idNumbers.IdentificationClass,
-		AddressDocumentType:        "TODO",
-		Country:                    idNumbers.IssuingCountry,
-		Nationality:                idNumbers.IssuingCountry,
+		IdentificationDocumentType: zaIDNum,
+		IdentificationNumber:       "ID Smart Card",
+		AddressDocumentType:        "Bank account statement",
+		Country:                    "ZA",
+		Nationality:                "ZA",
 		DateOfBirth:                dob,
 	}
 	if details.Address != nil {
@@ -168,6 +181,17 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	reqBody, err := json.Marshal(reqStruct)
 	if err != nil {
 		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "xago",
+		})
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
@@ -214,6 +238,17 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	reqBody, err := json.Marshal(reqStruct)
 	if err != nil {
 		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "xago",
+		})
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
@@ -271,6 +306,17 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	reqBody, err := json.Marshal(reqStruct)
 	if err != nil {
 		return "", err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "xago",
+		})
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
