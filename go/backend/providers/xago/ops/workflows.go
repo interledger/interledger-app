@@ -80,12 +80,12 @@ func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*exte
 		return nil, err
 	}
 
-	idNum, err := a.b.KYC().GetPersonaIDNumbers(ctx, walletID)
+	idNum, err := a.b.KYC().GetPersonaZAIDNumber(ctx, walletID)
 	if err != nil {
 		return nil, err
 	}
 
-	return a.b.External().CreateSubAccount(ctx, ul[0], *id, *idNum)
+	return a.b.External().CreateSubAccount(ctx, ul[0], *id, idNum)
 }
 
 func CreateBalanceAccountWorkflow(ctx workflow.Context, args xago.CreateBalanceAccArgs) (*linkedaccounts.LinkedAccount, error) {
