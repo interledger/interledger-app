@@ -24,6 +24,10 @@ func (c client) Create(ctx context.Context, args wallets.CreateArgs) (*wallets.W
 	return ops.Create(ctx, c.b, args)
 }
 
+func (c client) CreateAnonymous(ctx context.Context, args wallets.CreateAnonymousArgs) (*wallets.Wallet, error) {
+	return ops.CreateAnonymous(ctx, c.b, args)
+}
+
 func (c client) ForContext(ctx context.Context) (*wallets.Wallet, error) {
 	return ops.WalletForContext(ctx)
 }

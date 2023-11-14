@@ -319,7 +319,7 @@ func Search(ctx context.Context, b Backends, walletID, term string) ([]identitie
 	dbRes = nil
 	err = b.DB().SelectContext(ctx, &dbRes, `SELECT id as wallet_id, name as identifier, 'wallet' as identifier_type, similarity(name, $1) as rank
                FROM wallets
-               WHERE  id<>$3 AND name ILIKE $2  ORDER BY rank, id DESC LIMIT 100`, term, "%"+term+"%", walletID)
+               WHERE  id<>$3 AND anonymous=false AND name ILIKE $2  ORDER BY rank, id DESC LIMIT 100`, term, "%"+term+"%", walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", identities.ErrInternal, err)
 	}

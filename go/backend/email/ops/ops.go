@@ -8,7 +8,6 @@ import (
 
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/email/sendgrid"
-	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -21,7 +20,7 @@ import (
 
 const oneTemplateID = "d-d1d84d89553a43f89d6c60e2497b24c3"
 
-func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
+func GetEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]sendgrid.Email, string, error) {
 	users, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return nil, "", err
@@ -33,7 +32,7 @@ func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]s
 
 	id, err := b.KYC().GetIndividualDetails(ctx, walletID)
 	if err != nil {
-		id = &kyc.IndividualDetails{}
+		return nil, "", err
 	}
 
 	var emails []sendgrid.Email
@@ -49,7 +48,7 @@ func getEmailsAndGreeting(ctx context.Context, b Backends, walletID string) ([]s
 }
 
 func SendApplicationDeniedEmail(ctx context.Context, b Backends, walletID string) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	sendTo, greeting, err := GetEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send application denied email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -69,7 +68,7 @@ func SendApplicationDeniedEmail(ctx context.Context, b Backends, walletID string
 }
 
 func SendApplicationApprovedEmail(ctx context.Context, b Backends, walletID string) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	sendTo, greeting, err := GetEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send application approved email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -100,7 +99,7 @@ func SendApplicationApprovedEmail(ctx context.Context, b Backends, walletID stri
 }
 
 func SendApplicationPendingEmail(ctx context.Context, b Backends, walletID string) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	sendTo, greeting, err := GetEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send application pending email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -120,7 +119,7 @@ func SendApplicationPendingEmail(ctx context.Context, b Backends, walletID strin
 }
 
 func SendConnectedAccountEmail(ctx context.Context, b Backends, la linkedaccounts.LinkedAccount) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, la.WalletID)
+	sendTo, greeting, err := GetEmailsAndGreeting(ctx, b, la.WalletID)
 	if err != nil {
 		log.Error("Failed to send connected account email.", zap.Error(err), zap.String("walletID", la.WalletID), zap.String("linkedAccountID", la.ID))
 		return
@@ -180,7 +179,7 @@ func SendConnectedAccountEmail(ctx context.Context, b Backends, la linkedaccount
 }
 
 func SendConnectedAccountDocumentsNeededEmail(ctx context.Context, b Backends, walletID string) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	sendTo, greeting, err := GetEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {
 		log.Error("Failed to send connected account documents needed email.", zap.Error(err), zap.String("walletID", walletID))
 		return
@@ -199,29 +198,23 @@ func SendConnectedAccountDocumentsNeededEmail(ctx context.Context, b Backends, w
 	}
 }
 
-func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, payment *payments.Payment) {
+func PaymentSent(ctx context.Context, b Backends, to []sendgrid.Email, greeting string, payment *payments.Payment) {
 	if payment == nil {
 		return
 	}
 
 	receiverWallet, err := b.Wallets().Get(ctx, payment.Receiver.WalletID)
 	if err != nil {
-		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
-		return
-	}
-
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
-	if err != nil {
-		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
+		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("trxID", payment.SendTransactionID))
 		return
 	}
 
 	txURL, err := url.JoinPath(env.GetUrl(), "transactions", payment.SendTransactionID)
 	if err != nil {
-		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
+		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("trxID", payment.SendTransactionID))
 		return
 	}
-	err = b.External().SendTemplate(ctx, "Payment sent", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Payment sent", to, oneTemplateID, map[string]interface{}{
 		"subject": "Payment sent",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -240,33 +233,27 @@ func SendPaymentSentEmailV2(ctx context.Context, b Backends, walletID string, pa
 		},
 	}, nil)
 	if err != nil {
-		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.SendTransactionID))
+		log.Error("Failed to send payment sent email.", zap.Error(err), zap.String("trxID", payment.SendTransactionID))
 	}
 }
 
-func SendPaymentReceivedEmailV2(ctx context.Context, b Backends, walletID string, payment *payments.Payment) {
+func PaymentReceived(ctx context.Context, b Backends, to []sendgrid.Email, greeting string, payment *payments.Payment) {
 	if payment == nil {
 		return
 	}
 
 	senderWallet, err := b.Wallets().Get(ctx, payment.Sender.WalletID)
 	if err != nil {
-		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
-		return
-	}
-
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
-	if err != nil {
-		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
+		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("trxID", payment.ReceiveTransactionID))
 		return
 	}
 
 	txURL, err := url.JoinPath(env.GetUrl(), "transactions", payment.ReceiveTransactionID)
 	if err != nil {
-		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
+		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("trxID", payment.ReceiveTransactionID))
 		return
 	}
-	err = b.External().SendTemplate(ctx, "Payment received", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Payment received", to, oneTemplateID, map[string]interface{}{
 		"subject": "Payment received",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -285,24 +272,18 @@ func SendPaymentReceivedEmailV2(ctx context.Context, b Backends, walletID string
 		},
 	}, nil)
 	if err != nil {
-		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("walletID", walletID), zap.String("trxID", payment.ReceiveTransactionID))
+		log.Error("Failed to send payment received email.", zap.Error(err), zap.String("trxID", payment.ReceiveTransactionID))
 	}
 }
 
-func SendPaymentFailedEmail(ctx context.Context, b Backends, walletID string) {
-	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
-	if err != nil {
-		log.Error("Failed to send payment failed email.", zap.Error(err), zap.String("walletID", walletID))
-		return
-	}
-
+func PaymentFailed(ctx context.Context, b Backends, to []sendgrid.Email, greeting string) {
 	actionUrl, err := url.JoinPath(env.GetUrl(), "pay")
 	if err != nil {
-		log.Error("Failed to send payment failed email.", zap.Error(err), zap.String("walletID", walletID))
+		log.Error("Failed to send payment failed email.", zap.Error(err))
 		return
 	}
 
-	err = b.External().SendTemplate(ctx, "Payment unsuccessful", sendTo, oneTemplateID, map[string]interface{}{
+	err = b.External().SendTemplate(ctx, "Payment unsuccessful", to, oneTemplateID, map[string]interface{}{
 		"subject": "Payment unsuccessful",
 		"data": []map[string]interface{}{
 			{"paragraph": greeting},
@@ -315,6 +296,6 @@ func SendPaymentFailedEmail(ctx context.Context, b Backends, walletID string) {
 		},
 	}, nil)
 	if err != nil {
-		log.Error("Failed to send payment failed email.", zap.Error(err), zap.String("walletID", walletID))
+		log.Error("Failed to send payment failed email.", zap.Error(err))
 	}
 }
