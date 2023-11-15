@@ -303,8 +303,8 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 		{
 			ID:              txID,
 			Amount:          amt.Value,
-			DebitAccountID:  la.ID,
-			CreditAccountID: opsAcc,
+			CreditAccountID: la.ID,
+			DebitAccountID:  opsAcc,
 			Pending:         false,
 			Code:            1,
 			Ledger:          ledger,
