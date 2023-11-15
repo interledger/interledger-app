@@ -356,7 +356,7 @@ function CardDetailsPage() {
               checked={account.defaultSend}
               onChange={() => _onChangeLinkedAccount('defaultSend')}
             >
-              <span className='text-sm'>Default send</span>
+              Default send
             </Checkbox>
           )}
           {account.canReceive && (
@@ -369,7 +369,7 @@ function CardDetailsPage() {
               checked={account.defaultReceive}
               onChange={() => _onChangeLinkedAccount('defaultReceive')}
             >
-              <span className='text-sm'>Default receive</span>
+              Default receive
             </Checkbox>
           )}
         </CardContent>
