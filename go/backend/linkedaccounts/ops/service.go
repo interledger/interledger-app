@@ -646,7 +646,7 @@ func SetDefaultSend(ctx context.Context, b Backends, id string) (*linkedaccounts
 	if la.DeletedAt.Valid {
 		return nil, linkedaccounts.ErrNotFound
 	}
-	if !la.CanSend || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
+	if !la.CanSend || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || la.Provider == "xago") {
 		return nil, fmt.Errorf("%w Linked account not eligible to be set as default send account.", linkedaccounts.ErrInternal)
 	}
 
