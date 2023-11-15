@@ -12,12 +12,14 @@ import { getHomeRoute } from '~/data/content.server'
 import {
   getFeatures,
   getKycStatus,
+  getLinkedAccounts,
   getTransactionsWithPending,
   getWalletInfo
 } from '~/data/wallet.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
+import flagStyles from '~/styles/flags.css'
 import { AppPage } from './app'
 import styles from './home.css'
 import { MarketingPage } from './marketing'
@@ -34,7 +36,10 @@ export enum KycStatus {
 }
 
 export const links: LinksFunction = () => {
-  return [{ rel: 'stylesheet', href: styles }]
+  return [
+    { rel: 'stylesheet', href: styles },
+    { rel: 'stylesheet', href: flagStyles },
+  ]
 }
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -48,7 +53,7 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export async function appLoader({ request }: LoaderFunctionArgs) {
-  const [walletInfo, transactions, kycStatus, pusherArgs, features] =
+  const [walletInfo, transactions, kycStatus, pusherArgs, features, las] =
     await Promise.all([
       getWalletInfo(request),
       getTransactionsWithPending(request, {
@@ -56,7 +61,8 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
       }),
       getKycStatus(request),
       getPusherArgs(request),
-      getFeatures(request)
+      getFeatures(request),
+      getLinkedAccounts(request)
     ])
 
   return json({
@@ -65,7 +71,8 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
     transactions: transactions.transactions,
     kycStatus: kycStatus.kycStatus,
     pusherArgs,
-    features
+    features,
+    balances: las.balances
   })
 }
 

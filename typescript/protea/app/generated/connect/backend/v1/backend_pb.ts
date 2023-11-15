@@ -1365,6 +1365,11 @@ export class WalletInfo extends Message<WalletInfo> {
    */
   hasWalletAddress = false;
 
+  /**
+   * @generated from field: bool hasBalances = 9;
+   */
+  hasBalances = false;
+
   constructor(data?: PartialMessage<WalletInfo>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1381,6 +1386,7 @@ export class WalletInfo extends Message<WalletInfo> {
     { no: 6, name: "hasIdentities", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 7, name: "hasTransacted", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 9, name: "hasBalances", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WalletInfo {
@@ -3059,6 +3065,11 @@ export class LinkedAccount extends Message<LinkedAccount> {
    */
   defaultReceive = false;
 
+  /**
+   * @generated from field: string state = 15;
+   */
+  state = "";
+
   constructor(data?: PartialMessage<LinkedAccount>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3081,6 +3092,7 @@ export class LinkedAccount extends Message<LinkedAccount> {
     { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 13, name: "defaultSend", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 15, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccount {

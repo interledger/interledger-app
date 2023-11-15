@@ -95,17 +95,17 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                     <Listbox.Option
                       key={index}
                       className={({ active }) =>
-                        `relative flex h-12 cursor-pointer select-none items-center gap-x-2 rounded-lg pl-4 pr-3 ${
-                          active ? 'bg-nav-hover' : 'text-medium'
+                        `relative flex h-12 cursor-pointer select-none items-center gap-x-2 rounded-lg pl-4 pr-3 ${active ? 'bg-nav-hover' : 'text-medium'
                         }`
                       }
                       value={option}
                     >
                       {({ selected }) => (
                         <>
-                          <Icon>{option.icon}</Icon>
+                          {option.type != 'balance' && <Icon>{option.icon}</Icon>}
+                          {option.type == 'balance' && <div className={`flag:${option.receiveCurrencyCountryCode}`} />}
                           <span className='block truncate'>
-                            {option.title} **** {option.mask}
+                            {option.title} {option.type != 'balance' && '****'} {option.mask}
                           </span>
                           {selected && (
                             <span className='ml-auto flex text-primary'>

@@ -26,27 +26,64 @@ import {
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
+import { CardDetails, LinkedAccount } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  // TODO optimise these RPCs
+// TODO: remove when Xago types are merged
+type DepositDetails = {
+  currency: string
+  accountNumber: string
+  branchCode: string
+  bankName: string
+  depositReference: string
+}
+
+export async function loader(args: LoaderFunctionArgs) {
+  let card: CardDetails | undefined = undefined
+  let depositDetails: DepositDetails[] | undefined = undefined
+
+  const account = await grpc.getLinkedAccount(args.request, {
+    id: args.params.accountId as string
+  })
+
+  if (isConnectError(account)) throw account.errorResponse
+
+  if (account.type == 'card' || account.type == 'sendCard') {
+    return loadCard(args, account)
+  } 
+
+  return loadDepositDetails(args, account)
+}
+
+async function loadDepositDetails({ request, params }: LoaderFunctionArgs, account: LinkedAccount) {
+  let depositDetails: DepositDetails[] = [{
+    accountNumber: '123456789',
+    bankName: 'ABSA',
+    branchCode: '65432',
+    currency: 'ZAR',
+    depositReference: 'deposit123'
+  }]
+
+  // TODO: return deposit details that matches account receive currency
+
+  return jsonWithCSRF(request, {
+    account,
+    depositDetails: depositDetails[0],
+  })
+}
+
+async function loadCard({ request, params }: LoaderFunctionArgs, account: LinkedAccount) {
   const card = await grpc.getCardDetails(request, {
     id: params.accountId as string
   })
   if (isConnectError(card)) throw card.errorResponse
 
-  const account = await grpc.getLinkedAccount(request, {
-    id: params.accountId as string
-  })
-
-  if (isConnectError(account)) throw account.errorResponse
-
   return jsonWithCSRF(request, {
     card,
-    account
+    account,
   })
 }
 
@@ -56,10 +93,10 @@ export const handle: ApplicationProps = {
     header: {
       back: route('/accounts'),
       actions: (match: UIMatch<typeof loader>) => {
-        const state = match.data.card.state
+        const state = match.data.account.state
         if (state == 'Verified') {
-          const canSend = match.data.card.canSend
-          const canReceive = match.data.card.canReceive
+          const canSend = match.data.account.canSend
+          const canReceive = match.data.account.canReceive
           if (canSend && canReceive) {
             return {
               key: 'send+receive',
@@ -101,7 +138,88 @@ export const handle: ApplicationProps = {
 }
 
 export default function Page() {
-  const { card, account, csrfToken } = useLoaderData<typeof loader>()
+  const { account, csrfToken } = useLoaderData<typeof loader>()
+
+  return <>
+    {(account.type == 'card' || account.type == 'sendCard') && <CardDetailsPage />}
+    {account.type == 'balance' && <DepositDetails />}
+  </>
+}
+
+function DepositDetails() {
+  const { depositDetails, account, csrfToken } = useLoaderData<typeof loadDepositDetails>()
+  const updateAccountFetcher = useFetcher<typeof action>()
+
+  const _onChangeLinkedAccount = useCallback(
+    (updateType: 'defaultSend' | 'defaultReceive') => {
+      updateAccountFetcher.submit(
+        {
+          formName: updateType,
+          accountType: 'balance',
+          csrfToken
+        },
+        { method: 'post' }
+      )
+    },
+    [csrfToken, updateAccountFetcher]
+  )
+
+  return <>
+    <Card>
+      <CardHeader>
+        <CardTitle>Deposit details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className='flex w-full flex-col justify-between space-y-1'>
+          <span className='text-weak'>Bank</span>
+          <span className='text-medium'>
+            {depositDetails.bankName}
+          </span>
+        </div>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
+          <span className='text-weak'>Branch code</span>
+          <span className='text-medium'>{depositDetails.branchCode}</span>
+        </div>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
+          <span className='text-weak'>Account number</span>
+          <span className='text-medium'>{depositDetails.accountNumber}</span>
+        </div>
+        <div className='mt-4 flex w-full flex-col space-y-1'>
+          <span className='text-weak'>Reference</span>
+          <span className='text-medium'>{depositDetails.depositReference}</span>
+        </div>
+      </CardContent>
+    </Card>
+    <Card>
+      <CardContent>
+        <p>Set as the default for sending or receiving payments.</p>
+        {account.canSend && (
+          <Checkbox
+            className='mt-6 flex items-center'
+            disabled={account.defaultSend}
+            checked={account.defaultSend}
+            onChange={() => _onChangeLinkedAccount('defaultSend')}
+          >
+            <span className='text-sm'>Default send</span>
+          </Checkbox>
+        )}
+        {account.canReceive && (
+          <Checkbox
+            className='mt-6 flex items-center'
+            disabled={account.defaultReceive}
+            checked={account.defaultReceive}
+            onChange={() => _onChangeLinkedAccount('defaultReceive')}
+          >
+            <span className='text-sm'>Default receive</span>
+          </Checkbox>
+        )}
+      </CardContent>
+    </Card>
+  </>
+}
+
+function CardDetailsPage() {
+  const { card, account, csrfToken } = useLoaderData<typeof loadCard>()
   const params = useParams()
   const [limitationsDialog, setLimitationsDialog] = useState<boolean>(false)
   const [showDialog, setShowDialog] = useState<boolean>(false)
@@ -113,6 +231,7 @@ export default function Page() {
       updateAccountFetcher.submit(
         {
           formName: updateType,
+          accountType: 'card',
           csrfToken
         },
         { method: 'post' }
@@ -320,6 +439,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   await validateCSRFToken(request, form)
 
+  let accountType = 'Card'
+  if (form.get('accountType') == 'balance') {
+    accountType = 'Balance'
+  }
+
   let response
   switch (formName) {
     case 'defaultSend':
@@ -331,7 +455,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         request,
         {},
         {
-          message: 'Card set as default send.',
+          message: accountType + ' set as default send.',
           icon: 'close'
         }
       )
@@ -344,7 +468,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         request,
         {},
         {
-          message: 'Card set as default receive.',
+          message: accountType + ' set as default receive.',
           icon: 'close'
         }
       )

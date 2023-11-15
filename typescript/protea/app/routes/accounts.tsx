@@ -19,20 +19,23 @@ import {
   Router,
   WalletGrid
 } from '~/components'
-import { getKycStatus, getLinkedAccounts } from '~/data/wallet.server'
+import { FormattedLinkedAccount, getKycStatus, getLinkedAccounts } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
+import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { bankAccounts, cardAccounts } = await getLinkedAccounts(request)
+  const { bankAccounts, cardAccounts, balances } = await getLinkedAccounts(request)
   const kycStatus = await getKycStatus(request)
 
   return json({
     kycStatus: kycStatus.kycStatus,
     bankAccounts,
     cardAccounts,
+    balances,
     hasCard: cardAccounts.length > 0,
-    hasBank: bankAccounts.length > 0
+    hasBank: bankAccounts.length > 0,
+    hasBalances: balances.length > 0
   })
 }
 
@@ -52,8 +55,12 @@ export const meta: MetaFunction = mergeMeta(() => [
   }
 ])
 
+export function links() {
+  return [{ rel: 'stylesheet', href: styles }]
+}
+
 export default function Page() {
-  const { bankAccounts, cardAccounts, hasCard, hasBank, kycStatus } =
+  const { bankAccounts, cardAccounts, hasCard, hasBank, kycStatus, hasBalances, balances } =
     useLoaderData<typeof loader>()
 
   const location = useLocation()
@@ -91,6 +98,28 @@ export default function Page() {
                 </div>
               </div>
             </CardContent>
+          </Card>
+        )}
+        {balances && hasBalances && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Balances</CardTitle>
+            </CardHeader>
+            {balances.map((method) => (
+              <CardLink
+                key={method.id}
+                to={route('/accounts/:accountId', {
+                  accountId: method.id
+                })}
+                className='items-center justify-between'
+              >
+                <div className='flex space-x-3 items-center'>
+                  <div className={`flag:${method.receiveCurrencyCountryCode}`} />
+                  <span>{method.name}</span>
+                </div>
+                <Icon>navigate_next</Icon>
+              </CardLink>
+            ))}
           </Card>
         )}
         {cardAccounts && hasCard && (

@@ -83,8 +83,8 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
 
     features = await getFeatures(request)
 
-    const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
-    sendAccounts = [...cardAccounts, ...bankAccounts].filter(
+    const { cardAccounts, bankAccounts, balances } = await getLinkedAccounts(request)
+    sendAccounts = [...balances, ...cardAccounts, ...bankAccounts].filter(
       (acc) => acc.canSend
     )
   }

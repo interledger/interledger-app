@@ -313,6 +313,7 @@ message WalletInfo {
   bool hasIdentities = 6;
   bool hasTransacted = 7;
   bool hasWalletAddress = 8;
+  bool hasBalances = 9;
 }
 
 message Features {
@@ -527,6 +528,7 @@ message LinkedAccount {
   string receiveCurrencyCountryCode = 12;
   bool defaultSend = 13;
   bool defaultReceive = 14;
+  string state = 15;
 }
 
 message GetSignupRequest {

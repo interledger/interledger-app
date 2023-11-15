@@ -97,6 +97,7 @@ export type FormattedLinkedAccount = {
 type LinkedAccountsResponse = {
   bankAccounts: Array<FormattedLinkedAccount>
   cardAccounts: Array<FormattedLinkedAccount>
+  balances: Array<FormattedLinkedAccount>
 }
 
 export async function getLinkedAccount(
@@ -123,7 +124,8 @@ export async function getLinkedAccounts(
 
   return {
     bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
-    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card')
+    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card'),
+    balances: linkedAccounts.filter(({ type }) => type == 'balance')
   }
 }
 
@@ -149,6 +151,11 @@ const formatLinkedAccount = (
       type = 'wallet'
       name = 'Cash balance'
       icon = 'wallet'
+      break
+    case 'balance':
+      type = 'balance'
+      name = linkedAccount.title
+      icon = 'flag'
       break
   }
   return {

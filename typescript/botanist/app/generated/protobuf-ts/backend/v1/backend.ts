@@ -562,6 +562,10 @@ export interface WalletInfo {
      * @generated from protobuf field: bool hasWalletAddress = 8;
      */
     hasWalletAddress: boolean;
+    /**
+     * @generated from protobuf field: bool hasBalances = 9;
+     */
+    hasBalances: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.Features
@@ -1188,6 +1192,10 @@ export interface LinkedAccount {
      * @generated from protobuf field: bool defaultReceive = 14;
      */
     defaultReceive: boolean;
+    /**
+     * @generated from protobuf field: string state = 15;
+     */
+    state: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetSignupRequest
@@ -3641,11 +3649,12 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
             { no: 5, name: "hasBank", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 6, name: "hasIdentities", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "hasTransacted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 9, name: "hasBalances", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<WalletInfo>): WalletInfo {
-        const message = { walletID: "", url: "", formattedURL: "", hasCard: false, hasBank: false, hasIdentities: false, hasTransacted: false, hasWalletAddress: false };
+        const message = { walletID: "", url: "", formattedURL: "", hasCard: false, hasBank: false, hasIdentities: false, hasTransacted: false, hasWalletAddress: false, hasBalances: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WalletInfo>(this, message, value);
@@ -3679,6 +3688,9 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
                     break;
                 case /* bool hasWalletAddress */ 8:
                     message.hasWalletAddress = reader.bool();
+                    break;
+                case /* bool hasBalances */ 9:
+                    message.hasBalances = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3716,6 +3728,9 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
         /* bool hasWalletAddress = 8; */
         if (message.hasWalletAddress !== false)
             writer.tag(8, WireType.Varint).bool(message.hasWalletAddress);
+        /* bool hasBalances = 9; */
+        if (message.hasBalances !== false)
+            writer.tag(9, WireType.Varint).bool(message.hasBalances);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5683,11 +5698,12 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
             { no: 11, name: "receiveCurrencyCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 12, name: "receiveCurrencyCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 13, name: "defaultSend", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 14, name: "defaultReceive", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 15, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<LinkedAccount>): LinkedAccount {
-        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false };
+        const message = { id: "", type: "", name: "", mask: "", nickname: "", canSend: false, canReceive: false, title: "", sendCurrencyCode: "", sendCurrencyCountryCode: "", receiveCurrencyCode: "", receiveCurrencyCountryCode: "", defaultSend: false, defaultReceive: false, state: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<LinkedAccount>(this, message, value);
@@ -5739,6 +5755,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
                     break;
                 case /* bool defaultReceive */ 14:
                     message.defaultReceive = reader.bool();
+                    break;
+                case /* string state */ 15:
+                    message.state = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5794,6 +5813,9 @@ class LinkedAccount$Type extends MessageType<LinkedAccount> {
         /* bool defaultReceive = 14; */
         if (message.defaultReceive !== false)
             writer.tag(14, WireType.Varint).bool(message.defaultReceive);
+        /* string state = 15; */
+        if (message.state !== "")
+            writer.tag(15, WireType.LengthDelimited).string(message.state);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
