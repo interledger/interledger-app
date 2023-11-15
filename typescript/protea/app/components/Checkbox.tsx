@@ -22,11 +22,11 @@ export const Checkbox = forwardRef<any, CheckboxProps>(
             className='h-[1.125rem] w-[1.125rem] cursor-pointer rounded-sm border-2 border-base bg-container-strong text-transparent focus:ring-offset-container-strong focus-visible:ring-focus disabled:cursor-not-allowed'
           />
         </div>
-        <div className='ml-2 text-sm'>
+        <div className='ml-2'>
           <label
             htmlFor={inputProps.id}
             className={clsx(
-              'text-xs',
+              'text-sm text-medium',
               inputProps.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
             )}
           >
