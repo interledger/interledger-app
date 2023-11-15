@@ -242,9 +242,7 @@ export default function Page() {
             form='join-waitlist'
             className='mt-6 flex'
           >
-            <span className='text-medium'>
-              Yes, sign me up for beta testing
-            </span>
+            Yes, sign me up for beta testing
           </Checkbox>
         </CardContent>
       </Card>
