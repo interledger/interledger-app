@@ -2,8 +2,19 @@ package client_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
+
+	"gitlab.com/fynbos/backend/currency"
+
+	pacioli_db "gitlab.com/fynbos/pacioli/db"
+
+	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
+
+	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/rafiki"
 
@@ -67,6 +78,8 @@ type TestBackends struct {
 	temporal temporal_client.Client
 	env      *testsuite.TestWorkflowEnvironment
 	kyc      kyc.Client
+	xgo      xago.Client
+	pac      pacioli.Client
 }
 
 func NewTestBackends(t *testing.T) *TestBackends {
@@ -77,10 +90,12 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	em.EXPECT().SendPaymentFailedEmail(gomock.Any(), gomock.Any()).AnyTimes()
 	em.EXPECT().SendConnectedAccountEmail(gomock.Any(), gomock.Any()).AnyTimes()
 
+	_, pacDB := pacioli_db.MigrateTestDB(t, context.Background())
 	b := &TestBackends{
 		db:    db.MigrateTestDB(t, context.Background()),
 		user:  user_mock.NewMock(),
 		email: em,
+		pac:   pacioli_client.NewLocal(pacDB),
 	}
 
 	tp := temporal_mock.NewMockClient(ctrl)
@@ -101,6 +116,9 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	tc, err := tabapay_client.New(tabapay_client.NewClientArgs{}, b)
 	require.NoError(t, err)
 	b.tabapay = tc
+
+	b.xgo = xago_client.New(b)
+	require.NoError(t, err)
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
@@ -130,6 +148,54 @@ func NewTestBackends(t *testing.T) *TestBackends {
 
 	b.kyc = kc
 
+	ledgers, err := b.pac.ConfigureLedgers(context.Background(), []pacioli.ConfigureLedgerArgs{
+		{
+			ID:    xago.LedgerIDZAR,
+			Name:  "Xago ZAR Ledger",
+			Asset: currency.ZAR.String(),
+			Scale: uint8(currency.ZAR.Scale()),
+		},
+		{
+			ID:    xago.LedgerIDUSD,
+			Name:  "Xago USD Ledger",
+			Asset: currency.USD.String(),
+			Scale: uint8(currency.USD.Scale()),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, l := range ledgers {
+		if l.Code != pacioli.LedgerOK {
+			t.Fatal(fmt.Errorf("failed to configure pacioli ledgers (%s)", l.Code.String()))
+		}
+	}
+
+	accs, err := b.pac.ConfigureAccounts(context.Background(), []pacioli.ConfigureAccountArgs{
+		{
+			ID:                         xago.ZAROpsAccount,
+			LedgerID:                   xago.LedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         xago.USDOpsAccount,
+			LedgerID:                   xago.LedgerIDUSD,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, acc := range accs {
+		if acc.Code != pacioli.AccountExists && acc.Code != pacioli.AccountOK {
+			t.Fatal(fmt.Errorf("failed to configure pacioli accounts (%s)", acc.Code.String()))
+		}
+	}
+
 	return b
 }
 
@@ -148,6 +214,14 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.CreateReferralsWorkflow)
 
 	b.env = env
+}
+
+func (b *TestBackends) Pacioli() pacioli.Client {
+	return b.pac
+}
+
+func (b *TestBackends) Xago() xago.Client {
+	return b.xgo
 }
 
 func (b *TestBackends) Twilio() twilio.Service {
