@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -72,6 +74,8 @@ import (
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
+	"gitlab.com/fynbos/backend/providers/xago"
+	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
 	"gitlab.com/fynbos/backend/rafiki"
 	rafiki_client "gitlab.com/fynbos/backend/rafiki/client"
 	"gitlab.com/fynbos/backend/signup"
@@ -98,6 +102,9 @@ import (
 	wallets_client "gitlab.com/fynbos/backend/wallets/client"
 	wallet_handler "gitlab.com/fynbos/backend/wallets/handler"
 	"gitlab.com/fynbos/log"
+	"gitlab.com/fynbos/pacioli"
+	pacioli_client "gitlab.com/fynbos/pacioli/client"
+	pacioli_db "gitlab.com/fynbos/pacioli/db"
 	"gitlab.com/fynbos/tracing"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.temporal.io/sdk/client"
@@ -177,6 +184,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/kratos/login", analytics_webhook.NewHandleLogin(b))
 	router.Handle("/kratos/logout", analytics_webhook.NewHandleLogout(b))
 	router.Handle("/rafiki", b.rafiki.WebhookHandler())
+	router.Handle("/webhooks/xago", b.xago.WebhookHandler())
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 	router.Handle("/webhooks/slack/bot/install", b.slack.BotInstallWebhook())
@@ -286,6 +294,70 @@ func migrate(args *cli.MigrationArgs) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	err = pacioli_db.Migrate(context.Background(), args.PacioliConnectionString)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pacCon, err := sqlx.Connect("postgres", args.PacioliConnectionString)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer func() {
+		if err := pacCon.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
+
+	pc := pacioli_client.NewLocal(pacCon)
+	ledgers, err := pc.ConfigureLedgers(context.Background(), []pacioli.ConfigureLedgerArgs{
+		{
+			ID:    xago.LedgerIDZAR,
+			Name:  "Xago ZAR Ledger",
+			Asset: currency.ZAR.String(),
+			Scale: uint8(currency.ZAR.Scale()),
+		},
+		{
+			ID:    xago.LedgerIDUSD,
+			Name:  "Xago USD Ledger",
+			Asset: currency.USD.String(),
+			Scale: uint8(currency.USD.Scale()),
+		},
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, l := range ledgers {
+		if l.Code != pacioli.LedgerOK {
+			log.Fatal("failed to configure pacioli ledgers", zap.String("code", l.Code.String()))
+		}
+	}
+
+	accs, err := pc.ConfigureAccounts(context.Background(), []pacioli.ConfigureAccountArgs{
+		{
+			ID:                         xago.ZAROpsAccount,
+			LedgerID:                   xago.LedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         xago.USDOpsAccount,
+			LedgerID:                   xago.LedgerIDUSD,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, acc := range accs {
+		if acc.Code != pacioli.AccountExists && acc.Code != pacioli.AccountOK {
+			log.Fatal("failed to configure pacioli accounts", zap.String("code", acc.Code.String()))
+		}
+	}
 }
 
 func startWorker(args *cli.StartArgs) {
@@ -356,6 +428,16 @@ type backends struct {
 	slack          slack.Client
 	rafiki         rafiki.Client
 	aws            aws.Client
+	xago           xago.Client
+	pac            pacioli.Client
+}
+
+func (b backends) Pacioli() pacioli.Client {
+	return b.pac
+}
+
+func (b backends) Xago() xago.Client {
+	return b.xago
 }
 
 func (b backends) AWS() aws.Client {
@@ -664,6 +746,14 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.val = validator.New()
 
 	b.rafiki = rafiki_client.New(b)
+
+	pacDB, err := otelsqlx.Connect("postgres", args.PacioliDBConString, otelsql.WithAttributes(semconv.DBSystemCockroachdb), otelsql.WithDBName("cockroachdb"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	b.pac = pacioli_client.NewLocal(pacDB)
+
+	b.xago = xago_client.New(b)
 
 	return b
 }
