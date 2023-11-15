@@ -176,6 +176,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 		reqStruct.Address = details.Address.Line1
 		reqStruct.City = details.Address.City
 		reqStruct.PostalCode = details.Address.ZipCode
+		reqStruct.District = details.Address.City
 	}
 
 	reqBody, err := json.Marshal(reqStruct)
