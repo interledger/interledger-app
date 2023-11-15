@@ -97,7 +97,9 @@ module.exports = {
         'chip-yellow': 'var(--bg-chip-yellow)',
         'chip-lime': 'var(--bg-chip-lime)',
         'chip-rose': 'var(--bg-chip-rose)',
-        'chip-slate': 'var(--bg-chip-slate)'
+        'chip-slate': 'var(--bg-chip-slate)',
+        'alert-slate': 'var(--bg-alert-slate)',
+        'alert-success': 'var(--bg-alert-success)'
       },
       borderColor: {
         base: 'rgb(var(--border) / <alpha-value>)',
