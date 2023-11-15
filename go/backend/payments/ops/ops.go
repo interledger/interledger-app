@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -312,8 +314,17 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 	return !hasTx, nil
 }
 
-func requires3DS(typ payments.Type, sender payments.Identity) bool {
-	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer && typ != payments.TypeRafiki2External && typ != payments.TypeWithdrawal
+func requires3DS(ctx context.Context, b Backends, senderAcc string, typ payments.Type, sender payments.Identity) (bool, error) {
+	if sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer && typ != payments.TypeRafiki2External && typ != payments.TypeWithdrawal {
+		return true, nil
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, senderAcc)
+	if err != nil {
+		return false, err
+	}
+
+	return la.Provider == tabapay.ProviderName || la.Type == tabapay.TypeCard, nil
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -371,7 +382,10 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	require3DS := requires3DS(p.Type, p.Sender)
+	require3DS, err := requires3DS(ctx, b, p.SenderAccount, p.Type, p.Sender)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
 
 	publicID, err := NewSoftDescriptor(time.Now())
 	if err != nil {
