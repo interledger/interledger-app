@@ -180,7 +180,7 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*xago.
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
 
-	if len(accs) != 0 {
+	if len(accs) != 1 {
 		return nil, fmt.Errorf("%w account not found", xago.ErrNotFound)
 	}
 
