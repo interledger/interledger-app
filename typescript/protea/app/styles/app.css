@@ -74,6 +74,9 @@
     --bg-chip-rose: theme('colors.rose.300');
     --bg-chip-slate: theme('colors.slate.300');
 
+    --bg-alert-slate: theme('colors.slate.300');
+    --bg-alert-success: theme('colors.green.300');
+
     --text-chip-red: theme('colors.red.950');
     --text-chip-sky: theme('colors.sky.950');
     --text-chip-green: theme('colors.green.950');
@@ -155,6 +158,9 @@
     --bg-chip-lime: theme('colors.lime.400');
     --bg-chip-rose: theme('colors.rose.400');
     --bg-chip-slate: theme('colors.slate.400');
+
+    --bg-alert-slate: theme('colors.slate.600');
+    --bg-alert-success: theme('colors.green.600');
 
     --text-chip-red: theme('colors.red.950');
     --text-chip-sky: theme('colors.sky.950');
@@ -238,6 +244,9 @@
       --bg-chip-lime: theme('colors.lime.400');
       --bg-chip-rose: theme('colors.rose.400');
       --bg-chip-slate: theme('colors.slate.400');
+
+      --bg-alert-slate: theme('colors.slate.600');
+      --bg-alert-success: theme('colors.green.600');
 
       --text-chip-red: theme('colors.red.950');
       --text-chip-sky: theme('colors.sky.950');

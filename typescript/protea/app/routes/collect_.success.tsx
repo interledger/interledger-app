@@ -100,7 +100,7 @@ export default function Page() {
 
   return (
     <>
-      <Alert color={ChipColor.green}>
+      <Alert success>
         <AlertContent>
           You have collected a payment of {formattedAmount} to your card ending{' '}
           {mask}.

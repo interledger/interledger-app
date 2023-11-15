@@ -101,7 +101,7 @@ export default function Page() {
   if (completed || expired) {
     return (
       <>
-        <Alert color={ChipColor.slate}>
+        <Alert>
           <Icon>notification_important</Icon>
           <AlertBody>
             <AlertTitle>Payment {expired ? 'Expired' : 'Completed'}</AlertTitle>
