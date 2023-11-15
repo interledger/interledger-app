@@ -2,6 +2,7 @@ package ops_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -111,4 +112,19 @@ func TestActivity_SaveSubAccount(t *testing.T) {
 	assert.Equal(t, 1945, entry.DepositTag)
 	assert.Equal(t, "fluffels", entry.DepositReference)
 	require.Len(t, entry.Details, 2)
+	fmt.Println(entry.Details[0])
+	fmt.Println(entry.Details[1])
+
+	entry, err = ops.LookupSubAccount(ctx, b, walletID)
+	require.NoError(t, err)
+
+	assert.Equal(t, walletID, entry.WalletID)
+	assert.Equal(t, accountID, entry.ID)
+	assert.Equal(t, accountID, entry.AccountID)
+	assert.Equal(t, "Fluffy", entry.DepositAddress)
+	assert.Equal(t, 1945, entry.DepositTag)
+	assert.Equal(t, "fluffels", entry.DepositReference)
+	require.Len(t, entry.Details, 2)
+	fmt.Println(entry.Details[0])
+	fmt.Println(entry.Details[1])
 }

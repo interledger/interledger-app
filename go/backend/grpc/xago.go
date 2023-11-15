@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+
 	"gitlab.com/fynbos/backend/payments"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -199,6 +202,7 @@ func (s *rpcService) GetXagoDepositDetails(ctx context.Context, req *pb.GetXagoD
 	var resp []*pb.XagoDepositDetails
 	for _, dd := range sa.Details {
 		if la.ReceiveCurrency != dd.CurrencyCode {
+			log.Debug("xago currency matching", zap.String("la.recv", la.ReceiveCurrency.String()), zap.String("dd.cc", dd.CurrencyCode.String()))
 			continue
 		}
 		resp = append(resp, &pb.XagoDepositDetails{
