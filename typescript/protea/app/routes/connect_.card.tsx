@@ -29,7 +29,14 @@ import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  MasterCardLogo,
+  VisaLogo
+} from '~/components'
 import { getWalletId } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
@@ -197,17 +204,16 @@ export default function Page() {
     return (
       <BasisTheoryProvider bt={bt}>
         <Card>
-          <CardContent>
-            <p className='text-medium'>
-              Debit cards enable both sending and receiving money, while credit
-              cards only allow receiving money.
-            </p>
+          <CardContent className='mt-2 flex items-center space-x-6'>
+            <VisaLogo /> <MasterCardLogo />
           </CardContent>
           <CardContent>
             <p className='text-medium'>
               We currently only support Visa and Mastercard cards.
             </p>
           </CardContent>
+        </Card>
+        <Card>
           <label className='mt-2 block'>
             <span className='ml-2 block text-sm font-medium text-medium'>
               Card number {fieldErrors.number}
