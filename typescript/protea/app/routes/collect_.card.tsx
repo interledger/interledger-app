@@ -30,7 +30,14 @@ import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  MasterCardLogo,
+  VisaLogo
+} from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -208,15 +215,20 @@ export default function Page() {
     return (
       <BasisTheoryProvider bt={bt}>
         <Card>
-          <CardContent>
-            <p className='text-medium'>
-              Debit cards enable both sending and receiving money, while credit
-              cards only allow receiving money.
-            </p>
+          <CardContent className='mt-2 flex items-center space-x-6'>
+            <VisaLogo /> <MasterCardLogo />
           </CardContent>
           <CardContent>
             <p className='text-medium'>
-              We currently only support Visa and Mastercard cards.
+              Fynbos uses Visa Direct and Mastercard Send to send secure
+              payments directly to your card.
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <p className='text-medium'>
+              Please provide your card details to collect your payment.
             </p>
           </CardContent>
           <label className='mt-2 block'>
