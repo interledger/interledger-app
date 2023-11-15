@@ -24,7 +24,7 @@ func LookupSubAccount(ctx context.Context, b Backends, walletID string) (*xago.S
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
-	entry.Details, err = getDepositDetails(ctx, b, entry.AccountID)
+	entry.Details, err = getDepositDetails(ctx, b, entry.ID)
 	if err != nil {
 		return nil, err
 	}
