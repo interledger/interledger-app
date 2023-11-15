@@ -28,7 +28,7 @@ type Webhook struct {
 	OriginAmount           float64 `json:"originAmount"`
 	ParentExtension        string  `json:"parentExtension"`
 	SettledAt              string  `json:"settledAt"`
-	StatusCode             string  `json:"statusCode"`
+	StatusCode             int     `json:"statusCode"`
 	StatusMessage          string  `json:"statusMessage"`
 	TransactionID          string  `json:"transactionId"`
 	TransactionReference   string  `json:"transactionReference"`
@@ -61,7 +61,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if hook.StatusMessage != "New deposit received into master account (rollup)" || hook.StatusCode != "104" {
+		if hook.StatusCode != 104 {
 			log.Error("unsupported xago webhook received", zap.String("webhook", string(raw)))
 			w.WriteHeader(http.StatusNotImplemented)
 			return
