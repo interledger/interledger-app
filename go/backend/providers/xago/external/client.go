@@ -32,29 +32,33 @@ type Client interface {
 }
 
 type client struct {
-	baseURL     string
-	api         *http.Client
-	accessToken AccessToken
-	publicKey   string
-	secret      string
-	tokenLock   sync.Mutex
+	baseURL         string
+	identityBaseURL string
+	api             *http.Client
+	accessToken     AccessToken
+	publicKey       string
+	secret          string
+	tokenLock       sync.Mutex
 }
 
 func New(transport *http.Client) Client {
-	baseURL := "https://test-api.xago.io:9000/v1"
+	baseURL := "https://test-api.xago.io:8085/v1"
+	identityBaseURL := "https://test-api.xago.io:9000/v1"
 	if env.IsProd() {
-		baseURL = "https://identity-api.xago.io/v1"
+		baseURL = "https://exchange-api.xago.io/v1"
+		identityBaseURL = "https://identity-api.xago.io/v1"
 	}
 	if transport == nil {
 		transport = otelhttp.DefaultClient
 	}
 
 	return &client{
-		baseURL:     baseURL,
-		api:         transport,
-		accessToken: AccessToken{},
-		publicKey:   os.Getenv("XAGO_API_PUBLIC_KEY"),
-		secret:      os.Getenv("XAGO_API_SECRET"),
+		baseURL:         baseURL,
+		identityBaseURL: identityBaseURL,
+		api:             transport,
+		accessToken:     AccessToken{},
+		publicKey:       os.Getenv("XAGO_API_PUBLIC_KEY"),
+		secret:          os.Getenv("XAGO_API_SECRET"),
 	}
 }
 
@@ -68,7 +72,7 @@ func (c *client) AccessToken(ctx context.Context) (*AccessToken, error) {
 		return &c.accessToken, nil
 	}
 
-	reqUrl, err := url.JoinPath(c.baseURL, "login")
+	reqUrl, err := url.JoinPath(c.identityBaseURL, "login")
 	if err != nil {
 		return nil, err
 	}
