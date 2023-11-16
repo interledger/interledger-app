@@ -165,6 +165,7 @@ export const Amount = () => {
             formName: 'updatePayment',
             send,
             accountId: localPayment.linkedAccount.id,
+            currency: payment.senderAmount?.asset || '',
             hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken
           },
@@ -196,6 +197,7 @@ export const Amount = () => {
           {
             formName: 'updatePayment',
             receive,
+            currency: payment.receiverAmount?.asset || '',
             accountId: localPayment.linkedAccount.id,
             hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken

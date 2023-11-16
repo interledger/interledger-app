@@ -11,4 +11,6 @@ var (
 	ErrInvalidAmount          = errors.New("payments: Invalid amount")
 	ErrInvalidIdentifier      = errors.New("payments: Invalid identifier")
 	ErrIdempotencyViolation   = errors.New("payments: Idempotency create violation")
+	ErrInvalidWithdrawal      = errors.New("payments: Invalid withdrawal accounts")
+	ErrIncompatibleAccounts   = errors.New("payments: Incompatible sender receiver accounts")
 )
