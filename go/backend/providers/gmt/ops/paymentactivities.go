@@ -13,6 +13,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/gmt/external"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/sdk/temporal"
 	"go.uber.org/zap"
@@ -25,6 +26,26 @@ func (a *Activity) PaymentNeedsCompliance(ctx context.Context, paymentID string)
 	}
 	if err != nil {
 		return false, err
+	}
+
+	if p.Type != payments.TypePeer2Peer {
+		return false, nil
+	}
+
+	sendLA, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if err != nil {
+		return false, err
+	}
+	if sendLA.Provider == xago.ProviderName {
+		return false, nil
+	}
+
+	recvLA, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if err != nil {
+		return false, err
+	}
+	if recvLA.Provider == xago.ProviderName {
+		return false, nil
 	}
 
 	return p.Type == payments.TypePeer2Peer, nil
