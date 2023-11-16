@@ -150,7 +150,7 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 		return err
 	}
 
-	senderAcc, err := b.LinkedAccounts().GetDefaultSend(ctx, senderWallet)
+	senderAcc, err := b.LinkedAccounts().GetDefaultSend(ctx, senderWallet, currency.ParseCurrency(op.Payment.DebitAmount.AssetCode))
 	if err != nil {
 		log.Error("failed to lookup default send account", zap.Error(err))
 		return err

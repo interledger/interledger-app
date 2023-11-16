@@ -3,6 +3,10 @@ package client
 import (
 	"context"
 
+	"github.com/go-playground/validator/v10"
+
+	"github.com/jmoiron/sqlx"
+
 	"gitlab.com/fynbos/pacioli"
 	"gitlab.com/fynbos/pacioli/ledger"
 )
@@ -13,9 +17,25 @@ type localClient struct {
 	b ledger.Backends
 }
 
-func NewLocal(b ledger.Backends) pacioli.Client {
+type backends struct {
+	db  *sqlx.DB
+	val *validator.Validate
+}
+
+func (b backends) DB() *sqlx.DB {
+	return b.db
+}
+
+func (b backends) Validator() *validator.Validate {
+	return b.val
+}
+
+func NewLocal(db *sqlx.DB) pacioli.Client {
 	return localClient{
-		b,
+		&backends{
+			db:  db,
+			val: validator.New(),
+		},
 	}
 }
 
