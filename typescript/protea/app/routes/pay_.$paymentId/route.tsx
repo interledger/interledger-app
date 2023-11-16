@@ -122,8 +122,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   } else publicWalletInfo = publicWalletInfoResponse
 
-  const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
-  sendAccounts = [...cardAccounts, ...bankAccounts].filter((acc) => acc.canSend)
+  const { cardAccounts, bankAccounts, balanceAccounts } = await getLinkedAccounts(request)
+  sendAccounts = [...cardAccounts, ...bankAccounts, ...balanceAccounts].filter((acc) => acc.canSend)
 
   if (payment.senderAccount) {
     const accountId = payment.senderAccount
