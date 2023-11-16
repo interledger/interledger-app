@@ -4,7 +4,6 @@ import { route } from 'routes-gen'
 import {
   Alert,
   AlertBody,
-  AnimatedSchedule,
   Card,
   CardButton,
   CardContent,
@@ -222,7 +221,7 @@ export function AppPage() {
                   className='justify-between'
                 >
                   <div className='flex space-x-1'>
-                    {transaction.state == 'Pending' && <AnimatedSchedule />}
+                    {transaction.state == 'Pending' && <Icon>schedule</Icon>}
                     {transaction.state == 'Failed' && (
                       <Icon className='text-error'>exclamation</Icon>
                     )}
