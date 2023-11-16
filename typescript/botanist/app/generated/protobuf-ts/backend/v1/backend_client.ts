@@ -7,7 +7,6 @@ import { BackendService } from "./backend";
 import type { GetXagoDepositDetailsResponse } from "./backend";
 import type { GetXagoDepositDetailsRequest } from "./backend";
 import type { GetXagoBalanceResponse } from "./backend";
-import type { GetXagoBalanceRequest } from "./backend";
 import type { WithdrawXagoBalanceRequest } from "./backend";
 import type { AddXagoBalanceAccountRequest } from "./backend";
 import type { AddXagoBankAccountRequest } from "./backend";
@@ -506,9 +505,9 @@ export interface IBackendServiceClient {
      */
     withdrawXagoBalance(input: WithdrawXagoBalanceRequest, options?: RpcOptions): UnaryCall<WithdrawXagoBalanceRequest, Payment>;
     /**
-     * @generated from protobuf rpc: GetXagoBalance(backend.v1.GetXagoBalanceRequest) returns (backend.v1.GetXagoBalanceResponse);
+     * @generated from protobuf rpc: GetXagoBalances(backend.v1.Empty) returns (backend.v1.GetXagoBalanceResponse);
      */
-    getXagoBalance(input: GetXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetXagoBalanceRequest, GetXagoBalanceResponse>;
+    getXagoBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetXagoBalanceResponse>;
     /**
      * @generated from protobuf rpc: GetXagoDepositDetails(backend.v1.GetXagoDepositDetailsRequest) returns (backend.v1.GetXagoDepositDetailsResponse);
      */
@@ -1150,11 +1149,11 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
         return stackIntercept<WithdrawXagoBalanceRequest, Payment>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: GetXagoBalance(backend.v1.GetXagoBalanceRequest) returns (backend.v1.GetXagoBalanceResponse);
+     * @generated from protobuf rpc: GetXagoBalances(backend.v1.Empty) returns (backend.v1.GetXagoBalanceResponse);
      */
-    getXagoBalance(input: GetXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetXagoBalanceRequest, GetXagoBalanceResponse> {
+    getXagoBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetXagoBalanceResponse> {
         const method = this.methods[82], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetXagoBalanceRequest, GetXagoBalanceResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<Empty, GetXagoBalanceResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: GetXagoDepositDetails(backend.v1.GetXagoDepositDetailsRequest) returns (backend.v1.GetXagoDepositDetailsResponse);

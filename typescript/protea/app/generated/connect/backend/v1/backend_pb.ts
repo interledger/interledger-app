@@ -257,14 +257,9 @@ export class GetXagoBalanceRequest extends Message<GetXagoBalanceRequest> {
  */
 export class GetXagoBalanceResponse extends Message<GetXagoBalanceResponse> {
   /**
-   * @generated from field: backend.v1.Amount balance = 1;
+   * @generated from field: repeated backend.v1.XagoBalance balances = 2;
    */
-  balance?: Amount;
-
-  /**
-   * @generated from field: backend.v1.Amount available = 2;
-   */
-  available?: Amount;
+  balances: XagoBalance[] = [];
 
   constructor(data?: PartialMessage<GetXagoBalanceResponse>) {
     super();
@@ -274,8 +269,7 @@ export class GetXagoBalanceResponse extends Message<GetXagoBalanceResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.GetXagoBalanceResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "balance", kind: "message", T: Amount },
-    { no: 2, name: "available", kind: "message", T: Amount },
+    { no: 2, name: "balances", kind: "message", T: XagoBalance, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetXagoBalanceResponse {
@@ -292,6 +286,61 @@ export class GetXagoBalanceResponse extends Message<GetXagoBalanceResponse> {
 
   static equals(a: GetXagoBalanceResponse | PlainMessage<GetXagoBalanceResponse> | undefined, b: GetXagoBalanceResponse | PlainMessage<GetXagoBalanceResponse> | undefined): boolean {
     return proto3.util.equals(GetXagoBalanceResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.XagoBalance
+ */
+export class XagoBalance extends Message<XagoBalance> {
+  /**
+   * @generated from field: backend.v1.Amount balance = 1;
+   */
+  balance?: Amount;
+
+  /**
+   * @generated from field: backend.v1.Amount available = 2;
+   */
+  available?: Amount;
+
+  /**
+   * @generated from field: string currency = 3;
+   */
+  currency = "";
+
+  /**
+   * @generated from field: string linkedAccount = 4;
+   */
+  linkedAccount = "";
+
+  constructor(data?: PartialMessage<XagoBalance>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.XagoBalance";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "balance", kind: "message", T: Amount },
+    { no: 2, name: "available", kind: "message", T: Amount },
+    { no: 3, name: "currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): XagoBalance {
+    return new XagoBalance().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): XagoBalance {
+    return new XagoBalance().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): XagoBalance {
+    return new XagoBalance().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: XagoBalance | PlainMessage<XagoBalance> | undefined, b: XagoBalance | PlainMessage<XagoBalance> | undefined): boolean {
+    return proto3.util.equals(XagoBalance, a, b);
   }
 }
 

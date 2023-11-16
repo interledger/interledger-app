@@ -130,7 +130,7 @@ type BackendServiceClient interface {
 	AddXagoBankAccount(ctx context.Context, in *AddXagoBankAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	AddXagoBalanceAccount(ctx context.Context, in *AddXagoBalanceAccountRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	WithdrawXagoBalance(ctx context.Context, in *WithdrawXagoBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
-	GetXagoBalance(ctx context.Context, in *GetXagoBalanceRequest, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error)
+	GetXagoBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error)
 	GetXagoDepositDetails(ctx context.Context, in *GetXagoDepositDetailsRequest, opts ...grpc.CallOption) (*GetXagoDepositDetailsResponse, error)
 }
 
@@ -880,9 +880,9 @@ func (c *backendServiceClient) WithdrawXagoBalance(ctx context.Context, in *With
 	return out, nil
 }
 
-func (c *backendServiceClient) GetXagoBalance(ctx context.Context, in *GetXagoBalanceRequest, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error) {
+func (c *backendServiceClient) GetXagoBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetXagoBalanceResponse, error) {
 	out := new(GetXagoBalanceResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetXagoBalance", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetXagoBalances", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1010,7 +1010,7 @@ type BackendServiceServer interface {
 	AddXagoBankAccount(context.Context, *AddXagoBankAccountRequest) (*LinkedAccount, error)
 	AddXagoBalanceAccount(context.Context, *AddXagoBalanceAccountRequest) (*LinkedAccount, error)
 	WithdrawXagoBalance(context.Context, *WithdrawXagoBalanceRequest) (*Payment, error)
-	GetXagoBalance(context.Context, *GetXagoBalanceRequest) (*GetXagoBalanceResponse, error)
+	GetXagoBalances(context.Context, *Empty) (*GetXagoBalanceResponse, error)
 	GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error)
 }
 
@@ -1264,8 +1264,8 @@ func (UnimplementedBackendServiceServer) AddXagoBalanceAccount(context.Context, 
 func (UnimplementedBackendServiceServer) WithdrawXagoBalance(context.Context, *WithdrawXagoBalanceRequest) (*Payment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithdrawXagoBalance not implemented")
 }
-func (UnimplementedBackendServiceServer) GetXagoBalance(context.Context, *GetXagoBalanceRequest) (*GetXagoBalanceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetXagoBalance not implemented")
+func (UnimplementedBackendServiceServer) GetXagoBalances(context.Context, *Empty) (*GetXagoBalanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetXagoBalances not implemented")
 }
 func (UnimplementedBackendServiceServer) GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetXagoDepositDetails not implemented")
@@ -2758,20 +2758,20 @@ func _BackendService_WithdrawXagoBalance_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetXagoBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetXagoBalanceRequest)
+func _BackendService_GetXagoBalances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BackendServiceServer).GetXagoBalance(ctx, in)
+		return srv.(BackendServiceServer).GetXagoBalances(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetXagoBalance",
+		FullMethod: "/backend.v1.BackendService/GetXagoBalances",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetXagoBalance(ctx, req.(*GetXagoBalanceRequest))
+		return srv.(BackendServiceServer).GetXagoBalances(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3130,8 +3130,8 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BackendService_WithdrawXagoBalance_Handler,
 		},
 		{
-			MethodName: "GetXagoBalance",
-			Handler:    _BackendService_GetXagoBalance_Handler,
+			MethodName: "GetXagoBalances",
+			Handler:    _BackendService_GetXagoBalances_Handler,
 		},
 		{
 			MethodName: "GetXagoDepositDetails",

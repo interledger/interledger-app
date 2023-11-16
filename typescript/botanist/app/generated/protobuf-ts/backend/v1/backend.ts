@@ -88,6 +88,15 @@ export interface GetXagoBalanceRequest {
  */
 export interface GetXagoBalanceResponse {
     /**
+     * @generated from protobuf field: repeated backend.v1.XagoBalance balances = 2;
+     */
+    balances: XagoBalance[];
+}
+/**
+ * @generated from protobuf message backend.v1.XagoBalance
+ */
+export interface XagoBalance {
+    /**
      * @generated from protobuf field: backend.v1.Amount balance = 1;
      */
     balance?: Amount;
@@ -95,6 +104,14 @@ export interface GetXagoBalanceResponse {
      * @generated from protobuf field: backend.v1.Amount available = 2;
      */
     available?: Amount;
+    /**
+     * @generated from protobuf field: string currency = 3;
+     */
+    currency: string;
+    /**
+     * @generated from protobuf field: string linkedAccount = 4;
+     */
+    linkedAccount: string;
 }
 /**
  * @generated from protobuf message backend.v1.WithdrawXagoBalanceRequest
@@ -2480,12 +2497,11 @@ export const GetXagoBalanceRequest = new GetXagoBalanceRequest$Type();
 class GetXagoBalanceResponse$Type extends MessageType<GetXagoBalanceResponse> {
     constructor() {
         super("backend.v1.GetXagoBalanceResponse", [
-            { no: 1, name: "balance", kind: "message", T: () => Amount },
-            { no: 2, name: "available", kind: "message", T: () => Amount }
+            { no: 2, name: "balances", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => XagoBalance }
         ]);
     }
     create(value?: PartialMessage<GetXagoBalanceResponse>): GetXagoBalanceResponse {
-        const message = {};
+        const message = { balances: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<GetXagoBalanceResponse>(this, message, value);
@@ -2496,11 +2512,8 @@ class GetXagoBalanceResponse$Type extends MessageType<GetXagoBalanceResponse> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* backend.v1.Amount balance */ 1:
-                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
-                    break;
-                case /* backend.v1.Amount available */ 2:
-                    message.available = Amount.internalBinaryRead(reader, reader.uint32(), options, message.available);
+                case /* repeated backend.v1.XagoBalance balances */ 2:
+                    message.balances.push(XagoBalance.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2514,12 +2527,9 @@ class GetXagoBalanceResponse$Type extends MessageType<GetXagoBalanceResponse> {
         return message;
     }
     internalBinaryWrite(message: GetXagoBalanceResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.Amount balance = 1; */
-        if (message.balance)
-            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* backend.v1.Amount available = 2; */
-        if (message.available)
-            Amount.internalBinaryWrite(message.available, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* repeated backend.v1.XagoBalance balances = 2; */
+        for (let i = 0; i < message.balances.length; i++)
+            XagoBalance.internalBinaryWrite(message.balances[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2530,6 +2540,74 @@ class GetXagoBalanceResponse$Type extends MessageType<GetXagoBalanceResponse> {
  * @generated MessageType for protobuf message backend.v1.GetXagoBalanceResponse
  */
 export const GetXagoBalanceResponse = new GetXagoBalanceResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class XagoBalance$Type extends MessageType<XagoBalance> {
+    constructor() {
+        super("backend.v1.XagoBalance", [
+            { no: 1, name: "balance", kind: "message", T: () => Amount },
+            { no: 2, name: "available", kind: "message", T: () => Amount },
+            { no: 3, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<XagoBalance>): XagoBalance {
+        const message = { currency: "", linkedAccount: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<XagoBalance>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: XagoBalance): XagoBalance {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.Amount balance */ 1:
+                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
+                    break;
+                case /* backend.v1.Amount available */ 2:
+                    message.available = Amount.internalBinaryRead(reader, reader.uint32(), options, message.available);
+                    break;
+                case /* string currency */ 3:
+                    message.currency = reader.string();
+                    break;
+                case /* string linkedAccount */ 4:
+                    message.linkedAccount = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: XagoBalance, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.Amount balance = 1; */
+        if (message.balance)
+            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.v1.Amount available = 2; */
+        if (message.available)
+            Amount.internalBinaryWrite(message.available, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string currency = 3; */
+        if (message.currency !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.currency);
+        /* string linkedAccount = 4; */
+        if (message.linkedAccount !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.linkedAccount);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.XagoBalance
+ */
+export const XagoBalance = new XagoBalance$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class WithdrawXagoBalanceRequest$Type extends MessageType<WithdrawXagoBalanceRequest> {
     constructor() {
@@ -10045,6 +10123,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "AddXagoBankAccount", options: {}, I: AddXagoBankAccountRequest, O: LinkedAccount },
     { name: "AddXagoBalanceAccount", options: {}, I: AddXagoBalanceAccountRequest, O: LinkedAccount },
     { name: "WithdrawXagoBalance", options: {}, I: WithdrawXagoBalanceRequest, O: Payment },
-    { name: "GetXagoBalance", options: {}, I: GetXagoBalanceRequest, O: GetXagoBalanceResponse },
+    { name: "GetXagoBalances", options: {}, I: Empty, O: GetXagoBalanceResponse },
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse }
 ]);
