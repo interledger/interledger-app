@@ -245,6 +245,11 @@ export function AppPage() {
                       transaction.destinationIdentityType == 'Slack' && (
                         <SlackIcon />
                       )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'Unknown' && (
+                        <Icon>account_circle</Icon>
+                      )}
                     <div className='flex flex-col space-y-1'>
                       <span className='text-medium'>{transaction.title}</span>
                       <span className='text-xs text-weak'>
