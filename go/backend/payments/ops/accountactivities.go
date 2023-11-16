@@ -97,7 +97,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 			return nil, err
 		}
 
-		account, err := defaultReceiveAccount(ctx, a.b, w)
+		account, err := defaultReceiveAccount(ctx, a.b, w, currency.ParseCurrency(p.ReceiverCurrency))
 		if err != nil {
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				return nil, temporal.NewNonRetryableApplicationError("Default linked card not found.", "ErrNotFound", err)

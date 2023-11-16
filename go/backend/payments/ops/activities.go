@@ -150,7 +150,7 @@ func (a *Activity) CheckReceiverReady(ctx context.Context, paymentID string) (bo
 	}
 
 	// Check that the user has at least one account that can receive funds
-	acc, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Receiver.WalletID)
+	acc, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Receiver.WalletID, p.ReceiverAmount.Currency)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return false, nil
 	}

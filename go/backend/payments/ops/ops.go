@@ -278,12 +278,12 @@ func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accou
 	return acc.CanReceive && w.ID == acc.WalletID, nil
 }
 
-func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (*linkedaccounts.LinkedAccount, error) {
+func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
 	if w == nil {
 		return nil, nil
 	}
 
-	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, w.ID)
+	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, w.ID, cc)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, nil
 	}
@@ -315,8 +315,8 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 }
 
 func requires3DS(ctx context.Context, b Backends, senderAcc string, typ payments.Type, sender payments.Identity) (bool, error) {
-	if sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer && typ != payments.TypeRafiki2External && typ != payments.TypeWithdrawal {
-		return true, nil
+	if sender.Identifier == wallets.WebMonetizationWalletID || sender.Identifier == wallets.ReferralsWalletID || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal {
+		return false, nil
 	}
 
 	la, err := b.LinkedAccounts().Get(ctx, senderAcc)
@@ -367,7 +367,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	if p.ReceiverAccount == "" || !canReceive {
-		defaultReceive, _ := defaultReceiveAccount(ctx, b, receiverWallet)
+		defaultReceive, _ := defaultReceiveAccount(ctx, b, receiverWallet, p.SenderAmount.Currency)
 		if defaultReceive != nil {
 			p.ReceiverAccount = defaultReceive.ID
 		}
