@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from message backend.admin.v1.ListPaymentsAwaitingSignalResponse
@@ -638,6 +638,11 @@ export class Features extends Message<Features> {
    */
   addCardsEnabled = false;
 
+  /**
+   * @generated from field: bool zarBalanceEnabled = 10;
+   */
+  zarBalanceEnabled = false;
+
   constructor(data?: PartialMessage<Features>) {
     super();
     proto3.util.initPartial(data, this);
@@ -655,6 +660,7 @@ export class Features extends Message<Features> {
     { no: 7, name: "twitterEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "walletID", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "addCardsEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Features {
@@ -2293,6 +2299,178 @@ export class FormSubmissionDetails extends Message<FormSubmissionDetails> {
 
   static equals(a: FormSubmissionDetails | PlainMessage<FormSubmissionDetails> | undefined, b: FormSubmissionDetails | PlainMessage<FormSubmissionDetails> | undefined): boolean {
     return proto3.util.equals(FormSubmissionDetails, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.SetWalletXagoBalanceEnabledRequest
+ */
+export class SetWalletXagoBalanceEnabledRequest extends Message<SetWalletXagoBalanceEnabledRequest> {
+  /**
+   * @generated from field: string wallet_id = 1;
+   */
+  walletId = "";
+
+  constructor(data?: PartialMessage<SetWalletXagoBalanceEnabledRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.SetWalletXagoBalanceEnabledRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetWalletXagoBalanceEnabledRequest {
+    return new SetWalletXagoBalanceEnabledRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetWalletXagoBalanceEnabledRequest {
+    return new SetWalletXagoBalanceEnabledRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetWalletXagoBalanceEnabledRequest {
+    return new SetWalletXagoBalanceEnabledRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetWalletXagoBalanceEnabledRequest | PlainMessage<SetWalletXagoBalanceEnabledRequest> | undefined, b: SetWalletXagoBalanceEnabledRequest | PlainMessage<SetWalletXagoBalanceEnabledRequest> | undefined): boolean {
+    return proto3.util.equals(SetWalletXagoBalanceEnabledRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.GetWalletXagoBalanceRequest
+ */
+export class GetWalletXagoBalanceRequest extends Message<GetWalletXagoBalanceRequest> {
+  /**
+   * @generated from field: string wallet_id = 1;
+   */
+  walletId = "";
+
+  constructor(data?: PartialMessage<GetWalletXagoBalanceRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetWalletXagoBalanceRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWalletXagoBalanceRequest {
+    return new GetWalletXagoBalanceRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWalletXagoBalanceRequest {
+    return new GetWalletXagoBalanceRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWalletXagoBalanceRequest {
+    return new GetWalletXagoBalanceRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetWalletXagoBalanceRequest | PlainMessage<GetWalletXagoBalanceRequest> | undefined, b: GetWalletXagoBalanceRequest | PlainMessage<GetWalletXagoBalanceRequest> | undefined): boolean {
+    return proto3.util.equals(GetWalletXagoBalanceRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.GetWalletXagoBalanceResponse
+ */
+export class GetWalletXagoBalanceResponse extends Message<GetWalletXagoBalanceResponse> {
+  /**
+   * @generated from field: backend.admin.v1.Amount balance = 1;
+   */
+  balance?: Amount;
+
+  /**
+   * @generated from field: backend.admin.v1.Amount available = 2;
+   */
+  available?: Amount;
+
+  constructor(data?: PartialMessage<GetWalletXagoBalanceResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetWalletXagoBalanceResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "balance", kind: "message", T: Amount },
+    { no: 2, name: "available", kind: "message", T: Amount },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWalletXagoBalanceResponse {
+    return new GetWalletXagoBalanceResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWalletXagoBalanceResponse {
+    return new GetWalletXagoBalanceResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWalletXagoBalanceResponse {
+    return new GetWalletXagoBalanceResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetWalletXagoBalanceResponse | PlainMessage<GetWalletXagoBalanceResponse> | undefined, b: GetWalletXagoBalanceResponse | PlainMessage<GetWalletXagoBalanceResponse> | undefined): boolean {
+    return proto3.util.equals(GetWalletXagoBalanceResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.Amount
+ */
+export class Amount extends Message<Amount> {
+  /**
+   * @generated from field: uint64 amount = 1;
+   */
+  amount = protoInt64.zero;
+
+  /**
+   * @generated from field: string asset = 2;
+   */
+  asset = "";
+
+  /**
+   * @generated from field: int32 assetScale = 3;
+   */
+  assetScale = 0;
+
+  /**
+   * @generated from field: string country = 4;
+   */
+  country = "";
+
+  constructor(data?: PartialMessage<Amount>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.Amount";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "asset", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "assetScale", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 4, name: "country", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Amount {
+    return new Amount().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Amount {
+    return new Amount().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Amount {
+    return new Amount().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Amount | PlainMessage<Amount> | undefined, b: Amount | PlainMessage<Amount> | undefined): boolean {
+    return proto3.util.equals(Amount, a, b);
   }
 }
 
