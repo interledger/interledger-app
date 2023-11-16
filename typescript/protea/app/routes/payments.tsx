@@ -13,7 +13,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
-  AnimatedSchedule,
   Card,
   CardContent,
   CardHeader,
@@ -286,7 +285,7 @@ export default function Page() {
                   className='justify-between space-x-4'
                 >
                   <div className='flex w-7/12 items-center space-x-2'>
-                    {transaction.state == 'Pending' && <AnimatedSchedule />}
+                    {transaction.state == 'Pending' && <Icon>schedule</Icon>}
                     {transaction.state == 'Failed' && (
                       <Icon className='text-error'>exclamation</Icon>
                     )}
