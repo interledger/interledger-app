@@ -103,9 +103,17 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                     >
                       {({ selected }) => (
                         <>
-                          <Icon>{option.icon}</Icon>
+                          {option.type != 'wallet' && (
+                            <Icon>{option.icon}</Icon>
+                          )}
+                          {option.type == 'wallet' && (
+                            <div
+                              className={`flag:${option.receiveCurrencyCountryCode}`}
+                            />
+                          )}
                           <span className='block truncate'>
-                            {option.title} **** {option.mask}
+                            {option.title} {option.type != 'wallet' && '****'}{' '}
+                            {option.mask}
                           </span>
                           {selected && (
                             <span className='ml-auto flex text-primary'>

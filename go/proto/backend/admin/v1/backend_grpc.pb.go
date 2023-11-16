@@ -43,6 +43,8 @@ type BackendClient interface {
 	GetFormSubmissionDetails(ctx context.Context, in *GetFormSubmissionDetailsRequest, opts ...grpc.CallOption) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(ctx context.Context, in *ListExternalApiCallsRequest, opts ...grpc.CallOption) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListPaymentsAwaitingSignalResponse, error)
+	SetWalletXagoBalanceEnabled(ctx context.Context, in *SetWalletXagoBalanceEnabledRequest, opts ...grpc.CallOption) (*Empty, error)
+	GetWalletXagoBalance(ctx context.Context, in *GetWalletXagoBalanceRequest, opts ...grpc.CallOption) (*GetWalletXagoBalanceResponse, error)
 }
 
 type backendClient struct {
@@ -256,6 +258,24 @@ func (c *backendClient) ListPaymentsAwaitingSignal(ctx context.Context, in *empt
 	return out, nil
 }
 
+func (c *backendClient) SetWalletXagoBalanceEnabled(ctx context.Context, in *SetWalletXagoBalanceEnabledRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/SetWalletXagoBalanceEnabled", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) GetWalletXagoBalance(ctx context.Context, in *GetWalletXagoBalanceRequest, opts ...grpc.CallOption) (*GetWalletXagoBalanceResponse, error) {
+	out := new(GetWalletXagoBalanceResponse)
+	err := c.cc.Invoke(ctx, "/backend.admin.v1.Backend/GetWalletXagoBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -280,6 +300,8 @@ type BackendServer interface {
 	GetFormSubmissionDetails(context.Context, *GetFormSubmissionDetailsRequest) (*FormSubmissionDetails, error)
 	ListExternalApiCalls(context.Context, *ListExternalApiCallsRequest) (*ListExternalApiCallsResponse, error)
 	ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error)
+	SetWalletXagoBalanceEnabled(context.Context, *SetWalletXagoBalanceEnabledRequest) (*Empty, error)
+	GetWalletXagoBalance(context.Context, *GetWalletXagoBalanceRequest) (*GetWalletXagoBalanceResponse, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -345,6 +367,12 @@ func (UnimplementedBackendServer) ListExternalApiCalls(context.Context, *ListExt
 }
 func (UnimplementedBackendServer) ListPaymentsAwaitingSignal(context.Context, *emptypb.Empty) (*ListPaymentsAwaitingSignalResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPaymentsAwaitingSignal not implemented")
+}
+func (UnimplementedBackendServer) SetWalletXagoBalanceEnabled(context.Context, *SetWalletXagoBalanceEnabledRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetWalletXagoBalanceEnabled not implemented")
+}
+func (UnimplementedBackendServer) GetWalletXagoBalance(context.Context, *GetWalletXagoBalanceRequest) (*GetWalletXagoBalanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWalletXagoBalance not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -721,6 +749,42 @@ func _Backend_ListPaymentsAwaitingSignal_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_SetWalletXagoBalanceEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetWalletXagoBalanceEnabledRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).SetWalletXagoBalanceEnabled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/SetWalletXagoBalanceEnabled",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).SetWalletXagoBalanceEnabled(ctx, req.(*SetWalletXagoBalanceEnabledRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_GetWalletXagoBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWalletXagoBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).GetWalletXagoBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.admin.v1.Backend/GetWalletXagoBalance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).GetWalletXagoBalance(ctx, req.(*GetWalletXagoBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -803,6 +867,14 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPaymentsAwaitingSignal",
 			Handler:    _Backend_ListPaymentsAwaitingSignal_Handler,
+		},
+		{
+			MethodName: "SetWalletXagoBalanceEnabled",
+			Handler:    _Backend_SetWalletXagoBalanceEnabled_Handler,
+		},
+		{
+			MethodName: "GetWalletXagoBalance",
+			Handler:    _Backend_GetWalletXagoBalance_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

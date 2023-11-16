@@ -223,7 +223,7 @@ func ProcessInteractions(ctx context.Context, b Backends, is []PaymentInteractio
 			continue
 		}
 
-		_, err = b.LinkedAccounts().GetDefaultReceive(ctx, receiverId.WalletID)
+		_, err = b.LinkedAccounts().GetDefaultReceive(ctx, receiverId.WalletID, p.ReceiverAmount.Currency)
 		if errors.Is(err, identities.ErrNotFound) {
 			err = SendDM(ctx, b, i, fmt.Sprintf(ConnectCardContentTemplate, i.SenderDiscordUsername), ConnectCardComponents, embed)
 			if err != nil {
