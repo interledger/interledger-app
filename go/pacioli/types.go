@@ -54,7 +54,7 @@ func (ts TransferState) IsValid() bool {
 
 type Transfer struct {
 	ID              string        `db:"id"`
-	LedgerID        uint16        `db:"ledger_id"` // this field is coming soon to a TigerBeetle near you.
+	LedgerID        uint32        `db:"ledger_id"` // this field is coming soon to a TigerBeetle near you.
 	DebitAccountID  string        `db:"debit_account_id"`
 	CreditAccountID string        `db:"credit_account_id"`
 	Amount          uint64        `db:"amount"`

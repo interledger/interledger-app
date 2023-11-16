@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
+	"gitlab.com/fynbos/backend/providers/xago"
+
+	"gitlab.com/fynbos/backend/linkedaccounts"
+
 	"gitlab.com/fynbos/backend/payments"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	httplog "gitlab.com/fynbos/backend/providers/http"
@@ -190,18 +196,24 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	if shouldPull {
-		// TODO: decouple this from tabapay.
-		var externalRef string
-		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-			return tabapay.NewReferenceID()
-		}).Get(&externalRef)
+		var la linkedaccounts.LinkedAccount
+		err = workflow.ExecuteActivity(accountsCtx, a.LookupPayInAccount, paymentID).Get(ctx, &la)
 		if err != nil {
 			return err
 		}
 
-		var accountTX tabapay.Transaction
-		err = workflow.ExecuteActivity(accountsCtx, a.PullFromAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
+		var success bool
+		var txID string
+		switch la.Provider {
+		case tabapay.ProviderName:
+			txID, success, err = tabapayPayIn(ctx, accountsCtx, a, paymentID)
+		case xago.ProviderName:
+			txID, success, err = xagoPayIn(ctx, a, paymentID)
+		default:
+			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
+		}
 		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
+			// Signal the Pay In workflow that the payout has failed, it will know what to do.
 			innerErr := workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 			if innerErr != nil {
 				logger.Error("Failed to set transaction status to failed. paymentID=", paymentID, "err", innerErr)
@@ -221,47 +233,21 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			return err
 		}
 
-		if tabapay.IsTransactionStatusUnknown(accountTX) {
-			// check again in 90 sec
-			_ = workflow.Sleep(ctx, time.Second*90)
-			logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
-			err = workflow.ExecuteActivity(accountsCtx, a.GetSenderCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
-			if err != nil {
-				logger.Error("failed to get tabapay send transaction", "err", err)
-				// Notify the Payout worklfow of failure
-				innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
-					PaymentID:    paymentID,
-					PayInSuccess: false,
-				}).Get(ctx, nil)
-				if innerErr != nil {
-					return innerErr
-				}
-
-				innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
-				if innerErr != nil {
-					logger.Error("Failed to set transaction status to failed. paymentID=", paymentID, "err", innerErr)
-					return innerErr
-				}
-
-				return err
-			}
-		}
-
 		// Notify payout tx of success or failure and it can get on with it
 		err = workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
 			PaymentID:    paymentID,
-			PayInSuccess: tabapay.IsSuccessfulTransaction(accountTX),
+			PayInSuccess: success,
 		}).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
 
-		if !tabapay.IsSuccessfulTransaction(accountTX) {
+		if !success {
 			// Mark transaction as a failure and stop the workflow
 			return workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
 		}
 
-		err = workflow.ExecuteActivity(accountsCtx, a.AddPayInTransfer, paymentID, accountTX.ID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(accountsCtx, a.AddPayInTransfer, paymentID, txID).Get(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -313,6 +299,70 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	})
 
 	return workflow.ExecuteChildWorkflow(childCtx, RollbackPayInWorkflow, paymentID).Get(childCtx, nil)
+}
+
+func xagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+	var txID string
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Check balance is sufficient. Debit Balance
+	err = workflow.ExecuteActivity(ctx, a.ReserveBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	return txID, true, nil
+}
+
+func tabapayPayIn(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+	logger := workflow.GetLogger(ctx)
+
+	var externalRef string
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return tabapay.NewReferenceID()
+	}).Get(&externalRef)
+	if err != nil {
+		return "", false, err
+	}
+
+	var accountTX tabapay.Transaction
+	err = workflow.ExecuteActivity(accountsCtx, a.PullFromAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
+	if err != nil {
+		return "", false, err
+	}
+
+	if tabapay.IsTransactionStatusUnknown(accountTX) {
+		// check again in 90 sec
+		_ = workflow.Sleep(ctx, time.Second*90)
+		logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
+		err = workflow.ExecuteActivity(accountsCtx, a.GetSenderCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
+		if err != nil {
+			logger.Error("failed to get tabapay send transaction", "err", err)
+			// Notify the Payout worklfow of failure
+			innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
+				PaymentID:    paymentID,
+				PayInSuccess: false,
+			}).Get(ctx, nil)
+			if innerErr != nil {
+				return "", false, innerErr
+			}
+
+			innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
+			if innerErr != nil {
+				logger.Error("Failed to set transaction status to failed. paymentID=", paymentID, "err", innerErr)
+				return "", false, innerErr
+			}
+
+			return "", false, err
+		}
+	}
+
+	return accountTX.ID, tabapay.IsSuccessfulTransaction(accountTX), nil
 }
 
 type PaySignal struct {
@@ -401,67 +451,65 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		}).Get(ctx, nil)
 	}
 
-	// Funding was a success, the receiver has all the relevant information, now payout
-	var externalRef string
+	// Generate the transactionID used for transactions service as well as Xago
+	var txID string
 	err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return tabapay.NewReferenceID()
-	}).Get(&externalRef)
+		return uuid.NewString()
+	}).Get(&txID)
 	if err != nil {
 		return err
 	}
 
-	var accountTX tabapay.Transaction
-	err = workflow.ExecuteActivity(accountsCtx, a.PushToAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
+	// Funding was a success, the receiver has all the relevant information, now payout
+
+	// Switch here on provider of the receiver linkedAcc
+	var la linkedaccounts.LinkedAccount
+	err = workflow.ExecuteActivity(accountsCtx, a.LookupPayOutAccount, paymentID).Get(ctx, &la)
+	if err != nil {
+		return err
+	}
+
+	var success bool
+	var externalTXID string
+	switch la.Provider {
+	case tabapay.ProviderName:
+		externalTXID, success, err = tabapayPayOut(ctx, accountsCtx, a, paymentID)
+	case xago.ProviderName:
+		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
+	default:
+		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
+	}
+
 	if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
 		// Signal the Pay In workflow that the payout has failed, it will know what to do.
-		err = workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, paymentID), "", signalChanName, PaySignal{
+		innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, paymentID), "", signalChanName, PaySignal{
 			PaymentID:     paymentID,
 			PayOutSuccess: false,
 		}).Get(ctx, nil)
-		if err != nil {
-			return err
+		if innerErr != nil {
+			logger.Error("failed to notify pay in workflow", "err", err)
 		}
 	}
 	if err != nil {
 		return err
-	}
-
-	if tabapay.IsTransactionStatusUnknown(accountTX) {
-		// check again in 90 sec
-		_ = workflow.Sleep(ctx, time.Second*90)
-		logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
-		err = workflow.ExecuteActivity(accountsCtx, a.GetReceiverCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
-		if err != nil {
-			logger.Error("failed to get tabapay receive transaction", "err", err)
-			// Notify the Payout worklfow of failure
-			innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, paymentID), "", signalChanName, PaySignal{
-				PaymentID:     paymentID,
-				PayOutSuccess: false,
-			}).Get(ctx, nil)
-			if innerErr != nil {
-				return innerErr
-			}
-			return err
-		}
 	}
 
 	// Notify payin tx of success or failure and it can get on with it
 	err = workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, paymentID), "", signalChanName, PaySignal{
 		PaymentID:     paymentID,
-		PayOutSuccess: tabapay.IsSuccessfulTransaction(accountTX),
+		PayOutSuccess: success,
 	}).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
 	// Payout was unsuccessful, nothing more to do.
-	if !tabapay.IsSuccessfulTransaction(accountTX) {
+	if !success {
 		return nil
 	}
 
 	// Create the incoming transaction
-	var txID string
-	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, accountTX.ID).Get(ctx, &txID)
+	err = workflow.ExecuteActivity(ctx, a.CreatePayoutTransaction, paymentID, txID, externalTXID).Get(ctx, &txID)
 	if err != nil {
 		return err
 	}
@@ -478,6 +526,59 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	return nil
+}
+
+func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID string) (string, bool, error) {
+	var externalTX string
+	err := workflow.ExecuteActivity(accountsCtx, a.WithdrawFromXagoBalance, paymentID).Get(accountsCtx, &externalTX)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Finalize the debit on the balance
+	err = workflow.ExecuteActivity(ctx, a.FinalizeBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Assign the new balance if transfer and not withdrawal
+	err = workflow.ExecuteActivity(ctx, a.AssignBalance, paymentID, txID).Get(ctx, nil)
+	if err != nil {
+		return txID, false, err
+	}
+
+	return externalTX, true, nil
+}
+
+func tabapayPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+	logger := workflow.GetLogger(ctx)
+
+	var externalRef string
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return tabapay.NewReferenceID()
+	}).Get(&externalRef)
+	if err != nil {
+		return "", false, err
+	}
+
+	var accountTX tabapay.Transaction
+	err = workflow.ExecuteActivity(accountsCtx, a.PushToAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
+	if err != nil {
+		return "", false, err
+	}
+
+	if tabapay.IsTransactionStatusUnknown(accountTX) {
+		// check again in 90 sec
+		_ = workflow.Sleep(ctx, time.Second*90)
+		logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
+		err = workflow.ExecuteActivity(accountsCtx, a.GetReceiverCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
+		if err != nil {
+			logger.Error("failed to get tabapay receive transaction", "err", err)
+			return "", false, err
+		}
+	}
+
+	return accountTX.ID, tabapay.IsSuccessfulTransaction(accountTX), nil
 }
 
 func maybeAwaitRafikiPayout(ctx workflow.Context, a *Activity, paymentID string) (success bool, doPayout bool, err error) {
@@ -534,6 +635,12 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 			logger.Error("Final failure to rollback tabapay card transaction", "err", err, "payment_id", paymentID)
 		}
 
+		return err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.RollbackBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		logger.Error("error rolling back balance reserve", "Error", err)
 		return err
 	}
 
