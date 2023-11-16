@@ -1031,6 +1031,13 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		if err != nil {
 			return nil, err
 		}
+
+		req3ds, err := requires3DS(ctx, b, payment.SenderAccount.String, payment.Type, payments.Identity{Type: payment.SenderIDType, Identifier: payment.SenderID})
+		if err != nil {
+			return nil, err
+		}
+
+		payment.ThreeDSRequired = req3ds
 	}
 
 	payment.UpdatedAt = time.Now()
@@ -1045,6 +1052,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		Value("receiver_account", payment.ReceiverAccount).
 		Value("updated_at", payment.UpdatedAt).
 		Value("note", payment.Note).
+		Value("action_three_ds_required", payment.ThreeDSRequired).
 		Value("action_three_ds_id", payment.ThreeDSID).
 		Value("ip_address", payment.IPAddress).
 		Value("action_otp", payment.OTP).
