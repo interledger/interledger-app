@@ -30,6 +30,7 @@ func (s *AdminRpcService) GetWalletXagoBalance(
 	for _, la := range lal {
 		if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance && la.SendCurrency.String() == c.String() {
 			xagoLa = &la
+			break
 		}
 	}
 
