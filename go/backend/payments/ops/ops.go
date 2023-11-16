@@ -319,6 +319,10 @@ func requires3DS(ctx context.Context, b Backends, senderAcc string, typ payments
 		return false, nil
 	}
 
+	if senderAcc == "" {
+		return false, nil
+	}
+
 	la, err := b.LinkedAccounts().Get(ctx, senderAcc)
 	if err != nil {
 		return false, err

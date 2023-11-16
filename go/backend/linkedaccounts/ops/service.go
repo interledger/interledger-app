@@ -299,7 +299,7 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string, cc curr
 		if la.DeletedAt.Valid {
 			continue
 		}
-		if la.DefaultReceive && cc == la.ReceiveCurrency {
+		if la.DefaultReceive && ((cc.Valid() && cc == la.ReceiveCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
@@ -311,7 +311,7 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string, cc curr
 		}
 		if la.CanReceive && la.State == linkedaccounts.Verified &&
 			(la.Provider == tabapay.ProviderName || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
-			la.ReceiveCurrency == cc {
+			((cc.Valid() && cc == la.ReceiveCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
@@ -330,7 +330,7 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string, cc currenc
 		if la.DeletedAt.Valid {
 			continue
 		}
-		if la.DefaultSend && cc == la.SendCurrency {
+		if la.DefaultSend && ((cc.Valid() && cc == la.SendCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
@@ -340,8 +340,9 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string, cc currenc
 		if la.DeletedAt.Valid {
 			continue
 		}
-		if la.CanSend && la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
-			la.SendCurrency == cc {
+		if la.CanSend &&
+			la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
+			((cc.Valid() && cc == la.SendCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
