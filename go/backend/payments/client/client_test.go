@@ -54,7 +54,7 @@ func TestClient(t *testing.T) {
 	b.user.MapUserWallet(context.Background(), uuid.NewString(), wallets.WebMonetizationWalletID)
 	sendWalletID, sendLinkedAccount, sendBalance, sendBank := createTestWallet(t, b)
 	receiveWalletID, receiveLinkedAccount, receiveBalance, _ := createTestWallet(t, b)
-	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID)
+	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.USD)
 	require.NoError(t, err)
 
 	// adding dummy transaction so referrals don't run
