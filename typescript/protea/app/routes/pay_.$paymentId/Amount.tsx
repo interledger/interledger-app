@@ -455,7 +455,6 @@ export const Amount = () => {
             <div className='flex w-full gap-x-2'>
               <Switch
                 checked={localPayment.hasPaymentProtection}
-                disabled={updatePaymentFetcher.state !== 'idle'}
                 onChange={() =>
                   _onChangeSwitch(
                     'updatePayment',
