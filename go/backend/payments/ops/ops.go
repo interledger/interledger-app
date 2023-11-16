@@ -371,7 +371,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	if p.ReceiverAccount == "" || !canReceive {
-		defaultReceive, _ := defaultReceiveAccount(ctx, b, receiverWallet, p.SenderAmount.Currency)
+		defaultReceive, _ := defaultReceiveAccount(ctx, b, receiverWallet, sendCurrency)
 		if defaultReceive != nil {
 			p.ReceiverAccount = defaultReceive.ID
 		}
@@ -1088,9 +1088,6 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 	if err != nil {
 		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
-	if senderAcc.SendCurrency != currency.USD {
-		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
-	}
 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, existing.ReceiverAccount.String)
 	if err != nil {
@@ -1110,7 +1107,7 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		return existing, nil
 	}
 
-	if receiverAcc.ReceiveCurrency == currency.USD {
+	if senderAcc.SendCurrency != currency.USD {
 		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
