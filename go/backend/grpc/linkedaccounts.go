@@ -32,6 +32,7 @@ func transformLinkedAccount(la linkedaccounts.LinkedAccount) *pb.LinkedAccount {
 		ReceiveCurrencyCountryCode: country.ParseCountry(la.ReceiveCurrency.ISO4217()).String(),
 		DefaultSend:                la.DefaultSend,
 		DefaultReceive:             la.DefaultReceive,
+		State:                      string(la.State),
 	}
 }
 func (s *rpcService) GetLinkedAccounts(
