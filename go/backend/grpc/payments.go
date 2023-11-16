@@ -197,7 +197,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 	senderAccount := req.GetSenderAccount()
 	sendAmount := currency.FromPB(req.SenderAmount)
 	if senderAccount == "" {
-		defaultSendAccount, _ := s.b.LinkedAccounts().GetDefaultSend(ctx, w.ID)
+		defaultSendAccount, _ := s.b.LinkedAccounts().GetDefaultSend(ctx, w.ID, sendAmount.Currency)
 		if defaultSendAccount != nil {
 			senderAccount = defaultSendAccount.ID
 		}

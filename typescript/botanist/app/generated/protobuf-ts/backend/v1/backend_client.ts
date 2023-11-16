@@ -4,6 +4,12 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { GetXagoDepositDetailsResponse } from "./backend";
+import type { GetXagoDepositDetailsRequest } from "./backend";
+import type { GetXagoBalanceResponse } from "./backend";
+import type { WithdrawXagoBalanceRequest } from "./backend";
+import type { AddXagoBalanceAccountRequest } from "./backend";
+import type { AddXagoBankAccountRequest } from "./backend";
 import type { SlackCallbackResponse } from "./backend";
 import type { SlackCallbackRequest } from "./backend";
 import type { CreateSlackAuthURLResponse } from "./backend";
@@ -484,6 +490,28 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: SlackCallback(backend.v1.SlackCallbackRequest) returns (backend.v1.SlackCallbackResponse);
      */
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse>;
+    /**
+     * Xago
+     *
+     * @generated from protobuf rpc: AddXagoBankAccount(backend.v1.AddXagoBankAccountRequest) returns (backend.v1.LinkedAccount);
+     */
+    addXagoBankAccount(input: AddXagoBankAccountRequest, options?: RpcOptions): UnaryCall<AddXagoBankAccountRequest, LinkedAccount>;
+    /**
+     * @generated from protobuf rpc: AddXagoBalanceAccount(backend.v1.AddXagoBalanceAccountRequest) returns (backend.v1.LinkedAccount);
+     */
+    addXagoBalanceAccount(input: AddXagoBalanceAccountRequest, options?: RpcOptions): UnaryCall<AddXagoBalanceAccountRequest, LinkedAccount>;
+    /**
+     * @generated from protobuf rpc: WithdrawXagoBalance(backend.v1.WithdrawXagoBalanceRequest) returns (backend.v1.Payment);
+     */
+    withdrawXagoBalance(input: WithdrawXagoBalanceRequest, options?: RpcOptions): UnaryCall<WithdrawXagoBalanceRequest, Payment>;
+    /**
+     * @generated from protobuf rpc: GetXagoBalances(backend.v1.Empty) returns (backend.v1.GetXagoBalanceResponse);
+     */
+    getXagoBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetXagoBalanceResponse>;
+    /**
+     * @generated from protobuf rpc: GetXagoDepositDetails(backend.v1.GetXagoDepositDetailsRequest) returns (backend.v1.GetXagoDepositDetailsResponse);
+     */
+    getXagoDepositDetails(input: GetXagoDepositDetailsRequest, options?: RpcOptions): UnaryCall<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1096,5 +1124,42 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     slackCallback(input: SlackCallbackRequest, options?: RpcOptions): UnaryCall<SlackCallbackRequest, SlackCallbackResponse> {
         const method = this.methods[78], opt = this._transport.mergeOptions(options);
         return stackIntercept<SlackCallbackRequest, SlackCallbackResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Xago
+     *
+     * @generated from protobuf rpc: AddXagoBankAccount(backend.v1.AddXagoBankAccountRequest) returns (backend.v1.LinkedAccount);
+     */
+    addXagoBankAccount(input: AddXagoBankAccountRequest, options?: RpcOptions): UnaryCall<AddXagoBankAccountRequest, LinkedAccount> {
+        const method = this.methods[79], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AddXagoBankAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: AddXagoBalanceAccount(backend.v1.AddXagoBalanceAccountRequest) returns (backend.v1.LinkedAccount);
+     */
+    addXagoBalanceAccount(input: AddXagoBalanceAccountRequest, options?: RpcOptions): UnaryCall<AddXagoBalanceAccountRequest, LinkedAccount> {
+        const method = this.methods[80], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AddXagoBalanceAccountRequest, LinkedAccount>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: WithdrawXagoBalance(backend.v1.WithdrawXagoBalanceRequest) returns (backend.v1.Payment);
+     */
+    withdrawXagoBalance(input: WithdrawXagoBalanceRequest, options?: RpcOptions): UnaryCall<WithdrawXagoBalanceRequest, Payment> {
+        const method = this.methods[81], opt = this._transport.mergeOptions(options);
+        return stackIntercept<WithdrawXagoBalanceRequest, Payment>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetXagoBalances(backend.v1.Empty) returns (backend.v1.GetXagoBalanceResponse);
+     */
+    getXagoBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetXagoBalanceResponse> {
+        const method = this.methods[82], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GetXagoBalanceResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetXagoDepositDetails(backend.v1.GetXagoDepositDetailsRequest) returns (backend.v1.GetXagoDepositDetailsResponse);
+     */
+    getXagoDepositDetails(input: GetXagoDepositDetailsRequest, options?: RpcOptions): UnaryCall<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse> {
+        const method = this.methods[83], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse>("unary", this._transport, method, opt, input);
     }
 }
