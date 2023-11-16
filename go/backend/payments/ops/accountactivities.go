@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/env"
@@ -93,7 +97,7 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 			return nil, err
 		}
 
-		account, err := defaultReceiveAccount(ctx, a.b, w)
+		account, err := defaultReceiveAccount(ctx, a.b, w, currency.ParseCurrency(p.ReceiverCurrency))
 		if err != nil {
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				return nil, temporal.NewNonRetryableApplicationError("Default linked card not found.", "ErrNotFound", err)
@@ -104,6 +108,9 @@ func (a *Activity) PushToAccount(ctx context.Context, paymentID, externalRef str
 
 		// Set the linked account ID on the payment
 		_, err = update(ctx, a.b, payments.UpdateArgs{ID: paymentID, ReceiverAccount: accountID}, p)
+		if errors.Is(err, payments.ErrIncompatibleAccounts) {
+			return nil, temporal.NewNonRetryableApplicationError("default receive account incompatible", "ErrIncompatible", err)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -194,4 +201,28 @@ func (a *Activity) RollbackPullFromAccount(ctx context.Context, paymentID string
 	}
 	// TODO: Get if the transaction was actually settled from the reports.
 	return a.b.Tabapay().ReverseTransaction(ctx, externalTX, false, p.SenderAmount.Currency)
+}
+
+func (a *Activity) WithdrawFromXagoBalance(ctx context.Context, paymentID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return uuid.NewString(), nil
+	}
+
+	tx, err := a.b.Xago().CreateTransaction(ctx, xago.CreateTransactionArgs{
+		WalletID:        p.Sender.WalletID,
+		LinkedAccountID: p.ReceiverAccount,
+		TransactionID:   p.SendTransactionID,
+		Amount:          p.ReceiverAmount,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tx.ID, nil
+
 }

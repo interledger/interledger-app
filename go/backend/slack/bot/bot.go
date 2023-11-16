@@ -111,7 +111,7 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 				return
 			}
 
-			senderAcc, err := b.LinkedAccounts().GetDefaultSend(r.Context(), senderWallet.ID)
+			senderAcc, err := b.LinkedAccounts().GetDefaultSend(r.Context(), senderWallet.ID, amt.Currency)
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				data, err := json.Marshal(&ext_slack.Msg{Text: "Please add a account capable of sending payments before continuing"})
 				if err != nil {
@@ -155,7 +155,7 @@ func NewSlackCommandHandler(b Backends) http.HandlerFunc {
 					return
 				}
 
-				_, err = b.LinkedAccounts().GetDefaultReceive(r.Context(), receiverWallet.ID)
+				_, err = b.LinkedAccounts().GetDefaultReceive(r.Context(), receiverWallet.ID, amt.Currency)
 				if errors.Is(err, linkedaccounts.ErrNotFound) {
 					data, err := json.Marshal(&ext_slack.Msg{Text: fmt.Sprintf("%s is not capable of receiveing payments, please have them add an account that can receive payments", receiverSlackID)})
 					if err != nil {
@@ -384,7 +384,7 @@ func pollPaymentUpdates(b Backends, paymentID string, c ext_slack.SlashCommand) 
 			}
 
 			// Now check if the user has a liked account that can receive
-			_, err = b.LinkedAccounts().GetDefaultReceive(ctx, con.WalletID)
+			_, err = b.LinkedAccounts().GetDefaultReceive(ctx, con.WalletID, p.ReceiverAmount.Currency)
 			if errors.Is(err, linkedaccounts.ErrNotFound) {
 				// Send prompt to user to link an
 				sendToUser(ctx, b, c.TeamID, receiverSlackID,

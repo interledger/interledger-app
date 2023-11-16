@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/rafiki"
 
 	"github.com/go-playground/validator/v10"
@@ -37,6 +39,7 @@ type Backends interface {
 	Tabapay() tabapay.Client
 	Transactions() transactions.Client
 	Rafiki() rafiki.Client
+	Xago() xago.Client
 }
 
 type TestBackends struct {
@@ -51,6 +54,10 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Tbp *tabapay_mock.MockClient
+}
+
+func (t TestBackends) Xago() xago.Client {
+	return nil
 }
 
 func (t TestBackends) Rafiki() rafiki.Client {
