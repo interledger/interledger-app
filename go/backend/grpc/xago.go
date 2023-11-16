@@ -140,7 +140,7 @@ func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXa
 	return transformPayment(ctx, s.b, p)
 }
 
-func (s *rpcService) GetXagoBalance(ctx context.Context, req *pb.GetXagoBalanceRequest) (*pb.GetXagoBalanceResponse, error) {
+func (s *rpcService) GetXagoBalances(ctx context.Context, req *pb.Empty) (*pb.GetXagoBalanceResponse, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil && !errors.Is(err, user.ErrNoUserFound) {
 		return nil, UnauthenticatedError("Unauthenticated.")
@@ -151,24 +151,31 @@ func (s *rpcService) GetXagoBalance(ctx context.Context, req *pb.GetXagoBalanceR
 		return nil, ForbiddenError("Unauthenticated.")
 	}
 
-	la, err := s.b.LinkedAccounts().Get(ctx, req.LinkedAccount)
+	lal, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	if la.WalletID != w.ID {
-		return nil, NotFoundError("linked account not found")
+	var resp []*pb.XagoBalance
+	for _, la := range lal {
+		if la.Provider != xago.ProviderName || la.Type != xago.AccTypeBalance {
+			continue
+		}
+
+		bal, err := s.b.Xago().GetBalance(ctx, la.ID)
+		if err != nil {
+			return nil, toGRPCError(err)
+		}
+
+		resp = append(resp, &pb.XagoBalance{
+			Balance:       bal.Total.ToPB(),
+			Available:     bal.Available.ToPB(),
+			Currency:      la.SendCurrency.String(),
+			LinkedAccount: la.ID,
+		})
 	}
 
-	bal, err := s.b.Xago().GetBalance(ctx, req.LinkedAccount)
-	if err != nil {
-		return nil, toGRPCError(err)
-	}
-
-	return &pb.GetXagoBalanceResponse{
-		Balance:   bal.Total.ToPB(),
-		Available: bal.Available.ToPB(),
-	}, nil
+	return &pb.GetXagoBalanceResponse{Balances: resp}, nil
 }
 
 func (s *rpcService) GetXagoDepositDetails(ctx context.Context, req *pb.GetXagoDepositDetailsRequest) (*pb.GetXagoDepositDetailsResponse, error) {
