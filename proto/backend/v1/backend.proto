@@ -127,6 +127,7 @@ service BackendService {
   rpc UpdatePayment(UpdatePaymentRequest) returns (Payment);
   rpc GetPayment(GetPaymentRequest) returns (Payment);
   rpc ConfirmPayment(ConfirmPaymentRequest) returns (Payment);
+  rpc GetLinkedAccountsForPayment(GetLinkedAccountsForPaymentRequest) returns (GetLinkedAccountsForPaymentResponse);
 
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
@@ -148,6 +149,19 @@ service BackendService {
   rpc WithdrawXagoBalance(WithdrawXagoBalanceRequest) returns (Payment);
   rpc GetXagoBalances(Empty) returns (GetXagoBalanceResponse);
   rpc GetXagoDepositDetails(GetXagoDepositDetailsRequest) returns (GetXagoDepositDetailsResponse);
+}
+
+message GetLinkedAccountsForPaymentRequest {
+  string paymentId = 1;
+}
+
+message GetLinkedAccountsForPaymentResponse {
+  repeated LinkedAccountForPayment linkedAccounts = 1;
+}
+
+message LinkedAccountForPayment {
+  LinkedAccount details = 1;
+  bool enabled = 2;
 }
 
 message GetXagoDepositDetailsRequest {

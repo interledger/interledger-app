@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/limits"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	"gitlab.com/fynbos/backend/twilio"
 
@@ -400,5 +401,49 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		PaymentProtectionAmount: paymentProtection.Format(),
 		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
 		ReceiverAmount:          p.ReceiverAmount.ToPB(),
+	}, nil
+}
+
+func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.GetLinkedAccountsForPaymentRequest) (*pb.GetLinkedAccountsForPaymentResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	p, err := s.b.Payments().Lookup(ctx, req.GetPaymentId())
+	if err != nil || p.Sender.WalletID != w.ID {
+		return nil, NotFoundError("")
+	}
+
+	sendAccounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	recvAccounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, p.Receiver.WalletID)
+	if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, toGRPCError(err)
+	}
+
+	las := make([]*pb.LinkedAccountForPayment, len(sendAccounts))
+	for i, sendAcc := range sendAccounts {
+		las[i].Details = transformLinkedAccount(sendAcc)
+		las[i].Enabled = recvAccounts == nil // could be paying to non-signed up user
+
+		for _, recvAcc := range recvAccounts {
+			if sendAcc.CanPay(recvAcc) {
+				las[i].Enabled = true
+				break
+			}
+		}
+	}
+
+	return &pb.GetLinkedAccountsForPaymentResponse{
+		LinkedAccounts: las,
 	}, nil
 }

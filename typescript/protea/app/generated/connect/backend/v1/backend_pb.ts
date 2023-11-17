@@ -81,6 +81,123 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.GetLinkedAccountsForPaymentRequest
+ */
+export class GetLinkedAccountsForPaymentRequest extends Message<GetLinkedAccountsForPaymentRequest> {
+  /**
+   * @generated from field: string paymentId = 1;
+   */
+  paymentId = "";
+
+  constructor(data?: PartialMessage<GetLinkedAccountsForPaymentRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetLinkedAccountsForPaymentRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "paymentId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetLinkedAccountsForPaymentRequest {
+    return new GetLinkedAccountsForPaymentRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetLinkedAccountsForPaymentRequest {
+    return new GetLinkedAccountsForPaymentRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetLinkedAccountsForPaymentRequest {
+    return new GetLinkedAccountsForPaymentRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetLinkedAccountsForPaymentRequest | PlainMessage<GetLinkedAccountsForPaymentRequest> | undefined, b: GetLinkedAccountsForPaymentRequest | PlainMessage<GetLinkedAccountsForPaymentRequest> | undefined): boolean {
+    return proto3.util.equals(GetLinkedAccountsForPaymentRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.GetLinkedAccountsForPaymentResponse
+ */
+export class GetLinkedAccountsForPaymentResponse extends Message<GetLinkedAccountsForPaymentResponse> {
+  /**
+   * @generated from field: repeated backend.v1.LinkedAccountForPayment linkedAccounts = 1;
+   */
+  linkedAccounts: LinkedAccountForPayment[] = [];
+
+  constructor(data?: PartialMessage<GetLinkedAccountsForPaymentResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetLinkedAccountsForPaymentResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "linkedAccounts", kind: "message", T: LinkedAccountForPayment, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetLinkedAccountsForPaymentResponse {
+    return new GetLinkedAccountsForPaymentResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetLinkedAccountsForPaymentResponse {
+    return new GetLinkedAccountsForPaymentResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetLinkedAccountsForPaymentResponse {
+    return new GetLinkedAccountsForPaymentResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetLinkedAccountsForPaymentResponse | PlainMessage<GetLinkedAccountsForPaymentResponse> | undefined, b: GetLinkedAccountsForPaymentResponse | PlainMessage<GetLinkedAccountsForPaymentResponse> | undefined): boolean {
+    return proto3.util.equals(GetLinkedAccountsForPaymentResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.LinkedAccountForPayment
+ */
+export class LinkedAccountForPayment extends Message<LinkedAccountForPayment> {
+  /**
+   * @generated from field: backend.v1.LinkedAccount details = 1;
+   */
+  details?: LinkedAccount;
+
+  /**
+   * @generated from field: bool enabled = 2;
+   */
+  enabled = false;
+
+  constructor(data?: PartialMessage<LinkedAccountForPayment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.LinkedAccountForPayment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "details", kind: "message", T: LinkedAccount },
+    { no: 2, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkedAccountForPayment {
+    return new LinkedAccountForPayment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LinkedAccountForPayment {
+    return new LinkedAccountForPayment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LinkedAccountForPayment {
+    return new LinkedAccountForPayment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LinkedAccountForPayment | PlainMessage<LinkedAccountForPayment> | undefined, b: LinkedAccountForPayment | PlainMessage<LinkedAccountForPayment> | undefined): boolean {
+    return proto3.util.equals(LinkedAccountForPayment, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetXagoDepositDetailsRequest
  */
 export class GetXagoDepositDetailsRequest extends Message<GetXagoDepositDetailsRequest> {

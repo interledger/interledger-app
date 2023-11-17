@@ -32,6 +32,37 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetLinkedAccountsForPaymentRequest
+ */
+export interface GetLinkedAccountsForPaymentRequest {
+    /**
+     * @generated from protobuf field: string paymentId = 1;
+     */
+    paymentId: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetLinkedAccountsForPaymentResponse
+ */
+export interface GetLinkedAccountsForPaymentResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.LinkedAccountForPayment linkedAccounts = 1;
+     */
+    linkedAccounts: LinkedAccountForPayment[];
+}
+/**
+ * @generated from protobuf message backend.v1.LinkedAccountForPayment
+ */
+export interface LinkedAccountForPayment {
+    /**
+     * @generated from protobuf field: backend.v1.LinkedAccount details = 1;
+     */
+    details?: LinkedAccount;
+    /**
+     * @generated from protobuf field: bool enabled = 2;
+     */
+    enabled: boolean;
+}
+/**
  * @generated from protobuf message backend.v1.GetXagoDepositDetailsRequest
  */
 export interface GetXagoDepositDetailsRequest {
@@ -2293,6 +2324,154 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetLinkedAccountsForPaymentRequest$Type extends MessageType<GetLinkedAccountsForPaymentRequest> {
+    constructor() {
+        super("backend.v1.GetLinkedAccountsForPaymentRequest", [
+            { no: 1, name: "paymentId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetLinkedAccountsForPaymentRequest>): GetLinkedAccountsForPaymentRequest {
+        const message = { paymentId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetLinkedAccountsForPaymentRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetLinkedAccountsForPaymentRequest): GetLinkedAccountsForPaymentRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string paymentId */ 1:
+                    message.paymentId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetLinkedAccountsForPaymentRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string paymentId = 1; */
+        if (message.paymentId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.paymentId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetLinkedAccountsForPaymentRequest
+ */
+export const GetLinkedAccountsForPaymentRequest = new GetLinkedAccountsForPaymentRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetLinkedAccountsForPaymentResponse$Type extends MessageType<GetLinkedAccountsForPaymentResponse> {
+    constructor() {
+        super("backend.v1.GetLinkedAccountsForPaymentResponse", [
+            { no: 1, name: "linkedAccounts", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => LinkedAccountForPayment }
+        ]);
+    }
+    create(value?: PartialMessage<GetLinkedAccountsForPaymentResponse>): GetLinkedAccountsForPaymentResponse {
+        const message = { linkedAccounts: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetLinkedAccountsForPaymentResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetLinkedAccountsForPaymentResponse): GetLinkedAccountsForPaymentResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.LinkedAccountForPayment linkedAccounts */ 1:
+                    message.linkedAccounts.push(LinkedAccountForPayment.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetLinkedAccountsForPaymentResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.LinkedAccountForPayment linkedAccounts = 1; */
+        for (let i = 0; i < message.linkedAccounts.length; i++)
+            LinkedAccountForPayment.internalBinaryWrite(message.linkedAccounts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetLinkedAccountsForPaymentResponse
+ */
+export const GetLinkedAccountsForPaymentResponse = new GetLinkedAccountsForPaymentResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class LinkedAccountForPayment$Type extends MessageType<LinkedAccountForPayment> {
+    constructor() {
+        super("backend.v1.LinkedAccountForPayment", [
+            { no: 1, name: "details", kind: "message", T: () => LinkedAccount },
+            { no: 2, name: "enabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<LinkedAccountForPayment>): LinkedAccountForPayment {
+        const message = { enabled: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<LinkedAccountForPayment>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: LinkedAccountForPayment): LinkedAccountForPayment {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.LinkedAccount details */ 1:
+                    message.details = LinkedAccount.internalBinaryRead(reader, reader.uint32(), options, message.details);
+                    break;
+                case /* bool enabled */ 2:
+                    message.enabled = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: LinkedAccountForPayment, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.LinkedAccount details = 1; */
+        if (message.details)
+            LinkedAccount.internalBinaryWrite(message.details, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* bool enabled = 2; */
+        if (message.enabled !== false)
+            writer.tag(2, WireType.Varint).bool(message.enabled);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.LinkedAccountForPayment
+ */
+export const LinkedAccountForPayment = new LinkedAccountForPayment$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetXagoDepositDetailsRequest$Type extends MessageType<GetXagoDepositDetailsRequest> {
     constructor() {
@@ -10158,6 +10337,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "UpdatePayment", options: {}, I: UpdatePaymentRequest, O: Payment },
     { name: "GetPayment", options: {}, I: GetPaymentRequest, O: Payment },
     { name: "ConfirmPayment", options: {}, I: ConfirmPaymentRequest, O: Payment },
+    { name: "GetLinkedAccountsForPayment", options: {}, I: GetLinkedAccountsForPaymentRequest, O: GetLinkedAccountsForPaymentResponse },
     { name: "SearchWallets", options: {}, I: SearchWalletsRequest, O: SearchWalletsResponse },
     { name: "DiscordCallback", options: {}, I: DiscordCallbackRequest, O: DiscordCallbackResponse },
     { name: "CreateDiscordAuthURL", options: {}, I: Empty, O: CreateDiscordAuthURLResponse },

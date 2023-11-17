@@ -92,6 +92,7 @@ const (
 	BackendService_UpdatePayment_FullMethodName                  = "/backend.v1.BackendService/UpdatePayment"
 	BackendService_GetPayment_FullMethodName                     = "/backend.v1.BackendService/GetPayment"
 	BackendService_ConfirmPayment_FullMethodName                 = "/backend.v1.BackendService/ConfirmPayment"
+	BackendService_GetLinkedAccountsForPayment_FullMethodName    = "/backend.v1.BackendService/GetLinkedAccountsForPayment"
 	BackendService_SearchWallets_FullMethodName                  = "/backend.v1.BackendService/SearchWallets"
 	BackendService_DiscordCallback_FullMethodName                = "/backend.v1.BackendService/DiscordCallback"
 	BackendService_CreateDiscordAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateDiscordAuthURL"
@@ -203,6 +204,7 @@ type BackendServiceClient interface {
 	UpdatePayment(ctx context.Context, in *UpdatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	GetPayment(ctx context.Context, in *GetPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
 	ConfirmPayment(ctx context.Context, in *ConfirmPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
+	GetLinkedAccountsForPayment(ctx context.Context, in *GetLinkedAccountsForPaymentRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error)
 	// Search
 	SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error)
 	// Discord
@@ -886,6 +888,15 @@ func (c *backendServiceClient) ConfirmPayment(ctx context.Context, in *ConfirmPa
 	return out, nil
 }
 
+func (c *backendServiceClient) GetLinkedAccountsForPayment(ctx context.Context, in *GetLinkedAccountsForPaymentRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error) {
+	out := new(GetLinkedAccountsForPaymentResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetLinkedAccountsForPayment_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error) {
 	out := new(SearchWalletsResponse)
 	err := c.cc.Invoke(ctx, BackendService_SearchWallets_FullMethodName, in, out, opts...)
@@ -1083,6 +1094,7 @@ type BackendServiceServer interface {
 	UpdatePayment(context.Context, *UpdatePaymentRequest) (*Payment, error)
 	GetPayment(context.Context, *GetPaymentRequest) (*Payment, error)
 	ConfirmPayment(context.Context, *ConfirmPaymentRequest) (*Payment, error)
+	GetLinkedAccountsForPayment(context.Context, *GetLinkedAccountsForPaymentRequest) (*GetLinkedAccountsForPaymentResponse, error)
 	// Search
 	SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error)
 	// Discord
@@ -1323,6 +1335,9 @@ func (UnimplementedBackendServiceServer) GetPayment(context.Context, *GetPayment
 }
 func (UnimplementedBackendServiceServer) ConfirmPayment(context.Context, *ConfirmPaymentRequest) (*Payment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfirmPayment not implemented")
+}
+func (UnimplementedBackendServiceServer) GetLinkedAccountsForPayment(context.Context, *GetLinkedAccountsForPaymentRequest) (*GetLinkedAccountsForPaymentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccountsForPayment not implemented")
 }
 func (UnimplementedBackendServiceServer) SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchWallets not implemented")
@@ -2683,6 +2698,24 @@ func _BackendService_ConfirmPayment_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetLinkedAccountsForPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLinkedAccountsForPaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetLinkedAccountsForPayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetLinkedAccountsForPayment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetLinkedAccountsForPayment(ctx, req.(*GetLinkedAccountsForPaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_SearchWallets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchWalletsRequest)
 	if err := dec(in); err != nil {
@@ -3179,6 +3212,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfirmPayment",
 			Handler:    _BackendService_ConfirmPayment_Handler,
+		},
+		{
+			MethodName: "GetLinkedAccountsForPayment",
+			Handler:    _BackendService_GetLinkedAccountsForPayment_Handler,
 		},
 		{
 			MethodName: "SearchWallets",

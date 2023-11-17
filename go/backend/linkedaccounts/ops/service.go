@@ -674,10 +674,6 @@ func SetDefaultSend(ctx context.Context, b Backends, id string) (*linkedaccounts
 	return Get(ctx, b, id)
 }
 
-// Check that the receiving wallet has at least 1 linked account that:
-// 1) is verified
-// 2) can receive
-// 3) has the same currency as the sending account OR sending account is sending in USD
 func CanSendToWallet(ctx context.Context, b Backends, sendWalletID, receiveWalletID string) (bool, error) {
 	if sendWalletID == receiveWalletID {
 		return false, nil
@@ -695,9 +691,7 @@ func CanSendToWallet(ctx context.Context, b Backends, sendWalletID, receiveWalle
 
 	for _, sendAcc := range sendLas {
 		for _, recvAcc := range recvLas {
-			if recvAcc.State == linkedaccounts.Verified &&
-				recvAcc.CanReceive &&
-				(recvAcc.ReceiveCurrency == sendAcc.SendCurrency || sendAcc.SendCurrency == currency.USD) {
+			if sendAcc.CanPay(recvAcc) {
 				return true, nil
 			}
 		}
