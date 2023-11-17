@@ -43,7 +43,7 @@ func TestCreate(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
-	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
+	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
@@ -93,7 +93,7 @@ func TestCreate(t *testing.T) {
 				ReceiverAmount:       currency.FromFloat64(51, currency.USD),
 				AddPaymentProtection: true,
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress, payments.RequiredActionTypeOTP},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeSenderAccount, payments.RequiredActionTypeIPAddress, payments.RequiredActionTypeOTP},
 			err:     nil,
 		},
 	}
@@ -257,7 +257,7 @@ func TestSetState(t *testing.T) {
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes() // No OTP
-	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletID: walletID}, nil).AnyTimes()
+	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletID: walletID}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -289,9 +289,11 @@ func TestGetRequiredActions(t *testing.T) {
 	b := &ops.TestBackends{
 		DBC: db.MigrateTestDB(t, ctx),
 		Wc:  wallets_mock.NewMockClient(ctrl),
+		Lac: linkedaccounts_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{WalletID: walletID, Provider: tabapay.ProviderName}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -308,7 +310,6 @@ func TestGetRequiredActions(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
-	assert.Contains(t, requiredActions, payments.RequiredActionTypeThreeDS)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeIPAddress)
 }
 
@@ -352,7 +353,6 @@ func TestConfirm(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
-	assert.Contains(t, requiredActions, payments.RequiredActionTypeThreeDS)
 
 	p, err = ops.Update(ctx, b, payments.UpdateArgs{
 		ID: paymentID,

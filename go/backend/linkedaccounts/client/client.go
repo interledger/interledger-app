@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/linkedaccounts/ops"
@@ -95,12 +97,12 @@ func (c client) ListByWalletId(ctx context.Context, walletId string) (fsl []link
 	return ops.ListByWalletId(ctx, c.b, walletId)
 }
 
-func (c client) GetDefaultReceive(ctx context.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
-	return ops.GetDefaultReceive(ctx, c.b, walletID)
+func (c client) GetDefaultReceive(ctx context.Context, walletID string, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
+	return ops.GetDefaultReceive(ctx, c.b, walletID, cc)
 }
 
-func (c client) GetDefaultSend(ctx context.Context, walletID string) (*linkedaccounts.LinkedAccount, error) {
-	return ops.GetDefaultSend(ctx, c.b, walletID)
+func (c client) GetDefaultSend(ctx context.Context, walletID string, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
+	return ops.GetDefaultSend(ctx, c.b, walletID, cc)
 }
 
 func (c client) Delete(ctx context.Context, id string) error {

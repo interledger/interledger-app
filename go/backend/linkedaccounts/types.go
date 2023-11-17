@@ -52,7 +52,7 @@ type CreateArgs struct {
 	Name                string `validate:"required"`
 	Nickname            string
 	Mask                string
-	Provider            string `validate:"oneof=mx gmt tabapay"`
+	Provider            string `validate:"oneof=mx gmt tabapay xago"`
 	ProviderID          string
 	Type                string `validate:"required"`
 	CanSend             bool

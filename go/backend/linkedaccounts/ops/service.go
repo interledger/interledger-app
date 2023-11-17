@@ -8,6 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/slack"
@@ -284,7 +288,7 @@ func ListByWalletId(ctx context.Context, b Backends, walletId string) ([]linkeda
 	return linkedAccounts, nil
 }
 
-func GetDefaultReceive(ctx context.Context, b Backends, walletID string) (*linkedaccounts.LinkedAccount, error) {
+func GetDefaultReceive(ctx context.Context, b Backends, walletID string, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
 	lal, err := ListByWalletId(ctx, b, walletID)
 	if err != nil {
 		return nil, err
@@ -295,7 +299,7 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string) (*linke
 		if la.DeletedAt.Valid {
 			continue
 		}
-		if la.DefaultReceive {
+		if la.DefaultReceive && ((cc.Valid() && cc == la.ReceiveCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
@@ -305,7 +309,9 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string) (*linke
 		if la.DeletedAt.Valid {
 			continue
 		}
-		if la.CanReceive && la.State == linkedaccounts.Verified && la.Provider == tabapay.ProviderName {
+		if la.CanReceive && la.State == linkedaccounts.Verified &&
+			(la.Provider == tabapay.ProviderName || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
+			((cc.Valid() && cc == la.ReceiveCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
@@ -313,7 +319,7 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string) (*linke
 	return nil, fmt.Errorf("%w no receive account configured", linkedaccounts.ErrNotFound)
 }
 
-func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedaccounts.LinkedAccount, error) {
+func GetDefaultSend(ctx context.Context, b Backends, walletID string, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
 	lal, err := ListByWalletId(ctx, b, walletID)
 	if err != nil {
 		return nil, err
@@ -324,7 +330,7 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedac
 		if la.DeletedAt.Valid {
 			continue
 		}
-		if la.DefaultSend {
+		if la.DefaultSend && ((cc.Valid() && cc == la.SendCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
@@ -334,7 +340,9 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string) (*linkedac
 		if la.DeletedAt.Valid {
 			continue
 		}
-		if la.CanSend && la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
+		if la.CanSend &&
+			la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
+			((cc.Valid() && cc == la.SendCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
 	}
@@ -618,7 +626,7 @@ func SetDefaultReceive(ctx context.Context, b Backends, id string) (*linkedaccou
 	if la.DeletedAt.Valid {
 		return nil, linkedaccounts.ErrNotFound
 	}
-	if !la.CanReceive || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
+	if !la.CanReceive || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || la.Provider == xago.ProviderName) {
 		return nil, fmt.Errorf("%w Linked account not eligible to be set as default receive account.", linkedaccounts.ErrInternal)
 	}
 
@@ -646,7 +654,7 @@ func SetDefaultSend(ctx context.Context, b Backends, id string) (*linkedaccounts
 	if la.DeletedAt.Valid {
 		return nil, linkedaccounts.ErrNotFound
 	}
-	if !la.CanSend || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals") {
+	if !la.CanSend || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || la.Provider == xago.ProviderName) {
 		return nil, fmt.Errorf("%w Linked account not eligible to be set as default send account.", linkedaccounts.ErrInternal)
 	}
 

@@ -9,6 +9,7 @@ import (
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -105,7 +106,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	var hasWalletAddress, hasCard, hasBank, hasIdentities, hasTxs bool
+	var hasWalletAddress, hasCard, hasBank, hasIdentities, hasTxs, hasBalances bool
 	var anyErr error
 	var wg sync.WaitGroup
 
@@ -133,6 +134,9 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 			}
 			if la.Provider == tabapay.ProviderName {
 				hasCard = true
+			}
+			if la.Provider == xago.ProviderName {
+				hasBalances = true
 			}
 		}
 	}()
@@ -171,6 +175,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		HasIdentities:    hasIdentities,
 		HasTransacted:    hasTxs,
 		HasWalletAddress: hasWalletAddress,
+		HasBalances:      hasBalances,
 	}, nil
 }
 
