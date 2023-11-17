@@ -1004,6 +1004,30 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		return transformPayment(ctx, b, *payment, senderWallet, receiverWallet)
 	}
 
+	if accountsUpdated {
+		// look for default receive account if receive account is not explicitly being set
+		if args.ReceiverAccount == "" {
+			la, err := defaultReceiveAccount(ctx, b, receiverWallet, currency.ParseCurrency(payment.SenderCurrency))
+			if err != nil {
+				return nil, err
+			}
+			payment.ReceiverAccount.String = la.ID
+			payment.ReceiverAccount.Valid = true
+		}
+
+		err = validateSenderReceiver(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
+		if err != nil {
+			return nil, err
+		}
+
+		req3ds, err := requires3DS(ctx, b, payment.SenderAccount.String, payment.Type, payments.Identity{Type: payment.SenderIDType, Identifier: payment.SenderID})
+		if err != nil {
+			return nil, err
+		}
+
+		payment.ThreeDSRequired = req3ds
+	}
+
 	// Something changed, update the FX calculations
 	if receiverAmtUpdated || senderAmtUpdated {
 		payment, err = applyFXUpdate(ctx, b, payment, receiverAmtUpdated)
@@ -1024,20 +1048,6 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
 	if err != nil {
 		return nil, err
-	}
-
-	if accountsUpdated {
-		err = validateSenderReceiver(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
-		if err != nil {
-			return nil, err
-		}
-
-		req3ds, err := requires3DS(ctx, b, payment.SenderAccount.String, payment.Type, payments.Identity{Type: payment.SenderIDType, Identifier: payment.SenderID})
-		if err != nil {
-			return nil, err
-		}
-
-		payment.ThreeDSRequired = req3ds
 	}
 
 	payment.UpdatedAt = time.Now()
