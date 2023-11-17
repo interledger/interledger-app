@@ -46,6 +46,20 @@ func (la *LinkedAccount) Title() string {
 	return la.Mask
 }
 
+// Check that the receiving linked account:
+// 1) is verified
+// 2) can receive
+// 3) has the same currency as the sending account OR sending account is sending in USD
+func (la *LinkedAccount) CanPay(recvAcc LinkedAccount) bool {
+	if la == nil {
+		return false
+	}
+
+	return recvAcc.State == Verified &&
+		recvAcc.CanReceive &&
+		(recvAcc.ReceiveCurrency == la.SendCurrency || la.SendCurrency == currency.USD)
+}
+
 type CreateArgs struct {
 	ID                  string `validate:"omitempty,uuid4"`
 	WalletID            string `validate:"required,uuid4"`
