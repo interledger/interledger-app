@@ -75,7 +75,7 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                 />
                 <Listbox.Button className='flex h-full items-center gap-x-2 bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'>
                   <Icon>{linkedAccount?.icon}</Icon>
-                  <span>{linkedAccount?.mask}</span>
+                  {linkedAccount?.mask && <span>{linkedAccount?.mask}</span>}
                 </Listbox.Button>
               </div>
             </div>
