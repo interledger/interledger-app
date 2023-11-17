@@ -180,6 +180,8 @@ message XagoBalance {
   Amount available = 2;
   string currency = 3;
   string linkedAccount = 4;
+  string formattedBalance = 5;
+  string formattedAvailableBalance = 6;
 }
 
 message WithdrawXagoBalanceRequest {

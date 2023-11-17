@@ -313,6 +313,16 @@ export class XagoBalance extends Message<XagoBalance> {
    */
   linkedAccount = "";
 
+  /**
+   * @generated from field: string formattedBalance = 5;
+   */
+  formattedBalance = "";
+
+  /**
+   * @generated from field: string formattedAvailableBalance = 6;
+   */
+  formattedAvailableBalance = "";
+
   constructor(data?: PartialMessage<XagoBalance>) {
     super();
     proto3.util.initPartial(data, this);
@@ -325,6 +335,8 @@ export class XagoBalance extends Message<XagoBalance> {
     { no: 2, name: "available", kind: "message", T: Amount },
     { no: 3, name: "currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "formattedBalance", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "formattedAvailableBalance", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): XagoBalance {
