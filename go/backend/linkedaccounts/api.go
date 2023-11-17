@@ -24,6 +24,7 @@ type Client interface {
 	GetDefaultSend(ctx context.Context, walletID string, cc currency.Currency) (*LinkedAccount, error)
 	SetDefaultReceive(ctx context.Context, id string) (*LinkedAccount, error)
 	SetDefaultSend(ctx context.Context, id string) (*LinkedAccount, error)
+	CanSendToWallet(ctx context.Context, sendWalletID, receiveWalletID string) (bool, error)
 
 	CreateReviews(ctx context.Context, args []CreateReviewArgs) ([]Review, error)
 	GetReview(ctx context.Context, id string) (*Review, error)

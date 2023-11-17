@@ -40,7 +40,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
-		canSendToAddress, err := canSendToWallet(ctx, s.b, walletID, wallet.ID)
+		canSendToAddress, err := s.b.LinkedAccounts().CanSendToWallet(ctx, walletID, wallet.ID)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
@@ -63,7 +63,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
-		canSendToAddress, err := canSendToWallet(ctx, s.b, walletID, id.WalletID)
+		canSendToAddress, err := s.b.LinkedAccounts().CanSendToWallet(ctx, walletID, id.WalletID)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
@@ -131,34 +131,6 @@ func getTwitterHandle(input string) (string, error) {
 	}
 
 	return pathParts[1], nil
-}
-
-// canSendToWallet returns false if
-// 1) sending to own wallet
-// 2) wallet doesn't have any linked accounts that can receive
-func canSendToWallet(ctx context.Context, b Backends, fromWalletID string, toWalletID string) (bool, error) {
-
-	if toWalletID == fromWalletID {
-		return false, nil
-	}
-
-	las, err := b.LinkedAccounts().ListByWalletId(ctx, toWalletID)
-	if err != nil {
-		return false, err
-	}
-
-	var ppCanReceive bool
-	for _, la := range las {
-		if la.CanReceive {
-			ppCanReceive = true
-			break
-		}
-	}
-	if !ppCanReceive {
-		return false, nil
-	}
-
-	return true, nil
 }
 
 func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentRequest) (*pb.Payment, error) {
