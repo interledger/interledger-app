@@ -30,8 +30,14 @@ import type { appLoader } from './route'
 import { KycStatus } from './route'
 
 export function AppPage() {
-  const { walletInfo, features, transactions, kycStatus, pusherArgs } =
-    useLoaderData<typeof appLoader>()
+  const {
+    walletInfo,
+    features,
+    transactions,
+    kycStatus,
+    pusherArgs,
+    balances
+  } = useLoaderData<typeof appLoader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
@@ -160,6 +166,30 @@ export function AppPage() {
             <div className='contents lg:hidden'>
               <CTACards />
             </div>
+            {balances.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Balances</CardTitle>
+                </CardHeader>
+                {balances.map((method) => (
+                  <CardLink
+                    key={method.id}
+                    to={route('/accounts/:accountId', {
+                      accountId: method.id
+                    })}
+                    className='items-center justify-between'
+                  >
+                    <div className='flex items-center space-x-3'>
+                      <div
+                        className={`flag:${method.receiveCurrencyCountryCode}`}
+                      />
+                      <span>{method.name}</span>
+                    </div>
+                    <Icon>navigate_next</Icon>
+                  </CardLink>
+                ))}
+              </Card>
+            )}
             <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               <CardHeader>
                 <CardTitle>Latest payments</CardTitle>

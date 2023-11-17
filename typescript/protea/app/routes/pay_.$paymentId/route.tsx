@@ -124,7 +124,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const { cardAccounts, bankAccounts, balanceAccounts } =
     await getLinkedAccounts(request)
-  sendAccounts = [...cardAccounts, ...bankAccounts, ...balanceAccounts].filter(
+  sendAccounts = [...balanceAccounts, ...cardAccounts, ...bankAccounts].filter(
     (acc) => acc.canSend
   )
 
