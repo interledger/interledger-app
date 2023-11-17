@@ -132,7 +132,7 @@ export async function getLinkedAccounts(
         (balance) => balance.linkedAccount == acc.id
       )
       if (balance) {
-        acc.name = formatAmount(balance.available)
+        acc.name = balance.formattedAvailableBalance
       }
 
       return acc

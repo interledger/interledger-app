@@ -112,6 +112,14 @@ export interface XagoBalance {
      * @generated from protobuf field: string linkedAccount = 4;
      */
     linkedAccount: string;
+    /**
+     * @generated from protobuf field: string formattedBalance = 5;
+     */
+    formattedBalance: string;
+    /**
+     * @generated from protobuf field: string formattedAvailableBalance = 6;
+     */
+    formattedAvailableBalance: string;
 }
 /**
  * @generated from protobuf message backend.v1.WithdrawXagoBalanceRequest
@@ -2555,11 +2563,13 @@ class XagoBalance$Type extends MessageType<XagoBalance> {
             { no: 1, name: "balance", kind: "message", T: () => Amount },
             { no: 2, name: "available", kind: "message", T: () => Amount },
             { no: 3, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "formattedBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "formattedAvailableBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<XagoBalance>): XagoBalance {
-        const message = { currency: "", linkedAccount: "" };
+        const message = { currency: "", linkedAccount: "", formattedBalance: "", formattedAvailableBalance: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<XagoBalance>(this, message, value);
@@ -2581,6 +2591,12 @@ class XagoBalance$Type extends MessageType<XagoBalance> {
                     break;
                 case /* string linkedAccount */ 4:
                     message.linkedAccount = reader.string();
+                    break;
+                case /* string formattedBalance */ 5:
+                    message.formattedBalance = reader.string();
+                    break;
+                case /* string formattedAvailableBalance */ 6:
+                    message.formattedAvailableBalance = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2606,6 +2622,12 @@ class XagoBalance$Type extends MessageType<XagoBalance> {
         /* string linkedAccount = 4; */
         if (message.linkedAccount !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.linkedAccount);
+        /* string formattedBalance = 5; */
+        if (message.formattedBalance !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.formattedBalance);
+        /* string formattedAvailableBalance = 6; */
+        if (message.formattedAvailableBalance !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.formattedAvailableBalance);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

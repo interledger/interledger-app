@@ -168,10 +168,12 @@ func (s *rpcService) GetXagoBalances(ctx context.Context, req *pb.Empty) (*pb.Ge
 		}
 
 		resp = append(resp, &pb.XagoBalance{
-			Balance:       bal.Total.ToPB(),
-			Available:     bal.Available.ToPB(),
-			Currency:      la.SendCurrency.String(),
-			LinkedAccount: la.ID,
+			Balance:                   bal.Total.ToPB(),
+			Available:                 bal.Available.ToPB(),
+			Currency:                  la.SendCurrency.String(),
+			LinkedAccount:             la.ID,
+			FormattedBalance:          bal.Total.Format(),
+			FormattedAvailableBalance: bal.Available.Format(),
 		})
 	}
 
