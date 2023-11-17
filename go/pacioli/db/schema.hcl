@@ -86,10 +86,6 @@ table "ledger_transfers" {
     null = false
     type = uuid
   }
-  column "pending_id" {
-    null = true
-    type = uuid
-  }
   column "amount" {
     null = false
     type = bigint
@@ -158,30 +154,6 @@ table "ledgers" {
   }
   primary_key {
     columns = [column.id]
-  }
-}
-table "schema_lock" {
-  schema = schema.public
-  column "lock_id" {
-    null = false
-    type = bigint
-  }
-  primary_key {
-    columns = [column.lock_id]
-  }
-}
-table "schema_migrations" {
-  schema = schema.public
-  column "version" {
-    null = false
-    type = bigint
-  }
-  column "dirty" {
-    null = false
-    type = boolean
-  }
-  primary_key {
-    columns = [column.version]
   }
 }
 schema "public" {
