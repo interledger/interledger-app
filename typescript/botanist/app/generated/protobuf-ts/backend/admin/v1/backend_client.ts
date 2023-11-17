@@ -4,6 +4,9 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { GetWalletXagoBalanceResponse } from "./backend";
+import type { GetWalletXagoBalanceRequest } from "./backend";
+import type { SetWalletXagoBalanceEnabledRequest } from "./backend";
 import type { ListPaymentsAwaitingSignalResponse } from "./backend";
 import type { ListExternalApiCallsResponse } from "./backend";
 import type { ListExternalApiCallsRequest } from "./backend";
@@ -126,6 +129,14 @@ export interface IBackendClient {
      * @generated from protobuf rpc: ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (backend.admin.v1.ListPaymentsAwaitingSignalResponse);
      */
     listPaymentsAwaitingSignal(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListPaymentsAwaitingSignalResponse>;
+    /**
+     * @generated from protobuf rpc: SetWalletXagoBalanceEnabled(backend.admin.v1.SetWalletXagoBalanceEnabledRequest) returns (backend.admin.v1.Empty);
+     */
+    setWalletXagoBalanceEnabled(input: SetWalletXagoBalanceEnabledRequest, options?: RpcOptions): UnaryCall<SetWalletXagoBalanceEnabledRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: GetWalletXagoBalance(backend.admin.v1.GetWalletXagoBalanceRequest) returns (backend.admin.v1.GetWalletXagoBalanceResponse);
+     */
+    getWalletXagoBalance(input: GetWalletXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -275,5 +286,19 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     listPaymentsAwaitingSignal(input: Empty, options?: RpcOptions): UnaryCall<Empty, ListPaymentsAwaitingSignalResponse> {
         const method = this.methods[19], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, ListPaymentsAwaitingSignalResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SetWalletXagoBalanceEnabled(backend.admin.v1.SetWalletXagoBalanceEnabledRequest) returns (backend.admin.v1.Empty);
+     */
+    setWalletXagoBalanceEnabled(input: SetWalletXagoBalanceEnabledRequest, options?: RpcOptions): UnaryCall<SetWalletXagoBalanceEnabledRequest, Empty$> {
+        const method = this.methods[20], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SetWalletXagoBalanceEnabledRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetWalletXagoBalance(backend.admin.v1.GetWalletXagoBalanceRequest) returns (backend.admin.v1.GetWalletXagoBalanceResponse);
+     */
+    getWalletXagoBalance(input: GetWalletXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse> {
+        const method = this.methods[21], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse>("unary", this._transport, method, opt, input);
     }
 }

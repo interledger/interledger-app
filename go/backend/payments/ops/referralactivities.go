@@ -35,7 +35,7 @@ func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string
 		return nil, nil
 	}
 
-	receiverLa, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Receiver.WalletID)
+	receiverLa, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Receiver.WalletID, p.ReceiverAmount.Currency)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string
 		referralAmount.Value = 2
 	}
 
-	sendersLa, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Sender.WalletID)
+	sendersLa, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Sender.WalletID, p.SenderAmount.Currency)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (a *Activity) CreateReferrals(ctx context.Context, originalPaymentID string
 	if err != nil {
 		return nil, err
 	}
-	referralLa, err := a.b.LinkedAccounts().GetDefaultSend(ctx, wallets.ReferralsWalletID)
+	referralLa, err := a.b.LinkedAccounts().GetDefaultSend(ctx, wallets.ReferralsWalletID, p.SenderAmount.Currency)
 	if err != nil {
 		return nil, err
 	}
