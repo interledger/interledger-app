@@ -55,7 +55,7 @@ func TestSetPaymentState(t *testing.T) {
 		ID: walletID,
 	}, nil).AnyTimes()
 	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(true, nil).AnyTimes() // No OTP
-	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletID: walletID}, nil).AnyTimes()
+	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(&linkedaccounts.LinkedAccount{ID: uuid.NewString(), WalletID: walletID}, nil).AnyTimes()
 	a := ops.NewActivity(b)
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{

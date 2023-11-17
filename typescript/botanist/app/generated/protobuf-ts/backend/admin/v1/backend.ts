@@ -269,6 +269,10 @@ export interface Features {
      * @generated from protobuf field: bool addCardsEnabled = 9;
      */
     addCardsEnabled: boolean;
+    /**
+     * @generated from protobuf field: bool zarBalanceEnabled = 10;
+     */
+    zarBalanceEnabled: boolean;
 }
 /**
  * @generated from protobuf message backend.admin.v1.ListAuditRequest
@@ -845,6 +849,58 @@ export interface FormSubmissionDetails {
      * @generated from protobuf field: google.protobuf.Timestamp timestamp = 5;
      */
     timestamp?: Timestamp;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.SetWalletXagoBalanceEnabledRequest
+ */
+export interface SetWalletXagoBalanceEnabledRequest {
+    /**
+     * @generated from protobuf field: string wallet_id = 1;
+     */
+    walletId: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetWalletXagoBalanceRequest
+ */
+export interface GetWalletXagoBalanceRequest {
+    /**
+     * @generated from protobuf field: string wallet_id = 1;
+     */
+    walletId: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.GetWalletXagoBalanceResponse
+ */
+export interface GetWalletXagoBalanceResponse {
+    /**
+     * @generated from protobuf field: backend.admin.v1.Amount balance = 1;
+     */
+    balance?: Amount;
+    /**
+     * @generated from protobuf field: backend.admin.v1.Amount available = 2;
+     */
+    available?: Amount;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.Amount
+ */
+export interface Amount {
+    /**
+     * @generated from protobuf field: uint64 amount = 1;
+     */
+    amount: string;
+    /**
+     * @generated from protobuf field: string asset = 2;
+     */
+    asset: string;
+    /**
+     * @generated from protobuf field: int32 assetScale = 3;
+     */
+    assetScale: number;
+    /**
+     * @generated from protobuf field: string country = 4;
+     */
+    country: string;
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class ListPaymentsAwaitingSignalResponse$Type extends MessageType<ListPaymentsAwaitingSignalResponse> {
@@ -1564,11 +1620,12 @@ class Features$Type extends MessageType<Features> {
             { no: 6, name: "identitiesEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "twitterEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 8, name: "walletID", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 9, name: "addCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 9, name: "addCardsEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 10, name: "zarBalanceEnabled", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Features>): Features {
-        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false };
+        const message = { sendEnabled: false, receiveEnabled: false, linkedAccountsEnabled: false, cardsEnabled: false, banksEnabled: false, identitiesEnabled: false, twitterEnabled: false, walletID: "", addCardsEnabled: false, zarBalanceEnabled: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Features>(this, message, value);
@@ -1605,6 +1662,9 @@ class Features$Type extends MessageType<Features> {
                     break;
                 case /* bool addCardsEnabled */ 9:
                     message.addCardsEnabled = reader.bool();
+                    break;
+                case /* bool zarBalanceEnabled */ 10:
+                    message.zarBalanceEnabled = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1645,6 +1705,9 @@ class Features$Type extends MessageType<Features> {
         /* bool addCardsEnabled = 9; */
         if (message.addCardsEnabled !== false)
             writer.tag(9, WireType.Varint).bool(message.addCardsEnabled);
+        /* bool zarBalanceEnabled = 10; */
+        if (message.zarBalanceEnabled !== false)
+            writer.tag(10, WireType.Varint).bool(message.zarBalanceEnabled);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3663,6 +3726,222 @@ class FormSubmissionDetails$Type extends MessageType<FormSubmissionDetails> {
  * @generated MessageType for protobuf message backend.admin.v1.FormSubmissionDetails
  */
 export const FormSubmissionDetails = new FormSubmissionDetails$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SetWalletXagoBalanceEnabledRequest$Type extends MessageType<SetWalletXagoBalanceEnabledRequest> {
+    constructor() {
+        super("backend.admin.v1.SetWalletXagoBalanceEnabledRequest", [
+            { no: 1, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetWalletXagoBalanceEnabledRequest>): SetWalletXagoBalanceEnabledRequest {
+        const message = { walletId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetWalletXagoBalanceEnabledRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetWalletXagoBalanceEnabledRequest): SetWalletXagoBalanceEnabledRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string wallet_id */ 1:
+                    message.walletId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetWalletXagoBalanceEnabledRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string wallet_id = 1; */
+        if (message.walletId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.SetWalletXagoBalanceEnabledRequest
+ */
+export const SetWalletXagoBalanceEnabledRequest = new SetWalletXagoBalanceEnabledRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetWalletXagoBalanceRequest$Type extends MessageType<GetWalletXagoBalanceRequest> {
+    constructor() {
+        super("backend.admin.v1.GetWalletXagoBalanceRequest", [
+            { no: 1, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetWalletXagoBalanceRequest>): GetWalletXagoBalanceRequest {
+        const message = { walletId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetWalletXagoBalanceRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetWalletXagoBalanceRequest): GetWalletXagoBalanceRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string wallet_id */ 1:
+                    message.walletId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetWalletXagoBalanceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string wallet_id = 1; */
+        if (message.walletId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetWalletXagoBalanceRequest
+ */
+export const GetWalletXagoBalanceRequest = new GetWalletXagoBalanceRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetWalletXagoBalanceResponse$Type extends MessageType<GetWalletXagoBalanceResponse> {
+    constructor() {
+        super("backend.admin.v1.GetWalletXagoBalanceResponse", [
+            { no: 1, name: "balance", kind: "message", T: () => Amount },
+            { no: 2, name: "available", kind: "message", T: () => Amount }
+        ]);
+    }
+    create(value?: PartialMessage<GetWalletXagoBalanceResponse>): GetWalletXagoBalanceResponse {
+        const message = {};
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetWalletXagoBalanceResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetWalletXagoBalanceResponse): GetWalletXagoBalanceResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.admin.v1.Amount balance */ 1:
+                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
+                    break;
+                case /* backend.admin.v1.Amount available */ 2:
+                    message.available = Amount.internalBinaryRead(reader, reader.uint32(), options, message.available);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetWalletXagoBalanceResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.admin.v1.Amount balance = 1; */
+        if (message.balance)
+            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.admin.v1.Amount available = 2; */
+        if (message.available)
+            Amount.internalBinaryWrite(message.available, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.GetWalletXagoBalanceResponse
+ */
+export const GetWalletXagoBalanceResponse = new GetWalletXagoBalanceResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Amount$Type extends MessageType<Amount> {
+    constructor() {
+        super("backend.admin.v1.Amount", [
+            { no: 1, name: "amount", kind: "scalar", T: 4 /*ScalarType.UINT64*/ },
+            { no: 2, name: "asset", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "assetScale", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 4, name: "country", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Amount>): Amount {
+        const message = { amount: "0", asset: "", assetScale: 0, country: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Amount>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Amount): Amount {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* uint64 amount */ 1:
+                    message.amount = reader.uint64().toString();
+                    break;
+                case /* string asset */ 2:
+                    message.asset = reader.string();
+                    break;
+                case /* int32 assetScale */ 3:
+                    message.assetScale = reader.int32();
+                    break;
+                case /* string country */ 4:
+                    message.country = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Amount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* uint64 amount = 1; */
+        if (message.amount !== "0")
+            writer.tag(1, WireType.Varint).uint64(message.amount);
+        /* string asset = 2; */
+        if (message.asset !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.asset);
+        /* int32 assetScale = 3; */
+        if (message.assetScale !== 0)
+            writer.tag(3, WireType.Varint).int32(message.assetScale);
+        /* string country = 4; */
+        if (message.country !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.country);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Amount
+ */
+export const Amount = new Amount$Type();
 /**
  * @generated ServiceType for protobuf service backend.admin.v1.Backend
  */
@@ -3686,5 +3965,7 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListFormSubmissions", options: {}, I: ListFormSubmissionsRequest, O: ListFormSubmissionsResponse },
     { name: "GetFormSubmissionDetails", options: {}, I: GetFormSubmissionDetailsRequest, O: FormSubmissionDetails },
     { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse },
-    { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse }
+    { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse },
+    { name: "SetWalletXagoBalanceEnabled", options: {}, I: SetWalletXagoBalanceEnabledRequest, O: Empty },
+    { name: "GetWalletXagoBalance", options: {}, I: GetWalletXagoBalanceRequest, O: GetWalletXagoBalanceResponse }
 ]);
