@@ -49,12 +49,12 @@ type AmountState = {
 
 type Action = {
   type:
-    | 'focussed'
-    | 'send'
-    | 'receive'
-    | 'hasPaymentProtection'
-    | 'linkedAccount'
-    | 'network'
+  | 'focussed'
+  | 'send'
+  | 'receive'
+  | 'hasPaymentProtection'
+  | 'linkedAccount'
+  | 'network'
 } & Partial<AmountState>
 
 type InitialState = {
@@ -369,7 +369,7 @@ export const Amount = () => {
           <div className='flex flex-col gap-y-1'>
             <div className='flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
-              <span className='text-medium'>$ 0.00</span>
+              <span className='text-medium'>{payment.formattedFees}</span>
             </div>
             <span className='text-xs text-weak'>
               For a limited time, Fynbos will absorb all fees.

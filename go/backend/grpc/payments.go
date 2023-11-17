@@ -385,6 +385,8 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 	paymentProtection := p.PaymentProtectionAmount()
 	inputSendAmount := currency.FromUInt64(p.SenderAmount.Value-paymentProtection.Value, p.SenderAmount.Currency)
 
+	// hard-coded to be 0 for now
+	fees := currency.FromUInt64(0, inputSendAmount.Currency)
 	return &pb.Payment{
 		Id:                      p.ID,
 		PublicID:                p.PublicID,
@@ -401,6 +403,7 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		PaymentProtectionAmount: paymentProtection.Format(),
 		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
 		ReceiverAmount:          p.ReceiverAmount.ToPB(),
+		FormattedFees:           fees.Format(),
 	}, nil
 }
 
