@@ -13,6 +13,10 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/tabapay"
+
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -259,27 +263,27 @@ func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountI
 	return acc.CanSend && w.ID == acc.WalletID, acc.SendCurrency, nil
 }
 
-func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, error) {
+func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, currency.Currency, error) {
 	if accountID == "" || w == nil {
-		return false, nil
+		return false, "", nil
 	}
 	acc, err := b.LinkedAccounts().Get(ctx, accountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return false, nil
+		return false, currency.USD, nil
 	}
 	if err != nil {
-		return false, err
+		return false, currency.USD, err
 	}
 
-	return acc.CanReceive && w.ID == acc.WalletID, nil
+	return acc.CanReceive && w.ID == acc.WalletID, acc.ReceiveCurrency, nil
 }
 
-func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (*linkedaccounts.LinkedAccount, error) {
+func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
 	if w == nil {
 		return nil, nil
 	}
 
-	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, w.ID)
+	la, err := b.LinkedAccounts().GetDefaultReceive(ctx, w.ID, cc)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, nil
 	}
@@ -293,7 +297,7 @@ func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet) (
 func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
 
 	// Web monetization payouts don't need an OTP
-	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External {
+	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal {
 		return false, nil
 	}
 
@@ -310,8 +314,21 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 	return !hasTx, nil
 }
 
-func requires3DS(typ payments.Type, sender payments.Identity) bool {
-	return sender.Identifier != wallets.WebMonetizationWalletID && sender.Identifier != wallets.ReferralsWalletID && typ != payments.TypeRafikiPeer2Peer && typ != payments.TypeRafiki2External
+func requires3DS(ctx context.Context, b Backends, senderAcc string, typ payments.Type, sender payments.Identity) (bool, error) {
+	if sender.Identifier == wallets.WebMonetizationWalletID || sender.Identifier == wallets.ReferralsWalletID || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal {
+		return false, nil
+	}
+
+	if senderAcc == "" {
+		return false, nil
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, senderAcc)
+	if err != nil {
+		return false, err
+	}
+
+	return la.Provider == tabapay.ProviderName || la.Type == tabapay.TypeCard, nil
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -348,13 +365,13 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	canReceive, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount)
+	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
 	if p.ReceiverAccount == "" || !canReceive {
-		defaultReceive, _ := defaultReceiveAccount(ctx, b, receiverWallet)
+		defaultReceive, _ := defaultReceiveAccount(ctx, b, receiverWallet, sendCurrency)
 		if defaultReceive != nil {
 			p.ReceiverAccount = defaultReceive.ID
 		}
@@ -369,7 +386,10 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	require3DS := requires3DS(p.Type, p.Sender)
+	require3DS, err := requires3DS(ctx, b, p.SenderAccount, p.Type, p.Sender)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
 
 	publicID, err := NewSoftDescriptor(time.Now())
 	if err != nil {
@@ -389,6 +409,16 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		}
 		paymentProtectionFeePercentage = feePercentage
 		p.SenderAmount.Value = amount.Value
+	}
+
+	err = validateWithdrawal(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateSenderReceiver(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
+	if err != nil {
+		return nil, err
 	}
 
 	// TODO Calculate more actions required
@@ -434,6 +464,60 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	return transformPayment(ctx, b, dbp, senderWallet, receiverWallet)
+}
+
+func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
+	if typ != payments.TypeWithdrawal {
+		return nil
+	}
+
+	if senderAccID == "" || receiverAccID == "" {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if senderAcc.Provider != xago.ProviderName || senderAcc.Type != xago.AccTypeBalance {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if receiverAcc.Provider != xago.ProviderName || receiverAcc.Type != xago.AccTypeBank || senderAcc.WalletID != receiverAcc.WalletID {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	return nil
+}
+
+func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
+	if typ != payments.TypePeer2Peer || senderAccID == "" || receiverAccID == "" {
+		return nil
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	if err != nil {
+		return err
+	}
+
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	if err != nil {
+		return err
+	}
+
+	if senderAcc.Provider != receiverAcc.Provider {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	if senderAcc.Provider == xago.ProviderName && (senderAcc.Type != xago.AccTypeBalance || receiverAcc.Type != xago.AccTypeBalance) {
+		return payments.ErrIncompatibleAccounts
+	}
+
+	return nil
 }
 
 func SellerRisk(sendTransactions int) float64 {
@@ -484,16 +568,13 @@ func reversePaymentProtection(appliedRate float64, amount currency.Amount) curre
 }
 
 func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (payments.CreateArgs, float64, float64, error) {
-	if args.SenderAccount == "" || args.ReceiverAccount == "" {
+	if args.SenderAccount == "" || args.ReceiverAccount == "" || args.Type == payments.TypeWithdrawal {
 		return args, 0, 0, nil
 	}
 
 	senderAcc, err := b.LinkedAccounts().Get(ctx, args.SenderAccount)
 	if err != nil {
 		return args, 0, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-	if senderAcc.SendCurrency != currency.USD {
-		return args, 0, 0, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, args.ReceiverAccount)
@@ -513,7 +594,7 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 		return args, 0, 0, nil
 	}
 
-	if receiverAcc.ReceiveCurrency == currency.USD {
+	if senderAcc.SendCurrency != currency.USD || receiverAcc.ReceiveCurrency == currency.USD {
 		return args, 0, 0, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
@@ -615,7 +696,7 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
 	}
 
-	if payment.ReceiverID == "" || payment.ReceiverIDType == payments.IdentityTypeUnknown {
+	if (payment.ReceiverID == "" || payment.ReceiverIDType == payments.IdentityTypeUnknown) && payment.Type != payments.TypeWithdrawal {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	}
 
@@ -772,7 +853,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		return nil, fmt.Errorf("%w Receiver is invalid", payments.ErrInvalidIdentifier)
 	}
 
-	var receiverAmtUpdated, senderAmtUpdated, recalcProtection bool
+	var receiverAmtUpdated, senderAmtUpdated, recalcProtection, accountsUpdated bool
 	noop := true
 	receiver := payments.Identity{Identifier: payment.ReceiverID, Type: payment.ReceiverIDType}
 	if !args.Receiver.IsEmpty() && !args.Receiver.IsEqual(receiver) {
@@ -813,14 +894,16 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canReceive, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
+			canReceive, recvCurrency, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
 			if syncErr != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
 			}
 			payment.ReceiverAccount.String = args.ReceiverAccount
 			payment.ReceiverAccount.Valid = canReceive
+			payment.ReceiverCurrency = recvCurrency.String()
 			noop = false
+			accountsUpdated = true
 		}()
 	}
 
@@ -828,14 +911,16 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canSend, _, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
+			canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
 			if err != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
 			}
 			payment.SenderAccount.String = args.SenderAccount
 			payment.SenderAccount.Valid = canSend
+			payment.SenderCurrency = sendCurrency.String()
 			noop = false
+			accountsUpdated = true
 		}()
 	}
 
@@ -906,7 +991,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
 			}
-			fmt.Println("looked up sender Wallet", senderWallet.ID)
+
 			paymentProtectionSenderWalletID = senderWallet.ID
 		}()
 	}
@@ -919,6 +1004,31 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 
 	if noop && !recalcProtection {
 		return transformPayment(ctx, b, *payment, senderWallet, receiverWallet)
+	}
+
+	if accountsUpdated {
+		// look for default receive account if receive account is not explicitly being set
+		if args.ReceiverAccount == "" {
+			la, err := defaultReceiveAccount(ctx, b, receiverWallet, currency.ParseCurrency(payment.SenderCurrency))
+			if err != nil {
+				return nil, err
+			}
+			payment.ReceiverAccount.String = la.ID
+			payment.ReceiverAccount.Valid = true
+		}
+
+		err := validateSenderReceiver(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
+		if err != nil {
+			return nil, err
+		}
+
+		req3ds, err := requires3DS(ctx, b, payment.SenderAccount.String, payment.Type, payments.Identity{Type: payment.SenderIDType, Identifier: payment.SenderID})
+		if err != nil {
+			return nil, err
+		}
+
+		payment.ThreeDSRequired = req3ds
+		senderAmtUpdated = true
 	}
 
 	// Something changed, update the FX calculations
@@ -938,6 +1048,11 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		payment.ProtectionFeePercentage = fee
 	}
 
+	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
+	if err != nil {
+		return nil, err
+	}
+
 	payment.UpdatedAt = time.Now()
 	stmt, values, err := db.NewUpdate("payments").ID(payment.ID).
 		Value("sender_amount", payment.SenderAmount).
@@ -950,6 +1065,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		Value("receiver_account", payment.ReceiverAccount).
 		Value("updated_at", payment.UpdatedAt).
 		Value("note", payment.Note).
+		Value("action_three_ds_required", payment.ThreeDSRequired).
 		Value("action_three_ds_id", payment.ThreeDSID).
 		Value("ip_address", payment.IPAddress).
 		Value("action_otp", payment.OTP).
@@ -977,16 +1093,13 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 }
 
 func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receiverAmtUpdated bool) (*dbPayment, error) {
-	if !existing.SenderAccount.Valid || !existing.ReceiverAccount.Valid {
+	if !existing.SenderAccount.Valid || !existing.ReceiverAccount.Valid || existing.Type == payments.TypeWithdrawal {
 		return existing, nil
 	}
 
 	senderAcc, err := b.LinkedAccounts().Get(ctx, existing.SenderAccount.String)
 	if err != nil {
 		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-	if senderAcc.SendCurrency != currency.USD {
-		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, existing.ReceiverAccount.String)
@@ -1007,7 +1120,7 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		return existing, nil
 	}
 
-	if receiverAcc.ReceiveCurrency == currency.USD {
+	if senderAcc.SendCurrency != currency.USD {
 		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
