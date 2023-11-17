@@ -177,7 +177,8 @@ export const Amount = () => {
       csrfToken,
       localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
-      updatePaymentFetcher
+      updatePaymentFetcher,
+      payment.senderAmount?.asset
     ]
   )
 
@@ -210,7 +211,8 @@ export const Amount = () => {
       csrfToken,
       localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
-      updatePaymentFetcher
+      updatePaymentFetcher,
+      payment.senderAmount?.asset
     ]
   )
 
