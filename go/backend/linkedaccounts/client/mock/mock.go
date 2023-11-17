@@ -37,6 +37,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// CanSendToWallet mocks base method.
+func (m *MockClient) CanSendToWallet(ctx context.Context, sendWalletID, receiveWalletID string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CanSendToWallet", ctx, sendWalletID, receiveWalletID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CanSendToWallet indicates an expected call of CanSendToWallet.
+func (mr *MockClientMockRecorder) CanSendToWallet(ctx, sendWalletID, receiveWalletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanSendToWallet", reflect.TypeOf((*MockClient)(nil).CanSendToWallet), ctx, sendWalletID, receiveWalletID)
+}
+
 // CompleteReview mocks base method.
 func (m *MockClient) CompleteReview(ctx context.Context, args linkedaccounts.CompleteReviewArgs) (*linkedaccounts.Review, error) {
 	m.ctrl.T.Helper()

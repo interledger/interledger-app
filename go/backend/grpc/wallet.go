@@ -199,23 +199,41 @@ func (s *rpcService) SearchWallets(ctx context.Context, req *pb.SearchWalletsReq
 	}
 
 	res := make([]*pb.SearchResult, len(results))
+	var wg sync.WaitGroup
 	for i, r := range results {
-		res[i] = &pb.SearchResult{
-			WalletID:       r.WalletID,
-			WalletUrl:      r.WalletUrl,
-			Identifier:     strings.TrimPrefix(r.Identifier, "https://"),
-			IdentifierType: r.IdentifierType,
-			CanSend:        true,
-		}
-		for _, sr := range r.SubResults {
-			res[i].SubResults = append(res[i].SubResults, &pb.SearchResult{
-				WalletID:       sr.WalletID,
-				WalletUrl:      sr.WalletUrl,
-				Identifier:     strings.TrimPrefix(sr.Identifier, "https://"),
-				IdentifierType: sr.IdentifierType,
-				CanSend:        true,
-			})
-		}
+		wg.Add(1)
+		index := i
+		result := r
+		go func() {
+			defer wg.Done()
+			canSend, innerErr := s.b.LinkedAccounts().CanSendToWallet(ctx, w.ID, result.WalletID)
+			if innerErr != nil {
+				err = innerErr
+				return
+			}
+
+			res[index] = &pb.SearchResult{
+				WalletID:       result.WalletID,
+				WalletUrl:      result.WalletUrl,
+				Identifier:     strings.TrimPrefix(result.Identifier, "https://"),
+				IdentifierType: result.IdentifierType,
+				CanSend:        canSend,
+			}
+			for _, sr := range result.SubResults {
+				res[index].SubResults = append(res[index].SubResults, &pb.SearchResult{
+					WalletID:       sr.WalletID,
+					WalletUrl:      sr.WalletUrl,
+					Identifier:     strings.TrimPrefix(sr.Identifier, "https://"),
+					IdentifierType: sr.IdentifierType,
+					CanSend:        canSend,
+				})
+			}
+		}()
+	}
+
+	wg.Wait()
+	if err != nil {
+		return nil, toGRPCError(err)
 	}
 
 	return &pb.SearchWalletsResponse{Results: res}, nil

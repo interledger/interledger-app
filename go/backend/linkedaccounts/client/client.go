@@ -161,3 +161,7 @@ func (c client) SetDefaultSend(ctx context.Context, id string) (*linkedaccounts.
 func (c client) SetDefaultReceive(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
 	return ops.SetDefaultReceive(ctx, c.b, id)
 }
+
+func (c client) CanSendToWallet(ctx context.Context, sendWalletID, recvWalletID string) (bool, error) {
+	return ops.CanSendToWallet(ctx, c.b, sendWalletID, recvWalletID)
+}
