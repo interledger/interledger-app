@@ -263,19 +263,19 @@ func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountI
 	return acc.CanSend && w.ID == acc.WalletID, acc.SendCurrency, nil
 }
 
-func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, error) {
+func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, currency.Currency, error) {
 	if accountID == "" || w == nil {
-		return false, nil
+		return false, "", nil
 	}
 	acc, err := b.LinkedAccounts().Get(ctx, accountID)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
-		return false, nil
+		return false, currency.USD, nil
 	}
 	if err != nil {
-		return false, err
+		return false, currency.USD, err
 	}
 
-	return acc.CanReceive && w.ID == acc.WalletID, nil
+	return acc.CanReceive && w.ID == acc.WalletID, acc.ReceiveCurrency, nil
 }
 
 func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet, cc currency.Currency) (*linkedaccounts.LinkedAccount, error) {
@@ -365,7 +365,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	canReceive, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount)
+	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -894,13 +894,14 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canReceive, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
+			canReceive, recvCurrency, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
 			if syncErr != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
 			}
 			payment.ReceiverAccount.String = args.ReceiverAccount
 			payment.ReceiverAccount.Valid = canReceive
+			payment.ReceiverCurrency = recvCurrency.String()
 			noop = false
 			accountsUpdated = true
 		}()
@@ -910,13 +911,14 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canSend, _, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
+			canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
 			if err != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
 			}
 			payment.SenderAccount.String = args.SenderAccount
 			payment.SenderAccount.Valid = canSend
+			payment.SenderCurrency = sendCurrency.String()
 			noop = false
 			accountsUpdated = true
 		}()
@@ -989,7 +991,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
 			}
-			fmt.Println("looked up sender Wallet", senderWallet.ID)
+
 			paymentProtectionSenderWalletID = senderWallet.ID
 		}()
 	}
@@ -1002,6 +1004,31 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 
 	if noop && !recalcProtection {
 		return transformPayment(ctx, b, *payment, senderWallet, receiverWallet)
+	}
+
+	if accountsUpdated {
+		// look for default receive account if receive account is not explicitly being set
+		if args.ReceiverAccount == "" {
+			la, err := defaultReceiveAccount(ctx, b, receiverWallet, currency.ParseCurrency(payment.SenderCurrency))
+			if err != nil {
+				return nil, err
+			}
+			payment.ReceiverAccount.String = la.ID
+			payment.ReceiverAccount.Valid = true
+		}
+
+		err := validateSenderReceiver(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
+		if err != nil {
+			return nil, err
+		}
+
+		req3ds, err := requires3DS(ctx, b, payment.SenderAccount.String, payment.Type, payments.Identity{Type: payment.SenderIDType, Identifier: payment.SenderID})
+		if err != nil {
+			return nil, err
+		}
+
+		payment.ThreeDSRequired = req3ds
+		senderAmtUpdated = true
 	}
 
 	// Something changed, update the FX calculations
@@ -1024,20 +1051,6 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
 	if err != nil {
 		return nil, err
-	}
-
-	if accountsUpdated {
-		err = validateSenderReceiver(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
-		if err != nil {
-			return nil, err
-		}
-
-		req3ds, err := requires3DS(ctx, b, payment.SenderAccount.String, payment.Type, payments.Identity{Type: payment.SenderIDType, Identifier: payment.SenderID})
-		if err != nil {
-			return nil, err
-		}
-
-		payment.ThreeDSRequired = req3ds
 	}
 
 	payment.UpdatedAt = time.Now()
