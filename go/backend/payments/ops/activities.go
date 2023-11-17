@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/providers/xago"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/transactions"
@@ -33,6 +35,11 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 			return temporal.NewApplicationError(err.Error(), "ErrInvalidStateTransition", err)
 		}
 		return err
+	}
+
+	// No emails configured for withdrawal
+	if payment.Type == payments.TypeWithdrawal {
+		return nil
 	}
 
 	if payment.Type != payments.TypeWebMonetization {
@@ -73,6 +80,11 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
+	// No emails configured for withdrawal
+	if payment.Type == payments.TypeWithdrawal {
+		return nil
+	}
+
 	a.b.Email().SendPaymentFailedEmail(ctx, payment.Sender.WalletID)
 
 	return nil
@@ -82,6 +94,19 @@ func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (b
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
 		return false, err
+	}
+
+	if p.Type == payments.TypeWithdrawal {
+		if p.SendTransactionID == "" {
+			return false, nil
+		}
+
+		senderTx, err := a.b.Transactions().GetTransaction(ctx, p.Sender.WalletID, p.SendTransactionID)
+		if err != nil {
+			return false, err
+		}
+
+		return senderTx.State == transactions.StateCompleted, nil
 	}
 
 	// If both transactions aren't present something failed.
@@ -125,7 +150,7 @@ func (a *Activity) CheckReceiverReady(ctx context.Context, paymentID string) (bo
 	}
 
 	// Check that the user has at least one account that can receive funds
-	acc, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Receiver.WalletID)
+	acc, err := a.b.LinkedAccounts().GetDefaultReceive(ctx, p.Receiver.WalletID, p.ReceiverAmount.Currency)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return false, nil
 	}
@@ -184,7 +209,7 @@ func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) 
 		return false, err
 	}
 
-	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External, nil
+	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External || p.Type == payments.TypeWithdrawal, nil
 }
 
 func (a *Activity) ConfirmPaymentsEnginePayment(ctx context.Context, id string) ([]payments.RequiredActionType, error) {
@@ -212,4 +237,88 @@ func (a *Activity) ShouldPushToAccount(ctx context.Context, paymentID string) (b
 	}
 
 	return p.Type != payments.TypeRafiki2External, nil
+}
+
+func (a *Activity) LookupPayInAccount(ctx context.Context, paymentID string) (*linkedaccounts.LinkedAccount, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+}
+
+func (a *Activity) LookupPayOutAccount(ctx context.Context, paymentID string) (*linkedaccounts.LinkedAccount, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+}
+
+func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
+		return nil
+	}
+
+	_, err = a.b.Xago().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount)
+	if errors.Is(err, xago.ErrInsufficientBalance) {
+		return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
+	}
+
+	return nil
+}
+
+func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypePeer2Peer {
+		return nil
+	}
+
+	_, err = a.b.Xago().AssignBalance(ctx, p.ReceiverAccount, txID, p.ReceiverAmount)
+	return err
+}
+
+func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
+		return nil
+	}
+
+	return a.b.Xago().FinaliseReserve(ctx, p.SendTransactionID)
+}
+
+func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
+		return nil
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if err != nil {
+		return err
+	}
+	if la.Provider != xago.ProviderName {
+		return nil
+	}
+
+	return a.b.Xago().RollbackReserve(ctx, p.SendTransactionID)
 }

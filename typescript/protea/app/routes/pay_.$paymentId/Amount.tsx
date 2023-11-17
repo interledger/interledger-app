@@ -165,6 +165,7 @@ export const Amount = () => {
             formName: 'updatePayment',
             send,
             accountId: localPayment.linkedAccount.id,
+            sendCurrency: payment.senderAmount?.asset || '',
             hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken
           },
@@ -176,7 +177,8 @@ export const Amount = () => {
       csrfToken,
       localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
-      updatePaymentFetcher
+      updatePaymentFetcher,
+      payment.senderAmount?.asset
     ]
   )
 
@@ -196,6 +198,7 @@ export const Amount = () => {
           {
             formName: 'updatePayment',
             receive,
+            receiveCurrency: payment.receiverAmount?.asset || '',
             accountId: localPayment.linkedAccount.id,
             hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken
@@ -208,7 +211,8 @@ export const Amount = () => {
       csrfToken,
       localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
-      updatePaymentFetcher
+      updatePaymentFetcher,
+      payment.senderAmount?.asset
     ]
   )
 
@@ -308,6 +312,18 @@ export const Amount = () => {
         type='hidden'
         name='hasPaymentProtection'
         value={localPayment.hasPaymentProtection.toString()}
+        form='amount-form'
+      />
+      <input
+        type='hidden'
+        name='sendCurrency'
+        value={payment.senderAmount?.asset || ''}
+        form='amount-form'
+      />
+      <input
+        type='hidden'
+        name='receiveCurrency'
+        value={payment.receiverAmount?.asset || ''}
         form='amount-form'
       />
       <PaymentDetailsCard />
