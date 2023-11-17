@@ -3,12 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import {
-  useActionData,
-  useLoaderData,
-  useNavigation,
-  useSubmit
-} from '@remix-run/react'
+import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 
 import {
@@ -76,8 +71,6 @@ export default function Page() {
   const submit = useSubmit()
   const actionData = useActionData<typeof action>()
 
-  const navigation = useNavigation()
-
   const [fieldErrors, setFieldErrors] = useState({
     number: '',
     date: '',
@@ -96,18 +89,17 @@ export default function Page() {
   const cardExpirationDateRef = useRef<CardExpirationDateElementType>(null)
   const cardVerificationCodeRef = useRef<CardVerificationCodeElementType>(null)
 
-  const [loading, setLoading] = useState<boolean>(true)
-  const setScaffoldLoading = useScaffoldStore((state) => state.setLoading)
+  const [loading, setLoading] = useScaffoldStore((state) => [
+    state.loading,
+    state.setLoading
+  ])
 
   useEffect(() => {
-    setScaffoldLoading(loading)
-  }, [loading, setScaffoldLoading])
-
-  useEffect(() => {
-    if (loading && navigation.location?.pathname.includes('accounts')) {
+    // This ensures that loading is false when this route is unmounted.
+    return () => {
       setLoading(false)
     }
-  }, [loading, navigation])
+  }, [setLoading])
 
   useEffect(() => {
     if (actionData) {
