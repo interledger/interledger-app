@@ -26,7 +26,7 @@ import {
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { FormattedLinkedAccount} from '~/data/wallet.server';
+import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import { getLinkedAccount } from '~/data/wallet.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
