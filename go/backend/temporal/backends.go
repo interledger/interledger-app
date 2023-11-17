@@ -19,6 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
@@ -26,6 +27,7 @@ import (
 	"gitlab.com/fynbos/backend/twitter"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/sdk/client"
 )
 
@@ -56,4 +58,6 @@ type Backends interface {
 	Payments() payments.Client
 	AWS() aws.Client
 	Rafiki() rafiki.Client
+	Xago() xago.Client
+	Pacioli() pacioli.Client
 }
