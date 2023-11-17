@@ -194,11 +194,9 @@ function PaymentLink() {
         <CardContent className='space-y-4 text-medium'>
           <p>Hello {receiverIdentifier},</p>
           <h2 className='text-xl font-medium'>You've been sent a payment</h2>
-          <h2 className='text-4xl font-medium'>{formattedAmount}</h2>
+          <h3 className='text-4xl font-medium'>{formattedAmount}</h3>
         </CardContent>
-        <CardContent className='mt-2'>
-          <span className='text-weak'>Payment from</span>
-        </CardContent>
+        <Label className='mt-2'>Payment from</Label>
         <CardButton
           noHover
           onClick={() => {
@@ -234,6 +232,7 @@ function PaymentLink() {
         <TextField
           id='firstName'
           name='firstName'
+          type='text'
           label='First Name'
           form='details'
           className='mt-4'
@@ -247,6 +246,7 @@ function PaymentLink() {
         <TextField
           id='lastName'
           name='lastName'
+          type='text'
           label='Last Name'
           form='details'
           className='mt-4'

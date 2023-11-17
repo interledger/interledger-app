@@ -4,12 +4,7 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction
 } from '@remix-run/node'
-import {
-  useActionData,
-  useLoaderData,
-  useNavigation,
-  useSubmit
-} from '@remix-run/react'
+import { useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 
 import {
@@ -42,7 +37,6 @@ import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
-import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -87,8 +81,6 @@ export default function Page() {
   const submit = useSubmit()
   const actionData = useActionData<typeof action>()
 
-  const navigation = useNavigation()
-
   const [fieldErrors, setFieldErrors] = useState({
     number: '',
     date: '',
@@ -107,18 +99,17 @@ export default function Page() {
   const cardExpirationDateRef = useRef<CardExpirationDateElementType>(null)
   const cardVerificationCodeRef = useRef<CardVerificationCodeElementType>(null)
 
-  const [loading, setLoading] = useState<boolean>(true)
-  const setScaffoldLoading = useScaffoldStore((state) => state.setLoading)
+  const [loading, setLoading] = useScaffoldStore((state) => [
+    state.loading,
+    state.setLoading
+  ])
 
   useEffect(() => {
-    setScaffoldLoading(loading)
-  }, [loading, setScaffoldLoading])
-
-  useEffect(() => {
-    if (loading && navigation.location?.pathname.includes('accounts')) {
+    // This ensures that loading is false when this route is unmounted.
+    return () => {
       setLoading(false)
     }
-  }, [loading, navigation])
+  }, [setLoading])
 
   useEffect(() => {
     if (actionData) {
@@ -442,12 +433,5 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirectWithSnackbar(
-    request,
-    `${route('/collect/success')}?token=${token}`,
-    {
-      message: 'New card successfully saved.',
-      icon: 'close'
-    }
-  )
+  return redirect(`${route('/collect/success')}?token=${token}`)
 }
