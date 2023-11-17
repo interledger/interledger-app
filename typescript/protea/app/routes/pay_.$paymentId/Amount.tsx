@@ -140,7 +140,7 @@ export const Amount = () => {
       updatePaymentFetcher.submit(
         {
           formName: 'updatePayment',
-          accountId: localPayment.linkedAccount.id,
+          accountId: linkedAccount.id,
           hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
           csrfToken
         },
