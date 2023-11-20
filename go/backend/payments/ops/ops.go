@@ -536,7 +536,7 @@ func validateSenderReceiver(ctx context.Context, b Backends, typ payments.Type, 
 		return err
 	}
 
-	receiverAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
 	if err != nil {
 		return err
 	}
