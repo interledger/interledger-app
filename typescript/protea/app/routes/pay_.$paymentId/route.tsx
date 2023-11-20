@@ -122,8 +122,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   } else publicWalletInfo = publicWalletInfoResponse
 
-  const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
-  sendAccounts = [...cardAccounts, ...bankAccounts].filter((acc) => acc.canSend)
+  const { cardAccounts, bankAccounts, balanceAccounts } =
+    await getLinkedAccounts(request)
+  sendAccounts = [...balanceAccounts, ...cardAccounts, ...bankAccounts].filter(
+    (acc) => acc.canSend
+  )
 
   if (payment.senderAccount) {
     const accountId = payment.senderAccount
@@ -350,6 +353,8 @@ export async function updatePaymentAction({
   const hasPaymentProtection = form.get('hasPaymentProtection') as string
   const note = String(form.get('note') || '')
   const accountId = String(form.get('accountId') || '')
+  const sendCurrency = String(form.get('sendCurrency') || '')
+  const receiveCurrency = String(form.get('receiveCurrency') || '')
   const intent = form.get('intent') as string
 
   const sendToSubmit = stringToBigInt(send)
@@ -374,14 +379,14 @@ export async function updatePaymentAction({
     senderAmount = {
       amount: sendToSubmit,
       assetScale: 2,
-      asset: 'USD'
+      asset: sendCurrency
     }
   }
   if (receive != '') {
     receiverAmount = {
       amount: receiveToSubmit,
       assetScale: 2,
-      asset: 'USD'
+      asset: receiveCurrency
     }
   }
 
@@ -398,6 +403,12 @@ export async function updatePaymentAction({
   if (isConnectError(response)) {
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors, payment: null, intent: '' })
+    }
+    if (response.code == Code.FailedPrecondition && response.violations.findIndex(
+      (violation) =>
+        violation.type === 'Payment' && violation.subject === 'insufficientFunds'
+    ) > -1) {
+      return response.error({ errors: {...errors, amount: 'You have insufficient funds available.'}, payment: null, intent: '' })
     }
     return response.error(
       { errors, payment: null, intent: '' },
