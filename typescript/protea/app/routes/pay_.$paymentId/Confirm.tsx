@@ -91,7 +91,7 @@ export function Confirm() {
           {/*</div>*/}
           <div className='mt-2 flex w-full justify-between'>
             <span className='text-weak'>Fees</span>
-            <span className='text-medium'>$ 0.00</span>
+            <span className='text-medium'>{payment.formattedFees}</span>
           </div>
           <div className='mt-2 flex w-full justify-between'>
             <span className='text-weak'>Payment protection (3%)</span>

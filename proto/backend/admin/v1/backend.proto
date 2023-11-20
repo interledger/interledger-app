@@ -31,6 +31,8 @@ service Backend {
   rpc GetFormSubmissionDetails(GetFormSubmissionDetailsRequest) returns (FormSubmissionDetails);
   rpc ListExternalApiCalls(ListExternalApiCallsRequest) returns (ListExternalApiCallsResponse);
   rpc ListPaymentsAwaitingSignal(google.protobuf.Empty) returns (ListPaymentsAwaitingSignalResponse);
+  rpc SetWalletXagoBalanceEnabled(SetWalletXagoBalanceEnabledRequest) returns (Empty);
+  rpc GetWalletXagoBalance(GetWalletXagoBalanceRequest) returns (GetWalletXagoBalanceResponse);
 }
 
 message ListPaymentsAwaitingSignalResponse {
@@ -115,6 +117,7 @@ message Features {
   bool twitterEnabled = 7;
   string walletID = 8;
   bool addCardsEnabled = 9;
+  bool zarBalanceEnabled = 10;
 }
 
 message ListAuditRequest {
@@ -314,4 +317,24 @@ message FormSubmissionDetails {
   string form_id = 3;
   string data = 4;
   google.protobuf.Timestamp timestamp = 5;
+}
+
+message SetWalletXagoBalanceEnabledRequest {
+  string wallet_id = 1;
+}
+
+message GetWalletXagoBalanceRequest {
+  string wallet_id = 1;
+}
+
+message GetWalletXagoBalanceResponse {
+  Amount balance = 1;
+  Amount available = 2;
+}
+
+message Amount {
+  uint64 amount = 1;
+  string asset = 2;
+  int32 assetScale = 3;
+  string country = 4;
 }

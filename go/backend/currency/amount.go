@@ -2,6 +2,7 @@ package currency
 
 import (
 	"fmt"
+	adminv1 "gitlab.com/fynbos/proto/backend/admin/v1"
 	"math"
 	"strconv"
 	"strings"
@@ -198,6 +199,25 @@ func (a *Amount) ToPB() *pb.Amount {
 	}
 
 	return &pb.Amount{
+		Amount:     a.Value,
+		Asset:      a.Currency.String(),
+		AssetScale: int32(a.Scale),
+		Country:    cntry,
+	}
+}
+
+func (a *Amount) ToAdminPB() *adminv1.Amount {
+	if a == nil {
+		return nil
+	}
+
+	cntry := country.ParseCountry(a.Currency.ISO4217()).String()
+	// EUR is a special case where we want to show the Euro flag on the frontend
+	if a.Currency == EUR {
+		cntry = "EU"
+	}
+
+	return &adminv1.Amount{
 		Amount:     a.Value,
 		Asset:      a.Currency.String(),
 		AssetScale: int32(a.Scale),

@@ -75,7 +75,7 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                 />
                 <Listbox.Button className='flex h-full items-center gap-x-2 bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'>
                   <Icon>{linkedAccount?.icon}</Icon>
-                  <span>{linkedAccount?.mask}</span>
+                  {linkedAccount?.mask && <span>{linkedAccount?.mask}</span>}
                 </Listbox.Button>
               </div>
             </div>
@@ -103,9 +103,17 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                     >
                       {({ selected }) => (
                         <>
-                          <Icon>{option.icon}</Icon>
+                          {option.type != 'wallet' && (
+                            <Icon>{option.icon}</Icon>
+                          )}
+                          {option.type == 'wallet' && (
+                            <div
+                              className={`flag:${option.receiveCurrencyCountryCode}`}
+                            />
+                          )}
                           <span className='block truncate'>
-                            {option.title} **** {option.mask}
+                            {option.title} {option.type != 'wallet' && '****'}{' '}
+                            {option.mask}
                           </span>
                           {selected && (
                             <span className='ml-auto flex text-primary'>
