@@ -75,7 +75,7 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                 />
                 <Listbox.Button className='flex h-full items-center gap-x-2 bg-nav px-4 text-medium focus-visible:bg-nav-active focus-visible:outline-none'>
                   <Icon>{linkedAccount?.icon}</Icon>
-                  <span>{linkedAccount?.mask}</span>
+                  {linkedAccount?.mask && <span>{linkedAccount?.mask}</span>}
                 </Listbox.Button>
               </div>
             </div>
@@ -94,6 +94,7 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                   linkedAccountOptions.map((option, index) => (
                     <Listbox.Option
                       key={index}
+                      disabled={!option.enabled}
                       className={({ active }) =>
                         `relative flex h-12 cursor-pointer select-none items-center gap-x-2 rounded-lg pl-4 pr-3 ${
                           active ? 'bg-nav-hover' : 'text-medium'
@@ -103,9 +104,17 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                     >
                       {({ selected }) => (
                         <>
-                          <Icon>{option.icon}</Icon>
+                          {option.type != 'wallet' && (
+                            <Icon>{option.icon}</Icon>
+                          )}
+                          {option.type == 'wallet' && (
+                            <div
+                              className={`flag:${option.receiveCurrencyCountryCode}`}
+                            />
+                          )}
                           <span className='block truncate'>
-                            {option.title} **** {option.mask}
+                            {option.title} {option.type != 'wallet' && '****'}{' '}
+                            {option.mask}
                           </span>
                           {selected && (
                             <span className='ml-auto flex text-primary'>

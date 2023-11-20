@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -131,4 +133,88 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 	}
 
 	return resp, nil
+}
+
+func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
+	var accID string
+	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w no persona account found", kyc.ErrNoKYCInfo)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	acc, err := cl.GetAccount(ctx, accID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
+	for _, v := range acc.Attributes.IdentificationNumbers {
+		for _, idNum := range v {
+			if idNum.IssuingCountry == "ZA" && isValidZAID(idNum.IdentificationNumber) {
+				return idNum.IdentificationNumber, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("%w no valid ZA ID number on persona account found", kyc.ErrNoKYCInfo)
+}
+
+func isValidZAID(idNumber string) bool {
+	// Check if the ID number has the correct length
+	if len(idNumber) != 13 {
+		return false
+	}
+
+	// Check if the ID number consists only of numeric digits
+	numericRegex := regexp.MustCompile("^[0-9]+$")
+	if !numericRegex.MatchString(idNumber) {
+		return false
+	}
+
+	// Extract the birthdate from the ID number
+	year, _ := strconv.Atoi(idNumber[0:2])
+	month, _ := strconv.Atoi(idNumber[2:4])
+	day, _ := strconv.Atoi(idNumber[4:6])
+
+	// Validate the birthdate
+	if year < 0 || month < 1 || month > 12 || day < 1 || day > 31 {
+		return false
+	}
+
+	// Validate the last four digits (the sequence number)
+	sequenceNumber, _ := strconv.Atoi(idNumber[9:13])
+	if sequenceNumber < 0 {
+		return false
+	}
+
+	// Validate the citizenship indicator
+	citizenshipIndicator, _ := strconv.Atoi(idNumber[10:11])
+	if citizenshipIndicator < 0 || citizenshipIndicator > 8 {
+		return false
+	}
+
+	// Check the checksum
+	checksum, _ := strconv.Atoi(idNumber[12:13])
+
+	return calculateZAIDChecksum(idNumber[0:12]) == checksum
+}
+
+func calculateZAIDChecksum(idBody string) int {
+	weights := []int{1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2}
+	sum := 0
+
+	for i, digitStr := range idBody {
+		digit, _ := strconv.Atoi(string(digitStr))
+		weighted := digit * weights[i]
+
+		if weighted > 9 {
+			weighted -= 9
+		}
+
+		sum += weighted
+	}
+
+	return (10 - (sum % 10)) % 10
 }

@@ -92,11 +92,13 @@ export type FormattedLinkedAccount = {
   name: string
   type: string
   icon: string
+  enabled?: boolean
 } & PlainMessage<LinkedAccount>
 
 type LinkedAccountsResponse = {
   bankAccounts: Array<FormattedLinkedAccount>
   cardAccounts: Array<FormattedLinkedAccount>
+  balanceAccounts: Array<FormattedLinkedAccount>
 }
 
 export async function getLinkedAccount(
@@ -115,20 +117,75 @@ export async function getLinkedAccount(
 export async function getLinkedAccounts(
   request: Request
 ): Promise<LinkedAccountsResponse> {
-  const response = await grpc.getLinkedAccounts(request, {})
+  const [xagoBalances, accounts] = await Promise.all([
+    grpc.getXagoBalances(request, {}),
+    grpc.getLinkedAccounts(request, {})
+  ])
 
-  if (isConnectError(response)) throw response.errorResponse
+  if (isConnectError(xagoBalances)) throw xagoBalances.errorResponse
+  if (isConnectError(accounts)) throw accounts.errorResponse
 
-  const linkedAccounts = response.linkedAccounts.map(formatLinkedAccount)
+  const linkedAccounts = accounts.linkedAccounts.map((account) =>
+    formatLinkedAccount(account)
+  )
+  const balanceAccounts = linkedAccounts
+    .filter(({ type }) => type == 'wallet')
+    .map((acc) => {
+      let balance = xagoBalances.balances.find(
+        (balance) => balance.linkedAccount == acc.id
+      )
+      if (balance) {
+        acc.name = balance.formattedAvailableBalance
+      }
+
+      return acc
+    })
 
   return {
     bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
-    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card')
+    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card'),
+    balanceAccounts
+  }
+}
+
+export async function getLinkedAccountsForPayment(
+  request: Request,
+  id: string
+): Promise<LinkedAccountsResponse> {
+  const [xagoBalances, accounts] = await Promise.all([
+    grpc.getXagoBalances(request, {}),
+    grpc.getLinkedAccountsForPayment(request, { paymentId: id })
+  ])
+
+  if (isConnectError(xagoBalances)) throw xagoBalances.errorResponse
+  if (isConnectError(accounts)) throw accounts.errorResponse
+
+  const linkedAccounts = accounts.linkedAccounts.map((account) =>
+    formatLinkedAccount(account.details!, account.enabled)
+  )
+  const balanceAccounts = linkedAccounts
+    .filter(({ type }) => type == 'wallet')
+    .map((acc) => {
+      let balance = xagoBalances.balances.find(
+        (balance) => balance.linkedAccount == acc.id
+      )
+      if (balance) {
+        acc.name = balance.formattedAvailableBalance
+      }
+
+      return acc
+    })
+
+  return {
+    bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
+    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card'),
+    balanceAccounts
   }
 }
 
 const formatLinkedAccount = (
-  linkedAccount: LinkedAccount
+  linkedAccount: LinkedAccount,
+  enabled?: boolean
 ): FormattedLinkedAccount => {
   let type = '',
     name = '',
@@ -145,6 +202,7 @@ const formatLinkedAccount = (
       name = linkedAccount.title
       icon = 'account_balance'
       break
+    case 'balance':
     case 'wallet':
       type = 'wallet'
       name = 'Cash balance'
@@ -155,7 +213,8 @@ const formatLinkedAccount = (
     ...linkedAccount,
     name,
     type,
-    icon
+    icon,
+    enabled
   }
 }
 

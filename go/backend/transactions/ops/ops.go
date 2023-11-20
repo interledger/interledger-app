@@ -693,6 +693,15 @@ func GenerateTransactionTitle(ctx context.Context, wc wallets.Client, args Gener
 		title = w.Name
 	}
 
+	_, err := uuid.Parse(title)
+	if w != nil && err == nil {
+		w, _ = wc.Get(ctx, title)
+		// We don't care about errors, we'll use the source/destination/full wallet address as the fallback
+		if w != nil {
+			title = w.Name
+		}
+	}
+
 	// Remove https if it exists
 	title = strings.TrimPrefix(title, "https://")
 

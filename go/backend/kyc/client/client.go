@@ -65,3 +65,7 @@ func (c client) GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey 
 func (c client) GetPersonaIDNumbers(ctx context.Context, walletID string) (*kyc.PersonaIDNumbers, error) {
 	return ops.GetPersonaIDNumbers(ctx, c.b, c.pc, walletID)
 }
+
+func (c client) GetPersonaZAIDNumber(ctx context.Context, walletID string) (string, error) {
+	return ops.GetZAIDNumber(ctx, c.b, c.pc, walletID)
+}

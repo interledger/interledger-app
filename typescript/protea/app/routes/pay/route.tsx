@@ -83,10 +83,13 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
 
     features = await getFeatures(request)
 
-    const { cardAccounts, bankAccounts } = await getLinkedAccounts(request)
-    sendAccounts = [...cardAccounts, ...bankAccounts].filter(
-      (acc) => acc.canSend
-    )
+    const { cardAccounts, bankAccounts, balanceAccounts } =
+      await getLinkedAccounts(request)
+    sendAccounts = [
+      ...balanceAccounts,
+      ...cardAccounts,
+      ...bankAccounts
+    ].filter((acc) => acc.canSend)
   }
 
   return jsonWithCSRF(request, {
