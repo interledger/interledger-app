@@ -94,6 +94,7 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                   linkedAccountOptions.map((option, index) => (
                     <Listbox.Option
                       key={index}
+                      disabled={!option.enabled}
                       className={({ active }) =>
                         `relative flex h-12 cursor-pointer select-none items-center gap-x-2 rounded-lg pl-4 pr-3 ${
                           active ? 'bg-nav-hover' : 'text-medium'

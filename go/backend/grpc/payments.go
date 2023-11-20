@@ -435,8 +435,10 @@ func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.Ge
 
 	las := make([]*pb.LinkedAccountForPayment, len(sendAccounts))
 	for i, sendAcc := range sendAccounts {
-		las[i].Details = transformLinkedAccount(sendAcc)
-		las[i].Enabled = recvAccounts == nil // could be paying to non-signed up user
+		las[i] = &pb.LinkedAccountForPayment{
+			Details: transformLinkedAccount(sendAcc),
+			Enabled: recvAccounts == nil, // could be paying to non-signed up user
+		}
 
 		for _, recvAcc := range recvAccounts {
 			if sendAcc.CanPay(recvAcc) {
