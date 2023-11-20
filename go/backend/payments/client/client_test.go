@@ -776,6 +776,21 @@ func createTestWallet(t *testing.T, b *TestBackends) (string, string, string, st
 	require.NoError(t, err)
 	require.Len(t, accs, 0)
 
+	tr, err := b.pac.CreateTransfers(context.Background(), []pacioli.CreateTransferArgs{
+		{
+			ID:              uuid.NewString(),
+			Amount:          100000,
+			DebitAccountID:  xago.ZAROpsAccount,
+			CreditAccountID: xBalance.ID,
+			Pending:         false,
+			Code:            1,
+			Timeout:         0,
+			Ledger:          xago.LedgerIDZAR,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, tr, 0)
+
 	xBank, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
 		WalletID:        wallet.ID,
 		Name:            "xago_bank",
