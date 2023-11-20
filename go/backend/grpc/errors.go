@@ -3,6 +3,7 @@ package grpc
 import (
 	"errors"
 	"fmt"
+
 	"github.com/getsentry/sentry-go"
 
 	"gitlab.com/fynbos/backend/payments"
@@ -28,13 +29,14 @@ import (
 var errorStatus = map[error]error{
 	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
 	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
-	twilio.ErrInvalidOTP:        NewValidationError("OTP", "Could not validate OTP"),
-	wallets.ErrDuplicateWallet:  status.Error(codes.AlreadyExists, "Wallet already exists"),
-	linkedaccounts.ErrNotFound:  NotFoundError("linked account not found"),
-	signup.ErrDuplicatePhone:    status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
-	identities.ErrAlreadyExists: status.Error(codes.AlreadyExists, "Identity already exists"),
-	wallets.ErrNoWalletFound:    NotFoundError("wallet address not found"),
-	payments.ErrRequiredActions: status.Error(codes.FailedPrecondition, "Required details missing for payment"),
+	twilio.ErrInvalidOTP:          NewValidationError("OTP", "Could not validate OTP"),
+	wallets.ErrDuplicateWallet:    status.Error(codes.AlreadyExists, "Wallet already exists"),
+	linkedaccounts.ErrNotFound:    NotFoundError("linked account not found"),
+	signup.ErrDuplicatePhone:      status.Error(codes.AlreadyExists, "Phone number already exists with a user."),
+	identities.ErrAlreadyExists:   status.Error(codes.AlreadyExists, "Identity already exists"),
+	wallets.ErrNoWalletFound:      NotFoundError("wallet address not found"),
+	payments.ErrRequiredActions:   status.Error(codes.FailedPrecondition, "Required details missing for payment"),
+	payments.ErrInsufficientFunds: PaymentInsufficientFundsError(),
 }
 
 func validationDesc(fe validator.FieldError) string {
@@ -219,6 +221,25 @@ func PaymentPreconditionError(preconditions []payments.RequiredActionType) error
 	st, err := st.WithDetails(p)
 	if err != nil {
 		log.Error("failed to encode payment precondition error", zap.Error(err))
+		return status.Error(codes.Internal, "Internal server error: precondition error")
+	}
+
+	return st.Err()
+}
+
+func PaymentInsufficientFundsError() error {
+	st := status.New(codes.FailedPrecondition, "Failed precondition")
+	p := &errdetails.PreconditionFailure{}
+
+	p.Violations = append(p.Violations, &errdetails.PreconditionFailure_Violation{
+		Type:        "Payment",
+		Subject:     "insufficientFunds",
+		Description: "Insufficient Funds",
+	})
+
+	st, err := st.WithDetails(p)
+	if err != nil {
+		log.Error("failed to encode payment insufficient funds error", zap.Error(err))
 		return status.Error(codes.Internal, "Internal server error: precondition error")
 	}
 
