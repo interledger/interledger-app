@@ -1,4 +1,5 @@
 import { Listbox, Transition } from '@headlessui/react'
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { InputHTMLAttributes, ReactNode } from 'react'
 import { Fragment, forwardRef, useImperativeHandle, useRef } from 'react'
@@ -94,21 +95,29 @@ export const PaySelect = forwardRef<HTMLInputElement, PayTextFieldProps>(
                   linkedAccountOptions.map((option, index) => (
                     <Listbox.Option
                       key={index}
-                      className={({ active }) =>
-                        `relative flex h-12 cursor-pointer select-none items-center gap-x-2 rounded-lg pl-4 pr-3 ${
-                          active ? 'bg-nav-hover' : 'text-medium'
-                        }`
+                      disabled={!option.enabled}
+                      className={({ active, disabled }) =>
+                        clsx(
+                          'relative flex h-12 select-none items-center gap-x-2 rounded-lg pl-4 pr-3',
+                          active ? 'bg-nav-hover' : 'text-medium',
+                          disabled
+                            ? 'cursor-not-allowed text-disabled'
+                            : 'cursor-pointer text-medium'
+                        )
                       }
                       value={option}
                     >
-                      {({ selected }) => (
+                      {({ selected, disabled }) => (
                         <>
                           {option.type != 'wallet' && (
                             <Icon>{option.icon}</Icon>
                           )}
                           {option.type == 'wallet' && (
                             <div
-                              className={`flag:${option.receiveCurrencyCountryCode}`}
+                              className={clsx(
+                                disabled && 'grayscale',
+                                `flag:${option.receiveCurrencyCountryCode}`
+                              )}
                             />
                           )}
                           <span className='block truncate'>

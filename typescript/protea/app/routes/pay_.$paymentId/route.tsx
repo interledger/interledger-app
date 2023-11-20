@@ -25,7 +25,7 @@ import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import {
   getFeatures,
   getKycStatus,
-  getLinkedAccounts
+  getLinkedAccountsForPayment
 } from '~/data/wallet.server'
 import type {
   Features,
@@ -123,7 +123,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   } else publicWalletInfo = publicWalletInfoResponse
 
   const { cardAccounts, bankAccounts, balanceAccounts } =
-    await getLinkedAccounts(request)
+    await getLinkedAccountsForPayment(request, params.paymentId as string)
   sendAccounts = [...balanceAccounts, ...cardAccounts, ...bankAccounts].filter(
     (acc) => acc.canSend
   )
@@ -404,11 +404,19 @@ export async function updatePaymentAction({
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors, payment: null, intent: '' })
     }
-    if (response.code == Code.FailedPrecondition && response.violations.findIndex(
-      (violation) =>
-        violation.type === 'Payment' && violation.subject === 'insufficientFunds'
-    ) > -1) {
-      return response.error({ errors: {...errors, amount: 'You have insufficient funds available.'}, payment: null, intent: '' })
+    if (
+      response.code == Code.FailedPrecondition &&
+      response.violations.findIndex(
+        (violation) =>
+          violation.type === 'Payment' &&
+          violation.subject === 'insufficientFunds'
+      ) > -1
+    ) {
+      return response.error({
+        errors: { ...errors, amount: 'You have insufficient funds available.' },
+        payment: null,
+        intent: ''
+      })
     }
     return response.error(
       { errors, payment: null, intent: '' },
