@@ -92,6 +92,7 @@ export type FormattedLinkedAccount = {
   name: string
   type: string
   icon: string
+  enabled?: boolean
 } & PlainMessage<LinkedAccount>
 
 type LinkedAccountsResponse = {
@@ -118,13 +119,15 @@ export async function getLinkedAccounts(
 ): Promise<LinkedAccountsResponse> {
   const [xagoBalances, accounts] = await Promise.all([
     grpc.getXagoBalances(request, {}),
-    grpc.getLinkedAccounts(request, {})
+    grpc.getLinkedAccountsForPayment(request, {})
   ])
 
   if (isConnectError(xagoBalances)) throw xagoBalances.errorResponse
   if (isConnectError(accounts)) throw accounts.errorResponse
 
-  const linkedAccounts = accounts.linkedAccounts.map(formatLinkedAccount)
+  const linkedAccounts = accounts.linkedAccounts.map((account) =>
+    formatLinkedAccount(account.details!, account.enabled)
+  )
   const balanceAccounts = linkedAccounts
     .filter(({ type }) => type == 'wallet')
     .map((acc) => {
@@ -146,7 +149,8 @@ export async function getLinkedAccounts(
 }
 
 const formatLinkedAccount = (
-  linkedAccount: LinkedAccount
+  linkedAccount: LinkedAccount,
+  enabled?: boolean
 ): FormattedLinkedAccount => {
   let type = '',
     name = '',
@@ -174,7 +178,8 @@ const formatLinkedAccount = (
     ...linkedAccount,
     name,
     type,
-    icon
+    icon,
+    enabled
   }
 }
 
