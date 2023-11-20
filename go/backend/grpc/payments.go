@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gitlab.com/fynbos/backend/limits"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 
 	"gitlab.com/fynbos/backend/twilio"
 
@@ -40,7 +41,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
-		canSendToAddress, err := canSendToWallet(ctx, s.b, walletID, wallet.ID)
+		canSendToAddress, err := s.b.LinkedAccounts().CanSendToWallet(ctx, walletID, wallet.ID)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
@@ -63,7 +64,7 @@ func (s *rpcService) GetPaymentAddress(ctx context.Context, req *pb.GetPaymentAd
 			return nil, toGRPCError(err)
 		}
 
-		canSendToAddress, err := canSendToWallet(ctx, s.b, walletID, id.WalletID)
+		canSendToAddress, err := s.b.LinkedAccounts().CanSendToWallet(ctx, walletID, id.WalletID)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
@@ -133,34 +134,6 @@ func getTwitterHandle(input string) (string, error) {
 	return pathParts[1], nil
 }
 
-// canSendToWallet returns false if
-// 1) sending to own wallet
-// 2) wallet doesn't have any linked accounts that can receive
-func canSendToWallet(ctx context.Context, b Backends, fromWalletID string, toWalletID string) (bool, error) {
-
-	if toWalletID == fromWalletID {
-		return false, nil
-	}
-
-	las, err := b.LinkedAccounts().ListByWalletId(ctx, toWalletID)
-	if err != nil {
-		return false, err
-	}
-
-	var ppCanReceive bool
-	for _, la := range las {
-		if la.CanReceive {
-			ppCanReceive = true
-			break
-		}
-	}
-	if !ppCanReceive {
-		return false, nil
-	}
-
-	return true, nil
-}
-
 func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentRequest) (*pb.Payment, error) {
 	_, err := s.b.Users().UserForContext(ctx)
 	if err != nil {
@@ -197,7 +170,7 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 	senderAccount := req.GetSenderAccount()
 	sendAmount := currency.FromPB(req.SenderAmount)
 	if senderAccount == "" {
-		defaultSendAccount, _ := s.b.LinkedAccounts().GetDefaultSend(ctx, w.ID)
+		defaultSendAccount, _ := s.b.LinkedAccounts().GetDefaultSend(ctx, w.ID, sendAmount.Currency)
 		if defaultSendAccount != nil {
 			senderAccount = defaultSendAccount.ID
 		}
@@ -412,6 +385,8 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 	paymentProtection := p.PaymentProtectionAmount()
 	inputSendAmount := currency.FromUInt64(p.SenderAmount.Value-paymentProtection.Value, p.SenderAmount.Currency)
 
+	// hard-coded to be 0 for now
+	fees := currency.FromUInt64(0, inputSendAmount.Currency)
 	return &pb.Payment{
 		Id:                      p.ID,
 		PublicID:                p.PublicID,
@@ -428,5 +403,52 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		PaymentProtectionAmount: paymentProtection.Format(),
 		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
 		ReceiverAmount:          p.ReceiverAmount.ToPB(),
+		FormattedFees:           fees.Format(),
+	}, nil
+}
+
+func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.GetLinkedAccountsForPaymentRequest) (*pb.GetLinkedAccountsForPaymentResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, ForbiddenError("Unauthenticated.")
+	}
+
+	p, err := s.b.Payments().Lookup(ctx, req.GetPaymentId())
+	if err != nil || p.Sender.WalletID != w.ID {
+		return nil, NotFoundError("")
+	}
+
+	sendAccounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	recvAccounts, err := s.b.LinkedAccounts().ListByWalletId(ctx, p.Receiver.WalletID)
+	if err != nil && !errors.Is(err, linkedaccounts.ErrNotFound) {
+		return nil, toGRPCError(err)
+	}
+
+	las := make([]*pb.LinkedAccountForPayment, len(sendAccounts))
+	for i, sendAcc := range sendAccounts {
+		las[i] = &pb.LinkedAccountForPayment{
+			Details: transformLinkedAccount(sendAcc),
+			Enabled: recvAccounts == nil, // could be paying to non-signed up user
+		}
+
+		for _, recvAcc := range recvAccounts {
+			if sendAcc.CanPay(recvAcc) {
+				las[i].Enabled = true
+				break
+			}
+		}
+	}
+
+	return &pb.GetLinkedAccountsForPaymentResponse{
+		LinkedAccounts: las,
 	}, nil
 }

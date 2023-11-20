@@ -11,4 +11,5 @@ type Client interface {
 	StartKYC(ctx context.Context, walletID string) error
 	GetPersonaInquiry(ctx context.Context, walletID, idempotencyKey string) (*PersonaInquiry, error)
 	GetPersonaIDNumbers(ctx context.Context, walletID string) (*PersonaIDNumbers, error)
+	GetPersonaZAIDNumber(ctx context.Context, walletID string) (string, error)
 }
