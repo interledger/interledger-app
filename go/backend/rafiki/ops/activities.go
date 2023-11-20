@@ -77,7 +77,7 @@ func (a *Activity) ListPayouts(ctx context.Context) ([]Payout, error) {
 
 func (a *Activity) CreatePayoutPayment(ctx context.Context, payout Payout) (string, error) {
 
-	senderAcc, err := a.b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID)
+	senderAcc, err := a.b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.Currency(payout.Asset))
 	if err != nil {
 		return "", err
 	}
