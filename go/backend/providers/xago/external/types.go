@@ -116,3 +116,16 @@ type TransactionValues struct {
 	TransactionType string  `json:"transactionType,omitempty"`
 	IdempotencyKey  string  `json:"idempotencyKey,omitempty"`
 }
+
+type Deposit struct {
+	IsRequested            bool      `json:"isRequested"`
+	IsDuplicate            bool      `json:"isDuplicate"`
+	DuplicateTransactionID string    `json:"duplicateTransactionId"`
+	OriginAmount           float64   `json:"originAmount"`
+	Amount                 float64   `json:"amount"`
+	Status                 string    `json:"status"`
+	CreatedAt              time.Time `json:"createdAt"`
+	SettledAt              string    `json:"settledAt"`
+	AccountID              string    `json:"accountId"`
+	TransactionID          string    `json:"transactionId"`
+}

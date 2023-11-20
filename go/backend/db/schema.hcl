@@ -3008,6 +3008,47 @@ table "xago_transactions" {
   }
 }
 
+table "xago_deposits" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "transaction_id" {
+    null = false
+    type = uuid
+  }
+  column "origin_amount" {
+    null = false
+    type = float
+  }
+  column "amount" {
+    null = false
+    type = float
+  }
+  column "status" {
+    null = false
+    type = text
+  }
+  column "account_id" {
+    null = false
+    type = uuid
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "xago_deposits_tx_id_idx" {
+    unique = true
+    columns = [column.transaction_id]
+  }
+}
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

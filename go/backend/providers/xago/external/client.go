@@ -29,6 +29,7 @@ type Client interface {
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error)
+	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
 }
 
 type client struct {
@@ -358,4 +359,61 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	txID := strings.Replace(string(respBody), "\"", "", -1)
 
 	return txID, nil
+}
+
+func (c *client) ListDeposits(ctx context.Context, page int) ([]Deposit, error) {
+	reqUrl, err := url.JoinPath(c.baseURL, "company", "transactions")
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "xago"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "xago",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	token, err := c.AccessToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token.Token)
+
+	q := req.URL.Query()
+	q.Add("limit", "10")
+	q.Add("page", strconv.Itoa(page))
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to list xargo deposits (%d - %s)", resp.StatusCode, resp.Status)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var respData []Deposit
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return respData, nil
 }
