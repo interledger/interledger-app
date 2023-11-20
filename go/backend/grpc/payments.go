@@ -433,19 +433,24 @@ func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.Ge
 		return nil, toGRPCError(err)
 	}
 
-	las := make([]*pb.LinkedAccountForPayment, len(sendAccounts))
-	for i, sendAcc := range sendAccounts {
-		las[i] = &pb.LinkedAccountForPayment{
+	var las []*pb.LinkedAccountForPayment
+	for _, sendAcc := range sendAccounts {
+		if sendAcc.DeletedAt.Valid {
+			continue
+		}
+
+		acc := &pb.LinkedAccountForPayment{
 			Details: transformLinkedAccount(sendAcc),
 			Enabled: recvAccounts == nil, // could be paying to non-signed up user
 		}
-
 		for _, recvAcc := range recvAccounts {
 			if sendAcc.CanPay(recvAcc) {
-				las[i].Enabled = true
+				acc.Enabled = true
 				break
 			}
 		}
+
+		las = append(las, acc)
 	}
 
 	return &pb.GetLinkedAccountsForPaymentResponse{
