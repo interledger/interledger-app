@@ -423,5 +423,5 @@ export async function action({ request, params }: ActionFunctionArgs) {
   })
   if (isConnectError(payment)) throw payment.errorResponse
 
-  return redirect(route('/pay') + `?paymentId=${payment.id}`)
+  return redirect(route('/pay/:paymentId', { paymentId: payment.id }))
 }
