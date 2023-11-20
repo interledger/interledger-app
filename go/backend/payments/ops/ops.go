@@ -421,6 +421,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
+	err = validateSendBalances(ctx, b, p.SenderAccount, p.SenderAmount)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO Calculate more actions required
 	id := p.IdempotencyKey
 	if id == "" {
@@ -464,6 +469,33 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	return transformPayment(ctx, b, dbp, senderWallet, receiverWallet)
+}
+
+func validateSendBalances(ctx context.Context, b Backends, sendAccID string, amt currency.Amount) error {
+	if sendAccID == "" || amt.IsEmpty() {
+		return nil
+	}
+
+	sa, err := b.LinkedAccounts().Get(ctx, sendAccID)
+	if err != nil {
+		return err
+	}
+
+	// Only relevant for balance accounts
+	if sa.Type != xago.AccTypeBalance {
+		return nil
+	}
+
+	bal, err := b.Xago().GetBalance(ctx, sa.ID)
+	if err != nil {
+		return err
+	}
+
+	if bal.Available.Value < amt.Value {
+		return fmt.Errorf("%w insufficient balance", payments.ErrInsufficientFunds)
+	}
+
+	return nil
 }
 
 func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
@@ -1034,6 +1066,11 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	// Something changed, update the FX calculations
 	if receiverAmtUpdated || senderAmtUpdated {
 		payment, err = applyFXUpdate(ctx, b, payment, receiverAmtUpdated)
+		if err != nil {
+			return nil, err
+		}
+
+		err = validateSendBalances(ctx, b, payment.SenderAccount.String, currency.FromUInt64(payment.SenderAmount, currency.ParseCurrency(payment.SenderCurrency)))
 		if err != nil {
 			return nil, err
 		}

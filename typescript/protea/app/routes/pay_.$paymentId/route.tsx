@@ -404,6 +404,12 @@ export async function updatePaymentAction({
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors, payment: null, intent: '' })
     }
+    if (response.code == Code.FailedPrecondition && response.violations.findIndex(
+      (violation) =>
+        violation.type === 'Payment' && violation.subject === 'insufficientFunds'
+    ) > -1) {
+      return response.error({ errors: {...errors, amount: 'You have insufficient funds available.'}, payment: null, intent: '' })
+    }
     return response.error(
       { errors, payment: null, intent: '' },
       {},
