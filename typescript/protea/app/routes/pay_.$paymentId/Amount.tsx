@@ -49,12 +49,12 @@ type AmountState = {
 
 type Action = {
   type:
-  | 'focussed'
-  | 'send'
-  | 'receive'
-  | 'hasPaymentProtection'
-  | 'linkedAccount'
-  | 'network'
+    | 'focussed'
+    | 'send'
+    | 'receive'
+    | 'hasPaymentProtection'
+    | 'linkedAccount'
+    | 'network'
 } & Partial<AmountState>
 
 type InitialState = {
@@ -211,8 +211,8 @@ export const Amount = () => {
       csrfToken,
       localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
-      updatePaymentFetcher,
-      payment.senderAmount?.asset
+      payment.receiverAmount?.asset,
+      updatePaymentFetcher
     ]
   )
 
