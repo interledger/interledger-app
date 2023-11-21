@@ -93,15 +93,17 @@ func (a *Activity) PollDeposits(ctx context.Context) ([]external.Deposit, error)
 		}
 
 		// Lookup if we already have the deposit in our DB
-		var txID string
-		err = a.b.DB().GetContext(ctx, &txID, "SELECT transaction_id FROM xago_deposits WHERE transaction_id=$1", lastDepID)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return nil, err
-		}
+		if lastDepID != "" {
+			var txID string
+			err = a.b.DB().GetContext(ctx, &txID, "SELECT transaction_id FROM xago_deposits WHERE transaction_id=$1", lastDepID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return nil, err
+			}
 
-		/// We already have this deposit in our DB so we've reached to where we want to scan
-		if txID != "" {
-			break
+			/// We already have this deposit in our DB so we've reached to where we want to scan
+			if txID != "" {
+				break
+			}
 		}
 		if len(deps) < 10 {
 			break
