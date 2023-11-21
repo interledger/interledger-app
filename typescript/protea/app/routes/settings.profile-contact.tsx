@@ -3,7 +3,7 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Icon, Layouts } from '~/components'
+import { Card, CardLink, Icon, Layouts } from '~/components'
 import { Label } from '~/components/Label'
 import { getUserSession } from '~/lib/kratos.server'
 import { mergeMeta } from '~/lib/meta'
@@ -41,29 +41,25 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { phoneMask, email } = useLoaderData<typeof loader>()
   return (
-    <>
-      <Card>
-        <CardContent className='flex flex-col space-y-4'>
-          <div className='flex w-full flex-col space-y-1'>
-            <Label>Email address</Label>
-            <div className='mt-1 flex w-full justify-between p-3'>
-              <div className='flex space-x-3'>
-                <Icon>mail</Icon>
-                <span>{email}</span>
-              </div>
-            </div>
-          </div>
-          <div className='mt-4 flex w-full flex-col space-y-1'>
-            <Label>Mobile phone number</Label>
-            <div className='mt-1 flex w-full justify-between p-3'>
-              <div className='flex space-x-3'>
-                <Icon>call</Icon>
-                <span>{phoneMask}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+    <Card>
+      <Label>Email address</Label>
+      <div className='mt-1 flex w-full justify-between p-3'>
+        <div className='flex space-x-3'>
+          <Icon>mail</Icon>
+          <span>{email}</span>
+        </div>
+      </div>
+      <Label className='mt-4'>Mobile phone number</Label>
+      <CardLink
+        className='items-center justify-between'
+        to={route('/otp/challenge')}
+      >
+        <div className='flex space-x-3'>
+          <Icon>call</Icon>
+          <span>{phoneMask}</span>
+        </div>
+        <Icon>navigate_next</Icon>
+      </CardLink>
+    </Card>
   )
 }

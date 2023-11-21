@@ -96,6 +96,8 @@ export function handleFlowError(
     | 'signup'
     | 'settings'
     | 'settings/password'
+    | 'settings/phone'
+    | 'otp/challenge'
     | 'login/challenge'
     | 'recovery'
     | 'recovery/password'
