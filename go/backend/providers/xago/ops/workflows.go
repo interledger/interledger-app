@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
+	"github.com/jmoiron/sqlx"
+
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
@@ -73,22 +76,24 @@ func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID strin
 		return fmt.Errorf("%w no deposit reference provided for xago sub account", xago.ErrInternal)
 	}
 
-	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING ",
-		accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag), depositRef)
-	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
-		return err
-	}
+	return crdbsqlx.ExecuteTx(ctx, a.b.DB(), nil, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING ",
+			accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag), depositRef)
+		if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+			return err
+		}
 
-	for cc, bdl := range sa.DepositDetails {
-		for _, dd := range bdl {
-			_, err = a.b.DB().ExecContext(ctx, "INSERT INTO xago_deposit_details (wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
-				walletID, accountID, cc, dd.BankName, dd.AccountName, dd.AccountNumber, dd.BranchCode)
-			if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
-				return err
+		for cc, bdl := range sa.DepositDetails {
+			for _, dd := range bdl {
+				_, err = tx.ExecContext(ctx, "INSERT INTO xago_deposit_details (wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
+					walletID, accountID, cc, dd.BankName, dd.AccountName, dd.AccountNumber, dd.BranchCode)
+				if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+					return err
+				}
 			}
 		}
-	}
-	return err
+		return err
+	})
 }
 
 func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*external.SubAccount, error) {
@@ -310,7 +315,7 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 	}
 
 	reqStruct := external.CreateBeneficiaryReq{
-		Name:                details.LastName + " " + details.LastName,
+		Name:                details.FirstName + " " + details.LastName,
 		Scope:               "bank",
 		CurrencyCode:        "ZAR",
 		AccountNumber:       bankAcc.AccountNumber,

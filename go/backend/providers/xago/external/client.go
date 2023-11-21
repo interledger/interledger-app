@@ -236,7 +236,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 }
 
 func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error) {
-	reqUrl, err := url.JoinPath(c.baseURL, "beneficiaries")
+	reqUrl, err := url.JoinPath(c.identityBaseURL, "beneficiaries")
 	if err != nil {
 		return nil, err
 	}
