@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/twilio"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -32,6 +33,29 @@ func (s *rpcService) SendPhoneVerification(
 	_, err = s.b.Twilio().SendVerificationCode(ctx, req.To)
 	if err != nil {
 		return nil, toGRPCError(err)
+	}
+
+	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) CheckPhoneVerification(
+	ctx context.Context,
+	req *pb.CheckPhoneVerificationRequest,
+) (*pb.Empty, error) {
+	err := s.b.Validator().VarCtx(ctx, req.To, "required,e164")
+	if err != nil {
+		return nil, NewValidationError("To", "Phone number is invalid.")
+	}
+
+	vc, err := s.b.Twilio().CheckVerificationCode(ctx, &twilio.CheckVerificationCodeArgs{
+		PhoneNumber: req.GetTo(),
+		Code:        req.GetOtp(),
+	})
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if !vc.IsValid() {
+		return nil, NewValidationError("otp", "Invalid OTP")
 	}
 
 	return &pb.Empty{}, nil
