@@ -37,7 +37,7 @@ func IsMaxRetryError(err error) bool {
 		return false
 	}
 
-	return activityError.RetryState() == enums.RETRY_STATE_MAXIMUM_ATTEMPTS_REACHED
+	return activityError.RetryState() == enums.RETRY_STATE_MAXIMUM_ATTEMPTS_REACHED || activityError.RetryState() == enums.RETRY_STATE_NON_RETRYABLE_FAILURE
 }
 
 func IsNotFoundError(err error) bool {

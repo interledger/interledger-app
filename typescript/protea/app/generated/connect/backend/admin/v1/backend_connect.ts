@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, WalletDetails } from "./backend_pb.js";
+import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SetWalletXagoBalanceEnabledRequest, WalletDetails } from "./backend_pb.js";
 
 /**
  * @generated from service backend.admin.v1.Backend
@@ -190,6 +190,24 @@ export const Backend = {
       name: "ListPaymentsAwaitingSignal",
       I: Empty,
       O: ListPaymentsAwaitingSignalResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.SetWalletXagoBalanceEnabled
+     */
+    setWalletXagoBalanceEnabled: {
+      name: "SetWalletXagoBalanceEnabled",
+      I: SetWalletXagoBalanceEnabledRequest,
+      O: Empty$1,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.admin.v1.Backend.GetWalletXagoBalance
+     */
+    getWalletXagoBalance: {
+      name: "GetWalletXagoBalance",
+      I: GetWalletXagoBalanceRequest,
+      O: GetWalletXagoBalanceResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -79,10 +79,10 @@ export default function Page() {
                           {wallet.walletName}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {wallet.users[0].email}
+                          {wallet.users.length > 0 ? wallet.users[0].email : ''}
                         </td>
                         <td className='whitespace-nowrap p-4 text-sm text-gray-500'>
-                          {wallet.users[0].phoneNumber}
+                          {wallet.users.length > 0 ? wallet.users[0].phoneNumber : ''}
                         </td>
                         <td className='relative whitespace-nowrap p-4 text-right text-sm font-medium'>
                           <Router
