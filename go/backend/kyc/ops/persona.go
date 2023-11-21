@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
 )
@@ -82,7 +81,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		args.CountryCode = "US"
 	}
 
-	args.InquiryTemplateID = string(persona.GetTemplateIDForCountry(ctx, country.Country(args.CountryCode)))
+	args.InquiryTemplateID = string(persona.GetTemplateIDForCountry(ctx, wallet.Country))
 	inquiry, err := cl.CreateInquiry(ctx, args, idempotencyKey)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)

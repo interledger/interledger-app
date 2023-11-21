@@ -75,4 +75,9 @@ func TestGetPersonaInquiry(t *testing.T) {
 		assert.Equal(st, inqID, inq.ID)
 		assert.Equal(st, persona.InquiryNeedsReview, inq.Status)
 	})
+	t.Run("uses correct template for wallet country", func(st *testing.T) {
+		assert.Equal(st, "itmpl_btzBVE6jNCvP6eSbNurwT73L", string(persona.GetTemplateIDForCountry(ctx, country.ZA)))
+		assert.Equal(st, "itmpl_EJAHdJABX5xztmk7JbC9gNLH", string(persona.GetTemplateIDForCountry(ctx, country.US)))
+		assert.Equal(st, "itmpl_EJAHdJABX5xztmk7JbC9gNLH", string(persona.GetTemplateIDForCountry(ctx, country.GB)))
+	})
 }
