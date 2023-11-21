@@ -100,8 +100,16 @@ func (c *client) AccessToken(ctx context.Context) (*AccessToken, error) {
 		PolicyID string     `json:"policyId"`
 		Fields   []reqField `json:"fields"`
 	}
+
+	// Staging policy ID
+	policyID := "5e2585a474b0e90012ce8ff1"
+	if env.IsProd() {
+		// Prod policy ID
+		policyID = "5eb29c307df9090021eed488"
+	}
+
 	reqStruct := reqFormat{
-		PolicyID: "5e2585a474b0e90012ce8ff1",
+		PolicyID: policyID,
 		Fields: []reqField{
 			{
 				FieldName:  "apiPublicKey",
