@@ -35,6 +35,7 @@ service BackendService {
   rpc GetPublicWalletInfo(GetPublicWalletInfoRequest) returns(PublicWalletInfo);
   // Allows sending and checking an sms verification.
   rpc SendPhoneVerification(SendPhoneVerificationRequest) returns (Empty);
+  rpc CheckPhoneVerification(CheckPhoneVerificationRequest) returns (Empty);
   rpc SendOTP(Empty) returns (Empty);
   // Allows signing agreements and getting agreements by id.
   rpc GetAgreement(GetAgreementRequest) returns (Agreement);
@@ -651,6 +652,11 @@ message CreateUserDefaultWalletRequest {
 
 message SendPhoneVerificationRequest {
   string to = 1;
+}
+
+message CheckPhoneVerificationRequest {
+  string to = 1;
+  string otp = 2;
 }
 
 message GetAgreementRequest {

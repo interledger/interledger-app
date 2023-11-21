@@ -4053,6 +4053,49 @@ export class SendPhoneVerificationRequest extends Message<SendPhoneVerificationR
 }
 
 /**
+ * @generated from message backend.v1.CheckPhoneVerificationRequest
+ */
+export class CheckPhoneVerificationRequest extends Message<CheckPhoneVerificationRequest> {
+  /**
+   * @generated from field: string to = 1;
+   */
+  to = "";
+
+  /**
+   * @generated from field: string otp = 2;
+   */
+  otp = "";
+
+  constructor(data?: PartialMessage<CheckPhoneVerificationRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.CheckPhoneVerificationRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "to", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "otp", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckPhoneVerificationRequest {
+    return new CheckPhoneVerificationRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckPhoneVerificationRequest {
+    return new CheckPhoneVerificationRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckPhoneVerificationRequest {
+    return new CheckPhoneVerificationRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckPhoneVerificationRequest | PlainMessage<CheckPhoneVerificationRequest> | undefined, b: CheckPhoneVerificationRequest | PlainMessage<CheckPhoneVerificationRequest> | undefined): boolean {
+    return proto3.util.equals(CheckPhoneVerificationRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetAgreementRequest
  */
 export class GetAgreementRequest extends Message<GetAgreementRequest> {
