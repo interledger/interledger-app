@@ -6,8 +6,13 @@ import type {
 import { redirect } from '@remix-run/node'
 import type { UIMatch } from '@remix-run/react'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useEffect, useRef, useState } from 'react'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
+import type {
+  ApplicationProps,
+  TurnstileAppearance,
+  TurnstileInstance
+} from '~/components'
 import {
   AnchorRouter,
   Icon,
@@ -17,16 +22,20 @@ import {
   TextField
 } from '~/components'
 import { MarketingPageWithSections } from '~/components/Content'
+import { Turnstile } from '~/components/Turnstile'
 import { getContactRoute } from '~/data/content.server'
 import type { SectionRecord } from '~/generated/dato-cms-graphql'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
-import { isConnectError } from '~/lib/error.server'
+import { error, isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
+import { getClientIP } from '~/lib/ip.server'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { contactRoute, footer } = await getContactRoute()
-  return jsonWithCSRF(request, { contactRoute, footer })
+  const cfTurnstileSiteKey = process.env.CF_TURNSTILE_SITE_KEY || ''
+
+  return jsonWithCSRF(request, { contactRoute, footer, cfTurnstileSiteKey })
 }
 
 export const handle: ApplicationProps = {
@@ -42,8 +51,23 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(
 )
 
 export default function Page() {
-  const { contactRoute, csrfToken } = useLoaderData<typeof loader>()
+  const { contactRoute, csrfToken, cfTurnstileSiteKey } =
+    useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileAppearance, setTurnstileAppearance] =
+    useState<TurnstileAppearance>('interaction-only')
+  let turnstileRef = useRef<TurnstileInstance>(null)
+
+  useEffect(() => {
+    if (actionData?.errors.captcha) {
+      setTurnstileAppearance('always')
+      setTurnstileToken('')
+      turnstileRef.current?.reset()
+      actionData.errors.captcha = ''
+    }
+  }, [actionData])
+
   return (
     <>
       {contactRoute?.body.map((section) => (
@@ -67,6 +91,12 @@ export default function Page() {
               form='contact-form'
               value={csrfToken}
               name='csrfToken'
+              type='hidden'
+            />
+            <input
+              form='contact-form'
+              value={turnstileToken}
+              name='cf-turnstile-response'
               type='hidden'
             />
             <TextField
@@ -127,7 +157,24 @@ export default function Page() {
               required
               errorMessage={actionData?.errors.description}
             />
-            <div className='col-span-full flex justify-start pt-4 sm:col-span-3 sm:col-start-2 lg:col-start-4'>
+            <div
+              className={`col-span-full flex justify-start sm:col-span-3 sm:col-start-2 lg:col-start-4 ${
+                turnstileAppearance === 'interaction-only' ? 'hidden' : ''
+              }`}
+            >
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={cfTurnstileSiteKey}
+                appearance={turnstileAppearance}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                }}
+                beforeInteractive={() => {
+                  setTurnstileAppearance('always')
+                }}
+              />
+            </div>
+            <div className='col-span-full flex justify-start sm:col-span-3 sm:col-start-2 lg:col-start-4'>
               <OutlineButton
                 className='h-20 px-20'
                 form='contact-form'
@@ -182,7 +229,30 @@ export async function action({ request }: ActionFunctionArgs) {
     firstName: '',
     lastName: '',
     description: '',
-    email: ''
+    email: '',
+    captcha: ''
+  }
+
+  // cloudflare turnstile captcha validation
+  const turnstileToken = form.get('cf-turnstile-response') as string
+  const validateTurnstileData = new FormData()
+  validateTurnstileData.append('response', turnstileToken)
+  validateTurnstileData.append(
+    'secret',
+    process.env.CF_TURNSTILE_SECRET_KEY || ''
+  )
+  validateTurnstileData.append('remoteip', getClientIP(request))
+  const res = await fetch(
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    {
+      method: 'POST',
+      body: validateTurnstileData
+    }
+  )
+  const body = await res.json()
+  if (!body.success) {
+    errors.captcha = 'There was an error validating the captcha.'
+    return error(request, { errors }, { message: errors.captcha })
   }
 
   let response = await grpc.createSupportTicket(request, {
