@@ -72,6 +72,7 @@ type CreateTransactionArgs struct {
 	DestinationIdentityType        string `validate:"omitempty,oneof=Twitter Slack Discord wallet WalletID WalletURL ExternalWalletURL"`
 	Reference                      string
 	PaymentProtectionFeePercentage float64
+	Title                          string
 }
 
 type UpdateTransactionArgs struct {
