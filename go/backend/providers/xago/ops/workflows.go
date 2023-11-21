@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
+	"github.com/jmoiron/sqlx"
+
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
@@ -73,22 +76,24 @@ func (a *Activity) SaveSubAccount(ctx context.Context, walletID, accountID strin
 		return fmt.Errorf("%w no deposit reference provided for xago sub account", xago.ErrInternal)
 	}
 
-	_, err := a.b.DB().ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING ",
-		accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag), depositRef)
-	if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
-		return err
-	}
+	return crdbsqlx.ExecuteTx(ctx, a.b.DB(), nil, func(tx *sqlx.Tx) error {
+		_, err := tx.ExecContext(ctx, "INSERT INTO xago_sub_accounts (id, wallet_id, account_id, deposit_address, deposit_tag, deposit_reference) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING ",
+			accountID, walletID, sa.AccountID, sa.DepositAddress, strconv.Itoa(sa.DepositTag), depositRef)
+		if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+			return err
+		}
 
-	for cc, bdl := range sa.DepositDetails {
-		for _, dd := range bdl {
-			_, err = a.b.DB().ExecContext(ctx, "INSERT INTO xago_deposit_details (wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
-				walletID, accountID, cc, dd.BankName, dd.AccountName, dd.AccountNumber, dd.BranchCode)
-			if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
-				return err
+		for cc, bdl := range sa.DepositDetails {
+			for _, dd := range bdl {
+				_, err = tx.ExecContext(ctx, "INSERT INTO xago_deposit_details (wallet_id, sub_account_id, currency, bank_name, account_name, account_number, branch_code) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING",
+					walletID, accountID, cc, dd.BankName, dd.AccountName, dd.AccountNumber, dd.BranchCode)
+				if err != nil && !db.IsErrorCode(err, db.UniqueViolationError) {
+					return err
+				}
 			}
 		}
-	}
-	return err
+		return err
+	})
 }
 
 func (a *Activity) CreateSubAccount(ctx context.Context, walletID string) (*external.SubAccount, error) {
@@ -274,7 +279,7 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 		}
 	}
 
-	var ben external.CreateBeneficiaryResp
+	var ben external.AccountBeneficiaries
 	err = workflow.ExecuteActivity(ctx, a.CreateExternalBeneficiaries, bankAcc).Get(ctx, &ben)
 	if err != nil {
 		return nil, err
@@ -303,14 +308,14 @@ func CreateBeneficiaryWorkflow(ctx workflow.Context, bankAcc xago.CreateBankAcco
 	return &la, nil
 }
 
-func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (*external.CreateBeneficiaryResp, error) {
+func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago.CreateBankAccountArgs) (*external.AccountBeneficiaries, error) {
 	details, err := a.b.KYC().GetIndividualDetails(ctx, bankAcc.WalletID)
 	if err != nil {
 		return nil, err
 	}
 
 	reqStruct := external.CreateBeneficiaryReq{
-		Name:                details.LastName + " " + details.LastName,
+		Name:                details.FirstName + " " + details.LastName,
 		Scope:               "bank",
 		CurrencyCode:        "ZAR",
 		AccountNumber:       bankAcc.AccountNumber,
@@ -332,32 +337,37 @@ func (a *Activity) CreateExternalBeneficiaries(ctx context.Context, bankAcc xago
 		reqStruct.BeneficiaryAddress = details.Address.Line1
 	}
 
-	return a.b.External().AddBeneficiary(ctx, reqStruct)
+	ben, err := a.b.External().AddBeneficiary(ctx, reqStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, acc := range ben.Beneficiaries {
+		if acc.AccountNumber == reqStruct.AccountNumber &&
+			acc.Reference == reqStruct.Reference &&
+			acc.BankName == reqStruct.BankName &&
+			acc.Name == reqStruct.Name &&
+			acc.BranchCode == reqStruct.BranchCode &&
+			acc.CurrencyCode == reqStruct.CurrencyCode {
+			return &acc, nil
+		}
+	}
+
+	return nil, temporal.NewNonRetryableApplicationError("new beneficiary not found in list", "external", nil)
 }
 
-func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa external.CreateBeneficiaryResp) error {
-	if len(sa.Beneficiaries) != 1 {
-		return temporal.NewNonRetryableApplicationError(fmt.Sprintf("incorrect number of beneficiaries, expected 1 got %d", len(sa.Beneficiaries)), "external", nil)
-	}
-	b := sa.Beneficiaries[0]
+func (a *Activity) SaveBeneficiary(ctx context.Context, walletID string, sa external.AccountBeneficiaries) error {
 	_, err := a.b.DB().ExecContext(ctx, `INSERT INTO xago_beneficiaries (id, wallet_id, address, reference, status, currency, scope, name) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		b.ID, walletID, b.BeneficiaryAddress, b.Reference, b.Status, b.CurrencyCode, b.Scope, b.Name)
+		sa.ID, walletID, sa.BeneficiaryAddress, sa.Reference, sa.Status, sa.CurrencyCode, sa.Scope, sa.Name)
 	if db.IsErrorCode(err, db.UniqueViolationError) {
 		return nil
 	}
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
-func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id string, sa external.CreateBeneficiaryResp) (*linkedaccounts.LinkedAccount, error) {
-	if len(sa.Beneficiaries) != 1 {
-		return nil, temporal.NewNonRetryableApplicationError(fmt.Sprintf("incorrect number of beneficiaries, expected 1 got %d", len(sa.Beneficiaries)), "external", nil)
-	}
-	b := sa.Beneficiaries[0]
+func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id string, b external.AccountBeneficiaries) (*linkedaccounts.LinkedAccount, error) {
 
 	la, _ := a.b.LinkedAccounts().Get(ctx, id)
 	if la != nil {
