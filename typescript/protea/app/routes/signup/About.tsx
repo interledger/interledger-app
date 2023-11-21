@@ -164,7 +164,7 @@ export function About() {
           type='hidden'
         />
       </Card>
-      {country && country?.id !== 'US' && (
+      {country && (country?.id !== 'US' && country?.id !== 'ZA') && (
         <Card>
           <CardContent>
             <div className='flex items-center space-x-4'>

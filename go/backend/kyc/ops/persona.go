@@ -53,7 +53,6 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 	if err != nil && !errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, err
 	}
-
 	ul, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
@@ -82,6 +81,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 	}
 
 	args.InquiryTemplateID = string(persona.GetTemplateIDForCountry(ctx, wallet.Country))
+	fmt.Println("country", wallet.Country, "persona inquiry template id", args.InquiryTemplateID)
 	inquiry, err := cl.CreateInquiry(ctx, args, idempotencyKey)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
