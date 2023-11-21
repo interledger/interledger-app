@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"gitlab.com/fynbos/backend/country"
 )
 
 type CreateArgs struct {
@@ -14,12 +16,14 @@ type CreateArgs struct {
 	UserID    string `validate:"uuid4"`
 	Name      string
 	Addresses []Address
+	Country   country.Country
 }
 
 type Wallet struct {
 	ID        string
 	Name      string
 	Addresses []Address
+	Country   country.Country
 }
 
 func (w Wallet) AddressShortString() string {

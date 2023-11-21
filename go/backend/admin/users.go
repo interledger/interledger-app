@@ -3,8 +3,10 @@ package admin
 import (
 	"context"
 	"errors"
+	"sort"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/user"
 
 	"gitlab.com/fynbos/backend/db"
@@ -100,7 +102,7 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 		WalletName:   wallet.Name,
 		FirstName:    id.FirstName,
 		LastName:     id.LastName,
-		CountryCode:  id.CountryCode,
+		CountryCode:  wallet.Country.String(),
 		PlaceOfBirth: id.PlaceOfBirth,
 		Nationality:  id.Nationality,
 		Gender:       int32(id.Gender),
@@ -140,4 +142,33 @@ func (s *AdminRpcService) ListAudit(ctx context.Context, req *adminv1.ListAuditR
 	}
 
 	return &adminv1.ListAuditResponse{Operations: resp}, nil
+}
+
+func (s *AdminRpcService) SetWalletCountry(ctx context.Context, req *adminv1.SetWalletCountryRequest) (*adminv1.Empty, error) {
+	_, err := s.b.Wallets().SetCountry(ctx, req.GetId(), country.ParseCountry(req.GetCountryCode()))
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return &adminv1.Empty{}, nil
+}
+
+func (s *AdminRpcService) ListCountries(ctx context.Context, req *adminv1.Empty) (*adminv1.ListCountriesResponse, error) {
+	var countries = []*adminv1.Country{}
+	for c, d := range country.Details {
+		countries = append(countries, &adminv1.Country{
+			Code:      c.String(),
+			Name:      d.Name,
+			Numeric:   d.Numeric,
+			Supported: d.Supported,
+		})
+	}
+
+	sort.Slice(countries, func(i, j int) bool {
+		return countries[i].Name < countries[j].Name
+	})
+
+	return &adminv1.ListCountriesResponse{
+		Countries: countries,
+	}, nil
 }

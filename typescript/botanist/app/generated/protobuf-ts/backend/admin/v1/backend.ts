@@ -15,6 +15,49 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.SetWalletCountryRequest
+ */
+export interface SetWalletCountryRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string countryCode = 2;
+     */
+    countryCode: string;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.Country
+ */
+export interface Country {
+    /**
+     * @generated from protobuf field: string code = 1;
+     */
+    code: string;
+    /**
+     * @generated from protobuf field: string name = 2;
+     */
+    name: string;
+    /**
+     * @generated from protobuf field: string numeric = 3;
+     */
+    numeric: string;
+    /**
+     * @generated from protobuf field: bool supported = 4;
+     */
+    supported: boolean;
+}
+/**
+ * @generated from protobuf message backend.admin.v1.ListCountriesResponse
+ */
+export interface ListCountriesResponse {
+    /**
+     * @generated from protobuf field: repeated backend.admin.v1.Country countries = 1;
+     */
+    countries: Country[];
+}
+/**
  * @generated from protobuf message backend.admin.v1.ListPaymentsAwaitingSignalResponse
  */
 export interface ListPaymentsAwaitingSignalResponse {
@@ -902,6 +945,175 @@ export interface Amount {
      */
     country: string;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class SetWalletCountryRequest$Type extends MessageType<SetWalletCountryRequest> {
+    constructor() {
+        super("backend.admin.v1.SetWalletCountryRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SetWalletCountryRequest>): SetWalletCountryRequest {
+        const message = { id: "", countryCode: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<SetWalletCountryRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetWalletCountryRequest): SetWalletCountryRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string countryCode */ 2:
+                    message.countryCode = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SetWalletCountryRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string countryCode = 2; */
+        if (message.countryCode !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.countryCode);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.SetWalletCountryRequest
+ */
+export const SetWalletCountryRequest = new SetWalletCountryRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Country$Type extends MessageType<Country> {
+    constructor() {
+        super("backend.admin.v1.Country", [
+            { no: 1, name: "code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "numeric", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "supported", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Country>): Country {
+        const message = { code: "", name: "", numeric: "", supported: false };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Country>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Country): Country {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string code */ 1:
+                    message.code = reader.string();
+                    break;
+                case /* string name */ 2:
+                    message.name = reader.string();
+                    break;
+                case /* string numeric */ 3:
+                    message.numeric = reader.string();
+                    break;
+                case /* bool supported */ 4:
+                    message.supported = reader.bool();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Country, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string code = 1; */
+        if (message.code !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.code);
+        /* string name = 2; */
+        if (message.name !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.name);
+        /* string numeric = 3; */
+        if (message.numeric !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.numeric);
+        /* bool supported = 4; */
+        if (message.supported !== false)
+            writer.tag(4, WireType.Varint).bool(message.supported);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.Country
+ */
+export const Country = new Country$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListCountriesResponse$Type extends MessageType<ListCountriesResponse> {
+    constructor() {
+        super("backend.admin.v1.ListCountriesResponse", [
+            { no: 1, name: "countries", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Country }
+        ]);
+    }
+    create(value?: PartialMessage<ListCountriesResponse>): ListCountriesResponse {
+        const message = { countries: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListCountriesResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListCountriesResponse): ListCountriesResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.admin.v1.Country countries */ 1:
+                    message.countries.push(Country.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListCountriesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.admin.v1.Country countries = 1; */
+        for (let i = 0; i < message.countries.length; i++)
+            Country.internalBinaryWrite(message.countries[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.ListCountriesResponse
+ */
+export const ListCountriesResponse = new ListCountriesResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListPaymentsAwaitingSignalResponse$Type extends MessageType<ListPaymentsAwaitingSignalResponse> {
     constructor() {
@@ -3967,5 +4179,7 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "ListExternalApiCalls", options: {}, I: ListExternalApiCallsRequest, O: ListExternalApiCallsResponse },
     { name: "ListPaymentsAwaitingSignal", options: {}, I: Empty$, O: ListPaymentsAwaitingSignalResponse },
     { name: "SetWalletXagoBalanceEnabled", options: {}, I: SetWalletXagoBalanceEnabledRequest, O: Empty },
-    { name: "GetWalletXagoBalance", options: {}, I: GetWalletXagoBalanceRequest, O: GetWalletXagoBalanceResponse }
+    { name: "GetWalletXagoBalance", options: {}, I: GetWalletXagoBalanceRequest, O: GetWalletXagoBalanceResponse },
+    { name: "SetWalletCountry", options: {}, I: SetWalletCountryRequest, O: Empty },
+    { name: "ListCountries", options: {}, I: Empty, O: ListCountriesResponse }
 ]);

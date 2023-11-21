@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { ListCountriesResponse } from "./backend";
+import type { SetWalletCountryRequest } from "./backend";
 import type { GetWalletXagoBalanceResponse } from "./backend";
 import type { GetWalletXagoBalanceRequest } from "./backend";
 import type { SetWalletXagoBalanceEnabledRequest } from "./backend";
@@ -137,6 +139,14 @@ export interface IBackendClient {
      * @generated from protobuf rpc: GetWalletXagoBalance(backend.admin.v1.GetWalletXagoBalanceRequest) returns (backend.admin.v1.GetWalletXagoBalanceResponse);
      */
     getWalletXagoBalance(input: GetWalletXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse>;
+    /**
+     * @generated from protobuf rpc: SetWalletCountry(backend.admin.v1.SetWalletCountryRequest) returns (backend.admin.v1.Empty);
+     */
+    setWalletCountry(input: SetWalletCountryRequest, options?: RpcOptions): UnaryCall<SetWalletCountryRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: ListCountries(backend.admin.v1.Empty) returns (backend.admin.v1.ListCountriesResponse);
+     */
+    listCountries(input: Empty$, options?: RpcOptions): UnaryCall<Empty$, ListCountriesResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -300,5 +310,19 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     getWalletXagoBalance(input: GetWalletXagoBalanceRequest, options?: RpcOptions): UnaryCall<GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse> {
         const method = this.methods[21], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: SetWalletCountry(backend.admin.v1.SetWalletCountryRequest) returns (backend.admin.v1.Empty);
+     */
+    setWalletCountry(input: SetWalletCountryRequest, options?: RpcOptions): UnaryCall<SetWalletCountryRequest, Empty$> {
+        const method = this.methods[22], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SetWalletCountryRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: ListCountries(backend.admin.v1.Empty) returns (backend.admin.v1.ListCountriesResponse);
+     */
+    listCountries(input: Empty$, options?: RpcOptions): UnaryCall<Empty$, ListCountriesResponse> {
+        const method = this.methods[23], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty$, ListCountriesResponse>("unary", this._transport, method, opt, input);
     }
 }

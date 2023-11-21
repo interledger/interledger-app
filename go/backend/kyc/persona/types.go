@@ -147,6 +147,7 @@ type InquiryTemplateID string
 var inquiryTemplateIDs = map[country.Country]InquiryTemplateID{
 	country.US: "itmpl_EJAHdJABX5xztmk7JbC9gNLH",
 	country.GB: "itmpl_EJAHdJABX5xztmk7JbC9gNLH",
+	country.ZA: "itmpl_btzBVE6jNCvP6eSbNurwT73L",
 }
 
 func GetTemplateIDForCountry(ctx context.Context, ctry country.Country) InquiryTemplateID {
