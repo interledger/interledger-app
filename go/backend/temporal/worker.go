@@ -44,7 +44,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(tabapay_workflows.NewActivity(b))
 	w.RegisterWorkflow(tabapay_workflows.CreateTabapayCardWorkflow)
 
-	gmt_workflows.StartNotificationsPolling(b)
+	// gmt_workflows.StartNotificationsPolling(b) // disabled until we support ACH
 
 	// Jobs
 	w.RegisterActivity(jobs.NewActivity(b))
