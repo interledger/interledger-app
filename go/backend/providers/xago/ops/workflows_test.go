@@ -25,23 +25,18 @@ func TestActivity_SaveBeneficiary(t *testing.T) {
 	walletID := uuid.NewString()
 	beneficiaryID := uuid.NewString()
 
-	err := a.SaveBeneficiary(ctx, walletID, external.CreateBeneficiaryResp{
-		Status: 200,
-		Beneficiaries: []external.AccountBeneficiaries{
-			{
-				BranchCode:         "branchy face",
-				Reference:          "Ref me",
-				BeneficiaryAddress: "Dark side of the moon",
-				BankName:           "FNB",
-				AccountNumber:      "acc_1234",
-				Status:             "open",
-				CurrencyCode:       "ZAR",
-				ID:                 beneficiaryID,
-				Scope:              "read",
-				Name:               "nothing",
-				Wallet:             nil,
-			},
-		},
+	err := a.SaveBeneficiary(ctx, walletID, external.AccountBeneficiaries{
+		BranchCode:         "branchy face",
+		Reference:          "Ref me",
+		BeneficiaryAddress: "Dark side of the moon",
+		BankName:           "FNB",
+		AccountNumber:      "acc_1234",
+		Status:             "open",
+		CurrencyCode:       "ZAR",
+		ID:                 beneficiaryID,
+		Scope:              "read",
+		Name:               "nothing",
+		Wallet:             nil,
 	})
 	require.NoError(t, err)
 
