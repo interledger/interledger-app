@@ -34,6 +34,7 @@ declare module "routes-gen" {
     "/login/challenge": Record<string, never>;
     "/logout": Record<string, never>;
     "/me/identities/:identityId": { "identityId": string };
+    "/otp/challenge": Record<string, never>;
     "/pay": Record<string, never>;
     "/pay/:paymentId": { "paymentId": string };
     "/pay/3ds": Record<string, never>;
@@ -48,6 +49,7 @@ declare module "routes-gen" {
     "/settings/keys/:keyId": { "keyId": string };
     "/settings/keys/add-public": Record<string, never>;
     "/settings/password": Record<string, never>;
+    "/settings/phone": Record<string, never>;
     "/settings/profile-contact": Record<string, never>;
     "/settings/profile-personal": Record<string, never>;
     "/settings/profile-public": Record<string, never>;
@@ -103,6 +105,7 @@ declare module "routes-gen" {
       | ["/login/challenge"]
       | ["/logout"]
       | ["/me/identities/:identityId", RouteParams["/me/identities/:identityId"]]
+      | ["/otp/challenge"]
       | ["/pay"]
       | ["/pay/:paymentId", RouteParams["/pay/:paymentId"]]
       | ["/pay/3ds"]
@@ -117,6 +120,7 @@ declare module "routes-gen" {
       | ["/settings/keys/:keyId", RouteParams["/settings/keys/:keyId"]]
       | ["/settings/keys/add-public"]
       | ["/settings/password"]
+      | ["/settings/phone"]
       | ["/settings/profile-contact"]
       | ["/settings/profile-personal"]
       | ["/settings/profile-public"]
