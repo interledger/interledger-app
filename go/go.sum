@@ -233,8 +233,6 @@ github.com/cockroachdb/cockroach-go/v2 v2.1.1/go.mod h1:7NtUnP6eK+l6k483WSYNrq3K
 github.com/cockroachdb/cockroach-go/v2 v2.2.1 h1:nZte1DDdL9iu8IV0YPmX8l9Lg2+HRJ3CMvkT3iG52rc=
 github.com/cockroachdb/cockroach-go/v2 v2.2.1/go.mod h1:u3MiKYGupPPjkn3ozknpMUpxPaNLTFWAya419/zv6eI=
 github.com/cockroachdb/datadriven v0.0.0-20190809214429-80d97fb3cbaa/go.mod h1:zn76sxSg3SzpJ0PPJaLDCu+Bu0Lg3sKTORVIj19EIF8=
-github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38 h1:GdEzA3ppjfTTv3D0My0m4vvkDSwXo8EVjiOYMijBJhg=
-github.com/coilhq/tigerbeetle-go v0.0.0-20220901084130-01fed7c1dc38/go.mod h1:RNb/2wHV2SDusEWoEKsH7OkUd8ZVdVY+FrcivUAz67I=
 github.com/containerd/aufs v0.0.0-20200908144142-dab0cbea06f4/go.mod h1:nukgQABAEopAHvB6j7cnP5zJ+/3aVcE7hCYqvIwAHyE=
 github.com/containerd/aufs v0.0.0-20201003224125-76a6863f2989/go.mod h1:AkGGQs9NM2vtYHaUen+NljV0/baGCAPELGm2q9ZXpWU=
 github.com/containerd/aufs v0.0.0-20210316121734-20793ff83c97/go.mod h1:kL5kd6KM5TzQjR79jljyi4olc1Vrx6XBlcyj3gNv2PU=

@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/email"
+
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
@@ -34,6 +36,7 @@ type Backends interface {
 	KYC() kyc.Client
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
+	Email() email.Client
 }
 
 var _ ops.Backends = opsBackends{}

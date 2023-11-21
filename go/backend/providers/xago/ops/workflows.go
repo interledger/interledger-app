@@ -9,22 +9,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cockroachdb/cockroach-go/v2/crdb/crdbsqlx"
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-
-	httplogger "gitlab.com/fynbos/backend/providers/http"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-
-	"gitlab.com/fynbos/pacioli"
-
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/currency"
-
-	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
+	"gitlab.com/fynbos/pacioli"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )

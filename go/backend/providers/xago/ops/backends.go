@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/email"
+
 	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/pacioli"
@@ -31,6 +33,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
+	Email() email.Client
 }
 
 type ActivityBackends interface {
@@ -43,12 +46,17 @@ type ActivityBackends interface {
 	Temporal() temporal.Client
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
+	Email() email.Client
 }
 
 type TestBackends struct {
 	DBC  *sqlx.DB
 	Extr *external_mock.MockClient
 	La   *linkedaccounts_mock.MockClient
+}
+
+func (t TestBackends) Email() email.Client {
+	return nil
 }
 
 func (t TestBackends) Transactions() transactions.Client {

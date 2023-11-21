@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	currency "gitlab.com/fynbos/backend/currency"
 	linkedaccounts "gitlab.com/fynbos/backend/linkedaccounts"
 	payments "gitlab.com/fynbos/backend/payments"
 )
@@ -94,6 +95,18 @@ func (m *MockClient) SendConnectedAccountEmail(ctx context.Context, la linkedacc
 func (mr *MockClientMockRecorder) SendConnectedAccountEmail(ctx, la interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendConnectedAccountEmail", reflect.TypeOf((*MockClient)(nil).SendConnectedAccountEmail), ctx, la)
+}
+
+// SendDepositReceivedEmail mocks base method.
+func (m *MockClient) SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendDepositReceivedEmail", ctx, walletID, amt)
+}
+
+// SendDepositReceivedEmail indicates an expected call of SendDepositReceivedEmail.
+func (mr *MockClientMockRecorder) SendDepositReceivedEmail(ctx, walletID, amt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDepositReceivedEmail", reflect.TypeOf((*MockClient)(nil).SendDepositReceivedEmail), ctx, walletID, amt)
 }
 
 // SendPaymentFailedEmail mocks base method.

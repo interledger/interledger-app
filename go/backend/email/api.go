@@ -3,6 +3,8 @@ package email
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 )
@@ -17,4 +19,5 @@ type Client interface {
 
 	SendPaymentSentEmailV2(ctx context.Context, walletID string, payment *payments.Payment)
 	SendPaymentReceivedEmailV2(ctx context.Context, walletID string, payment *payments.Payment)
+	SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount)
 }

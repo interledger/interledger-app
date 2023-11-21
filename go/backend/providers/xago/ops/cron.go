@@ -13,7 +13,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/providers/xago/external"
 	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
@@ -22,16 +21,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func StartDepostsPolling(b ActivityBackends) {
-	if !env.IsDev() {
-		return
-	}
+func StartDepositsPolling(b ActivityBackends) {
 	// This workflow ID can be user business logic identifier as well.
 	workflowID := "cron_xago_deposits_poll"
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                    workflowID,
 		TaskQueue:             "backend",
-		CronSchedule:          "0 */6 * * *",                                       // Every 6 hours
+		CronSchedule:          "0 */1 * * *",                                       // Every hour
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
 	}
 
@@ -195,6 +191,9 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 		if tr[0].Code != 0 {
 			return fmt.Errorf("failed to create pacioli transaction for xago deposit status (%s)", tr[0].Code)
 		}
+
+		// Best effort
+		a.b.Email().SendDepositReceivedEmail(ctx, subAcc.WalletID, currency.FromFloat64(dep.Amount, currency.ZAR))
 	}
 
 	return nil
