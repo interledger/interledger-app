@@ -73,12 +73,15 @@ func createTransaction(ctx context.Context, dbc sqlx.ExecerContext, b Backends, 
 	if args.ForeignID != "" {
 		is.Value("foreign_id", args.ForeignID)
 	}
-	title := GenerateTransactionTitle(ctx, b.Wallets(), GenerateTransactionTitleArgs{
-		Type:                args.ForeignType,
-		Source:              args.Source,
-		Destination:         args.Destination,
-		DestinationIdentity: args.DestinationIdentity,
-	})
+	title := args.Title
+	if title == "" {
+		title = GenerateTransactionTitle(ctx, b.Wallets(), GenerateTransactionTitleArgs{
+			Type:                args.ForeignType,
+			Source:              args.Source,
+			Destination:         args.Destination,
+			DestinationIdentity: args.DestinationIdentity,
+		})
+	}
 	if title != "" {
 		is.Value("title", title)
 	}

@@ -116,11 +116,11 @@ func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXa
 		return nil, NotFoundError("from linked account not found for xago")
 	}
 
-	toLA, err := s.b.LinkedAccounts().Get(ctx, req.FromLinkedAccount)
+	toLA, err := s.b.LinkedAccounts().Get(ctx, req.ToLinkedAccount)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if toLA.WalletID != w.ID || fromLA.Provider != xago.ProviderName || fromLA.Type != xago.AccTypeBank {
+	if toLA.WalletID != w.ID || toLA.Provider != xago.ProviderName || toLA.Type != xago.AccTypeBank {
 		return nil, NotFoundError("to linked account not found for xago")
 	}
 

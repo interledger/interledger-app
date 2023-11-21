@@ -796,6 +796,10 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			return err
 		}
 
+		var title string
+		if dbp.Type == payments.TypeWithdrawal {
+			title = "Bank Withdrawal"
+		}
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:                       senderWallet.ID,
 			ForeignID:                      dbp.ID,
@@ -811,6 +815,7 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			DestinationIdentityType:        dbp.Receiver.Type.String(),
 			Reference:                      dbp.Note,
 			PaymentProtectionFeePercentage: dbp.ProtectionFeePercentage,
+			Title:                          title,
 		})
 		if err != nil {
 			return err
