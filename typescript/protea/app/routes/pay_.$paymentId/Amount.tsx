@@ -140,7 +140,7 @@ export const Amount = () => {
       updatePaymentFetcher.submit(
         {
           formName: 'updatePayment',
-          accountId: localPayment.linkedAccount.id,
+          accountId: linkedAccount.id,
           hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
           csrfToken
         },
@@ -165,6 +165,7 @@ export const Amount = () => {
             formName: 'updatePayment',
             send,
             accountId: localPayment.linkedAccount.id,
+            sendCurrency: payment.senderAmount?.asset || '',
             hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken
           },
@@ -176,7 +177,8 @@ export const Amount = () => {
       csrfToken,
       localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
-      updatePaymentFetcher
+      updatePaymentFetcher,
+      payment.senderAmount?.asset
     ]
   )
 
@@ -196,6 +198,7 @@ export const Amount = () => {
           {
             formName: 'updatePayment',
             receive,
+            receiveCurrency: payment.receiverAmount?.asset || '',
             accountId: localPayment.linkedAccount.id,
             hasPaymentProtection: localPayment.hasPaymentProtection.toString(),
             csrfToken
@@ -208,6 +211,7 @@ export const Amount = () => {
       csrfToken,
       localPayment.hasPaymentProtection,
       localPayment.linkedAccount.id,
+      payment.receiverAmount?.asset,
       updatePaymentFetcher
     ]
   )
@@ -310,6 +314,18 @@ export const Amount = () => {
         value={localPayment.hasPaymentProtection.toString()}
         form='amount-form'
       />
+      <input
+        type='hidden'
+        name='sendCurrency'
+        value={payment.senderAmount?.asset || ''}
+        form='amount-form'
+      />
+      <input
+        type='hidden'
+        name='receiveCurrency'
+        value={payment.receiverAmount?.asset || ''}
+        form='amount-form'
+      />
       <PaymentDetailsCard />
       <Card>
         <PaySelect
@@ -353,7 +369,7 @@ export const Amount = () => {
           <div className='flex flex-col gap-y-1'>
             <div className='flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
-              <span className='text-medium'>$ 0.00</span>
+              <span className='text-medium'>{payment.formattedFees}</span>
             </div>
             <span className='text-xs text-weak'>
               For a limited time, Fynbos will absorb all fees.
