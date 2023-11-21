@@ -127,6 +127,7 @@ service BackendService {
   rpc UpdatePayment(UpdatePaymentRequest) returns (Payment);
   rpc GetPayment(GetPaymentRequest) returns (Payment);
   rpc ConfirmPayment(ConfirmPaymentRequest) returns (Payment);
+  rpc GetLinkedAccountsForPayment(GetLinkedAccountsForPaymentRequest) returns (GetLinkedAccountsForPaymentResponse);
 
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
@@ -141,6 +142,80 @@ service BackendService {
   // Slack
   rpc CreateSlackAuthURL(Empty) returns (CreateSlackAuthURLResponse);
   rpc SlackCallback(SlackCallbackRequest) returns (SlackCallbackResponse);
+
+  // Xago
+  rpc AddXagoBankAccount(AddXagoBankAccountRequest) returns (LinkedAccount);
+  rpc AddXagoBalanceAccount(AddXagoBalanceAccountRequest) returns (LinkedAccount);
+  rpc WithdrawXagoBalance(WithdrawXagoBalanceRequest) returns (Payment);
+  rpc GetXagoBalances(Empty) returns (GetXagoBalanceResponse);
+  rpc GetXagoDepositDetails(GetXagoDepositDetailsRequest) returns (GetXagoDepositDetailsResponse);
+}
+
+message GetLinkedAccountsForPaymentRequest {
+  string paymentId = 1;
+}
+
+message GetLinkedAccountsForPaymentResponse {
+  repeated LinkedAccountForPayment linkedAccounts = 1;
+}
+
+message LinkedAccountForPayment {
+  LinkedAccount details = 1;
+  bool enabled = 2;
+}
+
+message GetXagoDepositDetailsRequest {
+  string linkedAccount = 1;
+}
+
+message GetXagoDepositDetailsResponse {
+  repeated XagoDepositDetails details = 1;
+}
+
+message XagoDepositDetails {
+  string currency = 1;
+  string accountNumber = 2;
+  string branchCode = 3;
+  string bankName = 4;
+  string depositReference = 5;
+
+}
+
+message GetXagoBalanceRequest {
+  string linkedAccount = 1;
+}
+
+message GetXagoBalanceResponse {
+  repeated XagoBalance balances = 2;
+}
+
+message XagoBalance {
+  Amount balance = 1;
+  Amount available = 2;
+  string currency = 3;
+  string linkedAccount = 4;
+  string formattedBalance = 5;
+  string formattedAvailableBalance = 6;
+}
+
+message WithdrawXagoBalanceRequest {
+  string fromLinkedAccount = 1;
+  string toLinkedAccount = 2;
+  Amount amount = 3;
+}
+
+message AddXagoBalanceAccountRequest {
+  string currencyCode = 1; // e.g. USD or ZAR
+  string nickname = 2;
+  string title = 3;
+}
+
+message AddXagoBankAccountRequest {
+  string accountNumber = 1;
+  string branchCode = 2;
+  string bankName = 3;
+  string iban = 4;
+  string bic = 5;
 }
 
 message SetDefaultSendLinkedAccountRequest {
@@ -243,6 +318,7 @@ message Payment {
   Amount receiverAmount = 14;
   string totalSendAmount = 15; // total debit amount
   string receiverLinkedAccountCountryCode = 16;
+  string formattedFees = 17;
 }
 
 message CreatePaymentRequest {
@@ -313,6 +389,7 @@ message WalletInfo {
   bool hasIdentities = 6;
   bool hasTransacted = 7;
   bool hasWalletAddress = 8;
+  bool hasBalances = 9;
 }
 
 message Features {
@@ -527,6 +604,7 @@ message LinkedAccount {
   string receiveCurrencyCountryCode = 12;
   bool defaultSend = 13;
   bool defaultReceive = 14;
+  string state = 15;
 }
 
 message GetSignupRequest {

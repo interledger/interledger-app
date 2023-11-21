@@ -6,8 +6,8 @@ import type {
 import { json, redirect } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
 import {
-  ApplicationProps,
   Button,
   Card,
   CardButton,
@@ -17,7 +17,8 @@ import {
 } from '~/components'
 import { getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
-import { Amount, Consent, GetInteraction } from '~/lib/rafikiauth'
+import type { Amount } from '~/lib/rafikiauth'
+import { Consent, GetInteraction } from '~/lib/rafikiauth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod') {
@@ -204,8 +205,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const action = String(form.get('action') || '')
   const interactId = String(form.get('interactId') || '')
   const nonce = String(form.get('nonce') || '')
-  const rafikiAuthEndpoint =
-    process.env.RAFIKI_AUTH_ENDPOINT || 'http://rafiki-rafiki-auth.rafiki:3006'
 
   let grants = await GetInteraction(interactId, nonce)
 

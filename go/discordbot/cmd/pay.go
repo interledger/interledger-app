@@ -73,7 +73,7 @@ func PaySlashCommandHandler(ctx context.Context, b Backends, s *discordgo.Sessio
 		}
 	}
 
-	sendLA, err := b.LinkedAccounts().GetDefaultSend(ctx, w.ID)
+	sendLA, err := b.LinkedAccounts().GetDefaultSend(ctx, w.ID, currency.USD)
 	if err != nil {
 		newPaymentActionRequired(s, i, fmt.Sprintf("Add a send enabled linked account to pay %s", receiverUsername), "Add", fmt.Sprintf("%s/connect/card", fynbos_env.GetUrl()))
 		return
