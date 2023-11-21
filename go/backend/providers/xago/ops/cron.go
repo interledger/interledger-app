@@ -61,12 +61,12 @@ func XagoDepositPollWorkflow(ctx workflow.Context) error {
 
 	logger.Info("Adding new deposits", "len", len(deposits))
 
-	err = workflow.ExecuteActivity(ctx, a.SaveDeposits, deposits).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.CreateDepositTransactions, deposits).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateDepositTransactions, deposits).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.SaveDeposits, deposits).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,8 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 		if err != nil {
 			return err
 		}
-		if tr[0].Code != 0 {
+
+		if len(tr) > 0 && tr[0].Code != 0 {
 			return fmt.Errorf("failed to create pacioli transaction for xago deposit status (%s)", tr[0].Code)
 		}
 
