@@ -156,21 +156,24 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 
 		// Som of these may actually be no ops becaust the were filled in by the webhook. All of it's idempotent so it's safe to rerun
 		// Idempotent call
-		_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-			ID:                      dep.TransactionID,
-			WalletID:                acc.WalletID,
-			ForeignID:               dep.TransactionID,
-			ForeignType:             transactions.TransactionTypeIncoming,
-			Provider:                transactions.ProviderXago,
-			State:                   transactions.StateCompleted,
-			Note:                    "Deposit received",
-			Source:                  "Bank Deposit",
-			Destination:             acc.WalletID,
-			Amount:                  currency.FromFloat64(dep.Amount, currency.ZAR),
-			LinkedAccountTitle:      acc.Title(),
-			DestinationIdentity:     acc.WalletID,
-			DestinationIdentityType: "WalletID",
-		})
+		_, err = a.b.Transactions().GetTransaction(ctx, acc.WalletID, dep.TransactionID)
+		if errors.Is(err, transactions.ErrNotFound) {
+			_, err = a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+				ID:                      dep.TransactionID,
+				WalletID:                acc.WalletID,
+				ForeignID:               dep.TransactionID,
+				ForeignType:             transactions.TransactionTypeIncoming,
+				Provider:                transactions.ProviderXago,
+				State:                   transactions.StateCompleted,
+				Note:                    "Deposit received",
+				Source:                  "Bank Deposit",
+				Destination:             acc.WalletID,
+				Amount:                  currency.FromFloat64(dep.Amount, currency.ZAR),
+				LinkedAccountTitle:      acc.Title(),
+				DestinationIdentity:     acc.WalletID,
+				DestinationIdentityType: "WalletID",
+			})
+		}
 		if err != nil {
 			return err
 		}
