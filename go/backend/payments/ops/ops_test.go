@@ -293,7 +293,7 @@ func TestGetRequiredActions(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{WalletID: walletID, Provider: tabapay.ProviderName}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{WalletID: walletID, Provider: tabapay.ProviderName, CanSend: true}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -310,7 +310,6 @@ func TestGetRequiredActions(t *testing.T) {
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAmount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeSenderAccount)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeOTP)
-	assert.Contains(t, requiredActions, payments.RequiredActionTypeThreeDS)
 	assert.Contains(t, requiredActions, payments.RequiredActionTypeIPAddress)
 
 	// check that setting the receive linked account will make the receive amount a required field

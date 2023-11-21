@@ -731,7 +731,7 @@ func getRequiredActions(payment *dbPayment) []payments.RequiredActionType {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeSenderAccount)
 	}
 
-	if (payment.ReceiverID == "" || payment.ReceiverIDType == payments.IdentityTypeUnknown) && payment.Type != payments.TypeWithdrawal {
+	if payment.ReceiverID == "" && payment.Type != payments.TypeWithdrawal {
 		requiredActions = append(requiredActions, payments.RequiredActionTypeReceiverIdentifier)
 	}
 

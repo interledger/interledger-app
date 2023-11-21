@@ -719,7 +719,7 @@ func TestPayAnyone(t *testing.T) {
 
 	pc := client.New(b)
 
-	sendWalletID, sendLinkedAccount := createTestWallet(t, b)
+	sendWalletID, sendLinkedAccount, _, _ := createTestWallet(t, b)
 
 	payment, err := pc.Create(ctx, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -783,6 +783,7 @@ func TestPayAnyone(t *testing.T) {
 	}, time.Hour)
 
 	payment, requireActions, err := pc.Confirm(ctx, payment.ID)
+	fmt.Println("required actions", requireActions)
 	require.NoError(t, err)
 	require.Empty(t, requireActions)
 
