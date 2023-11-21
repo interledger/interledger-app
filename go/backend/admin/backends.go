@@ -10,6 +10,7 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/waitlist"
@@ -30,4 +31,5 @@ type Backends interface {
 	Wallets() wallets.Client
 	DynamicForms() dynamicforms.Client
 	Payments() payments.Client
+	Xago() xago.Client
 }
