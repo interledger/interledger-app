@@ -81,7 +81,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(xago_workflows.CreateBalanceAccountWorkflow)
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)
 
-	xago_workflows.StartDepostsPolling(b)
+	xago_workflows.StartDepositsPolling(b)
 
 	return w, nil
 }

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/email/ops"
@@ -60,4 +61,8 @@ func (c *client) SendPaymentReceivedEmailV2(ctx context.Context, walletID string
 
 func (c *client) SendPaymentFailedEmail(ctx context.Context, walletID string) {
 	ops.SendPaymentFailedEmail(ctx, c.b, walletID)
+}
+
+func (c *client) SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount) {
+	ops.SendDepositReceivedEmail(ctx, c.b, walletID, amt)
 }

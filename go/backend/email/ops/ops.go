@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strings"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/email/sendgrid"
 	"gitlab.com/fynbos/backend/kyc"
@@ -316,5 +318,32 @@ func SendPaymentFailedEmail(ctx context.Context, b Backends, walletID string) {
 	}, nil)
 	if err != nil {
 		log.Error("Failed to send payment failed email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, amt currency.Amount) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send deposit received email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Deposit received", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "Deposit received",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your deposit has been received"},
+			{
+				"table": []map[string]interface{}{
+					{"label": "Amount", "text": amt.Format(), "large": true},
+				}},
+		},
+		"cta": map[string]interface{}{
+			"text": "View new Balance",
+			"url":  env.GetUrl(),
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send deposit received email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
