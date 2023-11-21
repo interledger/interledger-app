@@ -46,7 +46,8 @@ func MakeUnaryInterceptor(uc user.Client, wc wallets.Client) grpc.ServerOption {
 		// Create a default wallet for the user if they don't already have one
 		if len(walletList) == 0 {
 			_, err = wc.Create(ctx, wallets.CreateArgs{
-				UserID: u.ID,
+				UserID:  u.ID,
+				Country: u.Country,
 			})
 			if err != nil && !errors.Is(err, wallets.ErrDuplicateWallet) {
 				log.Warn("failed to create default wallet for user", zap.Error(err), zap.String("user_id", u.ID))

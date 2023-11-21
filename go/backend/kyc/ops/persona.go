@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
 )
@@ -43,13 +42,17 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		}, nil
 	}
 
+	wallet, err := b.Wallets().Get(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
+	}
+
 	// Fill in some data if we have it for a new Inquiry
 	var id *kyc.IndividualDetails
 	id, err = GetIndividualDetails(ctx, b, walletID)
 	if err != nil && !errors.Is(err, kyc.ErrNoKYCInfo) {
 		return nil, err
 	}
-
 	ul, err := b.Users().ListUsers(ctx, walletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)
@@ -59,6 +62,7 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		ReferenceID:  walletID,
 		EmailAddress: ul[0].Email,
 		PhoneNumber:  ul[0].PhoneNumber,
+		CountryCode:  wallet.Country.String(),
 	}
 	if id != nil {
 		args = persona.IndividualAttributes{
@@ -67,7 +71,6 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 			NameLast:     id.LastName,
 			EmailAddress: ul[0].Email,
 			PhoneNumber:  ul[0].PhoneNumber,
-			CountryCode:  id.CountryCode,
 			Birthdate:    id.DateOfBirth.Format("2006-01-02"),
 		}
 	}
@@ -77,7 +80,8 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 		args.CountryCode = "US"
 	}
 
-	args.InquiryTemplateID = string(persona.GetTemplateIDForCountry(ctx, country.Country(args.CountryCode)))
+	args.InquiryTemplateID = string(persona.GetTemplateIDForCountry(ctx, wallet.Country))
+	fmt.Println("country", wallet.Country, "persona inquiry template id", args.InquiryTemplateID)
 	inquiry, err := cl.CreateInquiry(ctx, args, idempotencyKey)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", kyc.ErrInternal, err)

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/db"
 
 	"gitlab.com/fynbos/backend/user"
@@ -36,8 +37,13 @@ func Create(ctx context.Context, b Backends, args wallets.CreateArgs) (*wallets.
 		walletID = uuid.NewString()
 	}
 
+	ctry := args.Country
+	if ctry.String() == "" {
+		ctry = country.US
+	}
+
 	err = crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {
-		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name) VALUES ($1, $2)", walletID, name)
+		_, err := tx.ExecContext(ctx, "INSERT INTO wallets (id, name, country) VALUES ($1, $2, $3)", walletID, name, ctry)
 		if err != nil {
 			return fmt.Errorf("%w %s", wallets.ErrInternal, err)
 		}
@@ -134,7 +140,7 @@ func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Walle
 func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 	var wallet wallets.Wallet
 	err := b.DB().GetContext(ctx, &wallet,
-		"SELECT id, name FROM wallets WHERE id=$1", id)
+		"SELECT id, name, country FROM wallets WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wallets.ErrNoWalletFound
 	}
@@ -155,7 +161,7 @@ func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 
 func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, error) {
 	var wl []wallets.Wallet
-	err := b.DB().SelectContext(ctx, &wl, "SELECT w.id, w.name FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1", userID)
+	err := b.DB().SelectContext(ctx, &wl, "SELECT w.id, w.name, w.country FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1", userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -178,7 +184,7 @@ func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, err
 
 func ListAll(ctx context.Context, b Backends, _ db.Pagination) ([]wallets.Wallet, error) {
 	var wl []wallets.Wallet
-	err := b.DB().SelectContext(ctx, &wl, "SELECT id, name FROM wallets ")
+	err := b.DB().SelectContext(ctx, &wl, "SELECT id, name, country FROM wallets ")
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -203,6 +209,18 @@ func SetWalletName(ctx context.Context, b Backends, id, name string) (*wallets.W
 	_, err := b.DB().ExecContext(ctx, "UPDATE wallets set name = $1 where id = $2", name, id)
 	if err != nil {
 		return nil, err
+	}
+
+	return Get(ctx, b, id)
+}
+
+func SetCountry(ctx context.Context, b Backends, id string, country country.Country) (*wallets.Wallet, error) {
+	result, err := b.DB().ExecContext(ctx, "UPDATE wallets set country=$1 WHERE id=$2;", country.String(), id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", wallets.ErrInternal, err)
+	}
+	if rows, _ := result.RowsAffected(); rows < 1 {
+		return nil, wallets.ErrNoWalletFound
 	}
 
 	return Get(ctx, b, id)
