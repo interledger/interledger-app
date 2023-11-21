@@ -1510,6 +1510,19 @@ export interface SendPhoneVerificationRequest {
     to: string;
 }
 /**
+ * @generated from protobuf message backend.v1.CheckPhoneVerificationRequest
+ */
+export interface CheckPhoneVerificationRequest {
+    /**
+     * @generated from protobuf field: string to = 1;
+     */
+    to: string;
+    /**
+     * @generated from protobuf field: string otp = 2;
+     */
+    otp: string;
+}
+/**
  * @generated from protobuf message backend.v1.GetAgreementRequest
  */
 export interface GetAgreementRequest {
@@ -7182,6 +7195,60 @@ class SendPhoneVerificationRequest$Type extends MessageType<SendPhoneVerificatio
  */
 export const SendPhoneVerificationRequest = new SendPhoneVerificationRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CheckPhoneVerificationRequest$Type extends MessageType<CheckPhoneVerificationRequest> {
+    constructor() {
+        super("backend.v1.CheckPhoneVerificationRequest", [
+            { no: 1, name: "to", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "otp", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<CheckPhoneVerificationRequest>): CheckPhoneVerificationRequest {
+        const message = { to: "", otp: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<CheckPhoneVerificationRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CheckPhoneVerificationRequest): CheckPhoneVerificationRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string to */ 1:
+                    message.to = reader.string();
+                    break;
+                case /* string otp */ 2:
+                    message.otp = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: CheckPhoneVerificationRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string to = 1; */
+        if (message.to !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.to);
+        /* string otp = 2; */
+        if (message.otp !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.otp);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.CheckPhoneVerificationRequest
+ */
+export const CheckPhoneVerificationRequest = new CheckPhoneVerificationRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class GetAgreementRequest$Type extends MessageType<GetAgreementRequest> {
     constructor() {
         super("backend.v1.GetAgreementRequest", [
@@ -10289,6 +10356,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetWalletInfo", options: {}, I: Empty, O: WalletInfo },
     { name: "GetPublicWalletInfo", options: {}, I: GetPublicWalletInfoRequest, O: PublicWalletInfo },
     { name: "SendPhoneVerification", options: {}, I: SendPhoneVerificationRequest, O: Empty },
+    { name: "CheckPhoneVerification", options: {}, I: CheckPhoneVerificationRequest, O: Empty },
     { name: "SendOTP", options: {}, I: Empty, O: Empty },
     { name: "GetAgreement", options: {}, I: GetAgreementRequest, O: Agreement },
     { name: "SignAgreements", options: {}, I: SignAgreementsRequest, O: SignAgreementsResponse },

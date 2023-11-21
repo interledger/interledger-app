@@ -33,6 +33,7 @@ const (
 	BackendService_GetWalletInfo_FullMethodName                  = "/backend.v1.BackendService/GetWalletInfo"
 	BackendService_GetPublicWalletInfo_FullMethodName            = "/backend.v1.BackendService/GetPublicWalletInfo"
 	BackendService_SendPhoneVerification_FullMethodName          = "/backend.v1.BackendService/SendPhoneVerification"
+	BackendService_CheckPhoneVerification_FullMethodName         = "/backend.v1.BackendService/CheckPhoneVerification"
 	BackendService_SendOTP_FullMethodName                        = "/backend.v1.BackendService/SendOTP"
 	BackendService_GetAgreement_FullMethodName                   = "/backend.v1.BackendService/GetAgreement"
 	BackendService_SignAgreements_FullMethodName                 = "/backend.v1.BackendService/SignAgreements"
@@ -128,6 +129,7 @@ type BackendServiceClient interface {
 	GetPublicWalletInfo(ctx context.Context, in *GetPublicWalletInfoRequest, opts ...grpc.CallOption) (*PublicWalletInfo, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
+	CheckPhoneVerification(ctx context.Context, in *CheckPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error)
 	SendOTP(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(ctx context.Context, in *GetAgreementRequest, opts ...grpc.CallOption) (*Agreement, error)
@@ -351,6 +353,15 @@ func (c *backendServiceClient) GetPublicWalletInfo(ctx context.Context, in *GetP
 func (c *backendServiceClient) SendPhoneVerification(ctx context.Context, in *SendPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, BackendService_SendPhoneVerification_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) CheckPhoneVerification(ctx context.Context, in *CheckPhoneVerificationRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_CheckPhoneVerification_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1018,6 +1029,7 @@ type BackendServiceServer interface {
 	GetPublicWalletInfo(context.Context, *GetPublicWalletInfoRequest) (*PublicWalletInfo, error)
 	// Allows sending and checking an sms verification.
 	SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error)
+	CheckPhoneVerification(context.Context, *CheckPhoneVerificationRequest) (*Empty, error)
 	SendOTP(context.Context, *Empty) (*Empty, error)
 	// Allows signing agreements and getting agreements by id.
 	GetAgreement(context.Context, *GetAgreementRequest) (*Agreement, error)
@@ -1158,6 +1170,9 @@ func (UnimplementedBackendServiceServer) GetPublicWalletInfo(context.Context, *G
 }
 func (UnimplementedBackendServiceServer) SendPhoneVerification(context.Context, *SendPhoneVerificationRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendPhoneVerification not implemented")
+}
+func (UnimplementedBackendServiceServer) CheckPhoneVerification(context.Context, *CheckPhoneVerificationRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPhoneVerification not implemented")
 }
 func (UnimplementedBackendServiceServer) SendOTP(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendOTP not implemented")
@@ -1632,6 +1647,24 @@ func _BackendService_SendPhoneVerification_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServiceServer).SendPhoneVerification(ctx, req.(*SendPhoneVerificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_CheckPhoneVerification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckPhoneVerificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).CheckPhoneVerification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_CheckPhoneVerification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).CheckPhoneVerification(ctx, req.(*CheckPhoneVerificationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2976,6 +3009,10 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendPhoneVerification",
 			Handler:    _BackendService_SendPhoneVerification_Handler,
+		},
+		{
+			MethodName: "CheckPhoneVerification",
+			Handler:    _BackendService_CheckPhoneVerification_Handler,
 		},
 		{
 			MethodName: "SendOTP",
