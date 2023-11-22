@@ -6,9 +6,17 @@ import type {
 } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { useState } from 'react'
 import { route } from 'routes-gen'
-import type { ApplicationProps } from '~/components'
-import { Button, Card, CardContent, Layouts, TextField } from '~/components'
+import type { ApplicationProps, SelectOptions } from '~/components'
+import {
+  Button,
+  Card,
+  CardContent,
+  Layouts,
+  Select,
+  TextField
+} from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -19,11 +27,32 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const getXagoBalancesResponse = await grpc.getXagoBalances(request, {})
   if (isConnectError(getXagoBalancesResponse)) throw redirect(route('/'))
 
-  if (getXagoBalancesResponse.balances.length == 0) {
-    throw redirect(route('/'))
-  }
+  const banks: SelectOptions[] = [
+    { id: '632005', name: 'Absa Bank' },
+    { id: '430000', name: 'African Bank Limited' },
+    { id: '410506', name: 'Bank of Athens' },
+    { id: '590000', name: 'Barclays Bank' },
+    { id: '679000', name: 'Bidvest Bank' },
+    { id: '470010', name: 'Capitec Bank Limited' },
+    { id: '679000', name: 'Discovery Bank Limited' },
+    { id: '250655', name: 'First National Bank' },
+    { id: '201419', name: 'FirstRand Bank Limited' },
+    { id: '587000', name: 'HSBC Bank' },
+    { id: '580105', name: 'Investec Bank Limited' },
+    { id: '450905', name: 'Mercantile Bank Limited' },
+    { id: '198765', name: 'Nedbank' },
+    { id: '462005', name: 'Old Mutual' },
+    { id: '261251', name: 'Rand Merchant Bank ' },
+    { id: '222026', name: 'RMB Private Bank' },
+    { id: '683000', name: 'Sasfin Bank Limited' },
+    { id: '460005', name: 'SA Post Bank (Post Office)' },
+    { id: '410506', name: 'South African Bank of Athens Limited' },
+    { id: '051001', name: 'Standard Bank' },
+    { id: '730020', name: 'Standard Chartered Bank' },
+    { id: '678910', name: 'Tyme Bank' }
+  ]
 
-  return jsonWithCSRF(request, {})
+  return jsonWithCSRF(request, { banks })
 }
 
 export const handle: ApplicationProps = {
@@ -43,8 +72,9 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { csrfToken } = useLoaderData<typeof loader>()
+  const { banks, csrfToken } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
+  const [bank, setBank] = useState<SelectOptions>(banks[0])
 
   return (
     <>
@@ -58,6 +88,18 @@ export default function Page() {
         form='connect-bank-za'
         value={csrfToken}
         name='csrfToken'
+        type='hidden'
+      />
+      <input
+        form='connect-bank-za'
+        value={bank.name}
+        name='bankName'
+        type='hidden'
+      />
+      <input
+        form='connect-bank-za'
+        value={bank.id}
+        name='branchCode'
         type='hidden'
       />
       <Card>
@@ -78,33 +120,13 @@ export default function Page() {
           required
           errorMessage={actionData?.errors?.accountNumber}
         />
-        <TextField
-          id='bankName'
-          form='connect-bank-za'
-          label='Bank name'
-          name='bankName'
-          type='text'
+        <Select
+          id='bank'
+          label='Bank'
+          value={bank}
+          options={banks}
+          onChange={setBank}
           className='mt-4'
-          aria-invalid={Boolean(actionData?.errors?.bankName) || undefined}
-          aria-describedby={
-            actionData?.errors?.bankName ? 'firstName-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.bankName}
-        />
-        <TextField
-          id='branchCode'
-          form='connect-bank-za'
-          label='Branch code'
-          name='branchCode'
-          type='text'
-          className='mt-4'
-          aria-invalid={Boolean(actionData?.errors?.branchCode) || undefined}
-          aria-describedby={
-            actionData?.errors?.branchCode ? 'firstName-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors?.branchCode}
         />
       </Card>
       <Button type='submit' form='connect-bank-za'>

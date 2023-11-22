@@ -161,7 +161,7 @@ export default function Page() {
 
 function BankDetailsPage() {
   const { account } = useLoaderData<typeof bankLoader>()
-
+  const params = useParams()
   return (
     <>
       <Card>
@@ -174,6 +174,18 @@ function BankDetailsPage() {
             <span className='text-medium'>{account.mask}</span>
           </div>
         </CardContent>
+      </Card>
+      <Card>
+        <Label>Card nickname</Label>
+        <CardLink
+          className='flex items-center justify-between'
+          to={route('/accounts/:accountId/name', {
+            accountId: params.accountId as string
+          })}
+        >
+          {account?.nickname}
+          <Icon>navigate_next</Icon>
+        </CardLink>
       </Card>
     </>
   )
