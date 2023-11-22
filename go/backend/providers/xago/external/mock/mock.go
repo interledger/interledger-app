@@ -38,21 +38,6 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
-// AccessToken mocks base method.
-func (m *MockClient) AccessToken(ctx context.Context) (*external.AccessToken, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AccessToken", ctx)
-	ret0, _ := ret[0].(*external.AccessToken)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AccessToken indicates an expected call of AccessToken.
-func (mr *MockClientMockRecorder) AccessToken(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessToken", reflect.TypeOf((*MockClient)(nil).AccessToken), ctx)
-}
-
 // AddBeneficiary mocks base method.
 func (m *MockClient) AddBeneficiary(ctx context.Context, reqStruct external.CreateBeneficiaryReq) (*external.CreateBeneficiaryResp, error) {
 	m.ctrl.T.Helper()

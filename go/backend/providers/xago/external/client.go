@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/log"
+
 	httplog "gitlab.com/fynbos/backend/providers/http"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -25,7 +27,6 @@ import (
 )
 
 type Client interface {
-	AccessToken(ctx context.Context) (*AccessToken, error)
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
 	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error)
@@ -63,13 +64,13 @@ func New(transport *http.Client) Client {
 	}
 }
 
-func (c *client) AccessToken(ctx context.Context) (*AccessToken, error) {
-	if !c.accessToken.IsExpired() {
+func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessToken, error) {
+	if !c.accessToken.IsExpired() && !forceRefresh {
 		return &c.accessToken, nil
 	}
 	c.tokenLock.Lock()
 	defer c.tokenLock.Unlock()
-	if !c.accessToken.IsExpired() {
+	if !c.accessToken.IsExpired() && !forceRefresh {
 		return &c.accessToken, nil
 	}
 
@@ -212,7 +213,7 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	if err != nil {
 		return nil, err
 	}
-	token, err := c.AccessToken(ctx)
+	token, err := c.AccessToken(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -223,6 +224,22 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for create sub account")
+		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -269,7 +286,7 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	if err != nil {
 		return nil, err
 	}
-	token, err := c.AccessToken(ctx)
+	token, err := c.AccessToken(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -280,6 +297,22 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for add beneficiary")
+		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -337,7 +370,7 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	if err != nil {
 		return "", err
 	}
-	token, err := c.AccessToken(ctx)
+	token, err := c.AccessToken(ctx, false)
 	if err != nil {
 		return "", err
 	}
@@ -348,6 +381,22 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return "", err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return "", err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for create transaction")
+		}
 	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
@@ -390,7 +439,7 @@ func (c *client) ListDeposits(ctx context.Context, page int) ([]Deposit, error) 
 	if err != nil {
 		return nil, err
 	}
-	token, err := c.AccessToken(ctx)
+	token, err := c.AccessToken(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -406,6 +455,22 @@ func (c *client) ListDeposits(ctx context.Context, page int) ([]Deposit, error) 
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for list deposits")
+		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
