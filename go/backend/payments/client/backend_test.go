@@ -190,6 +190,13 @@ func NewTestBackends(t *testing.T) *TestBackends {
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,
 		},
+		{
+			ID:                         rafiki.ZARBalanceAccount,
+			LedgerID:                   xago.LedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
 	})
 	if err != nil {
 		t.Fatal(err)

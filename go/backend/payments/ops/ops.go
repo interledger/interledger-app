@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/pti"
-
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/providers/xago"
 
@@ -482,7 +482,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 }
 
 func validateSendBalances(ctx context.Context, b Backends, sendAccID string, amt currency.Amount) error {
-	if sendAccID == "" || amt.IsEmpty() {
+	if sendAccID == "" || amt.IsEmpty() || sendAccID == rafiki.ZARBalanceAccount {
 		return nil
 	}
 

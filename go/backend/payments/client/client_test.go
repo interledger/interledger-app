@@ -59,6 +59,8 @@ func TestClient(t *testing.T) {
 	recvWallet := createTestWallet(t, b)
 	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.USD)
 	require.NoError(t, err)
+	webMonetizaiontLinkedAccountZAR, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.ZAR)
+	require.NoError(t, err)
 
 	// adding dummy transaction so referrals don't run
 	_, err = b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
@@ -133,6 +135,42 @@ func TestClient(t *testing.T) {
 				ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
+				IPAddress:       "192.36.8.4",
+				Type:            payments.TypeWebMonetization,
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitWebMonetization,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeCreditBalance,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransactionState: transactions.StateCompleted,
+			},
+		},
+		{
+			Name: "Golden path ZAR Web monetization",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: wallets.WebMonetizationWalletID,
+				},
+				SenderAccount: webMonetizaiontLinkedAccountZAR.ID,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: receiveWalletID,
+				},
+				ReceiverAccount: receiveBalance,
+				SenderAmount:    currency.FromUInt64(10, currency.ZAR),
+				ReceiverAmount:  currency.FromUInt64(10, currency.ZAR),
 				IPAddress:       "192.36.8.4",
 				Type:            payments.TypeWebMonetization,
 			},
