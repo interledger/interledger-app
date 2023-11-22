@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/db"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -115,7 +117,7 @@ func (a *Activity) PollDeposits(ctx context.Context) ([]external.Deposit, error)
 }
 
 func (a *Activity) SaveDeposits(ctx context.Context, deposits []external.Deposit) error {
-	stmt, err := a.b.DB().PrepareContext(ctx, "INSERT INTO xago_deposits (transaction_id, origin_amount, amount, status, account_id) VALUES ($1, $2,$3, $4,$5) ON CONFLICT (transaction_id) DO NOTHING")
+	stmt, err := a.b.DB().PrepareContext(ctx, "INSERT INTO xago_deposits (transaction_id, origin_amount, amount, status, account_id) VALUES ($1, $2,$3, $4,$5)")
 	if err != nil {
 		return err
 	}
@@ -123,9 +125,19 @@ func (a *Activity) SaveDeposits(ctx context.Context, deposits []external.Deposit
 
 	for _, dep := range deposits {
 		_, err = stmt.ExecContext(ctx, dep.TransactionID, dep.OriginAmount, dep.Amount, dep.Status, dep.AccountID)
+		if db.IsErrorCode(err, db.UniqueViolationError) {
+			continue
+		}
 		if err != nil {
 			return err
 		}
+
+		subAcc, err := LookupByAccountID(ctx, a.b, dep.AccountID)
+		if err != nil {
+			return err
+		}
+		// Best effort
+		a.b.Email().SendDepositReceivedEmail(ctx, subAcc.WalletID, currency.FromFloat64(dep.Amount, currency.ZAR))
 	}
 
 	return nil
@@ -154,7 +166,7 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 			return fmt.Errorf("%w no ZAR account found for depost", xago.ErrNotFound)
 		}
 
-		// Som of these may actually be no ops becaust the were filled in by the webhook. All of it's idempotent so it's safe to rerun
+		// Som of these may actually be no ops because the were filled in by the webhook. All of it's idempotent so it's safe to rerun
 		// Idempotent call
 		_, err = a.b.Transactions().GetTransaction(ctx, acc.WalletID, dep.TransactionID)
 		if errors.Is(err, transactions.ErrNotFound) {
@@ -197,9 +209,6 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 		if len(tr) > 0 && tr[0].Code != 0 {
 			return fmt.Errorf("failed to create pacioli transaction for xago deposit status (%s)", tr[0].Code)
 		}
-
-		// Best effort
-		a.b.Email().SendDepositReceivedEmail(ctx, subAcc.WalletID, currency.FromFloat64(dep.Amount, currency.ZAR))
 	}
 
 	return nil
