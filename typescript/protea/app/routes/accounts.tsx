@@ -20,6 +20,8 @@ import {
   WalletGrid
 } from '~/components'
 import { getKycStatus, getLinkedAccounts } from '~/data/wallet.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
 import styles from '~/styles/flags.css'
@@ -29,6 +31,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     await getLinkedAccounts(request)
   const kycStatus = await getKycStatus(request)
 
+  const getXagoBalancesResponse = await grpc.getXagoBalances(request, {})
+  if (isConnectError(getXagoBalancesResponse))
+    throw getXagoBalancesResponse.error
+
   return json({
     kycStatus: kycStatus.kycStatus,
     bankAccounts,
@@ -36,7 +42,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     balanceAccounts,
     hasCard: cardAccounts.length > 0,
     hasBank: bankAccounts.length > 0,
-    hasBalances: balanceAccounts.length > 0
+    hasBalances: balanceAccounts.length > 0,
+    hasXagoBalance: getXagoBalancesResponse.balances.length > 0
   })
 }
 
@@ -68,7 +75,8 @@ export default function Page() {
     hasBank,
     kycStatus,
     hasBalances,
-    balanceAccounts
+    balanceAccounts,
+    hasXagoBalance
   } = useLoaderData<typeof loader>()
 
   const location = useLocation()
@@ -211,38 +219,38 @@ export default function Page() {
                 </div>
               </CardLink>
             ))}
+            {/*<CardContent>*/}
+            {/*  <Router*/}
+            {/*    className='mt-4 text-sm font-medium text-primary'*/}
+            {/*    to={route('/connect/bank')}*/}
+            {/*  >*/}
+            {/*    Connect another bank account*/}
+            {/*  </Router>*/}
+            {/*</CardContent>*/}
+          </Card>
+        )}
+        {kycStatus == KycStatus.Approved && !hasBank && hasXagoBalance && (
+          <Card>
             <CardContent>
-              <Router
-                className='mt-4 text-sm font-medium text-primary'
-                to={route('/connect/bank')}
-              >
-                Connect another bank account
-              </Router>
+              <div className='flex items-start space-x-4'>
+                <CardIcon>
+                  <Icon>account_balance</Icon>
+                </CardIcon>
+                <div className='flex flex-col space-y-4'>
+                  <p className='text-sm text-medium'>
+                    Connect bank accounts to easily send and receive payments.
+                  </p>
+                  <Router
+                    className='text-sm font-medium text-primary'
+                    to={route('/connect/bank/za')}
+                  >
+                    Connect a bank account
+                  </Router>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
-        {/*{kycStatus == KycStatus.Approved && !hasBank && (*/}
-        {/*  <Card>*/}
-        {/*    <CardContent>*/}
-        {/*      <div className='flex items-start space-x-4'>*/}
-        {/*        <CardIcon>*/}
-        {/*          <Icon>account_balance</Icon>*/}
-        {/*        </CardIcon>*/}
-        {/*        <div className='flex flex-col space-y-4'>*/}
-        {/*          <p className='text-sm text-medium'>*/}
-        {/*            Connect bank accounts to easily send and receive payments.*/}
-        {/*          </p>*/}
-        {/*          <Router*/}
-        {/*            className='text-sm font-medium text-primary'*/}
-        {/*            to={route('/connect/bank')}*/}
-        {/*          >*/}
-        {/*            Connect a bank account*/}
-        {/*          </Router>*/}
-        {/*        </div>*/}
-        {/*      </div>*/}
-        {/*    </CardContent>*/}
-        {/*  </Card>*/}
-        {/*)}*/}
       </GridColumn>
       <GridColumn className='col-span-full lg:col-span-6 lg:col-start-7'>
         <Outlet />
