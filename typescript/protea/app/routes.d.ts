@@ -14,6 +14,7 @@ declare module "routes-gen" {
     "/blog/:slug": { "slug": string };
     "/collectables": Record<string, never>;
     "/connect/bank": Record<string, never>;
+    "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/discord": Record<string, never>;
     "/connect/domain": Record<string, never>;
@@ -85,6 +86,7 @@ declare module "routes-gen" {
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/collectables"]
       | ["/connect/bank"]
+      | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/discord"]
       | ["/connect/domain"]

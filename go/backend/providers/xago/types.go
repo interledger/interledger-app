@@ -9,7 +9,7 @@ import (
 var (
 	ProviderName   = "xago"
 	AccTypeBalance = "balance"
-	AccTypeBank    = "bank_account"
+	AccTypeBank    = "bankAccount"
 
 	LedgerIDZAR uint32 = 9246927 // Spells xagozar on a Nokia 3310 keyboard
 	LedgerIDUSD uint32 = 9246873 // Spells xagousd on a Nokia 3320 keyboard
