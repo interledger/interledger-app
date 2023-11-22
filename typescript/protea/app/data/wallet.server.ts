@@ -197,6 +197,7 @@ const formatLinkedAccount = (
       name = linkedAccount.title
       icon = 'credit_card'
       break
+    case 'bank_account':
     case 'bankAccount':
       type = 'bank'
       name = linkedAccount.title
