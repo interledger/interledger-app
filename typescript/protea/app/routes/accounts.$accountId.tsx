@@ -38,17 +38,32 @@ export async function loader(args: LoaderFunctionArgs) {
     args.request,
     args.params.accountId as string
   )
-
   if (isConnectError(account)) throw account.errorResponse
 
   if (account.type == 'card' || account.type == 'sendCard') {
-    return loadCard(args, account)
+    return cardLoader(args, account)
   }
 
-  return loadDepositDetails(args, account)
+  if (account.type == 'bank') {
+    return bankLoader(args, account)
+  }
+
+  if (account.type == 'balance' || account.type == 'wallet') {
+    return depositDetailsLoader(args, account)
+  }
+
+  throw json({}, { status: 404 })
 }
 
-async function loadDepositDetails(
+async function bankLoader(
+  { request, params }: LoaderFunctionArgs,
+  account: FormattedLinkedAccount
+) {
+  return jsonWithCSRF(request, {
+    account
+  })
+}
+async function depositDetailsLoader(
   { request, params }: LoaderFunctionArgs,
   account: FormattedLinkedAccount
 ) {
@@ -67,7 +82,7 @@ async function loadDepositDetails(
   })
 }
 
-async function loadCard(
+async function cardLoader(
   { request, params }: LoaderFunctionArgs,
   account: FormattedLinkedAccount
 ) {
@@ -138,14 +153,35 @@ export default function Page() {
   return (
     <>
       {account.type == 'card' && <CardDetailsPage />}
+      {account.type == 'bank' && <BankDetailsPage />}
       {account.type == 'wallet' && <DepositDetails />}
+    </>
+  )
+}
+
+function BankDetailsPage() {
+  const { account } = useLoaderData<typeof bankLoader>()
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Bank account details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='flex w-full flex-col justify-between space-y-1'>
+            <span className='text-weak'>Account number</span>
+            <span className='text-medium'>{account.mask}</span>
+          </div>
+        </CardContent>
+      </Card>
     </>
   )
 }
 
 function DepositDetails() {
   const { depositDetails, account, csrfToken } =
-    useLoaderData<typeof loadDepositDetails>()
+    useLoaderData<typeof depositDetailsLoader>()
   const updateAccountFetcher = useFetcher<typeof action>()
 
   const _onChangeLinkedAccount = useCallback(
@@ -219,7 +255,7 @@ function DepositDetails() {
 }
 
 function CardDetailsPage() {
-  const { card, account, csrfToken } = useLoaderData<typeof loadCard>()
+  const { card, account, csrfToken } = useLoaderData<typeof cardLoader>()
   const params = useParams()
   const [limitationsDialog, setLimitationsDialog] = useState<boolean>(false)
   const [showDialog, setShowDialog] = useState<boolean>(false)
