@@ -43,7 +43,7 @@ func NewActivity(ab ActivityBackends) *Activity {
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, ab, nil),
 		),
-	})
+	}, ab.DB())
 
 	return &Activity{b: &opsBackends{
 		ActivityBackends: ab,

@@ -39,17 +39,12 @@ type Beneficiaries struct {
 }
 
 type AccessToken struct {
-	Token     string
-	ExpiresAt time.Time
-	UnauthCnt int
+	Token     string    `db:"token"`
+	ExpiresAt time.Time `db:"expires_at"`
 }
 
 func (ac *AccessToken) IsExpired() bool {
 	return time.Now().After(ac.ExpiresAt)
-}
-
-func (ac *AccessToken) MarkUnauthed() {
-	ac.UnauthCnt++
 }
 
 type SubAccountReq struct {
