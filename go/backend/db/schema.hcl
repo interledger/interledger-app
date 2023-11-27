@@ -3054,7 +3054,7 @@ table "xago_deposits" {
   }
 }
 
-table "xago_access_tokens" {
+table "xago_access_token" {
   schema = schema.public
   column "id" {
     null = false
@@ -3069,16 +3069,8 @@ table "xago_access_tokens" {
     null    = false
     type    = timestamp
   }
-  column "created_at" {
-    null    = false
-    type    = timestamp
-    default = sql("now():::TIMESTAMP")
-  }
   primary_key {
     columns = [column.id]
-  }
-  index "xago_access_tokens_idx" {
-    columns = [column.created_at]
   }
 }
 
