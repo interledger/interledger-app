@@ -3054,6 +3054,27 @@ table "xago_deposits" {
   }
 }
 
+table "xago_access_token" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "token" {
+    null = false
+    type = uuid
+  }
+  column "expires_at" {
+    null    = false
+    type    = timestamp
+  }
+  primary_key {
+    columns = [column.id]
+  }
+}
+
+
 table "atlas_schema_history" {
   schema = schema.public
   column "id" {

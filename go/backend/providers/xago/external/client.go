@@ -3,7 +3,9 @@ package external
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,18 +16,15 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
-
-	"gitlab.com/fynbos/log"
-
-	httplog "gitlab.com/fynbos/backend/providers/http"
-
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
+	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Client interface {
@@ -43,9 +42,10 @@ type client struct {
 	publicKey       string
 	secret          string
 	tokenLock       sync.Mutex
+	dbc             *sqlx.DB
 }
 
-func New(transport *http.Client) Client {
+func New(transport *http.Client, dbc *sqlx.DB) Client {
 	baseURL := "https://test-api.xago.io:8085/v1"
 	identityBaseURL := "https://test-api.xago.io:9000/v1"
 	if env.IsProd() {
@@ -57,6 +57,7 @@ func New(transport *http.Client) Client {
 	}
 
 	cl := &client{
+		dbc:             dbc,
 		baseURL:         baseURL,
 		identityBaseURL: identityBaseURL,
 		api:             transport,
@@ -64,116 +65,131 @@ func New(transport *http.Client) Client {
 		publicKey:       os.Getenv("XAGO_API_PUBLIC_KEY"),
 		secret:          os.Getenv("XAGO_API_SECRET"),
 	}
-	go refreshTokenForever(cl)
 
 	return cl
 }
 
-func refreshTokenForever(cl *client) {
-	for {
-		_, err := cl.AccessToken(context.Background(), true)
-		if err != nil {
-			log.Error("failed to refresh xago access token", zap.Error(err))
+func (c *client) refreshAccessToken(ctx context.Context) error {
+
+	return crdbsqlx.ExecuteTx(ctx, c.dbc, nil, func(tx *sqlx.Tx) error {
+		var token AccessToken
+		err := tx.GetContext(ctx, &token, "SELECT token, expires_at FROM xago_access_token WHERE id=$1 FOR UPDATE")
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
 		}
 
-		time.Sleep(time.Hour * 20)
-	}
+		// Another process already updated this, just return the latest.
+		if !token.IsExpired() && token.Token != c.accessToken.Token {
+			c.accessToken = token
+			return nil
+		}
+
+		reqUrl, err := url.JoinPath(c.identityBaseURL, "login")
+		if err != nil {
+			return err
+		}
+
+		meta, ok := httplog.MetaForContext(ctx)
+		if ok {
+			meta.Method = "POST"
+			meta.Provider = "xago"
+		} else {
+			ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+				Method:   "POST",
+				Provider: "xago",
+			})
+		}
+
+		type tokenResp struct {
+			Token string `json:"tokenValue"`
+		}
+		type reqField struct {
+			FieldName  string `json:"fieldName"`
+			FieldValue string `json:"fieldValue"`
+		}
+		type reqFormat struct {
+			PolicyID string     `json:"policyId"`
+			Fields   []reqField `json:"fields"`
+		}
+
+		// Staging policy ID
+		policyID := "5e2585a474b0e90012ce8ff1"
+		if env.IsProd() {
+			// Prod policy ID
+			policyID = "5eb29c307df9090021eed488"
+		}
+
+		reqStruct := reqFormat{
+			PolicyID: policyID,
+			Fields: []reqField{
+				{
+					FieldName:  "apiPublicKey",
+					FieldValue: c.publicKey,
+				},
+				{
+					FieldName:  "apiSecretKey",
+					FieldValue: c.secret,
+				},
+			},
+		}
+
+		reqBody, err := json.Marshal(reqStruct)
+		if err != nil {
+			return err
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := c.api.Do(req)
+		if err != nil {
+			return err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("failed to get xargo access token code (%d - %s)", resp.StatusCode, resp.Status)
+		}
+
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		var respData tokenResp
+		err = json.Unmarshal(respBody, &respData)
+		if err != nil {
+			return err
+		}
+
+		c.accessToken = AccessToken{
+			Token:     respData.Token,
+			ExpiresAt: time.Now().Add(time.Hour * 23),
+		}
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO xago_access_token (id, token, expires_at) VALUES ($1, $2, $3) ON CONFLICT DO UPDATE SET "+
+			"token = excluded.token, expires_at = excluded.expires_at "+accessTokenID, c.accessToken.Token, c.accessToken.ExpiresAt)
+
+		return err
+	})
 }
 
 func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessToken, error) {
-	if !c.accessToken.IsExpired() && c.accessToken.UnauthCnt < 5 && !forceRefresh {
+	if !c.accessToken.IsExpired() && !forceRefresh {
 		return &c.accessToken, nil
 	}
 	c.tokenLock.Lock()
 	defer c.tokenLock.Unlock()
-	if !c.accessToken.IsExpired() && c.accessToken.UnauthCnt < 5 && !forceRefresh {
+	if !c.accessToken.IsExpired() && !forceRefresh {
 		return &c.accessToken, nil
 	}
 
-	reqUrl, err := url.JoinPath(c.identityBaseURL, "login")
+	err := c.refreshAccessToken(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	meta, ok := httplog.MetaForContext(ctx)
-	if ok {
-		meta.Method = "POST"
-		meta.Provider = "xago"
-	} else {
-		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
-			Method:   "POST",
-			Provider: "xago",
-		})
-	}
-
-	type tokenResp struct {
-		Token string `json:"tokenValue"`
-	}
-	type reqField struct {
-		FieldName  string `json:"fieldName"`
-		FieldValue string `json:"fieldValue"`
-	}
-	type reqFormat struct {
-		PolicyID string     `json:"policyId"`
-		Fields   []reqField `json:"fields"`
-	}
-
-	// Staging policy ID
-	policyID := "5e2585a474b0e90012ce8ff1"
-	if env.IsProd() {
-		// Prod policy ID
-		policyID = "5eb29c307df9090021eed488"
-	}
-
-	reqStruct := reqFormat{
-		PolicyID: policyID,
-		Fields: []reqField{
-			{
-				FieldName:  "apiPublicKey",
-				FieldValue: c.publicKey,
-			},
-			{
-				FieldName:  "apiSecretKey",
-				FieldValue: c.secret,
-			},
-		},
-	}
-
-	reqBody, err := json.Marshal(reqStruct)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get xargo access token code (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var respData tokenResp
-	err = json.Unmarshal(respBody, &respData)
-	if err != nil {
-		return nil, err
-	}
-
-	c.accessToken = AccessToken{
-		Token:     respData.Token,
-		ExpiresAt: time.Now().Add(time.Hour * 23),
 	}
 
 	return &c.accessToken, nil
@@ -243,7 +259,19 @@ func (c *client) CreateSubAccount(ctx context.Context, user user.User, details k
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.accessToken.MarkUnauthed()
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for create sub account")
+		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -304,7 +332,19 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.accessToken.MarkUnauthed()
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for add beneficiary")
+		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -376,7 +416,19 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.accessToken.MarkUnauthed()
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return "", err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for create transaction")
+		}
 	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
@@ -438,7 +490,19 @@ func (c *client) ListDeposits(ctx context.Context, page int) ([]Deposit, error) 
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.accessToken.MarkUnauthed()
+		token, err = c.AccessToken(ctx, true)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+token.Token)
+
+		resp, err = c.api.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Info("refreshed xago token not authorized for list deposits")
+		}
 	}
 
 	if resp.StatusCode != http.StatusOK {
