@@ -44,16 +44,16 @@ func TestCreateContact(t *testing.T) {
 
 	c.ContactsClient.EXPECT().Create(gomock.Any(), gomock.Any()).Return(
 		&contacts.Contact{
-			ID:             uuid.NewString(),
-			Name:           cw.Name,
-			PaymentPointer: wa,
-			WalletID:       cw.ID,
+			ID:            uuid.NewString(),
+			Name:          cw.Name,
+			WalletAddress: wa,
+			WalletID:      cw.ID,
 		},
 		nil,
 	).AnyTimes()
 
 	rpc, err := client.CreateContact(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateContactRequest{
-		PaymentPointer: wa.ShortString(),
+		WalletAddress: wa.ShortString(),
 	})
 	require.NoError(t, err)
 
@@ -82,15 +82,15 @@ func TestListContacts(t *testing.T) {
 	}
 	c.walletImpl.EXPECT().Get(gomock.Any(), cw.ID).Return(&cw, nil).AnyTimes()
 
-	pp, err := wallets.ParseAddress("$fynbos.me/alice")
+	wa, err := wallets.ParseAddress("$fynbos.me/alice")
 	require.NoError(t, err)
 
 	c.ContactsClient.EXPECT().List(gomock.Any(), w.ID, gomock.Any(), gomock.Any()).Return([]contacts.Contact{
 		{
-			ID:             uuid.NewString(),
-			Name:           cw.Name,
-			PaymentPointer: pp,
-			WalletID:       cw.ID,
+			ID:            uuid.NewString(),
+			Name:          cw.Name,
+			WalletAddress: wa,
+			WalletID:      cw.ID,
 		},
 	},
 		nil,

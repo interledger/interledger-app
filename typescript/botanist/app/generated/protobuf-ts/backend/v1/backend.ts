@@ -1901,9 +1901,9 @@ export interface Contact {
      */
     id: string;
     /**
-     * @generated from protobuf field: string payment_pointer = 2;
+     * @generated from protobuf field: string wallet_address = 2;
      */
-    paymentPointer: string;
+    walletAddress: string;
     /**
      * @generated from protobuf field: string name = 3;
      */
@@ -1948,9 +1948,9 @@ export interface ListContactsResponse {
  */
 export interface CreateContactRequest {
     /**
-     * @generated from protobuf field: string payment_pointer = 1;
+     * @generated from protobuf field: string wallet_address = 1;
      */
-    paymentPointer: string;
+    walletAddress: string;
 }
 /**
  * @generated from protobuf message backend.v1.ListIdentitiesResponse
@@ -8824,13 +8824,13 @@ class Contact$Type extends MessageType<Contact> {
     constructor() {
         super("backend.v1.Contact", [
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "payment_pointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "wallet_address", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 4, name: "wallet_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Contact>): Contact {
-        const message = { id: "", paymentPointer: "", name: "", walletId: "" };
+        const message = { id: "", walletAddress: "", name: "", walletId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Contact>(this, message, value);
@@ -8844,8 +8844,8 @@ class Contact$Type extends MessageType<Contact> {
                 case /* string id */ 1:
                     message.id = reader.string();
                     break;
-                case /* string payment_pointer */ 2:
-                    message.paymentPointer = reader.string();
+                case /* string wallet_address */ 2:
+                    message.walletAddress = reader.string();
                     break;
                 case /* string name */ 3:
                     message.name = reader.string();
@@ -8868,9 +8868,9 @@ class Contact$Type extends MessageType<Contact> {
         /* string id = 1; */
         if (message.id !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.id);
-        /* string payment_pointer = 2; */
-        if (message.paymentPointer !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.paymentPointer);
+        /* string wallet_address = 2; */
+        if (message.walletAddress !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.walletAddress);
         /* string name = 3; */
         if (message.name !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.name);
@@ -9006,11 +9006,11 @@ export const ListContactsResponse = new ListContactsResponse$Type();
 class CreateContactRequest$Type extends MessageType<CreateContactRequest> {
     constructor() {
         super("backend.v1.CreateContactRequest", [
-            { no: 1, name: "payment_pointer", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 1, name: "wallet_address", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CreateContactRequest>): CreateContactRequest {
-        const message = { paymentPointer: "" };
+        const message = { walletAddress: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<CreateContactRequest>(this, message, value);
@@ -9021,8 +9021,8 @@ class CreateContactRequest$Type extends MessageType<CreateContactRequest> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string payment_pointer */ 1:
-                    message.paymentPointer = reader.string();
+                case /* string wallet_address */ 1:
+                    message.walletAddress = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -9036,9 +9036,9 @@ class CreateContactRequest$Type extends MessageType<CreateContactRequest> {
         return message;
     }
     internalBinaryWrite(message: CreateContactRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string payment_pointer = 1; */
-        if (message.paymentPointer !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.paymentPointer);
+        /* string wallet_address = 1; */
+        if (message.walletAddress !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletAddress);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -24,25 +24,25 @@ type webhook struct {
 
 type incomingPaymentData struct {
 	Payment struct {
-		ID               string `json:"id"`
-		PaymentPointerID string `json:"paymentPointerId"`
-		CreatedAt        string `json:"createdAt"`
-		ExpiresAt        string `json:"expiresAt"`
-		ReceivedAmount   amount `json:"receivedAmount"`
-		Completed        bool   `json:"completed"`
+		ID              string `json:"id"`
+		WalletAddressID string `json:"walletAddressId"`
+		CreatedAt       string `json:"createdAt"`
+		ExpiresAt       string `json:"expiresAt"`
+		ReceivedAmount  amount `json:"receivedAmount"`
+		Completed       bool   `json:"completed"`
 	} `json:"incomingPayment"`
 }
 
 type outgoingPaymentData struct {
 	Payment struct {
-		ID               string `json:"id"`
-		PaymentPointerID string `json:"paymentPointerId"`
-		State            string `json:"state"`
-		Receiver         string `json:"receiver"`
-		CreatedAt        string `json:"createdAt"`
-		DebitAmount      amount `json:"debitAmount"`
-		ReceiveAmount    amount `json:"receiveAmount"`
-		Quote            struct {
+		ID              string `json:"id"`
+		WalletAddressID string `json:"walletAddressId"`
+		State           string `json:"state"`
+		Receiver        string `json:"receiver"`
+		CreatedAt       string `json:"createdAt"`
+		DebitAmount     amount `json:"debitAmount"`
+		ReceiveAmount   amount `json:"receiveAmount"`
+		Quote           struct {
 			IncomingPaymentID string `json:"receiver"`
 		} `json:"quote"`
 	} `json:"payment"`
@@ -144,9 +144,9 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 		return err
 	}
 
-	senderWallet, err := LookupWalletID(ctx, b, op.Payment.PaymentPointerID)
+	senderWallet, err := LookupWalletID(ctx, b, op.Payment.WalletAddressID)
 	if err != nil {
-		log.Error("failed to lookup wallet ID from rafiki payment pointer ID", zap.Error(err))
+		log.Error("failed to lookup wallet ID from rafiki wallet address ID", zap.Error(err))
 		return err
 	}
 
@@ -240,13 +240,13 @@ func incomingPaymentHandle(ctx context.Context, b Backends, hookType string, dat
 	}
 
 	_, err = b.DB().ExecContext(ctx, `INSERT INTO rafiki_incoming_payments 
-  (id, payment_pointer_id, completed, received_amount, received_amount_asset) 
+  (id, wallet_address_id, completed, received_amount, received_amount_asset) 
 	VALUES 
   ($1, $2, $3, $4, $5) ON CONFLICT (id) 
     DO UPDATE SET 
                 completed = EXCLUDED.completed, 
                 received_amount = EXCLUDED.received_amount,
-                updated_at = now()`, payment.Payment.ID, payment.Payment.PaymentPointerID, completed, amt, payment.Payment.ReceivedAmount.AssetCode)
+                updated_at = now()`, payment.Payment.ID, payment.Payment.WalletAddressID, completed, amt, payment.Payment.ReceivedAmount.AssetCode)
 	if err != nil {
 		log.Error("failed to upsert rafiki incoming payment", zap.Error(err))
 		return err

@@ -5365,9 +5365,9 @@ export class Contact extends Message<Contact> {
   id = "";
 
   /**
-   * @generated from field: string payment_pointer = 2;
+   * @generated from field: string wallet_address = 2;
    */
-  paymentPointer = "";
+  walletAddress = "";
 
   /**
    * @generated from field: string name = 3;
@@ -5388,7 +5388,7 @@ export class Contact extends Message<Contact> {
   static readonly typeName = "backend.v1.Contact";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "payment_pointer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "wallet_address", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "wallet_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
@@ -5507,9 +5507,9 @@ export class ListContactsResponse extends Message<ListContactsResponse> {
  */
 export class CreateContactRequest extends Message<CreateContactRequest> {
   /**
-   * @generated from field: string payment_pointer = 1;
+   * @generated from field: string wallet_address = 1;
    */
-  paymentPointer = "";
+  walletAddress = "";
 
   constructor(data?: PartialMessage<CreateContactRequest>) {
     super();
@@ -5519,7 +5519,7 @@ export class CreateContactRequest extends Message<CreateContactRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "backend.v1.CreateContactRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "payment_pointer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "wallet_address", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateContactRequest {

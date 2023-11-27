@@ -12,7 +12,7 @@ import (
 )
 
 type Client interface {
-	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet) (string, error)
+	CreateWalletAddress(ctx context.Context, wallet wallets.Wallet) (string, error)
 	FundOutgoingPayment(ctx context.Context, eventID string) error
 }
 
@@ -34,8 +34,8 @@ func New() Client {
 	return &client{gcl: cl, usdID: assetUSD}
 }
 
-func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
-	pp, err := CreatePaymentPointer(ctx, c.gcl, CreatePaymentPointerInput{
+func (c client) CreateWalletAddress(ctx context.Context, w wallets.Wallet) (string, error) {
+	wa, err := CreateWalletAddress(ctx, c.gcl, CreateWalletAddressInput{
 		AssetId:        c.usdID,
 		Url:            w.AddressString(),
 		PublicName:     w.Name,
@@ -44,11 +44,11 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (str
 	if err != nil {
 		return "", err
 	}
-	if !pp.GetCreatePaymentPointer().Success {
-		return "", fmt.Errorf("error code (%s) message (%s)", pp.GetCreatePaymentPointer().Code, pp.GetCreatePaymentPointer().Message)
+	if !wa.GetCreateWalletAddress().Success {
+		return "", fmt.Errorf("error code (%s) message (%s)", wa.GetCreateWalletAddress().Code, wa.GetCreateWalletAddress().Message)
 	}
 
-	return pp.CreatePaymentPointer.PaymentPointer.Id, nil
+	return wa.CreateWalletAddress.WalletAddress.Id, nil
 }
 
 func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {

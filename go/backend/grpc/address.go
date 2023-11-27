@@ -38,7 +38,7 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 		return nil, toGRPCError(err)
 	}
 
-	err = g.b.Rafiki().CreatePaymentPointer(ctx, *wallet)
+	err = g.b.Rafiki().CreateWalletAddress(ctx, *wallet)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}

@@ -422,7 +422,7 @@ table "openpayments_incoming_payment" {
     type    = uuid
     default = sql("gen_random_uuid()")
   }
-  column "payment_pointer_id" {
+  column "wallet_address_id" {
     null = true
     type = uuid
   }
@@ -481,7 +481,7 @@ table "openpayments_incoming_payment" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
-  column "from_payment_pointer_id" {
+  column "from_wallet_address_id" {
     null = true
     type = uuid
   }
@@ -543,7 +543,7 @@ table "openpayments_outgoing_payment" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
-  column "to_payment_pointer_id" {
+  column "to_wallet_address_id" {
     null = true
     type = uuid
   }
@@ -1275,7 +1275,7 @@ table "contacts" {
     null = false
     type = uuid
   }
-  column "payment_pointer" {
+  column "wallet_address" {
     null = false
     type = text
   }
@@ -1290,9 +1290,9 @@ table "contacts" {
   primary_key {
     columns = [column.id]
   }
-  index "wallet_payment_pointer_unique" {
+  index "wallet_wallet_address_unique" {
     unique  = true
-    columns = [column.wallet_id, column.payment_pointer]
+    columns = [column.wallet_id, column.wallet_address]
   }
 }
 table "identities" {
@@ -2693,7 +2693,7 @@ table "discord_payment_interactions" {
   }
 }
 
-table "rafiki_payment_pointers" {
+table "rafiki_wallet_addresses" {
   schema = schema.public
   column "id" {
     null = false
@@ -2704,7 +2704,7 @@ table "rafiki_payment_pointers" {
     null = false
     type = uuid
   }
-  column "payment_pointer_id" {
+  column "wallet_address_id" {
     null = false
     type = text
   }
@@ -2721,11 +2721,11 @@ table "rafiki_payment_pointers" {
   primary_key {
     columns = [column.id]
   }
-  index "rafiki_payment_pointers_id_uniq_idx" {
+  index "rafiki_wallet_addresses_id_uniq_idx" {
     unique  = true
-    columns = [column.payment_pointer_id]
+    columns = [column.wallet_address_id]
   }
-  index "rafiki_payment_pointers_wallet_idx" {
+  index "rafiki_wallet_addresses_wallet_idx" {
     unique  = true
     columns = [column.wallet_id]
   }
@@ -2773,7 +2773,7 @@ table "rafiki_incoming_payments" {
     type = uuid
     default = sql("gen_random_uuid()")
   }
-  column "payment_pointer_id" {
+  column "wallet_address_id" {
     null = false
     type = text
   }
@@ -2807,8 +2807,8 @@ table "rafiki_incoming_payments" {
   primary_key {
     columns = [column.id]
   }
-  index "rafiki_incoming_payments_payment_pointers_id_idx" {
-    columns = [column.payment_pointer_id]
+  index "rafiki_incoming_payments_wallet_addresses_id_idx" {
+    columns = [column.wallet_address_id]
   }
 }
 
