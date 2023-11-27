@@ -3063,7 +3063,7 @@ table "xago_access_token" {
   }
   column "token" {
     null = false
-    type = uuid
+    type = text
   }
   column "expires_at" {
     null    = false
