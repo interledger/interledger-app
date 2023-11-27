@@ -167,7 +167,7 @@ func (c *client) refreshAccessToken(ctx context.Context) error {
 
 		c.accessToken = AccessToken{
 			Token:     respData.Token,
-			ExpiresAt: time.Now().Add(time.Hour * 23),
+			ExpiresAt: time.Now().Add(time.Minute * 55),
 		}
 
 		_, err = tx.ExecContext(ctx, "INSERT INTO xago_access_token (id, token, expires_at) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET "+
