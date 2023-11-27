@@ -390,7 +390,6 @@ func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id
 		ID:              id,
 		WalletID:        walletID,
 		Name:            fmt.Sprintf("Xago %s Beneficiary", cc),
-		Nickname:        fmt.Sprintf("Xago %s Beneficiary", cc),
 		Mask:            mask,
 		Provider:        xago.ProviderName,
 		ProviderID:      b.ID,
