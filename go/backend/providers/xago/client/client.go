@@ -61,7 +61,7 @@ func New(b Backends) xago.Client {
 		Transport: otelhttp.NewTransport(
 			httplogger.NewTransport(http.DefaultTransport, b, nil),
 		),
-	})
+	}, b.DB())
 	if env.IsLocal() {
 		ex = mock_client.SetupDevMock(nil)
 	}
