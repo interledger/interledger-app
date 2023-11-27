@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/kyc"
@@ -69,95 +70,111 @@ func New(transport *http.Client, dbc *sqlx.DB) Client {
 }
 
 func (c *client) refreshAccessToken(ctx context.Context) error {
-	reqUrl, err := url.JoinPath(c.identityBaseURL, "login")
-	if err != nil {
-		return err
-	}
 
-	meta, ok := httplog.MetaForContext(ctx)
-	if ok {
-		meta.Method = "POST"
-		meta.Provider = "xago"
-	} else {
-		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
-			Method:   "POST",
-			Provider: "xago",
-		})
-	}
+	return crdbsqlx.ExecuteTx(ctx, c.dbc, nil, func(tx *sqlx.Tx) error {
+		var token AccessToken
+		err := tx.GetContext(ctx, &token, "SELECT token, expires_at FROM xago_access_token WHERE id=$1 FOR UPDATE")
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
 
-	type tokenResp struct {
-		Token string `json:"tokenValue"`
-	}
-	type reqField struct {
-		FieldName  string `json:"fieldName"`
-		FieldValue string `json:"fieldValue"`
-	}
-	type reqFormat struct {
-		PolicyID string     `json:"policyId"`
-		Fields   []reqField `json:"fields"`
-	}
+		// Another process already updated this, just return the latest.
+		if !token.IsExpired() && token.Token != c.accessToken.Token {
+			c.accessToken = token
+			return nil
+		}
 
-	// Staging policy ID
-	policyID := "5e2585a474b0e90012ce8ff1"
-	if env.IsProd() {
-		// Prod policy ID
-		policyID = "5eb29c307df9090021eed488"
-	}
+		reqUrl, err := url.JoinPath(c.identityBaseURL, "login")
+		if err != nil {
+			return err
+		}
 
-	reqStruct := reqFormat{
-		PolicyID: policyID,
-		Fields: []reqField{
-			{
-				FieldName:  "apiPublicKey",
-				FieldValue: c.publicKey,
+		meta, ok := httplog.MetaForContext(ctx)
+		if ok {
+			meta.Method = "POST"
+			meta.Provider = "xago"
+		} else {
+			ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+				Method:   "POST",
+				Provider: "xago",
+			})
+		}
+
+		type tokenResp struct {
+			Token string `json:"tokenValue"`
+		}
+		type reqField struct {
+			FieldName  string `json:"fieldName"`
+			FieldValue string `json:"fieldValue"`
+		}
+		type reqFormat struct {
+			PolicyID string     `json:"policyId"`
+			Fields   []reqField `json:"fields"`
+		}
+
+		// Staging policy ID
+		policyID := "5e2585a474b0e90012ce8ff1"
+		if env.IsProd() {
+			// Prod policy ID
+			policyID = "5eb29c307df9090021eed488"
+		}
+
+		reqStruct := reqFormat{
+			PolicyID: policyID,
+			Fields: []reqField{
+				{
+					FieldName:  "apiPublicKey",
+					FieldValue: c.publicKey,
+				},
+				{
+					FieldName:  "apiSecretKey",
+					FieldValue: c.secret,
+				},
 			},
-			{
-				FieldName:  "apiSecretKey",
-				FieldValue: c.secret,
-			},
-		},
-	}
+		}
 
-	reqBody, err := json.Marshal(reqStruct)
-	if err != nil {
+		reqBody, err := json.Marshal(reqStruct)
+		if err != nil {
+			return err
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := c.api.Do(req)
+		if err != nil {
+			return err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("failed to get xargo access token code (%d - %s)", resp.StatusCode, resp.Status)
+		}
+
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		var respData tokenResp
+		err = json.Unmarshal(respBody, &respData)
+		if err != nil {
+			return err
+		}
+
+		c.accessToken = AccessToken{
+			Token:     respData.Token,
+			ExpiresAt: time.Now().Add(time.Hour * 23),
+		}
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO xago_access_token (id, token, expires_at) VALUES ($1, $2, $3) ON CONFLICT DO UPDATE SET "+
+			"token = excluded.token, expires_at = excluded.expires_at "+accessTokenID, c.accessToken.Token, c.accessToken.ExpiresAt)
+
 		return err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqUrl, bytes.NewReader(reqBody))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to get xargo access token code (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	var respData tokenResp
-	err = json.Unmarshal(respBody, &respData)
-	if err != nil {
-		return err
-	}
-
-	c.accessToken = AccessToken{
-		Token:     respData.Token,
-		ExpiresAt: time.Now().Add(time.Hour * 23),
-	}
-
-	_, err = c.dbc.ExecContext(ctx, "INSERT INTO xago_access_tokens (token, expires_at) VALUES ($1, $2)", c.accessToken.Token, c.accessToken.ExpiresAt)
-
-	return err
+	})
 }
 
 func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessToken, error) {
@@ -170,25 +187,12 @@ func (c *client) AccessToken(ctx context.Context, forceRefresh bool) (*AccessTok
 		return &c.accessToken, nil
 	}
 
-	var token AccessToken
-	err := c.dbc.GetContext(ctx, &token, "SELECT token, expires_at FROM xago_access_tokens ORDER BY create_at DESC LIMIT 1")
-	if errors.Is(err, sql.ErrNoRows) ||
-		token.IsExpired() ||
-		(forceRefresh && token.Token == c.accessToken.Token) { //Could just be we need to reload from DB, check that the IDs are not the same
-		err = c.refreshAccessToken(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		return &c.accessToken, nil
-	}
+	err := c.refreshAccessToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	c.accessToken = token
-
-	return &token, nil
+	return &c.accessToken, nil
 }
 
 func (c *client) CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error) {
