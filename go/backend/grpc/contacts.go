@@ -24,7 +24,7 @@ func (s *rpcService) CreateContact(
 		return nil, UnauthenticatedError("Unauthenticated.")
 	}
 
-	wa, err := wallets.ParseAddress(req.GetPaymentPointer())
+	wa, err := wallets.ParseAddress(req.GetWalletAddress())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
@@ -35,19 +35,19 @@ func (s *rpcService) CreateContact(
 	}
 
 	c, err := s.b.Contacts().Create(ctx, contacts.CreateContactArgs{
-		Name:           w.Name,
-		PaymentPointer: wa,
-		WalletID:       wallet.ID,
+		Name:          w.Name,
+		WalletAddress: wa,
+		WalletID:      wallet.ID,
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	return &backendv1.Contact{
-		Id:             c.ID,
-		PaymentPointer: c.PaymentPointer.ShortString(),
-		Name:           c.Name,
-		WalletId:       c.WalletID,
+		Id:            c.ID,
+		WalletAddress: c.WalletAddress.ShortString(),
+		Name:          c.Name,
+		WalletId:      c.WalletID,
 	}, nil
 }
 
@@ -88,10 +88,10 @@ func (s *rpcService) ListContacts(
 		}
 
 		res = append(res, &backendv1.Contact{
-			Id:             contact.ID,
-			PaymentPointer: contact.PaymentPointer.ShortString(),
-			Name:           contact.Name,
-			WalletId:       contact.WalletID,
+			Id:            contact.ID,
+			WalletAddress: contact.WalletAddress.ShortString(),
+			Name:          contact.Name,
+			WalletId:      contact.WalletID,
 		})
 	}
 

@@ -37,18 +37,18 @@ func TestCreateAContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := wallets.ParseAddress("$fynbos.me/marko")
+	wa, err := wallets.ParseAddress("$fynbos.me/marko")
 	require.NoError(t, err)
 
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
-		Name:           "Marko polo",
-		PaymentPointer: pp,
-		WalletID:       wid,
+		Name:          "Marko polo",
+		WalletAddress: wa,
+		WalletID:      wid,
 	})
 	require.NoError(t, err)
 
 	assert.Equal(t, "Marko polo", c.Name)
-	assert.Equal(t, pp.String(), pp.String())
+	assert.Equal(t, wa.String(), wa.String())
 }
 
 func TestListContacts(t *testing.T) {
@@ -73,12 +73,12 @@ func TestListContacts(t *testing.T) {
 		"John Jacob",
 	}
 	for _, name := range contactNames {
-		pp, err := wallets.ParseAddress("$fynbos.me/" + strings.ReplaceAll(name, " ", ""))
+		wa, err := wallets.ParseAddress("$fynbos.me/" + strings.ReplaceAll(name, " ", ""))
 		require.NoError(t, err, "name", name)
 		_, err = ops.Create(ctx, b, contacts.CreateContactArgs{
-			Name:           name,
-			PaymentPointer: pp,
-			WalletID:       wid,
+			Name:          name,
+			WalletAddress: wa,
+			WalletID:      wid,
 		})
 		require.NoError(t, err)
 	}
@@ -101,7 +101,7 @@ func TestListContacts(t *testing.T) {
 	assert.Equal(t, "Bentley Wilcox", lc[0].Name)
 
 	// Order by works
-	err = ops.SetLastPaidAtNow(ctx, b, wid, lc[1].PaymentPointer)
+	err = ops.SetLastPaidAtNow(ctx, b, wid, lc[1].WalletAddress)
 	require.NoError(t, err)
 	lc, err = ops.List(ctx, b, wid, db.Pagination{
 		PageToken: "",
@@ -120,26 +120,26 @@ func TestGetContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := wallets.ParseAddress("$fynbos.me/marko")
+	wa, err := wallets.ParseAddress("$fynbos.me/marko")
 	require.NoError(t, err)
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
-		Name:           "Marko polo",
-		PaymentPointer: pp,
-		WalletID:       wid,
+		Name:          "Marko polo",
+		WalletAddress: wa,
+		WalletID:      wid,
 	})
 	require.NoError(t, err)
 
-	gc, err := ops.Get(ctx, b, wid, pp)
+	gc, err := ops.Get(ctx, b, wid, wa)
 	require.NoError(t, err)
 
 	assert.Equal(t, c.Name, gc.Name)
-	assert.Equal(t, c.PaymentPointer, gc.PaymentPointer)
+	assert.Equal(t, c.WalletAddress, gc.WalletAddress)
 
 	// Unknown error
-	randomPP, err := wallets.ParseAddress("$fynbos.me/test")
+	randomWA, err := wallets.ParseAddress("$fynbos.me/test")
 	require.NoError(t, err)
 
-	_, err = ops.Get(ctx, b, wid, randomPP)
+	_, err = ops.Get(ctx, b, wid, randomWA)
 	require.ErrorIs(t, err, contacts.ErrNotFound)
 }
 
@@ -151,20 +151,20 @@ func TestSetLastPaidAtContact(t *testing.T) {
 		db:        testDb,
 	}
 	wid := uuid.NewString()
-	pp, err := wallets.ParseAddress("$fynbos.me/marko")
+	wa, err := wallets.ParseAddress("$fynbos.me/marko")
 	require.NoError(t, err)
 	c, err := ops.Create(ctx, b, contacts.CreateContactArgs{
-		Name:           "Marko polo",
-		PaymentPointer: pp,
-		WalletID:       wid,
+		Name:          "Marko polo",
+		WalletAddress: wa,
+		WalletID:      wid,
 	})
 	require.NoError(t, err)
 	require.False(t, c.LastPaidAt.Valid)
 
-	err = ops.SetLastPaidAtNow(ctx, b, c.WalletID, c.PaymentPointer)
+	err = ops.SetLastPaidAtNow(ctx, b, c.WalletID, c.WalletAddress)
 	require.NoError(t, err)
 
-	gc, err := ops.Get(ctx, b, wid, pp)
+	gc, err := ops.Get(ctx, b, wid, wa)
 	require.NoError(t, err)
 
 	require.True(t, gc.LastPaidAt.Valid)

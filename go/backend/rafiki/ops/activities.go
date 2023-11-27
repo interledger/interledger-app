@@ -41,7 +41,7 @@ type dbPayout struct {
 func (a *Activity) ListPayouts(ctx context.Context) ([]Payout, error) {
 	var payouts []dbPayout
 	err := a.b.DB().SelectContext(ctx, &payouts, `SELECT ip.id, ip.received_amount, ip.received_amount_asset, pp.wallet_id FROM rafiki_incoming_payments ip 
-		INNER JOIN rafiki_payment_pointers pp ON pp.payment_pointer_id=ip.payment_pointer_id 
+		INNER JOIN rafiki_wallet_addresses wa ON wa.wallet_address_id=ip.wallet_address_id 
 		WHERE ip.completed=true AND payment_id is null`)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,6 @@ func (a *Activity) ListPayouts(ctx context.Context) ([]Payout, error) {
 }
 
 func (a *Activity) CreatePayoutPayment(ctx context.Context, payout Payout) (string, error) {
-
 	senderAcc, err := a.b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.Currency(payout.Asset))
 	if err != nil {
 		return "", err
@@ -98,7 +97,6 @@ func (a *Activity) CreatePayoutPayment(ctx context.Context, payout Payout) (stri
 		Note:           "Web Monetization payout",
 		IPAddress:      "198.0.0.2", // TODO: Add a our static IP Address
 	})
-
 	if err != nil {
 		return "", err
 	}

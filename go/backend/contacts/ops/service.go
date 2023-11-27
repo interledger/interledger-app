@@ -11,7 +11,7 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 )
 
-const contactCols = ` id, name, payment_pointer, wallet_id, last_paid_at `
+const contactCols = ` id, name, wallet_address, wallet_id, last_paid_at `
 
 func Create(ctx context.Context, b Backends, args contacts.CreateContactArgs) (*contacts.Contact, error) {
 	err := b.Validator().Struct(args)
@@ -21,8 +21,8 @@ func Create(ctx context.Context, b Backends, args contacts.CreateContactArgs) (*
 
 	var c contacts.Contact
 	err = b.DB().GetContext(ctx, &c,
-		fmt.Sprintf("INSERT INTO contacts (name, payment_pointer, wallet_id) values ($1, $2, $3) returning %s", contactCols),
-		args.Name, args.PaymentPointer, args.WalletID)
+		fmt.Sprintf("INSERT INTO contacts (name, wallet_address, wallet_id) values ($1, $2, $3) returning %s", contactCols),
+		args.Name, args.WalletAddress, args.WalletID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", contacts.ErrInternal, err)
 	}
@@ -60,7 +60,7 @@ func List(ctx context.Context, b Backends, walletID string, page db.Pagination, 
 func Get(ctx context.Context, b Backends, walletID string, wa wallets.Address) (*contacts.Contact, error) {
 	var c contacts.Contact
 	err := b.DB().GetContext(ctx, &c,
-		fmt.Sprintf("SELECT %s from contacts where wallet_id = $1 and payment_pointer = $2", contactCols),
+		fmt.Sprintf("SELECT %s from contacts where wallet_id = $1 and wallet_address = $2", contactCols),
 		walletID, wa.String())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -74,7 +74,7 @@ func Get(ctx context.Context, b Backends, walletID string, wa wallets.Address) (
 
 func SetLastPaidAtNow(ctx context.Context, b Backends, walletID string, wa wallets.Address) error {
 	_, err := b.DB().ExecContext(ctx,
-		"UPDATE contacts set last_paid_at = now() where wallet_id = $1 and payment_pointer = $2",
+		"UPDATE contacts set last_paid_at = now() where wallet_id = $1 and wallet_address = $2",
 		walletID, wa.String())
 	if err != nil {
 		return fmt.Errorf("%w %s", contacts.ErrInternal, err)

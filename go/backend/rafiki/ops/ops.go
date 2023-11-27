@@ -14,26 +14,26 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 )
 
-func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) error {
+func CreateWalletAddress(ctx context.Context, b Backends, w wallets.Wallet) error {
 	if !env.IsDev() {
 		return nil
 	}
 
-	var ppID string
-	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", w.ID)
+	var waID string
+	err := b.DB().GetContext(ctx, &waID, "SELECT wallet_address_id FROM rafiki_wallet_addresses WHERE wallet_id=$1", w.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
-	if ppID != "" {
+	if waID != "" {
 		return nil
 	}
 
-	ppID, err = b.External().CreatePaymentPointer(ctx, w)
+	waID, err = b.External().CreateWalletAddress(ctx, w)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_payment_pointers (wallet_id, payment_pointer_id) VALUES ($1, $2)", w.ID, ppID)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_wallet_addresses (wallet_id, wallet_address_id) VALUES ($1, $2)", w.ID, waID)
 	if db.IsErrorCode(err, db.UniqueViolationError) {
 		return nil
 	}
@@ -44,9 +44,9 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 	return nil
 }
 
-func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (string, error) {
+func LookupWalletID(ctx context.Context, b Backends, walletAddressID string) (string, error) {
 	var wid string
-	err := b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM rafiki_payment_pointers WHERE payment_pointer_id=$1", paymentPointerID)
+	err := b.DB().GetContext(ctx, &wid, "SELECT wallet_id FROM rafiki_wallet_addresses WHERE wallet_address_id=$1", walletAddressID)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
