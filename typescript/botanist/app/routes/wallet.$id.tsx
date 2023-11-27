@@ -47,9 +47,7 @@ export default function Page() {
           >
             Linked accounts
           </TabItem>
-          <TabItem
-            to={route('/wallet/:id/balances', { id: id as string })}
-          >
+          <TabItem to={route('/wallet/:id/balances', { id: id as string })}>
             Balances
           </TabItem>
         </div>

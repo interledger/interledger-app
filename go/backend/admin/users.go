@@ -79,8 +79,9 @@ func (s *AdminRpcService) GetWalletDetails(ctx context.Context, req *adminv1.Get
 	id, err := s.b.KYC().GetIndividualDetails(ctx, wallet.ID)
 	if errors.Is(err, kyc.ErrNoKYCInfo) {
 		return &adminv1.WalletDetails{
-			Users:    usersPB,
-			WalletID: req.WalletID,
+			Users:       usersPB,
+			WalletID:    req.WalletID,
+			CountryCode: wallet.Country.String(),
 		}, nil
 	}
 	if err != nil {
