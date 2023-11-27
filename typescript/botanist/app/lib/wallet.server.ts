@@ -13,6 +13,7 @@ import type {
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 import type { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
+import { Code } from '~/generated/protobuf-ts/google/rpc/code'
 import {
   StatusError,
   grpcClient,
@@ -20,7 +21,6 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import type { LinkedAccountReviewState } from '~/lib/types'
-import {Code} from "~/generated/protobuf-ts/google/rpc/code";
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -635,6 +635,29 @@ export async function EnableWalletBalance(request: Request, walletId: string) {
     .setWalletXagoBalanceEnabled(
       {
         walletId
+      },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function setWalletCountry(
+  request: Request,
+  walletId: string,
+  country: string
+) {
+  let rpc = await grpcClient
+    .setWalletCountry(
+      {
+        id: walletId,
+        countryCode: country
       },
       { meta: { cookies: String(request.headers.get('cookie')) } }
     )
