@@ -31,11 +31,14 @@ func (b backends) Validator() *validator.Validate {
 }
 
 func NewLocal(db *sqlx.DB) pacioli.Client {
+	b := &backends{
+		db:  db,
+		val: validator.New()}
+
+	go ledger.TimeoutTransfersForever(b)
+
 	return localClient{
-		&backends{
-			db:  db,
-			val: validator.New(),
-		},
+		b: b,
 	}
 }
 
