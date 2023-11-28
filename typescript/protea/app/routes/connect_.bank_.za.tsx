@@ -5,8 +5,13 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { useState } from 'react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigation
+} from '@remix-run/react'
+import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
@@ -22,6 +27,7 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { redirectWithSnackbar } from '~/lib/snackbar.server'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const getXagoBalancesResponse = await grpc.getXagoBalances(request, {})
@@ -73,8 +79,22 @@ export const meta: MetaFunction = mergeMeta(() => [
 
 export default function Page() {
   const { banks, csrfToken } = useLoaderData<typeof loader>()
+
+  const navigation = useNavigation()
   const actionData = useActionData<typeof action>()
   const [bank, setBank] = useState<SelectOptions>(banks[0])
+
+  const [setLoading] = useScaffoldStore((state) => [state.setLoading])
+
+  useEffect(() => {
+    if (navigation.state == 'submitting' && navigation.formMethod === 'post') {
+      setLoading(true)
+    } else if (navigation.state == 'loading' || navigation.state == 'idle') {
+      setLoading(false)
+    }
+    // This ensures that loading is false when this route is unmounted.
+    return () => setLoading(false)
+  }, [setLoading])
 
   return (
     <>

@@ -387,7 +387,7 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 
 	// hard-coded to be 0 for now
 	fees := currency.FromUInt64(0, inputSendAmount.Currency)
-	return &pb.Payment{
+	ret := &pb.Payment{
 		Id:                      p.ID,
 		PublicID:                p.PublicID,
 		State:                   int32(p.State),
@@ -404,7 +404,13 @@ func transformPayment(ctx context.Context, b Backends, p *payments.Payment) (*pb
 		FxRate:                  fmt.Sprintf("%6f", p.FXRate),
 		ReceiverAmount:          p.ReceiverAmount.ToPB(),
 		FormattedFees:           fees.Format(),
-	}, nil
+	}
+
+	if p.Type == payments.TypeWithdrawal {
+		ret.ReceiverAccount = p.ReceiverAccount
+	}
+
+	return ret, nil
 }
 
 func (s *rpcService) GetLinkedAccountsForPayment(ctx context.Context, req *pb.GetLinkedAccountsForPaymentRequest) (*pb.GetLinkedAccountsForPaymentResponse, error) {
