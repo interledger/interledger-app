@@ -11,6 +11,7 @@ import {
   AlertContent,
   AlertTitle,
   Button,
+  ButtonRouter,
   Card,
   CardContent,
   CardHeader,
@@ -176,7 +177,7 @@ function BankDetailsPage() {
         </CardContent>
       </Card>
       <Card>
-        <Label>Card nickname</Label>
+        <Label>Bank nickname</Label>
         <CardLink
           className='flex items-center justify-between'
           to={route('/accounts/:accountId/name', {
@@ -195,6 +196,7 @@ function DepositDetails() {
   const { depositDetails, account, csrfToken } =
     useLoaderData<typeof depositDetailsLoader>()
   const updateAccountFetcher = useFetcher<typeof action>()
+  const params = useParams()
 
   const _onChangeLinkedAccount = useCallback(
     (updateType: 'defaultSend' | 'defaultReceive') => {
@@ -262,6 +264,13 @@ function DepositDetails() {
           )}
         </CardContent>
       </Card>
+      <ButtonRouter
+        to={route('/accounts/:accountId/withdraw', {
+          accountId: params.accountId as string
+        })}
+      >
+        Withdraw
+      </ButtonRouter>
     </>
   )
 }
