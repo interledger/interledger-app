@@ -102,6 +102,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		err = innerErr
 	})
 
+	var childErr error
 	for count := 0; count < 2; count++ {
 		selector.Select(ctx)
 		if err != nil {
@@ -111,8 +112,13 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 				return innerErr
 			}
 
-			return nil
+			// Wait for both to complete and do not return just yet
+			childErr = err
 		}
+	}
+	if childErr != nil {
+		logger.Error("child workflow failed", "err", childErr)
+		return nil
 	}
 
 	var success bool
