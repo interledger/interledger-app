@@ -94,7 +94,7 @@ export default function Page() {
     }
     // This ensures that loading is false when this route is unmounted.
     return () => setLoading(false)
-  }, [setLoading])
+  }, [navigation.formMethod, navigation.state, setLoading])
 
   return (
     <>

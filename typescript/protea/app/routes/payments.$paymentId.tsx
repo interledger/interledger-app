@@ -39,11 +39,25 @@ import { usePusher } from '~/lib/usePusher'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  let senderAccountTitle, recieverAccountTitle
+
   const transaction = await grpc.lookupTransaction(request, {
     id: params.paymentId as string
   })
 
   if (isConnectError(transaction)) throw transaction.errorResponse
+
+  if (transaction.type == 'withdrawal') {
+    const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
+    if (isConnectError(linkedAccountsResponse))
+      throw linkedAccountsResponse.error
+    senderAccountTitle = linkedAccountsResponse.linkedAccounts.find(
+      (account) => account.id == transaction.senderAccountId
+    )?.nickname
+    recieverAccountTitle = linkedAccountsResponse.linkedAccounts.find(
+      (account) => account.id == transaction.receiverAccountId
+    )?.nickname
+  }
 
   const walletUrl = transaction.type.includes('outgoing')
     ? transaction.destination
@@ -69,6 +83,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const pusherArgs = await getPusherArgs(request)
 
   return json({
+    senderAccountTitle,
+    recieverAccountTitle,
     publicWalletInfo,
     transaction,
     pusherArgs
@@ -133,7 +149,8 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
     title:
       typeof data == 'undefined'
         ? 'Payment'
-        : data.transaction.type.includes('outgoing')
+        : // TODO Fix this for withdrawal
+        data.transaction.type.includes('outgoing')
         ? `${data.transaction.subtotal} to ${data.transaction.title}`
         : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
@@ -153,6 +170,7 @@ export default function Page() {
       {transaction.type.includes('incoming') && (
         <Incoming openDialog={() => setShowDialog(true)} />
       )}
+      {transaction.type == 'withdrawal' && <Withdrawal />}
       <Dialog open={showDialog} setOpen={setShowDialog}>
         <CardHeader>
           <h1 className='text-xl font-medium'>User information</h1>
@@ -215,6 +233,216 @@ export default function Page() {
           </TextButton>
         </CardContent>
       </Dialog>
+    </>
+  )
+}
+
+function Withdrawal() {
+  const { senderAccountTitle, recieverAccountTitle, transaction } =
+    useLoaderData<typeof loader>()
+
+  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
+  return (
+    <>
+      <Card>
+        <CardContent>
+          <div className='flex items-center justify-between'>
+            <h2 className='text-4xl font-medium text-error'>
+              {transaction.subtotal}
+            </h2>
+            <div className='flex flex-col items-end space-y-1'>
+              <span className='text-sm font-medium text-medium'>
+                {transaction.formattedDate}
+              </span>
+              <span className='text-xs text-weak'>
+                {transaction.formattedTime}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+        <Label className='mt-2'>Withdrawal to</Label>
+        <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
+          <div className='flex w-full items-center justify-between text-medium'>
+            <div className='flex space-x-2'>
+              <Icon>account_balance</Icon>
+              <span>{recieverAccountTitle}</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+      {transaction.refundState == TransactionRefundState.PENDING && (
+        <Alert>
+          <Icon>error</Icon>
+          <AlertContent>
+            <AlertTitle>Pending refund</AlertTitle>
+            <AlertBody>
+              Any money, including fees, debited from your account will be
+              returned.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
+      )}
+      {transaction.refundState == TransactionRefundState.COMPLETED && (
+        <Alert>
+          <Icon>error</Icon>
+          <AlertContent>
+            <AlertTitle>Withdrawal unsuccessful</AlertTitle>
+            <AlertBody>
+              All money, including fees, debited from your account has been
+              returned.
+            </AlertBody>
+          </AlertContent>
+        </Alert>
+      )}
+      {transaction.refundState == TransactionRefundState.NA &&
+        transaction.state == 'Failed' && (
+          <Alert>
+            <Icon>error</Icon>
+            <AlertContent>
+              <AlertTitle>Withdrawal unsuccessful</AlertTitle>
+              <AlertBody>
+                No need to worry. Nothing has been debited from your account.
+              </AlertBody>
+            </AlertContent>
+          </Alert>
+        )}
+      {transaction.refundState != TransactionRefundState.NA &&
+        transaction.state == 'Failed' && (
+          <Card>
+            <Label>Payment ID</Label>
+            <CardButton
+              noHover
+              type='button'
+              onClick={() => {
+                if (typeof navigator.clipboard == 'undefined') {
+                  pushSnackbar({
+                    id: 'copy-to-clipboard-fail',
+                    message: "Couldn't copy to clipboard.",
+                    icon: 'close',
+                    canShow: true
+                  })
+                } else
+                  navigator.clipboard.writeText(transaction.id).then(
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-wallet-address-success',
+                        message: 'Payment ID copied to clipboard.',
+                        icon: 'close',
+                        canShow: true
+                      })
+                    },
+                    () => {
+                      pushSnackbar({
+                        id: 'copy-to-clipboard-fail',
+                        message: "Couldn't copy to clipboard.",
+                        icon: 'close',
+                        canShow: true
+                      })
+                    }
+                  )
+              }}
+              className='items-center justify-between'
+            >
+              <span className='text-left font-medium text-medium'>
+                {transaction.id}
+              </span>
+              <Icon className='text-medium'>content_copy</Icon>
+            </CardButton>
+            <CardContent>
+              <div className='flex w-full justify-between'>
+                <span className='text-weak'>Total fees</span>
+                <span className='text-medium'>{transaction.fees}</span>
+              </div>
+              <div className='mt-2 flex w-full justify-between'>
+                <span className='text-weak'>You received</span>
+                <span className='text-medium'>
+                  {transaction.formattedAmount}
+                </span>
+              </div>
+              {transaction.refundState == TransactionRefundState.COMPLETED && (
+                <div className='mt-2 flex w-full justify-between'>
+                  <span className='text-weak'>Your refund</span>
+                  <span className='text-medium'>
+                    {transaction.formattedAmount}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      {transaction.state != 'Failed' && (
+        <Card>
+          <Label>Payment ID</Label>
+          <CardButton
+            noHover
+            type='button'
+            onClick={() => {
+              if (typeof navigator.clipboard == 'undefined') {
+                pushSnackbar({
+                  id: 'copy-to-clipboard-fail',
+                  message: "Couldn't copy to clipboard.",
+                  icon: 'close',
+                  canShow: true
+                })
+              } else
+                navigator.clipboard.writeText(transaction.id).then(
+                  () => {
+                    pushSnackbar({
+                      id: 'copy-wallet-address-success',
+                      message: 'Payment ID copied to clipboard.',
+                      icon: 'close',
+                      canShow: true
+                    })
+                  },
+                  () => {
+                    pushSnackbar({
+                      id: 'copy-to-clipboard-fail',
+                      message: "Couldn't copy to clipboard.",
+                      icon: 'close',
+                      canShow: true
+                    })
+                  }
+                )
+            }}
+            className='items-center justify-between'
+          >
+            <span className='text-left font-medium text-medium'>
+              {transaction.id}
+            </span>
+            <Icon className='text-medium'>content_copy</Icon>
+          </CardButton>
+          <CardContent>
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Withdrawal from</span>
+              <span className='text-medium'>{senderAccountTitle}</span>
+            </div>
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Amount sent</span>
+              <span className='text-medium'>{transaction.subtotal}</span>
+            </div>
+            <div className='mt-2 flex w-full justify-between'>
+              <span className='text-weak'>Fees</span>
+              <span className='text-medium'>{transaction.fees}</span>
+            </div>
+            <div className='mt-4 flex w-full justify-between font-medium'>
+              <span className='text-medium'>Total amount withdrawn</span>
+              <span className='text-medium'>{transaction.formattedAmount}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {transaction.reference && (
+        <Card>
+          <CardContent>
+            <div className='flex w-full flex-col space-y-1'>
+              <span className='text-weak'>Withdraw note</span>
+              <span className='text-medium'>{transaction.reference}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </>
   )
 }
