@@ -492,6 +492,11 @@ export class WithdrawXagoBalanceRequest extends Message<WithdrawXagoBalanceReque
    */
   amount?: Amount;
 
+  /**
+   * @generated from field: string note = 4;
+   */
+  note = "";
+
   constructor(data?: PartialMessage<WithdrawXagoBalanceRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -503,6 +508,7 @@ export class WithdrawXagoBalanceRequest extends Message<WithdrawXagoBalanceReque
     { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "amount", kind: "message", T: Amount },
+    { no: 4, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WithdrawXagoBalanceRequest {
@@ -925,71 +931,81 @@ export class Transaction extends Message<Transaction> {
   foreignId = "";
 
   /**
+   * @generated from field: string receiverAccountId = 10;
+   */
+  receiverAccountId = "";
+
+  /**
+   * @generated from field: string senderAccountId = 11;
+   */
+  senderAccountId = "";
+
+  /**
    * Display
    *
-   * @generated from field: string title = 10;
+   * @generated from field: string title = 12;
    */
   title = "";
 
   /**
-   * @generated from field: string formattedAmount = 11;
+   * @generated from field: string formattedAmount = 13;
    */
   formattedAmount = "";
 
   /**
-   * @generated from field: string formattedTime = 12;
+   * @generated from field: string formattedTime = 14;
    */
   formattedTime = "";
 
   /**
-   * @generated from field: string formattedDate = 13;
+   * @generated from field: string formattedDate = 15;
    */
   formattedDate = "";
 
   /**
-   * @generated from field: string subtotal = 14;
+   * @generated from field: string subtotal = 16;
    */
   subtotal = "";
 
   /**
-   * @generated from field: string fees = 15;
+   * @generated from field: string fees = 17;
    */
   fees = "";
 
   /**
-   * @generated from field: string accountTitle = 16;
+   * @generated from field: string accountTitle = 18;
    */
   accountTitle = "";
 
   /**
-   * @generated from field: string reference = 17;
+   * @generated from field: string reference = 19;
    */
   reference = "";
 
   /**
-   * @generated from field: string destinationIdentity = 18;
+   * @generated from field: string destinationIdentity = 20;
    */
   destinationIdentity = "";
 
   /**
-   * @generated from field: string destinationIdentityType = 19;
+   * @generated from field: string destinationIdentityType = 21;
    */
   destinationIdentityType = "";
 
   /**
    * NA , PENDING , COMPLETE
    *
-   * @generated from field: int32 refundState = 20;
+   * @generated from field: int32 refundState = 22;
    */
   refundState = 0;
 
   /**
-   * @generated from field: string paymentProtectionAmount = 21;
+   * @generated from field: string paymentProtectionAmount = 23;
    */
   paymentProtectionAmount = "";
 
   /**
-   * @generated from field: bool hasPaymentProtection = 22;
+   * @generated from field: bool hasPaymentProtection = 24;
    */
   hasPaymentProtection = false;
 
@@ -1009,19 +1025,21 @@ export class Transaction extends Message<Transaction> {
     { no: 6, name: "timestamp", kind: "message", T: Timestamp },
     { no: 7, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "foreignId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 11, name: "formattedAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 12, name: "formattedTime", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 13, name: "formattedDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 14, name: "subtotal", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 15, name: "fees", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 16, name: "accountTitle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 17, name: "reference", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 18, name: "destinationIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 20, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 21, name: "paymentProtectionAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 22, name: "hasPaymentProtection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 10, name: "receiverAccountId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "senderAccountId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: "formattedAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 14, name: "formattedTime", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 15, name: "formattedDate", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "subtotal", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 17, name: "fees", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 18, name: "accountTitle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 19, name: "reference", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 22, name: "refundState", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 23, name: "paymentProtectionAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 24, name: "hasPaymentProtection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transaction {
@@ -1372,6 +1390,13 @@ export class Payment extends Message<Payment> {
    */
   formattedFees = "";
 
+  /**
+   * Linked account ID. Only populated on withdrawals
+   *
+   * @generated from field: string receiverAccount = 18;
+   */
+  receiverAccount = "";
+
   constructor(data?: PartialMessage<Payment>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1397,6 +1422,7 @@ export class Payment extends Message<Payment> {
     { no: 15, name: "totalSendAmount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 16, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 17, name: "formattedFees", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 18, name: "receiverAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payment {

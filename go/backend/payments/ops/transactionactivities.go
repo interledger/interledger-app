@@ -115,6 +115,27 @@ func (a *Activity) AddWebMonetizationPayInTransfer(ctx context.Context, paymentI
 	})
 }
 
+func (a *Activity) AddWithdrawalTransfer(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return nil
+	}
+
+	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
+		{
+			LinkedAccountID: p.ReceiverAccount,
+			ForeignID:       paymentID,
+			Type:            transactions.TransferTypeCreditBankAccount,
+			Amount:          p.SenderAmount,
+			State:           transactions.StateCompleted,
+		},
+	})
+}
+
 func (a *Activity) AddPayInRollbackTransfer(ctx context.Context, paymentID, fkID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
