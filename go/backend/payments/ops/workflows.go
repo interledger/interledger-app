@@ -285,6 +285,11 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		break
 	}
 	if signal.PayOutSuccess {
+		err = workflow.ExecuteActivity(ctx, a.AddWithdrawalTransfer, paymentID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+
 		// Mark transaction as a success
 		return workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateCompleted).Get(ctx, nil)
 	}

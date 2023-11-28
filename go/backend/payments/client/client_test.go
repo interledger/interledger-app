@@ -288,6 +288,10 @@ func TestClient(t *testing.T) {
 						TransferType: transactions.TransferTypeDebitBalance,
 						State:        transactions.StateCompleted,
 					},
+					{
+						TransferType: transactions.TransferTypeCreditBankAccount,
+						State:        transactions.StateCompleted,
+					},
 				},
 			},
 		},

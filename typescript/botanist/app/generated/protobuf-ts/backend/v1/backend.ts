@@ -168,6 +168,10 @@ export interface WithdrawXagoBalanceRequest {
      * @generated from protobuf field: backend.v1.Amount amount = 3;
      */
     amount?: Amount;
+    /**
+     * @generated from protobuf field: string note = 4;
+     */
+    note: string;
 }
 /**
  * @generated from protobuf message backend.v1.AddXagoBalanceAccountRequest
@@ -318,57 +322,65 @@ export interface Transaction {
      */
     foreignId: string;
     /**
+     * @generated from protobuf field: string receiverAccountId = 10;
+     */
+    receiverAccountId: string;
+    /**
+     * @generated from protobuf field: string senderAccountId = 11;
+     */
+    senderAccountId: string;
+    /**
      * Display
      *
-     * @generated from protobuf field: string title = 10;
+     * @generated from protobuf field: string title = 12;
      */
     title: string;
     /**
-     * @generated from protobuf field: string formattedAmount = 11;
+     * @generated from protobuf field: string formattedAmount = 13;
      */
     formattedAmount: string;
     /**
-     * @generated from protobuf field: string formattedTime = 12;
+     * @generated from protobuf field: string formattedTime = 14;
      */
     formattedTime: string;
     /**
-     * @generated from protobuf field: string formattedDate = 13;
+     * @generated from protobuf field: string formattedDate = 15;
      */
     formattedDate: string;
     /**
-     * @generated from protobuf field: string subtotal = 14;
+     * @generated from protobuf field: string subtotal = 16;
      */
     subtotal: string;
     /**
-     * @generated from protobuf field: string fees = 15;
+     * @generated from protobuf field: string fees = 17;
      */
     fees: string;
     /**
-     * @generated from protobuf field: string accountTitle = 16;
+     * @generated from protobuf field: string accountTitle = 18;
      */
     accountTitle: string;
     /**
-     * @generated from protobuf field: string reference = 17;
+     * @generated from protobuf field: string reference = 19;
      */
     reference: string;
     /**
-     * @generated from protobuf field: string destinationIdentity = 18;
+     * @generated from protobuf field: string destinationIdentity = 20;
      */
     destinationIdentity: string;
     /**
-     * @generated from protobuf field: string destinationIdentityType = 19;
+     * @generated from protobuf field: string destinationIdentityType = 21;
      */
     destinationIdentityType: string;
     /**
-     * @generated from protobuf field: int32 refundState = 20;
+     * @generated from protobuf field: int32 refundState = 22;
      */
     refundState: number; // NA , PENDING , COMPLETE
     /**
-     * @generated from protobuf field: string paymentProtectionAmount = 21;
+     * @generated from protobuf field: string paymentProtectionAmount = 23;
      */
     paymentProtectionAmount: string;
     /**
-     * @generated from protobuf field: bool hasPaymentProtection = 22;
+     * @generated from protobuf field: bool hasPaymentProtection = 24;
      */
     hasPaymentProtection: boolean;
 }
@@ -528,6 +540,10 @@ export interface Payment {
      * @generated from protobuf field: string formattedFees = 17;
      */
     formattedFees: string;
+    /**
+     * @generated from protobuf field: string receiverAccount = 18;
+     */
+    receiverAccount: string; // Linked account ID. Only populated on withdrawals
 }
 /**
  * @generated from protobuf message backend.v1.CreatePaymentRequest
@@ -2840,11 +2856,12 @@ class WithdrawXagoBalanceRequest$Type extends MessageType<WithdrawXagoBalanceReq
         super("backend.v1.WithdrawXagoBalanceRequest", [
             { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "amount", kind: "message", T: () => Amount }
+            { no: 3, name: "amount", kind: "message", T: () => Amount },
+            { no: 4, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<WithdrawXagoBalanceRequest>): WithdrawXagoBalanceRequest {
-        const message = { fromLinkedAccount: "", toLinkedAccount: "" };
+        const message = { fromLinkedAccount: "", toLinkedAccount: "", note: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WithdrawXagoBalanceRequest>(this, message, value);
@@ -2863,6 +2880,9 @@ class WithdrawXagoBalanceRequest$Type extends MessageType<WithdrawXagoBalanceReq
                     break;
                 case /* backend.v1.Amount amount */ 3:
                     message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                case /* string note */ 4:
+                    message.note = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2885,6 +2905,9 @@ class WithdrawXagoBalanceRequest$Type extends MessageType<WithdrawXagoBalanceReq
         /* backend.v1.Amount amount = 3; */
         if (message.amount)
             Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string note = 4; */
+        if (message.note !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.note);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3353,23 +3376,25 @@ class Transaction$Type extends MessageType<Transaction> {
             { no: 6, name: "timestamp", kind: "message", T: () => Timestamp },
             { no: 7, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 9, name: "foreignId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 10, name: "title", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 11, name: "formattedAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 12, name: "formattedTime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 13, name: "formattedDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 14, name: "subtotal", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 15, name: "fees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 16, name: "accountTitle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 17, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 18, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 19, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 20, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 21, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 22, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 10, name: "receiverAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 11, name: "senderAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 12, name: "title", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 13, name: "formattedAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 14, name: "formattedTime", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 15, name: "formattedDate", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 16, name: "subtotal", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 17, name: "fees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 18, name: "accountTitle", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 19, name: "reference", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 20, name: "destinationIdentity", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 21, name: "destinationIdentityType", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 22, name: "refundState", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 23, name: "paymentProtectionAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 24, name: "hasPaymentProtection", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<Transaction>): Transaction {
-        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, paymentProtectionAmount: "", hasPaymentProtection: false };
+        const message = { id: "", type: "", source: "", destination: "", state: "", foreignId: "", receiverAccountId: "", senderAccountId: "", title: "", formattedAmount: "", formattedTime: "", formattedDate: "", subtotal: "", fees: "", accountTitle: "", reference: "", destinationIdentity: "", destinationIdentityType: "", refundState: 0, paymentProtectionAmount: "", hasPaymentProtection: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Transaction>(this, message, value);
@@ -3404,43 +3429,49 @@ class Transaction$Type extends MessageType<Transaction> {
                 case /* string foreignId */ 9:
                     message.foreignId = reader.string();
                     break;
-                case /* string title */ 10:
+                case /* string receiverAccountId */ 10:
+                    message.receiverAccountId = reader.string();
+                    break;
+                case /* string senderAccountId */ 11:
+                    message.senderAccountId = reader.string();
+                    break;
+                case /* string title */ 12:
                     message.title = reader.string();
                     break;
-                case /* string formattedAmount */ 11:
+                case /* string formattedAmount */ 13:
                     message.formattedAmount = reader.string();
                     break;
-                case /* string formattedTime */ 12:
+                case /* string formattedTime */ 14:
                     message.formattedTime = reader.string();
                     break;
-                case /* string formattedDate */ 13:
+                case /* string formattedDate */ 15:
                     message.formattedDate = reader.string();
                     break;
-                case /* string subtotal */ 14:
+                case /* string subtotal */ 16:
                     message.subtotal = reader.string();
                     break;
-                case /* string fees */ 15:
+                case /* string fees */ 17:
                     message.fees = reader.string();
                     break;
-                case /* string accountTitle */ 16:
+                case /* string accountTitle */ 18:
                     message.accountTitle = reader.string();
                     break;
-                case /* string reference */ 17:
+                case /* string reference */ 19:
                     message.reference = reader.string();
                     break;
-                case /* string destinationIdentity */ 18:
+                case /* string destinationIdentity */ 20:
                     message.destinationIdentity = reader.string();
                     break;
-                case /* string destinationIdentityType */ 19:
+                case /* string destinationIdentityType */ 21:
                     message.destinationIdentityType = reader.string();
                     break;
-                case /* int32 refundState */ 20:
+                case /* int32 refundState */ 22:
                     message.refundState = reader.int32();
                     break;
-                case /* string paymentProtectionAmount */ 21:
+                case /* string paymentProtectionAmount */ 23:
                     message.paymentProtectionAmount = reader.string();
                     break;
-                case /* bool hasPaymentProtection */ 22:
+                case /* bool hasPaymentProtection */ 24:
                     message.hasPaymentProtection = reader.bool();
                     break;
                 default:
@@ -3479,45 +3510,51 @@ class Transaction$Type extends MessageType<Transaction> {
         /* string foreignId = 9; */
         if (message.foreignId !== "")
             writer.tag(9, WireType.LengthDelimited).string(message.foreignId);
-        /* string title = 10; */
+        /* string receiverAccountId = 10; */
+        if (message.receiverAccountId !== "")
+            writer.tag(10, WireType.LengthDelimited).string(message.receiverAccountId);
+        /* string senderAccountId = 11; */
+        if (message.senderAccountId !== "")
+            writer.tag(11, WireType.LengthDelimited).string(message.senderAccountId);
+        /* string title = 12; */
         if (message.title !== "")
-            writer.tag(10, WireType.LengthDelimited).string(message.title);
-        /* string formattedAmount = 11; */
+            writer.tag(12, WireType.LengthDelimited).string(message.title);
+        /* string formattedAmount = 13; */
         if (message.formattedAmount !== "")
-            writer.tag(11, WireType.LengthDelimited).string(message.formattedAmount);
-        /* string formattedTime = 12; */
+            writer.tag(13, WireType.LengthDelimited).string(message.formattedAmount);
+        /* string formattedTime = 14; */
         if (message.formattedTime !== "")
-            writer.tag(12, WireType.LengthDelimited).string(message.formattedTime);
-        /* string formattedDate = 13; */
+            writer.tag(14, WireType.LengthDelimited).string(message.formattedTime);
+        /* string formattedDate = 15; */
         if (message.formattedDate !== "")
-            writer.tag(13, WireType.LengthDelimited).string(message.formattedDate);
-        /* string subtotal = 14; */
+            writer.tag(15, WireType.LengthDelimited).string(message.formattedDate);
+        /* string subtotal = 16; */
         if (message.subtotal !== "")
-            writer.tag(14, WireType.LengthDelimited).string(message.subtotal);
-        /* string fees = 15; */
+            writer.tag(16, WireType.LengthDelimited).string(message.subtotal);
+        /* string fees = 17; */
         if (message.fees !== "")
-            writer.tag(15, WireType.LengthDelimited).string(message.fees);
-        /* string accountTitle = 16; */
+            writer.tag(17, WireType.LengthDelimited).string(message.fees);
+        /* string accountTitle = 18; */
         if (message.accountTitle !== "")
-            writer.tag(16, WireType.LengthDelimited).string(message.accountTitle);
-        /* string reference = 17; */
+            writer.tag(18, WireType.LengthDelimited).string(message.accountTitle);
+        /* string reference = 19; */
         if (message.reference !== "")
-            writer.tag(17, WireType.LengthDelimited).string(message.reference);
-        /* string destinationIdentity = 18; */
+            writer.tag(19, WireType.LengthDelimited).string(message.reference);
+        /* string destinationIdentity = 20; */
         if (message.destinationIdentity !== "")
-            writer.tag(18, WireType.LengthDelimited).string(message.destinationIdentity);
-        /* string destinationIdentityType = 19; */
+            writer.tag(20, WireType.LengthDelimited).string(message.destinationIdentity);
+        /* string destinationIdentityType = 21; */
         if (message.destinationIdentityType !== "")
-            writer.tag(19, WireType.LengthDelimited).string(message.destinationIdentityType);
-        /* int32 refundState = 20; */
+            writer.tag(21, WireType.LengthDelimited).string(message.destinationIdentityType);
+        /* int32 refundState = 22; */
         if (message.refundState !== 0)
-            writer.tag(20, WireType.Varint).int32(message.refundState);
-        /* string paymentProtectionAmount = 21; */
+            writer.tag(22, WireType.Varint).int32(message.refundState);
+        /* string paymentProtectionAmount = 23; */
         if (message.paymentProtectionAmount !== "")
-            writer.tag(21, WireType.LengthDelimited).string(message.paymentProtectionAmount);
-        /* bool hasPaymentProtection = 22; */
+            writer.tag(23, WireType.LengthDelimited).string(message.paymentProtectionAmount);
+        /* bool hasPaymentProtection = 24; */
         if (message.hasPaymentProtection !== false)
-            writer.tag(22, WireType.Varint).bool(message.hasPaymentProtection);
+            writer.tag(24, WireType.Varint).bool(message.hasPaymentProtection);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3820,11 +3857,12 @@ class Payment$Type extends MessageType<Payment> {
             { no: 14, name: "receiverAmount", kind: "message", T: () => Amount },
             { no: 15, name: "totalSendAmount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 16, name: "receiverLinkedAccountCountryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 17, name: "formattedFees", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 17, name: "formattedFees", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 18, name: "receiverAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<Payment>): Payment {
-        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "", fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "" };
+        const message = { id: "", publicID: "", state: 0, receiverWalletUrl: "", receiverIdentity: "", receiverIdentityType: 0, senderAccount: "", note: "", requiredActions: [], hasPaymentProtection: false, paymentProtectionAmount: "", fxRate: "", totalSendAmount: "", receiverLinkedAccountCountryCode: "", formattedFees: "", receiverAccount: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<Payment>(this, message, value);
@@ -3889,6 +3927,9 @@ class Payment$Type extends MessageType<Payment> {
                     break;
                 case /* string formattedFees */ 17:
                     message.formattedFees = reader.string();
+                    break;
+                case /* string receiverAccount */ 18:
+                    message.receiverAccount = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3957,6 +3998,9 @@ class Payment$Type extends MessageType<Payment> {
         /* string formattedFees = 17; */
         if (message.formattedFees !== "")
             writer.tag(17, WireType.LengthDelimited).string(message.formattedFees);
+        /* string receiverAccount = 18; */
+        if (message.receiverAccount !== "")
+            writer.tag(18, WireType.LengthDelimited).string(message.receiverAccount);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

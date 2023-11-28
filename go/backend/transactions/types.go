@@ -13,6 +13,9 @@ const (
 	TransactionTypeOpenOutgoingPayment TransactionType = "open_payments_outgoing"
 	TransactionTypeIncoming            TransactionType = "incoming"
 	TransactionTypeOutgoing            TransactionType = "outgoing"
+	TransactionTypeWithdrawal          TransactionType = "withdrawal"
+	TransactionTypeTransfer            TransactionType = "transfer"
+	TransactionTypeDeposit             TransactionType = "desposit"
 )
 
 type State string

@@ -89,7 +89,7 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) *
 			break
 		}
 
-		res[i] = transformTransaction(tx)
+		res[i] = transformTransaction(tx, nil)
 	}
 
 	return &pb.ListTransactionsResponse{
@@ -98,7 +98,7 @@ func transformTransactions(txs []transactions.Transaction, page db.Pagination) *
 	}
 }
 
-func transformTransaction(tx transactions.Transaction) *pb.Transaction {
+func transformTransaction(tx transactions.Transaction, transfers []transactions.Transfer) *pb.Transaction {
 	amt := tx.Amount.Format()
 	subTotal := amt
 
@@ -121,7 +121,7 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 		subTotal = subTotalAmount.Format()
 	}
 
-	return &pb.Transaction{
+	ret := &pb.Transaction{
 		Id:                      tx.ID,
 		Type:                    string(tx.Type),
 		Amount:                  tx.Amount.ToPB(),
@@ -144,6 +144,20 @@ func transformTransaction(tx transactions.Transaction) *pb.Transaction {
 		HasPaymentProtection:    tx.PaymentProtectionFeePercentage != 0,
 		PaymentProtectionAmount: paymentProtection.Format(),
 	}
+
+	// only adding the send and receive accounts to withdrawals
+	if tx.Type == transactions.TransactionTypeWithdrawal {
+		for _, t := range transfers {
+			if t.Type == transactions.TransferTypeDebitBalance {
+				ret.SenderAccountId = t.LinkedAccountID
+			}
+			if t.Type == transactions.TransferTypeCreditBankAccount {
+				ret.ReceiverAccountId = t.LinkedAccountID
+			}
+		}
+	}
+
+	return ret
 }
 
 func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransactionRequest) (*pb.Transaction, error) {
@@ -162,5 +176,10 @@ func (s *rpcService) LookupTransaction(ctx context.Context, req *pb.LookupTransa
 		return nil, toGRPCError(err)
 	}
 
-	return transformTransaction(*tx), nil
+	transfers, err := s.b.Transactions().ListTransfers(ctx, tx.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformTransaction(*tx, transfers), nil
 }

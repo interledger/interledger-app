@@ -132,6 +132,7 @@ func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXa
 		ReceiverAmount:  currency.FromPB(req.Amount),
 		ReceiverAccount: toLA.ID,
 		Type:            payments.TypeWithdrawal,
+		Note:            req.GetNote(),
 	})
 	if err != nil {
 		return nil, toGRPCError(err)
