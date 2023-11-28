@@ -203,6 +203,7 @@ message WithdrawXagoBalanceRequest {
   string fromLinkedAccount = 1;
   string toLinkedAccount = 2;
   Amount amount = 3;
+  string note = 4;
 }
 
 message AddXagoBalanceAccountRequest {
@@ -257,21 +258,23 @@ message Transaction {
   google.protobuf.Timestamp timestamp = 6;
   string state = 7;
   string foreignId = 9;
+  string receiverAccountId = 10;
+  string senderAccountId = 11;
 
   // Display
-  string title = 10;
-  string formattedAmount = 11;
-  string formattedTime = 12;
-  string formattedDate = 13;
-  string subtotal = 14;
-  string fees = 15;
-  string accountTitle = 16;
-  string reference = 17;
-  string destinationIdentity = 18;
-  string destinationIdentityType = 19;
-  int32 refundState = 20; // NA , PENDING , COMPLETE
-  string paymentProtectionAmount = 21;
-  bool hasPaymentProtection = 22;
+  string title = 12;
+  string formattedAmount = 13;
+  string formattedTime = 14;
+  string formattedDate = 15;
+  string subtotal = 16;
+  string fees = 17;
+  string accountTitle = 18;
+  string reference = 19;
+  string destinationIdentity = 20;
+  string destinationIdentityType = 21;
+  int32 refundState = 22; // NA , PENDING , COMPLETE
+  string paymentProtectionAmount = 23;
+  bool hasPaymentProtection = 24;
 }
 
 message ListTransactionsResponse {
@@ -320,6 +323,7 @@ message Payment {
   string totalSendAmount = 15; // total debit amount
   string receiverLinkedAccountCountryCode = 16;
   string formattedFees = 17;
+  string receiverAccount = 18; // Linked account ID. Only populated on withdrawals
 }
 
 message CreatePaymentRequest {
