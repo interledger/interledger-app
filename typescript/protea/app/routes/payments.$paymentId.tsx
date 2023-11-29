@@ -53,10 +53,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       throw linkedAccountsResponse.error
     senderAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.senderAccountId
-    )?.nickname
+    )?.title
     recieverAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.receiverAccountId
-    )?.nickname
+    )?.title
   }
 
   const walletUrl = transaction.type.includes('outgoing')

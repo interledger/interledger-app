@@ -43,7 +43,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .filter((account) => account.type.includes('bank'))
     .map((account) => ({
       id: account.id,
-      name: account.nickname
+      name: account.title
     }))
 
   return jsonWithCSRF(request, {
@@ -94,7 +94,7 @@ export default function Page() {
             </CardIcon>
             <div className='flex flex-col space-y-4'>
               <p className='text-sm text-medium'>
-                To withdraw your balance, first connect a bank account.
+                To withdraw from your balance, first connect a bank account.
               </p>
               <Router
                 prefetch='render'
