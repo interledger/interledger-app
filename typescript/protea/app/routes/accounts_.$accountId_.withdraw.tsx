@@ -13,7 +13,10 @@ import {
   Button,
   Card,
   CardContent,
+  CardIcon,
+  Icon,
   Layouts,
+  Router,
   Select,
   TextField
 } from '~/components'
@@ -70,12 +73,8 @@ export function links() {
 }
 
 export default function Page() {
-  const { formattedAvailableBalance, linkedAccounts, csrfToken } =
-    useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
-  const params = useParams()
+  const { linkedAccounts } = useLoaderData<typeof loader>()
 
-  const [bank, setBank] = useState<SelectOptions>(linkedAccounts[0])
   const [setLoading] = useScaffoldStore((state) => [state.setLoading])
 
   useEffect(() => {
@@ -84,6 +83,42 @@ export default function Page() {
       setLoading(false)
     }
   }, [setLoading])
+
+  if (linkedAccounts.length === 0)
+    return (
+      <Card>
+        <CardContent>
+          <div className='flex items-start space-x-4'>
+            <CardIcon>
+              <Icon>account_balance</Icon>
+            </CardIcon>
+            <div className='flex flex-col space-y-4'>
+              <p className='text-sm text-medium'>
+                To withdraw your balance, first connect a bank account.
+              </p>
+              <Router
+                prefetch='render'
+                className='text-sm font-medium text-primary'
+                to={route('/accounts')}
+              >
+                Go to accounts page
+              </Router>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+
+  return <Amount />
+}
+
+const Amount = () => {
+  const { formattedAvailableBalance, linkedAccounts, csrfToken } =
+    useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
+  const params = useParams()
+
+  const [bank, setBank] = useState<SelectOptions>(linkedAccounts[0])
 
   return (
     <>
