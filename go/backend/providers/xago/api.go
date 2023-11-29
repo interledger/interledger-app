@@ -3,6 +3,7 @@ package xago
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 )
@@ -13,8 +14,9 @@ type Client interface {
 	CreateBeneficiary(ctx context.Context, bankAcc CreateBankAccountArgs) (Await, error)
 	CreateBalanceAccount(ctx context.Context, args CreateBalanceAccArgs) (Await, error)
 	CreateTransaction(ctx context.Context, args CreateTransactionArgs) (*Transaction, error)
+	LookupWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
 	GetBalance(ctx context.Context, linkedAccountID string) (*Balance, error)
-	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*Balance, error)
+	ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*Balance, error)
 	FinaliseReserve(ctx context.Context, txID string) error
 	RollbackReserve(ctx context.Context, txID string) error
 	AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*Balance, error)

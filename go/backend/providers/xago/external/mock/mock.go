@@ -83,6 +83,21 @@ func (mr *MockClientMockRecorder) CreateTransaction(ctx, amt, idempotencyKey, be
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, amt, idempotencyKey, beneficiaryID)
 }
 
+// GetWithdrawal mocks base method.
+func (m *MockClient) GetWithdrawal(ctx context.Context, id string) (*external.Withdrawal, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWithdrawal", ctx, id)
+	ret0, _ := ret[0].(*external.Withdrawal)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWithdrawal indicates an expected call of GetWithdrawal.
+func (mr *MockClientMockRecorder) GetWithdrawal(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawal", reflect.TypeOf((*MockClient)(nil).GetWithdrawal), ctx, id)
+}
+
 // ListDeposits mocks base method.
 func (m *MockClient) ListDeposits(ctx context.Context, page int) ([]external.Deposit, error) {
 	m.ctrl.T.Helper()
