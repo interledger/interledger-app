@@ -226,9 +226,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     toLinkedAccount: '',
     note: ''
   }
-  const mapping = {
-    withdrawAmount: 'Amount'
-  }
 
   const withdrawResponse = await grpc.withdrawXagoBalance(request, {
     fromLinkedAccount: params.accountId as string,
@@ -242,13 +239,31 @@ export async function action({ request, params }: ActionFunctionArgs) {
   })
   if (isConnectError(withdrawResponse)) {
     if (withdrawResponse.code == Code.InvalidArgument) {
-      return withdrawResponse.error({ errors }, mapping)
-    } else {
-      errors.form = 'Failed to create withdrawal.'
-      return withdrawResponse.error({ errors }, mapping, {
-        action: 'Contact support'
+      return withdrawResponse.error({ errors })
+    }
+    if (
+      withdrawResponse.code == Code.FailedPrecondition &&
+      withdrawResponse.violations.findIndex(
+        (violation) =>
+          violation.type === 'Payment' &&
+          violation.subject === 'insufficientFunds'
+      ) > -1
+    ) {
+      return withdrawResponse.error({
+        errors: {
+          ...errors,
+          withdrawAmount: 'You have insufficient funds available.'
+        }
       })
     }
+    errors.form = 'Failed to create withdrawal.'
+    return withdrawResponse.error(
+      { errors },
+      {},
+      {
+        action: 'Contact support'
+      }
+    )
   }
 
   return redirect(
