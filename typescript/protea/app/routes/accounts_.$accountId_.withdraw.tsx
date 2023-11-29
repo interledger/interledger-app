@@ -43,7 +43,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     .filter((account) => account.type.includes('bank'))
     .map((account) => ({
       id: account.id,
-      name: account.nickname
+      name: account.title
     }))
 
   return jsonWithCSRF(request, {
