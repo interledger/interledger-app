@@ -3,6 +3,8 @@ package ops
 import (
 	"context"
 	"errors"
+	"strings"
+	"time"
 
 	"gitlab.com/fynbos/backend/providers/xago"
 
@@ -257,6 +259,31 @@ func (a *Activity) LookupPayOutAccount(ctx context.Context, paymentID string) (*
 	return a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
 }
 
+func (a *Activity) CheckXagoWithdrawalComplete(ctx context.Context, paymentID, externalID string) (bool, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return false, err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return true, nil
+	}
+
+	wd, err := a.b.Xago().LookupWithdrawal(ctx, externalID)
+	if err != nil {
+		return false, err
+	}
+
+	if strings.EqualFold(wd.Status, "Success") {
+		return true, nil
+	}
+	if strings.EqualFold(wd.Status, "rejected") || strings.EqualFold(wd.Status, "errored") {
+		return false, temporal.NewNonRetryableApplicationError("withdrawal from xago failed", "external", nil, "status", wd.Status)
+	}
+
+	return false, nil
+}
+
 func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -267,7 +294,12 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 		return nil
 	}
 
-	_, err = a.b.Xago().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount)
+	timeout := time.Hour
+	if p.Type == payments.TypeWithdrawal {
+		timeout = time.Hour * 24 * 6 // 5-6 days for the withdrawal to process
+	}
+
+	_, err = a.b.Xago().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount, timeout)
 	if errors.Is(err, xago.ErrInsufficientBalance) {
 		return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
 	}

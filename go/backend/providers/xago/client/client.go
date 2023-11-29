@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"gitlab.com/fynbos/backend/email"
 
@@ -96,8 +97,8 @@ func (c *client) CreateBalanceAccount(ctx context.Context, args xago.CreateBalan
 	return ops.CreateBalanceAccount(ctx, c.b, args)
 }
 
-func (c *client) ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*xago.Balance, error) {
-	return ops.ReserveBalance(ctx, c.b, linkedAccountID, txID, amt)
+func (c *client) ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*xago.Balance, error) {
+	return ops.ReserveBalance(ctx, c.b, linkedAccountID, txID, amt, timeout)
 }
 
 func (c *client) FinaliseReserve(ctx context.Context, txID string) error {
@@ -110,4 +111,8 @@ func (c *client) RollbackReserve(ctx context.Context, txID string) error {
 
 func (c *client) AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*xago.Balance, error) {
 	return ops.AssignBalance(ctx, c.b, linkedAccountID, txID, amt)
+}
+
+func (c *client) LookupWithdrawal(ctx context.Context, id string) (*xago.Withdrawal, error) {
+	return ops.LookupWithdrawal(ctx, c.b, id)
 }

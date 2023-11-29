@@ -87,3 +87,9 @@ type Balance struct {
 	Total     currency.Amount
 	Available currency.Amount
 }
+
+type Withdrawal struct {
+	ID     string
+	Amount currency.Amount
+	Status string
+}

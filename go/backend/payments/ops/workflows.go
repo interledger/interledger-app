@@ -546,6 +546,21 @@ func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID 
 		return "", false, err
 	}
 
+	// Wait for the withdrawal to complete on Xago side, if it is a withdrawal
+	for {
+		var complete bool
+		err = workflow.ExecuteActivity(ctx, a.CheckXagoWithdrawalComplete, paymentID, externalTX).Get(ctx, &complete)
+		if err != nil {
+			return "", false, err
+		}
+
+		if complete {
+			break
+		}
+
+		_ = workflow.Sleep(ctx, time.Hour) // Check again in an hour
+	}
+
 	// Finalize the debit on the balance
 	err = workflow.ExecuteActivity(ctx, a.FinalizeBalance, paymentID).Get(ctx, nil)
 	if err != nil {

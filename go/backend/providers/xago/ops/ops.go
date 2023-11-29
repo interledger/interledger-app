@@ -165,6 +165,19 @@ func CreateBalanceAccount(ctx context.Context, b Backends, args xago.CreateBalan
 	return await.Get, nil
 }
 
+func LookupWithdrawal(ctx context.Context, b Backends, id string) (*xago.Withdrawal, error) {
+	w, err := b.External().GetWithdrawal(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
+	}
+
+	return &xago.Withdrawal{
+		ID:     w.ID,
+		Amount: currency.FromFloat64(w.Amount, currency.ParseCurrency(w.Currency)),
+		Status: w.Status,
+	}, nil
+}
+
 func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*xago.Balance, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {
@@ -190,7 +203,7 @@ func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*xago.
 	}, nil
 }
 
-func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount) (*xago.Balance, error) {
+func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*xago.Balance, error) {
 	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
@@ -215,7 +228,7 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 			CreditAccountID: opsAcc,
 			Pending:         true,
 			Code:            1,
-			Timeout:         uint64(time.Hour.Milliseconds()),
+			Timeout:         uint64(timeout.Milliseconds()),
 			Ledger:          ledger,
 		},
 	})
