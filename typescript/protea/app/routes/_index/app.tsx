@@ -227,24 +227,28 @@ export function AppPage() {
                       <Icon className='text-error'>exclamation</Icon>
                     )}
                     {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'wallet' && (
-                        <FynbosIcon />
-                      )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'Twitter' && (
-                        <TwitterIcon />
-                      )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'Discord' && (
-                        <DiscordIcon />
-                      )}
-                    {transaction.state != 'Pending' &&
-                      transaction.state != 'Failed' &&
-                      transaction.destinationIdentityType == 'Slack' && (
-                        <SlackIcon />
+                      transaction.state != 'Failed' && (
+                        <>
+                          {transaction.destinationIdentityType == 'wallet' && (
+                            <>
+                              {transaction.type != 'withdrawal' && (
+                                <FynbosIcon />
+                              )}
+                              {transaction.type == 'withdrawal' && (
+                                <Icon>south_west</Icon>
+                              )}
+                            </>
+                          )}
+                          {transaction.destinationIdentityType == 'Twitter' && (
+                            <TwitterIcon />
+                          )}
+                          {transaction.destinationIdentityType == 'Discord' && (
+                            <DiscordIcon />
+                          )}
+                          {transaction.destinationIdentityType == 'Slack' && (
+                            <SlackIcon />
+                          )}
+                        </>
                       )}
                     <div className='flex flex-col space-y-1'>
                       <span className='text-medium'>{transaction.title}</span>
