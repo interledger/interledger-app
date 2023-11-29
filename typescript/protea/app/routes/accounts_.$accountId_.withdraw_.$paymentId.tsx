@@ -3,7 +3,7 @@ import type {
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
-import { json, redirect } from '@remix-run/node'
+import { redirect } from '@remix-run/node'
 import { Form, useLoaderData, useParams } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
@@ -39,15 +39,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
   if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.error
-  const linkedAccount = linkedAccountsResponse.linkedAccounts.find(
-    (account) => account.id == payment.receiverAccount
-  )
-
-  // TODO We should probably rather fail this silently and just not show the account name - it shouldn't ever fail but shit happens
-  if (!linkedAccount) throw json({}, { status: 404 })
 
   return jsonWithCSRF(request, {
-    nickname: linkedAccount.nickname,
+    receiverAccountTitle: linkedAccountsResponse.linkedAccounts.find(
+      (account) => account.id == payment.receiverAccount
+    )?.title,
+    senderAccountTitle: linkedAccountsResponse.linkedAccounts.find(
+      (account) => account.id == params.accountId
+    )?.title,
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP)
   })
@@ -67,7 +66,8 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { payment, nickname, csrfToken } = useLoaderData<typeof loader>()
+  const { payment, receiverAccountTitle, senderAccountTitle, csrfToken } =
+    useLoaderData<typeof loader>()
   const params = useParams()
 
   return (
@@ -91,14 +91,14 @@ export default function Page() {
         <Label className='mt-2'>Withdraw to</Label>
         <div className='my-1 flex space-x-2 rounded-xl bg-nav p-3'>
           <Icon>account_balance</Icon>
-          <span>{nickname}</span>
+          <span>{receiverAccountTitle}</span>
         </div>
       </Card>
       <Card>
         <CardContent>
           <div className='flex w-full justify-between'>
             <span className='text-weak'>Withdraw from</span>
-            <span className='text-medium'>{nickname}</span>
+            <span className='text-medium'>{senderAccountTitle}</span>
           </div>
           <div className='mt-2 flex w-full justify-between'>
             <span className='text-weak'>Payment date</span>
