@@ -40,14 +40,12 @@ export const Error: FC<ErrorProps> = ({ status, statusText, data }) => {
         </div>
         <div className='col-span-full flex flex-grow flex-col items-start justify-center sm:col-span-6 sm:col-start-2 lg:col-start-4'>
           {status && (
-            <p className='font-display text-9xl font-medium text-medium'>
-              {status}
-            </p>
+            <p className='text-9xl font-medium text-medium'>{status}</p>
           )}
           {!status && <div className='h-32' />}
           <div className='sm:mt-12'>
             <div>
-              <h1 className='font-display text-4xl font-medium text-medium'>
+              <h1 className='text-4xl font-medium text-medium'>
                 {statusText || 'An error occurred'}
               </h1>
               {data?.title && <p className='mt-2 text-weak'>{data?.title}</p>}
