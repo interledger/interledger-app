@@ -796,14 +796,16 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			return err
 		}
 
+		txType := transactions.TransactionTypeOutgoing
 		var title string
 		if dbp.Type == payments.TypeWithdrawal {
 			title = "Bank Withdrawal"
+			txType = transactions.TransactionTypeWithdrawal
 		}
 		txID, err := b.Transactions().CreateTransactionTx(ctx, tx, transactions.CreateTransactionArgs{
 			WalletID:                       senderWallet.ID,
 			ForeignID:                      dbp.ID,
-			ForeignType:                    transactions.TransactionTypeOutgoing,
+			ForeignType:                    txType,
 			Provider:                       transactions.ProviderPaymentsEngine,
 			State:                          transactions.StatePending,
 			Note:                           dbp.Note,
