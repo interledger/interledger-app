@@ -228,7 +228,7 @@ func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID strin
 			CreditAccountID: opsAcc,
 			Pending:         true,
 			Code:            1,
-			Timeout:         uint64(timeout.Milliseconds()),
+			Timeout:         uint64(timeout),
 			Ledger:          ledger,
 		},
 	})
