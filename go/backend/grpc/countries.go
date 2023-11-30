@@ -18,10 +18,10 @@ func (s *rpcService) GetCountries(
 	}
 
 	sort.Slice(ret, func(i, j int) bool {
-		if country.Country(ret[i].Id) == country.US {
+		if country.Country(ret[i].Id) == country.US || country.Country(ret[i].Id) == country.ZA {
 			return true
 		}
-		if country.Country(ret[j].Id) == country.US {
+		if country.Country(ret[j].Id) == country.US || country.Country(ret[i].Id) == country.ZA {
 			return false
 		}
 		return ret[i].Name < ret[j].Name
