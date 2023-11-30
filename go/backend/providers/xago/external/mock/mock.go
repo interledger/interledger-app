@@ -69,18 +69,18 @@ func (mr *MockClientMockRecorder) CreateSubAccount(ctx, user, details, zaIDNum i
 }
 
 // CreateTransaction mocks base method.
-func (m *MockClient) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error) {
+func (m *MockClient) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTransaction", ctx, amt, idempotencyKey, beneficiaryID)
+	ret := m.ctrl.Call(m, "CreateTransaction", ctx, amt, idempotencyKey, beneficiaryID, reference)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateTransaction indicates an expected call of CreateTransaction.
-func (mr *MockClientMockRecorder) CreateTransaction(ctx, amt, idempotencyKey, beneficiaryID interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) CreateTransaction(ctx, amt, idempotencyKey, beneficiaryID, reference interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, amt, idempotencyKey, beneficiaryID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTransaction", reflect.TypeOf((*MockClient)(nil).CreateTransaction), ctx, amt, idempotencyKey, beneficiaryID, reference)
 }
 
 // GetWithdrawal mocks base method.

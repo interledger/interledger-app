@@ -30,7 +30,7 @@ import (
 type Client interface {
 	CreateSubAccount(ctx context.Context, user user.User, details kyc.IndividualDetails, zaIDNum string) (*SubAccount, error)
 	AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiaryReq) (*CreateBeneficiaryResp, error)
-	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error)
+	CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error)
 	ListDeposits(ctx context.Context, page int) ([]Deposit, error)
 	GetWithdrawal(ctx context.Context, id string) (*Withdrawal, error)
 }
@@ -366,10 +366,13 @@ func (c *client) AddBeneficiary(ctx context.Context, reqStruct CreateBeneficiary
 	return &respData, nil
 }
 
-func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error) {
+func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error) {
 	reqUrl, err := url.JoinPath(c.baseURL, "transactions", "transfer")
 	if err != nil {
 		return "", err
+	}
+	if reference == "" {
+		reference = "Fynbos"
 	}
 	reqStruct := CreateTransactionReq{
 		Values: []TransactionValues{
@@ -379,6 +382,7 @@ func (c *client) CreateTransaction(ctx context.Context, amt currency.Amount, ide
 				BeneficiaryID:   beneficiaryID,
 				IdempotencyKey:  idempotencyKey,
 				TransactionType: "transfer",
+				Reference:       reference,
 			},
 		},
 	}

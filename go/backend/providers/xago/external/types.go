@@ -117,6 +117,7 @@ type TransactionValues struct {
 	BeneficiaryID   string  `json:"beneficiaryId,omitempty"`
 	TransactionType string  `json:"transactionType,omitempty"`
 	IdempotencyKey  string  `json:"idempotencyKey,omitempty"`
+	Reference       string  `json:"reference"`
 }
 
 type Deposit struct {

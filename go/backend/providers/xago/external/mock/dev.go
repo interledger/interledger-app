@@ -21,7 +21,7 @@ func SetupDevMock(t *testing.T) *MockClient {
 	}
 	cl := NewMockClient(ctrl)
 
-	cl.EXPECT().CreateTransaction(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID string) (string, error) {
+	cl.EXPECT().CreateTransaction(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, amt currency.Amount, idempotencyKey, beneficiaryID, reference string) (string, error) {
 		if amt.Value == 666 {
 			return "", fmt.Errorf("failure to withdraw")
 		}

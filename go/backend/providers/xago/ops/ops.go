@@ -107,7 +107,7 @@ func CreateTransaction(ctx context.Context, b Backends, args xago.CreateTransact
 		return nil, fmt.Errorf("%w linked account not found", xago.ErrNotFound)
 	}
 
-	txID, err := b.External().CreateTransaction(ctx, args.Amount, args.TransactionID, la.ProviderID)
+	txID, err := b.External().CreateTransaction(ctx, args.Amount, args.TransactionID, la.ProviderID, args.Reference)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", xago.ErrInternal, err)
 	}
