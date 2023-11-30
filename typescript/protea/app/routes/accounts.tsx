@@ -19,7 +19,11 @@ import {
   Router,
   WalletGrid
 } from '~/components'
-import { getKycStatus, getLinkedAccounts } from '~/data/wallet.server'
+import {
+  getFeatures,
+  getKycStatus,
+  getLinkedAccounts
+} from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -35,8 +39,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (isConnectError(getXagoBalancesResponse))
     throw getXagoBalancesResponse.error
 
+  const features = await getFeatures(request)
+
   return json({
     kycStatus: kycStatus.kycStatus,
+    features,
     bankAccounts,
     cardAccounts,
     balanceAccounts,
@@ -69,6 +76,7 @@ export function links() {
 
 export default function Page() {
   const {
+    features,
     bankAccounts,
     cardAccounts,
     hasCard,
@@ -172,28 +180,30 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {kycStatus == KycStatus.Approved && !hasCard && (
-          <Card>
-            <CardContent>
-              <div className='flex items-start space-x-4'>
-                <CardIcon>
-                  <Icon>credit_card</Icon>
-                </CardIcon>
-                <div className='flex flex-col space-y-4'>
-                  <p className='text-sm text-medium'>
-                    Connect cards to easily send and receive payments.
-                  </p>
-                  <Router
-                    className='text-sm font-medium text-primary'
-                    to={route('/connect/card')}
-                  >
-                    Connect a card
-                  </Router>
+        {kycStatus == KycStatus.Approved &&
+          features.cardsEnabled &&
+          !hasCard && (
+            <Card>
+              <CardContent>
+                <div className='flex items-start space-x-4'>
+                  <CardIcon>
+                    <Icon>credit_card</Icon>
+                  </CardIcon>
+                  <div className='flex flex-col space-y-4'>
+                    <p className='text-sm text-medium'>
+                      Connect cards to easily send and receive payments.
+                    </p>
+                    <Router
+                      className='text-sm font-medium text-primary'
+                      to={route('/connect/card')}
+                    >
+                      Connect a card
+                    </Router>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          )}
         {bankAccounts && hasBank && (
           <Card>
             <CardHeader>
