@@ -17,17 +17,28 @@ func (s *rpcService) GetCountries(
 		ret = append(ret, &backendv1.Country{Id: c.String(), Name: details.Name})
 	}
 
-	sort.Slice(ret, func(i, j int) bool {
-		if country.Country(ret[i].Id) == country.US || country.Country(ret[i].Id) == country.ZA {
-			return true
+	var us, za *backendv1.Country
+	var filteredRet []*backendv1.Country
+	for _, c := range ret {
+		if c.Id == "US" {
+			us = c
+		} else if c.Id == "ZA" {
+			za = c
+		} else {
+			filteredRet = append(filteredRet, c)
 		}
-		if country.Country(ret[j].Id) == country.US || country.Country(ret[j].Id) == country.ZA {
-			return false
-		}
-		return ret[i].Name < ret[j].Name
+	}
+
+	// Sort the remaining countries
+	sort.Slice(filteredRet, func(i, j int) bool {
+		return filteredRet[i].Name < filteredRet[j].Name
 	})
 
+	// Prepend US and ZA in deterministic order
+	finalRet := []*backendv1.Country{us, za}
+	finalRet = append(finalRet, filteredRet...)
+
 	return &backendv1.GetCountriesResponse{
-		Countries: ret,
+		Countries: finalRet,
 	}, nil
 }
