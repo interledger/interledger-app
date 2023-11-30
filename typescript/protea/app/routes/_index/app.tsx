@@ -355,7 +355,7 @@ function CTACards() {
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
-                    to={route('/connect/bank')}
+                    to={route('/connect/bank/za')}
                   >
                     Connect a bank account
                   </Router>
