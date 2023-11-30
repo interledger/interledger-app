@@ -21,7 +21,7 @@ func (s *rpcService) GetCountries(
 		if country.Country(ret[i].Id) == country.US || country.Country(ret[i].Id) == country.ZA {
 			return true
 		}
-		if country.Country(ret[j].Id) == country.US || country.Country(ret[i].Id) == country.ZA {
+		if country.Country(ret[j].Id) == country.US || country.Country(ret[j].Id) == country.ZA {
 			return false
 		}
 		return ret[i].Name < ret[j].Name
