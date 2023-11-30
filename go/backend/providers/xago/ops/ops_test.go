@@ -35,13 +35,14 @@ func TestCreateTransaction(t *testing.T) {
 		LinkedAccountID: uuid.NewString(),
 		TransactionID:   uuid.NewString(),
 		Amount:          currency.FromFloat64(10.2, currency.ZAR),
+		Reference:       "MagicRef",
 	}
 
 	la.EXPECT().Get(ctx, args.LinkedAccountID).Return(&linkedaccounts.LinkedAccount{WalletID: args.WalletID, ProviderID: uuid.NewString(), ID: args.LinkedAccountID}, nil)
 
 	externalID := uuid.NewString()
 
-	ex.EXPECT().CreateTransaction(ctx, gomock.Any(), args.TransactionID, gomock.Any()).Return(externalID, nil)
+	ex.EXPECT().CreateTransaction(ctx, gomock.Any(), args.TransactionID, gomock.Any(), "MagicRef").Return(externalID, nil)
 
 	tx, err := ops.CreateTransaction(ctx, b, args)
 	require.NoError(t, err)

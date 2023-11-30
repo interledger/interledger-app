@@ -66,6 +66,7 @@ type CreateTransactionArgs struct {
 	LinkedAccountID string
 	TransactionID   string
 	Amount          currency.Amount
+	Reference       string
 }
 
 type CreateBalanceAccArgs struct {
