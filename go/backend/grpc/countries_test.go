@@ -21,4 +21,5 @@ func TestGetCountries(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, rpc.Countries, 250)
 	assert.Equal(t, country.US.String(), rpc.Countries[0].Id)
+	assert.Equal(t, country.ZA.String(), rpc.Countries[1].Id)
 }
