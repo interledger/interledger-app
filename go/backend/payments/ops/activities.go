@@ -294,10 +294,7 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 		return nil
 	}
 
-	timeout := time.Hour
-	if p.Type == payments.TypeWithdrawal {
-		timeout = time.Hour * 24 * 6 // 5-6 days for the withdrawal to process
-	}
+	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
 
 	_, err = a.b.Xago().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount, timeout)
 	if errors.Is(err, xago.ErrInsufficientBalance) {
