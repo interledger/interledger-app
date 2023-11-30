@@ -154,6 +154,22 @@ func TestFeatures(t *testing.T) {
 				AddCardsEnabled:   false,
 			},
 		},
+		{
+			name:      "KYC ZA",
+			KycStatus: kyc.StatusLevel1,
+			numCards:  4,
+			id:        &kyc.IndividualDetails{CountryCode: "ZA"},
+			feats: &features.WalletFeatures{
+				IdentitiesEnabled: true,
+				TwitterEnabled:    true,
+				ReceiveEnabled:    true,
+				LinkedAccEnabled:  true,
+				BanksEnabled:      true,
+				CardsEnabled:      false,
+				SendEnabled:       true,
+				AddCardsEnabled:   false,
+			},
+		},
 	}
 
 	for _, tc := range cases {
