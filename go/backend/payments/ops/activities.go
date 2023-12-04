@@ -371,5 +371,13 @@ func (a *Activity) CheckReceiverLimits(ctx context.Context, paymentID string) er
 	}
 
 	_, err = a.b.Wallets().SetExceededLimits(ctx, w.ID, exceeded)
-	return err
+	if err != nil {
+		return err
+	}
+
+	if exceeded {
+		a.b.Email().SendLimitsExceededEmail(ctx, w.ID)
+	}
+
+	return nil
 }
