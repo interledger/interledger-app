@@ -56,3 +56,7 @@ func (c client) AddAddress(ctx context.Context, id, address string) (*wallets.Wa
 func (c client) SetCountry(ctx context.Context, id string, country country.Country) (*wallets.Wallet, error) {
 	return ops.SetCountry(ctx, c.b, id, country)
 }
+
+func (c client) SetExceededLimits(ctx context.Context, id string, exceeded bool) (*wallets.Wallet, error) {
+	return ops.SetExceededLimits(ctx, c.b, id, exceeded)
+}

@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/log"
+	"go.uber.org/zap"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/kyc"
@@ -296,6 +299,44 @@ func ExceedsGMTLimits(ctx context.Context, b Backends, walletID string, amount c
 }
 
 func ExceedsKYCLimits(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
+	switch amount.Currency {
+	case currency.USD:
+		return exceedsKYCLimitsUSD(ctx, b, walletID, amount)
+	case currency.ZAR:
+		return exceedsKYCLimitsZAR(ctx, b, walletID, amount)
+	default:
+		log.Warn("Unknown currency to apply limits to", zap.String("currency", amount.Currency.String()))
+	}
+	return false, "", nil
+}
+
+func exceedsKYCLimitsZAR(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
+	const limitYear uint64 = 20_000_00 // R20k limit for the year
+
+	if amount.Value > limitYear {
+		return true, limits.LimitTypeYearly, nil
+	}
+
+	var used sql.NullInt64
+	err := b.DB().GetContext(ctx, &used, "SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4) AND asset_code='ZAR' AND type NOT IN ($5, $6)",
+		walletID, time.Now().Add(time.Hour*-24*365), transactions.StatePending, transactions.StateCompleted, transactions.TransactionTypeDeposit, transactions.TransactionTypeWithdrawal)
+	if err != nil {
+		return false, "", fmt.Errorf("%w %s", limits.ErrInternal, err)
+	}
+
+	// The user has no transactions
+	if !used.Valid {
+		return false, "", nil
+	}
+
+	if uint64(used.Int64)+amount.Value >= limitYear {
+		return true, limits.LimitTypeYearly, nil
+	}
+
+	return false, "", nil
+}
+
+func exceedsKYCLimitsUSD(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
 	// Only supporting L1 Limits for now:
 	// Transaction 	$   250.00
 	// 24-Hour    	$ 2,999.00
@@ -327,7 +368,7 @@ func ExceedsKYCLimits(ctx context.Context, b Backends, walletID string, amount c
 		return true, limits.LimitTypeTransaction, nil
 	}
 
-	stmt, err := b.DB().PreparexContext(ctx, "SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4)")
+	stmt, err := b.DB().PreparexContext(ctx, "SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4) AND asset_code='USD'")
 	if err != nil {
 		return false, "", fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}
@@ -370,5 +411,4 @@ func ExceedsKYCLimits(ctx context.Context, b Backends, walletID string, amount c
 	}
 
 	return false, "", nil
-
 }

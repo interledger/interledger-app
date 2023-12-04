@@ -846,6 +846,11 @@ table "wallets" {
     type = text
     default = ""
   }
+  column "exceeded_limits" {
+    null = false
+    type = boolean
+    default = false
+  }
   column "created_at" {
     null    = false
     type    = timestamp

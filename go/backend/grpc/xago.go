@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/limits"
+
 	"gitlab.com/fynbos/backend/payments"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -124,10 +126,28 @@ func (s *rpcService) WithdrawXagoBalance(ctx context.Context, req *pb.WithdrawXa
 		return nil, NotFoundError("to linked account not found for xago")
 	}
 
+	amt := currency.FromPB(req.Amount)
+
+	// check that does not exceed kyc limits.
+	exceedsLimits, limitType, err := s.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromUInt64(0, amt.Currency))
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+	if exceedsLimits {
+		var description string
+		switch limitType {
+		case limits.LimitTypeYearly:
+			description = "Exceeds yearly limit."
+		default:
+			description = "Exceeds account limit."
+		}
+		return nil, NewValidationError("amount", description)
+	}
+
 	p, err := s.b.Payments().Create(ctx, payments.CreateArgs{
 		Sender:          payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: w.ID},
 		Receiver:        payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: w.ID},
-		SenderAmount:    currency.FromPB(req.Amount),
+		SenderAmount:    amt,
 		SenderAccount:   fromLA.ID,
 		ReceiverAmount:  currency.FromPB(req.Amount),
 		ReceiverAccount: toLA.ID,

@@ -29,4 +29,5 @@ const (
 	LimitTypeDaily       LimitType = "LimitDaily"
 	LimitTypeMonthly     LimitType = "LimitMonthly"
 	LimitType6Monthly    LimitType = "Limit6Monthly"
+	LimitTypeYearly      LimitType = "LimitYearly"
 )

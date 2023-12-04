@@ -395,6 +395,7 @@ message WalletInfo {
   bool hasTransacted = 7;
   bool hasWalletAddress = 8;
   bool hasBalances = 9;
+  bool exceededLimits = 10;
 }
 
 message Features {

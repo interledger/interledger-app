@@ -536,6 +536,11 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		return err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.CheckReceiverLimits, paymentID).Get(ctx, nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

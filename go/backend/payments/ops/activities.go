@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -350,4 +352,24 @@ func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error 
 	}
 
 	return a.b.Xago().RollbackReserve(ctx, p.SendTransactionID)
+}
+
+func (a *Activity) CheckReceiverLimits(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	w, err := lookupWallet(ctx, a.b, p.Receiver)
+	if err != nil {
+		return err
+	}
+
+	exceeded, _, err := a.b.Limits().ExceedsKYCLimits(ctx, w.ID, currency.FromUInt64(0, p.ReceiverAmount.Currency))
+	if err != nil {
+		return err
+	}
+
+	_, err = a.b.Wallets().SetExceededLimits(ctx, w.ID, exceeded)
+	return err
 }

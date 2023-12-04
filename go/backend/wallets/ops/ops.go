@@ -140,7 +140,7 @@ func GetFromAddress(ctx context.Context, b Backends, url string) (*wallets.Walle
 func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 	var wallet wallets.Wallet
 	err := b.DB().GetContext(ctx, &wallet,
-		"SELECT id, name, country FROM wallets WHERE id=$1", id)
+		"SELECT id, name, country, exceeded_limits FROM wallets WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, wallets.ErrNoWalletFound
 	}
@@ -161,7 +161,7 @@ func Get(ctx context.Context, b Backends, id string) (*wallets.Wallet, error) {
 
 func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, error) {
 	var wl []wallets.Wallet
-	err := b.DB().SelectContext(ctx, &wl, "SELECT w.id, w.name, w.country FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1", userID)
+	err := b.DB().SelectContext(ctx, &wl, "SELECT w.id, w.name, w.country, w.exceeded_limits FROM wallets w INNER JOIN user_wallets uw ON w.id = uw.wallet_id WHERE user_id=$1", userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -184,7 +184,7 @@ func List(ctx context.Context, b Backends, userID string) ([]wallets.Wallet, err
 
 func ListAll(ctx context.Context, b Backends, _ db.Pagination) ([]wallets.Wallet, error) {
 	var wl []wallets.Wallet
-	err := b.DB().SelectContext(ctx, &wl, "SELECT id, name, country FROM wallets ")
+	err := b.DB().SelectContext(ctx, &wl, "SELECT id, name, country, exceeded_limits FROM wallets ")
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -221,6 +221,15 @@ func SetCountry(ctx context.Context, b Backends, id string, country country.Coun
 	}
 	if rows, _ := result.RowsAffected(); rows < 1 {
 		return nil, wallets.ErrNoWalletFound
+	}
+
+	return Get(ctx, b, id)
+}
+
+func SetExceededLimits(ctx context.Context, b Backends, id string, exceeded bool) (*wallets.Wallet, error) {
+	_, err := b.DB().ExecContext(ctx, "UPDATE wallets SET exceeded_limits=$1 WHERE id=$2", exceeded, id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", wallets.ErrInternal, err)
 	}
 
 	return Get(ctx, b, id)
