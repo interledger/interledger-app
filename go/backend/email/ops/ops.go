@@ -333,3 +333,33 @@ func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, 
 		log.Error("Failed to send deposit received email.", zap.Error(err), zap.String("walletID", walletID))
 	}
 }
+
+func SendLimitsExceededEmail(ctx context.Context, b Backends, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send deposit received email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	support, err := url.JoinPath(env.GetUrl(), "support")
+	if err != nil {
+		log.Error("Failed to send limits exceeded email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Limits Exceeded", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "Limits Exceeded",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "The limits on your account have been exceeded"},
+			{"paragraph": "A recent transaction has exceeded the limits on your account. Please contact support to provide additional documentation."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Contact support",
+			"url":  support,
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send deposit received email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
