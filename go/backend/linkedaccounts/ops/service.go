@@ -103,9 +103,10 @@ func Create(ctx context.Context, b Backends, args *linkedaccounts.CreateArgs) (*
 
 	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":credit_card: Linked Account Created\nName: %s\nProvider: %s\nLink: %s", args.Name, args.Provider, env.AdminURL()+"/wallet/"+args.WalletID+"/linked-accounts"))
 
-	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired {
+	isBalanceAccount := linkedAccount.Provider == xago.ProviderName && linkedAccount.Type == xago.AccTypeBalance
+	if linkedAccount.State == linkedaccounts.OwnershipReviewRequired && !isBalanceAccount {
 		b.Email().SendConnectedAccountDocumentsNeededEmail(ctx, args.WalletID)
-	} else if linkedAccount.State == linkedaccounts.Verified {
+	} else if linkedAccount.State == linkedaccounts.Verified && !isBalanceAccount {
 		b.Email().SendConnectedAccountEmail(ctx, linkedAccount)
 	}
 
