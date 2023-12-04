@@ -14,7 +14,6 @@ import { Image } from 'react-datocms'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
 import {
-  AnchorRouter,
   Button,
   ButtonRouter,
   Card,
@@ -30,15 +29,14 @@ import {
   FynbosIcon,
   Icon,
   Layouts,
-  LinkedInIcon,
   Router,
   SlackIcon,
   TwitterIcon
 } from '~/components'
 import { Label } from '~/components/Label'
-import { getPerson } from '~/data/content.server'
 import { getPublicIdentities } from '~/data/identity.server'
 import { getPublicWalletDetails } from '~/data/wallet.server'
+import type { Query } from '~/generated/dato-cms-graphql'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
@@ -47,17 +45,8 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const walletAddressParam = params['*'] as string
-  let profilePicture = null
-
-  if (walletAddressParam.includes('fynbos.me/adrian')) {
-    profilePicture = await getPerson({
-      filter: { name: { eq: 'Adrian' } }
-    })
-  }
-  if (walletAddressParam.includes('fynbos.me/matt')) {
-    profilePicture = await getPerson({
-      filter: { name: { eq: 'Matt' } }
-    })
+  let profilePicture: { person: Query['person'] } | { person: null } = {
+    person: null
   }
 
   const response = await grpc.getPublicWalletInfo(request, {
@@ -121,12 +110,12 @@ export default function Page() {
       <Card>
         <CardContent>
           <div className='flex w-full items-center justify-center'>
-            {profilePicture && (
+            {profilePicture.person && (
               <Image
                 pictureClassName='m-0'
                 className='aspect-square'
                 data={
-                  profilePicture?.person?.avatar
+                  profilePicture.person?.avatar
                     ?.responsiveImage as ResponsiveImageType
                 }
               />
@@ -277,40 +266,6 @@ export default function Page() {
                 </div>
               </CardLink>
             ))}
-          </>
-        )}
-        {paymentPointerParam.includes('fynbos.me/adrian') && (
-          <>
-            <Label className='mt-4'>LinkedIn</Label>
-            <AnchorRouter
-              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-              to='https://www.linkedin.com/in/adrianhopebailie/'
-            >
-              <div className='flex space-x-3'>
-                <LinkedInIcon />
-                <span>Adrian Hope-Bailie</span>
-              </div>
-              <div className='flex space-x-3'>
-                <Icon>navigate_next</Icon>
-              </div>
-            </AnchorRouter>
-          </>
-        )}
-        {paymentPointerParam.includes('fynbos.me/matt') && (
-          <>
-            <Label className='mt-4'>LinkedIn</Label>
-            <AnchorRouter
-              className='mt-2 flex items-center justify-between rounded-xl bg-nav p-3 text-medium hover:bg-nav-hover'
-              to='https://www.linkedin.com/in/matthew-de-haast-aa448884/'
-            >
-              <div className='flex space-x-3'>
-                <LinkedInIcon />
-                <span>Matthew de Haast</span>
-              </div>
-              <div className='flex space-x-3'>
-                <Icon>navigate_next</Icon>
-              </div>
-            </AnchorRouter>
           </>
         )}
       </Card>
