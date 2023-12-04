@@ -401,5 +401,6 @@ func (a *Activity) AddBeneficiaryLinkedAccount(ctx context.Context, walletID, id
 		SendCurrency:    cc,
 		ReceiveCountry:  nation,
 		ReceiveCurrency: cc,
+		ReceiveNetwork:  b.BankName,
 	})
 }

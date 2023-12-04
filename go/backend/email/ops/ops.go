@@ -15,6 +15,7 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
@@ -129,38 +130,23 @@ func SendConnectedAccountEmail(ctx context.Context, b Backends, la linkedaccount
 	}
 
 	var table []map[string]interface{}
-	var capabilities []string
 	if la.Provider == tabapay.ProviderName {
 		table = append(table, map[string]interface{}{
 			"label": "Card ending",
 			"text":  strings.ReplaceAll(la.Mask, "*", ""),
 		})
-		capabilities = append(capabilities, "This card")
 	} else if la.Provider == mx.ProviderName {
 		table = append(table, map[string]interface{}{
 			"label": "Account ending",
 			"text":  strings.ReplaceAll(la.Mask, "*", ""),
 		})
-		capabilities = append(capabilities, "This account")
-	}
-
-	if la.CanReceive && !la.CanSend {
-		capabilities = append(capabilities, "is enabled to receive payments, but unable to send payments.")
+	} else if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {
 		table = append(table, map[string]interface{}{
-			"label": "Capabilities",
-			"text":  strings.Join(capabilities, " "),
-		})
-	} else if la.CanSend && !la.CanReceive {
-		capabilities = append(capabilities, "is enabled to send payments, but unable to receive payments.")
-		table = append(table, map[string]interface{}{
-			"label": "Capabilities",
-			"text":  strings.Join(capabilities, " "),
-		})
-	} else if la.CanSend && la.CanReceive {
-		capabilities = append(capabilities, "is enabled to send and receive payments.")
-		table = append(table, map[string]interface{}{
-			"label": "Capabilities",
-			"text":  strings.Join(capabilities, " "),
+			"label": "Institution",
+			"text":  la.ReceiveNetwork,
+		}, map[string]interface{}{
+			"label": "Account number",
+			"text":  la.Mask,
 		})
 	}
 
