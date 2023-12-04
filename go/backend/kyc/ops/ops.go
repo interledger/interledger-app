@@ -8,7 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/country"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/notify"
+	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/backend/slack"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -210,12 +215,37 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 
 		// we don't send out approved email if user moves from kyc level 1 to kyc level 2
 	} else if old != kyc.StatusLevel1 && old != kyc.StatusLevel2 && (status == kyc.StatusLevel1 || status == kyc.StatusLevel2) {
-		b.Email().SendApplicationApprovedEmail(ctx, walletID)
+		onKYCApproved(ctx, b, walletID)
 	} else if old != kyc.StatusInReview && status == kyc.StatusInReview {
 		b.Email().SendApplicationPendingEmail(ctx, walletID)
 	}
 
 	return nil
+}
+
+func onKYCApproved(ctx context.Context, b Backends, walletID string) {
+	b.Email().SendApplicationApprovedEmail(ctx, walletID)
+
+	w, err := b.Wallets().Get(ctx, walletID)
+	if err != nil {
+		log.Error("Unhandled KYC approved", zap.String("walletID", walletID), zap.Error(err))
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("Unhandled KYC approved. %s/wallet/%s/profile", env.AdminURL(), walletID))
+		return
+	}
+
+	if w.Country != country.ZA {
+		return
+	}
+	c := currency.ZAR
+	_, err = b.Xago().CreateBalanceAccount(ctx, xago.CreateBalanceAccArgs{
+		WalletID: w.ID,
+		Nickname: "ZAR Balance",
+		Title:    "ZAR Balance",
+		Currency: c,
+	})
+	if err != nil {
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("Failed to create ZAR balance for wallet. %s/wallet/%s/profile", env.AdminURL(), walletID))
+	}
 }
 
 func GetKYCStatus(ctx context.Context, b Backends, walletID string) (kyc.Status, error) {
