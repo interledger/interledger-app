@@ -331,12 +331,27 @@ func TestExceedsKYCLimits(t *testing.T) {
 			expectLimitType:    limits.LimitTypeTransaction,
 			kycLevel:           kyc.StatusUnknown,
 		},
+		{
+			name: "exceeds ZAR yearly limits",
+			tx: &transactions.CreateTransactionArgs{
+				State:       transactions.StateCompleted,
+				Source:      "https://fynbos.me/alice2",
+				Destination: "https://fynbos.me/bob2",
+				Amount:      currency.FromFloat64(20_000, currency.ZAR),
+				Provider:    "test",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			},
+			amnt:               currency.FromFloat64(99, currency.ZAR),
+			expectExceedsLimit: true,
+			expectLimitType:    limits.LimitTypeYearly,
+			kycLevel:           kyc.StatusLevel1,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			walletID := uuid.NewString()
-			b.kyc.EXPECT().GetKYCStatus(gomock.Any(), walletID).Return(tc.kycLevel, nil)
+			b.kyc.EXPECT().GetKYCStatus(gomock.Any(), walletID).Return(tc.kycLevel, nil).AnyTimes()
 
 			if tc.tx != nil {
 				tc.tx.WalletID = walletID

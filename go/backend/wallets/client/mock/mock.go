@@ -157,6 +157,21 @@ func (mr *MockClientMockRecorder) SetCountry(ctx, id, country interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetCountry", reflect.TypeOf((*MockClient)(nil).SetCountry), ctx, id, country)
 }
 
+// SetExceededLimits mocks base method.
+func (m *MockClient) SetExceededLimits(ctx context.Context, id string, exceeded bool) (*wallets.Wallet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetExceededLimits", ctx, id, exceeded)
+	ret0, _ := ret[0].(*wallets.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetExceededLimits indicates an expected call of SetExceededLimits.
+func (mr *MockClientMockRecorder) SetExceededLimits(ctx, id, exceeded interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetExceededLimits", reflect.TypeOf((*MockClient)(nil).SetExceededLimits), ctx, id, exceeded)
+}
+
 // SetWalletName mocks base method.
 func (m *MockClient) SetWalletName(ctx context.Context, id, name string) (*wallets.Wallet, error) {
 	m.ctrl.T.Helper()

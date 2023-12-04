@@ -145,6 +145,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 			IPAddress: "198.0.0.1",
 		}, nil
 	}).AnyTimes()
+	kc.EXPECT().GetKYCStatus(gomock.Any(), gomock.Any()).Return(kyc.StatusLevel1, nil).AnyTimes()
 
 	b.kyc = kc
 

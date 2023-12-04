@@ -15,7 +15,7 @@ const (
 	TransactionTypeOutgoing            TransactionType = "outgoing"
 	TransactionTypeWithdrawal          TransactionType = "withdrawal"
 	TransactionTypeTransfer            TransactionType = "transfer"
-	TransactionTypeDeposit             TransactionType = "desposit"
+	TransactionTypeDeposit             TransactionType = "deposit"
 )
 
 type State string

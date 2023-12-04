@@ -161,6 +161,8 @@ func (s *rpcService) CreatePayment(ctx context.Context, req *pb.CreatePaymentReq
 			description = "Exceeds monthly limit."
 		case limits.LimitType6Monthly:
 			description = "Exceeds 6 monthly limit."
+		case limits.LimitTypeYearly:
+			description = "Exceeds yearly limit."
 		default:
 			description = "Exceeds account limit."
 		}
@@ -246,6 +248,8 @@ func (s *rpcService) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReq
 				description = "Exceeds monthly limit."
 			case limits.LimitType6Monthly:
 				description = "Exceeds 6 monthly limit."
+			case limits.LimitTypeYearly:
+				description = "Exceeds yearly limit."
 			default:
 				description = "Exceeds account limit."
 			}
@@ -349,6 +353,8 @@ func (s *rpcService) ConfirmPayment(ctx context.Context, req *pb.ConfirmPaymentR
 			description = "Exceeds monthly limit."
 		case limits.LimitType6Monthly:
 			description = "Exceeds 6 monthly limit."
+		case limits.LimitTypeYearly:
+			description = "Exceeds yearly limit."
 		default:
 			description = "Exceeds account limit."
 		}

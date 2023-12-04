@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/fynbos/backend/limits"
+
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/rafiki"
@@ -132,6 +134,10 @@ type backends struct {
 	img            images.Client
 	walletImpl     wallets.Client
 	pay            payments.Client
+}
+
+func (b *backends) Limits() limits.Client {
+	return nil
 }
 
 func (b *backends) Xago() xago.Client {

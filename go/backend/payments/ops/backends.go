@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/limits"
+
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/rafiki"
@@ -40,6 +42,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Rafiki() rafiki.Client
 	Xago() xago.Client
+	Limits() limits.Client
 }
 
 type TestBackends struct {
@@ -54,6 +57,10 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Tbp *tabapay_mock.MockClient
+}
+
+func (t TestBackends) Limits() limits.Client {
+	return nil
 }
 
 func (t TestBackends) Xago() xago.Client {

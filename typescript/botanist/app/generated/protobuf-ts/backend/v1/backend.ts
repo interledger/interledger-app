@@ -766,6 +766,10 @@ export interface WalletInfo {
      * @generated from protobuf field: bool hasBalances = 9;
      */
     hasBalances: boolean;
+    /**
+     * @generated from protobuf field: bool exceededLimits = 10;
+     */
+    exceededLimits: boolean;
 }
 /**
  * @generated from protobuf message backend.v1.Features
@@ -4588,11 +4592,12 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
             { no: 6, name: "hasIdentities", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "hasTransacted", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 8, name: "hasWalletAddress", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
-            { no: 9, name: "hasBalances", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 9, name: "hasBalances", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 10, name: "exceededLimits", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<WalletInfo>): WalletInfo {
-        const message = { walletID: "", url: "", formattedURL: "", hasCard: false, hasBank: false, hasIdentities: false, hasTransacted: false, hasWalletAddress: false, hasBalances: false };
+        const message = { walletID: "", url: "", formattedURL: "", hasCard: false, hasBank: false, hasIdentities: false, hasTransacted: false, hasWalletAddress: false, hasBalances: false, exceededLimits: false };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<WalletInfo>(this, message, value);
@@ -4629,6 +4634,9 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
                     break;
                 case /* bool hasBalances */ 9:
                     message.hasBalances = reader.bool();
+                    break;
+                case /* bool exceededLimits */ 10:
+                    message.exceededLimits = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -4669,6 +4677,9 @@ class WalletInfo$Type extends MessageType<WalletInfo> {
         /* bool hasBalances = 9; */
         if (message.hasBalances !== false)
             writer.tag(9, WireType.Varint).bool(message.hasBalances);
+        /* bool exceededLimits = 10; */
+        if (message.exceededLimits !== false)
+            writer.tag(10, WireType.Varint).bool(message.exceededLimits);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

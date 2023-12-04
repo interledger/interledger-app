@@ -107,7 +107,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			ID:                      hook.TransactionID,
 			WalletID:                acc.WalletID,
 			ForeignID:               hook.TransactionID,
-			ForeignType:             transactions.TransactionTypeIncoming,
+			ForeignType:             transactions.TransactionTypeDeposit,
 			Provider:                transactions.ProviderXago,
 			State:                   transactions.StateCompleted,
 			Note:                    "Deposit received",

@@ -20,10 +20,11 @@ type CreateArgs struct {
 }
 
 type Wallet struct {
-	ID        string
-	Name      string
-	Addresses []Address
-	Country   country.Country
+	ID             string `db:"id"`
+	Name           string `db:"name"`
+	Addresses      []Address
+	Country        country.Country `db:"country"`
+	ExceededLimits bool            `db:"exceeded_limits"`
 }
 
 func (w Wallet) AddressShortString() string {

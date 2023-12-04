@@ -170,6 +170,7 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		WalletID:         w.ID,
 		Url:              w.AddressString(),
 		FormattedURL:     w.AddressShortString(),
+		ExceededLimits:   w.ExceededLimits,
 		HasCard:          hasCard,
 		HasBank:          hasBank,
 		HasIdentities:    hasIdentities,

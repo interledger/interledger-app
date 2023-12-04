@@ -174,7 +174,7 @@ func (a *Activity) CreateDepositTransactions(ctx context.Context, deposits []ext
 				ID:                      dep.TransactionID,
 				WalletID:                acc.WalletID,
 				ForeignID:               dep.TransactionID,
-				ForeignType:             transactions.TransactionTypeIncoming,
+				ForeignType:             transactions.TransactionTypeDeposit,
 				Provider:                transactions.ProviderXago,
 				State:                   transactions.StateCompleted,
 				Note:                    "Deposit received",
