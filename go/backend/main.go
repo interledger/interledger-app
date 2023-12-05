@@ -111,6 +111,8 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	astra "gitlab.com/fynbos/backend/providers/astra/ops"
 )
 
 func main() {
@@ -188,6 +190,7 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 	router.Handle("/webhooks/slack/bot/install", b.slack.BotInstallWebhook())
+	router.Handle("/webhooks/astra/wallet/{id}", astra.GetTrustedAuthenticationInfo(b))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
 	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
 

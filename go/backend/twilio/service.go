@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/twilio/twilio-go"
@@ -27,6 +28,7 @@ type (
 	Service interface {
 		SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error)
 		CheckVerificationCode(ctx context.Context, args *CheckVerificationCodeArgs) (*Verification, error)
+		ListSuccessfulVerificationAttempts(ctx context.Context, args ListSuccessfulVerificationAttemptsArgs) ([]Verification, error)
 	}
 
 	ServiceArgs struct {
@@ -46,6 +48,7 @@ type (
 		Sid         string
 		PhoneNumber string
 		Status      string
+		UpdatedAt   time.Time
 	}
 )
 
@@ -108,10 +111,15 @@ func (s *service) SendVerificationCode(ctx context.Context, phoneNumber string) 
 		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
 	}
 
+	var updatedAt time.Time
+	if res.DateUpdated != nil {
+		updatedAt = *res.DateUpdated
+	}
 	return &Verification{
 		Sid:         *res.Sid,
 		PhoneNumber: *res.To,
 		Status:      *res.Status,
+		UpdatedAt:   updatedAt,
 	}, nil
 }
 
@@ -157,4 +165,68 @@ func (s *service) CheckVerificationCode(ctx context.Context, args *CheckVerifica
 		PhoneNumber: *res.To,
 		Status:      *res.Status,
 	}, nil
+}
+
+type ListSuccessfulVerificationAttemptsArgs struct {
+	To    string
+	Limit int
+	After time.Time
+}
+
+func (s *service) ListSuccessfulVerificationAttempts(ctx context.Context, args ListSuccessfulVerificationAttemptsArgs) ([]Verification, error) {
+	if !env.IsProd() && !env.IsSandbox() {
+		return []Verification{
+			{
+				Sid:         "1234",
+				PhoneNumber: args.To,
+				Status:      statusApproved,
+				UpdatedAt:   time.Now(),
+			},
+		}, nil
+	}
+
+	approved := "approved"
+	params := &verify.ListVerificationAttemptParams{
+		ChannelDataTo:    &args.To,
+		Status:           &approved,
+		Limit:            &args.Limit,
+		DateCreatedAfter: &args.After,
+	}
+
+	res, err := s.twilioClient.VerifyV2.ListVerificationAttempt(params)
+	if err != nil {
+		twilioError, ok := err.(*client.TwilioRestError)
+		if ok {
+			return nil, fmt.Errorf("%w: %s", ErrInternal, twilioError.Message)
+		}
+		return nil, fmt.Errorf("%w: %s", ErrInternal, err)
+	}
+
+	var ret []Verification
+	for _, ver := range res {
+		ret = append(ret, Verification{
+			Sid:         getString(ver.Sid),
+			PhoneNumber: args.To,
+			Status:      statusApproved,
+			UpdatedAt:   getTime(ver.DateUpdated),
+		})
+	}
+
+	return ret, nil
+}
+
+func getString(arg *string) string {
+	if arg != nil {
+		return *arg
+	}
+
+	return ""
+}
+
+func getTime(arg *time.Time) time.Time {
+	if arg != nil {
+		return *arg
+	}
+
+	return time.Time{}
 }
