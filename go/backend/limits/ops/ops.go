@@ -55,6 +55,11 @@ func defaultLimits(ctx context.Context, b Backends, walletID, foreignID string, 
 	return getLimits(ctx, b, walletID, foreignID)
 }
 
+func yearStart() time.Time {
+	year, _, _ := time.Now().Date()
+	return time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC)
+}
+
 func monthStart() time.Time {
 	year, month, _ := time.Now().Date()
 	return time.Date(year, month, 0, 0, 0, 0, 0, time.UTC)
@@ -313,13 +318,22 @@ func ExceedsKYCLimits(ctx context.Context, b Backends, walletID string, amount c
 func exceedsKYCLimitsZAR(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
 	const limitYear uint64 = 20_000_00 // R20k limit for the year
 
+	level, err := b.KYC().GetKYCStatus(ctx, walletID)
+	if err != nil {
+		return false, "", fmt.Errorf("%w %s", limits.ErrInternal, err)
+	}
+	// No limits on KYC level 2
+	if level == kyc.StatusLevel2 {
+		return false, "", nil
+	}
+
 	if amount.Value > limitYear {
 		return true, limits.LimitTypeYearly, nil
 	}
 
 	var used sql.NullInt64
-	err := b.DB().GetContext(ctx, &used, "SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4) AND asset_code='ZAR' AND type NOT IN ($5, $6)",
-		walletID, time.Now().Add(time.Hour*-24*365), transactions.StatePending, transactions.StateCompleted, transactions.TransactionTypeDeposit, transactions.TransactionTypeWithdrawal)
+	err = b.DB().GetContext(ctx, &used, "SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4) AND asset_code='ZAR' AND type NOT IN ($5, $6)",
+		walletID, yearStart(), transactions.StatePending, transactions.StateCompleted, transactions.TransactionTypeDeposit, transactions.TransactionTypeWithdrawal)
 	if err != nil {
 		return false, "", fmt.Errorf("%w %s", limits.ErrInternal, err)
 	}

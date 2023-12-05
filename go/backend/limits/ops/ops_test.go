@@ -346,6 +346,20 @@ func TestExceedsKYCLimits(t *testing.T) {
 			expectLimitType:    limits.LimitTypeYearly,
 			kycLevel:           kyc.StatusLevel1,
 		},
+		{
+			name: "No ZAR limits",
+			tx: &transactions.CreateTransactionArgs{
+				State:       transactions.StateCompleted,
+				Source:      "https://fynbos.me/alice2",
+				Destination: "https://fynbos.me/bob2",
+				Amount:      currency.FromFloat64(200_000, currency.ZAR),
+				Provider:    "test",
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+			},
+			amnt:               currency.FromFloat64(99, currency.ZAR),
+			expectExceedsLimit: false,
+			kycLevel:           kyc.StatusLevel2,
+		},
 	}
 
 	for _, tc := range cases {
