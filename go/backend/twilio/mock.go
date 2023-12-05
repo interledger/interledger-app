@@ -49,6 +49,21 @@ func (mr *MockServiceMockRecorder) CheckVerificationCode(ctx, args interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckVerificationCode", reflect.TypeOf((*MockService)(nil).CheckVerificationCode), ctx, args)
 }
 
+// ListSuccessfulVerificationAttempts mocks base method.
+func (m *MockService) ListSuccessfulVerificationAttempts(ctx context.Context, args ListSuccessfulVerificationAttemptsArgs) ([]Verification, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSuccessfulVerificationAttempts", ctx, args)
+	ret0, _ := ret[0].([]Verification)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSuccessfulVerificationAttempts indicates an expected call of ListSuccessfulVerificationAttempts.
+func (mr *MockServiceMockRecorder) ListSuccessfulVerificationAttempts(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSuccessfulVerificationAttempts", reflect.TypeOf((*MockService)(nil).ListSuccessfulVerificationAttempts), ctx, args)
+}
+
 // SendVerificationCode mocks base method.
 func (m *MockService) SendVerificationCode(ctx context.Context, phoneNumber string) (*Verification, error) {
 	m.ctrl.T.Helper()
