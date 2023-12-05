@@ -220,6 +220,14 @@ func SetKYCStatus(ctx context.Context, b Backends, walletID string, status kyc.S
 		b.Email().SendApplicationPendingEmail(ctx, walletID)
 	}
 
+	// Reset the KYC over the limit notifications for going to L2
+	if status == kyc.StatusLevel2 {
+		_, err = b.Wallets().SetExceededLimits(ctx, walletID, false)
+		if err != nil {
+			log.Error("failed to set wallet exceeded limit on KYC upgrade", zap.Error(err))
+		}
+	}
+
 	return nil
 }
 
