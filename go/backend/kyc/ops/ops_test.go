@@ -181,6 +181,7 @@ func TestKYCStatus(t *testing.T) {
 	nc.EXPECT().NotifyWallet(ctx, gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	em := email_client.NewMockClient(ctrl)
 	wc := wallet_client.NewMockClient(ctrl)
+	wc.EXPECT().SetExceededLimits(ctx, gomock.Any(), false).Return(nil, nil).AnyTimes()
 	b := ops.NewTestBackends(t, db, nil, nil, nil, nc, em, wc)
 
 	walletID := uuid.NewString()
