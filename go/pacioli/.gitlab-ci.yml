@@ -19,6 +19,7 @@ variables:
   PACIOLI_REPO: 823058932981.dkr.ecr.eu-west-1.amazonaws.com/pacioli
   PACIOLI_IMAGE_HASH: $CI_COMMIT_SHORT_SHA
   DB_URL: postgres://root@crdb:26257/%s?sslmode=disable
+  GOCACHE: $CI_PROJECT_DIR/go/.cache/go-build
 
 test_pacioli:
   needs:
@@ -32,6 +33,12 @@ test_pacioli:
   tags:
     - hetzner
   image: registry.gitlab.com/fynbos/fynbos/debian-runner-base:13295664
+  cache:
+    key: $CI_JOB_NAME-$CI_COMMIT_REF_SLUG
+    paths:
+      - $GOCACHE
+    fallback_keys:
+      - $CI_JOB_NAME-
   services:
     - name: cockroachdb/cockroach:v22.2.8
       alias: crdb

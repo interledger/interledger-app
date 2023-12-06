@@ -15,7 +15,8 @@ COPY discordbot ./discordbot
 
 FROM base as builder
 
-RUN go build -o main -C discordbot
+ENV ENV GOCACHE=/root/.cache/go-build
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main -C discordbot
 ENTRYPOINT ["/build/discordbot/main"]
 
 FROM gcr.io/distroless/cc:nonroot
