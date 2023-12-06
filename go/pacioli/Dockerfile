@@ -24,7 +24,8 @@ ENTRYPOINT ["/build/backend/entrypoint.sh"]
 
 FROM base as builder
 
-RUN go build -o main ./pacioli/pacioli/main.go
+ENV ENV GOCACHE=/root/.cache/go-build
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -o main ./pacioli/pacioli/main.go
 
 FROM gcr.io/distroless/cc:nonroot
 
