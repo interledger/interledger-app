@@ -3093,7 +3093,7 @@ table "pti_users" {
   column "wallet_id" {
     null = false
     type = uuid
-  }  
+  }
   column "status" {
     null = false
     type = text
@@ -3113,6 +3113,80 @@ table "pti_users" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")
+  }
+}
+table "astra_user_intents" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "intent_id" {
+    null = false
+    type = text
+  }
+  column "status" {
+    null = false
+    type = text
+  }
+  column "user_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+}
+
+table "astra_access_tokens" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "token" {
+    null = false
+    type = text
+  }
+  column "expires_at" {
+    null    = false
+    type    = timestamp
+  }
+  column "refresh_token" {
+    null = false
+    type = text
+  }
+  column "refresh_expires_at" {
+    null    = false
+    type    = timestamp
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+  index "astra_access_tokens_wallet_id_idx" {
+    unique = true
+    columns = [column.wallet_id]
+  }
+  index "astra_access_tokens_refresh_idx" {
+    columns = [column.refresh_expires_at]
   }
 }
 
