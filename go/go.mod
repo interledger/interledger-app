@@ -28,6 +28,7 @@ require (
 	github.com/hashicorp/vault/api/auth/kubernetes v0.4.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.4.0
+	github.com/lestrrat-go/jwx/v2 v2.0.18
 	github.com/lib/pq v1.10.3
 	github.com/machinebox/graphql v0.2.2
 	github.com/n0madic/twitter-scraper v0.0.0-20230423143228-6d13e319a39d
@@ -100,7 +101,6 @@ require (
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.4 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
-	github.com/lestrrat-go/jwx/v2 v2.0.18 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
