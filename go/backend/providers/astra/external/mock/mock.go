@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// AddCard mocks base method.
+func (m *MockClient) AddCard(ctx context.Context, token string, args external.CreateCardArgs) (*external.CreateCardResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddCard", ctx, token, args)
+	ret0, _ := ret[0].(*external.CreateCardResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddCard indicates an expected call of AddCard.
+func (mr *MockClientMockRecorder) AddCard(ctx, token, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCard", reflect.TypeOf((*MockClient)(nil).AddCard), ctx, token, args)
+}
+
 // CreateAccessToken mocks base method.
 func (m *MockClient) CreateAccessToken(ctx context.Context, intentID, walletID string) (*external.AccessToken, error) {
 	m.ctrl.T.Helper()
