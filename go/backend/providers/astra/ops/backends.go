@@ -3,12 +3,12 @@ package ops
 import (
 	"testing"
 
-	temporal "go.temporal.io/sdk/client"
-
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/astra/external"
+	external_mock "gitlab.com/fynbos/backend/providers/astra/external/mock"
 	"gitlab.com/fynbos/backend/user"
+	temporal "go.temporal.io/sdk/client"
 )
 
 type Backends interface {
@@ -27,8 +27,10 @@ type ActivityBackends interface {
 }
 
 type TestBackends struct {
-	DBC *sqlx.DB
-	//Extr *external_mock.MockClient
+	DBC  *sqlx.DB
+	Extr *external_mock.MockClient
+	Ky   kyc.Client
+	Uc   user.Client
 }
 
 func (t TestBackends) Temporal() temporal.Client {
@@ -40,15 +42,15 @@ func (t TestBackends) DB() *sqlx.DB {
 }
 
 func (t TestBackends) External() external.Client {
-	return nil //t.Extr
+	return t.Extr
 }
 
 func (t TestBackends) Users() user.Client {
-	return nil
+	return t.Uc
 }
 
 func (t TestBackends) KYC() kyc.Client {
-	return nil
+	return t.Ky
 }
 
 func NewTestBackends(_ *testing.T, opts ...func(*TestBackends)) Backends {
