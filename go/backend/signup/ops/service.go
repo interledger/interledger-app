@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
+
 	"gitlab.com/fynbos/backend/slack"
 	"gitlab.com/fynbos/backend/twilio"
-	"strings"
 
 	"github.com/google/uuid"
 
@@ -27,7 +28,6 @@ func Get(ctx context.Context, b Backends, id string) (*signup.Signup, error) {
 		return nil, signup.ErrNotFound
 	}
 	if err != nil {
-
 		return nil, fmt.Errorf("%w %s", signup.ErrInternal, err.Error())
 	}
 
@@ -54,7 +54,6 @@ func GetForUser(ctx context.Context, b Backends, userID string) (*signup.Signup,
 		return nil, signup.ErrNotFound
 	}
 	if err != nil {
-
 		return nil, fmt.Errorf("%w %s", signup.ErrInternal, err.Error())
 	}
 
@@ -188,7 +187,7 @@ func Complete(ctx context.Context, b Backends, id, userID string) error {
 		return fmt.Errorf("%w %s", signup.ErrInternal, err)
 	}
 
-	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s", current.ID, userID, current.FirstName+" "+current.LastName))
+	slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "Fynbot", fmt.Sprintf(":baby: New Sign Up\nID: %s\nUser ID: %s\nFull name: %s\nCountry: %s", current.ID, userID, current.FirstName+" "+current.LastName, current.CountryCode))
 
 	return nil
 }
