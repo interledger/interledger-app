@@ -15,6 +15,9 @@ func CreateIntent(ctx context.Context, b Backends, walletID string) error {
 	if err != nil {
 		return fmt.Errorf("%w %s", astra.ErrInternal, err)
 	}
+	if id.Address == nil {
+		return fmt.Errorf("%w incomplete KYC for astra, missing address", astra.ErrNotFound)
+	}
 
 	idNums, err := b.KYC().GetPersonaIDNumbers(ctx, walletID)
 	if err != nil {
