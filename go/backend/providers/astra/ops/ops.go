@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/astra"
-
 	"gitlab.com/fynbos/backend/providers/astra/external"
 )
 
