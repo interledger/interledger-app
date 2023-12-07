@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	"github.com/getsentry/sentry-go"
@@ -66,6 +68,7 @@ import (
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/payments"
 	payments_client "gitlab.com/fynbos/backend/payments/client"
+	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
 	"gitlab.com/fynbos/backend/providers/gmt"
@@ -443,6 +446,11 @@ type backends struct {
 	xago           xago.Client
 	pac            pacioli.Client
 	pti            pti.Client
+	astr           astra.Client
+}
+
+func (b backends) Astra() astra.Client {
+	return b.astr
 }
 
 func (b backends) Pacioli() pacioli.Client {
@@ -771,6 +779,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pac = pacioli_client.NewLocal(pacDB)
 
 	b.xago = xago_client.New(b)
+
+	b.astr = astra_client.New(b)
 
 	b.pti = pti_client.New(b)
 
