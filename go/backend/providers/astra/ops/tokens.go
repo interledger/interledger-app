@@ -32,8 +32,16 @@ func CreateOrRefreshToken(ctx context.Context, b Backends, walletID string) (str
 
 	if token.RefreshExpiresAt.Before(time.Now()) {
 		// Create new Token
+		var intentID string
+		err = b.DB().GetContext(ctx, &intentID, "SELECT intent_id FROM astra_user_intents WHERE wallet_id=$1", walletID)
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", fmt.Errorf("%w intent not found for wallet ID", astra.ErrNotFound)
+		}
+		if err != nil {
+			return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+		}
 
-		accessToken, err = b.External().CreateAccessToken(ctx, "TODO", walletID)
+		accessToken, err = b.External().CreateAccessToken(ctx, intentID, walletID)
 		if err != nil {
 			return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
 		}
