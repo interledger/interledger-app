@@ -49,24 +49,24 @@ class TWColors {
   static const Color textError = Color(0xffb91c1c);
   static const Color textSuccess = Color(0xff22c55e);
 
-  static const Color bgApp = Color(0x00000000);
-  static const Color bgPage = Color(0x00000000);
-  static const Color bgContainer = Color(0x00000000);
-  static const Color bgContainerHover = Color(0x00000000);
-  static const Color bgStrong = Color(0x00000000);
-  static const Color bgDisabled = Color(0x00000000);
-  static const Color bgPrimary = Color(0x00000000);
+  static const Color bgApp = Color(0xfff8fafc);
+  static const Color bgPage = white;
+  static const Color bgContainer = Color(0xfff1f5f9);
+  static const Color bgContainerHover = Color(0xffe2e8f0);
+  static const Color bgStrong = Color(0xff94a3b8);
+  static const Color bgDisabled = Color(0xffe2e8f0);
+  static const Color bgPrimary = Color(0xff3b82f6);
   static const Color bgContainerPrimary = Color(0x00000000);
   static const Color bgContainerPrimaryHover = Color(0x00000000);
-  static const Color bgContainerPrimaryActive = Color(0x00000000);
-  static const Color bgScrim = Color(0x00000000);
+  static const Color bgContainerPrimaryActive = Color(0xff2563EB);
+  static const Color bgScrim = Color(0xCC475569);
   static const Color bgSnackbar = Color(0x00000000);
 
-  static const Color borderBase = Color(0x00000000);
-  static const Color borderFocus = Color(0x00000000);
-  static const Color borderHover = Color(0x00000000);
-  static const Color borderActive = Color(0x00000000);
-  static const Color borderError = Color(0x00000000);
+  static const Color borderBase = Color(0xffCBD5E1);
+  static const Color borderFocus = Color(0xff2563EB);
+  static const Color borderHover = Color(0xff2563EB);
+  static const Color borderActive = Color(0xff2563EB);
+  static const Color borderError = Color(0xffb91c1c);
 
   // Tailwind colour styles
 

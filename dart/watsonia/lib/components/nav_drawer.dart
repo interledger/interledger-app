@@ -1,0 +1,125 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:watsonia/styles/colors.dart';
+
+class NavDrawer extends StatelessWidget {
+  const NavDrawer({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: TWColors.bgApp,
+      width: 250,
+      shape: const Border(),
+      child: SafeArea(
+        child: ListView(
+          children: <Widget>[
+            AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.menu_open_outlined),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              title: Image.asset(
+                'images/Logo.png',
+                height: 32,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
+              child: ListTile(
+                onTap: () {
+                  context.go('/');
+                  Navigator.of(context).pop();
+                },
+                title: Text(
+                  'Home',
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                selected: GoRouterState.of(context).path == '/',
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                selectedTileColor: TWColors.bgContainerHover,
+                selectedColor: TWColors.textStrong,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: ListTile(
+                onTap: () {
+                  context.go('/payments');
+                  Navigator.of(context).pop();
+                },
+                title: Text(
+                  'Payments',
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                selected: GoRouterState.of(context).path == '/payments',
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                selectedTileColor: TWColors.bgContainerHover,
+                selectedColor: TWColors.textStrong,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: ListTile(
+                onTap: () {
+                  context.go('/settings');
+                  Navigator.of(context).pop();
+                },
+                title: Text(
+                  'Settings',
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                selected: GoRouterState.of(context).path == '/settings',
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                selectedTileColor: TWColors.bgContainerHover,
+                selectedColor: TWColors.textStrong,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: ListTile(
+                onTap: () {
+                  context.go('/support');
+                  Navigator.of(context).pop();
+                },
+                title: Text(
+                  'Support',
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                selected: GoRouterState.of(context).path == '/support',
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                selectedTileColor: TWColors.bgContainerHover,
+                selectedColor: TWColors.textStrong,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
