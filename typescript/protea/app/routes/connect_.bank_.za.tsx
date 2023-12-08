@@ -124,7 +124,7 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <p>Connect a bank account to easily send and receive payments.</p>
+          <p>Connect a bank account to easily withdraw from your balance.</p>
         </CardContent>
         <TextField
           id='accountNumber'

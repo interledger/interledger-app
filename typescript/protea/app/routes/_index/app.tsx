@@ -351,7 +351,7 @@ function CTACards() {
                 </div>
                 <div className='flex flex-col space-y-4'>
                   <p className='text-sm text-medium'>
-                    Connect bank accounts to easily send and receive payments.
+                    Connect bank accounts to easily withdraw from your balance.
                   </p>
                   <Router
                     className='text-sm font-medium text-primary'
