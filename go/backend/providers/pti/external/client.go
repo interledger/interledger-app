@@ -3,39 +3,45 @@ package external
 import (
 	"bytes"
 	"context"
+	"crypto"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var (
-	ptiClientIDHeader = "x-pti-client-id"
+	ptiClientIDHeader  = "x-pti-client-id"
+	ptiSignatureHeader = "x-pti-signature"
 )
 
 type client struct {
-	baseURL      string
-	clientID     string
-	clientSecret string
-	api          *http.Client
+	baseURL    string
+	clientID   string
+	privateKey crypto.PrivateKey
+	api        *http.Client
 }
 
 var _ Client = client{}
 
 type ClientArgs struct {
-	ClientID     string
-	ClientSecret string
-	Transport    *http.Client
-	BaseURL      string
+	ClientID   string
+	PrivateKey crypto.PrivateKey
+	Transport  *http.Client
+	BaseURL    string
 }
 
 func New(args ClientArgs) Client {
-	// TODO: auth
-
 	base := "https://api.pearsurge.io/v0"
 	if args.BaseURL != "" {
 		base = args.BaseURL
@@ -49,11 +55,98 @@ func New(args ClientArgs) Client {
 	}
 
 	return &client{
-		baseURL:      base,
-		clientID:     args.ClientID,
-		clientSecret: args.ClientSecret,
-		api:          transport,
+		baseURL:    base,
+		clientID:   args.ClientID,
+		privateKey: args.PrivateKey,
+		api:        transport,
 	}
+}
+
+func Sign(ctx context.Context, r *http.Request, payload []byte, key crypto.PrivateKey) error {
+	encodedPayload := ""
+	if r.Method != "GET" {
+		h := sha256.Sum256(payload)
+		encodedPayload = hex.EncodeToString(h[:])
+	}
+	formattedBase := fmt.Sprintf(
+		"%s\n%s\n%s\n%s\n%s\n%s\n",
+		r.Method,
+		encodedPayload,
+		r.Header.Get("Content-Type"),
+		"date:"+time.Now().Format(time.RFC1123),
+		ptiClientIDHeader+":"+r.Header.Get(ptiClientIDHeader),
+		r.URL.Path,
+	)
+
+	signature, err := jws.Sign([]byte(formattedBase), jws.WithKey(jwa.RS256, key))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	r.Header.Add(ptiSignatureHeader, string(signature))
+
+	return nil
+}
+
+func VerifyBase(ctx context.Context, base []byte, r *http.Request) error {
+	parts := strings.Split(string(base), "\n")
+	if len(parts) < 6 {
+		return fmt.Errorf("%w Signature base has incorrect format", ErrInvalidSignature)
+	}
+
+	if parts[0] != r.Method {
+		return fmt.Errorf("%w Method mismatch", ErrInvalidSignature)
+	}
+
+	if r.Method != http.MethodGet {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			return fmt.Errorf("%w %s", ErrInternal, err)
+		}
+		origRespBody := make([]byte, len(body))
+		copy(origRespBody, body)
+		defer func() {
+			if body != nil {
+				r.Body = io.NopCloser(bytes.NewBuffer(origRespBody))
+			}
+		}()
+
+		h := sha256.Sum256(body)
+		if parts[1] != hex.EncodeToString(h[:]) {
+			return fmt.Errorf("%w Payload mismatch", ErrInvalidSignature)
+		}
+	}
+
+	dateParts := strings.Split(parts[3], "date:")
+	if len(dateParts) < 2 {
+		return fmt.Errorf("%w Invalid date", ErrInvalidSignature)
+	}
+	date, err := time.Parse(time.RFC1123, dateParts[1])
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	if date.After(time.Now()) || time.Since(date) > 12*time.Hour {
+		return fmt.Errorf("%w Signature expired", ErrInvalidSignature)
+	}
+
+	if parts[5] != r.URL.Path {
+		return fmt.Errorf("%w Path mismatch", ErrInvalidSignature)
+	}
+
+	return nil
+}
+
+func Verify(ctx context.Context, r *http.Request, key crypto.PublicKey) error {
+	signature := r.Header.Get(ptiSignatureHeader)
+	if signature == "" {
+		return fmt.Errorf("%w Signature is empty", ErrInvalidSignature)
+	}
+
+	verifiedRawBase, err := jws.Verify([]byte(signature), jws.WithKey(jwa.RS256, key))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return VerifyBase(ctx, verifiedRawBase, r)
 }
 
 func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, error) {
@@ -72,6 +165,9 @@ func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, er
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	if err := Sign(ctx, req, payload, c.privateKey); err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
 
 	resp, err := c.api.Do(req)
 	if err != nil {
@@ -114,6 +210,9 @@ func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Walle
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	if err := Sign(ctx, req, payload, c.privateKey); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
 
 	resp, err := c.api.Do(req)
 	if err != nil {
@@ -150,6 +249,9 @@ func (c client) GetWallet(ctx context.Context, id string) (*Wallet, error) {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	if err := Sign(ctx, req, nil, c.privateKey); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
 
 	resp, err := c.api.Do(req)
 	if err != nil {
