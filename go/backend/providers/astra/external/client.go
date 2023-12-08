@@ -142,12 +142,12 @@ func (c client) CreateAccessToken(ctx context.Context, intentID, walletID string
 
 	// Exchange the code for a token
 
-	reqURL, err = url.JoinPath(c.baseURL, "oauth", "token")
+	reqURL, err = url.JoinPath(c.baseURL, "partner", "identity", "token")
 	if err != nil {
 		return nil, err
 	}
 
-	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(fmt.Sprintf("grant_type=authorization_code&code=%s&redirect_uri=%s", codeResp.Token, env.GetUrl())))
+	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(fmt.Sprintf(`{"token":"%s","user_consent_captured":true}`, codeResp.Token)))
 	if err != nil {
 		return nil, err
 	}
