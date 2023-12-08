@@ -23,4 +23,5 @@ var (
 	ErrBadGateway             = errors.New("pti external: bad gateway.")
 	ErrServiceUnavailable     = errors.New("pti external: server unavailable.")
 	ErrGatewayTimeout         = errors.New("pti external: gateway timeout.")
+	ErrInvalidSignature       = errors.New("pti external: invalid signature.")
 )

@@ -1,5 +1,7 @@
 package external
 
+import "time"
+
 type (
 	CreateUserArgs struct {
 		ID            string    `json:"userId,omitempty"`
@@ -60,3 +62,12 @@ type (
 		Balance        float64 `json:"balance"`
 	}
 )
+
+type SignatureBase struct {
+	Method      string
+	Payload     []byte
+	ContentType string
+	Date        time.Time
+	ClientID    string
+	Path        string
+}
