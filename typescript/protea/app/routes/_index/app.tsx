@@ -1,5 +1,6 @@
 import { useLoaderData } from '@remix-run/react'
 import clsx from 'clsx'
+import { Fragment } from 'react'
 import { route } from 'routes-gen'
 import {
   Alert,
@@ -169,25 +170,35 @@ export function AppPage() {
             {balances.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Balances</CardTitle>
+                  <CardTitle>Current balance</CardTitle>
                 </CardHeader>
-                {balances.map((method) => (
-                  <CardLink
-                    key={method.id}
-                    to={route('/accounts/:accountId', {
-                      accountId: method.id
-                    })}
-                    className='items-center justify-between'
-                  >
-                    <div className='flex items-center space-x-3'>
-                      <div
-                        className={`flag:${method.receiveCurrencyCountryCode}`}
-                      />
-                      <span>{method.name}</span>
-                    </div>
-                    <Icon>navigate_next</Icon>
-                  </CardLink>
-                ))}
+                <CardContent className='flex flex-col space-y-2'>
+                  {balances.map((method) => (
+                    <Fragment key={method.id}>
+                      <span className='text-2xl'>{method.name}</span>
+                      <div className='flex space-x-4'>
+                        <Router
+                          className='flex space-x-2 text-primary'
+                          to={route('/accounts/:accountId/deposit', {
+                            accountId: method.id
+                          })}
+                        >
+                          <Icon>south_west</Icon>
+                          <span>Deposit</span>
+                        </Router>
+                        <Router
+                          className='flex space-x-2 text-primary'
+                          to={route('/accounts/:accountId/withdraw', {
+                            accountId: method.id
+                          })}
+                        >
+                          <Icon>north_east</Icon>
+                          <span>Withdraw</span>
+                        </Router>
+                      </div>
+                    </Fragment>
+                  ))}
+                </CardContent>
               </Card>
             )}
             <Card className='col-span-full sm:col-span-6 sm:col-start-2 lg:col-start-4'>
