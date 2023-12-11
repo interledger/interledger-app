@@ -11,7 +11,6 @@ import {
   AlertContent,
   AlertTitle,
   Button,
-  ButtonRouter,
   Card,
   CardContent,
   CardHeader,
@@ -196,7 +195,6 @@ function DepositDetails() {
   const { depositDetails, account, csrfToken } =
     useLoaderData<typeof depositDetailsLoader>()
   const updateAccountFetcher = useFetcher<typeof action>()
-  const params = useParams()
 
   const _onChangeLinkedAccount = useCallback(
     (updateType: 'defaultSend' | 'defaultReceive') => {
@@ -216,9 +214,10 @@ function DepositDetails() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Deposit details</CardTitle>
+          <CardTitle>EFT details</CardTitle>
         </CardHeader>
         <CardContent>
+          <span>Arrives 1-2 business days.</span>
           <div className='flex w-full flex-col justify-between space-y-1'>
             <span className='text-weak'>Bank</span>
             <span className='text-medium'>{depositDetails.bankName}</span>
@@ -264,13 +263,16 @@ function DepositDetails() {
           )}
         </CardContent>
       </Card>
-      <ButtonRouter
-        to={route('/accounts/:accountId/withdraw', {
-          accountId: params.accountId as string
-        })}
-      >
-        Withdraw
-      </ButtonRouter>
+      <Alert>
+        <Icon>error</Icon>
+        <AlertContent className='items-start'>
+          <AlertTitle>Important</AlertTitle>
+          <AlertBody>
+            Use the reference above when depositing for secure and faster
+            processing.
+          </AlertBody>
+        </AlertContent>
+      </Alert>
     </>
   )
 }
