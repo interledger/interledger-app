@@ -5,6 +5,7 @@ declare module "routes-gen" {
     "/about": Record<string, never>;
     "/accounts": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
+    "/accounts/:accountId/deposit": { "accountId": string };
     "/accounts/:accountId/name": { "accountId": string };
     "/accounts/:accountId/withdraw": { "accountId": string };
     "/accounts/:accountId/withdraw/:paymentId": { "accountId": string, "paymentId": string };
@@ -79,6 +80,7 @@ declare module "routes-gen" {
       | ["/about"]
       | ["/accounts"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
+      | ["/accounts/:accountId/deposit", RouteParams["/accounts/:accountId/deposit"]]
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
       | ["/accounts/:accountId/withdraw", RouteParams["/accounts/:accountId/withdraw"]]
       | ["/accounts/:accountId/withdraw/:paymentId", RouteParams["/accounts/:accountId/withdraw/:paymentId"]]

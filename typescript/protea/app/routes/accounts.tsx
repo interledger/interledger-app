@@ -82,8 +82,8 @@ export default function Page() {
     hasCard,
     hasBank,
     kycStatus,
-    hasBalances,
-    balanceAccounts,
+    // hasBalances,
+    // balanceAccounts,
     hasXagoBalance
   } = useLoaderData<typeof loader>()
 
@@ -124,30 +124,30 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {balanceAccounts && hasBalances && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Balances</CardTitle>
-            </CardHeader>
-            {balanceAccounts.map((method) => (
-              <CardLink
-                key={method.id}
-                to={route('/accounts/:accountId', {
-                  accountId: method.id
-                })}
-                className='items-center justify-between'
-              >
-                <div className='flex items-center space-x-3'>
-                  <div
-                    className={`flag:${method.receiveCurrencyCountryCode}`}
-                  />
-                  <span>{method.name}</span>
-                </div>
-                <Icon>navigate_next</Icon>
-              </CardLink>
-            ))}
-          </Card>
-        )}
+        {/*{balanceAccounts && hasBalances && (*/}
+        {/*  <Card>*/}
+        {/*    <CardHeader>*/}
+        {/*      <CardTitle>Balances</CardTitle>*/}
+        {/*    </CardHeader>*/}
+        {/*    {balanceAccounts.map((method) => (*/}
+        {/*      <CardLink*/}
+        {/*        key={method.id}*/}
+        {/*        to={route('/accounts/:accountId', {*/}
+        {/*          accountId: method.id*/}
+        {/*        })}*/}
+        {/*        className='items-center justify-between'*/}
+        {/*      >*/}
+        {/*        <div className='flex items-center space-x-3'>*/}
+        {/*          <div*/}
+        {/*            className={`flag:${method.receiveCurrencyCountryCode}`}*/}
+        {/*          />*/}
+        {/*          <span>{method.name}</span>*/}
+        {/*        </div>*/}
+        {/*        <Icon>navigate_next</Icon>*/}
+        {/*      </CardLink>*/}
+        {/*    ))}*/}
+        {/*  </Card>*/}
+        {/*)}*/}
         {cardAccounts && hasCard && (
           <Card>
             <CardHeader>
