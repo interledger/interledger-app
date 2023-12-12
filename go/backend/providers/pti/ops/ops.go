@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	userFields       = "id, external_id, wallet_id, created_at"
+	userFields       = "id, external_id, wallet_id, status, assessment_status, created_at, updated_at"
 	userInsertFields = "external_id, wallet_id"
 )
 
