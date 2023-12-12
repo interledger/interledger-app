@@ -2,7 +2,6 @@ package ops
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,16 +37,7 @@ func NewActivity(b Backends) *Activity {
 }
 
 func (a *Activity) GetPtiUser(ctx context.Context, walletID string) (*pti.User, error) {
-	var user pti.User
-	err := a.b.DB().GetContext(ctx, &user, fmt.Sprintf("SELECT %s from pti_users where wallet_id=$1;", userFields), walletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	return GetUser(ctx, a.b, walletID)
 }
 
 func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, error) {
@@ -110,7 +100,27 @@ func (a *Activity) SavePtiUser(ctx context.Context, externalUserID, walletID str
 	return &user, nil
 }
 
-func (a *Activity) CheckPtiKYC(ctx context.Context, externalUserID string) error {
+func (a *Activity) StartAssessment(ctx context.Context, walletID string) (string, error) {
+	usr, err := GetUser(ctx, a.b, walletID)
+	if err != nil {
+		return "", err
+	}
+
+	return a.external.StartUserAssessment(ctx, external.CreateUserArgs{
+		ID: usr.ExternalID,
+	})
+}
+
+func (a *Activity) CheckPtiKYC(ctx context.Context, walletID string) error {
+	usr, err := GetUser(ctx, a.b, walletID)
+	if err != nil {
+		return err
+	}
+
+	if usr.Status != "ACCEPTED" {
+		return fmt.Errorf("%w", pti.ErrAssessmentFailed)
+	}
+
 	return nil
 }
 
