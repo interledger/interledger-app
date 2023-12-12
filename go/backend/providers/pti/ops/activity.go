@@ -2,9 +2,11 @@ package ops
 
 import (
 	"context"
+	"crypto"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/kyc"
@@ -21,13 +23,15 @@ type Activity struct {
 	external external.Client
 }
 
-func NewActivity(b Backends) *Activity {
+func NewActivity(b Backends, privateKey crypto.PrivateKey) *Activity {
 	external := external.New(external.ClientArgs{
 		Transport: &http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
 			),
 		},
+		ClientID:   os.Getenv("PTI_CLIENT_ID"),
+		PrivateKey: privateKey,
 	})
 
 	return &Activity{

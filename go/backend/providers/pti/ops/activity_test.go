@@ -15,7 +15,7 @@ import (
 
 func TestSavePtiUser(t *testing.T) {
 	b := NewBackends(t)
-	a := ops.NewActivity(b)
+	a := ops.NewActivity(b, nil)
 	ctx := context.Background()
 
 	walletID := uuid.NewString()
@@ -32,7 +32,7 @@ func TestSavePtiUser(t *testing.T) {
 
 func TestCreatePtiWallet(t *testing.T) {
 	b := NewBackends(t)
-	a := ops.NewActivity(b)
+	a := ops.NewActivity(b, nil)
 	ctx := context.Background()
 
 	laID := uuid.NewString()
