@@ -277,6 +277,55 @@ func (c client) GetWallet(ctx context.Context, id string) (*Wallet, error) {
 	return &wallet, nil
 }
 
+func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (string, error) {
+	if args.ID == "" {
+		return "", fmt.Errorf("%w UserID is required", ErrBadRequest)
+	}
+
+	url, err := url.JoinPath(c.baseURL, "users", "assessments")
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	if err := Sign(ctx, req, payload, c.privateKey); err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var userResp CreateUserResponse
+	err = json.Unmarshal(body, &userResp)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return userResp.ID, nil
+}
+
 func checkResponseStatusCode(r *http.Response) error {
 	if http.StatusOK <= r.StatusCode && r.StatusCode < http.StatusMultipleChoices {
 		return nil

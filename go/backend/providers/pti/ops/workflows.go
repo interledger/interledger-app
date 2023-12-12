@@ -44,11 +44,15 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 		if err != nil {
 			return nil, err
 		}
+
+		err = workflow.ExecuteActivity(ctx, a.StartAssessment, args.WalletID).Get(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = workflow.ExecuteActivity(ctx, a.CheckPtiKYC, externalUser.ID).Get(ctx, nil)
 	if err != nil {
-		// TODO: notify slack
 		return nil, err
 	}
 

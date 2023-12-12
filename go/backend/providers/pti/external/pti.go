@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 type PTI struct {
@@ -21,6 +22,7 @@ func (p *PTI) Routes() chi.Router {
 
 	r.HandleFunc("/users", CreateUserHandler(p))
 	r.HandleFunc("/users/{userID}/wallets", CreateUserWalletHandler(p))
+	r.HandleFunc("/users/assessments", CreateStartAssessmentHandler(p))
 
 	return r
 }
@@ -95,6 +97,41 @@ func CreateUserWalletHandler(p *PTI) http.HandlerFunc {
 		p.WalletToUser[args.WalletID] = args.UserID
 
 		err = json.NewEncoder(w).Encode(wallet)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func CreateStartAssessmentHandler(p *PTI) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		defer r.Body.Close()
+
+		var args CreateUserArgs
+		err = json.Unmarshal(body, &args)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		_, ok := p.Users[args.ID]
+		if !ok {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+
+		resp := CreateUserResponse{
+			ID:   uuid.NewString(),
+			Link: fmt.Sprintf("https://pti.com/users/%s", args.ID),
+		}
+
+		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
