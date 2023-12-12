@@ -242,11 +242,13 @@ export function AppPage() {
                         <>
                           {transaction.destinationIdentityType == 'wallet' && (
                             <>
-                              {transaction.type != 'withdrawal' && (
-                                <FynbosIcon />
-                              )}
+                              {transaction.type != 'withdrawal' &&
+                                transaction.type != 'deposit' && <FynbosIcon />}
                               {transaction.type == 'withdrawal' && (
                                 <Icon>south_west</Icon>
+                              )}
+                              {transaction.type == 'deposit' && (
+                                <Icon>north_east</Icon>
                               )}
                             </>
                           )}
