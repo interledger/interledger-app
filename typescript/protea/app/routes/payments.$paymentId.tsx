@@ -39,7 +39,7 @@ import { usePusher } from '~/lib/usePusher'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  let senderAccountTitle, recieverAccountTitle
+  let senderAccountTitle, receiverAccountTitle
 
   const transaction = await grpc.lookupTransaction(request, {
     id: params.paymentId as string
@@ -54,7 +54,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     senderAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.senderAccountId
     )?.title
-    recieverAccountTitle = linkedAccountsResponse.linkedAccounts.find(
+    receiverAccountTitle = linkedAccountsResponse.linkedAccounts.find(
       (account) => account.id == transaction.receiverAccountId
     )?.title
   }
@@ -84,7 +84,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   return json({
     senderAccountTitle,
-    recieverAccountTitle,
+    receiverAccountTitle,
     publicWalletInfo,
     transaction,
     pusherArgs
@@ -239,7 +239,7 @@ export default function Page() {
 }
 
 function Withdrawal() {
-  const { senderAccountTitle, recieverAccountTitle, transaction } =
+  const { senderAccountTitle, receiverAccountTitle, transaction } =
     useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
@@ -267,7 +267,7 @@ function Withdrawal() {
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <Icon>account_balance</Icon>
-              <span>{recieverAccountTitle}</span>
+              <span>{receiverAccountTitle}</span>
             </div>
           </div>
         </div>
@@ -449,8 +449,7 @@ function Withdrawal() {
 }
 
 function Deposit() {
-  const { senderAccountTitle, recieverAccountTitle, transaction } =
-    useLoaderData<typeof loader>()
+  const { receiverAccountTitle, transaction } = useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
@@ -459,9 +458,7 @@ function Deposit() {
       <Card>
         <CardContent>
           <div className='flex items-center justify-between'>
-            <h2 className='text-4xl font-medium text-error'>
-              {transaction.subtotal}
-            </h2>
+            <h2 className='text-4xl font-medium'>{transaction.subtotal}</h2>
             <div className='flex flex-col items-end space-y-1'>
               <span className='text-sm font-medium text-medium'>
                 {transaction.formattedDate}
@@ -477,7 +474,7 @@ function Deposit() {
           <div className='flex w-full items-center justify-between text-medium'>
             <div className='flex space-x-2'>
               <FynbosIcon />
-              <span>{recieverAccountTitle}</span>
+              <span>{receiverAccountTitle}</span>
             </div>
           </div>
         </div>
@@ -624,10 +621,6 @@ function Deposit() {
             <Icon className='text-medium'>content_copy</Icon>
           </CardButton>
           <CardContent>
-            <div className='mt-2 flex w-full justify-between'>
-              <span className='text-weak'>Amount sent</span>
-              <span className='text-medium'>{transaction.subtotal}</span>
-            </div>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
               <span className='text-medium'>{transaction.fees}</span>
