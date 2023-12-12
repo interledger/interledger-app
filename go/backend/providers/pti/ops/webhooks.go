@@ -2,11 +2,13 @@ package ops
 
 import (
 	"context"
-	"crypto"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwe"
@@ -25,16 +27,29 @@ var ptiPublicKeyJwk = `
   "n": "1SG6gvMXxVLH_tQn7N7C5eWnYge7fX9uDdoVQdwQgMwbdDY9XLvBsjHIUZVksEt_t6GY42TeNMfbip8okl44-I_6z6cUzS-5xbiBfE_LEJf4NJKb7zftEj30xsyaT5GXLqdM1FuBE5gq2YBxnKvPVxTvNSsN5I6H9TzlCSVbrG-MMPlVzsai-tW0amy1BlPHIoaExk9HYZQXU6bMqozzy9LXXKh1alo4TzIZKeAU7ID5Vscyvfe7z4MNVvAA1v5FEofNAZBasG5gw6Fiolm9vdcB6Y6kxRWLpsifielF-xs_TfAjh2Ff7rT_tAq6C-s2ETa0kj1WFNEevHPZ3-QfKApn1vULfztrat9Q0knstGq5mGJrNPwzF66E1mG-Nf7q5-IRqGvbtiqggZyPvG6VwIwVi-ZQUQ7wZ2sgIUE_-tLxlTuTP2iWn3fjOy9Oban_AnDydpA5mMPG4N1jxPcXsA9x19wWCgeHNe-AVDG87qW-qBSeh08e6y_6kjwOG-AKctzbpVvpWl9pfDOkZGlgK5QO5n72cKvQ53Dmo1CZkGxXWcUDsd8cwQNgOkbJKl73uzd9Wz3gN7_kZtZRgepSlDSeWAfbrUeg5pyKrXdydVaLOIckgmYQhnFksJNxV7RYNAd1iMXmBazygGpo9cK27b-EePoL6KXOOR36oEOjP1s"
 }`
 
-var ptiPublicKeySource = "https://raw.githubusercontent.com/provenancetech/pti-docs/master/utils/pti-prod-public.jwk"
+// var ptiPublicKeySource = "https://raw.githubusercontent.com/provenancetech/pti-docs/master/utils/pti-prod-public.jwk"
 
 func ParsePTIPublicKey() (jwk.Key, error) {
 	return jwk.ParseKey([]byte(ptiPublicKeyJwk), jwk.WithPEM(false))
 }
 
-func Webhook(b Backends, clientID string, privateKey crypto.PrivateKey) (http.HandlerFunc, error) {
+func Webhook(b Backends) (http.HandlerFunc, error) {
+	clientID := os.Getenv("PTI_CLIENT_ID")
 	ptiPublicKey, err := ParsePTIPublicKey()
 	if err != nil {
 		return nil, err
+	}
+
+	// pti TODO: parsing private key might change depending on file format
+	privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	privateKey, _ := pem.Decode(privateKeyPEM)
+	ptiPrivateKey, err := x509.ParsePKCS8PrivateKey(privateKey.Bytes)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +59,7 @@ func Webhook(b Backends, clientID string, privateKey crypto.PrivateKey) (http.Ha
 			return
 		}
 
-		d, err := jwe.Decrypt(body, jwe.WithKey(jwa.RS512, privateKey))
+		d, err := jwe.Decrypt(body, jwe.WithKey(jwa.RS512, ptiPrivateKey))
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return

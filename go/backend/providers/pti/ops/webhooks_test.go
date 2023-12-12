@@ -18,7 +18,7 @@ func TestWebhook(t *testing.T) {
 	assert.Equal(t, "861debeb-98ad-4f9a-a144-351e18093ea9", k.KeyID())
 
 	b := NewBackends(t)
-	a := ops.NewActivity(b)
+	a := ops.NewActivity(b, nil)
 	externalID, walletID := uuid.NewString(), uuid.NewString()
 	usr, err := a.SavePtiUser(ctx, externalID, walletID)
 	require.NoError(t, err)
