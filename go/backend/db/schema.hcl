@@ -3094,7 +3094,22 @@ table "pti_users" {
     null = false
     type = uuid
   }  
+  column "status" {
+    null = false
+    type = text
+    default = ""
+  }
+  column "assessment_status" {
+    null = false
+    type = text
+    default = ""
+  }
   column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")

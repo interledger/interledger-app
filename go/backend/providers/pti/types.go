@@ -13,10 +13,13 @@ var (
 )
 
 type User struct {
-	ID         string `db:"id"`
-	ExternalID string `db:"external_id"`
-	WalletID   string `db:"wallet_id"`
-	CreatedAt  string `db:"created_at"`
+	ID               string `db:"id"`
+	ExternalID       string `db:"external_id"`
+	WalletID         string `db:"wallet_id"`
+	Status           string `db:"status"`
+	AssessmentStatus string `db:"assessment_status"`
+	CreatedAt        string `db:"created_at"`
+	UpdatedAt        string `db:"updated_at"`
 }
 
 type Wallet struct {
