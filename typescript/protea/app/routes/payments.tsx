@@ -329,7 +329,7 @@ export default function Page() {
                     <span
                       className={clsx(
                         'min-w-max font-medium',
-                        transaction.type.includes('outgoing')
+                        transaction.type == 'sent'
                           ? 'text-error'
                           : 'text-medium'
                       )}
