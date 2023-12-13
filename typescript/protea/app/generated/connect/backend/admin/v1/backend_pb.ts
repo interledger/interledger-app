@@ -7,6 +7,80 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from message backend.admin.v1.GetPTIBalanceRequest
+ */
+export class GetPTIBalanceRequest extends Message<GetPTIBalanceRequest> {
+  /**
+   * @generated from field: string walletId = 1;
+   */
+  walletId = "";
+
+  constructor(data?: PartialMessage<GetPTIBalanceRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetPTIBalanceRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "walletId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPTIBalanceRequest {
+    return new GetPTIBalanceRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPTIBalanceRequest {
+    return new GetPTIBalanceRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPTIBalanceRequest {
+    return new GetPTIBalanceRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPTIBalanceRequest | PlainMessage<GetPTIBalanceRequest> | undefined, b: GetPTIBalanceRequest | PlainMessage<GetPTIBalanceRequest> | undefined): boolean {
+    return proto3.util.equals(GetPTIBalanceRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.admin.v1.GetPTIBalanceResponse
+ */
+export class GetPTIBalanceResponse extends Message<GetPTIBalanceResponse> {
+  /**
+   * @generated from field: backend.admin.v1.Amount balance = 1;
+   */
+  balance?: Amount;
+
+  constructor(data?: PartialMessage<GetPTIBalanceResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.admin.v1.GetPTIBalanceResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "balance", kind: "message", T: Amount },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPTIBalanceResponse {
+    return new GetPTIBalanceResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPTIBalanceResponse {
+    return new GetPTIBalanceResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPTIBalanceResponse {
+    return new GetPTIBalanceResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPTIBalanceResponse | PlainMessage<GetPTIBalanceResponse> | undefined, b: GetPTIBalanceResponse | PlainMessage<GetPTIBalanceResponse> | undefined): boolean {
+    return proto3.util.equals(GetPTIBalanceResponse, a, b);
+  }
+}
+
+/**
  * @generated from message backend.admin.v1.EnablePTIBalanceRequest
  */
 export class EnablePTIBalanceRequest extends Message<EnablePTIBalanceRequest> {

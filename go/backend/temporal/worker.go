@@ -1,6 +1,8 @@
 package temporal
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"os"
@@ -15,6 +17,7 @@ import (
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/worker"
 )
 
@@ -89,16 +92,26 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 	xago_workflows.StartDepositsPolling(b)
 
-	// pti TODO: parsing private key might change depending on file format
-	privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
-	if err != nil {
-		return nil, err
-	}
+	var ptiPrivateKey any
+	if env.IsLocal() {
+		key, err := rsa.GenerateKey(rand.Reader, 4096)
+		if err != nil {
+			return nil, err
+		}
 
-	privateKey, _ := pem.Decode(privateKeyPEM)
-	ptiPrivateKey, err := x509.ParsePKCS8PrivateKey(privateKey.Bytes)
-	if err != nil {
-		return nil, err
+		ptiPrivateKey = key
+	} else {
+		// pti TODO: parsing private key might change depending on file format
+		privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
+		if err != nil {
+			return nil, err
+		}
+
+		privateKey, _ := pem.Decode(privateKeyPEM)
+		ptiPrivateKey, err = x509.ParsePKCS8PrivateKey(privateKey.Bytes)
+		if err != nil {
+			return nil, err
+		}
 	}
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)

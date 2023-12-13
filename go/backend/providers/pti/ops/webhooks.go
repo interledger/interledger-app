@@ -2,6 +2,8 @@ package ops
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
@@ -15,6 +17,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -40,16 +43,26 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		return nil, err
 	}
 
-	// pti TODO: parsing private key might change depending on file format
-	privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
-	if err != nil {
-		log.Fatalln(err)
-	}
+	var ptiPrivateKey any
+	if env.IsLocal() {
+		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	privateKey, _ := pem.Decode(privateKeyPEM)
-	ptiPrivateKey, err := x509.ParsePKCS8PrivateKey(privateKey.Bytes)
-	if err != nil {
-		log.Fatalln(err)
+		ptiPrivateKey = privateKey
+	} else {
+		// pti TODO: parsing private key might change depending on file format
+		privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		privateKey, _ := pem.Decode(privateKeyPEM)
+		ptiPrivateKey, err = x509.ParsePKCS8PrivateKey(privateKey.Bytes)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
