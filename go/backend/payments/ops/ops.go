@@ -796,7 +796,7 @@ func Confirm(ctx context.Context, b Backends, id string) (*payments.Payment, []p
 			return err
 		}
 
-		txType := transactions.TransactionTypeOutgoing
+		txType := transactions.TransactionTypeSent
 		var title string
 		if dbp.Type == payments.TypeWithdrawal {
 			title = "Withdrawal"

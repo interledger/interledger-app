@@ -11,8 +11,8 @@ type TransactionType string
 const (
 	TransactionTypeOpenPaymentIncoming TransactionType = "open_payments_incoming"
 	TransactionTypeOpenOutgoingPayment TransactionType = "open_payments_outgoing"
-	TransactionTypeIncoming            TransactionType = "incoming"
-	TransactionTypeOutgoing            TransactionType = "outgoing"
+	TransactionTypeReceived            TransactionType = "received"
+	TransactionTypeSent                TransactionType = "sent"
 	TransactionTypeWithdrawal          TransactionType = "withdrawal"
 	TransactionTypeTransfer            TransactionType = "transfer"
 	TransactionTypeDeposit             TransactionType = "deposit"
@@ -127,7 +127,7 @@ type Transaction struct {
 // = x_sendamount - x_sendamount / (1 + r_paymentprotectionfeepercentage)
 // = x_sendamount * (r_paymentprotectionfeepercentage / 1 + r_paymentprotectionfeepercentage)
 func (t Transaction) PaymentProtectionAmount() currency.Amount {
-	if t.Type == TransactionTypeIncoming {
+	if t.Type == TransactionTypeReceived {
 		return currency.FromUInt64(0, t.Amount.Currency)
 	}
 

@@ -59,7 +59,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     )?.title
   }
 
-  const walletUrl = transaction.type.includes('outgoing')
+  const walletUrl = transaction.type == 'sent'
     ? transaction.destination
     : transaction.source
 
@@ -150,7 +150,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
       typeof data == 'undefined'
         ? 'Payment'
         : // TODO Fix this for withdrawal
-        data.transaction.type.includes('outgoing')
+        data.transaction.type == 'sent'
         ? `${data.transaction.subtotal} to ${data.transaction.title}`
         : `${data.transaction.formattedAmount} from ${data.transaction.title}`
   }
@@ -164,11 +164,11 @@ export default function Page() {
 
   return (
     <>
-      {transaction.type.includes('outgoing') && (
-        <Outgoing openDialog={() => setShowDialog(true)} />
+      {transaction.type == 'sent' && (
+        <Sent openDialog={() => setShowDialog(true)} />
       )}
-      {transaction.type.includes('incoming') && (
-        <Incoming openDialog={() => setShowDialog(true)} />
+      {transaction.type == 'received' && (
+        <Received openDialog={() => setShowDialog(true)} />
       )}
       {transaction.type == 'withdrawal' && <Withdrawal />}
       {transaction.type == 'deposit' && <Deposit />}
@@ -647,7 +647,7 @@ function Deposit() {
   )
 }
 
-function Outgoing({ openDialog }: { openDialog: () => void }) {
+function Sent({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
@@ -892,7 +892,7 @@ function Outgoing({ openDialog }: { openDialog: () => void }) {
   )
 }
 
-function Incoming({ openDialog }: { openDialog: () => void }) {
+function Received({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
 
   const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])

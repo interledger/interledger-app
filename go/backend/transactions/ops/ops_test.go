@@ -852,7 +852,7 @@ func TestCountSendReceiveTransactions(t *testing.T) {
 	_, err = ops.CreateTransaction(ctx, b, transactions.CreateTransactionArgs{
 		WalletID:    wallets.ReferralsWalletID,
 		ForeignID:   uuid.NewString(),
-		ForeignType: transactions.TransactionTypeIncoming,
+		ForeignType: transactions.TransactionTypeReceived,
 		Provider:    transactions.ProviderGMT,
 		State:       transactions.StateCompleted,
 		Source:      "$fynbos.me/referrals",
@@ -876,7 +876,7 @@ func TestCountSendReceiveTransactions(t *testing.T) {
 	_, err = ops.CreateTransaction(ctx, b, transactions.CreateTransactionArgs{
 		WalletID:    wallets.ReferralsWalletID,
 		ForeignID:   uuid.NewString(),
-		ForeignType: transactions.TransactionTypeOutgoing,
+		ForeignType: transactions.TransactionTypeSent,
 		Provider:    transactions.ProviderGMT,
 		State:       transactions.StateCompleted,
 		Source:      "$fynbos.me/referrals",
