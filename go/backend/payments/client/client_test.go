@@ -65,7 +65,7 @@ func TestClient(t *testing.T) {
 			Value:    10,
 			Currency: currency.USD,
 		},
-		ForeignType: transactions.TransactionTypeIncoming,
+		ForeignType: transactions.TransactionTypeReceived,
 		State:       transactions.StateCompleted,
 		Destination: "https://local.fynbos.me/test",
 	})
@@ -582,7 +582,7 @@ func TestReferrals(t *testing.T) {
 						Value:    10,
 						Currency: currency.USD,
 					},
-					ForeignType: transactions.TransactionTypeIncoming,
+					ForeignType: transactions.TransactionTypeReceived,
 					State:       transactions.StateCompleted,
 					Destination: "https://local.fynbos.me/test",
 				})

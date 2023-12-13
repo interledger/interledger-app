@@ -103,7 +103,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		}
 
 		// This is an idempotent call so we can safely do it repeatedly
-		_, err = b.Transactions().CreateTransaction(r.Context(), transactions.CreateTransactionArgs{
+		trxID, err := b.Transactions().CreateTransaction(r.Context(), transactions.CreateTransactionArgs{
 			ID:                      hook.TransactionID,
 			WalletID:                acc.WalletID,
 			ForeignID:               hook.TransactionID,
@@ -112,6 +112,7 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			State:                   transactions.StateCompleted,
 			Note:                    "Deposit received",
 			Source:                  "Bank Deposit",
+			Title:                   "Deposit",
 			Destination:             acc.WalletID,
 			Amount:                  amt,
 			LinkedAccountTitle:      acc.Title(),
@@ -145,6 +146,21 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		})
 		if err != nil {
 			log.Error("failed to find create pacioli transactions for xago webhook", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		err = b.Transactions().AddTransfers(r.Context(), trxID, []transactions.TransferArgs{
+			{
+				LinkedAccountID: acc.ID,
+				ForeignID:       hook.TransactionID,
+				Type:            transactions.TransferTypeCreditBalance,
+				Amount:          amt,
+				State:           transactions.StateCompleted,
+			},
+		})
+		if err != nil {
+			log.Error("failed to find create transfer for transaction for xago webhook", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

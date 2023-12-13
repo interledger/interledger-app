@@ -275,12 +275,12 @@ export function AppPage() {
                     <span
                       className={clsx(
                         'font-medium',
-                        transaction.type.includes('outgoing')
+                        transaction.type == 'sent'
                           ? 'text-error'
                           : 'text-medium'
                       )}
                     >
-                      {transaction.type.includes('outgoing') && '- '}
+                      {transaction.type == 'sent' && '- '}
                       {transaction.formattedAmount}
                     </span>
                     <Icon>navigate_next</Icon>

@@ -454,7 +454,7 @@ func GetTransactedCount(ctx context.Context, b Backends, walletID, destination s
 
 func CountReceiveTransactions(ctx context.Context, b Backends, walletID string) (int, error) {
 	var txCnt int
-	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND (type=$3 OR type=$4)", walletID, transactions.StateCompleted, transactions.TransactionTypeIncoming, transactions.TransactionTypeOpenPaymentIncoming)
+	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND (type=$3 OR type=$4)", walletID, transactions.StateCompleted, transactions.TransactionTypeReceived, transactions.TransactionTypeOpenPaymentIncoming)
 	if err != nil {
 		return 0, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
@@ -464,7 +464,7 @@ func CountReceiveTransactions(ctx context.Context, b Backends, walletID string) 
 
 func CountSendTransactions(ctx context.Context, b Backends, walletID string) (int, error) {
 	var txCnt int
-	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND (type=$3 OR type=$4)", walletID, transactions.StateCompleted, transactions.TransactionTypeOutgoing, transactions.TransactionTypeOpenOutgoingPayment)
+	err := b.DB().GetContext(ctx, &txCnt, "SELECT count(id) FROM transactions WHERE wallet_id=$1 AND state=$2 AND (type=$3 OR type=$4)", walletID, transactions.StateCompleted, transactions.TransactionTypeSent, transactions.TransactionTypeOpenOutgoingPayment)
 	if err != nil {
 		return 0, fmt.Errorf("%w %s", transactions.ErrInternal, err)
 	}
@@ -687,7 +687,7 @@ type GenerateTransactionTitleArgs struct {
 
 func GenerateTransactionTitle(ctx context.Context, wc wallets.Client, args GenerateTransactionTitleArgs) string {
 	title := args.DestinationIdentity
-	if args.Type == transactions.TransactionTypeOpenPaymentIncoming || args.Type == transactions.TransactionTypeIncoming {
+	if args.Type == transactions.TransactionTypeOpenPaymentIncoming || args.Type == transactions.TransactionTypeReceived {
 		title = args.Source
 	}
 	w, _ := wc.GetFromAddress(ctx, title)
