@@ -609,7 +609,7 @@ export async function GetPendingPayouts(request: Request) {
   return rpc.response.payments
 }
 
-export async function GetWalletBalance(request: Request, walletId: string) {
+export async function GetXagoWalletBalance(request: Request, walletId: string) {
   let rpc = await grpcClient
     .getWalletXagoBalance(
       {
@@ -630,7 +630,10 @@ export async function GetWalletBalance(request: Request, walletId: string) {
   return rpc.response
 }
 
-export async function EnableWalletBalance(request: Request, walletId: string) {
+export async function EnableXagoWalletBalance(
+  request: Request,
+  walletId: string
+) {
   let rpc = await grpcClient
     .setWalletXagoBalanceEnabled(
       {
@@ -658,6 +661,48 @@ export async function setWalletCountry(
       {
         id: walletId,
         countryCode: country
+      },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function GetPtiWalletBalance(request: Request, walletId: string) {
+  let rpc = await grpcClient
+    .getPTIBalance(
+      {
+        walletId
+      },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    if (rpc.code == Code.NOT_FOUND) {
+      return null
+    }
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function EnablePtiWalletBalance(
+  request: Request,
+  walletId: string
+) {
+  let rpc = await grpcClient
+    .enablePTIBalance(
+      {
+        walletId
       },
       { meta: { cookies: String(request.headers.get('cookie')) } }
     )
