@@ -1,20 +1,25 @@
-package external
+package mock
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"gitlab.com/fynbos/backend/providers/pti/external"
 )
 
 type PTI struct {
-	Users        map[string]CreateUserArgs
-	Wallets      map[string]Wallet
-	WalletToUser map[string]string
+	Users        map[string]external.CreateUserArgs `json:"users"`
+	Wallets      map[string]external.Wallet         `json:"wallets"`
+	WalletToUser map[string]string                  `json:"walletToUser"`
 }
 
 func (p *PTI) Routes() chi.Router {
@@ -36,7 +41,7 @@ func CreateUserHandler(p *PTI) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		var args CreateUserArgs
+		var args external.CreateUserArgs
 		err = json.Unmarshal(body, &args)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -51,7 +56,7 @@ func CreateUserHandler(p *PTI) http.HandlerFunc {
 
 		p.Users[args.ID] = args
 
-		resp := CreateUserResponse{
+		resp := external.CreateUserResponse{
 			ID:   args.ID,
 			Link: fmt.Sprintf("https://pti.com/users/%s", args.ID),
 		}
@@ -73,7 +78,7 @@ func CreateUserWalletHandler(p *PTI) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		var args CreateWalletArgs
+		var args external.CreateWalletArgs
 		err = json.Unmarshal(body, &args)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -86,7 +91,7 @@ func CreateUserWalletHandler(p *PTI) http.HandlerFunc {
 			return
 		}
 
-		wallet := Wallet{
+		wallet := external.Wallet{
 			WalletID:       args.WalletID,
 			Currency:       args.Currency,
 			Reference:      args.Reference,
@@ -113,7 +118,7 @@ func CreateStartAssessmentHandler(p *PTI) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		var args CreateUserArgs
+		var args external.CreateUserArgs
 		err = json.Unmarshal(body, &args)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -126,7 +131,7 @@ func CreateStartAssessmentHandler(p *PTI) http.HandlerFunc {
 			return
 		}
 
-		resp := CreateUserResponse{
+		resp := external.CreateUserResponse{
 			ID:   uuid.NewString(),
 			Link: fmt.Sprintf("https://pti.com/users/%s", args.ID),
 		}
@@ -140,9 +145,56 @@ func CreateStartAssessmentHandler(p *PTI) http.HandlerFunc {
 }
 
 func NewPTI() *PTI {
-	return &PTI{
-		Users:        map[string]CreateUserArgs{},
-		Wallets:      map[string]Wallet{},
+	dataFilePath := os.Getenv("DATA_FILE_PATH")
+	if dataFilePath == "" {
+		dataFilePath = "pti_mock.json"
+	}
+
+	if _, err := os.Stat(dataFilePath); errors.Is(err, os.ErrNotExist) {
+		file, fileErr := os.Create(dataFilePath)
+		if fileErr != nil {
+			log.Fatalf(fmt.Sprintf("Failed to create data file %s. %s", dataFilePath, err))
+		}
+		_ = file.Close()
+	}
+
+	rawData, err := os.ReadFile(dataFilePath)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		log.Fatalf(fmt.Sprintf("Failed to read PTI data file %s. %s", dataFilePath, err))
+	}
+
+	mock := PTI{
+		Users:        map[string]external.CreateUserArgs{},
+		Wallets:      map[string]external.Wallet{},
 		WalletToUser: map[string]string{},
 	}
+	if len(rawData) > 0 {
+		err = json.Unmarshal(rawData, &mock)
+		if err != nil {
+			log.Fatalf(fmt.Sprintf("Failed to unmarshal PTI data file %s. %s", dataFilePath, err))
+		}
+	}
+
+	return &mock
+}
+
+func (p *PTI) Save() error {
+	dataFilePath := os.Getenv("DATA_FILE_PATH")
+	if dataFilePath == "" {
+		dataFilePath = "pti_mock.json"
+	}
+
+	file, err := os.Create(dataFilePath)
+	if err != nil {
+		return err
+	}
+
+	rawData, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(rawData)
+
+	return err
 }

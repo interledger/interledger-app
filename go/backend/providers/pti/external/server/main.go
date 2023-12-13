@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/pti/external"
+	"gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -22,7 +22,7 @@ func main() {
 		port = "8080"
 	}
 
-	pti := external.NewPTI()
+	pti := mock.NewPTI()
 
 	var wg sync.WaitGroup
 	ch := make(chan os.Signal, 1)
