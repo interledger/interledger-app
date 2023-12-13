@@ -15,6 +15,15 @@ import { MESSAGE_TYPE } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message backend.admin.v1.EnablePTIBalanceRequest
+ */
+export interface EnablePTIBalanceRequest {
+    /**
+     * @generated from protobuf field: string walletId = 1;
+     */
+    walletId: string;
+}
+/**
  * @generated from protobuf message backend.admin.v1.SetWalletCountryRequest
  */
 export interface SetWalletCountryRequest {
@@ -945,6 +954,53 @@ export interface Amount {
      */
     country: string;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class EnablePTIBalanceRequest$Type extends MessageType<EnablePTIBalanceRequest> {
+    constructor() {
+        super("backend.admin.v1.EnablePTIBalanceRequest", [
+            { no: 1, name: "walletId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<EnablePTIBalanceRequest>): EnablePTIBalanceRequest {
+        const message = { walletId: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<EnablePTIBalanceRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: EnablePTIBalanceRequest): EnablePTIBalanceRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string walletId */ 1:
+                    message.walletId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: EnablePTIBalanceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string walletId = 1; */
+        if (message.walletId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.walletId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.admin.v1.EnablePTIBalanceRequest
+ */
+export const EnablePTIBalanceRequest = new EnablePTIBalanceRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class SetWalletCountryRequest$Type extends MessageType<SetWalletCountryRequest> {
     constructor() {
@@ -4181,5 +4237,6 @@ export const Backend = new ServiceType("backend.admin.v1.Backend", [
     { name: "SetWalletXagoBalanceEnabled", options: {}, I: SetWalletXagoBalanceEnabledRequest, O: Empty },
     { name: "GetWalletXagoBalance", options: {}, I: GetWalletXagoBalanceRequest, O: GetWalletXagoBalanceResponse },
     { name: "SetWalletCountry", options: {}, I: SetWalletCountryRequest, O: Empty },
-    { name: "ListCountries", options: {}, I: Empty, O: ListCountriesResponse }
+    { name: "ListCountries", options: {}, I: Empty, O: ListCountriesResponse },
+    { name: "EnablePTIBalance", options: {}, I: EnablePTIBalanceRequest, O: Empty }
 ]);

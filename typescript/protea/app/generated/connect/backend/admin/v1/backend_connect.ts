@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import { Empty, MethodKind } from "@bufbuild/protobuf";
-import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListCountriesResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SetWalletCountryRequest, SetWalletXagoBalanceEnabledRequest, WalletDetails } from "./backend_pb.js";
+import { AllowWaitlistSignupRequest, CompleteLinkedAccountReviewRequest, Empty as Empty$1, EnablePTIBalanceRequest, ExportFormSubmissionsRequest, ExportFormSubmissionsResponse, Features, FormSubmissionDetails, GetFormSubmissionDetailsRequest, GetLinkedAccountRequest, GetLinkedAccountReviewRequest, GetTransactionDetailsRequest, GetTransactionDetailsResponse, GetWalletDetailsRequest, GetWalletFeaturesRequest, GetWalletXagoBalanceRequest, GetWalletXagoBalanceResponse, LinkedAccount, LinkedAccountReview, LinkedAccountReviews, ListAuditRequest, ListAuditResponse, ListCountriesResponse, ListExternalApiCallsRequest, ListExternalApiCallsResponse, ListFormSubmissionCountsResponse, ListFormSubmissionsRequest, ListFormSubmissionsResponse, ListLinkedAccountsRequest, ListLinkedAccountsResponse, ListPaymentsAwaitingSignalResponse, ListTransactionsRequest, ListTransactionsResponse, ListWaitlistSignupsResponse, ListWalletsResponse, PaginationRequest, SetWalletCountryRequest, SetWalletXagoBalanceEnabledRequest, WalletDetails } from "./backend_pb.js";
 
 /**
  * @generated from service backend.admin.v1.Backend
@@ -226,6 +226,17 @@ export const Backend = {
       name: "ListCountries",
       I: Empty$1,
       O: ListCountriesResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * PTI
+     *
+     * @generated from rpc backend.admin.v1.Backend.EnablePTIBalance
+     */
+    enablePTIBalance: {
+      name: "EnablePTIBalance",
+      I: EnablePTIBalanceRequest,
+      O: Empty$1,
       kind: MethodKind.Unary,
     },
   }
