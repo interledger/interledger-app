@@ -28,7 +28,7 @@ func (p *PTI) Routes() chi.Router {
 	r.HandleFunc("/users", CreateUserHandler(p))
 	r.HandleFunc("/users/{userID}/wallets", CreateUserWalletHandler(p))
 	r.HandleFunc("/users/assessments", CreateStartAssessmentHandler(p))
-
+	r.HandleFunc("/webhooks/pti", CreateProxyWebhooks(p))
 	return r
 }
 
@@ -141,6 +141,26 @@ func CreateStartAssessmentHandler(p *PTI) http.HandlerFunc {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func CreateProxyWebhooks(p *PTI) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Host = os.Getenv("FYNBOS_BACKEND_HOST")
+		r.URL.Scheme = "http"
+		resp, err := http.DefaultClient.Do(r)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(resp.StatusCode)
+		_, err = io.Copy(w, resp.Body)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		defer resp.Body.Close()
 	}
 }
 
