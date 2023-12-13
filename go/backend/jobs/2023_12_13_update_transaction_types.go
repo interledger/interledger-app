@@ -5,14 +5,12 @@ import (
 	"gitlab.com/fynbos/backend/transactions"
 	"time"
 
-	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
 func UpdateTransactionTypes(ctx workflow.Context) error {
 	var a *Activity
-	var tabapayActivity *tabapay_workflows.Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
@@ -26,7 +24,7 @@ func UpdateTransactionTypes(ctx workflow.Context) error {
 		return err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionsIncomingToReceived).Get(ctx, nil)
+	err = workflow.ExecuteActivity(ctx, a.UpdateTransactionsOutgoingToSent).Get(ctx, nil)
 	if err != nil {
 		return err
 	}
