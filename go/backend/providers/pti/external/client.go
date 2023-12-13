@@ -238,8 +238,8 @@ func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Walle
 	return &wallet, nil
 }
 
-func (c client) GetWallet(ctx context.Context, id string) (*Wallet, error) {
-	url, err := url.JoinPath(c.baseURL, "wallets", id)
+func (c client) GetWallet(ctx context.Context, userID, id string) (*Wallet, error) {
+	url, err := url.JoinPath(c.baseURL, "users", userID, "wallets", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}

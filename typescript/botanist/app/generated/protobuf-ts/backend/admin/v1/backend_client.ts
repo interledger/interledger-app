@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { Backend } from "./backend";
+import type { GetPTIBalanceResponse } from "./backend";
+import type { GetPTIBalanceRequest } from "./backend";
 import type { EnablePTIBalanceRequest } from "./backend";
 import type { ListCountriesResponse } from "./backend";
 import type { SetWalletCountryRequest } from "./backend";
@@ -154,6 +156,10 @@ export interface IBackendClient {
      * @generated from protobuf rpc: EnablePTIBalance(backend.admin.v1.EnablePTIBalanceRequest) returns (backend.admin.v1.Empty);
      */
     enablePTIBalance(input: EnablePTIBalanceRequest, options?: RpcOptions): UnaryCall<EnablePTIBalanceRequest, Empty$>;
+    /**
+     * @generated from protobuf rpc: GetPTIBalance(backend.admin.v1.GetPTIBalanceRequest) returns (backend.admin.v1.GetPTIBalanceResponse);
+     */
+    getPTIBalance(input: GetPTIBalanceRequest, options?: RpcOptions): UnaryCall<GetPTIBalanceRequest, GetPTIBalanceResponse>;
 }
 /**
  * @generated from protobuf service backend.admin.v1.Backend
@@ -340,5 +346,12 @@ export class BackendClient implements IBackendClient, ServiceInfo {
     enablePTIBalance(input: EnablePTIBalanceRequest, options?: RpcOptions): UnaryCall<EnablePTIBalanceRequest, Empty$> {
         const method = this.methods[24], opt = this._transport.mergeOptions(options);
         return stackIntercept<EnablePTIBalanceRequest, Empty$>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: GetPTIBalance(backend.admin.v1.GetPTIBalanceRequest) returns (backend.admin.v1.GetPTIBalanceResponse);
+     */
+    getPTIBalance(input: GetPTIBalanceRequest, options?: RpcOptions): UnaryCall<GetPTIBalanceRequest, GetPTIBalanceResponse> {
+        const method = this.methods[25], opt = this._transport.mergeOptions(options);
+        return stackIntercept<GetPTIBalanceRequest, GetPTIBalanceResponse>("unary", this._transport, method, opt, input);
     }
 }
