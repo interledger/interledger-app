@@ -66,16 +66,31 @@ func (mr *MockClientMockRecorder) CreateWallet(ctx, args interface{}) *gomock.Ca
 }
 
 // GetWallet mocks base method.
-func (m *MockClient) GetWallet(ctx context.Context, id string) (*external.Wallet, error) {
+func (m *MockClient) GetWallet(ctx context.Context, userID, id string) (*external.Wallet, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetWallet", ctx, id)
+	ret := m.ctrl.Call(m, "GetWallet", ctx, userID, id)
 	ret0, _ := ret[0].(*external.Wallet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetWallet indicates an expected call of GetWallet.
-func (mr *MockClientMockRecorder) GetWallet(ctx, id interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetWallet(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockClient)(nil).GetWallet), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockClient)(nil).GetWallet), ctx, userID, id)
+}
+
+// StartUserAssessment mocks base method.
+func (m *MockClient) StartUserAssessment(ctx context.Context, args external.CreateUserArgs) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartUserAssessment", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartUserAssessment indicates an expected call of StartUserAssessment.
+func (mr *MockClientMockRecorder) StartUserAssessment(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartUserAssessment", reflect.TypeOf((*MockClient)(nil).StartUserAssessment), ctx, args)
 }

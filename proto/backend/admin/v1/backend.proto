@@ -40,6 +40,15 @@ service Backend {
 
   // PTI
   rpc EnablePTIBalance(EnablePTIBalanceRequest) returns (Empty);
+  rpc GetPTIBalance(GetPTIBalanceRequest) returns (GetPTIBalanceResponse);
+}
+
+message GetPTIBalanceRequest {
+  string walletId = 1;
+}
+
+message GetPTIBalanceResponse {
+  Amount balance = 1;
 }
 
 message EnablePTIBalanceRequest {

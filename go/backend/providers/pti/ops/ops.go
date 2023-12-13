@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/pti/external"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -67,4 +69,31 @@ func GetUser(ctx context.Context, b Backends, walletID string) (*pti.User, error
 	}
 
 	return &user, nil
+}
+
+func GetWallet(ctx context.Context, b Backends, external external.Client, linkedAccountID string) (*pti.Wallet, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if la.Provider != pti.ProviderName {
+		return nil, pti.ErrNotFound
+	}
+
+	externalUser, err := GetUser(ctx, b, la.WalletID)
+	if err != nil {
+		return nil, err
+	}
+
+	w, err := external.GetWallet(ctx, externalUser.ExternalID, la.ProviderID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return &pti.Wallet{
+		ID:        w.WalletID,
+		UserID:    externalUser.ExternalID,
+		Reference: w.Reference,
+		Balance:   currency.FromFloat64(w.Balance, currency.ParseCurrency(w.Currency)),
+	}, nil
 }
