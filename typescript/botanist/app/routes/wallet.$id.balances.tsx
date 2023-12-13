@@ -1,35 +1,45 @@
-import type { LoaderArgs, ActionArgs } from '@remix-run/node'
+import type { ActionArgs, LoaderArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import { Form, useFetcher, useLoaderData, useParams } from '@remix-run/react'
-import { EnableWalletBalance, GetWalletBalance } from '~/lib/wallet.server'
-import { GridCard, Switch } from '~/components'
-import { route } from 'routes-gen'
 import { useCallback } from 'react'
+import { route } from 'routes-gen'
+import { GridCard, Switch } from '~/components'
+import {
+  EnablePtiWalletBalance,
+  EnableXagoWalletBalance,
+  GetPtiWalletBalance,
+  GetXagoWalletBalance
+} from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
-  const balance = await GetWalletBalance(request, params.id as string)
+  const xagoBalance = await GetXagoWalletBalance(request, params.id as string)
+  const ptiBalance = await GetPtiWalletBalance(request, params.id as string)
 
   return json({
-    balance
+    zarBalance: xagoBalance,
+    usdBalance: ptiBalance
   })
 }
 
 export default function Page() {
-  const { balance } = useLoaderData<typeof loader>()
+  const { zarBalance, usdBalance } = useLoaderData<typeof loader>()
   const { id } = useParams()
   const fetcher = useFetcher()
 
-  const _onChangeSwitch = useCallback<{ (): void }>(() => {
-    fetcher.submit({}, { method: 'post' })
-  }, [fetcher])
+  const _onChangeSwitch = useCallback<{ (currency: string): void }>(
+    (currency: string) => {
+      fetcher.submit({ currency }, { method: 'post' })
+    },
+    [fetcher]
+  )
 
   return (
     <>
-      {balance && (
+      {zarBalance && (
         <GridCard
           className='col-span-full lg:col-span-4'
-          title='Balance'
-          options={balance}
+          title='ZAR Balance'
+          options={zarBalance}
         />
       )}
       <Form
@@ -43,9 +53,26 @@ export default function Page() {
           Enable ZAR Balance
         </dt>
         <Switch
-          checked={!!balance}
-          disabled={!!balance}
-          onChange={() => _onChangeSwitch()}
+          checked={!!zarBalance}
+          disabled={!!zarBalance}
+          onChange={() => _onChangeSwitch('ZAR')}
+        />
+      </div>
+      {usdBalance && (
+        <GridCard
+          className='col-span-full lg:col-span-4'
+          title='USD Balance'
+          options={usdBalance}
+        />
+      )}
+      <div className='flex w-full items-center justify-between'>
+        <dt className='text-xs font-medium capitalize text-weak'>
+          Enable USD Balance
+        </dt>
+        <Switch
+          checked={!!usdBalance}
+          disabled={!!usdBalance}
+          onChange={() => _onChangeSwitch('USD')}
         />
       </div>
     </>
@@ -53,7 +80,14 @@ export default function Page() {
 }
 
 export async function action({ request, params }: ActionArgs) {
-  await EnableWalletBalance(request, params.id as string)
+  let form = await request.formData()
+  let currency = form.get('currency')
+
+  if (currency == 'ZAR') {
+    await EnableXagoWalletBalance(request, params.id as string)
+  } else if (currency == 'USD') {
+    await EnablePtiWalletBalance(request, params.id as string)
+  }
 
   return null
 }
