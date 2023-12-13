@@ -107,7 +107,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 	if destinationIdentityType == payments.IdentityTypeWalletID.String() ||
 		destinationIdentityType == payments.IdentityTypeWalletURL.String() ||
 		tx.Type == transactions.TransactionTypeOpenPaymentIncoming ||
-		tx.Type == transactions.TransactionTypeIncoming {
+		tx.Type == transactions.TransactionTypeReceived {
 		destinationIdentityType = "wallet"
 	}
 
@@ -116,7 +116,7 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 	paymentProtection := tx.PaymentProtectionAmount()
 
 	// For outgoing transactions we need to minus the payment protection fee from the amount for the subtotal
-	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment || tx.Type == transactions.TransactionTypeOutgoing {
+	if tx.Type == transactions.TransactionTypeOpenOutgoingPayment || tx.Type == transactions.TransactionTypeSent {
 		subTotalAmount := currency.FromUInt64(tx.Amount.Value-paymentProtection.Value, tx.Amount.Currency)
 		subTotal = subTotalAmount.Format()
 	}

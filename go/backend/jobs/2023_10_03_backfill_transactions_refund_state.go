@@ -33,7 +33,7 @@ func BackfillTransactionsRefundState(ctx workflow.Context) error {
 			}
 			if tx.RefundState == transactions.RefundStateNone &&
 				tx.State == transactions.StateFailed &&
-				(tx.Type == transactions.TransactionTypeOpenOutgoingPayment || tx.Type == transactions.TransactionTypeOutgoing) {
+				(tx.Type == transactions.TransactionTypeOpenOutgoingPayment || tx.Type == transactions.TransactionTypeSent) {
 				logger.Info("Updating refund state for transaction", "tx", tx.ID)
 				err := workflow.ExecuteActivity(ctx, a.UpdateTransactionRefundState, tx).Get(ctx, nil)
 				if err != nil {
