@@ -59,6 +59,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(jobs.BackfillLinkedCardCurrencyInfo)
 	w.RegisterWorkflow(jobs.BackfillTransactionsRefundState)
 	w.RegisterWorkflow(jobs.BackfillTransactionsTitle)
+	w.RegisterWorkflow(jobs.UpdateTransactionTypes)
 
 	// Payment Engine
 	w.RegisterActivity(payments_workflows.NewActivity(b))
