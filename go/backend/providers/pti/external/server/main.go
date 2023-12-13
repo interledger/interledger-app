@@ -43,6 +43,10 @@ func main() {
 
 		log.Info(fmt.Sprintf("got signal attempting graceful HTTP shutdown: %s", server.Addr))
 		_ = server.Shutdown(shutdownCtx)
+		err := pti.Save()
+		if err != nil {
+			log.Error("Failed to save mock PTI state to file.")
+		}
 	}(ch, &wg)
 
 	go func() {
