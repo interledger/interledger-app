@@ -37,6 +37,13 @@ service Backend {
   
   rpc SetWalletCountry(SetWalletCountryRequest) returns (Empty);
   rpc ListCountries(Empty) returns (ListCountriesResponse);
+
+  // PTI
+  rpc EnablePTIBalance(EnablePTIBalanceRequest) returns (Empty);
+}
+
+message EnablePTIBalanceRequest {
+  string walletId = 1;
 }
 
 message SetWalletCountryRequest {

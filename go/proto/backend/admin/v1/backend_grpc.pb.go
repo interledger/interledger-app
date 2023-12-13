@@ -44,6 +44,7 @@ const (
 	Backend_GetWalletXagoBalance_FullMethodName               = "/backend.admin.v1.Backend/GetWalletXagoBalance"
 	Backend_SetWalletCountry_FullMethodName                   = "/backend.admin.v1.Backend/SetWalletCountry"
 	Backend_ListCountries_FullMethodName                      = "/backend.admin.v1.Backend/ListCountries"
+	Backend_EnablePTIBalance_FullMethodName                   = "/backend.admin.v1.Backend/EnablePTIBalance"
 )
 
 // BackendClient is the client API for Backend service.
@@ -74,6 +75,8 @@ type BackendClient interface {
 	GetWalletXagoBalance(ctx context.Context, in *GetWalletXagoBalanceRequest, opts ...grpc.CallOption) (*GetWalletXagoBalanceResponse, error)
 	SetWalletCountry(ctx context.Context, in *SetWalletCountryRequest, opts ...grpc.CallOption) (*Empty, error)
 	ListCountries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListCountriesResponse, error)
+	// PTI
+	EnablePTIBalance(ctx context.Context, in *EnablePTIBalanceRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendClient struct {
@@ -323,6 +326,15 @@ func (c *backendClient) ListCountries(ctx context.Context, in *Empty, opts ...gr
 	return out, nil
 }
 
+func (c *backendClient) EnablePTIBalance(ctx context.Context, in *EnablePTIBalanceRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, Backend_EnablePTIBalance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations should embed UnimplementedBackendServer
 // for forward compatibility
@@ -351,6 +363,8 @@ type BackendServer interface {
 	GetWalletXagoBalance(context.Context, *GetWalletXagoBalanceRequest) (*GetWalletXagoBalanceResponse, error)
 	SetWalletCountry(context.Context, *SetWalletCountryRequest) (*Empty, error)
 	ListCountries(context.Context, *Empty) (*ListCountriesResponse, error)
+	// PTI
+	EnablePTIBalance(context.Context, *EnablePTIBalanceRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServer should be embedded to have forward compatible implementations.
@@ -428,6 +442,9 @@ func (UnimplementedBackendServer) SetWalletCountry(context.Context, *SetWalletCo
 }
 func (UnimplementedBackendServer) ListCountries(context.Context, *Empty) (*ListCountriesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCountries not implemented")
+}
+func (UnimplementedBackendServer) EnablePTIBalance(context.Context, *EnablePTIBalanceRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnablePTIBalance not implemented")
 }
 
 // UnsafeBackendServer may be embedded to opt out of forward compatibility for this service.
@@ -876,6 +893,24 @@ func _Backend_ListCountries_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_EnablePTIBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnablePTIBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).EnablePTIBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_EnablePTIBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).EnablePTIBalance(ctx, req.(*EnablePTIBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -974,6 +1009,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCountries",
 			Handler:    _Backend_ListCountries_Handler,
+		},
+		{
+			MethodName: "EnablePTIBalance",
+			Handler:    _Backend_EnablePTIBalance_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
