@@ -157,6 +157,15 @@ func transformTransaction(tx transactions.Transaction, transfers []transactions.
 		}
 	}
 
+	// only adding the send and receive accounts to withdrawals
+	if tx.Type == transactions.TransactionTypeDeposit {
+		for _, t := range transfers {
+			if t.Type == transactions.TransferTypeCreditBalance {
+				ret.ReceiverAccountId = t.LinkedAccountID
+			}
+		}
+	}
+
 	return ret
 }
 
