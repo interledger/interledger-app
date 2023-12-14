@@ -1,38 +1,4 @@
-// Copyright 2014 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'package:flutter/painting.dart';
-
-class TailwindColor extends ColorSwatch<int> {
-  /// Creates a color swatch with a variety of shades.
-  ///
-  /// The `primary` argument should be the 32 bit ARGB value of one of the
-  /// values in the swatch, as would be passed to the [Color.new] constructor
-  /// for that same color, and as is exposed by [value]. (This is distinct from
-  /// the specific index of the color in the swatch.)
-  const TailwindColor(super.primary, super.swatch);
-
-  Color get shade50 => this[50]!;
-
-  Color get shade100 => this[100]!;
-
-  Color get shade200 => this[200]!;
-
-  Color get shade300 => this[300]!;
-
-  Color get shade400 => this[400]!;
-
-  Color get shade500 => this[500]!;
-
-  Color get shade600 => this[600]!;
-
-  Color get shade700 => this[700]!;
-
-  Color get shade800 => this[800]!;
-
-  Color get shade900 => this[900]!;
-}
 
 class TWColors {
   // This class is not meant to be instantiated or extended; this constructor
@@ -41,14 +7,18 @@ class TWColors {
 
   // Color tokens
 
-  static const Color textStrong = Color(0xff0f172a);
-  static const Color textMedium = Color(0xff475569);
-  static const Color textWeak = Color(0xff64748b);
-  static const Color textDisabled = Color(0xff94a3b8);
-  static const Color textPrimary = Color(0xff3b82f6);
-  static const Color textError = Color(0xffb91c1c);
-  static const Color textSuccess = Color(0xff22c55e);
+  // TODO: Should probably just replace these with values directly in the theme
+  static const Color textStrong = slate900;
+  static const Color textMedium = slate600;
+  static const Color textWeak = slate500;
+  static const Color textDisabled = slate400;
+  static const Color textPrimary = blue500;
+  static const Color textError = red500;
+  static const Color textSuccess = green500;
+  static const Color textOnColor = white;
+  static const Color textInverted = white;
 
+// TODO Update these tokens to match the designs
   static const Color bgApp = Color(0xfff8fafc);
   static const Color bgPage = white;
   static const Color bgContainer = Color(0xfff1f5f9);
@@ -74,377 +44,135 @@ class TWColors {
   static const Color black = Color(0xFF000000);
   static const Color white = Color(0xFFFFFFFF);
 
-  static const TailwindColor slate = TailwindColor(
-    _slatePrimaryValue,
-    <int, Color>{
-      50: Color(0xfff8fafc),
-      100: Color(0xfff1f5f9),
-      200: Color(0xffe2e8f0),
-      300: Color(0xffcbd5e1),
-      400: Color(0xff94a3b8),
-      500: Color(_slatePrimaryValue),
-      600: Color(0xff475569),
-      700: Color(0xff334155),
-      800: Color(0xff1e293b),
-      900: Color(0xff0f172a),
-    },
-  );
-  static const int _slatePrimaryValue = 0xff64748b;
+  static const Color slate50 = Color(0xfff8fafc);
+  static const Color slate100 = Color(0xfff1f5f9);
+  static const Color slate200 = Color(0xffe2e8f0);
+  static const Color slate300 = Color(0xffcbd5e1);
+  static const Color slate400 = Color(0xff94a3b8);
+  static const Color slate500 = Color(0xff64748b);
+  static const Color slate600 = Color(0xff475569);
+  static const Color slate700 = Color(0xff334155);
+  static const Color slate800 = Color(0xff1e293b);
+  static const Color slate900 = Color(0xff0f172a);
+  static const Color slate950 = Color(0xff020617);
 
-  static const TailwindColor gray = TailwindColor(
-    _grayPrimaryValue,
-    <int, Color>{
-      50: Color(0xfff8fafc),
-      100: Color(0xfff1f5f9),
-      200: Color(0xffe2e8f0),
-      300: Color(0xffcbd5e1),
-      400: Color(0xff94a3b8),
-      500: Color(_grayPrimaryValue),
-      600: Color(0xff475569),
-      700: Color(0xff334155),
-      800: Color(0xff1e293b),
-      900: Color(0xff0f172a),
-    },
-  );
-  static const int _grayPrimaryValue = 0xff64748b;
+  static const Color red50 = Color(0xfffef2f2);
+  static const Color red100 = Color(0xfffee2e2);
+  static const Color red200 = Color(0xfffecaca);
+  static const Color red300 = Color(0xfffca5a5);
+  static const Color red400 = Color(0xfff87171);
+  static const Color red500 = Color(0xffef4444);
+  static const Color red600 = Color(0xffdc2626);
+  static const Color red700 = Color(0xffb91c1c);
+  static const Color red800 = Color(0xff991b1b);
+  static const Color red900 = Color(0xff7f1d1d);
+  static const Color red950 = Color(0xff450A0A);
 
-  static const TailwindColor zinc = TailwindColor(
-    _zincPrimaryValue,
-    <int, Color>{
-      50: Color(0xfffafafa),
-      100: Color(0xfff4f4f5),
-      200: Color(0xffe4e4e7),
-      300: Color(0xffd4d4d8),
-      400: Color(0xffa1a1aa),
-      500: Color(_zincPrimaryValue),
-      600: Color(0xff52525b),
-      700: Color(0xff3f3f46),
-      800: Color(0xff27272a),
-      900: Color(0xff18181b),
-    },
-  );
-  static const int _zincPrimaryValue = 0xff71717a;
+  static const Color orange50 = Color(0xfffff7ed);
+  static const Color orange100 = Color(0xffffedd5);
+  static const Color orange200 = Color(0xfffed7aa);
+  static const Color orange300 = Color(0xfffdba74);
+  static const Color orange400 = Color(0xfffb923c);
+  static const Color orange500 = Color(0xfff97316);
+  static const Color orange600 = Color(0xffea580c);
+  static const Color orange700 = Color(0xffc2410c);
+  static const Color orange800 = Color(0xff9a3412);
+  static const Color orange900 = Color(0xff7c2d12);
+  static const Color orange950 = Color(0xff431407);
 
-  static const TailwindColor neutral = TailwindColor(
-    _neutralPrimaryValue,
-    <int, Color>{
-      50: Color(0xfffafafa),
-      100: Color(0xfff5f5f5),
-      200: Color(0xffe5e5e5),
-      300: Color(0xffd4d4d4),
-      400: Color(0xffa3a3a3),
-      500: Color(_neutralPrimaryValue),
-      600: Color(0xff525252),
-      700: Color(0xff404040),
-      800: Color(0xff262626),
-      900: Color(0xff171717),
-    },
-  );
-  static const int _neutralPrimaryValue = 0xff737373;
+  static const Color yellow50 = Color(0xfffefce8);
+  static const Color yellow100 = Color(0xfffef9c3);
+  static const Color yellow200 = Color(0xfffef08a);
+  static const Color yellow300 = Color(0xfffde047);
+  static const Color yellow400 = Color(0xfffacc15);
+  static const Color yellow500 = Color(0xffeab308);
+  static const Color yellow600 = Color(0xffca8a04);
+  static const Color yellow700 = Color(0xffa16207);
+  static const Color yellow800 = Color(0xff854d0e);
+  static const Color yellow900 = Color(0xff713f12);
+  static const Color yellow950 = Color(0xff422006);
 
-  static const TailwindColor stone = TailwindColor(
-    _stonePrimaryValue,
-    <int, Color>{
-      50: Color(0xfffafaf9),
-      100: Color(0xfff5f5f4),
-      200: Color(0xffe7e5e4),
-      300: Color(0xffd6d3d1),
-      400: Color(0xffa8a29e),
-      500: Color(_stonePrimaryValue),
-      600: Color(0xff57534e),
-      700: Color(0xff44403c),
-      800: Color(0xff292524),
-      900: Color(0xff1c1917),
-    },
-  );
-  static const int _stonePrimaryValue = 0xff78716c;
+  static const Color lime50 = Color(0xfff7fee7);
+  static const Color lime100 = Color(0xffecfccb);
+  static const Color lime200 = Color(0xffd9f99d);
+  static const Color lime300 = Color(0xffbef264);
+  static const Color lime400 = Color(0xffa3e635);
+  static const Color lime500 = Color(0xff84cc16);
+  static const Color lime600 = Color(0xff65a30d);
+  static const Color lime700 = Color(0xff4d7c0f);
+  static const Color lime800 = Color(0xff3f6212);
+  static const Color lime900 = Color(0xff365314);
+  static const Color lime950 = Color(0xff1A2E05);
 
-  static const TailwindColor red = TailwindColor(
-    _redPrimaryValue,
-    <int, Color>{
-      50: Color(0xfffef2f2),
-      100: Color(0xfffee2e2),
-      200: Color(0xfffecaca),
-      300: Color(0xfffca5a5),
-      400: Color(0xfff87171),
-      500: Color(_redPrimaryValue),
-      600: Color(0xffdc2626),
-      700: Color(0xffb91c1c),
-      800: Color(0xff991b1b),
-      900: Color(0xff7f1d1d),
-    },
-  );
-  static const int _redPrimaryValue = 0xffef4444;
+  static const Color green50 = Color(0xfff0fdf4);
+  static const Color green100 = Color(0xffdcfce7);
+  static const Color green200 = Color(0xffbbf7d0);
+  static const Color green300 = Color(0xff86efac);
+  static const Color green400 = Color(0xff4ade80);
+  static const Color green500 = Color(0xff22c55e);
+  static const Color green600 = Color(0xff16a34a);
+  static const Color green700 = Color(0xff15803d);
+  static const Color green800 = Color(0xff166534);
+  static const Color green900 = Color(0xff14532d);
+  static const Color green950 = Color(0xff052E16);
 
-  static const TailwindColor orange = TailwindColor(
-    _orangePrimaryValue,
-    <int, Color>{
-      50: Color(0xfffff7ed),
-      100: Color(0xffffedd5),
-      200: Color(0xfffed7aa),
-      300: Color(0xfffdba74),
-      400: Color(0xfffb923c),
-      500: Color(_orangePrimaryValue),
-      600: Color(0xffea580c),
-      700: Color(0xffc2410c),
-      800: Color(0xff9a3412),
-      900: Color(0xff7c2d12),
-    },
-  );
-  static const int _orangePrimaryValue = 0xfff97316;
+  static const Color sky50 = Color(0xfff0f9ff);
+  static const Color sky100 = Color(0xffe0f2fe);
+  static const Color sky200 = Color(0xffbae6fd);
+  static const Color sky300 = Color(0xff7dd3fc);
+  static const Color sky400 = Color(0xff38bdf8);
+  static const Color sky500 = Color(0xff0ea5e9);
+  static const Color sky600 = Color(0xff0284c7);
+  static const Color sky700 = Color(0xff0369a1);
+  static const Color sky800 = Color(0xff075985);
+  static const Color sky900 = Color(0xff0c4a6e);
+  static const Color sky950 = Color(0xff082F49);
 
-  static const TailwindColor amber = TailwindColor(
-    _amberPrimaryValue,
-    <int, Color>{
-      50: Color(0xfffffbeb),
-      100: Color(0xfffef3c7),
-      200: Color(0xfffde68a),
-      300: Color(0xfffcd34d),
-      400: Color(0xfffbbf24),
-      500: Color(_amberPrimaryValue),
-      600: Color(0xffd97706),
-      700: Color(0xffb45309),
-      800: Color(0xff92400e),
-      900: Color(0xff78350f),
-    },
-  );
-  static const int _amberPrimaryValue = 0xfff59e0b;
+  static const Color blue50 = Color(0xffeff6ff);
+  static const Color blue100 = Color(0xffdbeafe);
+  static const Color blue200 = Color(0xffbfdbfe);
+  static const Color blue300 = Color(0xff93c5fd);
+  static const Color blue400 = Color(0xff60a5fa);
+  static const Color blue500 = Color(0xff3b82f6);
+  static const Color blue600 = Color(0xff2563eb);
+  static const Color blue700 = Color(0xff1d4ed8);
+  static const Color blue800 = Color(0xff1e40af);
+  static const Color blue900 = Color(0xff1e3a8a);
+  static const Color blue950 = Color(0xff172554);
 
-  static const TailwindColor yellow = TailwindColor(
-    _yellowPrimaryValue,
-    <int, Color>{
-      50: Color(0xfffefce8),
-      100: Color(0xfffef9c3),
-      200: Color(0xfffef08a),
-      300: Color(0xfffde047),
-      400: Color(0xfffacc15),
-      500: Color(_yellowPrimaryValue),
-      600: Color(0xffca8a04),
-      700: Color(0xffa16207),
-      800: Color(0xff854d0e),
-      900: Color(0xff713f12),
-    },
-  );
-  static const int _yellowPrimaryValue = 0xffeab308;
+  static const Color indigo50 = Color(0xffeef2ff);
+  static const Color indigo100 = Color(0xffe0e7ff);
+  static const Color indigo200 = Color(0xffc7d2fe);
+  static const Color indigo300 = Color(0xffa5b4fc);
+  static const Color indigo400 = Color(0xff818cf8);
+  static const Color indigo500 = Color(0xff6366f1);
+  static const Color indigo600 = Color(0xff4f46e5);
+  static const Color indigo700 = Color(0xff4338ca);
+  static const Color indigo800 = Color(0xff3730a3);
+  static const Color indigo900 = Color(0xff312e81);
+  static const Color indigo950 = Color(0xff1E1B4B);
 
-  static const TailwindColor lime = TailwindColor(
-    _limePrimaryValue,
-    <int, Color>{
-      50: Color(0xfff7fee7),
-      100: Color(0xffecfccb),
-      200: Color(0xffd9f99d),
-      300: Color(0xffbef264),
-      400: Color(0xffa3e635),
-      500: Color(_limePrimaryValue),
-      600: Color(0xff65a30d),
-      700: Color(0xff4d7c0f),
-      800: Color(0xff3f6212),
-      900: Color(0xff365314),
-    },
-  );
-  static const int _limePrimaryValue = 0xff84cc16;
+  static const Color purple50 = Color(0xfffaf5ff);
+  static const Color purple100 = Color(0xfff3e8ff);
+  static const Color purple200 = Color(0xffe9d5ff);
+  static const Color purple300 = Color(0xffd8b4fe);
+  static const Color purple400 = Color(0xffc084fc);
+  static const Color purple500 = Color(0xffa855f7);
+  static const Color purple600 = Color(0xff9333ea);
+  static const Color purple700 = Color(0xff7e22ce);
+  static const Color purple800 = Color(0xff6b21a8);
+  static const Color purple900 = Color(0xff581c87);
+  static const Color purple950 = Color(0xff3B0764);
 
-  static const TailwindColor green = TailwindColor(
-    _greenPrimaryValue,
-    <int, Color>{
-      50: Color(0xfff0fdf4),
-      100: Color(0xffdcfce7),
-      200: Color(0xffbbf7d0),
-      300: Color(0xff86efac),
-      400: Color(0xff4ade80),
-      500: Color(_greenPrimaryValue),
-      600: Color(0xff16a34a),
-      700: Color(0xff15803d),
-      800: Color(0xff166534),
-      900: Color(0xff14532d),
-    },
-  );
-  static const int _greenPrimaryValue = 0xff22c55e;
-
-  static const TailwindColor emerald = TailwindColor(
-    _emeraldPrimaryValue,
-    <int, Color>{
-      50: Color(0xffecfdf5),
-      100: Color(0xffd1fae5),
-      200: Color(0xffa7f3d0),
-      300: Color(0xff6ee7b7),
-      400: Color(0xff34d399),
-      500: Color(_emeraldPrimaryValue),
-      600: Color(0xff059669),
-      700: Color(0xff047857),
-      800: Color(0xff065f46),
-      900: Color(0xff064e3b),
-    },
-  );
-  static const int _emeraldPrimaryValue = 0xff10b981;
-
-  static const TailwindColor teal = TailwindColor(
-    _tealPrimaryValue,
-    <int, Color>{
-      50: Color(0xfff0fdfa),
-      100: Color(0xffccfbf1),
-      200: Color(0xff99f6e4),
-      300: Color(0xff5eead4),
-      400: Color(0xff2dd4bf),
-      500: Color(_tealPrimaryValue),
-      600: Color(0xff0d9488),
-      700: Color(0xff0f766e),
-      800: Color(0xff115e59),
-      900: Color(0xff134e4a),
-    },
-  );
-  static const int _tealPrimaryValue = 0xff14b8a6;
-
-  static const TailwindColor cyan = TailwindColor(
-    _cyanPrimaryValue,
-    <int, Color>{
-      50: Color(0xffecfeff),
-      100: Color(0xffcffafe),
-      200: Color(0xffa5f3fc),
-      300: Color(0xff67e8f9),
-      400: Color(0xff22d3ee),
-      500: Color(_cyanPrimaryValue),
-      600: Color(0xff0891b2),
-      700: Color(0xff0e7490),
-      800: Color(0xff155e75),
-      900: Color(0xff164e63),
-    },
-  );
-  static const int _cyanPrimaryValue = 0xff06b6d4;
-
-  static const TailwindColor sky = TailwindColor(
-    _skyPrimaryValue,
-    <int, Color>{
-      50: Color(0xfff0f9ff),
-      100: Color(0xffe0f2fe),
-      200: Color(0xffbae6fd),
-      300: Color(0xff7dd3fc),
-      400: Color(0xff38bdf8),
-      500: Color(_skyPrimaryValue),
-      600: Color(0xff0284c7),
-      700: Color(0xff0369a1),
-      800: Color(0xff075985),
-      900: Color(0xff0c4a6e),
-    },
-  );
-  static const int _skyPrimaryValue = 0xff0ea5e9;
-
-  static const TailwindColor blue = TailwindColor(
-    _bluePrimaryValue,
-    <int, Color>{
-      50: Color(0xffeff6ff),
-      100: Color(0xffdbeafe),
-      200: Color(0xffbfdbfe),
-      300: Color(0xff93c5fd),
-      400: Color(0xff60a5fa),
-      500: Color(_bluePrimaryValue),
-      600: Color(0xff2563eb),
-      700: Color(0xff1d4ed8),
-      800: Color(0xff1e40af),
-      900: Color(0xff1e3a8a),
-    },
-  );
-  static const int _bluePrimaryValue = 0xff3b82f6;
-
-  static const TailwindColor indigo = TailwindColor(
-    _indigoPrimaryValue,
-    <int, Color>{
-      50: Color(0xffeef2ff),
-      100: Color(0xffe0e7ff),
-      200: Color(0xffc7d2fe),
-      300: Color(0xffa5b4fc),
-      400: Color(0xff818cf8),
-      500: Color(_indigoPrimaryValue),
-      600: Color(0xff4f46e5),
-      700: Color(0xff4338ca),
-      800: Color(0xff3730a3),
-      900: Color(0xff312e81),
-    },
-  );
-  static const int _indigoPrimaryValue = 0xff6366f1;
-
-  static const TailwindColor violet = TailwindColor(
-    _violetPrimaryValue,
-    <int, Color>{
-      50: Color(0xfff5f3ff),
-      100: Color(0xffede9fe),
-      200: Color(0xffddd6fe),
-      300: Color(0xffc4b5fd),
-      400: Color(0xffa78bfa),
-      500: Color(_violetPrimaryValue),
-      600: Color(0xff7c3aed),
-      700: Color(0xff6d28d9),
-      800: Color(0xff5b21b6),
-      900: Color(0xff4c1d95),
-    },
-  );
-  static const int _violetPrimaryValue = 0xff8b5cf6;
-
-  static const TailwindColor purple = TailwindColor(
-    _purplePrimaryValue,
-    <int, Color>{
-      50: Color(0xfffaf5ff),
-      100: Color(0xfff3e8ff),
-      200: Color(0xffe9d5ff),
-      300: Color(0xffd8b4fe),
-      400: Color(0xffc084fc),
-      500: Color(_purplePrimaryValue),
-      600: Color(0xff9333ea),
-      700: Color(0xff7e22ce),
-      800: Color(0xff6b21a8),
-      900: Color(0xff581c87),
-    },
-  );
-  static const int _purplePrimaryValue = 0xffa855f7;
-
-  static const TailwindColor fuchsia = TailwindColor(
-    _fuchsiaPrimaryValue,
-    <int, Color>{
-      50: Color(0xfffdf4ff),
-      100: Color(0xfffae8ff),
-      200: Color(0xfff5d0fe),
-      300: Color(0xfff0abfc),
-      400: Color(0xffe879f9),
-      500: Color(_fuchsiaPrimaryValue),
-      600: Color(0xffc026d3),
-      700: Color(0xffa21caf),
-      800: Color(0xff86198f),
-      900: Color(0xff701a75),
-    },
-  );
-  static const int _fuchsiaPrimaryValue = 0xffd946ef;
-
-  static const TailwindColor pink = TailwindColor(
-    _pinkPrimaryValue,
-    <int, Color>{
-      50: Color(0xfffdf2f8),
-      100: Color(0xfffce7f3),
-      200: Color(0xfffbcfe8),
-      300: Color(0xfff9a8d4),
-      400: Color(0xfff472b6),
-      500: Color(_pinkPrimaryValue),
-      600: Color(0xffdb2777),
-      700: Color(0xffbe185d),
-      800: Color(0xff9d174d),
-      900: Color(0xff831843),
-    },
-  );
-  static const int _pinkPrimaryValue = 0xffec4899;
-
-  static const TailwindColor rose = TailwindColor(
-    _rosePrimaryValue,
-    <int, Color>{
-      50: Color(0xfffff1f2),
-      100: Color(0xffffe4e6),
-      200: Color(0xfffecdd3),
-      300: Color(0xfffda4af),
-      400: Color(0xfffb7185),
-      500: Color(_rosePrimaryValue),
-      600: Color(0xffe11d48),
-      700: Color(0xffbe123c),
-      800: Color(0xff9f1239),
-      900: Color(0xff881337),
-    },
-  );
-  static const int _rosePrimaryValue = 0xfff43f5e;
+  static const Color rose50 = Color(0xfffff1f2);
+  static const Color rose100 = Color(0xffffe4e6);
+  static const Color rose200 = Color(0xfffecdd3);
+  static const Color rose300 = Color(0xfffda4af);
+  static const Color rose400 = Color(0xfffb7185);
+  static const Color rose500 = Color(0xfff43f5e);
+  static const Color rose600 = Color(0xffe11d48);
+  static const Color rose700 = Color(0xffbe123c);
+  static const Color rose800 = Color(0xff9f1239);
+  static const Color rose900 = Color(0xff881337);
+  static const Color rose950 = Color(0xff4C0519);
 }

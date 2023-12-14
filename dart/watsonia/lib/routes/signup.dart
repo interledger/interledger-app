@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:watsonia/components.dart';
 import 'package:watsonia/components/card.dart' as comp;
 
 import '../styles/colors.dart';
@@ -42,18 +42,18 @@ class SignupRoute extends StatelessWidget {
                           Container(
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                                color: TWColors.yellow[300],
-                                borderRadius: const BorderRadius.only(
+                            decoration: const BoxDecoration(
+                                color: TWColors.yellow300,
+                                borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(32))),
                           ),
                           Container(
                             margin: const EdgeInsets.fromLTRB(0, 0, 16, 0),
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                              color: TWColors.slate[500],
-                              borderRadius: const BorderRadius.only(
+                            decoration: const BoxDecoration(
+                              color: TWColors.slate500,
+                              borderRadius: BorderRadius.only(
                                 bottomLeft: Radius.circular(32),
                               ),
                             ),
@@ -94,9 +94,9 @@ class SignupRoute extends StatelessWidget {
                           Container(
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                                color: TWColors.rose[400],
-                                borderRadius: const BorderRadius.only(
+                            decoration: const BoxDecoration(
+                                color: TWColors.rose400,
+                                borderRadius: BorderRadius.only(
                                     bottomLeft: Radius.circular(32))),
                           ),
                           Container(
@@ -104,7 +104,7 @@ class SignupRoute extends StatelessWidget {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: TWColors.lime[500],
+                              color: TWColors.lime500,
                               borderRadius: BorderRadius.circular(32),
                             ),
                           ),
@@ -144,18 +144,18 @@ class SignupRoute extends StatelessWidget {
                           Container(
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                                color: TWColors.yellow[300],
-                                borderRadius: const BorderRadius.only(
+                            decoration: const BoxDecoration(
+                                color: TWColors.yellow300,
+                                borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(32))),
                           ),
                           Container(
                             margin: const EdgeInsets.fromLTRB(0, 0, 16, 0),
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                              color: TWColors.slate[300],
-                              borderRadius: const BorderRadius.only(
+                            decoration: const BoxDecoration(
+                              color: TWColors.slate300,
+                              borderRadius: BorderRadius.only(
                                   bottomLeft: Radius.circular(32)),
                             ),
                           ),
@@ -196,16 +196,16 @@ class SignupRoute extends StatelessWidget {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                                color: TWColors.rose[500],
+                                color: TWColors.rose500,
                                 borderRadius: BorderRadius.circular(32)),
                           ),
                           Container(
                             margin: const EdgeInsets.fromLTRB(0, 0, 16, 0),
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                              color: TWColors.lime[300],
-                              borderRadius: const BorderRadius.only(
+                            decoration: const BoxDecoration(
+                              color: TWColors.lime300,
+                              borderRadius: BorderRadius.only(
                                   topRight: Radius.circular(32)),
                             ),
                           ),
@@ -241,25 +241,7 @@ class SignupRoute extends StatelessWidget {
                       margin: const EdgeInsets.fromLTRB(0, 32, 0, 0),
                       width: double.infinity,
                       child: FilledButton(
-                          style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.resolveWith<Color?>(
-                              (Set<MaterialState> states) {
-                                if (states.contains(MaterialState.pressed)) {
-                                  return Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withOpacity(0.5);
-                                }
-                                return TWColors
-                                    .bgPrimary; // Use the component's default.
-                              },
-                            ),
-                          ),
                           onPressed: () async {
-                            // Provider.of<Auth>(context, listen: false)
-                            //     .login('username', 'password');
-                            // context.read<Auth>().whoami();
                             context.go('/');
                           },
                           child: const Text("Let's get started")),

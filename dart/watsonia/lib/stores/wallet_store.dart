@@ -1,7 +1,6 @@
 import 'package:mobx/mobx.dart';
-
-import '../generated/protobuf-dart/backend/v1/backend.pbgrpc.dart';
-import '../services/grpc_client.dart';
+import 'package:watsonia/generated/protobuf-dart/backend/v1/backend.pbgrpc.dart';
+import 'package:watsonia/services/grpc_client.dart';
 
 part 'wallet_store.g.dart';
 
@@ -20,7 +19,6 @@ abstract class _WalletStore with Store {
   @action
   Future<void> setPublicName(String name) async {
     await backend.setWalletName(SetWalletNameRequest(name: name));
-    // TODO handle error
     publicName = name;
   }
 
@@ -33,6 +31,7 @@ abstract class _WalletStore with Store {
     final publicWalletInfo = await backend.getPublicWalletInfo(
       GetPublicWalletInfoRequest(walletAddress: walletInfo.url),
     );
+
     publicName = publicWalletInfo.publicName;
     walletAddress = walletInfo.formattedURL;
   }

@@ -1,3 +1,4 @@
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -15,9 +16,7 @@ class SettingsRoute extends StatefulWidget {
 class _SettingsRouteState extends State<SettingsRoute> {
   @override
   Widget build(BuildContext context) {
-    final kycStore = Provider.of<KYCStore>(context)..init();
     return Scaffold(
-      // We don't need an app bar on this page because the shell route scaffold will render it for us.
       appBar: AppBar(
         title: const Text('Settings'),
       ),
@@ -27,33 +26,35 @@ class _SettingsRouteState extends State<SettingsRoute> {
           CustomCard(
             children: <Widget>[
               const CardHeader(child: CardTitle(title: 'Profile')),
-              if (kycStore.status != 0)
-                CardLink(
-                  onPressed: () {
-                    context.go('/settings/profile-personal');
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.account_circle_outlined),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Personal information',
-                            style: GoogleFonts.inter(
-                              textStyle: const TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 16,
-                              ),
+              Consumer<KYCStore>(
+                  builder: (_, kycStore, __) => Observer(
+                      builder: (_) => Visibility(
+                            visible: kycStore.status == 0,
+                            child: CardLink(
+                              onPressed: () {
+                                context.go('/settings/profile-personal');
+                              },
+                              child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(children: [
+                                      const Icon(Icons.account_circle_outlined),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Personal information',
+                                        style: GoogleFonts.inter(
+                                          textStyle: const TextStyle(
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ]),
+                                    const Icon(Icons.navigate_next)
+                                  ]),
                             ),
-                          ),
-                        ],
-                      ),
-                      const Icon(Icons.navigate_next)
-                    ],
-                  ),
-                ),
+                          ))),
               CardLink(
                 onPressed: () {
                   context.push('/settings/profile-public');

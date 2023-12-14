@@ -1,24 +1,17 @@
 # watsonia
 
-The better way to pay
-
 ## Getting Started
 
-Figma
-sitemap - https://www.figma.com/file/vDjoPZIZhpAQ0WPBEwmvzi/Sitemap?type=whiteboard&node-id=0-1&t=zros6SSJx9HMGpqZ-0
-
-This project is a starting point for a Flutter application.
+This project is a starting point for a Flutter app.
 
 A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
 For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+[online documentation](https://docs.flutter.dev/).
 
-# Commands to get endpoints working
+## Commands to get endpoints working
+
+We can probably integrate these into tilt at a later stage.
 
 ```shell
 # Port forward the kratos - public
@@ -30,7 +23,7 @@ kubectl port-forward --namespace backend deployment/backend 8443:8443
 flutter pub run build_runner watch --delete-conflicting-outputs
 ```
 
-# Testing deep linking
+## Testing deep linking
 
 https://docs.flutter.dev/development/ui/navigation/deep-linking
 
@@ -42,33 +35,16 @@ adb shell 'am start -a android.intent.action.VIEW \
 
 ```
 
-# TODO:
-
-- [ ] Finish kratos implementation
-- [ ] Start implementing grpc clients to pull data.
-- [ ] Local secure storage for auth credentials once user logged in
-- [ ] Card component should just expose a Column. Cards should be placed in a ListView.
-- [ ] Pusher integration - https://pusher.com/docs/channels/getting_started/flutter/
-- [ ] Proper splash
-- [ ] https://stackoverflow.com/questions/54464853/flutter-loading-an-iframe-from-webview
-- [ ] Local auth biometrics - https://pub.dev/packages/local_auth
+# Docs
 
 ## Auth
 
 - Session token and wallet ID stored in secure storage.
 
-## Stores
+## Data
 
-- KYC
-- Accounts
-- Identities
-- Transactions
-- Features
+Mobx
 
-### Copy to clipboard
+## Routing
 
-https://stackoverflow.com/questions/55885433/flutter-dart-how-to-add-copy-to-clipboard-on-tap-to-a-app
-
-### Share plugin
-
-https://pub.dev/packages/share_plus/versions
+Push goes nested, go is for replacing root pages

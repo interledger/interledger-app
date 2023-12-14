@@ -17,7 +17,6 @@ class HomeRoute extends StatefulWidget {
 class _HomeRouteState extends State<HomeRoute> {
   @override
   Widget build(BuildContext context) {
-    final kycStore = Provider.of<KYCStore>(context)..init();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -28,26 +27,26 @@ class _HomeRouteState extends State<HomeRoute> {
               Container(
                 width: 24,
                 height: 24,
-                decoration: BoxDecoration(
-                    color: TWColors.yellow[300],
+                decoration: const BoxDecoration(
+                    color: TWColors.yellow300,
                     borderRadius:
-                        const BorderRadius.only(topLeft: Radius.circular(24))),
+                        BorderRadius.only(topLeft: Radius.circular(24))),
               ),
               Container(
                 width: 24,
                 height: 24,
-                decoration: BoxDecoration(
-                    color: TWColors.rose[300],
-                    borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(24))),
+                decoration: const BoxDecoration(
+                    color: TWColors.rose300,
+                    borderRadius:
+                        BorderRadius.only(bottomLeft: Radius.circular(24))),
               ),
               Container(
                 margin: const EdgeInsets.fromLTRB(0, 0, 16, 0),
                 width: 24,
                 height: 24,
-                decoration: BoxDecoration(
-                  color: TWColors.slate[500],
-                  borderRadius: const BorderRadius.only(
+                decoration: const BoxDecoration(
+                  color: TWColors.slate500,
+                  borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(24),
                       bottomRight: Radius.circular(24)),
                 ),
@@ -64,21 +63,21 @@ class _HomeRouteState extends State<HomeRoute> {
               builder: (_) => Visibility(
                 visible: kycStore.status == 0,
                 child: CustomCard(children: [
-                  CardHeader(
+                  const CardHeader(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const CardTitle(title: 'Activate wallet'),
+                        CardTitle(title: 'Activate wallet'),
                         Chip(
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             vertical: 0,
                             horizontal: 6,
                           ),
-                          label: const Text('Reserved'),
-                          labelPadding: const EdgeInsets.all(0),
-                          backgroundColor: TWColors.orange[100],
+                          label: Text('Reserved'),
+                          labelPadding: EdgeInsets.all(0),
+                          backgroundColor: TWColors.orange100,
                         ),
                       ],
                     ),
@@ -149,7 +148,6 @@ class _HomeRouteState extends State<HomeRoute> {
                     borderRadius: BorderRadius.all(Radius.circular(12)),
                   ),
                   child: Text(
-                    // TODO Replace this with the wallet address
                     wallet.walletAddress,
                     style: GoogleFonts.inter(
                       textStyle: const TextStyle(

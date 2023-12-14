@@ -46,18 +46,18 @@ class _PersonalDetailsRouteState extends State<PersonalDetailsRoute> {
                           Container(
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                                color: TWColors.slate[300],
-                                borderRadius: const BorderRadius.all(
+                            decoration: const BoxDecoration(
+                                color: TWColors.slate300,
+                                borderRadius: BorderRadius.all(
                                     Radius.circular(32))),
                           ),
                           Container(
                             margin: const EdgeInsets.fromLTRB(0, 0, 16, 0),
                             width: 32,
                             height: 32,
-                            decoration: BoxDecoration(
-                              color: TWColors.indigo[400],
-                              borderRadius: const BorderRadius.only(
+                            decoration: const BoxDecoration(
+                              color: TWColors.indigo400,
+                              borderRadius: BorderRadius.only(
                                 bottomLeft: Radius.circular(32),
                                 topRight: Radius.circular(32),
                               ),

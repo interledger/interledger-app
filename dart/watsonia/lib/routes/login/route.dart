@@ -1,12 +1,9 @@
-// import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:watsonia/components.dart';
 import 'package:watsonia/routes/login/form_store.dart';
+import 'package:watsonia/stores/auth_store.dart';
 import 'package:watsonia/styles/colors.dart';
-import 'package:watsonia/components/text_field.dart';
-
-import '../../stores/auth_store.dart';
 
 class LoginRoute extends StatefulWidget {
   const LoginRoute({super.key});
@@ -21,8 +18,6 @@ class _LoginRouteState extends State<LoginRoute> {
   @override
   void initState() {
     super.initState();
-    // TODO Instead of setupValidations we should init a login flow
-    // store.setupValidations();
   }
 
   @override
@@ -32,7 +27,6 @@ class _LoginRouteState extends State<LoginRoute> {
 
   @override
   Widget build(BuildContext context) {
-    final authStore = Provider.of<AuthStore>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Log in'),
@@ -74,29 +68,8 @@ class _LoginRouteState extends State<LoginRoute> {
                     ),
                   ),
                   FilledButton(
-                      style: ButtonStyle(
-                        minimumSize: MaterialStateProperty.all(
-                            const Size(double.infinity, 48)),
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.pressed)) {
-                              return TWColors.bgContainerPrimaryActive;
-                            }
-                            return TWColors
-                                .bgPrimary; // Use the component's default.
-                          },
-                        ),
-                      ),
                       onPressed: () async {
-                        // TODO Move the form store to be a child of the auth store.
-                        //  This will allow us to call the login function in the auth store directly and pass the BuildContext to the login function
-                        //  - to route after successfully logging in
-                        //  - to pass errors back to the UI.
-                        store.submit(authStore);
-                        // Provider.of<Auth>(context, listen: false)
-                        //     .login("username", "password");
-                        // context.go('/');
+                        store.submit(context.read<AuthStore>());
                       },
                       child: const Text('Log in')),
                 ],

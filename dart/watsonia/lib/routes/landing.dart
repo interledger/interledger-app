@@ -36,20 +36,6 @@ class LandingRoute extends StatelessWidget {
                       ),
                     ),
                     FilledButton(
-                        style: ButtonStyle(
-                          minimumSize: MaterialStateProperty.all(
-                              const Size(double.infinity, 48)),
-                          backgroundColor:
-                              MaterialStateProperty.resolveWith<Color?>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.pressed)) {
-                                return TWColors.bgContainerPrimaryActive;
-                              }
-                              return TWColors
-                                  .bgPrimary; // Use the component's default.
-                            },
-                          ),
-                        ),
                         onPressed: () async {
                           Provider.of<AuthStore>(context, listen: false)
                               .initLoginFlow();

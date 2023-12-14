@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:watsonia/components.dart';
-import 'package:watsonia/styles/colors.dart';
 
 class ErrorRoute extends StatefulWidget {
   const ErrorRoute({super.key});
@@ -38,18 +37,6 @@ class _ErrorRouteState extends State<ErrorRoute> {
               )),
             ]),
             FilledButton(
-                style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(
-                      const Size(double.infinity, 48)),
-                  backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.pressed)) {
-                        return TWColors.bgContainerPrimaryActive;
-                      }
-                      return TWColors.bgPrimary; // Use the component's default.
-                    },
-                  ),
-                ),
                 onPressed: () async {
                   context.go('/');
                 },

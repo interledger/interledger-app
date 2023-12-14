@@ -8,7 +8,6 @@ part 'auth_store.g.dart';
 
 // ignore: library_private_types_in_public_api
 class AuthStore = _AuthStore with _$AuthStore;
-// TODO Need to implement actions that can be called by the UI to implement the login/signup flows.
 
 abstract class _AuthStore with Store {
   final SecureStorage secureStorage;
@@ -29,7 +28,7 @@ abstract class _AuthStore with Store {
   @action
   Future<void> init() async {
     bool hasToken = await secureStorage.hasToken();
-    print('Init AuthStore $hasToken');
+
     if (hasToken) {
       // For now we'll assume if you have a token you're authed.
       // The backend should handle bad tokens gracefully.
@@ -39,7 +38,6 @@ abstract class _AuthStore with Store {
       sessionToken = token!;
       GrpcClient.updateAuthToken(token);
       appRouter.refresh();
-      print('Should end up at home');
     } else {
       status = AuthStatus.uninitialized;
     }
@@ -53,7 +51,6 @@ abstract class _AuthStore with Store {
   @action
   Future<void> login(String email, String password) async {
     final sessionToken = await authService.signIn(flowId, email, password);
-    print('sessionToken $sessionToken');
     // TODO figure out error state
     secureStorage.persistToken(sessionToken);
     GrpcClient.updateAuthToken(sessionToken);
@@ -62,18 +59,5 @@ abstract class _AuthStore with Store {
     status = AuthStatus.authenticated;
     appRouter.refresh();
   }
-
-  late List<ReactionDisposer> _disposers;
-
-  void setupValidations() {
-    _disposers = [
-      reaction((_) => status, refreshRouter),
-    ];
-  }
-
-  @action
-  void refreshRouter(AuthStatus status) {
-    // We can probably keep the splash screen up until we get here
-    appRouter.refresh();
-  }
+// TODO Setup a reaction on status to refresh the router
 }

@@ -79,20 +79,6 @@ mixin _$AuthStore on _AuthStore, Store {
     return _$loginAsyncAction.run(() => super.login(email, password));
   }
 
-  late final _$_AuthStoreActionController =
-      ActionController(name: '_AuthStore', context: context);
-
-  @override
-  void refreshRouter(AuthStatus status) {
-    final _$actionInfo = _$_AuthStoreActionController.startAction(
-        name: '_AuthStore.refreshRouter');
-    try {
-      return super.refreshRouter(status);
-    } finally {
-      _$_AuthStoreActionController.endAction(_$actionInfo);
-    }
-  }
-
   @override
   String toString() {
     return '''

@@ -25,6 +25,22 @@ mixin _$WalletStore on _WalletStore, Store {
     });
   }
 
+  late final _$walletAddressAtom =
+      Atom(name: '_WalletStore.walletAddress', context: context);
+
+  @override
+  String get walletAddress {
+    _$walletAddressAtom.reportRead();
+    return super.walletAddress;
+  }
+
+  @override
+  set walletAddress(String value) {
+    _$walletAddressAtom.reportWrite(value, super.walletAddress, () {
+      super.walletAddress = value;
+    });
+  }
+
   late final _$setPublicNameAsyncAction =
       AsyncAction('_WalletStore.setPublicName', context: context);
 
@@ -44,7 +60,8 @@ mixin _$WalletStore on _WalletStore, Store {
   @override
   String toString() {
     return '''
-publicName: ${publicName}
+publicName: ${publicName},
+walletAddress: ${walletAddress}
     ''';
   }
 }

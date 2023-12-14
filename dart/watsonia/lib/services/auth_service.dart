@@ -12,7 +12,6 @@ class AuthService {
   final backendURL = dotenv.env['BACKEND'] as String;
 
   Future<String> intiateRegistrationFlow() async {
-    // refactor response to work the same way as initiateLoginFlow
     var url = Uri.http(kratosURL, 'self-service/registration/api');
     var response = await http.get(url);
 
@@ -29,16 +28,15 @@ class AuthService {
   }
 
   Future<String> initiateLoginFlow() async {
-    var url =
-        Uri.http(kratosURL, 'self-service/login/api', {'refresh': 'true'});
-    print(url);
+    var url = Uri.http(
+      kratosURL,
+      'self-service/login/api',
+      {'refresh': 'true'},
+    );
     var response = await http.get(url);
-    print(response.statusCode);
-    // var response = await http
-    //     .get(Uri.parse('$kratosURL/self-service/login/api?refresh=true'));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['id']; //return login flow id
+      return data['id'];
     } else if (response.statusCode == 400 || response.statusCode == 500) {
       final data = jsonDecode(response.body);
       final error = data['error'];
@@ -80,9 +78,12 @@ class AuthService {
   }
 
   Future<String> signUp(String flowId, String email, String password) async {
-    // TODO Refactor
-    final response = await http.post(
-        Uri.parse('$kratosURL/self-service/registration?flow=$flowId'),
+    var url = Uri.http(
+      kratosURL,
+      'self-service/registration',
+      {'flow': flowId},
+    );
+    final response = await http.post(url,
         headers: <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode(<String, String>{
           'method': 'password',
@@ -114,8 +115,9 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> getCurrentSession(String token) async {
+    var url = Uri.http(kratosURL, 'sessions/whoami');
     final response = await http.get(
-      Uri.parse('$backendURL/whoami'),
+      url,
       headers: <String, String>{
         'Accept': 'application/json',
         'Session_token': token
@@ -140,8 +142,8 @@ class AuthService {
     final SecureStorage storage = SecureStorage();
     final String? sessionToken = await storage.getToken();
     if (sessionToken != null) {
-      final response = await http.delete(
-          Uri.parse('$kratosURL/self-service/logout/api'),
+      var url = Uri.http(kratosURL, 'self-service/logout/api');
+      final response = await http.delete(url,
           headers: <String, String>{'Content-Type': 'application/json'},
           body: jsonEncode(<String, String>{'session_token': sessionToken}));
 

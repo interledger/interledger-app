@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:watsonia/components/floating_action_button.dart';
-import 'package:watsonia/components/nav_drawer.dart';
+import 'package:watsonia/components.dart';
 import 'package:watsonia/styles/colors.dart';
 
 class PaymentsRoute extends StatefulWidget {
@@ -21,22 +19,21 @@ class _PaymentsRouteState extends State<PaymentsRoute> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: <Widget>[
-          Card(
-            margin: const EdgeInsets.all(0),
-            elevation: 0,
-            color: TWColors.white,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              child: Text(
-                'Transactions',
-                style: GoogleFonts.inter(
-                  textStyle: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 24,
+          CustomCard(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                child: Text(
+                  'Payments',
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 24,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           )
         ],
       ),

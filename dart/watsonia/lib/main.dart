@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:watsonia/components.dart';
+import 'package:watsonia/globals.dart';
 import 'package:watsonia/router.dart';
 import 'package:watsonia/services/auth_service.dart';
 import 'package:watsonia/storage.dart';
@@ -23,16 +24,13 @@ Future<void> main() async {
       providers: [
         Provider<AuthStore>(
             create: (_) => AuthStore(authService, secureStorage)..init()),
-        Provider<KYCStore>(create: (_) => KYCStore()),
+        Provider<KYCStore>(create: (_) => KYCStore()..init()),
         Provider<WalletStore>(create: (_) => WalletStore()..init()),
       ],
-      child: const MyApp(), // LfSGlVD@nnKdPjh.info
+      child: const MyApp(),
     ),
   );
 }
-
-final GlobalKey<ScaffoldMessengerState> snackbarKey =
-    GlobalKey<ScaffoldMessengerState>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

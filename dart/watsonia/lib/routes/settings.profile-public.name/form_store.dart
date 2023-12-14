@@ -1,7 +1,6 @@
 import 'package:mobx/mobx.dart';
 import 'package:watsonia/components.dart';
-import 'package:watsonia/main.dart';
-import 'package:watsonia/router.dart';
+import 'package:watsonia/globals.dart';
 import 'package:watsonia/stores/wallet_store.dart';
 
 part 'form_store.g.dart';

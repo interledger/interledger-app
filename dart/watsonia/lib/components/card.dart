@@ -136,7 +136,7 @@ class CardIcon extends StatelessWidget {
     super.key,
     required this.icon,
     this.padding = const EdgeInsets.all(20.0),
-    this.backgroundColor = Colors.blue,
+    this.backgroundColor = TWColors.bgContainer,
   });
 
   @override
