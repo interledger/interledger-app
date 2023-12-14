@@ -6,6 +6,7 @@ import 'package:watsonia/routes/home.dart';
 import 'package:watsonia/routes/landing.dart';
 import 'package:watsonia/routes/login/route.dart';
 import 'package:watsonia/routes/pay.dart';
+import 'package:watsonia/routes/personal-details/route.dart';
 import 'package:watsonia/routes/settings.dart';
 import 'package:watsonia/routes/settings.profile-public.dart';
 import 'package:watsonia/routes/settings.profile-public.name/route.dart';
@@ -27,6 +28,7 @@ final appRouter = GoRouter(
     // TODO Probably want to have one home page that does both like protea
     AppRoute('/', (_) => const HomeRoute(), true),
     AppRoute('/landing', (_) => const LandingRoute()),
+    AppRoute('/personal-details', (_) => const PersonalDetailsRoute()),
     // TODO Then can put signup and login as children of home
     AppRoute('/signup', (_) => const SignupRoute()),
     AppRoute('/login', (_) => const LoginRoute()),

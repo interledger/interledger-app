@@ -42,6 +42,8 @@ dependencies:
   mobx: ^2.2.1
   flutter_mobx: ^2.1.0+1
   flutter_dotenv: ^5.1.0
+  uuid: ^4.2.2
+  persona_flutter: ^3.2.0
 
 dev_dependencies:
   flutter_test:
