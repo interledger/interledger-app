@@ -165,6 +165,7 @@ func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, er
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add("Content-Type", "application/json")
 	if err := Sign(ctx, req, payload, c.privateKey); err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
