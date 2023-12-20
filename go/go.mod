@@ -19,6 +19,7 @@ require (
 	github.com/fogleman/gg v1.3.0
 	github.com/getsentry/sentry-go v0.22.0
 	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-jose/go-jose/v3 v3.0.1
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -28,7 +29,6 @@ require (
 	github.com/hashicorp/vault/api/auth/kubernetes v0.4.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.4.0
-	github.com/lestrrat-go/jwx v1.2.27
 	github.com/lestrrat-go/jwx/v2 v2.0.18
 	github.com/lib/pq v1.10.3
 	github.com/machinebox/graphql v0.2.2
@@ -98,7 +98,6 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.4 // indirect

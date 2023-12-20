@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
 	"encoding/json"
-	"encoding/pem"
+	"errors"
 	"fmt"
+	"github.com/go-jose/go-jose/v3"
 	"io"
 	"net/http"
 	"os"
@@ -52,17 +52,19 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 
 		ptiPrivateKey = privateKey
 	} else {
-		// pti TODO: parsing private key might change depending on file format
-		privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
+		privateKeyString := os.Getenv("PTI_JWK")
+
+		var jwkKey jose.JSONWebKey
+		err := jwkKey.UnmarshalJSON([]byte(privateKeyString))
 		if err != nil {
 			log.Fatalln(err)
+		}
+		privateKey, ok := jwkKey.Key.(*rsa.PrivateKey)
+		if !ok {
+			log.Fatalln(errors.New("error parsing private key"))
 		}
 
-		privateKey, _ := pem.Decode(privateKeyPEM)
-		ptiPrivateKey, err = x509.ParsePKCS8PrivateKey(privateKey.Bytes)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		ptiPrivateKey = privateKey
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
