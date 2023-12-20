@@ -3,8 +3,9 @@ package temporal
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
+	"errors"
+	"github.com/go-jose/go-jose/v3"
+	"gitlab.com/fynbos/log"
 	"os"
 
 	"gitlab.com/fynbos/backend/identities/platforms"
@@ -101,17 +102,19 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 
 		ptiPrivateKey = key
 	} else {
-		// pti TODO: parsing private key might change depending on file format
-		privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
+		privateKeyString := os.Getenv("PTI_JWK")
+
+		var jwkKey jose.JSONWebKey
+		err := jwkKey.UnmarshalJSON([]byte(privateKeyString))
 		if err != nil {
-			return nil, err
+			log.Fatalln(err)
+		}
+		privateKey, ok := jwkKey.Key.(*rsa.PrivateKey)
+		if !ok {
+			log.Fatalln(errors.New("error parsing private key"))
 		}
 
-		privateKey, _ := pem.Decode(privateKeyPEM)
-		ptiPrivateKey, err = x509.ParsePKCS8PrivateKey(privateKey.Bytes)
-		if err != nil {
-			return nil, err
-		}
+		ptiPrivateKey = privateKey
 	}
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
