@@ -13,6 +13,7 @@ import type {
   WalletDetails
 } from '~/generated/protobuf-ts/backend/admin/v1/backend'
 import type { Transfer } from '~/generated/protobuf-ts/backend/v1/backend'
+import { Code } from "~/generated/protobuf-ts/google/rpc/code"
 import {
   StatusError,
   grpcClient,
@@ -20,7 +21,6 @@ import {
   isGrpcError
 } from '~/lib/proto.server'
 import type { LinkedAccountReviewState } from '~/lib/types'
-import {Code} from "~/generated/protobuf-ts/google/rpc/code";
 
 export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
 
@@ -88,10 +88,10 @@ export async function GetWalletDetails(
       response.response.gender == 0
         ? 'Unknown'
         : response.response.gender == 1
-        ? 'Male'
-        : response.response.gender == 2
-        ? 'Female'
-        : 'Other',
+          ? 'Male'
+          : response.response.gender == 2
+            ? 'Female'
+            : 'Other',
     dateOfBirth: DateTime.fromSeconds(
       parseInt(response.response.dateOfBirth?.seconds ?? '')
     ).toLocaleString(DateTime.DATETIME_FULL)
@@ -609,7 +609,7 @@ export async function GetPendingPayouts(request: Request) {
   return rpc.response.payments
 }
 
-export async function GetWalletBalance(request: Request, walletId: string) {
+export async function GetXagoWalletBalance(request: Request, walletId: string) {
   let rpc = await grpcClient
     .getWalletXagoBalance(
       {
@@ -630,9 +630,48 @@ export async function GetWalletBalance(request: Request, walletId: string) {
   return rpc.response
 }
 
-export async function EnableWalletBalance(request: Request, walletId: string) {
+export async function EnableXagoWalletBalance(request: Request, walletId: string) {
   let rpc = await grpcClient
     .setWalletXagoBalanceEnabled(
+      {
+        walletId
+      },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function GetPtiWalletBalance(request: Request, walletId: string) {
+  let rpc = await grpcClient
+    .getPTIBalance(
+      {
+        walletId
+      },
+      { meta: { cookies: String(request.headers.get('cookie')) } }
+    )
+    .then((v) => v)
+    .catch(StatusError)
+
+  if (isGrpcError(rpc)) {
+    if (rpc.code == Code.NOT_FOUND) {
+      return null
+    }
+    throw json({}, httpMapping(rpc.code))
+  }
+
+  return rpc.response
+}
+
+export async function EnablePtiWalletBalance(request: Request, walletId: string) {
+  let rpc = await grpcClient
+    .enablePTIBalance(
       {
         walletId
       },

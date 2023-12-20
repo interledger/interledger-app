@@ -1,15 +1,24 @@
 package temporal
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"errors"
+	"github.com/go-jose/go-jose/v3"
+	"gitlab.com/fynbos/log"
+	"os"
+
 	"gitlab.com/fynbos/backend/identities/platforms"
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
+	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
 	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
+	"gitlab.com/fynbos/env"
 	"go.temporal.io/sdk/worker"
 )
 
@@ -83,6 +92,32 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterWorkflow(xago_workflows.XagoDepositPollWorkflow)
 
 	xago_workflows.StartDepositsPolling(b)
+
+	var ptiPrivateKey any
+	if env.IsLocal() {
+		key, err := rsa.GenerateKey(rand.Reader, 4096)
+		if err != nil {
+			return nil, err
+		}
+
+		ptiPrivateKey = key
+	} else {
+		privateKeyString := os.Getenv("PTI_JWK")
+
+		var jwkKey jose.JSONWebKey
+		err := jwkKey.UnmarshalJSON([]byte(privateKeyString))
+		if err != nil {
+			log.Fatalln(err)
+		}
+		privateKey, ok := jwkKey.Key.(*rsa.PrivateKey)
+		if !ok {
+			log.Fatalln(errors.New("error parsing private key"))
+		}
+
+		ptiPrivateKey = privateKey
+	}
+	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
+	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
 
 	return w, nil
 }
