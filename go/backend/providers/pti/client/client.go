@@ -4,8 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
+	"github.com/go-jose/go-jose/v3"
 	"log"
 	"net/http"
 	"os"
@@ -36,19 +35,21 @@ func New(b ops.Backends) *Client {
 
 		ptiPrivateKey = privateKey
 	} else {
-		// pti TODO: parsing private key might change depending on file format
-		privateKeyPEM, err := os.ReadFile(os.Getenv("PTI_PRIVATE_KEY_PATH"))
+		privateKeyString := os.Getenv("PTI_JWK")
+
+		var jwkKey jose.JSONWebKey
+		err := jwkKey.UnmarshalJSON([]byte(privateKeyString))
 		if err != nil {
 			log.Fatalln(err)
+		}
+		privateKey, ok := jwkKey.Key.(*rsa.PrivateKey)
+		if !ok {
+			log.Fatalln("error parsing private key")
 		}
 
-		privateKey, _ := pem.Decode(privateKeyPEM)
-		ptiPrivateKey, err = x509.ParsePKCS8PrivateKey(privateKey.Bytes)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		ptiPrivateKey = privateKey
 	}
-	external := external.New(external.ClientArgs{
+	ptiExternal := external.New(external.ClientArgs{
 		Transport: &http.Client{
 			Transport: otelhttp.NewTransport(
 				httplogger.NewTransport(http.DefaultTransport, b, nil),
@@ -58,7 +59,7 @@ func New(b ops.Backends) *Client {
 		PrivateKey: ptiPrivateKey,
 	})
 
-	return &Client{b, external}
+	return &Client{b: b, external: ptiExternal}
 }
 
 func (c Client) CreateWallet(ctx context.Context, walletID string, currency currency.Currency) (pti.Await, error) {
