@@ -42,7 +42,7 @@ type ClientArgs struct {
 }
 
 func New(args ClientArgs) Client {
-	base := "https://api.pearsurge.io/v0"
+	base := "https://pti.apistaging.pticlient.com/v1"
 	if args.BaseURL != "" {
 		base = args.BaseURL
 	} else if env.IsLocal() {
