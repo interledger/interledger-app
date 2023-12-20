@@ -49,7 +49,7 @@ func CreateWallet(ctx context.Context, b Backends, args pti.CreateWalletArgs) (p
 	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
 		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
 	} else {
-		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateWalletWorkflow, pti.CreateWalletArgs{})
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateWalletWorkflow, args)
 	}
 	if executeErr != nil {
 		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
