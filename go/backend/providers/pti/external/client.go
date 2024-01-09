@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -15,8 +16,10 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -28,15 +31,18 @@ var (
 type client struct {
 	baseURL    string
 	clientID   string
-	privateKey crypto.PrivateKey
-	api        *http.Client
+	privateKey jwk.Key
+
+	// Thumbprint is used as the `kid` field in the jwt protected header
+	publicKeyThumbprint string
+	api                 *http.Client
 }
 
 var _ Client = client{}
 
 type ClientArgs struct {
 	ClientID   string
-	PrivateKey crypto.PrivateKey
+	PrivateKey jwk.Key
 	Transport  *http.Client
 	BaseURL    string
 }
@@ -54,34 +60,67 @@ func New(args ClientArgs) Client {
 		transport = args.Transport
 	}
 
+	// thumbprint is used as the `kid` field in the jwt protected header
+	var thumbprint []byte
+	if args.PrivateKey != nil {
+		publicKey, err := args.PrivateKey.PublicKey()
+		if err != nil {
+			log.Fatalln(fmt.Errorf("%w %s", ErrInternal, err))
+		}
+
+		thumbprint, err = publicKey.Thumbprint(crypto.SHA256)
+		if err != nil {
+			log.Fatalln(fmt.Errorf("%w %s", ErrInternal, err))
+		}
+
+		// Remove `kid` otherwise lestrat-jws will not let us override the field in the protected header.
+		err = args.PrivateKey.Remove("kid")
+		if err != nil {
+			log.Fatalln(fmt.Errorf("%w Failed to remove `kid` field from jwk %s", ErrInternal, err))
+		}
+	}
+
 	return &client{
-		baseURL:    base,
-		clientID:   args.ClientID,
-		privateKey: args.PrivateKey,
-		api:        transport,
+		baseURL:             base,
+		clientID:            args.ClientID,
+		privateKey:          args.PrivateKey,
+		publicKeyThumbprint: base64.RawURLEncoding.EncodeToString(thumbprint),
+		api:                 transport,
 	}
 }
 
-func Sign(ctx context.Context, r *http.Request, payload []byte, key crypto.PrivateKey) error {
-	encodedPayload := ""
+func Sign(ctx context.Context, r *http.Request, date time.Time, payload []byte, key crypto.PrivateKey, publicKeyThumbprint string) error {
+	var contentType, encodedPayload string
 	if r.Method != "GET" {
 		h := sha256.Sum256(payload)
 		encodedPayload = hex.EncodeToString(h[:])
+		contentType = "content-type:" + r.Header.Get("Content-Type")
 	}
 	formattedBase := fmt.Sprintf(
-		"%s\n%s\n%s\n%s\n%s\n%s\n",
+		"%s\n%s\n%s\n%s\n%s\n%s",
 		r.Method,
-		encodedPayload,
-		r.Header.Get("Content-Type"),
-		"date:"+time.Now().Format(time.RFC1123),
+		strings.ToUpper(encodedPayload),
+		contentType,
+		fmt.Sprintf("date:%s", date.Format(http.TimeFormat)),
 		ptiClientIDHeader+":"+r.Header.Get(ptiClientIDHeader),
 		r.URL.Path,
 	)
 
-	signature, err := jws.Sign([]byte(formattedBase), jws.WithKey(jwa.RS256, key))
+	// NB: These fields must be in the protected headers
+	h := jws.NewHeaders()
+	err := h.Set("cid", r.Header.Get(ptiClientIDHeader))
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	err = h.Set("kid", publicKeyThumbprint)
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	signature, err := jws.Sign([]byte(formattedBase), jws.WithKey(jwa.RS512, key, jws.WithProtectedHeaders(h)))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
 	r.Header.Add(ptiSignatureHeader, string(signature))
 
 	return nil
@@ -111,7 +150,8 @@ func VerifyBase(ctx context.Context, base []byte, r *http.Request) error {
 		}()
 
 		h := sha256.Sum256(body)
-		if parts[1] != hex.EncodeToString(h[:]) {
+
+		if parts[1] != strings.ToUpper(hex.EncodeToString(h[:])) {
 			return fmt.Errorf("%w Payload mismatch", ErrInvalidSignature)
 		}
 	}
@@ -120,12 +160,17 @@ func VerifyBase(ctx context.Context, base []byte, r *http.Request) error {
 	if len(dateParts) < 2 {
 		return fmt.Errorf("%w Invalid date", ErrInvalidSignature)
 	}
-	date, err := time.Parse(time.RFC1123, dateParts[1])
+	date, err := time.Parse(http.TimeFormat, dateParts[1])
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
-	if date.After(time.Now()) || time.Since(date) > 12*time.Hour {
-		return fmt.Errorf("%w Signature expired", ErrInvalidSignature)
+
+	headerDate, err := time.Parse(http.TimeFormat, r.Header.Get("Date"))
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	if !date.Equal(headerDate) {
+		return fmt.Errorf("%w Signature date does not match date in the header.", ErrInvalidSignature)
 	}
 
 	if parts[5] != r.URL.Path {
@@ -141,7 +186,7 @@ func Verify(ctx context.Context, r *http.Request, key crypto.PublicKey) error {
 		return fmt.Errorf("%w Signature is empty", ErrInvalidSignature)
 	}
 
-	verifiedRawBase, err := jws.Verify([]byte(signature), jws.WithKey(jwa.RS256, key))
+	verifiedRawBase, err := jws.Verify([]byte(signature), jws.WithKey(jwa.RS512, key))
 	if err != nil {
 		return fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -166,7 +211,9 @@ func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, er
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
 	req.Header.Add("Content-Type", "application/json")
-	if err := Sign(ctx, req, payload, c.privateKey); err != nil {
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
@@ -211,7 +258,10 @@ func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Walle
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
-	if err := Sign(ctx, req, payload, c.privateKey); err != nil {
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
@@ -250,7 +300,9 @@ func (c client) GetWallet(ctx context.Context, userID, id string) (*Wallet, erro
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
-	if err := Sign(ctx, req, nil, c.privateKey); err != nil {
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, nil, c.privateKey, c.publicKeyThumbprint); err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
@@ -298,7 +350,10 @@ func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (s
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 	req.Header.Add(ptiClientIDHeader, c.clientID)
-	if err := Sign(ctx, req, payload, c.privateKey); err != nil {
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
