@@ -4,7 +4,7 @@ import "time"
 
 type (
 	CreateUserArgs struct {
-		ID            string    `json:"userId,omitempty"`
+		ID            string    `json:"id,omitempty"`
 		Type          string    `json:"type,omitempty"`
 		DateOfBirth   string    `json:"dateOfBirth,omitempty"`
 		Name          Name      `json:"name,omitempty"`

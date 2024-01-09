@@ -2,12 +2,8 @@ package ops
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/go-jose/go-jose/v3"
 	"io"
 	"net/http"
 	"os"
@@ -17,7 +13,6 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -43,28 +38,12 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 		return nil, err
 	}
 
-	var ptiPrivateKey any
-	if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	var ptiPrivateKey jwk.Key
+	if os.Getenv("PTI_JWK") != "" {
+		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 		if err != nil {
-			log.Fatalln(err)
+			return nil, err
 		}
-
-		ptiPrivateKey = privateKey
-	} else {
-		privateKeyString := os.Getenv("PTI_JWK")
-
-		var jwkKey jose.JSONWebKey
-		err := jwkKey.UnmarshalJSON([]byte(privateKeyString))
-		if err != nil {
-			log.Fatalln(err)
-		}
-		privateKey, ok := jwkKey.Key.(*rsa.PrivateKey)
-		if !ok {
-			log.Fatalln(errors.New("error parsing private key"))
-		}
-
-		ptiPrivateKey = privateKey
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
