@@ -82,7 +82,7 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 
 	return a.external.CreateUser(ctx, external.CreateUserArgs{
 		ID:          uuid.NewString(),
-		Type:        "Person",
+		Type:        "PERSON",
 		DateOfBirth: kycData.DateOfBirth.Format("2006-01-02"),
 		Name: external.Name{
 			First: kycData.FirstName,
