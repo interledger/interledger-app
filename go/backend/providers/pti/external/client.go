@@ -18,6 +18,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
+	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -195,6 +196,17 @@ func Verify(ctx context.Context, r *http.Request, key crypto.PublicKey) error {
 }
 
 func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+		})
+	}
+
 	url, err := url.JoinPath(c.baseURL, "users")
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
@@ -205,7 +217,7 @@ func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, er
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -243,6 +255,17 @@ func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, er
 }
 
 func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Wallet, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+		})
+	}
+
 	url, err := url.JoinPath(c.baseURL, "users", args.UserID, "wallets")
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
@@ -253,7 +276,7 @@ func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Walle
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -290,12 +313,23 @@ func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Walle
 }
 
 func (c client) GetWallet(ctx context.Context, userID, id string) (*Wallet, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "pti",
+		})
+	}
+
 	url, err := url.JoinPath(c.baseURL, "users", userID, "wallets", id)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
 	}
@@ -331,6 +365,17 @@ func (c client) GetWallet(ctx context.Context, userID, id string) (*Wallet, erro
 }
 
 func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (string, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+		})
+	}
+
 	if args.ID == "" {
 		return "", fmt.Errorf("%w UserID is required", ErrBadRequest)
 	}
@@ -345,7 +390,7 @@ func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (s
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
