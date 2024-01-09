@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"github.com/go-jose/go-jose/v3"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"gitlab.com/fynbos/backend/currency"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -26,28 +27,23 @@ type Client struct {
 }
 
 func New(b ops.Backends) *Client {
-	var ptiPrivateKey any
+	var ptiPrivateKey jwk.Key
+	var err error
 	if env.IsLocal() {
 		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		ptiPrivateKey = privateKey
-	} else {
-		privateKeyString := os.Getenv("PTI_JWK")
-
-		var jwkKey jose.JSONWebKey
-		err := jwkKey.UnmarshalJSON([]byte(privateKeyString))
+		ptiPrivateKey, err = jwk.FromRaw(privateKey)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		privateKey, ok := jwkKey.Key.(*rsa.PrivateKey)
-		if !ok {
-			log.Fatalln("error parsing private key")
+	} else {
+		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+		if err != nil {
+			log.Fatalln(err)
 		}
-
-		ptiPrivateKey = privateKey
 	}
 	ptiExternal := external.New(external.ClientArgs{
 		Transport: &http.Client{

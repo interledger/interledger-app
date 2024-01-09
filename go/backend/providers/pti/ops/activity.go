@@ -2,13 +2,13 @@ package ops
 
 import (
 	"context"
-	"crypto"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
@@ -23,7 +23,7 @@ type Activity struct {
 	external external.Client
 }
 
-func NewActivity(b Backends, privateKey crypto.PrivateKey) *Activity {
+func NewActivity(b Backends, privateKey jwk.Key) *Activity {
 	external := external.New(external.ClientArgs{
 		Transport: &http.Client{
 			Transport: otelhttp.NewTransport(
