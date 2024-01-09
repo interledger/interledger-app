@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
@@ -27,6 +28,7 @@ import (
 var (
 	ptiClientIDHeader  = "x-pti-client-id"
 	ptiSignatureHeader = "x-pti-signature"
+	ptiRequestIDHeader = "x-pti-request-id"
 )
 
 type client struct {
@@ -259,6 +261,7 @@ func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Walle
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "pti"
+
 	} else {
 		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 			Method:   "POST",
@@ -365,14 +368,17 @@ func (c client) GetWallet(ctx context.Context, userID, id string) (*Wallet, erro
 }
 
 func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (string, error) {
+	requestID := uuid.NewString()
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "pti"
+		meta.Context = strings.Join([]string{meta.Context, fmt.Sprintf("x-pti-request-id=%s", requestID)}, ",")
 	} else {
 		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 			Method:   "POST",
 			Provider: "pti",
+			Context:  fmt.Sprintf("x-pti-request-id=%s", requestID),
 		})
 	}
 
@@ -394,6 +400,7 @@ func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (s
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	req.Header.Add(ptiRequestIDHeader, requestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
 	req.Header.Add("Content-Type", "application/json")
 	date := time.Now()
