@@ -81,7 +81,7 @@ func (mr *MockClientMockRecorder) GetWallet(ctx, userID, id interface{}) *gomock
 }
 
 // StartUserAssessment mocks base method.
-func (m *MockClient) StartUserAssessment(ctx context.Context, args external.CreateUserArgs) (string, error) {
+func (m *MockClient) StartUserAssessment(ctx context.Context, args external.StartUserAssessmentArgs) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StartUserAssessment", ctx, args)
 	ret0, _ := ret[0].(string)

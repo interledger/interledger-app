@@ -10,6 +10,9 @@ import (
 var (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
+
+	ScenarioDeposit    = "fynbos_deposit"
+	ScenarioWithdrawal = "fynbos_withdrawal"
 )
 
 type User struct {

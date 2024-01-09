@@ -104,14 +104,16 @@ func (a *Activity) SavePtiUser(ctx context.Context, externalUserID, walletID str
 	return &user, nil
 }
 
-func (a *Activity) StartAssessment(ctx context.Context, walletID string) (string, error) {
+func (a *Activity) StartAssessment(ctx context.Context, walletID string, scenarioID string) (string, error) {
 	usr, err := GetUser(ctx, a.b, walletID)
 	if err != nil {
 		return "", err
 	}
 
-	return a.external.StartUserAssessment(ctx, external.CreateUserArgs{
-		ID: usr.ExternalID,
+	return a.external.StartUserAssessment(ctx, external.StartUserAssessmentArgs{
+		ID:         usr.ExternalID,
+		ScenarioID: scenarioID,
+		Type:       "PERSON",
 	})
 }
 
