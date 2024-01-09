@@ -25,6 +25,18 @@ type (
 		Currency  string `json:"currency,omitempty"`
 		Reference string `json:"reference,omitempty"`
 	}
+
+	StartUserAssessmentArgs struct {
+		ID            string    `json:"id,omitempty"`
+		Type          string    `json:"type,omitempty"`
+		DateOfBirth   string    `json:"dateOfBirth,omitempty"`
+		Name          Name      `json:"name,omitempty"`
+		Emails        []Email   `json:"emails,omitempty"`
+		Addresses     []Address `json:"addresses,omitempty"`
+		Phones        []Phone   `json:"phones,omitempty"`
+		SourceOfFunds string    `json:"sourceOfFunds,omitempty"`
+		ScenarioID    string    `json:"-"`
+	}
 )
 
 type (
