@@ -45,12 +45,12 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 			return nil, err
 		}
 
-		err = workflow.ExecuteActivity(ctx, a.StartAssessment, args.WalletID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.StartAssessment, args.WalletID, pti.ScenarioDeposit).Get(ctx, nil)
 		if err != nil {
 			return nil, err
 		}
 	} else if externalUser.AssessmentStatus == "" {
-		err = workflow.ExecuteActivity(ctx, a.StartAssessment, args.WalletID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.StartAssessment, args.WalletID, pti.ScenarioDeposit).Get(ctx, nil)
 		if err != nil {
 			return nil, err
 		}

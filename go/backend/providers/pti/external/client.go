@@ -26,9 +26,10 @@ import (
 )
 
 var (
-	ptiClientIDHeader  = "x-pti-client-id"
-	ptiSignatureHeader = "x-pti-signature"
-	ptiRequestIDHeader = "x-pti-request-id"
+	ptiClientIDHeader   = "x-pti-client-id"
+	ptiSignatureHeader  = "x-pti-signature"
+	ptiRequestIDHeader  = "x-pti-request-id"
+	ptiScenarioIDHeader = "x-pti-scenario-id"
 )
 
 type client struct {
@@ -367,18 +368,21 @@ func (c client) GetWallet(ctx context.Context, userID, id string) (*Wallet, erro
 	return &wallet, nil
 }
 
-func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (string, error) {
+func (c client) StartUserAssessment(ctx context.Context, args StartUserAssessmentArgs) (string, error) {
 	requestID := uuid.NewString()
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
 		meta.Method = "POST"
 		meta.Provider = "pti"
-		meta.Context = strings.Join([]string{meta.Context, fmt.Sprintf("x-pti-request-id=%s", requestID)}, ",")
+		meta.Context = strings.Join(
+			[]string{fmt.Sprintf("%s=%s", ptiScenarioIDHeader, args.ScenarioID), fmt.Sprintf("%s=%s", ptiRequestIDHeader, requestID), meta.Context},
+			",",
+		)
 	} else {
 		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
 			Method:   "POST",
 			Provider: "pti",
-			Context:  fmt.Sprintf("x-pti-request-id=%s", requestID),
+			Context:  fmt.Sprintf("%s=%s,%s=%s", ptiScenarioIDHeader, args.ScenarioID, ptiRequestIDHeader, requestID),
 		})
 	}
 
@@ -400,6 +404,7 @@ func (c client) StartUserAssessment(ctx context.Context, args CreateUserArgs) (s
 	if err != nil {
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
+	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
 	req.Header.Add(ptiRequestIDHeader, requestID)
 	req.Header.Add(ptiClientIDHeader, c.clientID)
 	req.Header.Add("Content-Type", "application/json")
