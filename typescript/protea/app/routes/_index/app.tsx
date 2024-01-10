@@ -7,8 +7,8 @@ import {
   AlertBody,
   AnimatedSchedule,
   Card,
-  CardButton,
   CardContent,
+  CardCopy,
   CardHeader,
   CardIcon,
   CardLink,
@@ -26,7 +26,6 @@ import {
 } from '~/components'
 import { Label } from '~/components/Label'
 import { usePusher } from '~/lib/usePusher'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import type { appLoader } from './route'
 import { KycStatus } from './route'
 
@@ -39,8 +38,6 @@ export function AppPage() {
     pusherArgs,
     balances
   } = useLoaderData<typeof appLoader>()
-
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   usePusher(pusherArgs, ['transaction', 'kyc'])
 
@@ -122,44 +119,19 @@ export function AppPage() {
               </p>
             </CardContent>
             <Label className='mt-2'>Wallet address</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(walletInfo.url).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-wallet-address-success',
-                        message: 'Wallet address copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
+            <CardCopy
+              copyContent={walletInfo.url}
+              shareData={{
+                title: 'Wallet address',
+                text: 'You can pay me using Fynbos with my wallet address.',
+                url: walletInfo.url
               }}
-              className='items-center justify-between'
+              success='Wallet address copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share wallet address."
             >
-              <span className='font-medium text-medium'>
-                {walletInfo.formattedURL}
-              </span>
-              <Icon className='text-medium'>content_copy</Icon>
-            </CardButton>
+              {walletInfo.formattedURL}
+            </CardCopy>
           </Card>
         )}
         {kycStatus == KycStatus.Approved && (
