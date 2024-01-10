@@ -1,6 +1,8 @@
 package external
 
-import "time"
+import (
+	"time"
+)
 
 type (
 	CreateUserArgs struct {
@@ -58,12 +60,20 @@ type (
 	}
 
 	Address struct {
-		Street     string `json:"streetAddress,omitempty"`
-		City       string `json:"city,omitempty"`
-		PostalCode string `json:"postalCode,omitempty"`
-		StateCode  string `json:"stateCode,omitempty"`
-		Country    string `json:"country,omitempty"`
-		Default    bool   `json:"default,omitempty"`
+		Street     string      `json:"streetAddress,omitempty"`
+		City       string      `json:"city,omitempty"`
+		PostalCode string      `json:"postalCode,omitempty"`
+		StateCode  StateCode   `json:"stateCode,omitempty"`
+		Country    CountryCode `json:"country,omitempty"`
+		Default    bool        `json:"default,omitempty"`
+	}
+
+	StateCode struct {
+		Code string `json:"code,omitempty"`
+	}
+
+	CountryCode struct {
+		Code string `json:"code,omitempty"`
 	}
 
 	Wallet struct {
@@ -72,6 +82,49 @@ type (
 		Reference      string  `json:"reference,omitempty"`
 		CreateDateTime string  `json:"createDateTime,omitempty"`
 		Balance        float64 `json:"balance"`
+	}
+
+	Assessment struct {
+		ResourceType  string `json:"resourceType"`
+		ClientID      string `json:"clientId"`
+		RequestID     string `json:"requestId"`
+		UserId        string `json:"userId"`
+		Date          string `json:"date"`
+		Assessment    string `json:"assessment"`
+		Tier          int    `json:"tier"`
+		RefusalReason string `json:"refusalReason"`
+	}
+
+	User struct {
+		ID                 string                 `json:"id,omitempty"`
+		Type               string                 `json:"type,omitempty"`
+		Status             string                 `json:"status,omitempty"`
+		StatusReason       string                 `json:"statusReason,omitempty"`
+		Tags               []string               `json:"tags,omitempty"`
+		PaymentInformation PaymentInformation     `json:"paymentInformation,omitempty"`
+		SourceOfFunds      string                 `json:"sourceOfFunds,omitempty"`
+		UserCreationDate   string                 `json:"userCreateionDate,omitempty"`
+		Addresses          []Address              `json:"addresses,omitempty"`
+		UserPTIMetaData    map[string]interface{} `json:"userPtiMeta,omitempty"`
+		UserClientMetaData map[string]interface{} `json:"userClientMeta,omitempty"`
+		Emails             []Email                `json:"emails,omitempty"`
+		Phones             []Phone                `json:"phones,omitempty"`
+		Name               Name                   `json:"name,omitempty"`
+		DateOfBirth        string                 `json:"dateOfBirth,omitempty"`
+	}
+
+	PaymentInformation struct {
+		Type                            string                          `json:"paymentInformationType"`
+		BankAccountPaymentInformation   BankAccountPaymentInformation   `json:"bankAccountPaymentInformation"`
+		EncryptedCardPaymentInformation EncryptedCardPaymentInformation `json:"encryptedCardPaymentInformation"`
+	}
+
+	EncryptedCardPaymentInformation struct {
+		CreditCardNumberHash string `json:"creditCardNumberHash,omitempty"`
+	}
+
+	BankAccountPaymentInformation struct {
+		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
 	}
 )
 
