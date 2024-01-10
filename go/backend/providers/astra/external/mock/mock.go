@@ -35,11 +35,26 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// AddAccount mocks base method.
+func (m *MockClient) AddAccount(ctx context.Context, token string, args external.CreateAccountArgs) (*external.UserAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddAccount", ctx, token, args)
+	ret0, _ := ret[0].(*external.UserAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddAccount indicates an expected call of AddAccount.
+func (mr *MockClientMockRecorder) AddAccount(ctx, token, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAccount", reflect.TypeOf((*MockClient)(nil).AddAccount), ctx, token, args)
+}
+
 // AddCard mocks base method.
-func (m *MockClient) AddCard(ctx context.Context, token string, args external.CreateCardArgs) (*external.CreateCardResp, error) {
+func (m *MockClient) AddCard(ctx context.Context, token string, args external.CreateCardArgs) (*external.UserCard, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddCard", ctx, token, args)
-	ret0, _ := ret[0].(*external.CreateCardResp)
+	ret0, _ := ret[0].(*external.UserCard)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -48,6 +63,36 @@ func (m *MockClient) AddCard(ctx context.Context, token string, args external.Cr
 func (mr *MockClientMockRecorder) AddCard(ctx, token, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddCard", reflect.TypeOf((*MockClient)(nil).AddCard), ctx, token, args)
+}
+
+// CardToAccount mocks base method.
+func (m *MockClient) CardToAccount(ctx context.Context, token string, args external.CardToAccountArgs) (*external.CardToAccountResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CardToAccount", ctx, token, args)
+	ret0, _ := ret[0].(*external.CardToAccountResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CardToAccount indicates an expected call of CardToAccount.
+func (mr *MockClientMockRecorder) CardToAccount(ctx, token, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CardToAccount", reflect.TypeOf((*MockClient)(nil).CardToAccount), ctx, token, args)
+}
+
+// CodeExchange mocks base method.
+func (m *MockClient) CodeExchange(ctx context.Context, code string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CodeExchange", ctx, code)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CodeExchange indicates an expected call of CodeExchange.
+func (mr *MockClientMockRecorder) CodeExchange(ctx, code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CodeExchange", reflect.TypeOf((*MockClient)(nil).CodeExchange), ctx, code)
 }
 
 // CreateAccessToken mocks base method.
@@ -80,6 +125,21 @@ func (mr *MockClientMockRecorder) CreateIntent(ctx, args interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIntent", reflect.TypeOf((*MockClient)(nil).CreateIntent), ctx, args)
 }
 
+// GetCardBin mocks base method.
+func (m *MockClient) GetCardBin(ctx context.Context, binToken string) (*external.CardBin, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCardBin", ctx, binToken)
+	ret0, _ := ret[0].(*external.CardBin)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCardBin indicates an expected call of GetCardBin.
+func (mr *MockClientMockRecorder) GetCardBin(ctx, binToken interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCardBin", reflect.TypeOf((*MockClient)(nil).GetCardBin), ctx, binToken)
+}
+
 // GetIntent mocks base method.
 func (m *MockClient) GetIntent(ctx context.Context, intentID string) (*external.Intent, error) {
 	m.ctrl.T.Helper()
@@ -93,6 +153,36 @@ func (m *MockClient) GetIntent(ctx context.Context, intentID string) (*external.
 func (mr *MockClientMockRecorder) GetIntent(ctx, intentID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIntent", reflect.TypeOf((*MockClient)(nil).GetIntent), ctx, intentID)
+}
+
+// LookupAccount mocks base method.
+func (m *MockClient) LookupAccount(ctx context.Context, token, accountID string) (*external.UserAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LookupAccount", ctx, token, accountID)
+	ret0, _ := ret[0].(*external.UserAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LookupAccount indicates an expected call of LookupAccount.
+func (mr *MockClientMockRecorder) LookupAccount(ctx, token, accountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupAccount", reflect.TypeOf((*MockClient)(nil).LookupAccount), ctx, token, accountID)
+}
+
+// LookupCard mocks base method.
+func (m *MockClient) LookupCard(ctx context.Context, token, cardID string) (*external.UserCard, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LookupCard", ctx, token, cardID)
+	ret0, _ := ret[0].(*external.UserCard)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LookupCard indicates an expected call of LookupCard.
+func (mr *MockClientMockRecorder) LookupCard(ctx, token, cardID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LookupCard", reflect.TypeOf((*MockClient)(nil).LookupCard), ctx, token, cardID)
 }
 
 // RefreshAccessToken mocks base method.

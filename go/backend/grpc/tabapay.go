@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/env"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -44,7 +46,7 @@ func (s *rpcService) CreateCard(
 	}
 	var linkedCards []linkedaccounts.LinkedAccount
 	for _, la := range las {
-		if la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard {
+		if (la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard) || (la.Provider == astra.ProviderName && la.Type == astra.TypeCard) {
 			linkedCards = append(linkedCards, la)
 		}
 	}
@@ -71,7 +73,7 @@ func (s *rpcService) CreateCard(
 		}
 	}
 
-	await, err := s.b.Tabapay().CreateCard(ctx, tabapay.CreateCardArgs{
+	await, err := s.b.Astra().CreateCard(ctx, astra.CreateCardArgs{
 		WalletID:           w.ID,
 		BasisTheoryTokenID: req.GetTokenID(),
 	})
