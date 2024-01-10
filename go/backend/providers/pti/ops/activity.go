@@ -142,6 +142,17 @@ func (a *Activity) CheckUserAssessmentAccepted(ctx context.Context, walletID str
 }
 
 func (a *Activity) CreatePtiWallet(ctx context.Context, args pti.CreateExternalWalletArgs) (*external.Wallet, error) {
+	wallets, err := a.external.ListWallets(ctx, args.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, w := range wallets {
+		if w.WalletID == args.ID && w.Currency == args.Currency.String() {
+			return &w, nil
+		}
+	}
+
 	return a.external.CreateWallet(ctx, external.CreateWalletArgs{
 		UserID:   args.UserID,
 		WalletID: args.ID,

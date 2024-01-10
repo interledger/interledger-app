@@ -110,6 +110,21 @@ func (mr *MockClientMockRecorder) GetWallet(ctx, userID, id interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockClient)(nil).GetWallet), ctx, userID, id)
 }
 
+// ListWallets mocks base method.
+func (m *MockClient) ListWallets(ctx context.Context, userID string) ([]external.Wallet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListWallets", ctx, userID)
+	ret0, _ := ret[0].([]external.Wallet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListWallets indicates an expected call of ListWallets.
+func (mr *MockClientMockRecorder) ListWallets(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWallets", reflect.TypeOf((*MockClient)(nil).ListWallets), ctx, userID)
+}
+
 // StartUserAssessment mocks base method.
 func (m *MockClient) StartUserAssessment(ctx context.Context, args external.StartUserAssessmentArgs) (string, error) {
 	m.ctrl.T.Helper()
