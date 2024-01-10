@@ -257,6 +257,58 @@ func (c client) CreateUser(ctx context.Context, args CreateUserArgs) (string, er
 	return userResp.ID, nil
 }
 
+func (c client) GetUser(ctx context.Context, id string) (*User, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "pti",
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "users", id)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, nil, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	var user User
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &user, nil
+}
+
 func (c client) CreateWallet(ctx context.Context, args CreateWalletArgs) (*Wallet, error) {
 	meta, ok := httplog.MetaForContext(ctx)
 	if ok {
@@ -437,6 +489,58 @@ func (c client) StartUserAssessment(ctx context.Context, args StartUserAssessmen
 	}
 
 	return userResp.ID, nil
+}
+
+func (c client) GetUserAssessment(ctx context.Context, userID string) (*Assessment, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "pti",
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "users", userID, "assessments")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, nil, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	var assessment Assessment
+	err = json.Unmarshal(body, &assessment)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &assessment, nil
 }
 
 func checkResponseStatusCode(r *http.Response) error {

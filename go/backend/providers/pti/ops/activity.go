@@ -53,10 +53,14 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 	var addresses []external.Address
 	if kycData.Address != nil {
 		addresses = append(addresses, external.Address{
-			Street:     kycData.Address.Line1,
-			City:       kycData.Address.City,
-			StateCode:  kycData.Address.State,
-			Country:    kycData.Address.CountryCode,
+			Street: kycData.Address.Line1,
+			City:   kycData.Address.City,
+			StateCode: external.StateCode{
+				Code: kycData.Address.State,
+			},
+			Country: external.CountryCode{
+				Code: kycData.Address.CountryCode,
+			},
 			PostalCode: kycData.Address.ZipCode,
 			Default:    true,
 		})
@@ -106,7 +110,7 @@ func (a *Activity) SavePtiUser(ctx context.Context, externalUserID, walletID str
 	return &user, nil
 }
 
-func (a *Activity) StartAssessment(ctx context.Context, walletID string, scenarioID string) (string, error) {
+func (a *Activity) StartUserAssessment(ctx context.Context, walletID string, scenarioID string) (string, error) {
 	usr, err := GetUser(ctx, a.b, walletID)
 	if err != nil {
 		return "", err
@@ -119,13 +123,18 @@ func (a *Activity) StartAssessment(ctx context.Context, walletID string, scenari
 	})
 }
 
-func (a *Activity) CheckPtiKYC(ctx context.Context, walletID string) error {
+func (a *Activity) CheckUserAssessmentAccepted(ctx context.Context, walletID string) error {
 	usr, err := GetUser(ctx, a.b, walletID)
 	if err != nil {
 		return err
 	}
 
-	if usr.Status != "ACCEPTED" {
+	assessment, err := a.external.GetUserAssessment(ctx, usr.ExternalID)
+	if err != nil {
+		return err
+	}
+
+	if assessment.Assessment != "ACCEPTED" {
 		return fmt.Errorf("%w", pti.ErrAssessmentFailed)
 	}
 
