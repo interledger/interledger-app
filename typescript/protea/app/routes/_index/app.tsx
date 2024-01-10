@@ -7,8 +7,8 @@ import {
   AlertBody,
   AnimatedSchedule,
   Card,
-  CardButton,
   CardContent,
+  CardCopy,
   CardHeader,
   CardIcon,
   CardLink,
@@ -122,44 +122,14 @@ export function AppPage() {
               </p>
             </CardContent>
             <Label className='mt-2'>Wallet address</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(walletInfo.url).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-wallet-address-success',
-                        message: 'Wallet address copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
-              }}
-              className='items-center justify-between'
+            <CardCopy
+              content={walletInfo.url}
+              success='Wallet address copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share wallet address."
             >
-              <span className='font-medium text-medium'>
-                {walletInfo.formattedURL}
-              </span>
-              <Icon className='text-medium'>content_copy</Icon>
-            </CardButton>
+              {walletInfo.formattedURL}
+            </CardCopy>
           </Card>
         )}
         {kycStatus == KycStatus.Approved && (

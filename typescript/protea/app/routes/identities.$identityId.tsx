@@ -14,8 +14,8 @@ import {
   AnchorRouter,
   Button,
   Card,
-  CardButton,
   CardContent,
+  CardCopy,
   CardHeader,
   CardIcon,
   CardLink,
@@ -485,79 +485,23 @@ function Domain() {
               />
             </CardContent>
             <Label className='mt-2'>Hostname</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(hostName).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-host-name-success',
-                        message: 'Hostname copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
-              }}
-              className='items-center justify-between'
+            <CardCopy
+              content={hostName}
+              success='Hostname copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share hostname."
             >
-              <span className='font-medium text-medium'>{hostName}</span>
-              <Icon className='text-medium'>content_copy</Icon>
-            </CardButton>
+              {hostName}
+            </CardCopy>
             <Label className='mt-2'>Code</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(code).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-code-success',
-                        message: 'Code copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
-              }}
-              className='items-center justify-between text-start'
+            <CardCopy
+              content={code}
+              success='Code copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share code."
             >
-              <span className='break-all font-medium text-medium'>{code}</span>
-              <Icon className='ml-4 text-medium'>content_copy</Icon>
-            </CardButton>
+              {code}
+            </CardCopy>
           </Card>
           <div className='flex w-full space-x-2'>
             <OutlineButton

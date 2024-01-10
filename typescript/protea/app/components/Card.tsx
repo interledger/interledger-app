@@ -2,7 +2,9 @@ import { NavLink } from '@remix-run/react'
 import type { RemixNavLinkProps } from '@remix-run/react/dist/components'
 import clsx from 'clsx'
 import type { ButtonHTMLAttributes, HTMLAttributes, RefAttributes } from 'react'
-import { forwardRef } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
+import { Icon } from '~/components/Icon'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
@@ -109,10 +111,97 @@ const CardButton = forwardRef<HTMLButtonElement, CardButtonProps>(
 )
 CardButton.displayName = 'CardButton'
 
+interface CardCopyProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  content: string
+  success: string
+  copyError: string
+  shareError: string
+}
+
+const CardCopy = forwardRef<HTMLButtonElement, CardCopyProps>(
+  ({ className, content, success, copyError, shareError, ...props }, ref) => {
+    const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
+
+    const [features, setFeatures] = useState({
+      clipboard: false,
+      share: false
+    })
+
+    useEffect(() => {
+      if (
+        typeof navigator !== 'undefined' &&
+        typeof navigator.clipboard !== 'undefined'
+      ) {
+        setFeatures((prev) => ({ ...prev, clipboard: true }))
+      }
+      if (
+        typeof navigator !== 'undefined' &&
+        typeof navigator.share !== 'undefined'
+      ) {
+        setFeatures((prev) => ({ ...prev, share: true }))
+      }
+    }, [])
+
+    return (
+      <button
+        ref={ref}
+        onClick={() => {
+          if (features.share) {
+            navigator.share({ url: content }).then(
+              () => {},
+              () => {
+                pushSnackbar({
+                  id: `share-fail-${content}`,
+                  message: shareError,
+                  icon: 'close',
+                  canShow: true
+                })
+              }
+            )
+          } else if (features.clipboard) {
+            navigator.clipboard.writeText(content).then(
+              () => {
+                pushSnackbar({
+                  id: `clipboard-success-${content}`,
+                  message: success,
+                  icon: 'close',
+                  canShow: true
+                })
+              },
+              () => {
+                pushSnackbar({
+                  id: `clipboard-fail-${content}`,
+                  message: copyError,
+                  icon: 'close',
+                  canShow: true
+                })
+              }
+            )
+          }
+        }}
+        className={clsx(
+          'my-1 flex items-center justify-between rounded-xl bg-nav p-3 first:mt-0 last-of-type:mb-0 focus-visible:outline-2 focus-visible:outline-focus active:bg-nav-hover',
+          className
+        )}
+        {...props}
+      >
+        <span className='truncate text-left font-medium text-medium'>
+          {props.children}
+        </span>
+        <Icon className='text-medium'>
+          {features.share ? 'share' : features.clipboard ? 'content_copy' : ''}
+        </Icon>
+      </button>
+    )
+  }
+)
+CardCopy.displayName = 'CardCopy'
+
 export {
   Card,
   CardButton,
   CardContent,
+  CardCopy,
   CardHeader,
   CardIcon,
   CardLink,
