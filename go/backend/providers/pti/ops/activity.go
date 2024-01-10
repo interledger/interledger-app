@@ -53,10 +53,12 @@ func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, 
 	var addresses []external.Address
 	if kycData.Address != nil {
 		addresses = append(addresses, external.Address{
-			Street:    kycData.Address.Line1,
-			City:      kycData.Address.City,
-			StateCode: kycData.Address.State,
-			Country:   kycData.Address.CountryCode,
+			Street:     kycData.Address.Line1,
+			City:       kycData.Address.City,
+			StateCode:  kycData.Address.State,
+			Country:    kycData.Address.CountryCode,
+			PostalCode: kycData.Address.ZipCode,
+			Default:    true,
 		})
 	}
 
