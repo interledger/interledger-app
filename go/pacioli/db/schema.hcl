@@ -16,42 +16,42 @@ table "ledger_accounts" {
   column "debits_must_not_exceed_credits" {
     null = false
     type = bool
-    default = sql("false:::BOOL")
+    default = sql("false::BOOL")
   }
   column "credits_must_not_exceed_debits" {
     null = false
     type = bool
-    default = sql("false:::BOOL")
+    default = sql("false::BOOL")
   }
   column "debits_pending" {
     null    = false
     type    = bigint
-    default = sql("0:::INT8")
+    default = sql("0::INT8")
   }
   column "debits_posted" {
     null    = false
     type    = bigint
-    default = sql("0:::INT8")
+    default = sql("0::INT8")
   }
   column "credits_pending" {
     null    = false
     type    = bigint
-    default = sql("0:::INT8")
+    default = sql("0::INT8")
   }
   column "credits_posted" {
     null    = false
     type    = bigint
-    default = sql("0:::INT8")
+    default = sql("0::INT8")
   }
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -101,12 +101,12 @@ table "ledger_transfers" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
@@ -145,12 +145,12 @@ table "ledgers" {
   column "created_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   column "updated_at" {
     null    = false
     type    = timestamp
-    default = sql("now():::TIMESTAMP")
+    default = sql("now()::TIMESTAMP")
   }
   primary_key {
     columns = [column.id]
