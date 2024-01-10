@@ -14,6 +14,7 @@ import {
   Card,
   CardButton,
   CardContent,
+  CardCopy,
   CardHeader,
   CardLink,
   Chip,
@@ -36,7 +37,6 @@ import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { usePusher } from '~/lib/usePusher'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   let senderAccountTitle, receiverAccountTitle
@@ -59,9 +59,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     )?.title
   }
 
-  const walletUrl = transaction.type == 'sent'
-    ? transaction.destination
-    : transaction.source
+  const walletUrl =
+    transaction.type == 'sent' ? transaction.destination : transaction.source
 
   let publicWalletInfo: PlainMessage<PublicWalletInfo>
 
@@ -242,8 +241,6 @@ function Withdrawal() {
   const { senderAccountTitle, receiverAccountTitle, transaction } =
     useLoaderData<typeof loader>()
 
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
   return (
     <>
       <Card>
@@ -312,44 +309,18 @@ function Withdrawal() {
         transaction.state == 'Failed' && (
           <Card>
             <Label>Payment ID</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(transaction.id).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-wallet-address-success',
-                        message: 'Payment ID copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
+            <CardCopy
+              copyContent={transaction.id}
+              shareData={{
+                title: 'Payment ID',
+                text: transaction.id
               }}
-              className='items-center justify-between'
+              success='Payment ID copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share Payment ID."
             >
-              <span className='text-left font-medium text-medium'>
-                {transaction.id}
-              </span>
-              <Icon className='text-medium'>content_copy</Icon>
-            </CardButton>
+              {transaction.id}
+            </CardCopy>
             <CardContent>
               <div className='flex w-full justify-between'>
                 <span className='text-weak'>Total fees</span>
@@ -375,44 +346,18 @@ function Withdrawal() {
       {transaction.state != 'Failed' && (
         <Card>
           <Label>Payment ID</Label>
-          <CardButton
-            noHover
-            type='button'
-            onClick={() => {
-              if (typeof navigator.clipboard == 'undefined') {
-                pushSnackbar({
-                  id: 'copy-to-clipboard-fail',
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close',
-                  canShow: true
-                })
-              } else
-                navigator.clipboard.writeText(transaction.id).then(
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-wallet-address-success',
-                      message: 'Payment ID copied to clipboard.',
-                      icon: 'close',
-                      canShow: true
-                    })
-                  },
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-to-clipboard-fail',
-                      message: "Couldn't copy to clipboard.",
-                      icon: 'close',
-                      canShow: true
-                    })
-                  }
-                )
+          <CardCopy
+            copyContent={transaction.id}
+            shareData={{
+              title: 'Payment ID',
+              text: transaction.id
             }}
-            className='items-center justify-between'
+            success='Payment ID copied to clipboard.'
+            copyError="Couldn't copy to clipboard."
+            shareError="Couldn't share Payment ID."
           >
-            <span className='text-left font-medium text-medium'>
-              {transaction.id}
-            </span>
-            <Icon className='text-medium'>content_copy</Icon>
-          </CardButton>
+            {transaction.id}
+          </CardCopy>
           <CardContent>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Withdrawal from</span>
@@ -450,8 +395,6 @@ function Withdrawal() {
 
 function Deposit() {
   const { receiverAccountTitle, transaction } = useLoaderData<typeof loader>()
-
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   return (
     <>
@@ -519,44 +462,18 @@ function Deposit() {
         transaction.state == 'Failed' && (
           <Card>
             <Label>Payment ID</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(transaction.id).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-wallet-address-success',
-                        message: 'Payment ID copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
+            <CardCopy
+              copyContent={transaction.id}
+              shareData={{
+                title: 'Payment ID',
+                text: transaction.id
               }}
-              className='items-center justify-between'
+              success='Payment ID copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share Payment ID."
             >
-              <span className='text-left font-medium text-medium'>
-                {transaction.id}
-              </span>
-              <Icon className='text-medium'>content_copy</Icon>
-            </CardButton>
+              {transaction.id}
+            </CardCopy>
             <CardContent>
               <div className='flex w-full justify-between'>
                 <span className='text-weak'>Total fees</span>
@@ -582,44 +499,18 @@ function Deposit() {
       {transaction.state != 'Failed' && (
         <Card>
           <Label>Payment ID</Label>
-          <CardButton
-            noHover
-            type='button'
-            onClick={() => {
-              if (typeof navigator.clipboard == 'undefined') {
-                pushSnackbar({
-                  id: 'copy-to-clipboard-fail',
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close',
-                  canShow: true
-                })
-              } else
-                navigator.clipboard.writeText(transaction.id).then(
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-wallet-address-success',
-                      message: 'Payment ID copied to clipboard.',
-                      icon: 'close',
-                      canShow: true
-                    })
-                  },
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-to-clipboard-fail',
-                      message: "Couldn't copy to clipboard.",
-                      icon: 'close',
-                      canShow: true
-                    })
-                  }
-                )
+          <CardCopy
+            copyContent={transaction.id}
+            shareData={{
+              title: 'Payment ID',
+              text: transaction.id
             }}
-            className='items-center justify-between'
+            success='Payment ID copied to clipboard.'
+            copyError="Couldn't copy to clipboard."
+            shareError="Couldn't share Payment ID."
           >
-            <span className='text-left font-medium text-medium'>
-              {transaction.id}
-            </span>
-            <Icon className='text-medium'>content_copy</Icon>
-          </CardButton>
+            {transaction.id}
+          </CardCopy>
           <CardContent>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Fees</span>
@@ -649,8 +540,6 @@ function Deposit() {
 
 function Sent({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
-
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
 
   return (
     <>
@@ -733,44 +622,18 @@ function Sent({ openDialog }: { openDialog: () => void }) {
         transaction.state == 'Failed' && (
           <Card>
             <Label>Payment ID</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(transaction.id).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-wallet-address-success',
-                        message: 'Payment ID copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
+            <CardCopy
+              copyContent={transaction.id}
+              shareData={{
+                title: 'Payment ID',
+                text: transaction.id
               }}
-              className='items-center justify-between'
+              success='Payment ID copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share Payment ID."
             >
-              <span className='text-left font-medium text-medium'>
-                {transaction.id}
-              </span>
-              <Icon className='text-medium'>content_copy</Icon>
-            </CardButton>
+              {transaction.id}
+            </CardCopy>
             <CardContent>
               <div className='flex w-full justify-between'>
                 <span className='text-weak'>Total fees</span>
@@ -796,44 +659,18 @@ function Sent({ openDialog }: { openDialog: () => void }) {
       {transaction.state != 'Failed' && (
         <Card>
           <Label>Payment ID</Label>
-          <CardButton
-            noHover
-            type='button'
-            onClick={() => {
-              if (typeof navigator.clipboard == 'undefined') {
-                pushSnackbar({
-                  id: 'copy-to-clipboard-fail',
-                  message: "Couldn't copy to clipboard.",
-                  icon: 'close',
-                  canShow: true
-                })
-              } else
-                navigator.clipboard.writeText(transaction.id).then(
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-wallet-address-success',
-                      message: 'Payment ID copied to clipboard.',
-                      icon: 'close',
-                      canShow: true
-                    })
-                  },
-                  () => {
-                    pushSnackbar({
-                      id: 'copy-to-clipboard-fail',
-                      message: "Couldn't copy to clipboard.",
-                      icon: 'close',
-                      canShow: true
-                    })
-                  }
-                )
+          <CardCopy
+            copyContent={transaction.id}
+            shareData={{
+              title: 'Payment ID',
+              text: transaction.id
             }}
-            className='items-center justify-between'
+            success='Payment ID copied to clipboard.'
+            copyError="Couldn't copy to clipboard."
+            shareError="Couldn't share Payment ID."
           >
-            <span className='text-left font-medium text-medium'>
-              {transaction.id}
-            </span>
-            <Icon className='text-medium'>content_copy</Icon>
-          </CardButton>
+            {transaction.id}
+          </CardCopy>
           <CardContent>
             <div className='mt-2 flex w-full justify-between'>
               <span className='text-weak'>Payment from</span>
@@ -895,8 +732,6 @@ function Sent({ openDialog }: { openDialog: () => void }) {
 function Received({ openDialog }: { openDialog: () => void }) {
   const { transaction } = useLoaderData<typeof loader>()
 
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
   return (
     <>
       <Card>
@@ -938,44 +773,18 @@ function Received({ openDialog }: { openDialog: () => void }) {
       </Card>
       <Card>
         <Label>Payment ID</Label>
-        <CardButton
-          noHover
-          type='button'
-          onClick={() => {
-            if (typeof navigator.clipboard == 'undefined') {
-              pushSnackbar({
-                id: 'copy-to-clipboard-fail',
-                message: "Couldn't copy to clipboard.",
-                icon: 'close',
-                canShow: true
-              })
-            } else
-              navigator.clipboard.writeText(transaction.id).then(
-                () => {
-                  pushSnackbar({
-                    id: 'copy-wallet-address-success',
-                    message: 'Payment ID copied to clipboard.',
-                    icon: 'close',
-                    canShow: true
-                  })
-                },
-                () => {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                }
-              )
+        <CardCopy
+          copyContent={transaction.id}
+          shareData={{
+            title: 'Payment ID',
+            text: transaction.id
           }}
-          className='items-center justify-between'
+          success='Payment ID copied to clipboard.'
+          copyError="Couldn't copy to clipboard."
+          shareError="Couldn't share Payment ID."
         >
-          <span className='text-left font-medium text-medium'>
-            {transaction.id}
-          </span>
-          <Icon className='text-medium'>content_copy</Icon>
-        </CardButton>
+          {transaction.id}
+        </CardCopy>
         <CardContent>
           <div className='mt-2 flex justify-between'>
             <span className='text-weak'>Paid to</span>
