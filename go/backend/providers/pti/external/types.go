@@ -26,6 +26,7 @@ type (
 		WalletID  string `json:"walletId,omitempty"`
 		Currency  string `json:"currency,omitempty"`
 		Reference string `json:"reference,omitempty"`
+		Type      string `json:"type,omitempty"`
 	}
 
 	StartUserAssessmentArgs struct {
