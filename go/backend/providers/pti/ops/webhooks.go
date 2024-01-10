@@ -49,29 +49,34 @@ func Webhook(b Backends) (http.HandlerFunc, error) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
+			log.Error("pti webhook: Failed to read body", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
 		d, err := jwe.Decrypt(body, jwe.WithKey(jwa.RS512, ptiPrivateKey))
 		if err != nil {
+			log.Error("pti webhook: Failed to decrypt", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
 
 		v, err := jws.Verify(d, jws.WithKey(jwa.RS512, ptiPublicKey))
 		if err != nil {
+			log.Error("pti webhook: Failed to verify", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
 
 		var data WebhookData
 		if err = json.Unmarshal(v, &data); err != nil {
+			log.Error("pti webhook: Failed to unmarshal json", zap.Error(err))
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
 		if data.ClientID != clientID {
+			log.Error("pti webhook: webhook does not match our clientID", zap.String("webhook clientID", data.ClientID))
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
