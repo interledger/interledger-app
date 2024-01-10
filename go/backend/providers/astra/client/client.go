@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/providers/basistheory"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
@@ -30,6 +32,7 @@ type Backends interface {
 	Pacioli() pacioli.Client
 	Transactions() transactions.Client
 	Email() email.Client
+	BasisTheory() basistheory.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -63,4 +66,8 @@ func (c client) WebhookHandler() http.HandlerFunc {
 
 func (c client) StartKYC(ctx context.Context, walletID string) error {
 	return ops.CreateIntent(ctx, c.b, walletID)
+}
+
+func (c client) CreateCard(ctx context.Context, args astra.CreateCardArgs) (astra.Await, error) {
+	return ops.CreateCard(ctx, c.b, args)
 }

@@ -21,26 +21,80 @@ type Client interface {
 	GetIntent(ctx context.Context, intentID string) (*Intent, error)
 	CreateAccessToken(ctx context.Context, intentID, walletID string) (*AccessToken, error)
 	RefreshAccessToken(ctx context.Context, refreshToken string) (*AccessToken, error)
-	AddCard(ctx context.Context, token string, args CreateCardArgs) (*CreateCardResp, error)
+	AddCard(ctx context.Context, token string, args CreateCardArgs) (*UserCard, error)
+	GetCardBin(ctx context.Context, binToken string) (*CardBin, error)
+	LookupCard(ctx context.Context, token, cardID string) (*UserCard, error)
+	AddAccount(ctx context.Context, token string, args CreateAccountArgs) (*UserAccount, error)
+	LookupAccount(ctx context.Context, token, accountID string) (*UserAccount, error)
+	CardToAccount(ctx context.Context, token string, args CardToAccountArgs) (*CardToAccountResp, error)
+
+	CodeExchange(ctx context.Context, code string) (string, error)
 }
 
+const basisTheoryProxyUrl = "https://api.basistheory.com/proxy"
+
 type client struct {
-	api          *http.Client
-	baseURL      string
-	clientID     string
-	clientSecret string
+	api               *http.Client
+	baseURL           string
+	secureBaseURL     string
+	clientID          string
+	clientSecret      string
+	institutionID     string
+	basisTheoryAPIKey string
+}
+
+func (c client) CodeExchange(ctx context.Context, code string) (string, error) {
+	reqURL, err := url.JoinPath(c.baseURL, "oauth", "token")
+	if err != nil {
+		return "nil", err
+	}
+
+	data := url.Values{}
+	data.Set("code", code)
+	data.Set("grant_type", "authorization_code")
+	data.Set("redirect_uri", "https://routines-hopes-funeral-worker.trycloudflare.com/codeme")
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return "nil", err
+	}
+	req.SetBasicAuth(c.clientID, c.clientSecret)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "nil", err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "nil", err
+	}
+	fmt.Println("get token", string(respBody))
+
+	if resp.StatusCode != http.StatusOK {
+		return "nil", fmt.Errorf("failed to create astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	return string(respBody), nil
 }
 
 func New(transport *http.Client) Client {
 	baseURL := "https://api-sandbox.astra.finance/v1"
+	secureBaseURL := "https://secure.api-sandbox.astra.finance/v1"
+	institutionID := "astra_ins_131"
 	if transport == nil {
 		transport = otelhttp.DefaultClient
 	}
 	return &client{
-		api:          transport,
-		baseURL:      baseURL,
-		clientID:     os.Getenv("ASTRA_CLIENT_ID"),
-		clientSecret: os.Getenv("ASTRA_CLIENT_SECRET"),
+		api:               transport,
+		baseURL:           baseURL,
+		secureBaseURL:     secureBaseURL,
+		institutionID:     institutionID,
+		clientID:          os.Getenv("ASTRA_CLIENT_ID"),
+		clientSecret:      os.Getenv("ASTRA_CLIENT_SECRET"),
+		basisTheoryAPIKey: os.Getenv("BASISTHEORY_API_KEY"),
 	}
 }
 
@@ -50,7 +104,12 @@ func (c client) RefreshAccessToken(ctx context.Context, refreshToken string) (*A
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(fmt.Sprintf("grant_type=refresh_token&refresh_token=%s&redirect_uri=%s", refreshToken, env.GetUrl())))
+	data := url.Values{}
+	data.Set("refresh_token", refreshToken)
+	data.Set("grant_type", "refresh_token")
+	data.Set("redirect_uri", env.GetUrl())
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -63,13 +122,13 @@ func (c client) RefreshAccessToken(ctx context.Context, refreshToken string) (*A
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to refresh astra user token (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to refresh astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
 	var tokenResp AccessToken
@@ -125,13 +184,15 @@ func (c client) CreateAccessToken(ctx context.Context, intentID, walletID string
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to create astra user token (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	fmt.Println("partner verification", string(respBody))
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to create astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
 	var codeResp VerificationTokenResp
@@ -147,7 +208,11 @@ func (c client) CreateAccessToken(ctx context.Context, intentID, walletID string
 		return nil, err
 	}
 
-	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(fmt.Sprintf(`{"token":"%s","user_consent_captured":true}`, codeResp.Token)))
+	data := url.Values{}
+	data.Set("token", codeResp.Token)
+	data.Set("user_consent_captured", "true")
+
+	req, err = http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -160,13 +225,14 @@ func (c client) CreateAccessToken(ctx context.Context, intentID, walletID string
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to create astra user token (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	fmt.Println("get token", string(respBody))
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to create astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
 	var tokenResp AccessToken
@@ -199,6 +265,8 @@ func (c client) CreateIntent(ctx context.Context, args CreateIntentReq) (string,
 			Provider: "astra",
 		})
 	}
+	fmt.Println("clientID", c.clientID, "secret", c.clientSecret)
+	fmt.Println("req", string(reqBody))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(reqBody))
 	if err != nil {
@@ -214,13 +282,14 @@ func (c client) CreateIntent(ctx context.Context, args CreateIntentReq) (string,
 		return "", err
 	}
 
-	if resp.StatusCode != http.StatusCreated {
-		return "", fmt.Errorf("failed to create astra user intent (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
+	}
+
+	fmt.Println("resp", string(respBody))
+	if resp.StatusCode != http.StatusCreated {
+		return "", fmt.Errorf("failed to create astra user intent (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
 	var respData CreateIntentResp
@@ -261,13 +330,13 @@ func (c client) GetIntent(ctx context.Context, intentID string) (*Intent, error)
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get astra user intent (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get astra user intent (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
 	var respData Intent
@@ -279,8 +348,8 @@ func (c client) GetIntent(ctx context.Context, intentID string) (*Intent, error)
 	return &respData, nil
 }
 
-func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) (*CreateCardResp, error) {
-	reqURL, err := url.JoinPath(c.baseURL, "cards")
+func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) (*UserCard, error) {
+	reqURL, err := url.JoinPath(c.secureBaseURL, "cards")
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +370,158 @@ func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) 
 		return nil, err
 	}
 
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, basisTheoryProxyUrl, bytes.NewReader(reqJs))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	c.setBasisTheoryProxy(req, reqURL)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to create astra user card (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	var respData UserCard
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
+}
+
+func (c client) GetCardBin(ctx context.Context, binToken string) (*CardBin, error) {
+	reqURL, err := url.JoinPath(c.secureBaseURL, "bins", binToken)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "astra"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "astra",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, basisTheoryProxyUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(c.clientID, c.clientSecret)
+	req.Header.Set("Accept", "application/json")
+	c.setBasisTheoryProxy(req, reqURL)
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to create astra user card (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	var respData CardBin
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
+}
+
+func (c client) LookupCard(ctx context.Context, token, cardID string) (*UserCard, error) {
+	reqURL, err := url.JoinPath(c.baseURL, "cards", cardID)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "astra"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "astra",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get astra user card (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	var respData UserCard
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
+}
+
+func (c client) AddAccount(ctx context.Context, token string, args CreateAccountArgs) (*UserAccount, error) {
+	reqURL, err := url.JoinPath(c.secureBaseURL, "accounts", "create")
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "astra"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "astra",
+		})
+	}
+
+	args.InstitutionID = c.institutionID
+
+	reqJs, err := json.Marshal(args)
+	if err != nil {
+		return nil, err
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(reqJs))
 	if err != nil {
 		return nil, err
@@ -314,8 +535,52 @@ func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) 
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to create astra user card (%d - %s)", resp.StatusCode, resp.Status)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to create astra user account (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	var respData UserAccount
+	err = json.Unmarshal(respBody, &respData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &respData, nil
+}
+
+func (c client) LookupAccount(ctx context.Context, token, accountID string) (*UserAccount, error) {
+	reqURL, err := url.JoinPath(c.baseURL, "accounts", accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "astra"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "astra",
+		})
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, err
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
@@ -323,7 +588,11 @@ func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) 
 		return nil, err
 	}
 
-	var respData CreateCardResp
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get astra user account (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	var respData UserAccount
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
 		return nil, err
@@ -367,13 +636,13 @@ func (c client) AccountToCard(ctx context.Context, token string, args AccountToC
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("failed to create asrta card to account routine (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("failed to create asrta card to account routine (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
 	var respData AccountToCardResp
@@ -414,19 +683,22 @@ func (c client) CardToAccount(ctx context.Context, token string, args CardToAcco
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+	if args.IdempotencyKey != "" {
+		req.Header.Set("Idempotency-Key", args.IdempotencyKey)
+	}
 
 	resp, err := c.api.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("failed to create astra card to account (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("failed to create astra card to account (%d - %s - %s - %s)", resp.StatusCode, resp.Header.Get("request-id"), resp.Status, string(respBody))
 	}
 
 	var respData CardToAccountResp
@@ -438,8 +710,8 @@ func (c client) CardToAccount(ctx context.Context, token string, args CardToAcco
 	return &respData, nil
 }
 
-func (c client) GetTransaction(ctx context.Context, token, transactionID string) (*CardToAccountResp, error) {
-	reqURL, err := url.JoinPath(c.baseURL, "transfers", transactionID)
+func (c client) GetTransfer(ctx context.Context, token, transferID string) (*Transaction, error) {
+	reqURL, err := url.JoinPath(c.baseURL, "transfers", transferID)
 	if err != nil {
 		return nil, err
 	}
@@ -467,20 +739,25 @@ func (c client) GetTransaction(ctx context.Context, token, transactionID string)
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get astra user transaction (%d - %s)", resp.StatusCode, resp.Status)
-	}
-
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var respData CardToAccountResp
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get astra user transfer (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	var respData Transaction
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
 		return nil, err
 	}
 
 	return &respData, nil
+}
+
+func (c client) setBasisTheoryProxy(r *http.Request, proxyURL string) {
+	r.Header.Set("BT-PROXY-URL", proxyURL)
+	r.Header.Set("BT-API-KEY", c.basisTheoryAPIKey)
 }

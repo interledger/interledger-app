@@ -19,6 +19,7 @@ import (
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
@@ -74,4 +75,5 @@ type Backends interface {
 	Rafiki() rafiki.Client
 	Xago() xago.Client
 	PTI() pti.Client
+	Astra() astra.Client
 }

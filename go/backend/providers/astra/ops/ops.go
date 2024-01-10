@@ -3,11 +3,53 @@ package ops
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/astra/external"
+	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/serviceerror"
+	"go.temporal.io/sdk/client"
 )
+
+func CreateCard(ctx context.Context, b Backends, args astra.CreateCardArgs) (astra.Await, error) {
+	wo := client.StartWorkflowOptions{
+		ID:                       "astra_create_card_" + args.BasisTheoryTokenID,
+		TaskQueue:                "backend",
+		WorkflowExecutionTimeout: 2 * time.Minute,
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+	}
+
+	var workflowStatus enums.WorkflowExecutionStatus
+	wflow, err := b.Temporal().DescribeWorkflowExecution(ctx, wo.ID, "")
+	switch err.(type) {
+	case *serviceerror.Internal,
+		*serviceerror.Unavailable,
+		*serviceerror.InvalidArgument:
+		return nil, fmt.Errorf("%w %s", astra.ErrInternal, err)
+	case *serviceerror.NotFound:
+		// do nothing
+	default:
+		if wflow != nil {
+			workflowStatus = wflow.GetWorkflowExecutionInfo().Status
+		}
+	}
+
+	// return workflow if it's running
+	var await client.WorkflowRun
+	var executeErr error
+	if workflowStatus == enums.WORKFLOW_EXECUTION_STATUS_RUNNING {
+		await = b.Temporal().GetWorkflow(ctx, wo.ID, "")
+	} else {
+		await, executeErr = b.Temporal().ExecuteWorkflow(ctx, wo, CreateAstraCardWorkflow, args)
+	}
+	if executeErr != nil {
+		return nil, fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	return await.Get, nil
+}
 
 func CreateIntent(ctx context.Context, b Backends, walletID string) error {
 	id, err := b.KYC().GetIndividualDetails(ctx, walletID)
@@ -34,18 +76,28 @@ func CreateIntent(ctx context.Context, b Backends, walletID string) error {
 
 	u := ul[0]
 
+	state := id.Address.State
+	if len(state) > 2 {
+		state = id.Address.State[len(state)-2:]
+	}
+
+	phone := u.PhoneNumber
+	if !strings.HasPrefix(phone, "+") {
+		phone = "+" + phone
+	}
+
 	args := external.CreateIntentReq{
 		Email:          u.Email,
-		Phone:          u.PhoneNumber,
+		Phone:          phone,
 		FirstName:      id.FirstName,
 		LastName:       id.LastName,
 		Address1:       id.Address.Line1,
 		Address2:       id.Address.Line2,
 		City:           id.Address.City,
-		State:          id.Address.State,
+		State:          state,
 		PostalCode:     id.Address.ZipCode,
 		DateOfBirth:    id.DateOfBirth.Format(time.DateOnly),
-		SocialSecurity: idNums.SocialSecurity,
+		SocialSecurity: strings.ReplaceAll(idNums.SocialSecurity, "-", ""),
 		IPAddress:      id.IPAddress,
 	}
 

@@ -10,10 +10,10 @@ type CreateIntentReq struct {
 	Address1       string `json:"address1"`
 	Address2       string `json:"address2"`
 	City           string `json:"city"`
-	State          string `json:"state"`
-	PostalCode     string `json:"postal_code"`
+	State          string `json:"state"`         // Two letter abbreviation.
+	PostalCode     string `json:"postal_code"`   // 5  digit string
 	DateOfBirth    string `json:"date_of_birth"` // YYYY-MM-DD
-	SocialSecurity string `json:"ssn"`
+	SocialSecurity string `json:"ssn"`           // No dashes
 	IPAddress      string `json:"ip_address"`
 }
 
@@ -58,7 +58,7 @@ type AccessToken struct {
 type CreateCardArgs struct {
 	CardNumber       string `json:"card_number"`
 	CardSecurityCode string `json:"card_security_code"`
-	ExpirationDate   string `json:"expiration_date"`
+	ExpirationDate   string `json:"expiration_date"` // Format MM/YY
 	FirstName        string `json:"first_name"`
 	LastName         string `json:"last_name"`
 	StreetLine1      string `json:"street_line_1"`
@@ -69,7 +69,7 @@ type CreateCardArgs struct {
 	AddedByUser      bool   `json:"added_by_user"`
 }
 
-type CreateCardResp struct {
+type UserCard struct {
 	ID              string    `json:"id"`
 	AddressVerified bool      `json:"address_verified"`
 	CardCompany     string    `json:"card_company"`
@@ -91,6 +91,52 @@ type CreateCardResp struct {
 	ZipCode         string    `json:"zip_code"`
 }
 
+type CardBin struct {
+	Bin                 string `json:"bin"`
+	CardBrand           string `json:"card_brand"`
+	CardType            string `json:"card_type"`
+	InterchangeCategory string `json:"interchange_category"`
+	IssuerName          string `json:"issuer_name"`
+	SettlementNetwork   string `json:"settlement_network"`
+}
+
+type CreateAccountArgs struct {
+	InstitutionID   string      `json:"institution_id"`
+	BankAccountType AccountType `json:"bank_account_type"`
+	Name            string      `json:"name"`
+	AccountNumber   string      `json:"account_number"`
+	RoutingNumber   string      `json:"routing_number"`
+}
+
+type AccountType string
+
+const (
+	AccountTypeSavings  = "savings"
+	AccountTypeChecking = "checking"
+)
+
+type UserAccount struct {
+	ID               string      `json:"id"`
+	OfficialName     string      `json:"official_name"`
+	Name             string      `json:"name"`
+	Mask             string      `json:"mask"`
+	InstitutionName  string      `json:"institution_name"`
+	InstitutionLogo  string      `json:"institution_logo"`
+	Type             AccountType `json:"type"`
+	Subtype          string      `json:"subtype"`
+	ConnectionStatus string      `json:"connection_status"`
+}
+
+type CardToAccountArgs struct {
+	IdempotencyKey      string      `json:"-"`
+	Name                string      `json:"name"`
+	Amount              float64     `json:"amount"`
+	ClientCorrelationID string      `json:"client_correlation_id" validate:"len=8"` // Exactly 8 Chars
+	DebitFeePercent     int         `json:"debit_fee_percent"`
+	Card                Source      `json:"source"`
+	Account             Destination `json:"destination"`
+}
+
 type AccountToCardArgs struct {
 	Transfer        Transfer    `json:"transfer"`
 	Source          Source      `json:"source"`
@@ -99,13 +145,16 @@ type AccountToCardArgs struct {
 	Amount          string      `json:"amount"`
 	Name            string      `json:"name"`
 }
+
 type Transfer struct {
 	Type    string `json:"type"` // ach_credit |
 	Addenda string `json:"addenda"`
 }
+
 type Source struct {
 	ID string `json:"id"`
 }
+
 type Destination struct {
 	ID     string `json:"id"`
 	UserID string `json:"user_id"`
@@ -127,20 +176,6 @@ type AccountToCardResp struct {
 	DebitFeePercent float64     `json:"debit_fee_percent"`
 }
 
-type CardToAccountArgs struct {
-	CardNumber       string `json:"card_number"`
-	CardSecurityCode string `json:"card_security_code"`
-	FirstName        string `json:"first_name"`
-	ExpirationDate   string `json:"expiration_date"`
-	LastName         string `json:"last_name"`
-	StreetLine1      string `json:"street_line_1"`
-	StreetLine2      string `json:"street_line_2"`
-	City             string `json:"city"`
-	State            string `json:"state"`
-	ZipCode          string `json:"zip_code"`
-	AddedByUser      bool   `json:"added_by_user"`
-}
-
 type CardToAccountResp struct {
 	ID              string      `json:"id"`
 	Status          string      `json:"status"`
@@ -155,4 +190,42 @@ type CardToAccountResp struct {
 	Type            string      `json:"type"`
 	Blocked         bool        `json:"blocked"`
 	DebitFeePercent float64     `json:"debit_fee_percent"`
+}
+
+type Transaction struct {
+	ID                    string    `json:"id"`
+	RoutineType           string    `json:"routine_type"`
+	RoutineName           string    `json:"routine_name"`
+	RoutineID             string    `json:"routine_id"`
+	ClientCorrelationID   string    `json:"client_correlation_id"`
+	SourceID              string    `json:"source_id"`
+	DestinationID         string    `json:"destination_id"`
+	DestinationUserID     string    `json:"destination_user_id"`
+	Amount                int       `json:"amount"`
+	PaymentType           string    `json:"payment_type"`
+	Initiated             time.Time `json:"initiated"`
+	Updated               time.Time `json:"updated"`
+	EstimatedClearingDate time.Time `json:"estimated_clearing_date"`
+	AstraSettlementReason string    `json:"astra_settlement_reason"`
+	FailureReason         string    `json:"failure_reason"`
+	Chargeback            struct {
+		ActionStatus           string    `json:"action_status"`
+		CbID                   string    `json:"cb_id"`
+		Created                time.Time `json:"created"`
+		ExceptionCode          string    `json:"exception_code"`
+		ExceptionDate          string    `json:"exception_date"`
+		ExceptionDescription   string    `json:"exception_description"`
+		ExceptionID            string    `json:"exception_id"`
+		ExceptionSettledAmount int       `json:"exception_settled_amount"`
+		ExceptionType          string    `json:"exception_type"`
+		MerchantReferenceID    string    `json:"merchant_reference_id"`
+		NetworkID              string    `json:"network_id"`
+		OriginalCreationDate   string    `json:"original_creation_date"`
+		OriginalProcessedDate  string    `json:"original_processed_date"`
+		OriginalSettledAmount  int       `json:"original_settled_amount"`
+		StatusDate             string    `json:"status_date"`
+		Updated                time.Time `json:"updated"`
+		UserID                 string    `json:"user_id"`
+	} `json:"chargeback"`
+	Status string `json:"status"`
 }
