@@ -157,6 +157,7 @@ func (a *Activity) CreatePtiWallet(ctx context.Context, args pti.CreateExternalW
 		UserID:   args.UserID,
 		WalletID: args.ID,
 		Currency: args.Currency.String(),
+		Type:     "WALLET",
 	})
 }
 
