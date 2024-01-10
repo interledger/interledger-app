@@ -22,7 +22,6 @@ type dbToken struct {
 }
 
 func CreateOrRefreshToken(ctx context.Context, b Backends, walletID string) (string, error) {
-
 	var token dbToken
 	var accessToken *external.AccessToken
 	err := crdbsqlx.ExecuteTx(ctx, b.DB(), nil, func(tx *sqlx.Tx) error {

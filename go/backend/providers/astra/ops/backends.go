@@ -5,8 +5,10 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
+	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/astra/external"
 	external_mock "gitlab.com/fynbos/backend/providers/astra/external/mock"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/user"
 	temporal "go.temporal.io/sdk/client"
 )
@@ -17,6 +19,8 @@ type Backends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	Temporal() temporal.Client
+	BasisTheory() basistheory.Client
+	LinkedAccounts() linkedaccounts.Client
 }
 
 type ActivityBackends interface {
@@ -24,6 +28,8 @@ type ActivityBackends interface {
 	Users() user.Client
 	KYC() kyc.Client
 	Temporal() temporal.Client
+	BasisTheory() basistheory.Client
+	LinkedAccounts() linkedaccounts.Client
 }
 
 type TestBackends struct {
@@ -31,6 +37,14 @@ type TestBackends struct {
 	Extr *external_mock.MockClient
 	Ky   kyc.Client
 	Uc   user.Client
+}
+
+func (t TestBackends) BasisTheory() basistheory.Client {
+	return nil
+}
+
+func (t TestBackends) LinkedAccounts() linkedaccounts.Client {
+	return nil
 }
 
 func (t TestBackends) Temporal() temporal.Client {
