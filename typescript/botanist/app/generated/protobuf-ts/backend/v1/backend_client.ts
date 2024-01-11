@@ -4,6 +4,7 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { GetPtiBalancesResponse } from "./backend";
 import type { GetXagoDepositDetailsResponse } from "./backend";
 import type { GetXagoDepositDetailsRequest } from "./backend";
 import type { GetXagoBalanceResponse } from "./backend";
@@ -523,6 +524,12 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetXagoDepositDetails(backend.v1.GetXagoDepositDetailsRequest) returns (backend.v1.GetXagoDepositDetailsResponse);
      */
     getXagoDepositDetails(input: GetXagoDepositDetailsRequest, options?: RpcOptions): UnaryCall<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse>;
+    /**
+     * Pti
+     *
+     * @generated from protobuf rpc: GetPtiBalances(backend.v1.Empty) returns (backend.v1.GetPtiBalancesResponse);
+     */
+    getPtiBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetPtiBalancesResponse>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1186,5 +1193,14 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getXagoDepositDetails(input: GetXagoDepositDetailsRequest, options?: RpcOptions): UnaryCall<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse> {
         const method = this.methods[85], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Pti
+     *
+     * @generated from protobuf rpc: GetPtiBalances(backend.v1.Empty) returns (backend.v1.GetPtiBalancesResponse);
+     */
+    getPtiBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetPtiBalancesResponse> {
+        const method = this.methods[86], opt = this._transport.mergeOptions(options);
+        return stackIntercept<Empty, GetPtiBalancesResponse>("unary", this._transport, method, opt, input);
     }
 }
