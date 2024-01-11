@@ -5,13 +5,16 @@ import (
 	"context"
 	"crypto"
 	"encoding/base64"
+	"fmt"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/providers/pti"
 )
 
 func TestClientSignature(t *testing.T) {
@@ -67,4 +70,97 @@ func TestVerify(t *testing.T) {
 
 	err = Verify(context.Background(), req, publicKey)
 	require.NoError(t, err)
+}
+
+func TestPutUser(t *testing.T) {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENTI_ID") == "" {
+		t.Skip("no credentials")
+	}
+	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	require.NoError(t, err)
+
+	client := New(ClientArgs{
+		PrivateKey: key,
+		ClientID:   os.Getenv("PTI_CLIENT_ID"),
+	})
+
+	u, err := client.PutUser(context.Background(), PutUserArgs{
+		ID:   "031823ff-3db5-40b5-9c4a-7bede87edfc0",
+		Type: "PERSON",
+		Phones: []Phone{
+			{
+				Number:  "+270823855973",
+				Type:    "MOBILE",
+				Default: true,
+			},
+		},
+		DateOfBirth: "1981-01-01",
+		Name: Name{
+			First: "Jimmy",
+			Last:  "Prawns",
+		},
+		Emails: []Email{{
+			Address: "jimmy@openpayments.dev",
+			Default: true,
+		}},
+		Addresses: []Address{
+			{
+				Street:     "785 Market Street",
+				City:       "San Francisco",
+				PostalCode: "94103",
+				StateCode: StateCode{
+					Code: "US-CA",
+				},
+				Country: CountryCode{
+					Code: "US",
+				},
+				Default: true,
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	usr, err := client.GetUser(context.Background(), u)
+	require.NoError(t, err)
+	fmt.Printf("updated user: %+v", usr)
+}
+
+func TestStartAssessment(t *testing.T) {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENTI_ID") == "" {
+		t.Skip("no credentials")
+	}
+	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	require.NoError(t, err)
+
+	client := New(ClientArgs{
+		PrivateKey: key,
+		ClientID:   os.Getenv("PTI_CLIENT_ID"),
+	})
+
+	a, err := client.StartUserAssessment(context.Background(), StartUserAssessmentArgs{
+		ID:         "031823ff-3db5-40b5-9c4a-7bede87edfc0",
+		Type:       "PERSON",
+		ScenarioID: pti.ScenarioDeposit,
+	})
+	require.NoError(t, err)
+
+	fmt.Println("assessment: ", a)
+}
+
+func TestGetAssessment(t *testing.T) {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENTI_ID") == "" {
+		t.Skip("no credentials")
+	}
+	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	require.NoError(t, err)
+
+	client := New(ClientArgs{
+		PrivateKey: key,
+		ClientID:   os.Getenv("PTI_CLIENT_ID"),
+	})
+
+	a, err := client.GetUserAssessment(context.Background(), "031823ff-3db5-40b5-9c4a-7bede87edfc0")
+	require.NoError(t, err)
+
+	fmt.Printf("assessment: %+v\n", a)
 }
