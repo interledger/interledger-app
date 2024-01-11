@@ -15,6 +15,7 @@ type (
 		Phones        []Phone   `json:"phones,omitempty"`
 		SourceOfFunds string    `json:"sourceOfFunds,omitempty"`
 	}
+	PutUserArgs = CreateUserArgs
 
 	CreateUserResponse struct {
 		ID   string `json:"id,omitempty"`
@@ -39,6 +40,17 @@ type (
 		Phones        []Phone   `json:"phones,omitempty"`
 		SourceOfFunds string    `json:"sourceOfFunds,omitempty"`
 		ScenarioID    string    `json:"-"`
+	}
+
+	PatchUserArgs struct {
+		ID            string    `json:"id,omitempty"`
+		Type          string    `json:"type,omitempty"`
+		DateOfBirth   string    `json:"dateOfBirth,omitempty"`
+		Name          *Name     `json:"name,omitempty"`
+		Emails        []Email   `json:"emails,omitempty"`
+		Addresses     []Address `json:"addresses,omitempty"`
+		Phones        []Phone   `json:"phones,omitempty"`
+		SourceOfFunds string    `json:"sourceOfFunds,omitempty"`
 	}
 )
 
