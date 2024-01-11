@@ -148,26 +148,6 @@ export function AppPage() {
                   {balances.map((method) => (
                     <Fragment key={method.id}>
                       <span className='text-2xl'>{method.name}</span>
-                      <div className='flex space-x-4'>
-                        <Router
-                          className='flex space-x-2 text-primary'
-                          to={route('/accounts/:accountId/deposit', {
-                            accountId: method.id
-                          })}
-                        >
-                          <Icon>north_east</Icon>
-                          <span>Deposit</span>
-                        </Router>
-                        <Router
-                          className='flex space-x-2 text-primary'
-                          to={route('/accounts/:accountId/withdraw', {
-                            accountId: method.id
-                          })}
-                        >
-                          <Icon>south_west</Icon>
-                          <span>Withdraw</span>
-                        </Router>
-                      </div>
                     </Fragment>
                   ))}
                 </CardContent>

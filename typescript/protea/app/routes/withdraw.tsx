@@ -5,7 +5,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps, SelectOptions } from '~/components'
@@ -28,12 +28,12 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import styles from '~/styles/flags.css'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const balanceResponse = await grpc.getXagoBalances(request, {})
   if (isConnectError(balanceResponse)) throw balanceResponse.error
 
   const balanceAccount = balanceResponse.balances.find(
-    (balance) => balance.linkedAccount == params.accountId
+    (balance) => balance.currency == 'ZAR'
   )
   if (!balanceAccount) throw json({}, { status: 404 })
 
@@ -116,7 +116,6 @@ const Amount = () => {
   const { formattedAvailableBalance, linkedAccounts, csrfToken } =
     useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const params = useParams()
 
   const [bank, setBank] = useState<SelectOptions>(linkedAccounts[0])
 
@@ -124,9 +123,7 @@ const Amount = () => {
     <>
       <Form
         id='account-withdraw'
-        action={route('/accounts/:accountId/withdraw', {
-          accountId: params.accountId as string
-        })}
+        action={route('/withdraw')}
         method='post'
         className='hidden'
       />
@@ -170,6 +167,7 @@ const Amount = () => {
           }
           errorMessage={actionData?.errors?.withdrawAmount || undefined}
         />
+        {/* TODO Details of the transaction here */}
       </Card>
       <Card>
         <Select
@@ -267,8 +265,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   return redirect(
-    route('/accounts/:accountId/withdraw/:paymentId', {
-      accountId: params.accountId as string,
+    route('/withdraw/:paymentId', {
       paymentId: withdrawResponse.id
     })
   )
