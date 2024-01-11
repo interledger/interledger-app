@@ -117,13 +117,15 @@ export async function getLinkedAccount(
 export async function getLinkedAccounts(
   request: Request
 ): Promise<LinkedAccountsResponse> {
-  const [xagoBalances, accounts] = await Promise.all([
+  const [xagoBalances, accounts, ptiBalances] = await Promise.all([
     grpc.getXagoBalances(request, {}),
-    grpc.getLinkedAccounts(request, {})
+    grpc.getLinkedAccounts(request, {}),
+    grpc.getPtiBalances(request, {})
   ])
 
   if (isConnectError(xagoBalances)) throw xagoBalances.errorResponse
   if (isConnectError(accounts)) throw accounts.errorResponse
+  if (isConnectError(ptiBalances)) throw ptiBalances.errorResponse
 
   const linkedAccounts = accounts.linkedAccounts.map((account) =>
     formatLinkedAccount(account)
@@ -131,14 +133,25 @@ export async function getLinkedAccounts(
   const balanceAccounts = linkedAccounts
     .filter(({ type }) => type == 'wallet')
     .map((acc) => {
-      let balance = xagoBalances.balances.find(
-        (balance) => balance.linkedAccount == acc.id
-      )
-      if (balance) {
-        acc.name = balance.formattedAvailableBalance
-      }
+      if (acc.sendCurrencyCode == "ZAR") {
+        let balance = xagoBalances.balances.find(
+          (balance) => balance.linkedAccount == acc.id
+        )
+        if (balance) {
+          acc.name = balance.formattedAvailableBalance
+        }
 
-      return acc
+        return acc
+      } else {
+        let balance = ptiBalances.balances.find(
+          (balance) => balance.linkedAccount == acc.id
+        )
+        if (balance) {
+          acc.name = balance.formattedBalance
+        }
+
+        return acc
+      }
     })
 
   return {
@@ -152,13 +165,15 @@ export async function getLinkedAccountsForPayment(
   request: Request,
   id: string
 ): Promise<LinkedAccountsResponse> {
-  const [xagoBalances, accounts] = await Promise.all([
+  const [xagoBalances, accounts, ptiBalances] = await Promise.all([
     grpc.getXagoBalances(request, {}),
-    grpc.getLinkedAccountsForPayment(request, { paymentId: id })
+    grpc.getLinkedAccountsForPayment(request, { paymentId: id }),
+    grpc.getPtiBalances(request, {})
   ])
 
   if (isConnectError(xagoBalances)) throw xagoBalances.errorResponse
   if (isConnectError(accounts)) throw accounts.errorResponse
+  if (isConnectError(ptiBalances)) throw ptiBalances.errorResponse
 
   const linkedAccounts = accounts.linkedAccounts.map((account) =>
     formatLinkedAccount(account.details!, account.enabled)
@@ -166,14 +181,25 @@ export async function getLinkedAccountsForPayment(
   const balanceAccounts = linkedAccounts
     .filter(({ type }) => type == 'wallet')
     .map((acc) => {
-      let balance = xagoBalances.balances.find(
-        (balance) => balance.linkedAccount == acc.id
-      )
-      if (balance) {
-        acc.name = balance.formattedAvailableBalance
-      }
+      if (acc.sendCurrencyCode == "ZAR") {
+        let balance = xagoBalances.balances.find(
+          (balance) => balance.linkedAccount == acc.id
+        )
+        if (balance) {
+          acc.name = balance.formattedAvailableBalance
+        }
 
-      return acc
+        return acc
+      } else {
+        let balance = ptiBalances.balances.find(
+          (balance) => balance.linkedAccount == acc.id
+        )
+        if (balance) {
+          acc.name = balance.formattedBalance
+        }
+
+        return acc
+      }
     })
 
   return {
