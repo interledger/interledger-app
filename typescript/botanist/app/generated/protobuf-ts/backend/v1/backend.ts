@@ -32,6 +32,36 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.GetPtiBalancesResponse
+ */
+export interface GetPtiBalancesResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.PtiBalance balances = 1;
+     */
+    balances: PtiBalance[];
+}
+/**
+ * @generated from protobuf message backend.v1.PtiBalance
+ */
+export interface PtiBalance {
+    /**
+     * @generated from protobuf field: backend.v1.Amount balance = 1;
+     */
+    balance?: Amount;
+    /**
+     * @generated from protobuf field: string currency = 2;
+     */
+    currency: string;
+    /**
+     * @generated from protobuf field: string linkedAccount = 3;
+     */
+    linkedAccount: string;
+    /**
+     * @generated from protobuf field: string formattedBalance = 4;
+     */
+    formattedBalance: string;
+}
+/**
  * @generated from protobuf message backend.v1.GetLinkedAccountsForPaymentRequest
  */
 export interface GetLinkedAccountsForPaymentRequest {
@@ -2361,6 +2391,121 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPtiBalancesResponse$Type extends MessageType<GetPtiBalancesResponse> {
+    constructor() {
+        super("backend.v1.GetPtiBalancesResponse", [
+            { no: 1, name: "balances", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PtiBalance }
+        ]);
+    }
+    create(value?: PartialMessage<GetPtiBalancesResponse>): GetPtiBalancesResponse {
+        const message = { balances: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPtiBalancesResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPtiBalancesResponse): GetPtiBalancesResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.PtiBalance balances */ 1:
+                    message.balances.push(PtiBalance.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPtiBalancesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.PtiBalance balances = 1; */
+        for (let i = 0; i < message.balances.length; i++)
+            PtiBalance.internalBinaryWrite(message.balances[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPtiBalancesResponse
+ */
+export const GetPtiBalancesResponse = new GetPtiBalancesResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiBalance$Type extends MessageType<PtiBalance> {
+    constructor() {
+        super("backend.v1.PtiBalance", [
+            { no: 1, name: "balance", kind: "message", T: () => Amount },
+            { no: 2, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "formattedBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiBalance>): PtiBalance {
+        const message = { currency: "", linkedAccount: "", formattedBalance: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiBalance>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiBalance): PtiBalance {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.Amount balance */ 1:
+                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
+                    break;
+                case /* string currency */ 2:
+                    message.currency = reader.string();
+                    break;
+                case /* string linkedAccount */ 3:
+                    message.linkedAccount = reader.string();
+                    break;
+                case /* string formattedBalance */ 4:
+                    message.formattedBalance = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiBalance, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.Amount balance = 1; */
+        if (message.balance)
+            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string currency = 2; */
+        if (message.currency !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.currency);
+        /* string linkedAccount = 3; */
+        if (message.linkedAccount !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.linkedAccount);
+        /* string formattedBalance = 4; */
+        if (message.formattedBalance !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.formattedBalance);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiBalance
+ */
+export const PtiBalance = new PtiBalance$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetLinkedAccountsForPaymentRequest$Type extends MessageType<GetLinkedAccountsForPaymentRequest> {
     constructor() {
@@ -10482,5 +10627,6 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "AddXagoBalanceAccount", options: {}, I: AddXagoBalanceAccountRequest, O: LinkedAccount },
     { name: "WithdrawXagoBalance", options: {}, I: WithdrawXagoBalanceRequest, O: Payment },
     { name: "GetXagoBalances", options: {}, I: Empty, O: GetXagoBalanceResponse },
-    { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse }
+    { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
+    { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse }
 ]);

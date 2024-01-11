@@ -150,6 +150,20 @@ service BackendService {
   rpc WithdrawXagoBalance(WithdrawXagoBalanceRequest) returns (Payment);
   rpc GetXagoBalances(Empty) returns (GetXagoBalanceResponse);
   rpc GetXagoDepositDetails(GetXagoDepositDetailsRequest) returns (GetXagoDepositDetailsResponse);
+
+  // Pti
+  rpc GetPtiBalances(Empty) returns (GetPtiBalancesResponse);
+}
+
+message GetPtiBalancesResponse {
+  repeated PtiBalance balances = 1;
+}
+
+message PtiBalance {
+  Amount balance = 1;
+  string currency = 2;
+  string linkedAccount = 3;
+  string formattedBalance = 4;
 }
 
 message GetLinkedAccountsForPaymentRequest {
