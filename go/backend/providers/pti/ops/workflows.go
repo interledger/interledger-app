@@ -51,10 +51,10 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 		return nil, err
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CheckUserAssessmentAccepted, args.WalletID).Get(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
+	// err = workflow.ExecuteActivity(ctx, a.CheckUserAssessmentAccepted, args.WalletID).Get(ctx, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	externalWalletID := fmt.Sprintf("%s_%s", args.Currency.String(), args.WalletID)
 	err = workflow.ExecuteActivity(ctx, a.CreatePtiWallet, pti.CreateExternalWalletArgs{
