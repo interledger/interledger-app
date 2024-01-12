@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -213,7 +215,7 @@ func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) 
 		return false, err
 	}
 
-	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External || p.Type == payments.TypeWithdrawal, nil
+	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External || p.Type == payments.TypeWithdrawal || p.Type == payments.TypeDeposit, nil
 }
 
 func (a *Activity) ConfirmPaymentsEnginePayment(ctx context.Context, id string) ([]payments.RequiredActionType, error) {
@@ -380,4 +382,57 @@ func (a *Activity) CheckReceiverLimits(ctx context.Context, paymentID string) er
 	}
 
 	return nil
+}
+
+func (a *Activity) GetPaymentType(ctx context.Context, paymentID string) (payments.Type, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return payments.TypeUnknown, err
+	}
+
+	return p.Type, nil
+}
+
+func (a *Activity) AstraDeposit(ctx context.Context, paymentID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if err != nil {
+		return "", err
+	}
+
+	return a.b.Astra().DebitCard(ctx, astra.CardToAccountArgs{
+		WalletID:            la.WalletID,
+		IdempotencyKey:      p.ID,
+		Name:                "Fynbos Deposit",
+		Amount:              p.SenderAmount,
+		ClientCorrelationID: p.PublicID,
+		DebitFeePercent:     0,
+		CardID:              la.ProviderID,
+	})
+}
+
+func (a *Activity) AstraWithdrawal(ctx context.Context, paymentID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if err != nil {
+		return "", err
+	}
+
+	return a.b.Astra().DebitCard(ctx, astra.CardToAccountArgs{
+		WalletID:            la.WalletID,
+		IdempotencyKey:      p.ID,
+		Name:                "Fynbos Deposit",
+		Amount:              p.SenderAmount,
+		ClientCorrelationID: p.PublicID,
+		DebitFeePercent:     0,
+		CardID:              la.ProviderID,
+	})
 }

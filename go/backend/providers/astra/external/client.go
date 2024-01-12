@@ -27,6 +27,7 @@ type Client interface {
 	AddAccount(ctx context.Context, token string, args CreateAccountArgs) (*UserAccount, error)
 	LookupAccount(ctx context.Context, token, accountID string) (*UserAccount, error)
 	CardToAccount(ctx context.Context, token string, args CardToAccountArgs) (*CardToAccountResp, error)
+	AccountToCard(ctx context.Context, token string, args AccountToCardArgs) (*AccountToCardResp, error)
 
 	CodeExchange(ctx context.Context, code string) (string, error)
 }
@@ -52,7 +53,7 @@ func (c client) CodeExchange(ctx context.Context, code string) (string, error) {
 	data := url.Values{}
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
-	data.Set("redirect_uri", "https://routines-hopes-funeral-worker.trycloudflare.com/codeme")
+	data.Set("redirect_uri", "https://modern-governmental-resolution-guides.trycloudflare.com/codeme")
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(data.Encode()))
 	if err != nil {
@@ -630,6 +631,9 @@ func (c client) AccountToCard(ctx context.Context, token string, args AccountToC
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+	if args.IdempotencyKey != "" {
+		req.Header.Set("Idempotency-Key", args.IdempotencyKey)
+	}
 
 	resp, err := c.api.Do(req)
 	if err != nil {

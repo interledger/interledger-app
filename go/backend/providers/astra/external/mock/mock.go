@@ -35,6 +35,21 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
 }
 
+// AccountToCard mocks base method.
+func (m *MockClient) AccountToCard(ctx context.Context, token string, args external.AccountToCardArgs) (*external.AccountToCardResp, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AccountToCard", ctx, token, args)
+	ret0, _ := ret[0].(*external.AccountToCardResp)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AccountToCard indicates an expected call of AccountToCard.
+func (mr *MockClientMockRecorder) AccountToCard(ctx, token, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountToCard", reflect.TypeOf((*MockClient)(nil).AccountToCard), ctx, token, args)
+}
+
 // AddAccount mocks base method.
 func (m *MockClient) AddAccount(ctx context.Context, token string, args external.CreateAccountArgs) (*external.UserAccount, error) {
 	m.ctrl.T.Helper()

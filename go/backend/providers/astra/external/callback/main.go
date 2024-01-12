@@ -34,6 +34,10 @@ func main() {
 		params, _ := url.ParseQuery(req.URL.RawQuery)
 
 		newish, err := cl.CodeExchange(req.Context(), params.Get("code"))
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 
 		fmt.Println(newish)
 

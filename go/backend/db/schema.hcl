@@ -3189,6 +3189,40 @@ table "astra_access_tokens" {
     columns = [column.refresh_expires_at]
   }
 }
+table "astra_accounts" {
+  schema = schema.public
+  column "id" {
+    null = false
+    type = uuid
+    default = sql("gen_random_uuid()")
+  }
+  column "wallet_id" {
+    null = false
+    type = uuid
+  }
+  column "account_id" {
+    null = false
+    type = text
+  }
+  column "created_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+  column "updated_at" {
+    null    = false
+    type    = timestamp
+    default = sql("now():::TIMESTAMP")
+  }
+
+  primary_key {
+    columns = [column.id]
+  }
+  index "astra_accounts_wallet_id_idx" {
+    unique = true
+    columns = [column.wallet_id]
+  }
+}
 
 table "pti_transactions" {
   schema = schema.public

@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -297,7 +299,7 @@ func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet, c
 func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
 
 	// Web monetization payouts don't need an OTP
-	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal {
+	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal || typ == payments.TypeDeposit {
 		return false, nil
 	}
 
@@ -328,7 +330,7 @@ func requires3DS(ctx context.Context, b Backends, senderAcc string, typ payments
 		return false, err
 	}
 
-	return la.Provider == tabapay.ProviderName || la.Type == tabapay.TypeCard, nil
+	return la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard, nil
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -416,6 +418,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
+	err = validateDeposit(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
+	if err != nil {
+		return nil, err
+	}
+
 	err = validateSenderReceiver(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
 	if err != nil {
 		return nil, err
@@ -498,6 +505,35 @@ func validateSendBalances(ctx context.Context, b Backends, sendAccID string, amt
 	return nil
 }
 
+func validateDeposit(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
+	if typ != payments.TypeDeposit {
+		return nil
+	}
+
+	if senderAccID == "" || receiverAccID == "" {
+		return payments.ErrInvalidDeposit
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if senderAcc.Provider != astra.ProviderName || senderAcc.Type != astra.TypeCard {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	// TODO: Validate PTI aAccount information
+	/*receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if receiverAcc.Provider != xago.ProviderName || receiverAcc.Type != xago.AccTypeBank || senderAcc.WalletID != receiverAcc.WalletID {
+		return payments.ErrInvalidWithdrawal
+	}*/
+
+	return nil
+}
+
 func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
 	if typ != payments.TypeWithdrawal {
 		return nil
@@ -511,6 +547,8 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
+
+	// TODO: Expand for PTI and Asta withdrawals
 	if senderAcc.Provider != xago.ProviderName || senderAcc.Type != xago.AccTypeBalance {
 		return payments.ErrInvalidWithdrawal
 	}
@@ -1093,6 +1131,11 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 	}
 
 	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateDeposit(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
 	if err != nil {
 		return nil, err
 	}

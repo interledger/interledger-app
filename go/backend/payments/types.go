@@ -176,4 +176,5 @@ const (
 	TypeRafikiPeer2Peer Type = 4
 	TypeRafiki2External Type = 5
 	TypeWithdrawal      Type = 6
+	TypeDeposit         Type = 7
 )

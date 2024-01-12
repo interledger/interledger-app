@@ -2,6 +2,8 @@ package ops
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,6 +14,93 @@ import (
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
 )
+
+func DebitCard(ctx context.Context, b Backends, args astra.CardToAccountArgs) (string, error) {
+	token, err := GetToken(ctx, b, args.WalletID)
+	if err != nil {
+		return "", err
+	}
+
+	var accID string
+	err = b.DB().GetContext(ctx, &accID, "SELECT account_id FROM astra_accounts WHERE wallet_id=$1", args.WalletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", astra.ErrNotFound
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	var intentID string
+	err = b.DB().GetContext(ctx, &intentID, "SELECT intent_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w intent not found for wallet ID", astra.ErrNotFound)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	tx, err := b.External().CardToAccount(ctx, token, external.CardToAccountArgs{
+		IdempotencyKey:      args.IdempotencyKey,
+		Name:                args.Name,
+		Amount:              args.Amount.Float64(),
+		ClientCorrelationID: args.ClientCorrelationID,
+		DebitFeePercent:     args.DebitFeePercent,
+		Card: external.Source{
+			ID: args.CardID,
+		},
+		Account: external.Destination{
+			ID:     accID,
+			UserID: intentID,
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tx.ID, nil
+}
+
+func CreditCard(ctx context.Context, b Backends, args astra.AccountToCardsArgs) (string, error) {
+	token, err := GetToken(ctx, b, args.WalletID)
+	if err != nil {
+		return "", err
+	}
+
+	var accID string
+	err = b.DB().GetContext(ctx, &accID, "SELECT account_id FROM astra_accounts WHERE wallet_id=$1", args.WalletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", astra.ErrNotFound
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	var intentID string
+	err = b.DB().GetContext(ctx, &intentID, "SELECT intent_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w intent not found for wallet ID", astra.ErrNotFound)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	tx, err := b.External().AccountToCard(ctx, token, external.AccountToCardArgs{
+		IdempotencyKey: args.IdempotencyKey,
+		Name:           args.Name,
+		Amount:         args.Amount.Float64(),
+		Card: external.Destination{
+			ID: args.CardID,
+		},
+		Account: external.Source{
+			ID: accID,
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return tx.ID, nil
+}
 
 func CreateCard(ctx context.Context, b Backends, args astra.CreateCardArgs) (astra.Await, error) {
 	wo := client.StartWorkflowOptions{

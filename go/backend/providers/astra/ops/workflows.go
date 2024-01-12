@@ -2,6 +2,7 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -21,9 +22,6 @@ func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 10,
-		},
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -61,7 +59,42 @@ func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*
 		return nil, err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.CreateAccount, args.WalletID).Get(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	return &la, nil
+}
+
+func (a *Activity) CreateAccount(ctx context.Context, walletID string) error {
+	var accID string
+	err := a.b.DB().GetContext(ctx, &accID, "SELECT account_id FROM astra_accounts WHERE wallet_id=$1", walletID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	if accID != "" {
+		// We already have an account for this user, do nothing.
+		return nil
+	}
+
+	token, err := GetToken(ctx, a.b, walletID)
+	if err != nil {
+		return err
+	}
+
+	acc, err := a.b.External().AddAccount(ctx, token, external.CreateAccountArgs{
+		BankAccountType: external.AccountTypeChecking,
+		Name:            "Universal",
+		AccountNumber:   "TODO",
+		RoutingNumber:   "TODO",
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = a.b.DB().ExecContext(ctx, "INSERT INTO astra_accounts(wallet_id, account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", walletID, acc.ID)
+	return err
 }
 
 func (a *Activity) CreateCardLinkedAccount(ctx context.Context, args astra.CreateCardArgs, card external.UserCard, tokenCard basistheory.Card) (*linkedaccounts.LinkedAccount, error) {
@@ -79,8 +112,8 @@ func (a *Activity) CreateCardLinkedAccount(ctx context.Context, args astra.Creat
 		Provider:            astra.ProviderName,
 		ProviderID:          card.ID,
 		Type:                astra.TypeCard,
-		CanSend:             false,
-		CanReceive:          false,
+		CanSend:             true,
+		CanReceive:          true,
 		State:               linkedaccounts.Verified,
 		SendCountry:         country.US,
 		SendCurrency:        currency.USD,

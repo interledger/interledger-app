@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"gitlab.com/fynbos/backend/providers/basistheory"
-
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
@@ -14,6 +12,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/astra/external"
 	"gitlab.com/fynbos/backend/providers/astra/ops"
+	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
@@ -70,4 +69,12 @@ func (c client) StartKYC(ctx context.Context, walletID string) error {
 
 func (c client) CreateCard(ctx context.Context, args astra.CreateCardArgs) (astra.Await, error) {
 	return ops.CreateCard(ctx, c.b, args)
+}
+
+func (c client) DebitCard(ctx context.Context, args astra.CardToAccountArgs) (string, error) {
+	return ops.DebitCard(ctx, c.b, args)
+}
+
+func (c client) CreditCard(ctx context.Context, args astra.AccountToCardsArgs) (string, error) {
+	return ops.CreditCard(ctx, c.b, args)
 }
