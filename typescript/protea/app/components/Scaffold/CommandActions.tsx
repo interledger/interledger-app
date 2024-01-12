@@ -88,10 +88,9 @@ export function CommandActions() {
     (value: PlainMessage<SearchResult> | Action) => void
   >(
     (event) => {
-      // NOTE: We close the command palette because it becomes unresponsive when we come back.
-      setCommandPaletteOpen(false)
       if (isAction(event)) {
         navigate(event.route)
+        setCommandPaletteOpen(false)
       } else {
         submit.submit(
           { walletUrl: event.walletUrl },
@@ -100,6 +99,7 @@ export function CommandActions() {
             method: 'POST'
           }
         )
+        setCommandPaletteOpen(false)
       }
     },
     [navigate, setCommandPaletteOpen, submit]
