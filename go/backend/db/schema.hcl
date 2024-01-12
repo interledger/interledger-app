@@ -2237,11 +2237,19 @@ table "payments" {
     type    = int
     default = 1
   }
+  column "astra_correlation_id" {
+    null    = true
+    type    = text
+  }
   primary_key {
     columns = [column.id]
   }
   index "payments_public_id_ind" {
     columns = [column.public_id]
+    unique  = true
+  }
+  index "payments_astra_correlation_id_ind" {
+    columns = [column.astra_correlation_id]
     unique  = true
   }
 }

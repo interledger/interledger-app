@@ -37,6 +37,7 @@ type UpdateArgs struct {
 	FXFeePercentage         float64
 	UpdatePaymentProtection bool
 	AddPaymentProtection    bool
+	AddAstraCorrelationID   bool
 }
 
 type Payment struct {
@@ -59,6 +60,7 @@ type Payment struct {
 	FXRate                  float64
 	FXFeePercentage         float64
 	ProtectionFeePercentage float64
+	AstraCorrelationID      string
 }
 
 // This works out the payment protection amount from the send amount as

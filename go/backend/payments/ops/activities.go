@@ -393,6 +393,20 @@ func (a *Activity) GetPaymentType(ctx context.Context, paymentID string) (paymen
 	return p.Type, nil
 }
 
+func (a *Activity) AddAstraCorrelation(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.AstraCorrelationID != "" {
+		return nil
+	}
+
+	_, err = update(ctx, a.b, payments.UpdateArgs{AddAstraCorrelationID: true}, nil)
+	return err
+}
+
 func (a *Activity) AstraDeposit(ctx context.Context, paymentID string) (string, error) {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
@@ -409,7 +423,7 @@ func (a *Activity) AstraDeposit(ctx context.Context, paymentID string) (string, 
 		IdempotencyKey:      p.ID,
 		Name:                "Fynbos Deposit",
 		Amount:              p.SenderAmount,
-		ClientCorrelationID: p.PublicID,
+		ClientCorrelationID: p.AstraCorrelationID,
 		DebitFeePercent:     0,
 		CardID:              la.ProviderID,
 	})
@@ -431,7 +445,7 @@ func (a *Activity) AstraWithdrawal(ctx context.Context, paymentID string) (strin
 		IdempotencyKey:      p.ID,
 		Name:                "Fynbos Deposit",
 		Amount:              p.SenderAmount,
-		ClientCorrelationID: p.PublicID,
+		ClientCorrelationID: p.AstraCorrelationID,
 		DebitFeePercent:     0,
 		CardID:              la.ProviderID,
 	})
