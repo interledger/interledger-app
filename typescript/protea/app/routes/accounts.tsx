@@ -219,10 +219,7 @@ export default function Page() {
               >
                 <div className='flex space-x-3'>
                   <Icon>account_balance</Icon>
-                  <span>
-                    {method.name}{' '}
-                    {method.nickname && '(' + method.nickname + ')'}
-                  </span>
+                  <span>{method.name}</span>
                 </div>
                 <div className='flex items-center space-x-2'>
                   <Icon>navigate_next</Icon>
