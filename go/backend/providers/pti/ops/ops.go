@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -22,10 +21,9 @@ var (
 
 func CreateWallet(ctx context.Context, b Backends, args pti.CreateWalletArgs) (pti.Await, error) {
 	wo := client.StartWorkflowOptions{
-		ID:                       "pti_create_wallet_" + args.WalletID + "_" + args.Currency.String(),
-		TaskQueue:                "backend",
-		WorkflowExecutionTimeout: 5 * time.Minute,
-		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
+		ID:                    "pti_create_wallet_" + args.WalletID + "_" + args.Currency.String(),
+		TaskQueue:             "backend",
+		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
 	}
 
 	var workflowStatus enums.WorkflowExecutionStatus
