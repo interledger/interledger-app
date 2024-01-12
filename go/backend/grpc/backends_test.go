@@ -5,6 +5,7 @@ import (
 	"net"
 	"testing"
 
+	pti "gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/dynamicforms"
@@ -239,6 +240,10 @@ func (t TestContainer) MX() mx.Client {
 
 func (t TestContainer) Twitter() twitter.Client {
 	return t.TwitterClient
+}
+
+func (t TestContainer) PTI() pti.Client {
+	return nil
 }
 
 type TestContainerOption func(*TestContainer)

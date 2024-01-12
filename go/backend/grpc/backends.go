@@ -22,6 +22,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/gmt"
 	"gitlab.com/fynbos/backend/providers/mx"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki"
@@ -72,4 +73,5 @@ type Backends interface {
 	Slack() slack.Client
 	Rafiki() rafiki.Client
 	Xago() xago.Client
+	PTI() pti.Client
 }

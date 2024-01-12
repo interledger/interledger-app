@@ -81,6 +81,98 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.GetPtiBalancesResponse
+ */
+export class GetPtiBalancesResponse extends Message<GetPtiBalancesResponse> {
+  /**
+   * @generated from field: repeated backend.v1.PtiBalance balances = 1;
+   */
+  balances: PtiBalance[] = [];
+
+  constructor(data?: PartialMessage<GetPtiBalancesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetPtiBalancesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "balances", kind: "message", T: PtiBalance, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPtiBalancesResponse {
+    return new GetPtiBalancesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPtiBalancesResponse {
+    return new GetPtiBalancesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPtiBalancesResponse {
+    return new GetPtiBalancesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPtiBalancesResponse | PlainMessage<GetPtiBalancesResponse> | undefined, b: GetPtiBalancesResponse | PlainMessage<GetPtiBalancesResponse> | undefined): boolean {
+    return proto3.util.equals(GetPtiBalancesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.PtiBalance
+ */
+export class PtiBalance extends Message<PtiBalance> {
+  /**
+   * @generated from field: backend.v1.Amount balance = 1;
+   */
+  balance?: Amount;
+
+  /**
+   * @generated from field: string currency = 2;
+   */
+  currency = "";
+
+  /**
+   * @generated from field: string linkedAccount = 3;
+   */
+  linkedAccount = "";
+
+  /**
+   * @generated from field: string formattedBalance = 4;
+   */
+  formattedBalance = "";
+
+  constructor(data?: PartialMessage<PtiBalance>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.PtiBalance";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "balance", kind: "message", T: Amount },
+    { no: 2, name: "currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "linkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "formattedBalance", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiBalance {
+    return new PtiBalance().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PtiBalance {
+    return new PtiBalance().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PtiBalance {
+    return new PtiBalance().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PtiBalance | PlainMessage<PtiBalance> | undefined, b: PtiBalance | PlainMessage<PtiBalance> | undefined): boolean {
+    return proto3.util.equals(PtiBalance, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetLinkedAccountsForPaymentRequest
  */
 export class GetLinkedAccountsForPaymentRequest extends Message<GetLinkedAccountsForPaymentRequest> {

@@ -242,6 +242,7 @@ func onKYCApproved(ctx context.Context, b Backends, walletID string) {
 	}
 
 	if w.Country != country.ZA {
+		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
 		return
 	}
 	c := currency.ZAR

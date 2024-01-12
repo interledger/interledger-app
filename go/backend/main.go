@@ -72,6 +72,9 @@ import (
 	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
+	"gitlab.com/fynbos/backend/providers/pti"
+	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
+	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -190,6 +193,12 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/persona", kyc_ops.NewHandlePersonaWebhook(b))
 	router.Handle("/webhooks/slack/pay", bot.NewSlackCommandHandler(b))
 	router.Handle("/webhooks/slack/bot/install", b.slack.BotInstallWebhook())
+
+	ptiWebhook, err := pti_ops.Webhook(b)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	router.Handle("/webhooks/pti", ptiWebhook)
 	router.Handle("/webhooks/astra/wallet/{id}", astra.GetTrustedAuthenticationInfo(b))
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
 	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
@@ -433,6 +442,7 @@ type backends struct {
 	aws            aws.Client
 	xago           xago.Client
 	pac            pacioli.Client
+	pti            pti.Client
 }
 
 func (b backends) Pacioli() pacioli.Client {
@@ -596,6 +606,10 @@ func (b backends) Images() images.Client {
 	return b.img
 }
 
+func (b backends) PTI() pti.Client {
+	return b.pti
+}
+
 func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b := &backends{}
 
@@ -757,6 +771,8 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.pac = pacioli_client.NewLocal(pacDB)
 
 	b.xago = xago_client.New(b)
+
+	b.pti = pti_client.New(b)
 
 	return b
 }
