@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"os"
 	"time"
 
@@ -18,25 +18,25 @@ func main() {
 	time.Sleep(time.Second * 1)
 
 	cl := external.New(nil)
-	intentID, err := cl.CreateIntent(context.Background(), external.CreateIntentReq{
-		Email:          "barnard+cmdline+3@fynbos.dev",
-		Phone:          "+16362515351",
-		FirstName:      "Matt",
-		LastName:       "Hastings",
-		Address1:       "32 Derry Street",
-		Address2:       "",
-		City:           "San Antonio",
-		State:          "TX",
-		PostalCode:     "78202",
-		DateOfBirth:    "1990-06-08",
-		SocialSecurity: "311401239",
-		IPAddress:      "41.71.7.83",
-	})
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("InentID", intentID)
-
+	/*	intentID, err := cl.CreateIntent(context.Background(), external.CreateIntentReq{
+			Email:          "barnard+cmdline+3@fynbos.dev",
+			Phone:          "+16362515351",
+			FirstName:      "Matt",
+			LastName:       "Hastings",
+			Address1:       "32 Derry Street",
+			Address2:       "",
+			City:           "San Antonio",
+			State:          "TX",
+			PostalCode:     "78202",
+			DateOfBirth:    "1990-06-08",
+			SocialSecurity: "311401239",
+			IPAddress:      "41.71.7.83",
+		})
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("InentID", intentID)
+	*/
 	//intentID := "bbd25c56fca34942981c094d9a573f8a" //  "barnard+cmdline@fynbos.dev"
 	//walletID := "71b285aa-15c5-4523-9cfa-3f6ead094fa6" // "barnard+cmdline@fynbos.dev"
 
@@ -44,40 +44,41 @@ func main() {
 
 	//?authorization_code=I38KSFyRBmNkXxGxbRuBzd5dOmGn7gCfYgV0rWmfo2cRuIzQ&code=I38KSFyRBmNkXxGxbRuBzd5dOmGn7gCfYgV0rWmfo2cRuIzQ
 
-	//intentID := "cae1ef7805a944d49824e8b8b4cec74b"
+	intentID := "cae1ef7805a944d49824e8b8b4cec74b"
+	//userID := "10bb171df1a548d49e26e1611a89ce23"
 	intent, err := cl.GetIntent(context.Background(), intentID)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("intent", intent)
 
-	at, err := cl.CreateAccessToken(context.Background(), intentID, uuid.NewString())
+	/*at, err := cl.CreateAccessToken(context.Background(), intentID, uuid.NewString())
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("access token", at) /*
+	fmt.Println("access token", at)
+	*/
+	accessToken := "0v3ubcv2QJlsTJ6bHSRM5o5P7FbpzGfYaj92fgGX84"
+	//refreshToken := "0bJuIeqPzcPP3q5QF8iagZFXbSL6utTuGdDVGwuRA033yRhu"
 
-		accessToken := "kDnHhZLUDC8DCHd07HmFs2n3RtAU70o0oVjeWYKuFZ"
-		refreshToken := "L0BfpN8WlkBXJGAAY9zpm66yV4YUdx1qOxnxfgfV7eq3Th8z"
-
-		//at, err := cl.CreateAccessToken(context.Background(), intentID, walletID)
-
+	//at, err := cl.CreateAccessToken(context.Background(), intentID, walletID)
+	/*
 		at, err := cl.RefreshAccessToken(context.Background(), refreshToken)
 		if err != nil {
 			panic(err)
 		}
 
 		fmt.Println(at)
-		accessToken = at.AccessToken
+		accessToken = at.AccessToken*/
 
-		/**
-		Visa Debit Card Example
+	/**
+	Visa Debit Card Example
 
-		Type: Visa
-		Card BIN: 400005
-		Card #: 4000056655665556
-		CVC: Any 3 digits
-		Exp. Date: Any future date, e.g. 02/25
+	Type: Visa
+	Card BIN: 400005
+	Card #: 4000056655665556
+	CVC: Any 3 digits
+	Exp. Date: Any future date, e.g. 02/25
 	*/
 	/*ccr, err := cl.AddCard(context.Background(), accessToken, external.CreateCardArgs{
 		CardNumber:       "4000056655665556",
@@ -121,7 +122,7 @@ func main() {
 	accStr, _ := json.MarshalIndent(acc, "", "    ")
 	fmt.Println(string(accStr))
 	*/
-	/*cardID := "882244ff-575f-4739-8fb0-4c5d75da9d2d"
+	//cardID := "882244ff-575f-4739-8fb0-4c5d75da9d2d"
 	accountID := "astra_generic_1ecb81ad52d74259b60ee51603478563"
 
 	acc, err := cl.LookupAccount(context.Background(), accessToken, accountID)
@@ -131,25 +132,33 @@ func main() {
 
 	accStr, _ := json.MarshalIndent(acc, "", "    ")
 	fmt.Println(string(accStr))
+	/*
+		c2a, err := cl.CardToAccount(context.Background(), accessToken, external.CardToAccountArgs{
+			Name:                "Test",
+			Amount:              10.1,
+			ClientCorrelationID: "3d77fb66",
+			DebitFeePercent:     0,
+			Card: external.Source{
+				ID: cardID,
+			},
+			Account: external.Destination{
+				ID:     accountID,
+				UserID: userID,
+			},
+		})
+		if err != nil {
+			panic(err)
+		}
 
-	c2a, err := cl.CardToAccount(context.Background(), accessToken, external.CardToAccountArgs{
-		Name:                "Test",
-		Amount:              10.1,
-		ClientCorrelationID: "3d77fb66",
-		DebitFeePercent:     0,
-		Card: external.Source{
-			ID: cardID,
-		},
-		Account: external.Destination{
-			ID:     accountID,
-			UserID: intentID,
-		},
-	})
+		c2aStr, _ := json.MarshalIndent(c2a, "", "    ")
+		fmt.Println(string(c2aStr))
+	*/
+
+	tr, err := cl.GetTransfer(context.Background(), accessToken, "349b8715-c724-590f-aa29-d85909ff660f")
 	if err != nil {
 		panic(err)
 	}
 
-	c2aStr, _ := json.MarshalIndent(c2a, "", "    ")
-	fmt.Println(string(c2aStr))*/
-
+	trStr, _ := json.MarshalIndent(tr, "", "    ")
+	fmt.Println(string(trStr))
 }
