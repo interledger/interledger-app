@@ -4,18 +4,43 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/twilio"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
 
+var (
+	astraWebhookBearerToken = os.Getenv("ASTRA_WEBHOOK_BEARER_TOKEN")
+	authHeaderRegex         = regexp.MustCompile("Bearer .*")
+)
+
+// This endpoint is secured using a Bearer Token set in the Authorization header.
 func GetTrustedAuthenticationInfo(b Backends) http.HandlerFunc {
+	if astraWebhookBearerToken == "" && !env.IsLocal() {
+		log.Fatal("ASTRA_WEBHOOK_BEARER_TOKEN is not set")
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		//TODO: authenticate astra
+		authHeader := r.Header.Get("Authorization")
+		parts := strings.Split(authHeader, " ")
+		var bearerToken string
+		if authHeaderRegex.MatchString(authHeader) && len(parts) >= 2 {
+			bearerToken = parts[1]
+		}
+
+		if strings.TrimSpace(bearerToken) != astraWebhookBearerToken {
+			log.Warn("Unauthenticated request to astra trusted authentication webhook", zap.String("Authorization header", authHeader))
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
 
 		walletID := chi.URLParam(r, "id")
 		var ret WalletInfoResponse
