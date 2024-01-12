@@ -88,8 +88,6 @@ export function CommandActions() {
     (value: PlainMessage<SearchResult> | Action) => void
   >(
     (event) => {
-      // NOTE: We close the command palette because it becomes unresponsive when we come back.
-      setCommandPaletteOpen(false)
       if (isAction(event)) {
         navigate(event.route)
       } else {
@@ -102,8 +100,11 @@ export function CommandActions() {
         )
       }
     },
-    [navigate, setCommandPaletteOpen, submit]
+    [navigate, submit]
   )
+  useEffect(() => {
+    return () => setCommandPaletteOpen(false)
+  }, [setCommandPaletteOpen])
 
   useEffect(() => {
     if (search.state == 'idle') {
