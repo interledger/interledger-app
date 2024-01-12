@@ -15,30 +15,28 @@ import {
   Icon,
   Layouts
 } from '~/components'
-import { getLinkedAccount } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  const account = await getLinkedAccount(request, params.accountId as string)
-  if (isConnectError(account)) throw account.errorResponse
+export async function loader({ request }: LoaderFunctionArgs) {
+  const balanceResponse = await grpc.getXagoBalances(request, {})
+  if (isConnectError(balanceResponse)) throw balanceResponse.error
 
-  if (account.type == 'balance' || account.type == 'wallet') {
-    let details = await grpc.getXagoDepositDetails(request, {
-      linkedAccount: account.id
-    })
-    if (isConnectError(details)) throw details.errorResponse
+  const balanceAccount = balanceResponse.balances.find(
+    (balance) => balance.currency == 'ZAR'
+  )
+  if (!balanceAccount) throw json({}, { status: 404 })
 
-    let ret = details.details.filter(
-      (d) => d.currency == account.receiveCurrencyCode
-    )
+  let details = await grpc.getXagoDepositDetails(request, {
+    linkedAccount: balanceAccount.linkedAccount
+  })
+  if (isConnectError(details)) throw details.errorResponse
 
-    return json({
-      depositDetails: ret[0]
-    })
-  }
+  let ret = details.details.filter((d) => d.currency == balanceAccount.currency)
 
-  throw json({}, { status: 404 })
+  return json({
+    depositDetails: ret[0]
+  })
 }
 
 export const handle: ApplicationProps = {
