@@ -72,10 +72,10 @@ func TestCreateIntent(t *testing.T) {
 		Address1:       "Death Star",
 		Address2:       "Degoba System",
 		City:           "Mos Eysly",
-		State:          "US-WC",
+		State:          "WC",
 		PostalCode:     "209",
 		DateOfBirth:    "1998-01-03",
-		SocialSecurity: "123-0974-0982",
+		SocialSecurity: "12309740982",
 		IPAddress:      "217.0.0.1",
 	}).Return(intentID, nil).AnyTimes()
 
