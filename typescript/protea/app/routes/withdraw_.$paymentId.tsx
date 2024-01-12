@@ -4,7 +4,7 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { redirect } from '@remix-run/node'
-import { Form, useLoaderData, useParams } from '@remix-run/react'
+import { Form, useLoaderData } from '@remix-run/react'
 import { DateTime } from 'luxon'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
@@ -30,12 +30,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (isConnectError(payment)) throw payment.errorResponse
 
   // This payment is already confirmed
-  if (payment.state > 1)
-    throw redirect(
-      route('/accounts/:accountId/withdraw', {
-        accountId: params.accountId as string
-      })
-    )
+  if (payment.state > 1) throw redirect(route('/withdraw'))
 
   const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
   if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.error
@@ -45,7 +40,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       (account) => account.id == payment.receiverAccount
     )?.title,
     senderAccountTitle: linkedAccountsResponse.linkedAccounts.find(
-      (account) => account.id == params.accountId
+      (account) => account.id == payment.senderAccount
     )?.title,
     payment,
     requiresOTP: payment.requiredActions.includes(PaymentRequiredAction.OTP)
@@ -68,14 +63,12 @@ export const meta: MetaFunction = mergeMeta(() => [
 export default function Page() {
   const { payment, receiverAccountTitle, senderAccountTitle, csrfToken } =
     useLoaderData<typeof loader>()
-  const params = useParams()
 
   return (
     <>
       <Form
         id='withdraw-confirm'
-        action={route('/accounts/:accountId/withdraw/:paymentId', {
-          accountId: params.accountId as string,
+        action={route('/withdraw/:paymentId', {
           paymentId: payment.id
         })}
         method='post'

@@ -5,10 +5,7 @@ declare module "routes-gen" {
     "/about": Record<string, never>;
     "/accounts": Record<string, never>;
     "/accounts/:accountId": { "accountId": string };
-    "/accounts/:accountId/deposit": { "accountId": string };
     "/accounts/:accountId/name": { "accountId": string };
-    "/accounts/:accountId/withdraw": { "accountId": string };
-    "/accounts/:accountId/withdraw/:paymentId": { "accountId": string, "paymentId": string };
     "/api/fern": Record<string, never>;
     "/api/maps/geocode": Record<string, never>;
     "/api/maps/placesAutocomplete": Record<string, never>;
@@ -26,6 +23,7 @@ declare module "routes-gen" {
     "/consent": Record<string, never>;
     "/contact": Record<string, never>;
     "/contact/success": Record<string, never>;
+    "/deposit": Record<string, never>;
     "/discord": Record<string, never>;
     "/docs": Record<string, never>;
     "/docs/:slug": { "slug": string };
@@ -71,6 +69,8 @@ declare module "routes-gen" {
     "/wallet": Record<string, never>;
     "/wallet-address": Record<string, never>;
     "/what-is-a-payment-pointer": Record<string, never>;
+    "/withdraw": Record<string, never>;
+    "/withdraw/:paymentId": { "paymentId": string };
   };
 
   export function route<
@@ -80,10 +80,7 @@ declare module "routes-gen" {
       | ["/about"]
       | ["/accounts"]
       | ["/accounts/:accountId", RouteParams["/accounts/:accountId"]]
-      | ["/accounts/:accountId/deposit", RouteParams["/accounts/:accountId/deposit"]]
       | ["/accounts/:accountId/name", RouteParams["/accounts/:accountId/name"]]
-      | ["/accounts/:accountId/withdraw", RouteParams["/accounts/:accountId/withdraw"]]
-      | ["/accounts/:accountId/withdraw/:paymentId", RouteParams["/accounts/:accountId/withdraw/:paymentId"]]
       | ["/api/fern"]
       | ["/api/maps/geocode"]
       | ["/api/maps/placesAutocomplete"]
@@ -101,6 +98,7 @@ declare module "routes-gen" {
       | ["/consent"]
       | ["/contact"]
       | ["/contact/success"]
+      | ["/deposit"]
       | ["/discord"]
       | ["/docs"]
       | ["/docs/:slug", RouteParams["/docs/:slug"]]
@@ -146,5 +144,7 @@ declare module "routes-gen" {
       | ["/wallet"]
       | ["/wallet-address"]
       | ["/what-is-a-payment-pointer"]
+      | ["/withdraw"]
+      | ["/withdraw/:paymentId", RouteParams["/withdraw/:paymentId"]]
   >(...args: T): typeof args[0];
 }
