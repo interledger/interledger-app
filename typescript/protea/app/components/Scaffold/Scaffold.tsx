@@ -26,6 +26,7 @@ import {
   WalletShapes
 } from '~/components'
 import { ContentRouter, Prose } from '~/components/Content'
+import { CommandActions } from '~/components/Scaffold/CommandActions'
 import { CommandPalette } from '~/components/Scaffold/CommandPalette'
 import { DocsNavDrawer } from '~/components/Scaffold/Docs'
 import type { FooterRecord } from '~/generated/dato-cms-graphql'
@@ -38,7 +39,6 @@ import { PayStep, usePayStore } from '~/lib/usePayStore'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { SignupStep, useSignupStore } from '~/lib/useSignupStore'
 import type { loader as rootLoader } from '~/root'
-import { Search } from '~/routes/pay/Search'
 import { NavDrawer } from './NavDrawer'
 
 export type ApplicationProps = {
@@ -128,12 +128,10 @@ export function Scaffold() {
 
   const scaffold: ScaffoldProps | undefined = currentMatch.handle.scaffold
 
-  const [pushSnackbar, commandPaletteOpen, setCommandPaletteOpen] =
-    useScaffoldStore((state) => [
-      state.pushSnackbar,
-      state.commandPalletOpen,
-      state.setCommandPalletOpen
-    ])
+  const [pushSnackbar, setCommandPaletteOpen] = useScaffoldStore((state) => [
+    state.pushSnackbar,
+    state.setCommandPalletOpen
+  ])
 
   useEffect(() => {
     if (snackbar) pushSnackbar(snackbar)
@@ -646,12 +644,11 @@ export function Scaffold() {
           )}
           <SnackbarStage />
         </AnimatePresence>
-        <CommandPalette
-          open={commandPaletteOpen}
-          setOpen={() => setCommandPaletteOpen(false)}
-        >
-          <Search />
-        </CommandPalette>
+        {layout === Layouts.Wallet && (
+          <CommandPalette>
+            <CommandActions />
+          </CommandPalette>
+        )}
       </div>
     </div>
   )
