@@ -60,7 +60,7 @@ func GetUser(ctx context.Context, b Backends, walletID string) (*pti.User, error
 	var user pti.User
 	err := b.DB().GetContext(ctx, &user, fmt.Sprintf("SELECT %s from pti_users where wallet_id=$1;", userFields), walletID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, pti.ErrNotFound
 	}
 	if err != nil {
 		return nil, err
