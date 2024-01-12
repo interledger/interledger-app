@@ -1,30 +1,48 @@
 import { Dialog as HeadlessDialog, Transition } from '@headlessui/react'
+import { useNavigate } from '@remix-run/react'
 import clsx from 'clsx'
-import type { Dispatch, FC, ReactNode, SetStateAction } from 'react'
-import { Fragment } from 'react'
+import type { FC, ReactNode } from 'react'
+import { Fragment, useEffect } from 'react'
+import { route } from 'routes-gen'
+import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 type CommandPaletteProps = {
   children?: ReactNode
-  open: boolean
   unmount?: boolean
-  grow?: boolean
-  setOpen: Dispatch<SetStateAction<boolean>>
 }
 
 export const CommandPalette: FC<CommandPaletteProps> = ({
   children,
-  open,
-  unmount = true,
-  grow = false,
-  setOpen
+  unmount = true
 }) => {
+  const navigate = useNavigate()
+  const [commandPaletteOpen, setCommandPaletteOpen] = useScaffoldStore(
+    (state) => [state.commandPalletOpen, state.setCommandPalletOpen]
+  )
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setCommandPaletteOpen(!commandPaletteOpen)
+      } else if (e.key === 'd' && !commandPaletteOpen) {
+        navigate(route('/deposit'))
+      } else if (e.key === 'w' && !commandPaletteOpen) {
+        navigate(route('/withdraw'))
+      }
+    }
+
+    document.addEventListener('keydown', down)
+    return () => document.removeEventListener('keydown', down)
+  }, [commandPaletteOpen, navigate, setCommandPaletteOpen])
+
   return (
-    <Transition.Root unmount={unmount} show={open} as={Fragment}>
+    <Transition.Root unmount={unmount} show={commandPaletteOpen} as={Fragment}>
       <HeadlessDialog
         unmount={unmount}
         as='div'
         className='relative z-50'
-        onClose={setOpen}
+        onClose={setCommandPaletteOpen}
       >
         <Transition.Child
           as={Fragment}
