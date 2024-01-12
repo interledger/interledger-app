@@ -7,9 +7,7 @@ import {
   Card,
   CardContent,
   Icon,
-  Router,
   SelectRouter,
-  Switch,
   TextField
 } from '~/components'
 import { PayStep, usePayStore } from '~/lib/usePayStore'
@@ -216,30 +214,6 @@ export const Amount = () => {
     ]
   )
 
-  let onChangeSwitchDismissRef = useRef<NodeJS.Timeout>()
-  const _onChangeSwitch = useCallback<{
-    (formName: string, publish: boolean): void
-  }>(
-    (formName, hasPaymentProtection) => {
-      dispatchPayment({ type: 'hasPaymentProtection', hasPaymentProtection })
-
-      if (onChangeSwitchDismissRef.current) {
-        clearTimeout(onChangeSwitchDismissRef.current)
-      }
-      onChangeSwitchDismissRef.current = setTimeout(() => {
-        updatePaymentFetcher.submit(
-          {
-            formName,
-            hasPaymentProtection: hasPaymentProtection.toString(),
-            csrfToken
-          },
-          { method: 'post' }
-        )
-      }, DEBOUNCE_WAIT)
-    },
-    [csrfToken, updatePaymentFetcher]
-  )
-
   useEffect(() => {
     return () => {
       if (onChangeSendAmountDismissRef.current) {
@@ -247,9 +221,6 @@ export const Amount = () => {
       }
       if (onChangeReceiveAmountDismissRef.current) {
         clearTimeout(onChangeReceiveAmountDismissRef.current)
-      }
-      if (onChangeSwitchDismissRef.current) {
-        clearTimeout(onChangeSwitchDismissRef.current)
       }
     }
   }, [])
@@ -375,40 +346,6 @@ export const Amount = () => {
               For a limited time, Fynbos will absorb all fees.
             </span>
           </div>
-          <div className='flex flex-col gap-y-1'>
-            <div className='flex w-full justify-between'>
-              <span className='text-weak'>Payment protection (+3%)</span>
-              <span className='text-medium'>
-                {localPayment.paymentProtectionAmount}
-              </span>
-            </div>
-            <div className='flex w-full gap-x-2'>
-              <Switch
-                checked={localPayment.hasPaymentProtection}
-                disabled={updatePaymentFetcher.state !== 'idle'}
-                onChange={() =>
-                  _onChangeSwitch(
-                    'updatePayment',
-                    !localPayment.hasPaymentProtection
-                  )
-                }
-              />
-              <span className='text-xs text-weak'>
-                Add payment protection to safeguard against unexpected
-                circumstances.{' '}
-                <Router className='text-primary' to='/payment-protection'>
-                  Find out more.
-                </Router>
-              </span>
-            </div>
-          </div>
-          {/*<div className='flex flex-col gap-y-1'>*/}
-          {/*  <div className='flex w-full justify-between'>*/}
-          {/*    <span className='text-weak'>Exchange rate</span>*/}
-          {/*    <span className='text-medium'>$ 0.00</span>*/}
-          {/*  </div>*/}
-          {/*  <span className='text-xs text-weak'>1 USD = 0,94 Euro</span>*/}
-          {/*</div>*/}
           <div className='flex w-full justify-between'>
             <span className='font-medium text-medium'>
               Total amount to debit

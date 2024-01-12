@@ -17,8 +17,8 @@ import {
   Button,
   ButtonRouter,
   Card,
-  CardButton,
   CardContent,
+  CardCopy,
   CardHeader,
   CardIcon,
   CardLink,
@@ -41,7 +41,6 @@ import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { hasUserSession } from '~/lib/kratos.server'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const walletAddressParam = params['*'] as string
@@ -103,8 +102,6 @@ export default function Page() {
     paymentPointerParam
   } = useLoaderData<typeof loader>()
 
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
   return (
     <>
       <Card>
@@ -132,42 +129,19 @@ export default function Page() {
           </h1>
         </CardContent>
         <Label className='mt-2'>Wallet address</Label>
-        <CardButton
-          noHover
-          type='button'
-          onClick={() => {
-            if (typeof navigator.clipboard == 'undefined') {
-              pushSnackbar({
-                id: 'copy-to-clipboard-fail',
-                message: "Couldn't copy to clipboard.",
-                icon: 'close',
-                canShow: true
-              })
-            } else
-              navigator.clipboard.writeText(walletAddress.address).then(
-                () => {
-                  pushSnackbar({
-                    id: 'copy-wallet-address-success',
-                    message: 'Wallet address copied to clipboard.',
-                    icon: 'close',
-                    canShow: true
-                  })
-                },
-                () => {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                }
-              )
+        <CardCopy
+          copyContent={walletAddress.address}
+          shareData={{
+            title: 'Wallet address',
+            text: 'You can pay me using Fynbos with my wallet address.',
+            url: walletAddress.address
           }}
-          className='items-center justify-between'
+          success='Wallet address copied to clipboard.'
+          copyError="Couldn't copy to clipboard."
+          shareError="Couldn't share wallet address."
         >
-          <span className='text-medium'>{walletAddress.shortAddress}</span>
-          <Icon className='text-medium'>content_copy</Icon>
-        </CardButton>
+          {walletAddress.shortAddress}
+        </CardCopy>
         {identities.twitter && (
           <>
             <Label className='mt-4'>Twitter</Label>
