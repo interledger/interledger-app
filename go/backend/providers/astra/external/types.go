@@ -1,7 +1,5 @@
 package external
 
-import "time"
-
 type CreateIntentReq struct {
 	Email          string `json:"email"`
 	Phone          string `json:"phone"`
@@ -70,25 +68,25 @@ type CreateCardArgs struct {
 }
 
 type UserCard struct {
-	ID              string    `json:"id"`
-	AddressVerified bool      `json:"address_verified"`
-	CardCompany     string    `json:"card_company"`
-	City            string    `json:"city"`
-	Created         time.Time `json:"created"`
-	ExpirationDate  string    `json:"expiration_date"`
-	FirstName       string    `json:"first_name"`
-	FirstSixDigits  string    `json:"first_six_digits"`
-	LastFourDigits  string    `json:"last_four_digits"`
-	LastName        string    `json:"last_name"`
-	PullEnabled     bool      `json:"pull_enabled"`
-	PushEnabled     bool      `json:"push_enabled"`
-	Removed         bool      `json:"removed"`
-	ReviewStatus    string    `json:"review_status"`
-	State           string    `json:"state"`
-	Status          string    `json:"status"`
-	StreetLine1     string    `json:"street_line_1"`
-	StreetLine2     string    `json:"street_line_2"`
-	ZipCode         string    `json:"zip_code"`
+	ID              string `json:"id"`
+	AddressVerified bool   `json:"address_verified"`
+	CardCompany     string `json:"card_company"`
+	City            string `json:"city"`
+	Created         string `json:"created"`
+	ExpirationDate  string `json:"expiration_date"`
+	FirstName       string `json:"first_name"`
+	FirstSixDigits  string `json:"first_six_digits"`
+	LastFourDigits  string `json:"last_four_digits"`
+	LastName        string `json:"last_name"`
+	PullEnabled     bool   `json:"pull_enabled"`
+	PushEnabled     bool   `json:"push_enabled"`
+	Removed         bool   `json:"removed"`
+	ReviewStatus    string `json:"review_status"`
+	State           string `json:"state"`
+	Status          string `json:"status"`
+	StreetLine1     string `json:"street_line_1"`
+	StreetLine2     string `json:"street_line_2"`
+	ZipCode         string `json:"zip_code"`
 }
 
 type CardBin struct {
@@ -168,8 +166,8 @@ type AccountToCardResp struct {
 	AmountUSD       float64     `json:"amount"`
 	Source          Source      `json:"source"`
 	Destination     Destination `json:"destination"`
-	StartDate       time.Time   `json:"start_date"`
-	Created         time.Time   `json:"created"`
+	StartDate       string      `json:"start_date"`
+	Created         string      `json:"created"`
 	Active          bool        `json:"active"`
 	PaymentRoute    string      `json:"payment_route"`
 	Type            string      `json:"type"`
@@ -184,8 +182,8 @@ type CardToAccountResp struct {
 	AmountUSD       float64     `json:"amount"`
 	Source          Source      `json:"source"`
 	Destination     Destination `json:"destination"`
-	StartDate       time.Time   `json:"start_date"`
-	Created         time.Time   `json:"created"`
+	StartDate       string      `json:"start_date"`
+	Created         string      `json:"created"`
 	Active          bool        `json:"active"`
 	PaymentRoute    string      `json:"payment_route"`
 	Type            string      `json:"type"`
@@ -194,39 +192,39 @@ type CardToAccountResp struct {
 }
 
 type Transaction struct {
-	ID                    string    `json:"id"`
-	RoutineType           string    `json:"routine_type"`
-	RoutineName           string    `json:"routine_name"`
-	RoutineID             string    `json:"routine_id"`
-	ClientCorrelationID   string    `json:"client_correlation_id"`
-	SourceID              string    `json:"source_id"`
-	DestinationID         string    `json:"destination_id"`
-	DestinationUserID     string    `json:"destination_user_id"`
-	Amount                int       `json:"amount"`
-	PaymentType           string    `json:"payment_type"`
-	Initiated             time.Time `json:"initiated"`
-	Updated               time.Time `json:"updated"`
-	EstimatedClearingDate time.Time `json:"estimated_clearing_date"`
-	AstraSettlementReason string    `json:"astra_settlement_reason"`
-	FailureReason         string    `json:"failure_reason"`
+	ID                    string  `json:"id"`
+	RoutineType           string  `json:"routine_type"`
+	RoutineName           string  `json:"routine_name"`
+	RoutineID             string  `json:"routine_id"`
+	ClientCorrelationID   string  `json:"client_correlation_id"`
+	SourceID              string  `json:"source_id"`
+	DestinationID         string  `json:"destination_id"`
+	DestinationUserID     string  `json:"destination_user_id"`
+	Amount                float64 `json:"amount"`
+	PaymentType           string  `json:"payment_type"`
+	Initiated             string  `json:"initiated"`
+	Updated               string  `json:"updated"`
+	EstimatedClearingDate string  `json:"estimated_clearing_date"`
+	AstraSettlementReason string  `json:"astra_settlement_reason"`
+	FailureReason         string  `json:"failure_reason"`
 	Chargeback            struct {
-		ActionStatus           string    `json:"action_status"`
-		CbID                   string    `json:"cb_id"`
-		Created                time.Time `json:"created"`
-		ExceptionCode          string    `json:"exception_code"`
-		ExceptionDate          string    `json:"exception_date"`
-		ExceptionDescription   string    `json:"exception_description"`
-		ExceptionID            string    `json:"exception_id"`
-		ExceptionSettledAmount int       `json:"exception_settled_amount"`
-		ExceptionType          string    `json:"exception_type"`
-		MerchantReferenceID    string    `json:"merchant_reference_id"`
-		NetworkID              string    `json:"network_id"`
-		OriginalCreationDate   string    `json:"original_creation_date"`
-		OriginalProcessedDate  string    `json:"original_processed_date"`
-		OriginalSettledAmount  int       `json:"original_settled_amount"`
-		StatusDate             string    `json:"status_date"`
-		Updated                time.Time `json:"updated"`
-		UserID                 string    `json:"user_id"`
+		ActionStatus           string  `json:"action_status"`
+		CbID                   string  `json:"cb_id"`
+		Created                string  `json:"created"`
+		ExceptionCode          string  `json:"exception_code"`
+		ExceptionDate          string  `json:"exception_date"`
+		ExceptionDescription   string  `json:"exception_description"`
+		ExceptionID            string  `json:"exception_id"`
+		ExceptionSettledAmount float64 `json:"exception_settled_amount"`
+		ExceptionType          string  `json:"exception_type"`
+		MerchantReferenceID    string  `json:"merchant_reference_id"`
+		NetworkID              string  `json:"network_id"`
+		OriginalCreationDate   string  `json:"original_creation_date"`
+		OriginalProcessedDate  string  `json:"original_processed_date"`
+		OriginalSettledAmount  float64 `json:"original_settled_amount"`
+		StatusDate             string  `json:"status_date"`
+		Updated                string  `json:"updated"`
+		UserID                 string  `json:"user_id"`
 	} `json:"chargeback"`
 	Status string `json:"status"`
 }

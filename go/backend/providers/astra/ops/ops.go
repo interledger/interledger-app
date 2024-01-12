@@ -30,13 +30,16 @@ func DebitCard(ctx context.Context, b Backends, args astra.CardToAccountArgs) (s
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
 	}
 
-	var intentID string
-	err = b.DB().GetContext(ctx, &intentID, "SELECT intent_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
+	var userID string
+	err = b.DB().GetContext(ctx, &userID, "SELECT user_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w intent not found for wallet ID", astra.ErrNotFound)
+		return "", fmt.Errorf("%w astra user not found for wallet ID", astra.ErrNotFound)
 	}
 	if err != nil {
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+	if userID == "" {
+		return "", fmt.Errorf("%w astra user not converted for wallet ID", astra.ErrUserNotReady)
 	}
 
 	tx, err := b.External().CardToAccount(ctx, token, external.CardToAccountArgs{
@@ -50,7 +53,7 @@ func DebitCard(ctx context.Context, b Backends, args astra.CardToAccountArgs) (s
 		},
 		Account: external.Destination{
 			ID:     accID,
-			UserID: intentID,
+			UserID: userID,
 		},
 	})
 	if err != nil {
@@ -75,13 +78,16 @@ func CreditCard(ctx context.Context, b Backends, args astra.AccountToCardsArgs) 
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
 	}
 
-	var intentID string
-	err = b.DB().GetContext(ctx, &intentID, "SELECT intent_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
+	var userID string
+	err = b.DB().GetContext(ctx, &userID, "SELECT user_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w intent not found for wallet ID", astra.ErrNotFound)
+		return "", fmt.Errorf("%w astra user not found for wallet ID", astra.ErrNotFound)
 	}
 	if err != nil {
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+	if userID == "" {
+		return "", fmt.Errorf("%w astra user not converted for wallet ID", astra.ErrUserNotReady)
 	}
 
 	tx, err := b.External().AccountToCard(ctx, token, external.AccountToCardArgs{
@@ -89,7 +95,8 @@ func CreditCard(ctx context.Context, b Backends, args astra.AccountToCardsArgs) 
 		Name:           args.Name,
 		Amount:         args.Amount.Float64(),
 		Card: external.Destination{
-			ID: args.CardID,
+			ID:     args.CardID,
+			UserID: userID,
 		},
 		Account: external.Source{
 			ID: accID,

@@ -170,6 +170,21 @@ func (mr *MockClientMockRecorder) GetIntent(ctx, intentID interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIntent", reflect.TypeOf((*MockClient)(nil).GetIntent), ctx, intentID)
 }
 
+// GetTransfer mocks base method.
+func (m *MockClient) GetTransfer(ctx context.Context, token, transferID string) (*external.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransfer", ctx, token, transferID)
+	ret0, _ := ret[0].(*external.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransfer indicates an expected call of GetTransfer.
+func (mr *MockClientMockRecorder) GetTransfer(ctx, token, transferID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransfer", reflect.TypeOf((*MockClient)(nil).GetTransfer), ctx, token, transferID)
+}
+
 // LookupAccount mocks base method.
 func (m *MockClient) LookupAccount(ctx context.Context, token, accountID string) (*external.UserAccount, error) {
 	m.ctrl.T.Helper()
