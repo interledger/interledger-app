@@ -28,6 +28,7 @@ type Client interface {
 	LookupAccount(ctx context.Context, token, accountID string) (*UserAccount, error)
 	CardToAccount(ctx context.Context, token string, args CardToAccountArgs) (*CardToAccountResp, error)
 	AccountToCard(ctx context.Context, token string, args AccountToCardArgs) (*AccountToCardResp, error)
+	GetTransfer(ctx context.Context, token, transferID string) (*Transaction, error)
 
 	CodeExchange(ctx context.Context, code string) (string, error)
 }
@@ -704,6 +705,8 @@ func (c client) CardToAccount(ctx context.Context, token string, args CardToAcco
 	if resp.StatusCode != http.StatusCreated {
 		return nil, fmt.Errorf("failed to create astra card to account (%d - %s - %s - %s)", resp.StatusCode, resp.Header.Get("request-id"), resp.Status, string(respBody))
 	}
+
+	fmt.Println(string(respBody))
 
 	var respData CardToAccountResp
 	err = json.Unmarshal(respBody, &respData)
