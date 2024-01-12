@@ -18,12 +18,12 @@ import (
 )
 
 var (
-	astraWebhookBearerToken = os.Getenv("ASTRA_WEBHOOK_BEARER_TOKEN")
-	authHeaderRegex         = regexp.MustCompile("Bearer .*")
+	authHeaderRegex = regexp.MustCompile("Bearer .*")
 )
 
 // This endpoint is secured using a Bearer Token set in the Authorization header.
 func GetTrustedAuthenticationInfo(b Backends) http.HandlerFunc {
+	astraWebhookBearerToken := os.Getenv("ASTRA_WEBHOOK_BEARER_TOKEN")
 	if astraWebhookBearerToken == "" && !env.IsLocal() {
 		log.Fatal("ASTRA_WEBHOOK_BEARER_TOKEN is not set")
 	}
