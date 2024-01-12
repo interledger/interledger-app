@@ -12,11 +12,12 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
-
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/astra"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/env"
@@ -219,6 +220,8 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			txID, success, err = tabapayPayIn(ctx, accountsCtx, a, paymentID)
 		case xago.ProviderName:
 			txID, success, err = xagoPayIn(ctx, a, paymentID)
+		case astra.ProviderName:
+			txID, success, err = astraPayIn(ctx, a, paymentID)
 		case pti.ProviderName:
 			txID, success, err = ptiPayIn(ctx, ptiActivity, paymentID)
 		default:
@@ -419,6 +422,27 @@ func tabapayPayIn(ctx, accountsCtx workflow.Context, a *Activity, paymentID stri
 	return accountTX.ID, tabapay.IsSuccessfulTransaction(accountTX), nil
 }
 
+func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+	// Check for deposit type
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	if pt != payments.TypeDeposit {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay in flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	var txID string
+	err = workflow.ExecuteActivity(ctx, a.AstraDeposit, paymentID).Get(ctx, &txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	return txID, true, err
+}
+
 type PaySignal struct {
 	PaymentID     string
 	PayInSuccess  bool
@@ -533,6 +557,8 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 	case pti.ProviderName:
 		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, ptiActivity, paymentID)
+	case astra.ProviderName:
+		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
 	default:
 		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 	}
@@ -641,6 +667,27 @@ func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID 
 	}
 
 	return externalTX, true, nil
+}
+
+func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+	// Check for withdrawal type
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	if pt != payments.TypeWithdrawal {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay out flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	var txID string
+	err = workflow.ExecuteActivity(ctx, a.AstraWithdrawal, paymentID).Get(ctx, &txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	return txID, true, nil
 }
 
 func tabapayPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
