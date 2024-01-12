@@ -19,6 +19,7 @@ import {
   Layouts,
   Router
 } from '~/components'
+import { CommandActions } from '~/components/Scaffold/CommandActions'
 import type { FormattedLinkedAccount } from '~/data/wallet.server'
 import {
   getFeatures,
@@ -37,7 +38,6 @@ import { grpc } from '~/lib/grpc.server'
 import { getClientIP } from '~/lib/ip.server'
 import { mergeMeta } from '~/lib/meta'
 import { KycStatus } from '~/routes/_index/route'
-import { Search } from '~/routes/pay/Search'
 import { PaymentIdentityType } from '~/routes/pay_.$paymentId/route'
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -180,7 +180,7 @@ export default function Page() {
       </Card>
     )
 
-  return <Search />
+  return <CommandActions />
 }
 
 export async function action({ request }: ActionFunctionArgs) {
