@@ -34,7 +34,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, revision, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, revision, astra_correlation_id, created_at, updated_at`
 
 type dbPayment struct {
 	ID                      string                `db:"id"`
@@ -65,6 +65,7 @@ type dbPayment struct {
 	FXFeePercentage         sql.NullFloat64       `db:"fx_fee_percentage"`
 	ProtectionFeePercentage float64               `db:"protection_fee_percentage"`
 	Revision                int                   `db:"revision"`
+	AstraCorrelationID      sql.NullString        `db:"astra_correlation_id"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -176,6 +177,7 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment, senderWalle
 		FXRate:                  db.FXRate.Float64,
 		FXFeePercentage:         db.FXFeePercentage.Float64,
 		ProtectionFeePercentage: db.ProtectionFeePercentage,
+		AstraCorrelationID:      db.AstraCorrelationID.String,
 	}, nil
 }
 
@@ -1130,6 +1132,17 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		payment.ProtectionFeePercentage = fee
 	}
 
+	if args.AddAstraCorrelationID && !payment.AstraCorrelationID.Valid {
+		corID, err := newCorrelationID()
+		if err != nil {
+			return nil, err
+		}
+		payment.AstraCorrelationID = sql.NullString{
+			String: corID,
+			Valid:  len(corID) == 8,
+		}
+	}
+
 	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
 	if err != nil {
 		return nil, err
@@ -1160,6 +1173,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		Value("fx_fee_percentage", payment.FXFeePercentage).
 		Value("protection_fee_percentage", payment.ProtectionFeePercentage).
 		Value("revision", payment.Revision+1).
+		Value("astra_correlation_id", payment.AstraCorrelationID).
 		Where("revision", payment.Revision).
 		Returning(cols).GetStatement()
 	if err != nil {
@@ -1331,6 +1345,15 @@ const (
 	geohashBase32Alphabet = "0123456789bcdefghjkmnpqrstuvwxyz"
 	hoursInUnixTimestamp  = 60 * 60
 )
+
+func newCorrelationID() (string, error) {
+	id, err := NewSoftDescriptor(time.Now())
+	if err != nil {
+		return "", err
+	}
+
+	return id[:8], nil
+}
 
 // Generates a soft descriptor to show on the user's card statement.
 // See https://www.notion.so/fynbos/Soft-Descriptors-08b6693f96194f54ba0d62e21efd22d6

@@ -434,6 +434,11 @@ func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bo
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay in flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.AddAstraCorrelation, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
 	var txID string
 	err = workflow.ExecuteActivity(ctx, a.AstraDeposit, paymentID).Get(ctx, &txID)
 	if err != nil {
@@ -679,6 +684,11 @@ func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, b
 
 	if pt != payments.TypeWithdrawal {
 		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay out flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddAstraCorrelation, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
 	}
 
 	var txID string
