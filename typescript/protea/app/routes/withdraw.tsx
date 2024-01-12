@@ -1,12 +1,18 @@
 import { Code } from '@bufbuild/connect'
+import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData, useParams } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEventHandler
+} from 'react'
 import { route } from 'routes-gen'
 import type { ApplicationProps, SelectOptions } from '~/components'
 import {
@@ -18,8 +24,10 @@ import {
   Layouts,
   Router,
   Select,
+  TextButton,
   TextField
 } from '~/components'
+import type { Amount as RpcAmount } from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -28,12 +36,12 @@ import { useScaffoldStore } from '~/lib/useScaffoldStore'
 import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
 import styles from '~/styles/flags.css'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const balanceResponse = await grpc.getXagoBalances(request, {})
   if (isConnectError(balanceResponse)) throw balanceResponse.error
 
   const balanceAccount = balanceResponse.balances.find(
-    (balance) => balance.linkedAccount == params.accountId
+    (balance) => balance.currency == 'ZAR'
   )
   if (!balanceAccount) throw json({}, { status: 404 })
 
@@ -47,7 +55,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }))
 
   return jsonWithCSRF(request, {
+    availableBalance: balanceAccount.available,
     formattedAvailableBalance: balanceAccount.formattedAvailableBalance,
+    fromLinkedAccount: balanceAccount.linkedAccount,
     linkedAccounts
   })
 }
@@ -112,21 +122,44 @@ export default function Page() {
   return <Amount />
 }
 
+const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
+  if (typeof amount == 'undefined') return ''
+  if (amount.amount == 0n) return ''
+
+  const floatAmount = Number(amount.amount) / 100
+  const formattedAmount = floatAmount.toFixed(amount.assetScale)
+  return formattedAmount.replace('.00', '')
+}
+
 const Amount = () => {
-  const { formattedAvailableBalance, linkedAccounts, csrfToken } =
-    useLoaderData<typeof loader>()
+  const {
+    availableBalance,
+    fromLinkedAccount,
+    formattedAvailableBalance,
+    linkedAccounts,
+    csrfToken
+  } = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const params = useParams()
+
+  const [amount, setAmount] = useState<string>('')
 
   const [bank, setBank] = useState<SelectOptions>(linkedAccounts[0])
+
+  const _onChangeWithdrawAmount = useCallback<
+    ChangeEventHandler<HTMLInputElement>
+  >((event) => {
+    setAmount(event.target.value)
+  }, [])
+
+  const _maxWithdrawAmount = useCallback(() => {
+    setAmount(formatAmount(availableBalance))
+  }, [availableBalance])
 
   return (
     <>
       <Form
         id='account-withdraw'
-        action={route('/accounts/:accountId/withdraw', {
-          accountId: params.accountId as string
-        })}
+        action={route('/withdraw')}
         method='post'
         className='hidden'
       />
@@ -142,18 +175,20 @@ const Amount = () => {
         name='toLinkedAccount'
         type='hidden'
       />
-      <Card>
-        <CardContent className='flex justify-between'>
-          <span className='text-weak'>Current balance</span>
-          <span className='font-medium'>{formattedAvailableBalance}</span>
-        </CardContent>
-      </Card>
+      <input
+        form='account-withdraw'
+        value={fromLinkedAccount}
+        name='fromLinkedAccount'
+        type='hidden'
+      />
       <Card>
         <PayTextField
           id='withdrawAmount'
           label='Withdraw amount'
           name='withdrawAmount'
           form='account-withdraw'
+          value={amount}
+          onChange={_onChangeWithdrawAmount}
           placeholder='0.00'
           prefixIcon={
             // TODO Need to get the country code from the linked account
@@ -170,6 +205,32 @@ const Amount = () => {
           }
           errorMessage={actionData?.errors?.withdrawAmount || undefined}
         />
+        <CardContent className='mt-2 flex flex-col gap-y-4'>
+          <span>
+            You have{' '}
+            <TextButton onClick={_maxWithdrawAmount}>
+              {formattedAvailableBalance}
+            </TextButton>{' '}
+            available in your balance.
+          </span>
+          <div className='flex flex-col gap-y-1'>
+            <div className='flex w-full justify-between'>
+              <span className='text-weak'>Fees</span>
+              <span className='text-medium'>R 0.00</span>
+            </div>
+            <span className='text-xs text-weak'>
+              For a limited time, Fynbos will absorb all fees.
+            </span>
+          </div>
+          {/*<div className='flex w-full justify-between'>*/}
+          {/*  <span className='font-medium text-medium'>*/}
+          {/*    Total amount to withdraw*/}
+          {/*  </span>*/}
+          {/*  <span className='font-medium text-error'>*/}
+          {/*    {localPayment.totalSendAmount}*/}
+          {/*  </span>*/}
+          {/*</div>*/}
+        </CardContent>
       </Card>
       <Card>
         <Select
@@ -211,10 +272,11 @@ function stringToBigInt(amount: string) {
   return BigInt(parseFloat(amount) * 100)
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const form = await request.formData()
   const withdrawAmount = String(form.get('withdrawAmount') || '')
   const toLinkedAccount = form.get('toLinkedAccount') as string
+  const fromLinkedAccount = form.get('fromLinkedAccount') as string
   const note = form.get('note') as string
 
   await validateCSRFToken(request, form)
@@ -228,7 +290,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   const withdrawResponse = await grpc.withdrawXagoBalance(request, {
-    fromLinkedAccount: params.accountId as string,
+    fromLinkedAccount: fromLinkedAccount,
     toLinkedAccount: toLinkedAccount,
     amount: {
       amount: stringToBigInt(withdrawAmount),
@@ -267,8 +329,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   return redirect(
-    route('/accounts/:accountId/withdraw/:paymentId', {
-      accountId: params.accountId as string,
+    route('/withdraw/:paymentId', {
       paymentId: withdrawResponse.id
     })
   )

@@ -14,8 +14,8 @@ import {
   AnchorRouter,
   Button,
   Card,
-  CardButton,
   CardContent,
+  CardCopy,
   CardHeader,
   CardIcon,
   CardLink,
@@ -40,7 +40,6 @@ import { mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
 import { jsonWithSnackbar, redirectWithSnackbar } from '~/lib/snackbar.server'
 import { usePusher } from '~/lib/usePusher'
-import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const walletInfo = await getWalletInfo(request)
@@ -371,8 +370,6 @@ function Domain() {
     identity.txtRecord?.substring(identity.txtRecord.indexOf('=') + 1) || ''
   const [showDialog, setShowDialog] = useState<boolean>(false)
 
-  const [pushSnackbar] = useScaffoldStore((state) => [state.pushSnackbar])
-
   const fetcher = useFetcher()
   const _onChangeSwitch = useCallback<{
     (formName: string, publish: boolean): void
@@ -485,79 +482,31 @@ function Domain() {
               />
             </CardContent>
             <Label className='mt-2'>Hostname</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(hostName).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-host-name-success',
-                        message: 'Hostname copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
+            <CardCopy
+              copyContent={hostName}
+              shareData={{
+                title: 'Hostname',
+                text: hostName
               }}
-              className='items-center justify-between'
+              success='Hostname copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share hostname."
             >
-              <span className='font-medium text-medium'>{hostName}</span>
-              <Icon className='text-medium'>content_copy</Icon>
-            </CardButton>
+              {hostName}
+            </CardCopy>
             <Label className='mt-2'>Code</Label>
-            <CardButton
-              noHover
-              type='button'
-              onClick={() => {
-                if (typeof navigator.clipboard == 'undefined') {
-                  pushSnackbar({
-                    id: 'copy-to-clipboard-fail',
-                    message: "Couldn't copy to clipboard.",
-                    icon: 'close',
-                    canShow: true
-                  })
-                } else
-                  navigator.clipboard.writeText(code).then(
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-code-success',
-                        message: 'Code copied to clipboard.',
-                        icon: 'close',
-                        canShow: true
-                      })
-                    },
-                    () => {
-                      pushSnackbar({
-                        id: 'copy-to-clipboard-fail',
-                        message: "Couldn't copy to clipboard.",
-                        icon: 'close',
-                        canShow: true
-                      })
-                    }
-                  )
+            <CardCopy
+              copyContent={code}
+              shareData={{
+                title: 'Code',
+                text: code
               }}
-              className='items-center justify-between text-start'
+              success='Code copied to clipboard.'
+              copyError="Couldn't copy to clipboard."
+              shareError="Couldn't share code."
             >
-              <span className='break-all font-medium text-medium'>{code}</span>
-              <Icon className='ml-4 text-medium'>content_copy</Icon>
-            </CardButton>
+              {code}
+            </CardCopy>
           </Card>
           <div className='flex w-full space-x-2'>
             <OutlineButton

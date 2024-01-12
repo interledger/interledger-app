@@ -75,7 +75,7 @@ func (p *Address) ShortString() string {
 		return ""
 	}
 	s := p.url.String()
-	return strings.Replace(s, "https://", "$", 1)
+	return strings.Replace(s, "https://", "", 1)
 }
 
 var addressRegex = regexp.MustCompile(`^[A-Za-z]{3}[a-zA-z0\d_]{0,26}$`)
