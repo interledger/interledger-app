@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/twilio"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
@@ -32,6 +34,7 @@ type Backends interface {
 	Transactions() transactions.Client
 	Email() email.Client
 	BasisTheory() basistheory.Client
+	Twilio() twilio.Service
 }
 
 var _ ops.Backends = opsBackends{}
@@ -61,6 +64,10 @@ func New(b Backends) astra.Client {
 
 func (c client) WebhookHandler() http.HandlerFunc {
 	return ops.EventWebhook(c.b)
+}
+
+func (c client) TrustedAuthInfoWebhook() http.HandlerFunc {
+	return ops.GetTrustedAuthenticationInfo(c.b)
 }
 
 func (c client) StartKYC(ctx context.Context, walletID string) error {
