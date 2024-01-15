@@ -130,6 +130,8 @@ service BackendService {
   rpc ConfirmPayment(ConfirmPaymentRequest) returns (Payment);
   rpc GetLinkedAccountsForPayment(GetLinkedAccountsForPaymentRequest) returns (GetLinkedAccountsForPaymentResponse);
 
+  // Balances
+  rpc GetBalances(Empty) returns (GetBalancesResponse);
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
 
@@ -173,17 +175,6 @@ message AstraWithdrawToCardRequest {
   string note = 4;
 }
 
-message GetPtiBalancesResponse {
-  repeated PtiBalance balances = 1;
-}
-
-message PtiBalance {
-  Amount balance = 1;
-  string currency = 2;
-  string linkedAccount = 3;
-  string formattedBalance = 4;
-}
-
 message GetLinkedAccountsForPaymentRequest {
   string paymentId = 1;
 }
@@ -214,8 +205,27 @@ message XagoDepositDetails {
 
 }
 
-message GetXagoBalanceRequest {
-  string linkedAccount = 1;
+message GetBalancesResponse {
+  repeated Balance balances = 1;
+}
+
+message Balance {
+  Amount balance = 1;
+  string currency = 2;
+  string countryCode = 3;
+  string linkedAccount = 4;
+  string formattedBalance = 5;
+}
+
+message GetPtiBalancesResponse {
+  repeated PtiBalance balances = 1;
+}
+
+message PtiBalance {
+  Amount balance = 1;
+  string currency = 2;
+  string linkedAccount = 3;
+  string formattedBalance = 4;
 }
 
 message GetXagoBalanceResponse {
