@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/twilio"
+
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -21,6 +23,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	BasisTheory() basistheory.Client
 	LinkedAccounts() linkedaccounts.Client
+	Twilio() twilio.Service
 }
 
 type ActivityBackends interface {
@@ -30,6 +33,7 @@ type ActivityBackends interface {
 	Temporal() temporal.Client
 	BasisTheory() basistheory.Client
 	LinkedAccounts() linkedaccounts.Client
+	Twilio() twilio.Service
 }
 
 type TestBackends struct {
@@ -37,6 +41,10 @@ type TestBackends struct {
 	Extr *external_mock.MockClient
 	Ky   kyc.Client
 	Uc   user.Client
+}
+
+func (t TestBackends) Twilio() twilio.Service {
+	return nil
 }
 
 func (t TestBackends) BasisTheory() basistheory.Client {

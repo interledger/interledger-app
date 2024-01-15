@@ -7,6 +7,7 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -34,7 +35,7 @@ func (s *rpcService) AstraDepositFromCard(ctx context.Context, req *pb.AstraDepo
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if toLA.WalletID != w.ID { // TODO: PTI || toLA.Provider != xago.ProviderName || toLA.Type != xago.AccTypeBank {
+	if toLA.WalletID != w.ID || toLA.Provider != pti.ProviderName || toLA.Type != pti.AccTypeBalance {
 		return nil, NotFoundError("to linked account not found for PTI")
 	}
 
@@ -70,7 +71,7 @@ func (s *rpcService) AstraWithdrawToCard(ctx context.Context, req *pb.AstraWithd
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if fromLA.WalletID != w.ID { // TODO PTI || fromLA.Provider != astra.ProviderName || fromLA.Type != astra.TypeCard {
+	if fromLA.WalletID != w.ID || fromLA.Provider != pti.ProviderName || fromLA.Type != pti.AccTypeBalance {
 		return nil, NotFoundError("from linked account not found for pti")
 	}
 
