@@ -445,6 +445,8 @@ func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bo
 		return "", false, err
 	}
 
+	// TODO: Wait for astra completion, webhook or poll
+
 	return txID, true, err
 }
 
@@ -696,6 +698,8 @@ func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, b
 	if err != nil {
 		return "", false, err
 	}
+
+	// TODO: Wait for astra completion, webhook or poll
 
 	return txID, true, nil
 }
