@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -252,7 +254,7 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 	return transformPayment(ctx, b, *dbp, nil, nil)
 }
 
-func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, currency.Currency, error) {
+func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountID string, typ payments.Type) (bool, currency.Currency, error) {
 	if accountID == "" || w == nil {
 		return false, currency.USD, nil
 	}
@@ -264,10 +266,15 @@ func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountI
 		return false, currency.USD, err
 	}
 
+	// Astra accounts can't send unless it's a deposit
+	if typ == payments.TypeDeposit && acc.Provider == astra.ProviderName {
+		return w.ID == acc.WalletID, acc.SendCurrency, nil
+	}
+
 	return acc.CanSend && w.ID == acc.WalletID, acc.SendCurrency, nil
 }
 
-func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, currency.Currency, error) {
+func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string, typ payments.Type) (bool, currency.Currency, error) {
 	if accountID == "" || w == nil {
 		return false, "", nil
 	}
@@ -277,6 +284,11 @@ func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accou
 	}
 	if err != nil {
 		return false, currency.USD, err
+	}
+
+	// Astra accounts can't receive unless it's a withdrawal
+	if typ == payments.TypeWithdrawal && acc.Provider == astra.ProviderName {
+		return w.ID == acc.WalletID, acc.SendCurrency, nil
 	}
 
 	return acc.CanReceive && w.ID == acc.WalletID, acc.ReceiveCurrency, nil
@@ -353,7 +365,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
-	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount)
+	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount, p.Type)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -369,7 +381,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount)
+	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount, p.Type)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -524,14 +536,13 @@ func validateDeposit(ctx context.Context, b Backends, typ payments.Type, senderA
 		return payments.ErrInvalidWithdrawal
 	}
 
-	// TODO: Validate PTI aAccount information
-	/*receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
-	if receiverAcc.Provider != xago.ProviderName || receiverAcc.Type != xago.AccTypeBank || senderAcc.WalletID != receiverAcc.WalletID {
+	if receiverAcc.Provider != pti.ProviderName || receiverAcc.Type != pti.AccTypeBalance || senderAcc.WalletID != receiverAcc.WalletID {
 		return payments.ErrInvalidWithdrawal
-	}*/
+	}
 
 	return nil
 }
@@ -550,8 +561,9 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	// TODO: Expand for PTI and Asta withdrawals
-	if senderAcc.Provider != xago.ProviderName || senderAcc.Type != xago.AccTypeBalance {
+	// Only Xago and Astra supports withdrawal
+	if !(senderAcc.Provider == xago.ProviderName && senderAcc.Type == xago.AccTypeBalance) &&
+		!(senderAcc.Provider == pti.ProviderName && senderAcc.Type == pti.AccTypeBalance) {
 		return payments.ErrInvalidWithdrawal
 	}
 
@@ -559,7 +571,8 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
-	if receiverAcc.Provider != xago.ProviderName || receiverAcc.Type != xago.AccTypeBank || senderAcc.WalletID != receiverAcc.WalletID {
+	if (!(receiverAcc.Provider == xago.ProviderName && receiverAcc.Type == xago.AccTypeBank) && !(receiverAcc.Provider == astra.ProviderName && receiverAcc.Type == astra.TypeCard)) ||
+		senderAcc.WalletID != receiverAcc.WalletID {
 		return payments.ErrInvalidWithdrawal
 	}
 
@@ -973,7 +986,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canReceive, recvCurrency, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
+			canReceive, recvCurrency, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount, payment.Type)
 			if syncErr != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
@@ -990,7 +1003,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
+			canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount, payment.Type)
 			if err != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
