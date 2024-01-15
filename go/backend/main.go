@@ -12,10 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/astra"
-
-	"gitlab.com/fynbos/backend/currency"
-
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -40,6 +36,7 @@ import (
 	"gitlab.com/fynbos/backend/cli"
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_client "gitlab.com/fynbos/backend/contacts/client"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/discord"
 	discord_client "gitlab.com/fynbos/backend/discord/client"
@@ -68,6 +65,7 @@ import (
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/payments"
 	payments_client "gitlab.com/fynbos/backend/payments/client"
+	"gitlab.com/fynbos/backend/providers/astra"
 	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
@@ -117,8 +115,6 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-
-	astra "gitlab.com/fynbos/backend/providers/astra/ops"
 )
 
 func main() {
@@ -202,7 +198,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
-	router.Handle("/webhooks/astra/wallet/{id}", astra.GetTrustedAuthenticationInfo(b))
+	router.Handle("/webhooks/astra/wallet/{id}", b.Astra().TrustedAuthInfoWebhook())
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
 	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
 
