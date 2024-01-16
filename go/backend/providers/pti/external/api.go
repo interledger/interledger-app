@@ -14,4 +14,6 @@ type Client interface {
 	GetUserAssessment(ctx context.Context, userID string) (*Assessment, error)
 	StartTransferAssessment(ctx context.Context, args TransferArgs) (*IDResponse, error)
 	GetTransactionAssessment(ctx context.Context, requestID string) (*TransactionAssessment, error)
+	CreateTransfer(ctx context.Context, args TransferArgs) (*IDResponse, error)
+	GetTransaction(ctx context.Context, requestID string) (*TransactionStatus, error)
 }
