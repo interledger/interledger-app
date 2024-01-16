@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -21,7 +22,7 @@ import (
 func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*linkedaccounts.LinkedAccount, error) {
 	var a *Activity
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
+		StartToCloseTimeout: 10 * time.Minute,
 	}
 
 	ctx = workflow.WithActivityOptions(ctx, ao)
@@ -29,22 +30,33 @@ func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Creating astra card.")
 
+	err := workflow.ExecuteActivity(ctx, a.CreateIntentIfNotExists, args).Get(ctx, nil)
+	if err != nil {
+		logger.Error("Failed to create astra intent.", zap.Error(err))
+		return nil, err
+	}
+
 	var cardInfo external.UserCard
-	err := workflow.ExecuteActivity(ctx, a.AddCardToAstra, args).Get(ctx, &cardInfo)
+	err = workflow.ExecuteActivity(ctx, a.AddCardToAstra, args).Get(ctx, &cardInfo)
 	if err != nil {
 		logger.Error("Failed to add card to astra.", zap.Error(err))
 		return nil, err
 	}
 
 	var tokenizedCard basistheory.Card
-	err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, args, cardInfo).Get(ctx, &tokenizedCard)
+	err = workflow.ExecuteActivity(ctx, a.CreateAstraBasisTheoryCard, args, cardInfo).Get(ctx, &tokenizedCard)
 	if err != nil {
 		logger.Error("Failed to save card info to basis theory", zap.Error(err))
 		return nil, err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.CreateAccount, args.WalletID).Get(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	var la linkedaccounts.LinkedAccount
-	err = workflow.ExecuteActivity(ctx, a.MarkCardNotDeleted, tokenizedCard.ID).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.MarkAstraCardNotDeleted, tokenizedCard.ID).Get(ctx, &la)
 	var applicationError *temporal.ApplicationError
 	if errors.As(err, &applicationError) && applicationError.Type() != "NotFound" {
 		return nil, err
@@ -53,14 +65,9 @@ func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*
 		return &la, nil
 	}
 
-	err = workflow.ExecuteActivity(ctx, a.CreateCardLinkedAccount, args, cardInfo, tokenizedCard).Get(ctx, &la)
+	err = workflow.ExecuteActivity(ctx, a.CreateAstraCardLinkedAccount, args, cardInfo, tokenizedCard).Get(ctx, &la)
 	if err != nil {
 		logger.Error("Failed to create linked account for card", zap.Error(err))
-		return nil, err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.CreateAccount, args.WalletID).Get(ctx, nil)
-	if err != nil {
 		return nil, err
 	}
 
@@ -86,8 +93,8 @@ func (a *Activity) CreateAccount(ctx context.Context, walletID string) error {
 	acc, err := a.b.External().AddAccount(ctx, token, external.CreateAccountArgs{
 		BankAccountType: external.AccountTypeChecking,
 		Name:            "Universal",
-		AccountNumber:   "TODO",
-		RoutingNumber:   "TODO",
+		AccountNumber:   "90643128",  // TODO: Get real values
+		RoutingNumber:   "434253106", // TODO: Get real values
 	})
 	if err != nil {
 		return err
@@ -97,7 +104,7 @@ func (a *Activity) CreateAccount(ctx context.Context, walletID string) error {
 	return err
 }
 
-func (a *Activity) CreateCardLinkedAccount(ctx context.Context, args astra.CreateCardArgs, card external.UserCard, tokenCard basistheory.Card) (*linkedaccounts.LinkedAccount, error) {
+func (a *Activity) CreateAstraCardLinkedAccount(ctx context.Context, args astra.CreateCardArgs, card external.UserCard, tokenCard basistheory.Card) (*linkedaccounts.LinkedAccount, error) {
 	mask := card.LastFourDigits
 	network := tokenCard.PullNetwork
 	if network == "" {
@@ -105,6 +112,7 @@ func (a *Activity) CreateCardLinkedAccount(ctx context.Context, args astra.Creat
 	}
 
 	la, err := a.b.LinkedAccounts().Create(ctx, &linkedaccounts.CreateArgs{
+		ID:                  tokenCard.ID,
 		WalletID:            args.WalletID,
 		Name:                fmt.Sprintf("%s %s", network, mask),
 		Nickname:            fmt.Sprintf("%s %s", network, mask),
@@ -131,31 +139,48 @@ func (a *Activity) CreateCardLinkedAccount(ctx context.Context, args astra.Creat
 	return la, nil
 }
 
-func (a *Activity) CreateBasisTheoryCard(ctx context.Context, args astra.CreateCardArgs, card external.UserCard) (*basistheory.Card, error) {
-	bin, err := a.b.External().GetCardBin(ctx, fmt.Sprintf("{{ %s | json: '$.bin' }}", args.BasisTheoryTokenID))
+func (a *Activity) CreateAstraBasisTheoryCard(ctx context.Context, args astra.CreateCardArgs, card external.UserCard) (*basistheory.Card, error) {
+	cc, err := country.US.Numeric() // Astra is US Based
 	if err != nil {
 		return nil, err
+	}
+	ct := "Debit"
+	if strings.EqualFold(card.CardType, "credit") {
+		ct = "Credit"
 	}
 
 	basisCard, err := a.b.BasisTheory().CreateCard(ctx, basistheory.CreateCardArgs{
 		WalletID:         args.WalletID,
 		TokenID:          args.BasisTheoryTokenID,
-		Bin:              bin.Bin,
 		PullNetwork:      card.CardCompany,
 		PullEnabled:      card.PullEnabled,
-		PullType:         bin.CardType,
-		PullCountry:      "US", // Astra is US Based
+		Bin:              card.FirstSixDigits,
+		PushType:         ct,
+		PullType:         ct,
+		PullCountry:      cc,
 		PushNetwork:      card.CardCompany,
 		PushEnabled:      card.PushEnabled,
-		PushType:         bin.CardType,
 		PushAvailability: "Immediate",
-		PushCountry:      "US",
+		PushCountry:      cc,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return basisCard, nil
+}
+
+func (a *Activity) CreateIntentIfNotExists(ctx context.Context, args astra.CreateCardArgs) error {
+	var intentID string
+	err := a.b.DB().GetContext(ctx, &intentID, "SELECT intent_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+	if intentID != "" {
+		return nil
+	}
+
+	return CreateIntent(ctx, a.b, args.WalletID)
 }
 
 func (a *Activity) AddCardToAstra(ctx context.Context, args astra.CreateCardArgs) (*external.UserCard, error) {
@@ -180,7 +205,7 @@ func (a *Activity) AddCardToAstra(ctx context.Context, args astra.CreateCardArgs
 	card, err := a.b.External().AddCard(ctx, token, external.CreateCardArgs{
 		CardNumber:       fmt.Sprintf("{{ %s | json: '$.number' }}", args.BasisTheoryTokenID),
 		CardSecurityCode: fmt.Sprintf("{{ %s | json: '$.cvc' }}", args.BasisTheoryTokenID),
-		ExpirationDate:   fmt.Sprintf("{{ %s | json: '$.expiration_year' | to_string }}/{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}", args.BasisTheoryTokenID, args.BasisTheoryTokenID),
+		ExpirationDate:   fmt.Sprintf("{{ %s | json: '$.expiration_month' | pad_left: 2,'0' }}/{{ %s | json: '$.expiration_year' | to_string | slice: -2, 2 }}", args.BasisTheoryTokenID, args.BasisTheoryTokenID),
 		FirstName:        owner.FirstName,
 		LastName:         owner.LastName,
 		StreetLine1:      owner.Address.Line1,
@@ -197,7 +222,7 @@ func (a *Activity) AddCardToAstra(ctx context.Context, args astra.CreateCardArgs
 	return card, nil
 }
 
-func (a *Activity) MarkCardNotDeleted(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
+func (a *Activity) MarkAstraCardNotDeleted(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
 	la, err := a.b.LinkedAccounts().MarkNotDeleted(ctx, id)
 	if errors.Is(err, linkedaccounts.ErrNotFound) {
 		return nil, temporal.NewNonRetryableApplicationError(err.Error(), "NotFound", err)

@@ -69,8 +69,8 @@ github.com/Azure/go-autorest/autorest/mocks v0.4.1/go.mod h1:LTp+uSrOhSkaKrUy935
 github.com/Azure/go-autorest/logger v0.2.0/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZmbF5NWuPV8+WeEW8=
 github.com/Azure/go-autorest/logger v0.2.1/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZmbF5NWuPV8+WeEW8=
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
-github.com/Basis-Theory/basistheory-go/v3 v3.10.0 h1:dnCtFCgyIZwu9yQQJdEzaSMCOtMEr0HfKZMgJcBG7Og=
-github.com/Basis-Theory/basistheory-go/v3 v3.10.0/go.mod h1:OnOK7GOlof+Uy5gGy5nz75uWo9dr4zp5bs9zZobc3oE=
+github.com/Basis-Theory/basistheory-go/v3 v3.13.0 h1:pKNpcKgTFfNe7X/1pVFZ0CBB6u/Utm2Jut9ZtyQ8tY4=
+github.com/Basis-Theory/basistheory-go/v3 v3.13.0/go.mod h1:OnOK7GOlof+Uy5gGy5nz75uWo9dr4zp5bs9zZobc3oE=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ClickHouse/clickhouse-go v1.4.3/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=

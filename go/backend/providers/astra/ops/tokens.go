@@ -16,6 +16,7 @@ import (
 type dbToken struct {
 	ID               string    `db:"id"`
 	Token            string    `db:"token"`
+	WalletID         string    `db:"wallet_id"`
 	ExpiresAt        time.Time `db:"expires_at"`
 	RefreshToken     string    `db:"refresh_token"`
 	RefreshExpiresAt time.Time `db:"refresh_expires_at"`
@@ -30,7 +31,7 @@ func CreateOrRefreshToken(ctx context.Context, b Backends, walletID string) (str
 			return fmt.Errorf("%w %s", astra.ErrInternal, err)
 		}
 
-		if !token.ExpiresAt.IsZero() && token.ExpiresAt.Before(time.Now()) {
+		if !token.ExpiresAt.IsZero() && token.ExpiresAt.After(time.Now()) {
 			// Assume it's already refreshed, return
 			accessToken = &external.AccessToken{
 				AccessToken:  token.Token,
@@ -87,7 +88,7 @@ func GetToken(ctx context.Context, b Backends, walletID string) (string, error) 
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
 	}
 
-	if token.RefreshExpiresAt.Before(time.Now()) {
+	if token.ExpiresAt.Before(time.Now()) {
 		return CreateOrRefreshToken(ctx, b, walletID)
 	}
 
