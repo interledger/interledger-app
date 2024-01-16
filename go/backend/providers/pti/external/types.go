@@ -52,6 +52,24 @@ type (
 		Phones        []Phone   `json:"phones,omitempty"`
 		SourceOfFunds string    `json:"sourceOfFunds,omitempty"`
 	}
+
+	TransferArgs struct {
+		RequestID                 string                 `json:"-"`
+		ScenarioID                string                 `json:"-"`
+		TransactionGroup          string                 `json:"transactionGroupId"`
+		SubClientID               string                 `json:"subClientId"`
+		USDValue                  float64                `json:"usdValue"`
+		Amount                    float64                `json:"amount"`
+		Date                      string                 `json:"date"`
+		Initiator                 User                   `json:"initiator"`
+		PTIMeta                   map[string]interface{} `json:"ptiMeta"`
+		ClientMeta                map[string]interface{} `json:"clientMeta"`
+		Type                      string                 `json:"type"`
+		SourceTransferMethod      WalletPaymentMethod    `json:"sourceTransferMethod"`
+		DestinationTransferMethod WalletPaymentMethod    `json:"destinationTransferMethod"`
+		Destination               *User                  `json:"destination"`
+		DisableWebhook            bool                   `json:"-"`
+	}
 )
 
 type (
@@ -138,6 +156,34 @@ type (
 
 	BankAccountPaymentInformation struct {
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
+	}
+
+	WalletPaymentMethod struct {
+		ID   string
+		Type string
+	}
+
+	TransactionAssessment struct {
+		ResourceType                      string                            `json:"resourceType"`
+		RequestID                         string                            `json:"requestId"`
+		ClientID                          string                            `json:"clientId"`
+		UserID                            string                            `json:"userId"`
+		Date                              string                            `json:"date"`
+		Assessment                        string                            `json:"assessment"`
+		Risk                              string                            `json:"risk"`
+		Amount                            float64                           `json:"amount"`
+		TransactionType                   string                            `json:"transactionType"`
+		Meta                              map[string]interface{}            `json:"meta"`
+		TransactionMonitoringResultDetail TransactionMonitoringResultDetail `json:"transactionMonitoringResultDetail"`
+	}
+
+	TransactionMonitoringResultDetail struct {
+		ComplianceProviderResponseCode string `json:"complianceProviderResponseCode"`
+	}
+
+	IDResponse struct {
+		ID   string `json:"id"`
+		Link string `json:"link"`
 	}
 )
 

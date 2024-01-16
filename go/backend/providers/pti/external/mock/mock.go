@@ -65,6 +65,21 @@ func (mr *MockClientMockRecorder) CreateWallet(ctx, args interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWallet", reflect.TypeOf((*MockClient)(nil).CreateWallet), ctx, args)
 }
 
+// GetTransactionAssessment mocks base method.
+func (m *MockClient) GetTransactionAssessment(ctx context.Context, requestID string) (*external.TransactionAssessment, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTransactionAssessment", ctx, requestID)
+	ret0, _ := ret[0].(*external.TransactionAssessment)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTransactionAssessment indicates an expected call of GetTransactionAssessment.
+func (mr *MockClientMockRecorder) GetTransactionAssessment(ctx, requestID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionAssessment", reflect.TypeOf((*MockClient)(nil).GetTransactionAssessment), ctx, requestID)
+}
+
 // GetUser mocks base method.
 func (m *MockClient) GetUser(ctx context.Context, id string) (*external.User, error) {
 	m.ctrl.T.Helper()
@@ -123,6 +138,51 @@ func (m *MockClient) ListWallets(ctx context.Context, userID string) ([]external
 func (mr *MockClientMockRecorder) ListWallets(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListWallets", reflect.TypeOf((*MockClient)(nil).ListWallets), ctx, userID)
+}
+
+// PatchUser mocks base method.
+func (m *MockClient) PatchUser(ctx context.Context, args external.PatchUserArgs) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchUser", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchUser indicates an expected call of PatchUser.
+func (mr *MockClientMockRecorder) PatchUser(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchUser", reflect.TypeOf((*MockClient)(nil).PatchUser), ctx, args)
+}
+
+// PutUser mocks base method.
+func (m *MockClient) PutUser(ctx context.Context, args external.PutUserArgs) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PutUser", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PutUser indicates an expected call of PutUser.
+func (mr *MockClientMockRecorder) PutUser(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutUser", reflect.TypeOf((*MockClient)(nil).PutUser), ctx, args)
+}
+
+// StartTransferAssessment mocks base method.
+func (m *MockClient) StartTransferAssessment(ctx context.Context, args external.TransferArgs) (*external.IDResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartTransferAssessment", ctx, args)
+	ret0, _ := ret[0].(*external.IDResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StartTransferAssessment indicates an expected call of StartTransferAssessment.
+func (mr *MockClientMockRecorder) StartTransferAssessment(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTransferAssessment", reflect.TypeOf((*MockClient)(nil).StartTransferAssessment), ctx, args)
 }
 
 // StartUserAssessment mocks base method.
