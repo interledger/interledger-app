@@ -37,7 +37,7 @@ func CreateAstraCardWorkflow(ctx workflow.Context, args astra.CreateCardArgs) (*
 	}
 
 	var tokenizedCard basistheory.Card
-	err = workflow.ExecuteActivity(ctx, a.CreateBasisTheoryCard, args, cardInfo).Get(ctx, &tokenizedCard)
+	err = workflow.ExecuteActivity(ctx, a.CreateAstraBasisTheoryCard, args, cardInfo).Get(ctx, &tokenizedCard)
 	if err != nil {
 		logger.Error("Failed to save card info to basis theory", zap.Error(err))
 		return nil, err
@@ -131,7 +131,7 @@ func (a *Activity) CreateCardLinkedAccount(ctx context.Context, args astra.Creat
 	return la, nil
 }
 
-func (a *Activity) CreateBasisTheoryCard(ctx context.Context, args astra.CreateCardArgs, card external.UserCard) (*basistheory.Card, error) {
+func (a *Activity) CreateAstraBasisTheoryCard(ctx context.Context, args astra.CreateCardArgs, card external.UserCard) (*basistheory.Card, error) {
 	bin, err := a.b.External().GetCardBin(ctx, fmt.Sprintf("{{ %s | json: '$.bin' }}", args.BasisTheoryTokenID))
 	if err != nil {
 		return nil, err
