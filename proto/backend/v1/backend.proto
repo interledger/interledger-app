@@ -153,6 +153,24 @@ service BackendService {
 
   // Pti
   rpc GetPtiBalances(Empty) returns (GetPtiBalancesResponse);
+
+  // Astra
+  rpc AstraDepositFromCard(AstraDepositFromCardRequest) returns (Payment);
+  rpc AstraWithdrawToCard(AstraWithdrawToCardRequest) returns (Payment);
+}
+
+message AstraDepositFromCardRequest {
+  string fromLinkedAccount = 1; // Astra Card
+  string toLinkedAccount = 2; // PTI Balance
+  Amount amount = 3;
+  string note = 4;
+}
+
+message AstraWithdrawToCardRequest {
+  string fromLinkedAccount = 1; // PTI Balance
+  string toLinkedAccount = 2; // Astra Card
+  Amount amount = 3;
+  string note = 4;
 }
 
 message GetPtiBalancesResponse {
