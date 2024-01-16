@@ -118,7 +118,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	// Astra
 	w.RegisterActivity(asta_workflows.NewActivity(b))
 	w.RegisterWorkflow(asta_workflows.AstraRenewTokensWorkflow)
-	w.RegisterWorkflow(asta_workflows.CreateCard)
+	w.RegisterWorkflow(asta_workflows.CreateAstraCardWorkflow)
 
 	asta_workflows.StartTokenRefreshing(b)
 
