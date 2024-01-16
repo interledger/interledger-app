@@ -4,6 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
+	httplogger "gitlab.com/fynbos/backend/providers/http"
+
 	"gitlab.com/fynbos/backend/twilio"
 
 	"github.com/jmoiron/sqlx"
@@ -58,7 +62,11 @@ func New(b Backends) astra.Client {
 
 	return &client{b: opsBackends{
 		Backends: b,
-		astraExt: external.New(nil),
+		astraExt: external.New(&http.Client{
+			Transport: otelhttp.NewTransport(
+				httplogger.NewTransport(http.DefaultTransport, b, nil),
+			),
+		}),
 	}}
 }
 
