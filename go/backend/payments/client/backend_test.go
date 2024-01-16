@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	pacioli_db "gitlab.com/fynbos/pacioli/db"
@@ -215,6 +217,10 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.CreateReferralsWorkflow)
 
 	b.env = env
+}
+
+func (b *TestBackends) Astra() astra.Client {
+	return nil
 }
 
 func (b *TestBackends) Pacioli() pacioli.Client {
