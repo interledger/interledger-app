@@ -246,16 +246,22 @@ func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestI
 			Type: "PERSON",
 		},
 		SourceTransferMethod: external.WalletPaymentMethod{
-			Type: "WALLET",
-			ID:   senderPTIWalletLinkedAccount.ProviderID,
+			PaymentMethodType: "WALLET",
+			PaymentInformation: external.WalletType{
+				ID:   senderPTIWalletLinkedAccount.ProviderID,
+				Type: "WALLET",
+			},
 		},
-		Destination: &external.User{
+		Destination: external.User{
 			ID:   receiverPTIUser.ExternalID,
 			Type: "PERSON",
 		},
 		DestinationTransferMethod: external.WalletPaymentMethod{
-			ID:   receiverPTIWalletLinkedAccount.ProviderID,
-			Type: "WALLET",
+			PaymentMethodType: "WALLET",
+			PaymentInformation: external.WalletType{
+				ID:   receiverPTIWalletLinkedAccount.ProviderID,
+				Type: "WALLET",
+			},
 		},
 		Type:           "TRANSFER",
 		DisableWebhook: true, // our workflows keep the context
