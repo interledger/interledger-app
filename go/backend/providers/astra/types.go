@@ -11,6 +11,15 @@ const (
 	TypeCard     = "card"
 )
 
+type TransferStatus string
+
+const (
+	TransferStatusPending   = "pending"
+	TransferStatusProcessed = "processed"
+	TransferStatusCancelled = "cancelled"
+	TransferStatusFailed    = "failed"
+)
+
 type Await func(ctx context.Context, result interface{}) error
 
 type CreateCardArgs struct {
@@ -35,4 +44,17 @@ type AccountToCardsArgs struct {
 	Amount          currency.Amount
 	DebitFeePercent int
 	CardID          string
+}
+
+type Transfer struct {
+	ID                    string
+	RoutineType           string
+	RoutineName           string
+	RoutineID             string
+	ClientCorrelationID   string
+	Amount                currency.Amount
+	PaymentType           string
+	AstraSettlementReason string
+	FailureReason         string
+	Status                string
 }
