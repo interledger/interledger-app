@@ -450,3 +450,17 @@ func (a *Activity) AstraWithdrawal(ctx context.Context, paymentID string) (strin
 		CardID:              la.ProviderID,
 	})
 }
+
+func (a *Activity) CheckAstraTransferStatus(ctx context.Context, paymentID, txID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	tx, err := a.b.Astra().LookupTransfer(ctx, p.Sender.WalletID, txID)
+	if err != nil {
+		return "", err
+	}
+
+	return tx.Status, nil
+}

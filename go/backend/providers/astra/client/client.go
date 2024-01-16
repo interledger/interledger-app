@@ -85,3 +85,7 @@ func (c client) DebitCard(ctx context.Context, args astra.CardToAccountArgs) (st
 func (c client) CreditCard(ctx context.Context, args astra.AccountToCardsArgs) (string, error) {
 	return ops.CreditCard(ctx, c.b, args)
 }
+
+func (c client) LookupTransfer(ctx context.Context, walletID, txID string) (*astra.Transfer, error) {
+	return ops.LookupTransfer(ctx, c.b, walletID, txID)
+}

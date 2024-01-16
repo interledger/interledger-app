@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/payments"
+
 	"gitlab.com/fynbos/backend/twilio"
 
 	"github.com/jmoiron/sqlx"
@@ -23,6 +25,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	BasisTheory() basistheory.Client
 	LinkedAccounts() linkedaccounts.Client
+	Payments() payments.Client
 	Twilio() twilio.Service
 }
 
@@ -33,6 +36,7 @@ type ActivityBackends interface {
 	Temporal() temporal.Client
 	BasisTheory() basistheory.Client
 	LinkedAccounts() linkedaccounts.Client
+	Payments() payments.Client
 	Twilio() twilio.Service
 }
 
@@ -41,6 +45,10 @@ type TestBackends struct {
 	Extr *external_mock.MockClient
 	Ky   kyc.Client
 	Uc   user.Client
+}
+
+func (t TestBackends) Payments() payments.Client {
+	return nil
 }
 
 func (t TestBackends) Twilio() twilio.Service {

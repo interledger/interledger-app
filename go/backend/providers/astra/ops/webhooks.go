@@ -49,37 +49,75 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			return
 		}
 
-		if hook.Type != "user_intent_updated" {
+		switch hook.Type {
+		case "user_intent_updated":
+			handleUserIntentUpdated(r.Context(), b, hook, w)
+		case "transfer_updated":
+			handleTransferUpdate(r.Context(), b, hook, w)
+		default:
+			log.Info("Unhandled astra webhook", zap.String("type", hook.Type))
 			w.WriteHeader(http.StatusOK)
 			return
 		}
+	}
+}
 
-		intent, err := b.External().GetIntent(r.Context(), hook.ResourceID)
-		if err != nil {
-			log.Error("failed to retrieve astra intent for webhook", zap.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+func handleTransferUpdate(ctx context.Context, b Backends, hook Webhook, w http.ResponseWriter) {
+	var walletID string
+	err := b.DB().GetContext(ctx, &walletID, "SELECT wallet_id FROM astra_user_intents WHERE user_id=$1 ", hook.UserID)
+	if err != nil {
+		log.Error("failed to get astra intent for webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	token, err := GetToken(ctx, b, walletID)
+	if err != nil {
+		log.Error("failed to get astra user token for webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-		var walletID string
-		err = b.DB().GetContext(r.Context(), &walletID, "UPDATE astra_user_intents SET status=$1, user_id=$2, updated_at=now() WHERE intent_id=$3 RETURNING  wallet_id",
-			intent.UserID, intent.Status, hook.ResourceID)
-		if err != nil {
-			log.Error("failed to update astra intent for webhook", zap.Error(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	tx, err := b.External().GetTransfer(ctx, token, hook.ResourceID)
+	if err != nil {
+		log.Error("failed to get astra transfer for webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-		if intent.Status == "approved" || intent.Status == "converted_to_user" {
-			// Start polling for their access token as a best effort, as soon as it's used it will do it anyway.
-			// No need to hold up the webhook.
-			go func(b Backends, walletID string) {
-				_, err := CreateOrRefreshToken(context.Background(), b, walletID)
-				if err != nil {
-					log.Warn("failed to start best effort polling for user token", zap.Error(err))
-				}
-			}(b, walletID)
-		}
+	err = b.Payments().SignalAstraTransferUpdate(ctx, tx.ClientCorrelationID)
+	if err != nil {
+		log.Error("failed to signal payment workflow for astra webhook", zap.Error(err))
+		// Return OK, we poll hourly anyway.
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func handleUserIntentUpdated(ctx context.Context, b Backends, hook Webhook, w http.ResponseWriter) {
+	intent, err := b.External().GetIntent(ctx, hook.ResourceID)
+	if err != nil {
+		log.Error("failed to retrieve astra intent for webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var walletID string
+	err = b.DB().GetContext(ctx, &walletID, "UPDATE astra_user_intents SET status=$1, user_id=$2, updated_at=now() WHERE intent_id=$3 RETURNING  wallet_id",
+		intent.UserID, intent.Status, hook.ResourceID)
+	if err != nil {
+		log.Error("failed to update astra intent for webhook", zap.Error(err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if intent.Status == "approved" || intent.Status == "converted_to_user" {
+		// Start polling for their access token as a best effort, as soon as it's used it will do it anyway.
+		// No need to hold up the webhook.
+		go func(b Backends, walletID string) {
+			_, err := CreateOrRefreshToken(context.Background(), b, walletID)
+			if err != nil {
+				log.Warn("failed to start best effort polling for user token", zap.Error(err))
+			}
+		}(b, walletID)
 	}
 }
 

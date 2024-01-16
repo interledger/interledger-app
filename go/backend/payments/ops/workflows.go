@@ -399,9 +399,34 @@ func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bo
 		return "", false, err
 	}
 
-	// TODO: Wait for astra completion, webhook or poll
+	// Wait for astra completion, webhook or poll
+	for {
+		selector := workflow.NewSelector(ctx)
 
-	return txID, true, err
+		// Wait for an hour to check the status or for the signal from the webhook
+		selector.AddFuture(workflow.NewTimer(ctx, time.Hour), func(f workflow.Future) {})
+		selector.AddReceive(workflow.GetSignalChannel(ctx, astraNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
+			c.Receive(ctx, nil)
+		})
+
+		selector.Select(ctx)
+
+		var status string
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		if err != nil {
+			return "", false, err
+		}
+
+		if status == astra.TransferStatusProcessed {
+			return txID, true, nil
+		}
+
+		if status == astra.TransferStatusPending {
+			continue
+		}
+
+		return txID, false, nil
+	}
 }
 
 type PaySignal struct {
@@ -417,6 +442,7 @@ const (
 	payoutWorkflowFmt    = "payment_pay_out_%s"
 	gmtNotifyCompleteFmt = "payment_gmt_notify_complete_%s"
 	referralWorkflowFmt  = "referrals_%s"
+	astraNotifyChanName  = "payment_astra_signals"
 )
 
 func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
@@ -634,9 +660,34 @@ func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, b
 		return "", false, err
 	}
 
-	// TODO: Wait for astra completion, webhook or poll
+	// Wait for astra completion, webhook or poll
+	for {
+		selector := workflow.NewSelector(ctx)
 
-	return txID, true, nil
+		// Wait for an hour to check the status or for the signal from the webhook
+		selector.AddFuture(workflow.NewTimer(ctx, time.Hour), func(f workflow.Future) {})
+		selector.AddReceive(workflow.GetSignalChannel(ctx, astraNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
+			c.Receive(ctx, nil)
+		})
+
+		selector.Select(ctx)
+
+		var status string
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		if err != nil {
+			return "", false, err
+		}
+
+		if status == astra.TransferStatusProcessed {
+			return txID, true, nil
+		}
+
+		if status == astra.TransferStatusPending {
+			continue
+		}
+
+		return txID, false, nil
+	}
 }
 
 func tabapayPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {

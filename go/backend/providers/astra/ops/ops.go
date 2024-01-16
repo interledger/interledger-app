@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/astra/external"
 	"go.temporal.io/api/enums/v1"
@@ -145,6 +147,31 @@ func CreateCard(ctx context.Context, b Backends, args astra.CreateCardArgs) (ast
 	}
 
 	return await.Get, nil
+}
+
+func LookupTransfer(ctx context.Context, b Backends, walletID, txID string) (*astra.Transfer, error) {
+	token, err := GetToken(ctx, b, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := b.External().GetTransfer(ctx, token, txID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	return &astra.Transfer{
+		ID:                    tx.ID,
+		RoutineType:           tx.RoutineType,
+		RoutineName:           tx.RoutineName,
+		RoutineID:             tx.RoutineID,
+		ClientCorrelationID:   tx.ClientCorrelationID,
+		Amount:                currency.FromFloat64(tx.Amount, currency.USD),
+		PaymentType:           tx.PaymentType,
+		AstraSettlementReason: tx.AstraSettlementReason,
+		FailureReason:         tx.FailureReason,
+		Status:                tx.Status,
+	}, nil
 }
 
 func CreateIntent(ctx context.Context, b Backends, walletID string) error {

@@ -201,6 +201,19 @@ func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) 
 	return &res, nil
 }
 
+func getPaymentByCorrelation(ctx context.Context, b Backends, correlation string) (*dbPayment, error) {
+	var res dbPayment
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE astra_correlation_id=$1", cols), correlation)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
 func getPaymentByPublicID(ctx context.Context, b Backends, publicID string) (*dbPayment, error) {
 	var res dbPayment
 	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE public_id=$1", cols), publicID)
@@ -1333,6 +1346,20 @@ func SignalExternalPayoutComplete(ctx context.Context, b Backends, id string, su
 		PaymentID:     id,
 		PayOutSuccess: success,
 	})
+}
+
+func SignalAstraTransferUpdate(ctx context.Context, b Backends, correlation string) error {
+	dbp, err := getPaymentByCorrelation(ctx, b, correlation)
+	if err != nil {
+		return err
+	}
+
+	if dbp.Type == payments.TypeDeposit {
+		return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, dbp.ID), "", astraNotifyChanName, nil)
+	}
+
+	// Withdrawal
+	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, dbp.ID), "", astraNotifyChanName, nil)
 }
 
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {
