@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -27,6 +29,7 @@ type Backends interface {
 	Email() email.Client
 	Wallets() wallets.Client
 	Xago() xago.Client
+	Astra() astra.Client
 }
 
 type testBackends struct {
@@ -39,6 +42,10 @@ type testBackends struct {
 	em  email.Client
 	wc  wallets.Client
 	xg  xago.Client
+}
+
+func (t testBackends) Astra() astra.Client {
+	return nil
 }
 
 func (t testBackends) Users() user.Client {

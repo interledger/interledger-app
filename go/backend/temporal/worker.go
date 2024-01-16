@@ -13,6 +13,7 @@ import (
 	"gitlab.com/fynbos/backend/jobs"
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
+	asta_workflows "gitlab.com/fynbos/backend/providers/astra/ops"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
 	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
@@ -113,6 +114,13 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	}
 	w.RegisterActivity(pti_workflows.NewActivity(b, ptiPrivateKey))
 	w.RegisterWorkflow(pti_workflows.CreateWalletWorkflow)
+
+	// Astra
+	w.RegisterActivity(asta_workflows.NewActivity(b))
+	w.RegisterWorkflow(asta_workflows.AstraRenewTokensWorkflow)
+	w.RegisterWorkflow(asta_workflows.CreateCard)
+
+	asta_workflows.StartTokenRefreshing(b)
 
 	return w, nil
 }

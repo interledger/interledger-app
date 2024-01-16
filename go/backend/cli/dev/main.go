@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/limits"
 
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -137,6 +139,10 @@ type backends struct {
 }
 
 func (b *backends) Limits() limits.Client {
+	return nil
+}
+
+func (b *backends) Astra() astra.Client {
 	return nil
 }
 

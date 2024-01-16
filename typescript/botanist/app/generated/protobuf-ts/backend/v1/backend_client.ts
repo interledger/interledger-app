@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { BackendService } from "./backend";
+import type { AstraWithdrawToCardRequest } from "./backend";
+import type { AstraDepositFromCardRequest } from "./backend";
 import type { GetPtiBalancesResponse } from "./backend";
 import type { GetXagoDepositDetailsResponse } from "./backend";
 import type { GetXagoDepositDetailsRequest } from "./backend";
@@ -530,6 +532,16 @@ export interface IBackendServiceClient {
      * @generated from protobuf rpc: GetPtiBalances(backend.v1.Empty) returns (backend.v1.GetPtiBalancesResponse);
      */
     getPtiBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetPtiBalancesResponse>;
+    /**
+     * Astra
+     *
+     * @generated from protobuf rpc: AstraDepositFromCard(backend.v1.AstraDepositFromCardRequest) returns (backend.v1.Payment);
+     */
+    astraDepositFromCard(input: AstraDepositFromCardRequest, options?: RpcOptions): UnaryCall<AstraDepositFromCardRequest, Payment>;
+    /**
+     * @generated from protobuf rpc: AstraWithdrawToCard(backend.v1.AstraWithdrawToCardRequest) returns (backend.v1.Payment);
+     */
+    astraWithdrawToCard(input: AstraWithdrawToCardRequest, options?: RpcOptions): UnaryCall<AstraWithdrawToCardRequest, Payment>;
 }
 /**
  * @generated from protobuf service backend.v1.BackendService
@@ -1202,5 +1214,21 @@ export class BackendServiceClient implements IBackendServiceClient, ServiceInfo 
     getPtiBalances(input: Empty, options?: RpcOptions): UnaryCall<Empty, GetPtiBalancesResponse> {
         const method = this.methods[86], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, GetPtiBalancesResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Astra
+     *
+     * @generated from protobuf rpc: AstraDepositFromCard(backend.v1.AstraDepositFromCardRequest) returns (backend.v1.Payment);
+     */
+    astraDepositFromCard(input: AstraDepositFromCardRequest, options?: RpcOptions): UnaryCall<AstraDepositFromCardRequest, Payment> {
+        const method = this.methods[87], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AstraDepositFromCardRequest, Payment>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * @generated from protobuf rpc: AstraWithdrawToCard(backend.v1.AstraWithdrawToCardRequest) returns (backend.v1.Payment);
+     */
+    astraWithdrawToCard(input: AstraWithdrawToCardRequest, options?: RpcOptions): UnaryCall<AstraWithdrawToCardRequest, Payment> {
+        const method = this.methods[88], opt = this._transport.mergeOptions(options);
+        return stackIntercept<AstraWithdrawToCardRequest, Payment>("unary", this._transport, method, opt, input);
     }
 }

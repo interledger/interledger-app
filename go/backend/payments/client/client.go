@@ -64,6 +64,10 @@ func (c client) SignalExternalPayoutComplete(ctx context.Context, id string, suc
 	return ops.SignalExternalPayoutComplete(ctx, c.b, id, success)
 }
 
+func (c client) SignalAstraTransferUpdate(ctx context.Context, correlation string) error {
+	return ops.SignalAstraTransferUpdate(ctx, c.b, correlation)
+}
+
 var maxRetries = 3
 var baseDelay = 1 * time.Millisecond
 

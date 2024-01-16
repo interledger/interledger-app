@@ -60,7 +60,7 @@ type client struct {
 func New(b Backends) xago.Client {
 	ex := external.New(&http.Client{
 		Transport: otelhttp.NewTransport(
-			httplogger.NewTransport(http.DefaultTransport, b, nil),
+			httplogger.NewTransport(http.DefaultTransport, b, Redact),
 		),
 	}, b.DB())
 	if env.IsLocal() {
