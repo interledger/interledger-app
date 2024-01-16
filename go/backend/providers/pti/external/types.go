@@ -185,6 +185,39 @@ type (
 		ID   string `json:"id"`
 		Link string `json:"link"`
 	}
+
+	Cost struct {
+		Amount   float64 `json:"amount"`
+		Currency string  `json:"currency"`
+	}
+
+	PaymentStatusDetail struct {
+		ProviderResponseCode     string `json:"providerResponseCode"`
+		ProviderResponseCategory string `json:"providerResponseCategory"`
+	}
+
+	Total struct {
+		Fee      Cost `json:"fee"`
+		Total    Cost `json:"total"`
+		Subtotal Cost `json:"subtotal"`
+	}
+
+	TransactionStatus struct {
+		ResourceType        string                 `json:"resourceType"`
+		RequestID           string                 `json:"requestId"`
+		ClientID            string                 `json:"clientId"`
+		UserID              string                 `json:"userId"`
+		Date                string                 `json:"date"`
+		Status              string                 `json:"status"`
+		TransactionType     string                 `json:"transactionType"`
+		PaymentMethod       string                 `json:"paymentMethod"`
+		PaymentStatusDetail PaymentStatusDetail    `json:"paymentStatusDetail"`
+		Amount              float64                `json:"amount"`
+		BillingEmail        string                 `json:"billingEmail"`
+		Total               Total                  `json:"total"`
+		Currency            string                 `json:"currency"`
+		AdditionalInfos     map[string]interface{} `json:"additionalInfos"`
+	}
 )
 
 type SignatureBase struct {
