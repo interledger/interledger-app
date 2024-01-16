@@ -73,7 +73,7 @@ func TestVerify(t *testing.T) {
 }
 
 func TestPutUser(t *testing.T) {
-	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENTI_ID") == "" {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
 		t.Skip("no credentials")
 	}
 	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
@@ -126,7 +126,7 @@ func TestPutUser(t *testing.T) {
 }
 
 func TestStartAssessment(t *testing.T) {
-	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENTI_ID") == "" {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
 		t.Skip("no credentials")
 	}
 	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
@@ -138,7 +138,7 @@ func TestStartAssessment(t *testing.T) {
 	})
 
 	a, err := client.StartUserAssessment(context.Background(), StartUserAssessmentArgs{
-		ID:         "031823ff-3db5-40b5-9c4a-7bede87edfc0",
+		ID:         "a3034411-11bd-4379-89ed-867eb476ef8a",
 		Type:       "PERSON",
 		ScenarioID: pti.ScenarioDeposit,
 	})
@@ -148,7 +148,7 @@ func TestStartAssessment(t *testing.T) {
 }
 
 func TestGetAssessment(t *testing.T) {
-	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENTI_ID") == "" {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
 		t.Skip("no credentials")
 	}
 	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
@@ -159,8 +159,131 @@ func TestGetAssessment(t *testing.T) {
 		ClientID:   os.Getenv("PTI_CLIENT_ID"),
 	})
 
-	a, err := client.GetUserAssessment(context.Background(), "031823ff-3db5-40b5-9c4a-7bede87edfc0")
+	a, err := client.GetUserAssessment(context.Background(), "baeced4f-c4b3-475d-bd03-b4454b0343a7")
 	require.NoError(t, err)
 
 	fmt.Printf("assessment: %+v\n", a)
+}
+
+func TestCreateUserAndWallet(t *testing.T) {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
+		t.Skip("no credentials")
+	}
+
+	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	require.NoError(t, err)
+
+	client := New(ClientArgs{
+		PrivateKey: key,
+		ClientID:   os.Getenv("PTI_CLIENT_ID"),
+	})
+
+	ctx := context.Background()
+	userID := "a3034411-11bd-4379-89ed-867eb476ef8a"
+	_, err = client.CreateUser(ctx, CreateUserArgs{
+		ID:          userID,
+		Type:        "PERSON",
+		DateOfBirth: "1991-01-01",
+		Name: Name{
+			First: "John",
+			Last:  "Doe",
+		},
+		Emails: []Email{
+			{
+				Address: "jane@openpayments.dev",
+				Default: true,
+			},
+		},
+		Addresses: []Address{
+			{
+				Street:     "785 Market Street",
+				City:       "San Francisco",
+				PostalCode: "94103",
+				StateCode: StateCode{
+					Code: "CA",
+				},
+				Country: CountryCode{
+					Code: "US",
+				},
+				Default: true,
+			},
+		},
+		Phones: []Phone{
+			{
+				Number:  "+27823855973",
+				Type:    "MOBILE",
+				Default: true,
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	_, err = client.CreateWallet(ctx, CreateWalletArgs{
+		UserID:   userID,
+		WalletID: fmt.Sprintf("USD_%s", userID),
+		Currency: "US",
+		Type:     "WALLET",
+	})
+	require.NoError(t, err)
+}
+
+func TestWalletTransfer(t *testing.T) {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
+		t.Skip("no credentials")
+	}
+
+	ptiSendingUserID := "baeced4f-c4b3-475d-bd03-b4454b0343a7"
+	ptiReceivingUserID := "a3034411-11bd-4379-89ed-867eb476ef8a"
+	ptiSendingWalletID := "USD_baeced4f-c4b3-475d-bd03-b4454b0343a7"
+	ptiReceivingWalletID := "USD_a3034411-11bd-4379-89ed-867eb476ef8a"
+
+	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	require.NoError(t, err)
+
+	client := New(ClientArgs{
+		PrivateKey: key,
+		ClientID:   os.Getenv("PTI_CLIENT_ID"),
+	})
+
+	requestID := "92984a38-e4f1-4e9e-a106-12ff1e3937ec"
+	transferArgs := TransferArgs{
+		RequestID:  requestID,
+		ScenarioID: pti.ScenarioTransfer,
+		Amount:     1.00,
+		USDValue:   1.00,
+		Date:       time.Now().Format(time.RFC3339),
+		Initiator: User{
+			ID:   ptiSendingUserID,
+			Type: "PERSON",
+		},
+		Destination: User{
+			ID:   ptiReceivingUserID,
+			Type: "PERSON",
+		},
+		SourceTransferMethod: WalletPaymentMethod{
+			PaymentMethodType: "WALLET",
+			PaymentInformation: WalletType{
+				ID:   ptiSendingWalletID,
+				Type: "WALLET",
+			},
+		},
+		DestinationTransferMethod: WalletPaymentMethod{
+			PaymentMethodType: "WALLET",
+			PaymentInformation: WalletType{
+				ID:   ptiReceivingWalletID,
+				Type: "WALLET",
+			},
+		},
+		DisableWebhook: true,
+		Type:           "TRANSFER",
+	}
+
+	ctx := context.Background()
+	_, err = client.CreateTransfer(ctx, transferArgs)
+	require.NoError(t, err)
+
+	trx, err := client.GetTransaction(ctx, requestID)
+	require.NoError(t, err)
+
+	fmt.Printf("transaction status: %+v\n", trx)
 }

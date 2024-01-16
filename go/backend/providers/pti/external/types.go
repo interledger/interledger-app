@@ -56,18 +56,18 @@ type (
 	TransferArgs struct {
 		RequestID                 string                 `json:"-"`
 		ScenarioID                string                 `json:"-"`
-		TransactionGroup          string                 `json:"transactionGroupId"`
-		SubClientID               string                 `json:"subClientId"`
-		USDValue                  float64                `json:"usdValue"`
-		Amount                    float64                `json:"amount"`
-		Date                      string                 `json:"date"`
+		TransactionGroup          string                 `json:"transactionGroupId,omitempty"`
+		SubClientID               string                 `json:"subClientId,omitempty"`
+		USDValue                  float64                `json:"usdValue,omitempty"`
+		Amount                    float64                `json:"amount,omitempty"`
+		Date                      string                 `json:"date,omitempty"`
 		Initiator                 User                   `json:"initiator"`
-		PTIMeta                   map[string]interface{} `json:"ptiMeta"`
-		ClientMeta                map[string]interface{} `json:"clientMeta"`
-		Type                      string                 `json:"type"`
-		SourceTransferMethod      WalletPaymentMethod    `json:"sourceTransferMethod"`
-		DestinationTransferMethod WalletPaymentMethod    `json:"destinationTransferMethod"`
-		Destination               *User                  `json:"destination"`
+		PTIMeta                   map[string]interface{} `json:"ptiMeta,omitempty"`
+		ClientMeta                map[string]interface{} `json:"clientMeta,omitempty"`
+		Type                      string                 `json:"type,omitempty"`
+		SourceTransferMethod      WalletPaymentMethod    `json:"sourceTransferMethod,omitempty"`
+		DestinationTransferMethod WalletPaymentMethod    `json:"destinationTransferMethod,omitempty"`
+		Destination               User                   `json:"destination,omitempty"`
 		DisableWebhook            bool                   `json:"-"`
 	}
 )
@@ -132,7 +132,6 @@ type (
 		Status             string                 `json:"status,omitempty"`
 		StatusReason       string                 `json:"statusReason,omitempty"`
 		Tags               []string               `json:"tags,omitempty"`
-		PaymentInformation PaymentInformation     `json:"paymentInformation,omitempty"`
 		SourceOfFunds      string                 `json:"sourceOfFunds,omitempty"`
 		UserCreationDate   string                 `json:"userCreateionDate,omitempty"`
 		Addresses          []Address              `json:"addresses,omitempty"`
@@ -140,14 +139,12 @@ type (
 		UserClientMetaData map[string]interface{} `json:"userClientMeta,omitempty"`
 		Emails             []Email                `json:"emails,omitempty"`
 		Phones             []Phone                `json:"phones,omitempty"`
-		Name               Name                   `json:"name,omitempty"`
+		Name               *Name                  `json:"name,omitempty"`
 		DateOfBirth        string                 `json:"dateOfBirth,omitempty"`
 	}
 
 	PaymentInformation struct {
-		Type                            string                          `json:"paymentInformationType"`
-		BankAccountPaymentInformation   BankAccountPaymentInformation   `json:"bankAccountPaymentInformation"`
-		EncryptedCardPaymentInformation EncryptedCardPaymentInformation `json:"encryptedCardPaymentInformation"`
+		Type string `json:"paymentInformationType"`
 	}
 
 	EncryptedCardPaymentInformation struct {
@@ -159,8 +156,13 @@ type (
 	}
 
 	WalletPaymentMethod struct {
-		ID   string
-		Type string
+		PaymentMethodType  string     `json:"paymentMethodType,omitempty"`
+		PaymentInformation WalletType `json:"paymentInformation"`
+	}
+
+	WalletType struct {
+		ID   string `json:"walletId,omitempty"`
+		Type string `json:"type,omitempty"`
 	}
 
 	TransactionAssessment struct {
