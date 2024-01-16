@@ -136,6 +136,9 @@ type BackendServiceClient interface {
 	GetXagoDepositDetails(ctx context.Context, in *GetXagoDepositDetailsRequest, opts ...grpc.CallOption) (*GetXagoDepositDetailsResponse, error)
 	// Pti
 	GetPtiBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetPtiBalancesResponse, error)
+	// Astra
+	AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error)
+	AstraWithdrawToCard(ctx context.Context, in *AstraWithdrawToCardRequest, opts ...grpc.CallOption) (*Payment, error)
 }
 
 type backendServiceClient struct {
@@ -929,6 +932,24 @@ func (c *backendServiceClient) GetPtiBalances(ctx context.Context, in *Empty, op
 	return out, nil
 }
 
+func (c *backendServiceClient) AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/AstraDepositFromCard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) AstraWithdrawToCard(ctx context.Context, in *AstraWithdrawToCardRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/AstraWithdrawToCard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1047,6 +1068,9 @@ type BackendServiceServer interface {
 	GetXagoDepositDetails(context.Context, *GetXagoDepositDetailsRequest) (*GetXagoDepositDetailsResponse, error)
 	// Pti
 	GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error)
+	// Astra
+	AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error)
+	AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1313,6 +1337,12 @@ func (UnimplementedBackendServiceServer) GetXagoDepositDetails(context.Context, 
 }
 func (UnimplementedBackendServiceServer) GetPtiBalances(context.Context, *Empty) (*GetPtiBalancesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPtiBalances not implemented")
+}
+func (UnimplementedBackendServiceServer) AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AstraDepositFromCard not implemented")
+}
+func (UnimplementedBackendServiceServer) AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AstraWithdrawToCard not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2892,6 +2922,42 @@ func _BackendService_GetPtiBalances_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_AstraDepositFromCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AstraDepositFromCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).AstraDepositFromCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/AstraDepositFromCard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).AstraDepositFromCard(ctx, req.(*AstraDepositFromCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_AstraWithdrawToCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AstraWithdrawToCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).AstraWithdrawToCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/backend.v1.BackendService/AstraWithdrawToCard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).AstraWithdrawToCard(ctx, req.(*AstraWithdrawToCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3246,6 +3312,14 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPtiBalances",
 			Handler:    _BackendService_GetPtiBalances_Handler,
+		},
+		{
+			MethodName: "AstraDepositFromCard",
+			Handler:    _BackendService_AstraDepositFromCard_Handler,
+		},
+		{
+			MethodName: "AstraWithdrawToCard",
+			Handler:    _BackendService_AstraWithdrawToCard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
