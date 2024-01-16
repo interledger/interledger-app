@@ -13,6 +13,10 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -32,7 +36,7 @@ import (
 	temporal_client "go.temporal.io/sdk/client"
 )
 
-const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, revision, created_at, updated_at`
+const cols = `id, public_id, state, sender_id, sender_id_type, sender_amount, sender_currency, sender_account, receiver_id, receiver_id_type, receiver_amount, receiver_currency, receiver_account, send_transaction_id, receive_transaction_id, action_three_ds_required, action_three_ds_id, action_otp_required, action_otp, note, ip_address, type, fx_rate, fx_fee_percentage, protection_fee_percentage, revision, astra_correlation_id, created_at, updated_at`
 
 type dbPayment struct {
 	ID                      string                `db:"id"`
@@ -63,6 +67,7 @@ type dbPayment struct {
 	FXFeePercentage         sql.NullFloat64       `db:"fx_fee_percentage"`
 	ProtectionFeePercentage float64               `db:"protection_fee_percentage"`
 	Revision                int                   `db:"revision"`
+	AstraCorrelationID      sql.NullString        `db:"astra_correlation_id"`
 }
 
 func lookupWallet(ctx context.Context, b Backends, identity payments.Identity) (*wallets.Wallet, error) {
@@ -174,6 +179,7 @@ func transformPayment(ctx context.Context, b Backends, db dbPayment, senderWalle
 		FXRate:                  db.FXRate.Float64,
 		FXFeePercentage:         db.FXFeePercentage.Float64,
 		ProtectionFeePercentage: db.ProtectionFeePercentage,
+		AstraCorrelationID:      db.AstraCorrelationID.String,
 	}, nil
 }
 
@@ -185,6 +191,19 @@ func getPayment(ctx context.Context, b Backends, id string) (*dbPayment, error) 
 
 	var res dbPayment
 	err = b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE id=$1;", cols), dbID.String())
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, payments.ErrNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+
+	return &res, nil
+}
+
+func getPaymentByCorrelation(ctx context.Context, b Backends, correlation string) (*dbPayment, error) {
+	var res dbPayment
+	err := b.DB().GetContext(ctx, &res, fmt.Sprintf("SELECT %s FROM payments WHERE astra_correlation_id=$1", cols), correlation)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, payments.ErrNotFound
 	}
@@ -248,7 +267,7 @@ func Lookup(ctx context.Context, b Backends, id string) (*payments.Payment, erro
 	return transformPayment(ctx, b, *dbp, nil, nil)
 }
 
-func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, currency.Currency, error) {
+func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountID string, typ payments.Type) (bool, currency.Currency, error) {
 	if accountID == "" || w == nil {
 		return false, currency.USD, nil
 	}
@@ -260,10 +279,15 @@ func accountCanSend(ctx context.Context, b Backends, w *wallets.Wallet, accountI
 		return false, currency.USD, err
 	}
 
+	// Astra accounts can't send unless it's a deposit
+	if typ == payments.TypeDeposit && acc.Provider == astra.ProviderName {
+		return w.ID == acc.WalletID, acc.SendCurrency, nil
+	}
+
 	return acc.CanSend && w.ID == acc.WalletID, acc.SendCurrency, nil
 }
 
-func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string) (bool, currency.Currency, error) {
+func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accountID string, typ payments.Type) (bool, currency.Currency, error) {
 	if accountID == "" || w == nil {
 		return false, "", nil
 	}
@@ -273,6 +297,11 @@ func accountCanReceive(ctx context.Context, b Backends, w *wallets.Wallet, accou
 	}
 	if err != nil {
 		return false, currency.USD, err
+	}
+
+	// Astra accounts can't receive unless it's a withdrawal
+	if typ == payments.TypeWithdrawal && acc.Provider == astra.ProviderName {
+		return w.ID == acc.WalletID, acc.SendCurrency, nil
 	}
 
 	return acc.CanReceive && w.ID == acc.WalletID, acc.ReceiveCurrency, nil
@@ -297,7 +326,7 @@ func defaultReceiveAccount(ctx context.Context, b Backends, w *wallets.Wallet, c
 func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, receiver *wallets.Wallet) (bool, error) {
 
 	// Web monetization payouts don't need an OTP
-	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal {
+	if typ == payments.TypeWebMonetization || typ == payments.TypeReferral || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal || typ == payments.TypeDeposit {
 		return false, nil
 	}
 
@@ -328,7 +357,7 @@ func requires3DS(ctx context.Context, b Backends, senderAcc string, typ payments
 		return false, err
 	}
 
-	return la.Provider == tabapay.ProviderName || la.Type == tabapay.TypeCard, nil
+	return la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard, nil
 }
 
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
@@ -349,7 +378,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, err
 	}
 
-	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount)
+	canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, p.SenderAccount, p.Type)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -365,7 +394,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 
-	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount)
+	canReceive, _, err := accountCanReceive(ctx, b, receiverWallet, p.ReceiverAccount, p.Type)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -412,6 +441,11 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	err = validateWithdrawal(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateDeposit(ctx, b, p.Type, p.SenderAccount, p.ReceiverAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -498,6 +532,34 @@ func validateSendBalances(ctx context.Context, b Backends, sendAccID string, amt
 	return nil
 }
 
+func validateDeposit(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
+	if typ != payments.TypeDeposit {
+		return nil
+	}
+
+	if senderAccID == "" || receiverAccID == "" {
+		return payments.ErrInvalidDeposit
+	}
+
+	senderAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if senderAcc.Provider != astra.ProviderName || senderAcc.Type != astra.TypeCard {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
+	if err != nil {
+		return fmt.Errorf("%w %s", payments.ErrInternal, err)
+	}
+	if receiverAcc.Provider != pti.ProviderName || receiverAcc.Type != pti.AccTypeBalance || senderAcc.WalletID != receiverAcc.WalletID {
+		return payments.ErrInvalidWithdrawal
+	}
+
+	return nil
+}
+
 func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, senderAccID, receiverAccID string) error {
 	if typ != payments.TypeWithdrawal {
 		return nil
@@ -511,7 +573,10 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
-	if senderAcc.Provider != xago.ProviderName || senderAcc.Type != xago.AccTypeBalance {
+
+	// Only Xago and Astra supports withdrawal
+	if !(senderAcc.Provider == xago.ProviderName && senderAcc.Type == xago.AccTypeBalance) &&
+		!(senderAcc.Provider == pti.ProviderName && senderAcc.Type == pti.AccTypeBalance) {
 		return payments.ErrInvalidWithdrawal
 	}
 
@@ -519,7 +584,8 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	if err != nil {
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
-	if receiverAcc.Provider != xago.ProviderName || receiverAcc.Type != xago.AccTypeBank || senderAcc.WalletID != receiverAcc.WalletID {
+	if (!(receiverAcc.Provider == xago.ProviderName && receiverAcc.Type == xago.AccTypeBank) && !(receiverAcc.Provider == astra.ProviderName && receiverAcc.Type == astra.TypeCard)) ||
+		senderAcc.WalletID != receiverAcc.WalletID {
 		return payments.ErrInvalidWithdrawal
 	}
 
@@ -933,7 +999,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canReceive, recvCurrency, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount)
+			canReceive, recvCurrency, syncErr := accountCanReceive(ctx, b, receiverWallet, args.ReceiverAccount, payment.Type)
 			if syncErr != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
@@ -950,7 +1016,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount)
+			canSend, sendCurrency, err := accountCanSend(ctx, b, senderWallet, args.SenderAccount, payment.Type)
 			if err != nil {
 				pErr = fmt.Errorf("%w %s", payments.ErrInternal, err)
 				return
@@ -1092,7 +1158,23 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		payment.ProtectionFeePercentage = fee
 	}
 
+	if args.AddAstraCorrelationID && !payment.AstraCorrelationID.Valid {
+		corID, err := newCorrelationID()
+		if err != nil {
+			return nil, err
+		}
+		payment.AstraCorrelationID = sql.NullString{
+			String: corID,
+			Valid:  len(corID) == 8,
+		}
+	}
+
 	err = validateWithdrawal(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateDeposit(ctx, b, payment.Type, payment.SenderAccount.String, payment.ReceiverAccount.String)
 	if err != nil {
 		return nil, err
 	}
@@ -1117,6 +1199,7 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 		Value("fx_fee_percentage", payment.FXFeePercentage).
 		Value("protection_fee_percentage", payment.ProtectionFeePercentage).
 		Value("revision", payment.Revision+1).
+		Value("astra_correlation_id", payment.AstraCorrelationID).
 		Where("revision", payment.Revision).
 		Returning(cols).GetStatement()
 	if err != nil {
@@ -1265,6 +1348,20 @@ func SignalExternalPayoutComplete(ctx context.Context, b Backends, id string, su
 	})
 }
 
+func SignalAstraTransferUpdate(ctx context.Context, b Backends, correlation string) error {
+	dbp, err := getPaymentByCorrelation(ctx, b, correlation)
+	if err != nil {
+		return err
+	}
+
+	if dbp.Type == payments.TypeDeposit {
+		return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payinWorkflowFmt, dbp.ID), "", astraNotifyChanName, nil)
+	}
+
+	// Withdrawal
+	return b.Temporal().SignalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, dbp.ID), "", astraNotifyChanName, nil)
+}
+
 func ListAwaitingSignal(ctx context.Context, b Backends) ([]payments.Payment, error) {
 	var dbRes []dbPayment
 	err := b.DB().SelectContext(ctx, &dbRes, fmt.Sprintf("SELECT %s FROM payments WHERE id IN (select payment_id::uuid from payments_workflow_refs where completed=false)", cols))
@@ -1288,6 +1385,15 @@ const (
 	geohashBase32Alphabet = "0123456789bcdefghjkmnpqrstuvwxyz"
 	hoursInUnixTimestamp  = 60 * 60
 )
+
+func newCorrelationID() (string, error) {
+	id, err := NewSoftDescriptor(time.Now())
+	if err != nil {
+		return "", err
+	}
+
+	return id[:8], nil
+}
 
 // Generates a soft descriptor to show on the user's card statement.
 // See https://www.notion.so/fynbos/Soft-Descriptors-08b6693f96194f54ba0d62e21efd22d6
