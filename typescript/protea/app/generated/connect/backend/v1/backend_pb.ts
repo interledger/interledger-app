@@ -81,6 +81,124 @@ export class Empty extends Message<Empty> {
 }
 
 /**
+ * @generated from message backend.v1.AstraDepositFromCardRequest
+ */
+export class AstraDepositFromCardRequest extends Message<AstraDepositFromCardRequest> {
+  /**
+   * Astra Card
+   *
+   * @generated from field: string fromLinkedAccount = 1;
+   */
+  fromLinkedAccount = "";
+
+  /**
+   * PTI Balance
+   *
+   * @generated from field: string toLinkedAccount = 2;
+   */
+  toLinkedAccount = "";
+
+  /**
+   * @generated from field: backend.v1.Amount amount = 3;
+   */
+  amount?: Amount;
+
+  /**
+   * @generated from field: string note = 4;
+   */
+  note = "";
+
+  constructor(data?: PartialMessage<AstraDepositFromCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.AstraDepositFromCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "amount", kind: "message", T: Amount },
+    { no: 4, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AstraDepositFromCardRequest {
+    return new AstraDepositFromCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AstraDepositFromCardRequest {
+    return new AstraDepositFromCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AstraDepositFromCardRequest {
+    return new AstraDepositFromCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AstraDepositFromCardRequest | PlainMessage<AstraDepositFromCardRequest> | undefined, b: AstraDepositFromCardRequest | PlainMessage<AstraDepositFromCardRequest> | undefined): boolean {
+    return proto3.util.equals(AstraDepositFromCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.AstraWithdrawToCardRequest
+ */
+export class AstraWithdrawToCardRequest extends Message<AstraWithdrawToCardRequest> {
+  /**
+   * PTI Balance
+   *
+   * @generated from field: string fromLinkedAccount = 1;
+   */
+  fromLinkedAccount = "";
+
+  /**
+   * Astra Card
+   *
+   * @generated from field: string toLinkedAccount = 2;
+   */
+  toLinkedAccount = "";
+
+  /**
+   * @generated from field: backend.v1.Amount amount = 3;
+   */
+  amount?: Amount;
+
+  /**
+   * @generated from field: string note = 4;
+   */
+  note = "";
+
+  constructor(data?: PartialMessage<AstraWithdrawToCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.AstraWithdrawToCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "amount", kind: "message", T: Amount },
+    { no: 4, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AstraWithdrawToCardRequest {
+    return new AstraWithdrawToCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AstraWithdrawToCardRequest {
+    return new AstraWithdrawToCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AstraWithdrawToCardRequest {
+    return new AstraWithdrawToCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AstraWithdrawToCardRequest | PlainMessage<AstraWithdrawToCardRequest> | undefined, b: AstraWithdrawToCardRequest | PlainMessage<AstraWithdrawToCardRequest> | undefined): boolean {
+    return proto3.util.equals(AstraWithdrawToCardRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetPtiBalancesResponse
  */
 export class GetPtiBalancesResponse extends Message<GetPtiBalancesResponse> {
