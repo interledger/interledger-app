@@ -12,4 +12,6 @@ type Client interface {
 	ListWallets(ctx context.Context, userID string) ([]Wallet, error)
 	StartUserAssessment(ctx context.Context, args StartUserAssessmentArgs) (string, error)
 	GetUserAssessment(ctx context.Context, userID string) (*Assessment, error)
+	StartTransferAssessment(ctx context.Context, args TransferArgs) (*IDResponse, error)
+	GetTransactionAssessment(ctx context.Context, requestID string) (*TransactionAssessment, error)
 }

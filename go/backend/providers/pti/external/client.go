@@ -26,10 +26,11 @@ import (
 )
 
 var (
-	ptiClientIDHeader   = "x-pti-client-id"
-	ptiSignatureHeader  = "x-pti-signature"
-	ptiRequestIDHeader  = "x-pti-request-id"
-	ptiScenarioIDHeader = "x-pti-scenario-id"
+	ptiClientIDHeader       = "x-pti-client-id"
+	ptiSignatureHeader      = "x-pti-signature"
+	ptiRequestIDHeader      = "x-pti-request-id"
+	ptiScenarioIDHeader     = "x-pti-scenario-id"
+	ptiDisableWebhookHeader = "x-pti-disable-webhook"
 )
 
 type client struct {
@@ -705,6 +706,126 @@ func (c client) GetUserAssessment(ctx context.Context, userID string) (*Assessme
 	}
 
 	var assessment Assessment
+	err = json.Unmarshal(body, &assessment)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &assessment, nil
+}
+
+func (c client) StartTransferAssessment(ctx context.Context, args TransferArgs) (*IDResponse, error) {
+	requestID := args.RequestID
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+		meta.Context = strings.Join(
+			[]string{fmt.Sprintf("%s=%s", ptiScenarioIDHeader, args.ScenarioID), fmt.Sprintf("%s=%s", ptiRequestIDHeader, requestID), meta.Context},
+			",",
+		)
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+			Context:  fmt.Sprintf("%s=%s,%s=%s", ptiScenarioIDHeader, args.ScenarioID, ptiRequestIDHeader, requestID),
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "transactions", "assessments")
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
+	req.Header.Add(ptiRequestIDHeader, requestID)
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add(ptiDisableWebhookHeader, fmt.Sprintf("%t", args.DisableWebhook))
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var idResp IDResponse
+	err = json.Unmarshal(body, &idResp)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return &idResp, nil
+}
+
+func (c client) GetTransactionAssessment(ctx context.Context, requestID string) (*TransactionAssessment, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "GET"
+		meta.Provider = "pti"
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "GET",
+			Provider: "pti",
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "transactions", "assessments", requestID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, nil, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	var assessment TransactionAssessment
 	err = json.Unmarshal(body, &assessment)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", ErrInternal, err)
