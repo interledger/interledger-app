@@ -129,7 +129,7 @@ require (
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
-	github.com/Basis-Theory/basistheory-go/v3 v3.10.0
+	github.com/Basis-Theory/basistheory-go/v3 v3.13.0
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Microsoft/hcsshim v0.8.21 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect

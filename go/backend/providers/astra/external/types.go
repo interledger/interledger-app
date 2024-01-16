@@ -78,6 +78,7 @@ type UserCard struct {
 	FirstSixDigits  string `json:"first_six_digits"`
 	LastFourDigits  string `json:"last_four_digits"`
 	LastName        string `json:"last_name"`
+	CardType        string `json:"card_type"`
 	PullEnabled     bool   `json:"pull_enabled"`
 	PushEnabled     bool   `json:"push_enabled"`
 	Removed         bool   `json:"removed"`

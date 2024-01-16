@@ -198,6 +198,7 @@ func start(args *cli.StartArgs) {
 		log.Fatalln(err)
 	}
 	router.Handle("/webhooks/pti", ptiWebhook)
+	router.Handle("/webhooks/astra/updates", b.Astra().WebhookHandler())
 	router.Handle("/webhooks/astra/wallet/{id}", b.Astra().TrustedAuthInfoWebhook())
 	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
 	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
