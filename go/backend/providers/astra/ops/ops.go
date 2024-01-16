@@ -32,16 +32,9 @@ func DebitCard(ctx context.Context, b Backends, args astra.CardToAccountArgs) (s
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
 	}
 
-	var userID string
-	err = b.DB().GetContext(ctx, &userID, "SELECT user_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w astra user not found for wallet ID", astra.ErrNotFound)
-	}
+	userID, err := getUserID(ctx, b, args.WalletID)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
-	}
-	if userID == "" {
-		return "", fmt.Errorf("%w astra user not converted for wallet ID", astra.ErrUserNotReady)
+		return "", err
 	}
 
 	tx, err := b.External().CardToAccount(ctx, token, external.CardToAccountArgs{
@@ -80,16 +73,9 @@ func CreditCard(ctx context.Context, b Backends, args astra.AccountToCardsArgs) 
 		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
 	}
 
-	var userID string
-	err = b.DB().GetContext(ctx, &userID, "SELECT user_id FROM astra_user_intents WHERE wallet_id=$1", args.WalletID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%w astra user not found for wallet ID", astra.ErrNotFound)
-	}
+	userID, err := getUserID(ctx, b, args.WalletID)
 	if err != nil {
-		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
-	}
-	if userID == "" {
-		return "", fmt.Errorf("%w astra user not converted for wallet ID", astra.ErrUserNotReady)
+		return "", err
 	}
 
 	tx, err := b.External().AccountToCard(ctx, token, external.AccountToCardArgs{
@@ -235,4 +221,36 @@ func CreateIntent(ctx context.Context, b Backends, walletID string) error {
 	}
 
 	return nil
+}
+
+func getUserID(ctx context.Context, b Backends, walletID string) (string, error) {
+	type intentDB struct {
+		UserID   string `db:"user_id"`
+		IntentID string `db:"intent_id"`
+	}
+	var intent intentDB
+	err := b.DB().GetContext(ctx, &intent, "SELECT user_id, intent_id FROM astra_user_intents WHERE wallet_id=$1", walletID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+	if intent.UserID != "" {
+		return intent.UserID, nil
+	}
+
+	// Lookup the intent and update the userID and status
+	exIntent, err := b.External().GetIntent(ctx, intent.IntentID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	_, err = b.DB().ExecContext(ctx, "UPDATE astra_user_intents SET  user_id=$1, status=$2, updated_at=now() WHERE intent_id=$3", exIntent.UserID, exIntent.Status, exIntent.ID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", astra.ErrInternal, err)
+	}
+
+	if exIntent.UserID == "" {
+		return "", fmt.Errorf("%w astra user not converted for wallet ID", astra.ErrUserNotReady)
+	}
+
+	return exIntent.UserID, nil
 }
