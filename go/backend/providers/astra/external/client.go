@@ -29,6 +29,45 @@ type Client interface {
 	CardToAccount(ctx context.Context, token string, args CardToAccountArgs) (*CardToAccountResp, error)
 	AccountToCard(ctx context.Context, token string, args AccountToCardArgs) (*AccountToCardResp, error)
 	GetTransfer(ctx context.Context, token, transferID string) (*Transaction, error)
+
+	CodeExchange(ctx context.Context, code string) (string, error)
+}
+
+func (c client) CodeExchange(ctx context.Context, code string) (string, error) {
+	reqURL, err := url.JoinPath(c.baseURL, "oauth", "token")
+	if err != nil {
+		return "nil", err
+	}
+
+	data := url.Values{}
+	data.Set("code", code)
+	data.Set("grant_type", "authorization_code")
+	data.Set("redirect_uri", "https://radar-marked-commented-educators.trycloudflare.com/codeme")
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return "nil", err
+	}
+	req.SetBasicAuth(c.clientID, c.clientSecret)
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "nil", err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "nil", err
+	}
+	fmt.Println("get token", string(respBody))
+
+	if resp.StatusCode != http.StatusOK {
+		return "nil", fmt.Errorf("failed to create astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+	}
+
+	return string(respBody), nil
 }
 
 const basisTheoryProxyUrl = "https://api.basistheory.com/proxy"
@@ -366,7 +405,7 @@ func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) 
 }
 
 func (c client) GetCardBin(ctx context.Context, binToken string) (*CardBin, error) {
-	reqURL, err := url.JoinPath(c.secureBaseURL, "bins", binToken)
+	reqURL, err := url.JoinPath(c.baseURL, "bins", binToken)
 	if err != nil {
 		return nil, err
 	}
@@ -401,7 +440,7 @@ func (c client) GetCardBin(ctx context.Context, binToken string) (*CardBin, erro
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to create astra user card (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
+		return nil, fmt.Errorf("failed to get astra user bin (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
 	var respData CardBin
