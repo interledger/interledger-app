@@ -16,6 +16,7 @@ import (
 type dbToken struct {
 	ID               string    `db:"id"`
 	Token            string    `db:"token"`
+	WalletID         string    `db:"wallet_id"`
 	ExpiresAt        time.Time `db:"expires_at"`
 	RefreshToken     string    `db:"refresh_token"`
 	RefreshExpiresAt time.Time `db:"refresh_expires_at"`
