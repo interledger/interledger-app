@@ -16,6 +16,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -60,4 +61,5 @@ type Backends interface {
 	Rafiki() rafiki.Client
 	Xago() xago.Client
 	Pacioli() pacioli.Client
+	Astra() astra.Client
 }

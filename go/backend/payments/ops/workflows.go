@@ -5,15 +5,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
-	"gitlab.com/fynbos/backend/providers/xago"
-
 	"gitlab.com/fynbos/backend/linkedaccounts"
-
 	"gitlab.com/fynbos/backend/payments"
+	"gitlab.com/fynbos/backend/providers/astra"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/env"
@@ -215,6 +213,8 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			txID, success, err = tabapayPayIn(ctx, accountsCtx, a, paymentID)
 		case xago.ProviderName:
 			txID, success, err = xagoPayIn(ctx, a, paymentID)
+		case astra.ProviderName:
+			txID, success, err = astraPayIn(ctx, a, paymentID)
 		default:
 			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 		}
@@ -376,6 +376,59 @@ func tabapayPayIn(ctx, accountsCtx workflow.Context, a *Activity, paymentID stri
 	return accountTX.ID, tabapay.IsSuccessfulTransaction(accountTX), nil
 }
 
+func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+	// Check for deposit type
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	if pt != payments.TypeDeposit {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay in flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddAstraCorrelation, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	var txID string
+	err = workflow.ExecuteActivity(ctx, a.AstraDeposit, paymentID).Get(ctx, &txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Wait for astra completion, webhook or poll
+	for {
+		selector := workflow.NewSelector(ctx)
+
+		// Wait for an hour to check the status or for the signal from the webhook
+		selector.AddFuture(workflow.NewTimer(ctx, time.Hour), func(f workflow.Future) {})
+		selector.AddReceive(workflow.GetSignalChannel(ctx, astraNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
+			c.Receive(ctx, nil)
+		})
+
+		selector.Select(ctx)
+
+		var status string
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		if err != nil {
+			return "", false, err
+		}
+
+		if status == astra.TransferStatusProcessed {
+			return txID, true, nil
+		}
+
+		if status == astra.TransferStatusPending {
+			continue
+		}
+
+		return txID, false, nil
+	}
+}
+
 type PaySignal struct {
 	PaymentID     string
 	PayInSuccess  bool
@@ -389,6 +442,7 @@ const (
 	payoutWorkflowFmt    = "payment_pay_out_%s"
 	gmtNotifyCompleteFmt = "payment_gmt_notify_complete_%s"
 	referralWorkflowFmt  = "referrals_%s"
+	astraNotifyChanName  = "payment_astra_signals"
 )
 
 func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
@@ -487,6 +541,8 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		externalTXID, success, err = tabapayPayOut(ctx, accountsCtx, a, paymentID)
 	case xago.ProviderName:
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
+	case astra.ProviderName:
+		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
 	default:
 		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 	}
@@ -579,6 +635,59 @@ func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID 
 	}
 
 	return externalTX, true, nil
+}
+
+func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
+	// Check for withdrawal type
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	if pt != payments.TypeWithdrawal {
+		return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for astra pay out flow", "InvalidArgument", astra.ErrInternal, "paymentID", paymentID, "type", pt)
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.AddAstraCorrelation, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	var txID string
+	err = workflow.ExecuteActivity(ctx, a.AstraWithdrawal, paymentID).Get(ctx, &txID)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Wait for astra completion, webhook or poll
+	for {
+		selector := workflow.NewSelector(ctx)
+
+		// Wait for an hour to check the status or for the signal from the webhook
+		selector.AddFuture(workflow.NewTimer(ctx, time.Hour), func(f workflow.Future) {})
+		selector.AddReceive(workflow.GetSignalChannel(ctx, astraNotifyChanName), func(c workflow.ReceiveChannel, more bool) {
+			c.Receive(ctx, nil)
+		})
+
+		selector.Select(ctx)
+
+		var status string
+		err = workflow.ExecuteActivity(ctx, a.CheckAstraTransferStatus, paymentID, txID).Get(ctx, &status)
+		if err != nil {
+			return "", false, err
+		}
+
+		if status == astra.TransferStatusProcessed {
+			return txID, true, nil
+		}
+
+		if status == astra.TransferStatusPending {
+			continue
+		}
+
+		return txID, false, nil
+	}
 }
 
 func tabapayPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {

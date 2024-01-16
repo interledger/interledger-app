@@ -42,7 +42,7 @@ func TestCreate(t *testing.T) {
 		Txc: transactions_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: tabapay.TypeCard, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
@@ -168,8 +168,8 @@ func TestCreateFX(t *testing.T) {
 			SellRateInv: 19.2778,
 		},
 	}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, senderAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, receiverAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, ReceiveCurrency: currency.ZAR}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, senderAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: tabapay.TypeCard, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, receiverAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: tabapay.TypeCard, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, ReceiveCurrency: currency.ZAR}, nil).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
