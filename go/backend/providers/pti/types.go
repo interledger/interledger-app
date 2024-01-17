@@ -7,13 +7,25 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 )
 
-var (
+const (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
 
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
 	ScenarioWithdrawal = "fynbos_withdrawal"
+)
+
+type TransactionFeedback string
+
+const (
+	TransactionFeedbackAccepted    TransactionFeedback = "ACCEPTED"
+	TransactionFeedbackSettled     TransactionFeedback = "SETTLED"
+	TransactionFeedbackCancelled   TransactionFeedback = "CANCELLED"
+	TransactionFeedbackRejected    TransactionFeedback = "REJECTED"
+	TransactionFeedbackRefunded    TransactionFeedback = "REFUNDED"
+	TransactionFeedbackChargedBack TransactionFeedback = "CHARGED_BACK"
+	TransactionFeedbackError       TransactionFeedback = "ERROR"
 )
 
 type User struct {
@@ -48,4 +60,17 @@ type CreateExternalWalletArgs struct {
 	ID       string
 	UserID   string
 	Currency currency.Currency
+}
+
+type TransactionArgs struct {
+	PaymentID       string
+	WalletID        string
+	Amount          currency.Amount
+	LinkedAccountID string
+}
+
+type TransactionStatusArgs struct {
+	PaymentID     string
+	TransactionID string
+	Status        string
 }

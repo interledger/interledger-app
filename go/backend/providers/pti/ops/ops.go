@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -94,4 +95,74 @@ func GetWallet(ctx context.Context, b Backends, external external.Client, linked
 		Reference: w.Reference,
 		Balance:   currency.FromFloat64(w.Balance, currency.ParseCurrency(w.Currency)),
 	}, nil
+}
+
+func DepositToWallet(ctx context.Context, b Backends, ec external.Client, args pti.TransactionArgs) (string, error) {
+	externalUser, err := GetUser(ctx, b, args.WalletID)
+	if err != nil {
+		return "", err
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccountID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if la.Provider != pti.ProviderName || la.WalletID != args.WalletID {
+		return "", pti.ErrNotFound
+	}
+
+	txID, err := ec.WalletDeposit(ctx, external.DepositArgs{
+		RequestID:        args.PaymentID,
+		ScenarioID:       pti.ScenarioDeposit,
+		UserID:           externalUser.ExternalID,
+		ExternalWalletID: la.ProviderID,
+		Amount:           args.Amount,
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return txID, nil
+}
+
+func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, args pti.TransactionArgs) (string, error) {
+	externalUser, err := GetUser(ctx, b, args.WalletID)
+	if err != nil {
+		return "", err
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, args.LinkedAccountID)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if la.Provider != pti.ProviderName || la.WalletID != args.WalletID {
+		return "", pti.ErrNotFound
+	}
+
+	txID, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
+		RequestID:        args.PaymentID,
+		ScenarioID:       pti.ScenarioWithdrawal,
+		UserID:           externalUser.ExternalID,
+		ExternalWalletID: la.ProviderID,
+		Amount:           args.Amount,
+	})
+	if err != nil {
+		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return txID, nil
+}
+
+func UpdateTransactionStatus(ctx context.Context, b Backends, ex external.Client, args pti.TransactionStatusArgs) error {
+	_, err := ex.UpdateTransactionStatus(ctx, external.UpdateTxStatusArgs{
+		RequestID:     args.PaymentID,
+		TransactionID: args.TransactionID,
+		Feedback:      args.Status,
+		Date:          time.Now(),
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	return nil
 }

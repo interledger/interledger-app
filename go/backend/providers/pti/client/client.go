@@ -70,3 +70,15 @@ func (c Client) CreateWallet(ctx context.Context, walletID string, currency curr
 func (c Client) GetWallet(ctx context.Context, linkedAccountID string) (*pti.Wallet, error) {
 	return ops.GetWallet(ctx, c.b, c.external, linkedAccountID)
 }
+
+func (c Client) DepositToWallet(ctx context.Context, args pti.TransactionArgs) (string, error) {
+	return ops.DepositToWallet(ctx, c.b, c.external, args)
+}
+
+func (c Client) WithdrawalFromWallet(ctx context.Context, args pti.TransactionArgs) (string, error) {
+	return ops.WithdrawFromWallet(ctx, c.b, c.external, args)
+}
+
+func (c Client) UpdateTransactionStatus(ctx context.Context, args pti.TransactionStatusArgs) error {
+	return ops.UpdateTransactionStatus(ctx, c.b, c.external, args)
+}

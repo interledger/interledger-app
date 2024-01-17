@@ -9,6 +9,9 @@ import (
 const (
 	ProviderName = "astra"
 	TypeCard     = "card"
+
+	AccountNumber = "90643128"  // TODO: Get real values
+	RoutingNumber = "434253106" // TODO: Get real values
 )
 
 type TransferStatus string
