@@ -221,7 +221,7 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		case astra.ProviderName:
 			txID, success, err = astraPayIn(ctx, a, paymentID)
 		case pti.ProviderName:
-			txID, success, err = ptiPayIn(ctx, ptiActivity, paymentID)
+			txID, success, err = ptiPayIn(ctx, a, ptiActivity, paymentID)
 		default:
 			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 		}
@@ -303,6 +303,12 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			return err
 		}
 
+		// Notify PTI of successful payout so complete the TX
+		err = workflow.ExecuteActivity(ctx, a.PTIWithdrawalComplete, paymentID, true).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+
 		// Mark transaction as a success
 		return workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateCompleted).Get(ctx, nil)
 	}
@@ -319,41 +325,60 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	return workflow.ExecuteChildWorkflow(childCtx, RollbackPayInWorkflow, paymentID).Get(childCtx, nil)
 }
 
-func ptiPayIn(ctx workflow.Context, a *pti_ops.Activity, paymentID string) (string, bool, error) {
-	var txID string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return uuid.NewString()
-	}).Get(&txID)
-	if err != nil {
-		return "", false, err
-	}
-	err = workflow.ExecuteActivity(ctx, a.CreateWalletTransfer, paymentID, txID).Get(ctx, nil)
+func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID string) (string, bool, error) {
+	// Check for deposit type
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
 	if err != nil {
 		return "", false, err
 	}
 
-	for {
-		var ptiTrx external.TransactionStatus
-		err = workflow.ExecuteActivity(ctx, a.GetPTITransaction, txID).Get(ctx, &ptiTrx)
+	if pt == payments.TypeWithdrawal {
+		var txID string
+		err = workflow.ExecuteActivity(ctx, a.PTIWithdrawal, paymentID).Get(ctx, &txID)
 		if err != nil {
 			return "", false, err
 		}
 
-		if ptiTrx.Status == "AUTHORIZED" || ptiTrx.Status == "SETTLED" {
-			break
-		} else if ptiTrx.Status == "ERROR" || ptiTrx.Status == "REFUSED" || ptiTrx.Status == "CANCELED" {
-			// Notify the Payout worklfow of failure
-			innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
-				PaymentID:    paymentID,
-				PayInSuccess: false,
-			}).Get(ctx, nil)
-			return "", false, innerErr
-		} else {
-			continue
+		return txID, true, nil
+	} else if pt == payments.TypePeer2Peer {
+		var txID string
+		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+			return uuid.NewString()
+		}).Get(&txID)
+		if err != nil {
+			return "", false, err
 		}
+		err = workflow.ExecuteActivity(ctx, ptiA.CreateWalletTransfer, paymentID, txID).Get(ctx, nil)
+		if err != nil {
+			return "", false, err
+		}
+
+		for {
+			var ptiTrx external.TransactionStatus
+			err = workflow.ExecuteActivity(ctx, ptiA.GetPTITransaction, txID).Get(ctx, &ptiTrx)
+			if err != nil {
+				return "", false, err
+			}
+
+			if ptiTrx.Status == "AUTHORIZED" || ptiTrx.Status == "SETTLED" {
+				break
+			} else if ptiTrx.Status == "ERROR" || ptiTrx.Status == "REFUSED" || ptiTrx.Status == "CANCELED" {
+				// Notify the Payout worklfow of failure
+				innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
+					PaymentID:    paymentID,
+					PayInSuccess: false,
+				}).Get(ctx, nil)
+				return "", false, innerErr
+			} else {
+				continue
+			}
+		}
+
+		return txID, true, nil
 	}
 
-	return txID, true, nil
+	return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for pti pay in flow", "InvalidArgument", pti.ErrInternal, "paymentID", paymentID, "type", pt)
 }
 
 func xagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
@@ -587,7 +612,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	case xago.ProviderName:
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 	case pti.ProviderName:
-		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, ptiActivity, paymentID)
+		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID)
 	case astra.ProviderName:
 		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
 	default:
@@ -647,20 +672,46 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	return nil
 }
 
-func ptiPayOut(ctx, accountsCtx workflow.Context, a *pti_ops.Activity, paymentID string) (string, bool, error) {
-	var ptiTrx external.TransactionStatus
-	err := workflow.ExecuteActivity(accountsCtx, a.GetPTITransactionByPaymentID, paymentID).Get(ctx, &ptiTrx)
+func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID string) (string, bool, error) {
+	// Check for withdrawal type
+	var pt payments.Type
+	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
 	if err != nil {
 		return "", false, err
 	}
 
-	if ptiTrx.Status == "PENDING" || ptiTrx.Status == "MANUAL_REVIEW" {
-		return "", false, temporal.NewApplicationError("PTI transaction is pending", "ErrInternal")
-	} else if ptiTrx.Status == "ERROR" || ptiTrx.Status == "REFUSED" || ptiTrx.Status == "CANCELED" || ptiTrx.Status == "REFUNDED" || ptiTrx.Status == "CHARGED_BACK" {
-		return "", false, temporal.NewNonRetryableApplicationError("PTI transaction failed", "ErrInternal", pti.ErrInternal)
+	if pt == payments.TypeDeposit {
+		// Create Deposit
+		var txID string
+		err = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &txID)
+		if err != nil {
+			return "", false, err
+		}
+
+		// Mark deposit as completed, pay in was successful
+		err = workflow.ExecuteActivity(ctx, a.PTIDepositComplete, paymentID, txID, true).Get(ctx, nil)
+		if err != nil {
+			return "", false, err
+		}
+
+		return txID, true, nil
+	} else if pt == payments.TypePeer2Peer {
+		var ptiTrx external.TransactionStatus
+		err = workflow.ExecuteActivity(accountsCtx, ptiA.GetPTITransactionByPaymentID, paymentID).Get(ctx, &ptiTrx)
+		if err != nil {
+			return "", false, err
+		}
+
+		if ptiTrx.Status == "PENDING" || ptiTrx.Status == "MANUAL_REVIEW" {
+			return "", false, temporal.NewApplicationError("PTI transaction is pending", "ErrInternal")
+		} else if ptiTrx.Status == "ERROR" || ptiTrx.Status == "REFUSED" || ptiTrx.Status == "CANCELED" || ptiTrx.Status == "REFUNDED" || ptiTrx.Status == "CHARGED_BACK" {
+			return "", false, temporal.NewNonRetryableApplicationError("PTI transaction failed", "ErrInternal", pti.ErrInternal)
+		}
+
+		return ptiTrx.RequestID, true, nil
 	}
 
-	return ptiTrx.RequestID, true, nil
+	return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for pti pay out flow", "InvalidArgument", pti.ErrInternal, "paymentID", paymentID, "type", pt)
 }
 
 func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID string) (string, bool, error) {
@@ -844,6 +895,12 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 	err = workflow.ExecuteActivity(ctx, a.RollbackBalance, paymentID).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error rolling back balance reserve", "Error", err)
+		return err
+	}
+
+	// Rollback PTI withdrawal
+	err = workflow.ExecuteActivity(ctx, a.PTIWithdrawalComplete, paymentID, false).Get(ctx, nil)
+	if err != nil {
 		return err
 	}
 

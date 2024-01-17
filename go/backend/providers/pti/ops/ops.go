@@ -157,7 +157,7 @@ func UpdateTransactionStatus(ctx context.Context, b Backends, ex external.Client
 	_, err := ex.UpdateTransactionStatus(ctx, external.UpdateTxStatusArgs{
 		RequestID:     args.PaymentID,
 		TransactionID: args.TransactionID,
-		Feedback:      args.Status,
+		Feedback:      string(args.Status),
 		Date:          time.Now(),
 	})
 	if err != nil {

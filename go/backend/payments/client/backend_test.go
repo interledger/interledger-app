@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -321,4 +323,8 @@ func (b *TestBackends) Limits() limits.Client {
 
 func (b *TestBackends) Payments() payments.Client {
 	return payments_client.New(b)
+}
+
+func (b *TestBackends) PTI() pti.Client {
+	return nil
 }

@@ -3,6 +3,8 @@ package ops
 import (
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/limits"
@@ -46,6 +48,7 @@ type Backends interface {
 	Xago() xago.Client
 	Limits() limits.Client
 	Astra() astra.Client
+	PTI() pti.Client
 }
 
 type TestBackends struct {
@@ -60,6 +63,10 @@ type TestBackends struct {
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
 	Tbp *tabapay_mock.MockClient
+}
+
+func (t TestBackends) PTI() pti.Client {
+	return nil
 }
 
 func (t TestBackends) Astra() astra.Client {

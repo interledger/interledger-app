@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/limits"
@@ -136,6 +138,10 @@ type backends struct {
 	img            images.Client
 	walletImpl     wallets.Client
 	pay            payments.Client
+}
+
+func (b *backends) PTI() pti.Client {
+	return nil
 }
 
 func (b *backends) Limits() limits.Client {
