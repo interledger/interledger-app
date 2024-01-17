@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -952,6 +954,245 @@ func (c client) GetTransaction(ctx context.Context, requestID string) (*Transact
 	}
 
 	return &trx, nil
+}
+
+func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+		meta.Context = strings.Join(
+			[]string{fmt.Sprintf("%s=%s", ptiScenarioIDHeader, args.ScenarioID), fmt.Sprintf("%s=%s", ptiRequestIDHeader, args.RequestID), meta.Context},
+			",",
+		)
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+			Context:  fmt.Sprintf("%s=%s,%s=%s", ptiScenarioIDHeader, args.ScenarioID, ptiRequestIDHeader, args.RequestID),
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "transactions", "deposits")
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	reqArgs := internalCreateDepositArgs{
+		Initiator: Initiator{
+			UserID: args.UserID,
+			Type:   "PERSON",
+		},
+		SourceMethod: SourceMethod{
+			Currency: args.Amount.Currency.String(),
+			PaymentInformation: PaymentInformation{
+				Type:                          "ACH", // TODO: find where PTI actually define these
+				BankAccountPaymentInformation: BankAccountPaymentInformation{BankAccountNumber: astra.AccountNumber},
+			},
+			PaymentMethodType: "FIAT",
+		},
+		DestinationMethod: DestinationMethod{},
+		Amount:            args.Amount.Float64(),
+		Type:              "DEPOSIT",
+	}
+
+	payload, err := json.Marshal(reqArgs)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
+	req.Header.Add(ptiRequestIDHeader, args.RequestID)
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var txResp CreateTxResponse
+	err = json.Unmarshal(body, &txResp)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return txResp.ID, nil
+}
+
+func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (string, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+		meta.Context = strings.Join(
+			[]string{fmt.Sprintf("%s=%s", ptiScenarioIDHeader, args.ScenarioID), fmt.Sprintf("%s=%s", ptiRequestIDHeader, args.RequestID), meta.Context},
+			",",
+		)
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+			Context:  fmt.Sprintf("%s=%s,%s=%s", ptiScenarioIDHeader, args.ScenarioID, ptiRequestIDHeader, args.RequestID),
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "transactions", "withdrawals")
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	reqArgs := internalCreateWithdrawalArgs{
+		Initiator: Initiator{
+			UserID: args.UserID,
+			Type:   "PERSON",
+		},
+		SourceMethod: SourceMethod{
+			Currency: args.Amount.Currency.String(),
+			PaymentInformation: PaymentInformation{
+				Type:     "WALLET",
+				WalletID: args.ExternalWalletID,
+			},
+			PaymentMethodType: "WALLET",
+		},
+		DestinationMethod: WithdrawalDestinationMethod{
+			PaymentMethodType: "ACH",
+			PaymentInformation: PaymentInformation{
+				Type:                          "FIAT",
+				BankAccountPaymentInformation: BankAccountPaymentInformation{BankAccountNumber: astra.AccountNumber},
+			},
+		},
+		Amount: args.Amount.Float64(),
+		Type:   "WITHDRAWAL",
+	}
+
+	payload, err := json.Marshal(reqArgs)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiScenarioIDHeader, args.ScenarioID)
+	req.Header.Add(ptiRequestIDHeader, args.RequestID)
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var txResp CreateTxResponse
+	err = json.Unmarshal(body, &txResp)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return txResp.ID, nil
+}
+
+func (c client) UpdateTransactionStatus(ctx context.Context, args UpdateTxStatusArgs) (string, error) {
+	meta, ok := httplog.MetaForContext(ctx)
+	if ok {
+		meta.Method = "POST"
+		meta.Provider = "pti"
+		meta.Context = strings.Join(
+			[]string{fmt.Sprintf("%s=%s", ptiRequestIDHeader, args.RequestID), meta.Context},
+			",",
+		)
+	} else {
+		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
+			Method:   "POST",
+			Provider: "pti",
+			Context:  fmt.Sprintf("%s=%s", ptiRequestIDHeader, args.RequestID),
+		})
+	}
+
+	url, err := url.JoinPath(c.baseURL, "transactions", args.RequestID, "updates")
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	payload, err := json.Marshal(args)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	req.Header.Add(ptiRequestIDHeader, args.RequestID)
+	req.Header.Add(ptiClientIDHeader, c.clientID)
+	req.Header.Add("Content-Type", "application/json")
+	date := time.Now()
+	req.Header.Add("Date", date.Format(http.TimeFormat))
+	if err := Sign(ctx, req, date, payload, c.privateKey, c.publicKeyThumbprint); err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	resp, err := c.api.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	err = checkResponseStatusCode(resp)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+	defer resp.Body.Close()
+
+	var txResp CreateTxResponse
+	err = json.Unmarshal(body, &txResp)
+	if err != nil {
+		return "", fmt.Errorf("%w %s", ErrInternal, err)
+	}
+
+	return txResp.ID, nil
 }
 
 func checkResponseStatusCode(r *http.Response) error {

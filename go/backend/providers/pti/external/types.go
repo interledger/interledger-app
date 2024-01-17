@@ -2,6 +2,8 @@ package external
 
 import (
 	"time"
+
+	"gitlab.com/fynbos/backend/currency"
 )
 
 type (
@@ -144,7 +146,10 @@ type (
 	}
 
 	PaymentInformation struct {
-		Type string `json:"paymentInformationType"`
+		Type                            string                          `json:"paymentInformationType"`
+		BankAccountPaymentInformation   BankAccountPaymentInformation   `json:"bankAccountPaymentInformation,omitempty"`
+		EncryptedCardPaymentInformation EncryptedCardPaymentInformation `json:"encryptedCardPaymentInformation,omitempty"`
+		WalletID                        string                          `json:"wallet_id,omitempty"`
 	}
 
 	EncryptedCardPaymentInformation struct {
@@ -153,6 +158,73 @@ type (
 
 	BankAccountPaymentInformation struct {
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
+	}
+
+	UpdateTxStatusArgs struct {
+		RequestID     string    `json:"-"`
+		TransactionID string    `json:"transactionId"`
+		Feedback      string    `json:"feedback"`
+		Date          time.Time `json:"date"`
+	}
+
+	DepositArgs struct {
+		RequestID        string `json:"-"`
+		ScenarioID       string `json:"-"`
+		UserID           string `json:"-"`
+		ExternalWalletID string
+		Amount           currency.Amount
+	}
+	WithdrawalArgs struct {
+		RequestID        string `json:"-"`
+		ScenarioID       string `json:"-"`
+		UserID           string `json:"-"`
+		ExternalWalletID string
+		Amount           currency.Amount
+	}
+
+	CreateTxResponse struct {
+		ID   string `json:"id,omitempty"`
+		Link string `json:"link,omitempty"`
+	}
+
+	internalCreateWithdrawalArgs struct {
+		Initiator         Initiator                   `json:"initiator,omitempty"`
+		SourceMethod      SourceMethod                `json:"sourceMethod,omitempty"`
+		DestinationMethod WithdrawalDestinationMethod `json:"destinationMethod,omitempty"`
+		Amount            float64                     `json:"amount,omitempty"`
+		USDAmount         float64                     `json:"usdValue,omitempty"`
+		Type              string                      `json:"type,omitempty"`
+	}
+
+	WithdrawalDestinationMethod struct {
+		Currency           string             `json:"currency,omitempty"`
+		PaymentMethodType  string             `json:"paymentMethodType,omitempty"`
+		PaymentInformation PaymentInformation `json:"paymentInformation,omitempty"`
+	}
+
+	internalCreateDepositArgs struct {
+		Initiator         Initiator         `json:"initiator,omitempty"`
+		SourceMethod      SourceMethod      `json:"sourceMethod,omitempty"`
+		DestinationMethod DestinationMethod `json:"destinationMethod,omitempty"`
+		Amount            float64           `json:"amount,omitempty"`
+		Type              string            `json:"type,omitempty"`
+	}
+	Initiator struct {
+		UserID string `json:"userId,omitempty"`
+		Type   string `json:"type,omitempty"`
+	}
+	SourceMethod struct {
+		Currency           string             `json:"currency,omitempty"`
+		PaymentInformation PaymentInformation `json:"paymentInformation,omitempty"`
+		PaymentMethodType  string             `json:"paymentMethodType,omitempty"`
+	}
+	DestinationInformation struct {
+		Type     string `json:"type,omitempty"`
+		WalletID string `json:"walletId,omitempty"`
+	}
+	DestinationMethod struct {
+		PaymentMethodType  string                 `json:"paymentMethodType,omitempty"`
+		PaymentInformation DestinationInformation `json:"paymentInformation,omitempty"`
 	}
 
 	WalletPaymentMethod struct {
