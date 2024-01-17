@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { Address, AddXagoBalanceAccountRequest, AddXagoBankAccountRequest, Agreement, AstraDepositFromCardRequest, AstraWithdrawToCardRequest, CanSignupRequest, CanSignupResponse, CardDetails, CheckPhoneVerificationRequest, CompleteSignupRequest, ConfirmPaymentRequest, Connection, ConnectionLimits, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreatePaymentRequest, CreateSlackAuthURLResponse, CreateSupportTicketRequest, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, GetAgreementRequest, GetBalancesResponse, GetCardDetailsRequest, GetConnectionLimitsRequest, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetLinkedAccountRequest, GetLinkedAccountsForPaymentRequest, GetLinkedAccountsForPaymentResponse, GetLinkedAccountsResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPtiBalancesResponse, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetSignupRequest, GetXagoBalanceResponse, GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse, Identity, IndividualKYCResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCStatusResponse, LinkedAccount, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListLimitsResponse, ListPublicIdentitiesRequest, ListTransactionsResponse, LookupTransactionRequest, PaginationRequest, Payment, PublicWalletInfo, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, SubmitFormRequest, Transaction, TwitterCallbackRequest, TwitterCallbackResponse, UpdateClientLimitsRequest, UpdateConnectionLimitsRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressExistsRequest, WalletAddressExistsResponse, WalletInfo, WithdrawXagoBalanceRequest } from "./backend_pb.js";
+import { Address, AddXagoBalanceAccountRequest, AddXagoBankAccountRequest, Agreement, AstraDepositFromCardRequest, AstraWithdrawToCardRequest, CanSignupRequest, CanSignupResponse, CardDetails, CheckPhoneVerificationRequest, CompleteSignupRequest, ConfirmPaymentRequest, Connection, ConnectionLimits, Contact, CreateCardRequest, CreateConnectionRequest, CreateContactRequest, CreateDiscordAuthURLResponse, CreateDomainIdentityRequest, CreateDomainIdentityResponse, CreatePaymentRequest, CreateSlackAuthURLResponse, CreateSupportTicketRequest, CreateTwitterAuthURLResponse, CreateUserDefaultWalletRequest, CreateWalletAddressRequest, DeleteConnectionRequest, DeleteIdentityRequest, DeleteLinkedAccountRequest, DiscordCallbackRequest, DiscordCallbackResponse, Empty, Features, GetAgreementRequest, GetBalancesResponse, GetCardDetailsRequest, GetConnectionLimitsRequest, GetConnectionRequest, GetCountriesResponse, GetCurrentWalletResponse, GetIdentityBySignatureHashRequest, GetIdentityRequest, GetIdentityResponse, GetLinkedAccountRequest, GetLinkedAccountsForPaymentRequest, GetLinkedAccountsForPaymentResponse, GetLinkedAccountsForTransferRequest, GetLinkedAccountsResponse, GetPaymentAddressRequest, GetPaymentAddressResponse, GetPaymentRequest, GetPtiBalancesResponse, GetPublicWalletDetailsRequest, GetPublicWalletDetailsResponse, GetPublicWalletInfoRequest, GetSignupRequest, GetXagoBalanceResponse, GetXagoDepositDetailsRequest, GetXagoDepositDetailsResponse, Identity, IndividualKYCResponse, IsMugAvailableRequest, IsMugAvailableResponse, IsUSPSAddressResponse, JoinWaitlistRequest, JoinWaitlistResponse, KYCPersonaInquiryRequest, KYCPersonaInquiryResponse, KYCStatusResponse, LinkedAccount, ListConnectionsResponse, ListContactsRequest, ListContactsResponse, ListIdentitiesResponse, ListLimitsResponse, ListPublicIdentitiesRequest, ListTransactionsResponse, LookupTransactionRequest, PaginationRequest, Payment, PublicWalletInfo, SearchWalletsRequest, SearchWalletsResponse, SendPhoneVerificationRequest, SetDefaultReceiveLinkedAccountRequest, SetDefaultSendLinkedAccountRequest, SetIdentityPublicRequest, SetNicknameLinkedAccountRequest, SetSignupCompleteRequest, SetSignupMobileNumberRequest, SetSignupUserDataRequest, SetSignupUserDataResponse, SetWalletNameRequest, SignAgreementsRequest, SignAgreementsResponse, Signup, SlackCallbackRequest, SlackCallbackResponse, SubmitFormRequest, Transaction, TransferBalanceRequest, TwitterCallbackRequest, TwitterCallbackResponse, UpdateClientLimitsRequest, UpdateConnectionLimitsRequest, UpdateIndividualKYCRequest, UpdatePaymentRequest, VerifyIdentityRequest, WalletAddressExistsRequest, WalletAddressExistsResponse, WalletInfo, WithdrawXagoBalanceRequest } from "./backend_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -678,6 +678,42 @@ export const BackendService = {
       name: "GetBalances",
       I: Empty,
       O: GetBalancesResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.GetLinkedAccountsForWithdraw
+     */
+    getLinkedAccountsForWithdraw: {
+      name: "GetLinkedAccountsForWithdraw",
+      I: GetLinkedAccountsForTransferRequest,
+      O: GetLinkedAccountsForPaymentResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.WithdrawBalance
+     */
+    withdrawBalance: {
+      name: "WithdrawBalance",
+      I: TransferBalanceRequest,
+      O: Payment,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.GetLinkedAccountsForDeposit
+     */
+    getLinkedAccountsForDeposit: {
+      name: "GetLinkedAccountsForDeposit",
+      I: GetLinkedAccountsForTransferRequest,
+      O: GetLinkedAccountsForPaymentResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc backend.v1.BackendService.DepositBalance
+     */
+    depositBalance: {
+      name: "DepositBalance",
+      I: TransferBalanceRequest,
+      O: Payment,
       kind: MethodKind.Unary,
     },
     /**
