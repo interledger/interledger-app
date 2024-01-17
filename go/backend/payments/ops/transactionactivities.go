@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/providers/xago"
@@ -75,8 +77,10 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 	switch p.Type {
 	case payments.TypeWithdrawal:
 		transferType = transactions.TransferTypeDebitBalance
+	case payments.TypeDeposit:
+		transferType = transactions.TransferTypeDebitCard
 	case payments.TypePeer2Peer:
-		if la.Provider == tabapay.ProviderName {
+		if la.Provider == tabapay.ProviderName || la.ProviderID == pti.ProviderName {
 			transferType = transactions.TransferTypeDebitCard
 		} else if la.Provider == xago.ProviderName {
 			transferType = transactions.TransferTypeDebitBalance

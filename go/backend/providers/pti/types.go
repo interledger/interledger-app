@@ -72,5 +72,5 @@ type TransactionArgs struct {
 type TransactionStatusArgs struct {
 	PaymentID     string
 	TransactionID string
-	Status        string
+	Status        TransactionFeedback
 }

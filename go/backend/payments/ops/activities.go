@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -463,4 +465,91 @@ func (a *Activity) CheckAstraTransferStatus(ctx context.Context, paymentID, txID
 	}
 
 	return tx.Status, nil
+}
+
+func (a *Activity) PTIDeposit(ctx context.Context, paymentID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	txID, err := a.b.PTI().DepositToWallet(ctx, pti.TransactionArgs{
+		PaymentID:       paymentID,
+		WalletID:        p.Receiver.WalletID,
+		Amount:          p.ReceiverAmount,
+		LinkedAccountID: p.ReceiverAccount,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return txID, err
+}
+
+func (a *Activity) PTIWithdrawal(ctx context.Context, paymentID string) (string, error) {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return "", err
+	}
+
+	txID, err := a.b.PTI().WithdrawalFromWallet(ctx, pti.TransactionArgs{
+		PaymentID:       paymentID,
+		WalletID:        p.Sender.WalletID,
+		Amount:          p.SenderAmount,
+		LinkedAccountID: p.SenderAccount,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return txID, err
+}
+
+func (a *Activity) PTIWithdrawalComplete(ctx context.Context, paymentID string, success bool) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeWithdrawal {
+		return nil
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if err != nil {
+		return err
+	}
+	if la.Provider != pti.ProviderName {
+		return nil
+	}
+
+	trl, err := a.b.Transactions().ListTransfers(ctx, p.SendTransactionID)
+	if err != nil {
+		return err
+	}
+
+	// There's only one transfer for a withdrawal
+	var trxID string
+	for _, tr := range trl {
+		trxID = tr.ForeignID
+	}
+
+	state := pti.TransactionFeedbackAccepted
+	if !success {
+		state = pti.TransactionFeedbackCancelled
+	}
+
+	return a.b.PTI().UpdateTransactionStatus(ctx, pti.TransactionStatusArgs{
+		PaymentID:     paymentID,
+		TransactionID: trxID,
+		Status:        state,
+	})
+}
+
+func (a *Activity) PTIDepositComplete(ctx context.Context, paymentID, txID string) error {
+	return a.b.PTI().UpdateTransactionStatus(ctx, pti.TransactionStatusArgs{
+		PaymentID:     paymentID,
+		TransactionID: txID,
+		Status:        pti.TransactionFeedbackSettled,
+	})
 }
