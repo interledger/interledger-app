@@ -6,6 +6,9 @@ import (
 
 	"github.com/google/uuid"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/pti/external"
+	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -174,6 +177,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 
 func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	var a *Activity
+	var ptiActivity *pti_ops.Activity
 
 	accountsAO := workflow.ActivityOptions{
 		StartToCloseTimeout: 2 * time.Minute,
@@ -215,6 +219,8 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			txID, success, err = tabapayPayIn(ctx, accountsCtx, a, paymentID)
 		case xago.ProviderName:
 			txID, success, err = xagoPayIn(ctx, a, paymentID)
+		case pti.ProviderName:
+			txID, success, err = ptiPayIn(ctx, ptiActivity, paymentID)
 		default:
 			return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 		}
@@ -312,6 +318,43 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 	return workflow.ExecuteChildWorkflow(childCtx, RollbackPayInWorkflow, paymentID).Get(childCtx, nil)
 }
 
+func ptiPayIn(ctx workflow.Context, a *pti_ops.Activity, paymentID string) (string, bool, error) {
+	var txID string
+	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return uuid.NewString()
+	}).Get(&txID)
+	if err != nil {
+		return "", false, err
+	}
+	err = workflow.ExecuteActivity(ctx, a.CreateWalletTransfer, paymentID, txID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	for {
+		var ptiTrx external.TransactionStatus
+		err = workflow.ExecuteActivity(ctx, a.GetPTITransaction, txID).Get(ctx, &ptiTrx)
+		if err != nil {
+			return "", false, err
+		}
+
+		if ptiTrx.Status == "AUTHORIZED" || ptiTrx.Status == "SETTLED" {
+			break
+		} else if ptiTrx.Status == "ERROR" || ptiTrx.Status == "REFUSED" || ptiTrx.Status == "CANCELED" {
+			// Notify the Payout worklfow of failure
+			innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
+				PaymentID:    paymentID,
+				PayInSuccess: false,
+			}).Get(ctx, nil)
+			return "", false, innerErr
+		} else {
+			continue
+		}
+	}
+
+	return txID, true, nil
+}
+
 func xagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
 	var txID string
 	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
@@ -393,6 +436,7 @@ const (
 
 func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	var a *Activity
+	var ptiActivity *pti_ops.Activity
 
 	accountsAO := workflow.ActivityOptions{
 		StartToCloseTimeout: 2 * time.Minute,
@@ -487,6 +531,8 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 		externalTXID, success, err = tabapayPayOut(ctx, accountsCtx, a, paymentID)
 	case xago.ProviderName:
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
+	case pti.ProviderName:
+		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, ptiActivity, paymentID)
 	default:
 		return temporal.NewNonRetryableApplicationError("unsupported linked account provider", "InvalidArgument", nil, "provider", la.Provider)
 	}
@@ -542,6 +588,22 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	}
 
 	return nil
+}
+
+func ptiPayOut(ctx, accountsCtx workflow.Context, a *pti_ops.Activity, paymentID string) (string, bool, error) {
+	var ptiTrx external.TransactionStatus
+	err := workflow.ExecuteActivity(accountsCtx, a.GetPTITransactionByPaymentID, paymentID).Get(ctx, &ptiTrx)
+	if err != nil {
+		return "", false, err
+	}
+
+	if ptiTrx.Status == "PENDING" || ptiTrx.Status == "MANUAL_REVIEW" {
+		return "", false, temporal.NewApplicationError("PTI transaction is pending", "ErrInternal")
+	} else if ptiTrx.Status == "ERROR" || ptiTrx.Status == "REFUSED" || ptiTrx.Status == "CANCELED" || ptiTrx.Status == "REFUNDED" || ptiTrx.Status == "CHARGED_BACK" {
+		return "", false, temporal.NewNonRetryableApplicationError("PTI transaction failed", "ErrInternal", pti.ErrInternal)
+	}
+
+	return ptiTrx.RequestID, true, nil
 }
 
 func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID string) (string, bool, error) {

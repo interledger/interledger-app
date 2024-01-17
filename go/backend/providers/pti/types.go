@@ -11,6 +11,7 @@ var (
 	ProviderName   = "pti"
 	AccTypeBalance = "balance"
 
+	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
 	ScenarioWithdrawal = "fynbos_withdrawal"
 )
