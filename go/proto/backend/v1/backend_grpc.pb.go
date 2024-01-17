@@ -95,6 +95,10 @@ const (
 	BackendService_ConfirmPayment_FullMethodName                 = "/backend.v1.BackendService/ConfirmPayment"
 	BackendService_GetLinkedAccountsForPayment_FullMethodName    = "/backend.v1.BackendService/GetLinkedAccountsForPayment"
 	BackendService_GetBalances_FullMethodName                    = "/backend.v1.BackendService/GetBalances"
+	BackendService_GetLinkedAccountsForWithdraw_FullMethodName   = "/backend.v1.BackendService/GetLinkedAccountsForWithdraw"
+	BackendService_WithdrawBalance_FullMethodName                = "/backend.v1.BackendService/WithdrawBalance"
+	BackendService_GetLinkedAccountsForDeposit_FullMethodName    = "/backend.v1.BackendService/GetLinkedAccountsForDeposit"
+	BackendService_DepositBalance_FullMethodName                 = "/backend.v1.BackendService/DepositBalance"
 	BackendService_SearchWallets_FullMethodName                  = "/backend.v1.BackendService/SearchWallets"
 	BackendService_DiscordCallback_FullMethodName                = "/backend.v1.BackendService/DiscordCallback"
 	BackendService_CreateDiscordAuthURL_FullMethodName           = "/backend.v1.BackendService/CreateDiscordAuthURL"
@@ -213,6 +217,10 @@ type BackendServiceClient interface {
 	GetLinkedAccountsForPayment(ctx context.Context, in *GetLinkedAccountsForPaymentRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error)
 	// Balances
 	GetBalances(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetBalancesResponse, error)
+	GetLinkedAccountsForWithdraw(ctx context.Context, in *GetLinkedAccountsForTransferRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error)
+	WithdrawBalance(ctx context.Context, in *TransferBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
+	GetLinkedAccountsForDeposit(ctx context.Context, in *GetLinkedAccountsForTransferRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error)
+	DepositBalance(ctx context.Context, in *TransferBalanceRequest, opts ...grpc.CallOption) (*Payment, error)
 	// Search
 	SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error)
 	// Discord
@@ -928,6 +936,42 @@ func (c *backendServiceClient) GetBalances(ctx context.Context, in *Empty, opts 
 	return out, nil
 }
 
+func (c *backendServiceClient) GetLinkedAccountsForWithdraw(ctx context.Context, in *GetLinkedAccountsForTransferRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error) {
+	out := new(GetLinkedAccountsForPaymentResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetLinkedAccountsForWithdraw_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) WithdrawBalance(ctx context.Context, in *TransferBalanceRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, BackendService_WithdrawBalance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetLinkedAccountsForDeposit(ctx context.Context, in *GetLinkedAccountsForTransferRequest, opts ...grpc.CallOption) (*GetLinkedAccountsForPaymentResponse, error) {
+	out := new(GetLinkedAccountsForPaymentResponse)
+	err := c.cc.Invoke(ctx, BackendService_GetLinkedAccountsForDeposit_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) DepositBalance(ctx context.Context, in *TransferBalanceRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, BackendService_DepositBalance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendServiceClient) SearchWallets(ctx context.Context, in *SearchWalletsRequest, opts ...grpc.CallOption) (*SearchWalletsResponse, error) {
 	out := new(SearchWalletsResponse)
 	err := c.cc.Invoke(ctx, BackendService_SearchWallets_FullMethodName, in, out, opts...)
@@ -1156,6 +1200,10 @@ type BackendServiceServer interface {
 	GetLinkedAccountsForPayment(context.Context, *GetLinkedAccountsForPaymentRequest) (*GetLinkedAccountsForPaymentResponse, error)
 	// Balances
 	GetBalances(context.Context, *Empty) (*GetBalancesResponse, error)
+	GetLinkedAccountsForWithdraw(context.Context, *GetLinkedAccountsForTransferRequest) (*GetLinkedAccountsForPaymentResponse, error)
+	WithdrawBalance(context.Context, *TransferBalanceRequest) (*Payment, error)
+	GetLinkedAccountsForDeposit(context.Context, *GetLinkedAccountsForTransferRequest) (*GetLinkedAccountsForPaymentResponse, error)
+	DepositBalance(context.Context, *TransferBalanceRequest) (*Payment, error)
 	// Search
 	SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error)
 	// Discord
@@ -1410,6 +1458,18 @@ func (UnimplementedBackendServiceServer) GetLinkedAccountsForPayment(context.Con
 }
 func (UnimplementedBackendServiceServer) GetBalances(context.Context, *Empty) (*GetBalancesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBalances not implemented")
+}
+func (UnimplementedBackendServiceServer) GetLinkedAccountsForWithdraw(context.Context, *GetLinkedAccountsForTransferRequest) (*GetLinkedAccountsForPaymentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccountsForWithdraw not implemented")
+}
+func (UnimplementedBackendServiceServer) WithdrawBalance(context.Context, *TransferBalanceRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawBalance not implemented")
+}
+func (UnimplementedBackendServiceServer) GetLinkedAccountsForDeposit(context.Context, *GetLinkedAccountsForTransferRequest) (*GetLinkedAccountsForPaymentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLinkedAccountsForDeposit not implemented")
+}
+func (UnimplementedBackendServiceServer) DepositBalance(context.Context, *TransferBalanceRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositBalance not implemented")
 }
 func (UnimplementedBackendServiceServer) SearchWallets(context.Context, *SearchWalletsRequest) (*SearchWalletsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchWallets not implemented")
@@ -2833,6 +2893,78 @@ func _BackendService_GetBalances_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_GetLinkedAccountsForWithdraw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLinkedAccountsForTransferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetLinkedAccountsForWithdraw(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetLinkedAccountsForWithdraw_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetLinkedAccountsForWithdraw(ctx, req.(*GetLinkedAccountsForTransferRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_WithdrawBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).WithdrawBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_WithdrawBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).WithdrawBalance(ctx, req.(*TransferBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetLinkedAccountsForDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLinkedAccountsForTransferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetLinkedAccountsForDeposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetLinkedAccountsForDeposit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetLinkedAccountsForDeposit(ctx, req.(*GetLinkedAccountsForTransferRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_DepositBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).DepositBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_DepositBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).DepositBalance(ctx, req.(*TransferBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _BackendService_SearchWallets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchWalletsRequest)
 	if err := dec(in); err != nil {
@@ -3395,6 +3527,22 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBalances",
 			Handler:    _BackendService_GetBalances_Handler,
+		},
+		{
+			MethodName: "GetLinkedAccountsForWithdraw",
+			Handler:    _BackendService_GetLinkedAccountsForWithdraw_Handler,
+		},
+		{
+			MethodName: "WithdrawBalance",
+			Handler:    _BackendService_WithdrawBalance_Handler,
+		},
+		{
+			MethodName: "GetLinkedAccountsForDeposit",
+			Handler:    _BackendService_GetLinkedAccountsForDeposit_Handler,
+		},
+		{
+			MethodName: "DepositBalance",
+			Handler:    _BackendService_DepositBalance_Handler,
 		},
 		{
 			MethodName: "SearchWallets",
