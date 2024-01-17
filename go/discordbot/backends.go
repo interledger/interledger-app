@@ -2,6 +2,7 @@ package main
 
 import (
 	limits_client "gitlab.com/fynbos/backend/limits/client"
+	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/discordbot/ops"
@@ -75,6 +76,10 @@ type Backends struct {
 	kyc     kyc.Client
 	user    user.Client
 	discord *discordgo.Session
+}
+
+func (b *Backends) Astra() astra.Client {
+	return nil
 }
 
 func (b *Backends) Xago() xago.Client {
