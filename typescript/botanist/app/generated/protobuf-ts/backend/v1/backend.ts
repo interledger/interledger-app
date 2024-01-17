@@ -32,6 +32,48 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.AstraDepositFromCardRequest
+ */
+export interface AstraDepositFromCardRequest {
+    /**
+     * @generated from protobuf field: string fromLinkedAccount = 1;
+     */
+    fromLinkedAccount: string; // Astra Card
+    /**
+     * @generated from protobuf field: string toLinkedAccount = 2;
+     */
+    toLinkedAccount: string; // PTI Balance
+    /**
+     * @generated from protobuf field: backend.v1.Amount amount = 3;
+     */
+    amount?: Amount;
+    /**
+     * @generated from protobuf field: string note = 4;
+     */
+    note: string;
+}
+/**
+ * @generated from protobuf message backend.v1.AstraWithdrawToCardRequest
+ */
+export interface AstraWithdrawToCardRequest {
+    /**
+     * @generated from protobuf field: string fromLinkedAccount = 1;
+     */
+    fromLinkedAccount: string; // PTI Balance
+    /**
+     * @generated from protobuf field: string toLinkedAccount = 2;
+     */
+    toLinkedAccount: string; // Astra Card
+    /**
+     * @generated from protobuf field: backend.v1.Amount amount = 3;
+     */
+    amount?: Amount;
+    /**
+     * @generated from protobuf field: string note = 4;
+     */
+    note: string;
+}
+/**
  * @generated from protobuf message backend.v1.GetPtiBalancesResponse
  */
 export interface GetPtiBalancesResponse {
@@ -2391,6 +2433,142 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AstraDepositFromCardRequest$Type extends MessageType<AstraDepositFromCardRequest> {
+    constructor() {
+        super("backend.v1.AstraDepositFromCardRequest", [
+            { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "amount", kind: "message", T: () => Amount },
+            { no: 4, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AstraDepositFromCardRequest>): AstraDepositFromCardRequest {
+        const message = { fromLinkedAccount: "", toLinkedAccount: "", note: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AstraDepositFromCardRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AstraDepositFromCardRequest): AstraDepositFromCardRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fromLinkedAccount */ 1:
+                    message.fromLinkedAccount = reader.string();
+                    break;
+                case /* string toLinkedAccount */ 2:
+                    message.toLinkedAccount = reader.string();
+                    break;
+                case /* backend.v1.Amount amount */ 3:
+                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                case /* string note */ 4:
+                    message.note = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AstraDepositFromCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fromLinkedAccount = 1; */
+        if (message.fromLinkedAccount !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fromLinkedAccount);
+        /* string toLinkedAccount = 2; */
+        if (message.toLinkedAccount !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.toLinkedAccount);
+        /* backend.v1.Amount amount = 3; */
+        if (message.amount)
+            Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string note = 4; */
+        if (message.note !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.note);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AstraDepositFromCardRequest
+ */
+export const AstraDepositFromCardRequest = new AstraDepositFromCardRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AstraWithdrawToCardRequest$Type extends MessageType<AstraWithdrawToCardRequest> {
+    constructor() {
+        super("backend.v1.AstraWithdrawToCardRequest", [
+            { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "amount", kind: "message", T: () => Amount },
+            { no: 4, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<AstraWithdrawToCardRequest>): AstraWithdrawToCardRequest {
+        const message = { fromLinkedAccount: "", toLinkedAccount: "", note: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<AstraWithdrawToCardRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AstraWithdrawToCardRequest): AstraWithdrawToCardRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fromLinkedAccount */ 1:
+                    message.fromLinkedAccount = reader.string();
+                    break;
+                case /* string toLinkedAccount */ 2:
+                    message.toLinkedAccount = reader.string();
+                    break;
+                case /* backend.v1.Amount amount */ 3:
+                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                case /* string note */ 4:
+                    message.note = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AstraWithdrawToCardRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fromLinkedAccount = 1; */
+        if (message.fromLinkedAccount !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fromLinkedAccount);
+        /* string toLinkedAccount = 2; */
+        if (message.toLinkedAccount !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.toLinkedAccount);
+        /* backend.v1.Amount amount = 3; */
+        if (message.amount)
+            Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string note = 4; */
+        if (message.note !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.note);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.AstraWithdrawToCardRequest
+ */
+export const AstraWithdrawToCardRequest = new AstraWithdrawToCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetPtiBalancesResponse$Type extends MessageType<GetPtiBalancesResponse> {
     constructor() {
@@ -10628,5 +10806,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "WithdrawXagoBalance", options: {}, I: WithdrawXagoBalanceRequest, O: Payment },
     { name: "GetXagoBalances", options: {}, I: Empty, O: GetXagoBalanceResponse },
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
-    { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse }
+    { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
+    { name: "AstraDepositFromCard", options: {}, I: AstraDepositFromCardRequest, O: Payment },
+    { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment }
 ]);
