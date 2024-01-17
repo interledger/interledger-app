@@ -241,6 +241,13 @@ func onKYCApproved(ctx context.Context, b Backends, walletID string) {
 		return
 	}
 
+	if w.Country == country.US {
+		err = b.Astra().StartKYC(ctx, walletID)
+		if err != nil {
+			slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("Failed to start astra KYC process for wallet. %s/wallet/%s/profile", env.AdminURL(), walletID))
+		}
+	}
+
 	if w.Country != country.ZA {
 		slack.SendToChannel(ctx, slack.ChannelNotifyEvents, "fynbot", fmt.Sprintf("KYC approved for wallet. %s/wallet/%s/profile. Country=%s. Manual creation of balance account required.", env.AdminURL(), walletID, w.Country))
 		return

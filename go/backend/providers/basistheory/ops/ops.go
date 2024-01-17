@@ -41,6 +41,14 @@ func CreateCard(ctx context.Context, b Backends, args basistheory.CreateCardArgs
 		return nil, fmt.Errorf("%w %s.", basistheory.ErrInternal, err)
 	}
 
+	if args.Bin == "" {
+		args.Bin = "******"
+	}
+	if args.PullType == "" && token.HasEnrichments() && token.Enrichments.HasBinDetails() {
+		args.PullType = *token.Enrichments.BinDetails.Type.Get()
+		args.PushType = *token.Enrichments.BinDetails.Type.Get()
+	}
+
 	err = b.DB().GetContext(
 		ctx,
 		&card,

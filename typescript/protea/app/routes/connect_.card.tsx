@@ -130,7 +130,7 @@ export default function Page() {
         metadata: {
           wallet_id: walletId
         },
-        deduplicate_token: true,
+        deduplicate_token: false,
         fingerprint_expression: '{{ metadata.wallet_id }}{{ data.number }}'
       })
       .then((token) => {
