@@ -2,6 +2,7 @@ package ops
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/payments"
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
@@ -176,3 +178,122 @@ func (a *Activity) CreatePtiWalletLinkedAccount(ctx context.Context, args linked
 
 	return a.b.LinkedAccounts().Create(ctx, &args)
 }
+
+func (a *Activity) PTIValidatePayment(ctx context.Context, paymentID string) error {
+	p, err := a.b.Payments().Lookup(ctx, paymentID)
+	if errors.Is(err, payments.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("Payment not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	if p.State == payments.StateProcessing {
+		return temporal.NewNonRetryableApplicationError("Payment not in processing state", "ErrInternal", err)
+	}
+
+	return nil
+}
+
+func (a *Activity) CreateWalletTransfer(ctx context.Context, paymentID, requestID string) (*external.IDResponse, error) {
+	p, err := a.b.Payments().Lookup(ctx, paymentID)
+	if errors.Is(err, payments.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("Payment not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	senderPTIUser, err := GetUser(ctx, a.b, p.Sender.WalletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("PTI user not found for sender", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	senderPTIWalletLinkedAccount, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("PTI linked account not found for sender", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	receiverPTIUser, err := GetUser(ctx, a.b, p.Sender.WalletID)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("PTI user not found for sender", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	receiverPTIWalletLinkedAccount, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if errors.Is(err, pti.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("PTI linked account not found for receiver", "ErrNotFound", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	trxResp, err := a.external.CreateTransfer(ctx, external.TransferArgs{
+		RequestID:  requestID,
+		ScenarioID: pti.ScenarioTransfer,
+		Amount:     p.SenderAmount.Float64(),
+		USDValue:   p.SenderAmount.Float64(),
+		Initiator: external.User{
+			ID:   senderPTIUser.ExternalID,
+			Type: "PERSON",
+		},
+		SourceTransferMethod: external.WalletPaymentMethod{
+			Type: "WALLET",
+			ID:   senderPTIWalletLinkedAccount.ProviderID,
+		},
+		Destination: &external.User{
+			ID:   receiverPTIUser.ExternalID,
+			Type: "PERSON",
+		},
+		DestinationTransferMethod: external.WalletPaymentMethod{
+			ID:   receiverPTIWalletLinkedAccount.ProviderID,
+			Type: "WALLET",
+		},
+		Type:           "TRANSFER",
+		DisableWebhook: true, // our workflows keep the context
+	})
+	if errors.Is(err, external.ErrNotFound) {
+		return nil, temporal.NewNonRetryableApplicationError("PTI user not found", "ErrNotFound", err)
+	}
+	if errors.Is(err, external.ErrUnprocessableEntity) {
+		return nil, temporal.NewNonRetryableApplicationError("PTI unable to process assessment", "ErrInternal", err)
+	}
+
+	return trxResp, err
+}
+
+func (a *Activity) SavePTITransaction(ctx context.Context, paymentID, requestID string) error {
+	res, err := a.b.DB().ExecContext(ctx, "INSERT INTO pti_transactions (payment_id, external_request_id) VALUES ($1,$2);", paymentID, requestID)
+	if err != nil {
+		return err
+	}
+
+	if rows, _ := res.RowsAffected(); rows < 1 {
+		return fmt.Errorf("%w Failed to insert pti_transaction", pti.ErrInternal)
+	}
+
+	return nil
+}
+
+func (a *Activity) GetPTITransactionByPaymentID(ctx context.Context, paymentID string) (*external.TransactionStatus, error) {
+	var externalReqeustID string
+	err := a.b.DB().GetContext(ctx, &externalReqeustID, "SELECT external_request_id FROM pti_transactions WHERE payment_id=$1 ORDER BY created_at DESC LIMIT 1;", paymentID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, temporal.NewNonRetryableApplicationError("PTI transaction not found for payment", "ErrNotFound", err)
+	}
+
+	return a.external.GetTransaction(ctx, externalReqeustID)
+}
+
+func (a *Activity) GetPTITransaction(ctx context.Context, requestID string) (*external.TransactionStatus, error) {
+	return a.external.GetTransaction(ctx, requestID)
+}
+

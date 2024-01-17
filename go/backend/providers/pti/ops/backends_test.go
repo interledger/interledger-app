@@ -11,6 +11,8 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	la_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	"gitlab.com/fynbos/backend/payments"
+	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
 	temporal "go.temporal.io/sdk/client"
@@ -21,6 +23,11 @@ type Backends struct {
 	kyc   *kyc_mock.MockClient
 	la    *la_mock.MockClient
 	users *user_mock.MockClient
+	pc    *payments_mock.MockClient
+}
+
+func (b Backends) Payments() payments.Client {
+	return b.pc
 }
 
 func (b Backends) DB() *sqlx.DB {
@@ -54,5 +61,6 @@ func NewBackends(t *testing.T) *Backends {
 		kyc:   kyc_mock.NewMockClient(ctrl),
 		la:    la_mock.NewMockClient(ctrl),
 		users: user_mock.NewMock(),
+		pc:    payments_mock.NewMockClient(ctrl),
 	}
 }
