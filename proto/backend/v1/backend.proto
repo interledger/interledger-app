@@ -132,6 +132,14 @@ service BackendService {
 
   // Balances
   rpc GetBalances(Empty) returns (GetBalancesResponse);
+  rpc GetBalanceDepositDetails(GetXagoDepositDetailsRequest) returns (GetXagoDepositDetailsResponse);
+
+  rpc GetLinkedAccountsForWithdraw(GetLinkedAccountsForTransferRequest) returns (GetLinkedAccountsForPaymentResponse);
+  rpc WithdrawBalance(TransferBalanceRequest) returns (Payment);
+
+  rpc GetLinkedAccountsForDeposit(GetLinkedAccountsForTransferRequest) returns (GetLinkedAccountsForPaymentResponse);
+  rpc DepositBalance(TransferBalanceRequest) returns (Payment);
+
   // Search
   rpc SearchWallets(SearchWalletsRequest) returns (SearchWalletsResponse);
 
@@ -175,6 +183,11 @@ message AstraWithdrawToCardRequest {
   string note = 4;
 }
 
+message GetLinkedAccountsForTransferRequest {
+  // The ID of the linked account for the balance to deposit to/withdraw from.
+  string linkedAccountId = 1;
+}
+
 message GetLinkedAccountsForPaymentRequest {
   string paymentId = 1;
 }
@@ -202,7 +215,6 @@ message XagoDepositDetails {
   string branchCode = 3;
   string bankName = 4;
   string depositReference = 5;
-
 }
 
 message GetBalancesResponse {
@@ -378,6 +390,13 @@ message CreatePaymentRequest {
   optional string note = 7;
   optional string ipAddress = 8;
   optional bool addPaymentProtection = 9;
+}
+
+message TransferBalanceRequest {
+  string fromLinkedAccount = 1;
+  string toLinkedAccount = 2;
+  Amount amount = 3;
+  string note = 4;
 }
 
 message GetCardDetailsRequest {

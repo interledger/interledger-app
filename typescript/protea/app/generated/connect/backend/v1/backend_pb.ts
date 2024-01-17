@@ -199,6 +199,45 @@ export class AstraWithdrawToCardRequest extends Message<AstraWithdrawToCardReque
 }
 
 /**
+ * @generated from message backend.v1.GetLinkedAccountsForTransferRequest
+ */
+export class GetLinkedAccountsForTransferRequest extends Message<GetLinkedAccountsForTransferRequest> {
+  /**
+   * The ID of the linked account for the balance to deposit to/withdraw from.
+   *
+   * @generated from field: string linkedAccountId = 1;
+   */
+  linkedAccountId = "";
+
+  constructor(data?: PartialMessage<GetLinkedAccountsForTransferRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.GetLinkedAccountsForTransferRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "linkedAccountId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetLinkedAccountsForTransferRequest {
+    return new GetLinkedAccountsForTransferRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetLinkedAccountsForTransferRequest {
+    return new GetLinkedAccountsForTransferRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetLinkedAccountsForTransferRequest {
+    return new GetLinkedAccountsForTransferRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetLinkedAccountsForTransferRequest | PlainMessage<GetLinkedAccountsForTransferRequest> | undefined, b: GetLinkedAccountsForTransferRequest | PlainMessage<GetLinkedAccountsForTransferRequest> | undefined): boolean {
+    return proto3.util.equals(GetLinkedAccountsForTransferRequest, a, b);
+  }
+}
+
+/**
  * @generated from message backend.v1.GetLinkedAccountsForPaymentRequest
  */
 export class GetLinkedAccountsForPaymentRequest extends Message<GetLinkedAccountsForPaymentRequest> {
@@ -1801,6 +1840,61 @@ export class CreatePaymentRequest extends Message<CreatePaymentRequest> {
 
   static equals(a: CreatePaymentRequest | PlainMessage<CreatePaymentRequest> | undefined, b: CreatePaymentRequest | PlainMessage<CreatePaymentRequest> | undefined): boolean {
     return proto3.util.equals(CreatePaymentRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message backend.v1.TransferBalanceRequest
+ */
+export class TransferBalanceRequest extends Message<TransferBalanceRequest> {
+  /**
+   * @generated from field: string fromLinkedAccount = 1;
+   */
+  fromLinkedAccount = "";
+
+  /**
+   * @generated from field: string toLinkedAccount = 2;
+   */
+  toLinkedAccount = "";
+
+  /**
+   * @generated from field: backend.v1.Amount amount = 3;
+   */
+  amount?: Amount;
+
+  /**
+   * @generated from field: string note = 4;
+   */
+  note = "";
+
+  constructor(data?: PartialMessage<TransferBalanceRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "backend.v1.TransferBalanceRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "amount", kind: "message", T: Amount },
+    { no: 4, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransferBalanceRequest {
+    return new TransferBalanceRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransferBalanceRequest {
+    return new TransferBalanceRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransferBalanceRequest {
+    return new TransferBalanceRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TransferBalanceRequest | PlainMessage<TransferBalanceRequest> | undefined, b: TransferBalanceRequest | PlainMessage<TransferBalanceRequest> | undefined): boolean {
+    return proto3.util.equals(TransferBalanceRequest, a, b);
   }
 }
 
