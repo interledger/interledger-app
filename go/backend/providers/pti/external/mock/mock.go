@@ -229,3 +229,48 @@ func (mr *MockClientMockRecorder) StartUserAssessment(ctx, args interface{}) *go
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartUserAssessment", reflect.TypeOf((*MockClient)(nil).StartUserAssessment), ctx, args)
 }
+
+// UpdateTransactionStatus mocks base method.
+func (m *MockClient) UpdateTransactionStatus(ctx context.Context, args external.UpdateTxStatusArgs) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTransactionStatus", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateTransactionStatus indicates an expected call of UpdateTransactionStatus.
+func (mr *MockClientMockRecorder) UpdateTransactionStatus(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTransactionStatus", reflect.TypeOf((*MockClient)(nil).UpdateTransactionStatus), ctx, args)
+}
+
+// WalletDeposit mocks base method.
+func (m *MockClient) WalletDeposit(ctx context.Context, args external.DepositArgs) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WalletDeposit", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// WalletDeposit indicates an expected call of WalletDeposit.
+func (mr *MockClientMockRecorder) WalletDeposit(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalletDeposit", reflect.TypeOf((*MockClient)(nil).WalletDeposit), ctx, args)
+}
+
+// WalletWithdrawal mocks base method.
+func (m *MockClient) WalletWithdrawal(ctx context.Context, args external.WithdrawalArgs) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WalletWithdrawal", ctx, args)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// WalletWithdrawal indicates an expected call of WalletWithdrawal.
+func (mr *MockClientMockRecorder) WalletWithdrawal(ctx, args interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalletWithdrawal", reflect.TypeOf((*MockClient)(nil).WalletWithdrawal), ctx, args)
+}

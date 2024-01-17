@@ -6,16 +6,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"gitlab.com/fynbos/backend/providers/pti"
-	"gitlab.com/fynbos/backend/providers/pti/external"
-	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/backend/providers/xago"
-
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
 	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	httplog "gitlab.com/fynbos/backend/providers/http"
+	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/providers/pti/external"
+	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
