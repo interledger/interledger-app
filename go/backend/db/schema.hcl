@@ -3122,6 +3122,13 @@ table "pti_users" {
     type    = timestamp
     default = sql("now():::TIMESTAMP")
   }
+  primary_key {
+    columns = [column.id]
+  }
+  index "pti_users_wallet_id_idx" {
+    unique = true
+    columns = [column.wallet_id]
+  }
 }
 table "astra_user_intents" {
   schema = schema.public
@@ -3155,6 +3162,13 @@ table "astra_user_intents" {
     null    = false
     type    = timestamp
     default = sql("now():::TIMESTAMP")
+  }
+  primary_key {
+    columns = [column.id]
+  }
+  index "astra_user_intents_wallet_id_idx" {
+    unique = true
+    columns = [column.wallet_id]
   }
 }
 
@@ -3197,6 +3211,7 @@ table "astra_access_tokens" {
     columns = [column.refresh_expires_at]
   }
 }
+
 table "astra_accounts" {
   schema = schema.public
   column "id" {
