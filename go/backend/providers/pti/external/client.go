@@ -979,21 +979,28 @@ func (c client) WalletDeposit(ctx context.Context, args DepositArgs) (string, er
 	}
 
 	reqArgs := internalCreateDepositArgs{
-		Initiator: Initiator{
-			UserID: args.UserID,
-			Type:   "PERSON",
+		Initiator: User{
+			ID:   args.UserID,
+			Type: "PERSON",
 		},
 		SourceMethod: SourceMethod{
 			Currency: args.Amount.Currency.String(),
 			PaymentInformation: PaymentInformation{
-				Type:                          "ACH", // TODO: find where PTI actually define these
-				BankAccountPaymentInformation: BankAccountPaymentInformation{BankAccountNumber: astra.AccountNumber},
+				Type:              "BANK_ACCOUNT",
+				BankAccountNumber: astra.AccountNumber,
 			},
 			PaymentMethodType: "FIAT",
 		},
-		DestinationMethod: DestinationMethod{},
-		Amount:            args.Amount.Float64(),
-		Type:              "DEPOSIT",
+		DestinationMethod: DestinationMethod{
+			PaymentMethodType: "WALLET",
+			PaymentInformation: DestinationInformation{
+				Type:     "WALLET",
+				WalletID: args.ExternalWalletID,
+			},
+		},
+		Amount: args.Amount.Float64(),
+		Type:   "DEPOSIT",
+		Date:   time.Now().Format(time.RFC3339),
 	}
 
 	payload, err := json.Marshal(reqArgs)
@@ -1078,8 +1085,8 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 		DestinationMethod: WithdrawalDestinationMethod{
 			PaymentMethodType: "ACH",
 			PaymentInformation: PaymentInformation{
-				Type:                          "FIAT",
-				BankAccountPaymentInformation: BankAccountPaymentInformation{BankAccountNumber: astra.AccountNumber},
+				Type:              "FIAT",
+				BankAccountNumber: astra.AccountNumber,
 			},
 		},
 		Amount: args.Amount.Float64(),

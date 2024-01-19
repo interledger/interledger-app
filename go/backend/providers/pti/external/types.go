@@ -146,18 +146,11 @@ type (
 	}
 
 	PaymentInformation struct {
-		Type                            string                          `json:"paymentInformationType"`
-		BankAccountPaymentInformation   BankAccountPaymentInformation   `json:"bankAccountPaymentInformation,omitempty"`
-		EncryptedCardPaymentInformation EncryptedCardPaymentInformation `json:"encryptedCardPaymentInformation,omitempty"`
-		WalletID                        string                          `json:"wallet_id,omitempty"`
-	}
-
-	EncryptedCardPaymentInformation struct {
-		CreditCardNumberHash string `json:"creditCardNumberHash,omitempty"`
-	}
-
-	BankAccountPaymentInformation struct {
+		Type              string `json:"type"` // BANK_ACCOUNT, ENCRYPTED_CREDIT_CARD, TOKEN, WALLET
+		Currency          string `json:"currency,omitempty"`
+		BillingEmail      string `json:"billingEmail,omitempty"`
 		BankAccountNumber string `json:"bankAccountNumber,omitempty"`
+		WalletID          string `json:"walletID,omitempty"`
 	}
 
 	UpdateTxStatusArgs struct {
@@ -203,11 +196,12 @@ type (
 	}
 
 	internalCreateDepositArgs struct {
-		Initiator         Initiator         `json:"initiator,omitempty"`
+		Initiator         User              `json:"initiator,omitempty"`
 		SourceMethod      SourceMethod      `json:"sourceMethod,omitempty"`
 		DestinationMethod DestinationMethod `json:"destinationMethod,omitempty"`
 		Amount            float64           `json:"amount,omitempty"`
 		Type              string            `json:"type,omitempty"`
+		Date              string            `json:"date,omitempty"`
 	}
 	Initiator struct {
 		UserID string `json:"userId,omitempty"`
