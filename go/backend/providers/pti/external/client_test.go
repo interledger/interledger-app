@@ -14,6 +14,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti"
 )
 
@@ -223,6 +224,50 @@ func TestCreateUserAndWallet(t *testing.T) {
 		WalletID: fmt.Sprintf("USD_%s", userID),
 		Currency: "US",
 		Type:     "WALLET",
+	})
+	require.NoError(t, err)
+}
+
+func TestDeposit(t *testing.T) {
+	if os.Getenv("PTI_JWK") == "" || os.Getenv("PTI_CLIENT_ID") == "" {
+		t.Skip("no credentials")
+	}
+
+	ptiUserID := "baeced4f-c4b3-475d-bd03-b4454b0343a7"
+	ptiWalletID := "USD_baeced4f-c4b3-475d-bd03-b4454b0343a7"
+
+	key, err := jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
+	require.NoError(t, err)
+
+	client := New(ClientArgs{
+		PrivateKey: key,
+		ClientID:   os.Getenv("PTI_CLIENT_ID"),
+	})
+
+	ctx := context.Background()
+	requestID := "9c18c969-dca9-4a94-8c13-f5ca1c247521"
+	_, err = client.WalletDeposit(ctx, DepositArgs{
+		RequestID:        requestID,
+		ScenarioID:       pti.ScenarioDeposit,
+		UserID:           ptiUserID,
+		ExternalWalletID: ptiWalletID,
+		Amount: currency.Amount{
+			Value:    100,
+			Currency: currency.USD,
+		},
+	})
+	require.NoError(t, err)
+
+	trx, err := client.GetTransaction(ctx, requestID)
+	require.NoError(t, err)
+	assert.Equal(t, requestID, trx.RequestID)
+
+	transactionID := "fynbos_test_123"
+	_, err = client.UpdateTransactionStatus(ctx, UpdateTxStatusArgs{
+		RequestID:     requestID,
+		TransactionID: transactionID,
+		Feedback:      "ACCEPTED",
+		Date:          time.Now(),
 	})
 	require.NoError(t, err)
 }
