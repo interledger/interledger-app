@@ -34,7 +34,7 @@ type Activity struct {
 func NewActivity(ab ActivityBackends) *Activity {
 	ex := external.New(&http.Client{
 		Transport: otelhttp.NewTransport(
-			httplogger.NewTransport(http.DefaultTransport, ab, nil),
+			httplogger.NewTransport(http.DefaultTransport, ab, external.Redact),
 		),
 	})
 

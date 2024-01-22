@@ -22,52 +22,12 @@ type Client interface {
 	CreateAccessToken(ctx context.Context, intentID, walletID string) (*AccessToken, error)
 	RefreshAccessToken(ctx context.Context, refreshToken string) (*AccessToken, error)
 	AddCard(ctx context.Context, token string, args CreateCardArgs) (*UserCard, error)
-	GetCardBin(ctx context.Context, binToken string) (*CardBin, error)
 	LookupCard(ctx context.Context, token, cardID string) (*UserCard, error)
 	AddAccount(ctx context.Context, token string, args CreateAccountArgs) (*UserAccount, error)
 	LookupAccount(ctx context.Context, token, accountID string) (*UserAccount, error)
 	CardToAccount(ctx context.Context, token string, args CardToAccountArgs) (*CardToAccountResp, error)
 	AccountToCard(ctx context.Context, token string, args AccountToCardArgs) (*AccountToCardResp, error)
 	GetTransfer(ctx context.Context, token, transferID string) (*Transaction, error)
-
-	CodeExchange(ctx context.Context, code string) (string, error)
-}
-
-func (c client) CodeExchange(ctx context.Context, code string) (string, error) {
-	reqURL, err := url.JoinPath(c.baseURL, "oauth", "token")
-	if err != nil {
-		return "nil", err
-	}
-
-	data := url.Values{}
-	data.Set("code", code)
-	data.Set("grant_type", "authorization_code")
-	data.Set("redirect_uri", "https://radar-marked-commented-educators.trycloudflare.com/codeme")
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, strings.NewReader(data.Encode()))
-	if err != nil {
-		return "nil", err
-	}
-	req.SetBasicAuth(c.clientID, c.clientSecret)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		return "nil", err
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "nil", err
-	}
-	fmt.Println("get token", string(respBody))
-
-	if resp.StatusCode != http.StatusOK {
-		return "nil", fmt.Errorf("failed to create astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
-	}
-
-	return string(respBody), nil
 }
 
 const basisTheoryProxyUrl = "https://api.basistheory.com/proxy"
@@ -86,6 +46,11 @@ func New(transport *http.Client) Client {
 	baseURL := "https://api-sandbox.astra.finance/v1"
 	secureBaseURL := "https://secure.api-sandbox.astra.finance/v1"
 	institutionID := "astra_ins_131"
+	if env.IsProd() {
+		baseURL = "https://api.astra.finance/v1"
+		secureBaseURL = "https://secure.api.astra.finance/v1"
+		institutionID = "astra_ins_131" // TODO
+	}
 	if transport == nil {
 		transport = otelhttp.DefaultClient
 	}
@@ -396,54 +361,6 @@ func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) 
 	}
 
 	var respData UserCard
-	err = json.Unmarshal(respBody, &respData)
-	if err != nil {
-		return nil, err
-	}
-
-	return &respData, nil
-}
-
-func (c client) GetCardBin(ctx context.Context, binToken string) (*CardBin, error) {
-	reqURL, err := url.JoinPath(basisTheoryProxyUrl, "bins", binToken)
-	if err != nil {
-		return nil, err
-	}
-
-	meta, ok := httplog.MetaForContext(ctx)
-	if ok {
-		meta.Method = "GET"
-		meta.Provider = "astra"
-	} else {
-		ctx = context.WithValue(ctx, httplog.ContextKey, &httplog.Metadata{
-			Method:   "GET",
-			Provider: "astra",
-		})
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.clientID, c.clientSecret)
-	req.Header.Set("Accept", "application/json")
-	c.setBasisTheoryProxy(req, c.baseURL)
-
-	resp, err := c.api.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get astra user bin (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
-	}
-
-	var respData CardBin
 	err = json.Unmarshal(respBody, &respData)
 	if err != nil {
 		return nil, err

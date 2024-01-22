@@ -95,21 +95,6 @@ func (mr *MockClientMockRecorder) CardToAccount(ctx, token, args interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CardToAccount", reflect.TypeOf((*MockClient)(nil).CardToAccount), ctx, token, args)
 }
 
-// CodeExchange mocks base method.
-func (m *MockClient) CodeExchange(ctx context.Context, code string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CodeExchange", ctx, code)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CodeExchange indicates an expected call of CodeExchange.
-func (mr *MockClientMockRecorder) CodeExchange(ctx, code interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CodeExchange", reflect.TypeOf((*MockClient)(nil).CodeExchange), ctx, code)
-}
-
 // CreateAccessToken mocks base method.
 func (m *MockClient) CreateAccessToken(ctx context.Context, intentID, walletID string) (*external.AccessToken, error) {
 	m.ctrl.T.Helper()
@@ -138,21 +123,6 @@ func (m *MockClient) CreateIntent(ctx context.Context, args external.CreateInten
 func (mr *MockClientMockRecorder) CreateIntent(ctx, args interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIntent", reflect.TypeOf((*MockClient)(nil).CreateIntent), ctx, args)
-}
-
-// GetCardBin mocks base method.
-func (m *MockClient) GetCardBin(ctx context.Context, binToken string) (*external.CardBin, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCardBin", ctx, binToken)
-	ret0, _ := ret[0].(*external.CardBin)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCardBin indicates an expected call of GetCardBin.
-func (mr *MockClientMockRecorder) GetCardBin(ctx, binToken interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCardBin", reflect.TypeOf((*MockClient)(nil).GetCardBin), ctx, binToken)
 }
 
 // GetIntent mocks base method.
