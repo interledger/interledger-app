@@ -376,6 +376,8 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 				}).Get(ctx, nil)
 				return "", false, innerErr
 			} else {
+				// Lets not spin on their API
+				_ = workflow.Sleep(ctx, time.Minute*10)
 				continue
 			}
 		}
