@@ -64,6 +64,94 @@ CREATE TABLE public."xago_transactions"
     primary key (id)
 );
 
+CREATE TABLE public.pti_users
+(
+    id UUID default gen_random_uuid() NOT NULL,
+    type TEXT,
+    date_of_birth TEXT,
+    source_of_funds TEXT,
+    first_name TEXT,
+    middle_name TEXT,
+    last_name TEXT,
+    state TEXT,
+    created_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    updated_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE public.pti_user_emails
+(
+    id UUID default gen_random_uuid() NOT NULL,
+    user_id UUID NOT NULL,
+    address TEXT NOT NULL,
+    is_default BOOLEAN,
+    created_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    updated_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE public.pti_user_addresses
+(
+    id UUID default gen_random_uuid() NOT NULL,
+    user_id UUID NOT NULL,
+    street TEXT,
+    postal_code TEXT,
+    state_code TEXT,
+    country TEXT,
+    is_default BOOLEAN,
+    created_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    updated_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE public.pti_user_phones
+(
+    id UUID default gen_random_uuid() NOT NULL,
+    user_id UUID NOT NULL,
+    number TEXT,
+    is_default BOOLEAN,
+    created_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    updated_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE public.pti_wallets
+(
+    id TEXT NOT NULL,
+    user_id UUID NOT NULL,
+    balance BIGINT default 0,
+    currency TEXT,
+    created_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    updated_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE public.pti_transactions
+(
+    id UUID default gen_random_uuid() NOT NULL,
+    request_id TEXT NOT NULL,
+    user_id UUID NOT NULL,
+    client_id TEXT NOT NULL,
+    date TEXT,
+    status TEXT,
+    transaction_type TEXT,
+    payment_method TEXT,
+    payment_status_provider_response_code TEXT,
+    payment_status_provider_response_category TEXT,
+    amount BIGINT,
+    currency TEXT,
+    total_amount BIGINT,
+    total_currency TEXT,
+    fee_amount BIGINT,
+    fee_currency TEXT,
+    subtotal_amount BIGINT,
+    subtotal_currency TEXT,
+    created_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    updated_at      TIMESTAMP DEFAULT now()::TIMESTAMP  NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE (request_id)
+);
+
 CREATE TABLE public.atlas_schema_history
 (
     id         UUID      DEFAULT gen_random_uuid() NOT NULL,
