@@ -14,127 +14,127 @@ const (
 	AlgEddsa Alg = "EdDSA"
 )
 
-// CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse includes the requested fields of the GraphQL type CreatePaymentPointerMutationResponse.
-type CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse struct {
-	Code           string                                                                                     `json:"code"`
-	Success        bool                                                                                       `json:"success"`
-	Message        string                                                                                     `json:"message"`
-	PaymentPointer CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponsePaymentPointer `json:"paymentPointer"`
+// CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse includes the requested fields of the GraphQL type CreateWalletAddressMutationResponse.
+type CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse struct {
+	Code          string                                                                                 `json:"code"`
+	Success       bool                                                                                   `json:"success"`
+	Message       string                                                                                 `json:"message"`
+	WalletAddress CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress `json:"walletAddress"`
 }
 
-// GetCode returns CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse) GetCode() string {
+// GetCode returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.Code, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse) GetCode() string {
 	return v.Code
 }
 
-// GetSuccess returns CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse) GetSuccess() bool {
+// GetSuccess returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse) GetSuccess() bool {
 	return v.Success
 }
 
-// GetMessage returns CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse) GetMessage() string {
+// GetMessage returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.Message, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse) GetMessage() string {
 	return v.Message
 }
 
-// GetPaymentPointer returns CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse.PaymentPointer, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse) GetPaymentPointer() CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponsePaymentPointer {
-	return v.PaymentPointer
+// GetWalletAddress returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse.WalletAddress, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse) GetWalletAddress() CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress {
+	return v.WalletAddress
 }
 
-// CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponsePaymentPointer includes the requested fields of the GraphQL type PaymentPointer.
-type CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponsePaymentPointer struct {
-	// Payment pointer id
+// CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress includes the requested fields of the GraphQL type WalletAddress.
+type CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress struct {
+	// Wallet address id
 	Id string `json:"id"`
 }
 
-// GetId returns CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponsePaymentPointer.Id, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponsePaymentPointer) GetId() string {
+// GetId returns CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress.Id, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponseWalletAddress) GetId() string {
 	return v.Id
 }
 
-type CreatePaymentPointerInput struct {
-	// Asset of the payment pointer
+type CreateWalletAddressInput struct {
+	// Asset of the wallet address
 	AssetId string `json:"assetId"`
-	// Payment Pointer URL
+	// Wallet Address URL
 	Url string `json:"url"`
-	// Public name associated with the payment pointer
+	// Public name associated with the wallet address
 	PublicName string `json:"publicName"`
 	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
 	IdempotencyKey string `json:"idempotencyKey"`
 }
 
-// GetAssetId returns CreatePaymentPointerInput.AssetId, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerInput) GetAssetId() string { return v.AssetId }
+// GetAssetId returns CreateWalletAddressInput.AssetId, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressInput) GetAssetId() string { return v.AssetId }
 
-// GetUrl returns CreatePaymentPointerInput.Url, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerInput) GetUrl() string { return v.Url }
+// GetUrl returns CreateWalletAddressInput.Url, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressInput) GetUrl() string { return v.Url }
 
-// GetPublicName returns CreatePaymentPointerInput.PublicName, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerInput) GetPublicName() string { return v.PublicName }
+// GetPublicName returns CreateWalletAddressInput.PublicName, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressInput) GetPublicName() string { return v.PublicName }
 
-// GetIdempotencyKey returns CreatePaymentPointerInput.IdempotencyKey, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+// GetIdempotencyKey returns CreateWalletAddressInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressInput) GetIdempotencyKey() string { return v.IdempotencyKey }
 
-// CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse includes the requested fields of the GraphQL type CreatePaymentPointerKeyMutationResponse.
-type CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse struct {
+// CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse includes the requested fields of the GraphQL type CreateWalletAddressKeyMutationResponse.
+type CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse struct {
 	Code    string `json:"code"`
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
-// GetCode returns CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse) GetCode() string {
+// GetCode returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Code, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetCode() string {
 	return v.Code
 }
 
-// GetSuccess returns CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse) GetSuccess() bool {
+// GetSuccess returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetSuccess() bool {
 	return v.Success
 }
 
-// GetMessage returns CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse) GetMessage() string {
+// GetMessage returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Message, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetMessage() string {
 	return v.Message
 }
 
-type CreatePaymentPointerKeyInput struct {
-	PaymentPointerId string `json:"paymentPointerId"`
+type CreateWalletAddressKeyInput struct {
+	WalletAddressId string `json:"walletAddressId"`
 	// Public key
 	Jwk JwkInput `json:"jwk"`
 	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
 	IdempotencyKey string `json:"idempotencyKey"`
 }
 
-// GetPaymentPointerId returns CreatePaymentPointerKeyInput.PaymentPointerId, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerKeyInput) GetPaymentPointerId() string { return v.PaymentPointerId }
+// GetWalletAddressId returns CreateWalletAddressKeyInput.WalletAddressId, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyInput) GetWalletAddressId() string { return v.WalletAddressId }
 
-// GetJwk returns CreatePaymentPointerKeyInput.Jwk, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerKeyInput) GetJwk() JwkInput { return v.Jwk }
+// GetJwk returns CreateWalletAddressKeyInput.Jwk, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyInput) GetJwk() JwkInput { return v.Jwk }
 
-// GetIdempotencyKey returns CreatePaymentPointerKeyInput.IdempotencyKey, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerKeyInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+// GetIdempotencyKey returns CreateWalletAddressKeyInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyInput) GetIdempotencyKey() string { return v.IdempotencyKey }
 
-// CreatePaymentPointerKeyResponse is returned by CreatePaymentPointerKey on success.
-type CreatePaymentPointerKeyResponse struct {
-	// Add a public key to a payment pointer that is used to verify Open Payments requests.
-	CreatePaymentPointerKey CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse `json:"createPaymentPointerKey"`
+// CreateWalletAddressKeyResponse is returned by CreateWalletAddressKey on success.
+type CreateWalletAddressKeyResponse struct {
+	// Add a public key to a wallet address that is used to verify Open Payments requests.
+	CreateWalletAddressKey CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse `json:"createWalletAddressKey"`
 }
 
-// GetCreatePaymentPointerKey returns CreatePaymentPointerKeyResponse.CreatePaymentPointerKey, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerKeyResponse) GetCreatePaymentPointerKey() CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse {
-	return v.CreatePaymentPointerKey
+// GetCreateWalletAddressKey returns CreateWalletAddressKeyResponse.CreateWalletAddressKey, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyResponse) GetCreateWalletAddressKey() CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse {
+	return v.CreateWalletAddressKey
 }
 
-// CreatePaymentPointerResponse is returned by CreatePaymentPointer on success.
-type CreatePaymentPointerResponse struct {
-	// Create a payment pointer
-	CreatePaymentPointer CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse `json:"createPaymentPointer"`
+// CreateWalletAddressResponse is returned by CreateWalletAddress on success.
+type CreateWalletAddressResponse struct {
+	// Create a wallet address
+	CreateWalletAddress CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse `json:"createWalletAddress"`
 }
 
-// GetCreatePaymentPointer returns CreatePaymentPointerResponse.CreatePaymentPointer, and is useful for accessing the field via an interface.
-func (v *CreatePaymentPointerResponse) GetCreatePaymentPointer() CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse {
-	return v.CreatePaymentPointer
+// GetCreateWalletAddress returns CreateWalletAddressResponse.CreateWalletAddress, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressResponse) GetCreateWalletAddress() CreateWalletAddressCreateWalletAddressCreateWalletAddressMutationResponse {
+	return v.CreateWalletAddress
 }
 
 type Crv string
@@ -241,72 +241,72 @@ const (
 	LiquidityErrorUnknownasset           LiquidityError = "UnknownAsset"
 	LiquidityErrorUnknownincomingpayment LiquidityError = "UnknownIncomingPayment"
 	LiquidityErrorUnknownpayment         LiquidityError = "UnknownPayment"
-	LiquidityErrorUnknownpaymentpointer  LiquidityError = "UnknownPaymentPointer"
+	LiquidityErrorUnknownwalletaddress   LiquidityError = "UnknownWalletAddress"
 	LiquidityErrorUnknownpeer            LiquidityError = "UnknownPeer"
 	LiquidityErrorUnknowntransfer        LiquidityError = "UnknownTransfer"
 )
 
-type RevokePaymentPointerKeyInput struct {
+type RevokeWalletAddressKeyInput struct {
 	// Internal id of key
 	Id string `json:"id"`
 	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
 	IdempotencyKey string `json:"idempotencyKey"`
 }
 
-// GetId returns RevokePaymentPointerKeyInput.Id, and is useful for accessing the field via an interface.
-func (v *RevokePaymentPointerKeyInput) GetId() string { return v.Id }
+// GetId returns RevokeWalletAddressKeyInput.Id, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyInput) GetId() string { return v.Id }
 
-// GetIdempotencyKey returns RevokePaymentPointerKeyInput.IdempotencyKey, and is useful for accessing the field via an interface.
-func (v *RevokePaymentPointerKeyInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+// GetIdempotencyKey returns RevokeWalletAddressKeyInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyInput) GetIdempotencyKey() string { return v.IdempotencyKey }
 
-// RevokePaymentPointerKeyResponse is returned by RevokePaymentPointerKey on success.
-type RevokePaymentPointerKeyResponse struct {
-	// Revoke a public key associated with a payment pointer. Open Payment requests using this key for request signatures will be denied going forward.
-	RevokePaymentPointerKey RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse `json:"revokePaymentPointerKey"`
+// RevokeWalletAddressKeyResponse is returned by RevokeWalletAddressKey on success.
+type RevokeWalletAddressKeyResponse struct {
+	// Revoke a public key associated with a wallet address. Open Payment requests using this key for request signatures will be denied going forward.
+	RevokeWalletAddressKey RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse `json:"revokeWalletAddressKey"`
 }
 
-// GetRevokePaymentPointerKey returns RevokePaymentPointerKeyResponse.RevokePaymentPointerKey, and is useful for accessing the field via an interface.
-func (v *RevokePaymentPointerKeyResponse) GetRevokePaymentPointerKey() RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse {
-	return v.RevokePaymentPointerKey
+// GetRevokeWalletAddressKey returns RevokeWalletAddressKeyResponse.RevokeWalletAddressKey, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyResponse) GetRevokeWalletAddressKey() RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse {
+	return v.RevokeWalletAddressKey
 }
 
-// RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse includes the requested fields of the GraphQL type RevokePaymentPointerKeyMutationResponse.
-type RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse struct {
+// RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse includes the requested fields of the GraphQL type RevokeWalletAddressKeyMutationResponse.
+type RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse struct {
 	Code    string `json:"code"`
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
-// GetCode returns RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse.Code, and is useful for accessing the field via an interface.
-func (v *RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse) GetCode() string {
+// GetCode returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse.Code, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse) GetCode() string {
 	return v.Code
 }
 
-// GetSuccess returns RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse.Success, and is useful for accessing the field via an interface.
-func (v *RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse) GetSuccess() bool {
+// GetSuccess returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse) GetSuccess() bool {
 	return v.Success
 }
 
-// GetMessage returns RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse.Message, and is useful for accessing the field via an interface.
-func (v *RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse) GetMessage() string {
+// GetMessage returns RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse.Message, and is useful for accessing the field via an interface.
+func (v *RevokeWalletAddressKeyRevokeWalletAddressKeyRevokeWalletAddressKeyMutationResponse) GetMessage() string {
 	return v.Message
 }
 
-// __CreatePaymentPointerInput is used internally by genqlient
-type __CreatePaymentPointerInput struct {
-	Input CreatePaymentPointerInput `json:"input"`
+// __CreateWalletAddressInput is used internally by genqlient
+type __CreateWalletAddressInput struct {
+	Input CreateWalletAddressInput `json:"input"`
 }
 
-// GetInput returns __CreatePaymentPointerInput.Input, and is useful for accessing the field via an interface.
-func (v *__CreatePaymentPointerInput) GetInput() CreatePaymentPointerInput { return v.Input }
+// GetInput returns __CreateWalletAddressInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateWalletAddressInput) GetInput() CreateWalletAddressInput { return v.Input }
 
-// __CreatePaymentPointerKeyInput is used internally by genqlient
-type __CreatePaymentPointerKeyInput struct {
-	Input CreatePaymentPointerKeyInput `json:"input"`
+// __CreateWalletAddressKeyInput is used internally by genqlient
+type __CreateWalletAddressKeyInput struct {
+	Input CreateWalletAddressKeyInput `json:"input"`
 }
 
-// GetInput returns __CreatePaymentPointerKeyInput.Input, and is useful for accessing the field via an interface.
-func (v *__CreatePaymentPointerKeyInput) GetInput() CreatePaymentPointerKeyInput { return v.Input }
+// GetInput returns __CreateWalletAddressKeyInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreateWalletAddressKeyInput) GetInput() CreateWalletAddressKeyInput { return v.Input }
 
 // __DepositEventLiquidityInput is used internally by genqlient
 type __DepositEventLiquidityInput struct {
@@ -316,43 +316,43 @@ type __DepositEventLiquidityInput struct {
 // GetInput returns __DepositEventLiquidityInput.Input, and is useful for accessing the field via an interface.
 func (v *__DepositEventLiquidityInput) GetInput() DepositEventLiquidityInput { return v.Input }
 
-// __RevokePaymentPointerKeyInput is used internally by genqlient
-type __RevokePaymentPointerKeyInput struct {
-	Input RevokePaymentPointerKeyInput `json:"input"`
+// __RevokeWalletAddressKeyInput is used internally by genqlient
+type __RevokeWalletAddressKeyInput struct {
+	Input RevokeWalletAddressKeyInput `json:"input"`
 }
 
-// GetInput returns __RevokePaymentPointerKeyInput.Input, and is useful for accessing the field via an interface.
-func (v *__RevokePaymentPointerKeyInput) GetInput() RevokePaymentPointerKeyInput { return v.Input }
+// GetInput returns __RevokeWalletAddressKeyInput.Input, and is useful for accessing the field via an interface.
+func (v *__RevokeWalletAddressKeyInput) GetInput() RevokeWalletAddressKeyInput { return v.Input }
 
-// The query or mutation executed by CreatePaymentPointer.
-const CreatePaymentPointer_Operation = `
-mutation CreatePaymentPointer ($input: CreatePaymentPointerInput!) {
-	createPaymentPointer(input: $input) {
+// The query or mutation executed by CreateWalletAddress.
+const CreateWalletAddress_Operation = `
+mutation CreateWalletAddress ($input: CreateWalletAddressInput!) {
+	createWalletAddress(input: $input) {
 		code
 		success
 		message
-		paymentPointer {
+		walletAddress {
 			id
 		}
 	}
 }
 `
 
-func CreatePaymentPointer(
+func CreateWalletAddress(
 	ctx context.Context,
 	client graphql.Client,
-	input CreatePaymentPointerInput,
-) (*CreatePaymentPointerResponse, error) {
+	input CreateWalletAddressInput,
+) (*CreateWalletAddressResponse, error) {
 	req := &graphql.Request{
-		OpName: "CreatePaymentPointer",
-		Query:  CreatePaymentPointer_Operation,
-		Variables: &__CreatePaymentPointerInput{
+		OpName: "CreateWalletAddress",
+		Query:  CreateWalletAddress_Operation,
+		Variables: &__CreateWalletAddressInput{
 			Input: input,
 		},
 	}
 	var err error
 
-	var data CreatePaymentPointerResponse
+	var data CreateWalletAddressResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -364,10 +364,10 @@ func CreatePaymentPointer(
 	return &data, err
 }
 
-// The query or mutation executed by CreatePaymentPointerKey.
-const CreatePaymentPointerKey_Operation = `
-mutation CreatePaymentPointerKey ($input: CreatePaymentPointerKeyInput!) {
-	createPaymentPointerKey(input: $input) {
+// The query or mutation executed by CreateWalletAddressKey.
+const CreateWalletAddressKey_Operation = `
+mutation CreateWalletAddressKey ($input: CreateWalletAddressKeyInput!) {
+	createWalletAddressKey(input: $input) {
 		code
 		success
 		message
@@ -375,21 +375,21 @@ mutation CreatePaymentPointerKey ($input: CreatePaymentPointerKeyInput!) {
 }
 `
 
-func CreatePaymentPointerKey(
+func CreateWalletAddressKey(
 	ctx context.Context,
 	client graphql.Client,
-	input CreatePaymentPointerKeyInput,
-) (*CreatePaymentPointerKeyResponse, error) {
+	input CreateWalletAddressKeyInput,
+) (*CreateWalletAddressKeyResponse, error) {
 	req := &graphql.Request{
-		OpName: "CreatePaymentPointerKey",
-		Query:  CreatePaymentPointerKey_Operation,
-		Variables: &__CreatePaymentPointerKeyInput{
+		OpName: "CreateWalletAddressKey",
+		Query:  CreateWalletAddressKey_Operation,
+		Variables: &__CreateWalletAddressKeyInput{
 			Input: input,
 		},
 	}
 	var err error
 
-	var data CreatePaymentPointerKeyResponse
+	var data CreateWalletAddressKeyResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
@@ -439,10 +439,10 @@ func DepositEventLiquidity(
 	return &data, err
 }
 
-// The query or mutation executed by RevokePaymentPointerKey.
-const RevokePaymentPointerKey_Operation = `
-mutation RevokePaymentPointerKey ($input: RevokePaymentPointerKeyInput!) {
-	revokePaymentPointerKey(input: $input) {
+// The query or mutation executed by RevokeWalletAddressKey.
+const RevokeWalletAddressKey_Operation = `
+mutation RevokeWalletAddressKey ($input: RevokeWalletAddressKeyInput!) {
+	revokeWalletAddressKey(input: $input) {
 		code
 		success
 		message
@@ -450,21 +450,21 @@ mutation RevokePaymentPointerKey ($input: RevokePaymentPointerKeyInput!) {
 }
 `
 
-func RevokePaymentPointerKey(
+func RevokeWalletAddressKey(
 	ctx context.Context,
 	client graphql.Client,
-	input RevokePaymentPointerKeyInput,
-) (*RevokePaymentPointerKeyResponse, error) {
+	input RevokeWalletAddressKeyInput,
+) (*RevokeWalletAddressKeyResponse, error) {
 	req := &graphql.Request{
-		OpName: "RevokePaymentPointerKey",
-		Query:  RevokePaymentPointerKey_Operation,
-		Variables: &__RevokePaymentPointerKeyInput{
+		OpName: "RevokeWalletAddressKey",
+		Query:  RevokeWalletAddressKey_Operation,
+		Variables: &__RevokeWalletAddressKeyInput{
 			Input: input,
 		},
 	}
 	var err error
 
-	var data RevokePaymentPointerKeyResponse
+	var data RevokeWalletAddressKeyResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
