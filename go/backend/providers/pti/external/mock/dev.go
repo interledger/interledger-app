@@ -46,5 +46,17 @@ func SetupDevMock(t *testing.T) *MockClient {
 		}, nil
 	})
 
+	cl.EXPECT().GetTransaction(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, requestID string) (*external.TransactionStatus, error) {
+		return &external.TransactionStatus{
+			Status: "SETTLED",
+		}, nil
+	})
+
+	cl.EXPECT().CreateTransfer(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, args external.TransferArgs) (*external.IDResponse, error) {
+		return &external.IDResponse{
+			ID: uuid.NewString(),
+		}, nil
+	})
+
 	return cl
 }

@@ -400,6 +400,41 @@ func TestClient(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "Golden path pti wallets",
+			Args: payments.CreateArgs{
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWallet.walletID,
+				},
+				SenderAccount: sendWallet.ptiUSDLinkedAcc,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: recvWallet.walletID,
+				},
+				ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
+				SenderAmount:    currency.FromUInt64(10000, currency.USD),
+				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
+				IPAddress:       "192.36.8.4",
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitBalance,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeCreditBalance,
+						State:        transactions.StateCompleted,
+					},
+				},
+				ReceiveTransactionState: transactions.StateCompleted,
+			},
+		},
 		/*
 			Temporal test environment doesn't accurately throw Max Retry errors so cannot test the failure case
 			{

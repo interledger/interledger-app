@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
+
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 
@@ -222,6 +224,7 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
 	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
 	env.RegisterWorkflow(ops.CreateReferralsWorkflow)
+	env.RegisterActivity(pti_ops.NewActivity(b, nil))
 
 	b.env = env
 }

@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 
+	mock_client "gitlab.com/fynbos/backend/providers/pti/external/mock"
+
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"gitlab.com/fynbos/backend/kyc"
@@ -16,6 +18,7 @@ import (
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
+	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 )
@@ -26,19 +29,24 @@ type Activity struct {
 }
 
 func NewActivity(b Backends, privateKey jwk.Key) *Activity {
-	external := external.New(external.ClientArgs{
-		Transport: &http.Client{
-			Transport: otelhttp.NewTransport(
-				httplogger.NewTransport(http.DefaultTransport, b, nil),
-			),
-		},
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-		PrivateKey: privateKey,
-	})
+	var ex external.Client
+	if env.IsLocal() {
+		ex = mock_client.SetupDevMock(nil)
+	} else {
+		ex = external.New(external.ClientArgs{
+			Transport: &http.Client{
+				Transport: otelhttp.NewTransport(
+					httplogger.NewTransport(http.DefaultTransport, b, nil),
+				),
+			},
+			ClientID:   os.Getenv("PTI_CLIENT_ID"),
+			PrivateKey: privateKey,
+		})
+	}
 
 	return &Activity{
 		b:        b,
-		external: external,
+		external: ex,
 	}
 }
 
@@ -302,4 +310,3 @@ func (a *Activity) GetPTITransactionByPaymentID(ctx context.Context, paymentID s
 func (a *Activity) GetPTITransaction(ctx context.Context, requestID string) (*external.TransactionStatus, error) {
 	return a.external.GetTransaction(ctx, requestID)
 }
-
