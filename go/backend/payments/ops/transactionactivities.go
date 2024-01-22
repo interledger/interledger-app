@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/providers/tabapay"
@@ -129,12 +131,52 @@ func (a *Activity) AddWithdrawalTransfer(ctx context.Context, paymentID string) 
 		return nil
 	}
 
+	la, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if err != nil {
+		return err
+	}
+
+	typ := transactions.TransferTypeCreditBankAccount
+	if la.Provider == astra.ProviderName {
+		typ = transactions.TransferTypeCreditCard
+	}
+
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
 		{
 			LinkedAccountID: p.ReceiverAccount,
 			ForeignID:       paymentID,
-			Type:            transactions.TransferTypeCreditBankAccount,
-			Amount:          p.SenderAmount,
+			Type:            typ,
+			Amount:          p.ReceiverAmount,
+			State:           transactions.StateCompleted,
+		},
+	})
+}
+
+func (a *Activity) AddDepositTransfer(ctx context.Context, paymentID string) error {
+	p, err := Lookup(ctx, a.b, paymentID)
+	if err != nil {
+		return err
+	}
+
+	if p.Type != payments.TypeDeposit {
+		return nil
+	}
+
+	la, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if err != nil {
+		return err
+	}
+
+	if la.Provider == astra.ProviderName {
+		return nil
+	}
+
+	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
+		{
+			LinkedAccountID: p.ReceiverAccount,
+			ForeignID:       paymentID,
+			Type:            transactions.TransferTypeCreditBalance,
+			Amount:          p.ReceiverAmount,
 			State:           transactions.StateCompleted,
 		},
 	})
@@ -169,7 +211,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 	}
 
 	// Already created and we do not create payout transactions for withdrawals, nothing to do
-	if p.ReceiveTransactionID != "" || p.Type == payments.TypeWithdrawal {
+	if p.ReceiveTransactionID != "" || p.Type == payments.TypeWithdrawal || p.Type == payments.TypeDeposit {
 		return "", nil
 	}
 

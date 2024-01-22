@@ -516,17 +516,28 @@ func validateSendBalances(ctx context.Context, b Backends, sendAccID string, amt
 	}
 
 	// Only relevant for balance accounts
-	if sa.Type != xago.AccTypeBalance {
+	if sa.Type != xago.AccTypeBalance && sa.Type != pti.AccTypeBalance {
 		return nil
 	}
 
-	bal, err := b.Xago().GetBalance(ctx, sa.ID)
-	if err != nil {
-		return err
-	}
+	if sa.Provider == xago.ProviderName {
+		bal, err := b.Xago().GetBalance(ctx, sa.ID)
+		if err != nil {
+			return err
+		}
 
-	if bal.Available.Value < amt.Value {
-		return fmt.Errorf("%w insufficient balance", payments.ErrInsufficientFunds)
+		if bal.Available.Value < amt.Value {
+			return fmt.Errorf("%w insufficient balance", payments.ErrInsufficientFunds)
+		}
+	} else if sa.Provider == pti.ProviderName {
+		w, err := b.PTI().GetWallet(ctx, sa.ID)
+		if err != nil {
+			return fmt.Errorf("%w failed to get pti wallet for balance validation", err)
+		}
+
+		if w.Balance.Value < amt.Value {
+			return fmt.Errorf("%w insufficient balance", payments.ErrInsufficientFunds)
+		}
 	}
 
 	return nil
@@ -546,7 +557,7 @@ func validateDeposit(ctx context.Context, b Backends, typ payments.Type, senderA
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 	if senderAcc.Provider != astra.ProviderName || senderAcc.Type != astra.TypeCard {
-		return payments.ErrInvalidWithdrawal
+		return payments.ErrInvalidDeposit
 	}
 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
@@ -554,7 +565,7 @@ func validateDeposit(ctx context.Context, b Backends, typ payments.Type, senderA
 		return fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
 	if receiverAcc.Provider != pti.ProviderName || receiverAcc.Type != pti.AccTypeBalance || senderAcc.WalletID != receiverAcc.WalletID {
-		return payments.ErrInvalidWithdrawal
+		return payments.ErrInvalidDeposit
 	}
 
 	return nil
@@ -566,7 +577,7 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	}
 
 	if senderAccID == "" || receiverAccID == "" {
-		return payments.ErrInvalidWithdrawal
+		return fmt.Errorf("%w sender(%s) receiver(%s)", payments.ErrInvalidWithdrawal, senderAccID, receiverAccID)
 	}
 
 	senderAcc, err := b.LinkedAccounts().Get(ctx, senderAccID)
@@ -577,7 +588,7 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	// Only Xago and Astra supports withdrawal
 	if !(senderAcc.Provider == xago.ProviderName && senderAcc.Type == xago.AccTypeBalance) &&
 		!(senderAcc.Provider == pti.ProviderName && senderAcc.Type == pti.AccTypeBalance) {
-		return payments.ErrInvalidWithdrawal
+		return fmt.Errorf("%w sender provider(%s) type(%s)", payments.ErrInvalidWithdrawal, senderAcc.Provider, senderAcc.Type)
 	}
 
 	receiverAcc, err := b.LinkedAccounts().Get(ctx, receiverAccID)
@@ -586,7 +597,7 @@ func validateWithdrawal(ctx context.Context, b Backends, typ payments.Type, send
 	}
 	if (!(receiverAcc.Provider == xago.ProviderName && receiverAcc.Type == xago.AccTypeBank) && !(receiverAcc.Provider == astra.ProviderName && receiverAcc.Type == astra.TypeCard)) ||
 		senderAcc.WalletID != receiverAcc.WalletID {
-		return payments.ErrInvalidWithdrawal
+		return fmt.Errorf("%w receiver provider(%s) type(%s)", payments.ErrInvalidWithdrawal, receiverAcc.Provider, receiverAcc.Type)
 	}
 
 	return nil

@@ -156,8 +156,6 @@ func (c client) CreateAccessToken(ctx context.Context, intentID, walletID string
 		return nil, err
 	}
 
-	fmt.Println("partner verification", string(respBody))
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to create astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
@@ -196,7 +194,6 @@ func (c client) CreateAccessToken(ctx context.Context, intentID, walletID string
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("get token", string(respBody))
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to create astra user token (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
@@ -232,8 +229,6 @@ func (c client) CreateIntent(ctx context.Context, args CreateIntentReq) (string,
 			Provider: "astra",
 		})
 	}
-	fmt.Println("clientID", c.clientID, "secret", c.clientSecret)
-	fmt.Println("req", string(reqBody))
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, bytes.NewReader(reqBody))
 	if err != nil {
@@ -254,7 +249,6 @@ func (c client) CreateIntent(ctx context.Context, args CreateIntentReq) (string,
 		return "", err
 	}
 
-	fmt.Println("resp", string(respBody))
 	if resp.StatusCode != http.StatusCreated {
 		return "", fmt.Errorf("failed to create astra user intent (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
@@ -622,8 +616,6 @@ func (c client) CardToAccount(ctx context.Context, token string, args CardToAcco
 	if resp.StatusCode != http.StatusCreated {
 		return nil, fmt.Errorf("failed to create astra card to account (%d - %s - %s - %s)", resp.StatusCode, resp.Header.Get("request-id"), resp.Status, string(respBody))
 	}
-
-	fmt.Println(string(respBody))
 
 	var respData CardToAccountResp
 	err = json.Unmarshal(respBody, &respData)

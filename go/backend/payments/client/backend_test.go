@@ -6,6 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/basistheory"
+	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
+
+	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
+
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/providers/astra"
@@ -222,6 +227,10 @@ func (b *TestBackends) RestoreTemporalEnv() {
 }
 
 func (b *TestBackends) Astra() astra.Client {
+	return astra_client.New(b)
+}
+
+func (b *TestBackends) BasisTheory() basistheory.Client {
 	return nil
 }
 
@@ -326,5 +335,5 @@ func (b *TestBackends) Payments() payments.Client {
 }
 
 func (b *TestBackends) PTI() pti.Client {
-	return nil
+	return pti_client.New(b)
 }
