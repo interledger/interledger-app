@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/env"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
@@ -14,6 +16,11 @@ import (
 )
 
 func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walletID, idempotencyKey string) (*kyc.PersonaInquiry, error) {
+	if env.IsLocal() {
+		err := GenerateKycData(ctx, b, walletID)
+		return nil, err
+	}
+
 	// Check current KYC status fro the user.
 	kycStatus, err := GetKYCStatus(ctx, b, walletID)
 	if err != nil {
@@ -140,6 +147,11 @@ func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, wal
 }
 
 func GetZAIDNumber(ctx context.Context, b Backends, cl persona.Client, walletID string) (string, error) {
+	// Local stuff
+	if env.IsLocal() {
+		return generateLocalTestIdNumber("male", true), nil
+	}
+
 	var accID string
 	err := b.DB().GetContext(ctx, &accID, "SELECT external_id FROM kyc_persona_accounts WHERE wallet_id=$1", walletID)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -221,4 +233,37 @@ func calculateZAIDChecksum(idBody string) int {
 	}
 
 	return (10 - (sum % 10)) % 10
+}
+
+func generateLocalTestIdNumber(gender string, isCitizen bool) string {
+	// Set current year and calculate year range for 18-40 years old
+	currentYear := time.Now().Year()
+	minYear := currentYear - 40
+	maxYear := currentYear - 18
+
+	// Generate a random date of birth within the age range
+	year := rand.Intn(maxYear-minYear+1) + minYear
+	month := rand.Intn(12) + 1
+	day := rand.Intn(28) + 1
+
+	// Generate sequence number based on gender
+	seqStart := 0000
+	seqEnd := 9999
+	if gender == "male" {
+		seqStart = 5000
+	} else if gender == "female" {
+		seqEnd = 4999
+	}
+	sequence := rand.Intn(seqEnd-seqStart+1) + seqStart
+
+	// Citizen status
+	citizenDigit := 0
+	if !isCitizen {
+		citizenDigit = 1
+	}
+
+	// Combine all parts
+	idNumber := fmt.Sprintf("%02d%02d%02d%04d%d8", year%100, month, day, sequence, citizenDigit)
+
+	return idNumber
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bxcodec/faker/v3"
 	"time"
 
 	"gitlab.com/fynbos/backend/country"
@@ -290,6 +291,36 @@ func StartKYC(ctx context.Context, b Backends, walletID string) error {
 	_, err := b.Temporal().ExecuteWorkflow(ctx, workflowOptions, workflows.StartKYC, workflows.StartKYCArgs{
 		WalletID: walletID,
 	})
+
+	return err
+}
+
+func GenerateKycData(ctx context.Context, b Backends, walletID string) error {
+	_, err := UpdateIndividualDetails(ctx, b, kyc.IndividualDetails{
+		WalletID:     walletID,
+		FirstName:    faker.FirstName(),
+		LastName:     faker.LastName(),
+		CountryCode:  "ZA",
+		PlaceOfBirth: "Cape Town",
+		Nationality:  "ZA",
+		Gender:       kyc.GenderMale,
+		DateOfBirth:  time.Date(1991, time.August, 21, 0, 0, 0, 0, time.UTC),
+		Address: &kyc.Address{
+			Line1:       "31 Royal Ave",
+			Line2:       "",
+			Building:    "",
+			Apartment:   "",
+			City:        "Cape Town",
+			ZipCode:     "9301",
+			CountryCode: "ZA",
+		},
+		IPAddress: "8.8.8.8",
+	})
+	if err != nil {
+		return err
+	}
+
+	err = SetKYCStatus(ctx, b, walletID, kyc.StatusLevel1)
 
 	return err
 }
