@@ -5,6 +5,7 @@ import (
 )
 
 type Client interface {
+	GetPublicKey(ctx context.Context, id string, walletID string) (*Key, error)
 	ProvisionPrivateKey(ctx context.Context, walletID string) error
 	AddPublicKey(ctx context.Context, walletID, publicKeyBase64, name string) (*Key, error)
 	DeletePublicKey(ctx context.Context, id string) error

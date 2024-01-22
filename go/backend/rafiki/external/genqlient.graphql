@@ -16,3 +16,17 @@ mutation DepositEventLiquidity($input: DepositEventLiquidityInput!) {
         message
     }
 }
+mutation CreatePaymentPointerKey($input: CreatePaymentPointerKeyInput!){
+    createPaymentPointerKey(input: $input) {
+        code
+        success
+        message
+    }
+}
+mutation RevokePaymentPointerKey($input: RevokePaymentPointerKeyInput!){
+    revokePaymentPointerKey(input: $input) {
+        code
+        success
+        message
+    }
+}

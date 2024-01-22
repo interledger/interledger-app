@@ -8,6 +8,12 @@ import (
 	"github.com/Khan/genqlient/graphql"
 )
 
+type Alg string
+
+const (
+	AlgEddsa Alg = "EdDSA"
+)
+
 // CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse includes the requested fields of the GraphQL type CreatePaymentPointerMutationResponse.
 type CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse struct {
 	Code           string                                                                                     `json:"code"`
@@ -70,6 +76,56 @@ func (v *CreatePaymentPointerInput) GetPublicName() string { return v.PublicName
 // GetIdempotencyKey returns CreatePaymentPointerInput.IdempotencyKey, and is useful for accessing the field via an interface.
 func (v *CreatePaymentPointerInput) GetIdempotencyKey() string { return v.IdempotencyKey }
 
+// CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse includes the requested fields of the GraphQL type CreatePaymentPointerKeyMutationResponse.
+type CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse struct {
+	Code    string `json:"code"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+// GetCode returns CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse.Code, and is useful for accessing the field via an interface.
+func (v *CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse) GetCode() string {
+	return v.Code
+}
+
+// GetSuccess returns CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse) GetSuccess() bool {
+	return v.Success
+}
+
+// GetMessage returns CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse.Message, and is useful for accessing the field via an interface.
+func (v *CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse) GetMessage() string {
+	return v.Message
+}
+
+type CreatePaymentPointerKeyInput struct {
+	PaymentPointerId string `json:"paymentPointerId"`
+	// Public key
+	Jwk JwkInput `json:"jwk"`
+	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
+	IdempotencyKey string `json:"idempotencyKey"`
+}
+
+// GetPaymentPointerId returns CreatePaymentPointerKeyInput.PaymentPointerId, and is useful for accessing the field via an interface.
+func (v *CreatePaymentPointerKeyInput) GetPaymentPointerId() string { return v.PaymentPointerId }
+
+// GetJwk returns CreatePaymentPointerKeyInput.Jwk, and is useful for accessing the field via an interface.
+func (v *CreatePaymentPointerKeyInput) GetJwk() JwkInput { return v.Jwk }
+
+// GetIdempotencyKey returns CreatePaymentPointerKeyInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *CreatePaymentPointerKeyInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// CreatePaymentPointerKeyResponse is returned by CreatePaymentPointerKey on success.
+type CreatePaymentPointerKeyResponse struct {
+	// Add a public key to a payment pointer that is used to verify Open Payments requests.
+	CreatePaymentPointerKey CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse `json:"createPaymentPointerKey"`
+}
+
+// GetCreatePaymentPointerKey returns CreatePaymentPointerKeyResponse.CreatePaymentPointerKey, and is useful for accessing the field via an interface.
+func (v *CreatePaymentPointerKeyResponse) GetCreatePaymentPointerKey() CreatePaymentPointerKeyCreatePaymentPointerKeyCreatePaymentPointerKeyMutationResponse {
+	return v.CreatePaymentPointerKey
+}
+
 // CreatePaymentPointerResponse is returned by CreatePaymentPointer on success.
 type CreatePaymentPointerResponse struct {
 	// Create a payment pointer
@@ -80,6 +136,12 @@ type CreatePaymentPointerResponse struct {
 func (v *CreatePaymentPointerResponse) GetCreatePaymentPointer() CreatePaymentPointerCreatePaymentPointerCreatePaymentPointerMutationResponse {
 	return v.CreatePaymentPointer
 }
+
+type Crv string
+
+const (
+	CrvEd25519 Crv = "Ed25519"
+)
 
 // DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse includes the requested fields of the GraphQL type LiquidityMutationResponse.
 type DepositEventLiquidityDepositEventLiquidityLiquidityMutationResponse struct {
@@ -133,6 +195,40 @@ func (v *DepositEventLiquidityResponse) GetDepositEventLiquidity() DepositEventL
 	return v.DepositEventLiquidity
 }
 
+type JwkInput struct {
+	// Key id
+	Kid string `json:"kid"`
+	// Base64 url-encoded public key.
+	X string `json:"x"`
+	// Cryptographic algorithm family used with the key. The only allowed value is `EdDSA`.
+	Alg Alg `json:"alg"`
+	// Key type. The only allowed value is `OKP`.
+	Kty Kty `json:"kty"`
+	// Curve that the key pair is derived from. The only allowed value is `Ed25519`.
+	Crv Crv `json:"crv"`
+}
+
+// GetKid returns JwkInput.Kid, and is useful for accessing the field via an interface.
+func (v *JwkInput) GetKid() string { return v.Kid }
+
+// GetX returns JwkInput.X, and is useful for accessing the field via an interface.
+func (v *JwkInput) GetX() string { return v.X }
+
+// GetAlg returns JwkInput.Alg, and is useful for accessing the field via an interface.
+func (v *JwkInput) GetAlg() Alg { return v.Alg }
+
+// GetKty returns JwkInput.Kty, and is useful for accessing the field via an interface.
+func (v *JwkInput) GetKty() Kty { return v.Kty }
+
+// GetCrv returns JwkInput.Crv, and is useful for accessing the field via an interface.
+func (v *JwkInput) GetCrv() Crv { return v.Crv }
+
+type Kty string
+
+const (
+	KtyOkp Kty = "OKP"
+)
+
 type LiquidityError string
 
 const (
@@ -150,6 +246,52 @@ const (
 	LiquidityErrorUnknowntransfer        LiquidityError = "UnknownTransfer"
 )
 
+type RevokePaymentPointerKeyInput struct {
+	// Internal id of key
+	Id string `json:"id"`
+	// Unique key to ensure duplicate or retried requests are processed only once. See [idempotence](https://en.wikipedia.org/wiki/Idempotence)
+	IdempotencyKey string `json:"idempotencyKey"`
+}
+
+// GetId returns RevokePaymentPointerKeyInput.Id, and is useful for accessing the field via an interface.
+func (v *RevokePaymentPointerKeyInput) GetId() string { return v.Id }
+
+// GetIdempotencyKey returns RevokePaymentPointerKeyInput.IdempotencyKey, and is useful for accessing the field via an interface.
+func (v *RevokePaymentPointerKeyInput) GetIdempotencyKey() string { return v.IdempotencyKey }
+
+// RevokePaymentPointerKeyResponse is returned by RevokePaymentPointerKey on success.
+type RevokePaymentPointerKeyResponse struct {
+	// Revoke a public key associated with a payment pointer. Open Payment requests using this key for request signatures will be denied going forward.
+	RevokePaymentPointerKey RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse `json:"revokePaymentPointerKey"`
+}
+
+// GetRevokePaymentPointerKey returns RevokePaymentPointerKeyResponse.RevokePaymentPointerKey, and is useful for accessing the field via an interface.
+func (v *RevokePaymentPointerKeyResponse) GetRevokePaymentPointerKey() RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse {
+	return v.RevokePaymentPointerKey
+}
+
+// RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse includes the requested fields of the GraphQL type RevokePaymentPointerKeyMutationResponse.
+type RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse struct {
+	Code    string `json:"code"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+// GetCode returns RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse.Code, and is useful for accessing the field via an interface.
+func (v *RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse) GetCode() string {
+	return v.Code
+}
+
+// GetSuccess returns RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse) GetSuccess() bool {
+	return v.Success
+}
+
+// GetMessage returns RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse.Message, and is useful for accessing the field via an interface.
+func (v *RevokePaymentPointerKeyRevokePaymentPointerKeyRevokePaymentPointerKeyMutationResponse) GetMessage() string {
+	return v.Message
+}
+
 // __CreatePaymentPointerInput is used internally by genqlient
 type __CreatePaymentPointerInput struct {
 	Input CreatePaymentPointerInput `json:"input"`
@@ -158,6 +300,14 @@ type __CreatePaymentPointerInput struct {
 // GetInput returns __CreatePaymentPointerInput.Input, and is useful for accessing the field via an interface.
 func (v *__CreatePaymentPointerInput) GetInput() CreatePaymentPointerInput { return v.Input }
 
+// __CreatePaymentPointerKeyInput is used internally by genqlient
+type __CreatePaymentPointerKeyInput struct {
+	Input CreatePaymentPointerKeyInput `json:"input"`
+}
+
+// GetInput returns __CreatePaymentPointerKeyInput.Input, and is useful for accessing the field via an interface.
+func (v *__CreatePaymentPointerKeyInput) GetInput() CreatePaymentPointerKeyInput { return v.Input }
+
 // __DepositEventLiquidityInput is used internally by genqlient
 type __DepositEventLiquidityInput struct {
 	Input DepositEventLiquidityInput `json:"input"`
@@ -165,6 +315,14 @@ type __DepositEventLiquidityInput struct {
 
 // GetInput returns __DepositEventLiquidityInput.Input, and is useful for accessing the field via an interface.
 func (v *__DepositEventLiquidityInput) GetInput() DepositEventLiquidityInput { return v.Input }
+
+// __RevokePaymentPointerKeyInput is used internally by genqlient
+type __RevokePaymentPointerKeyInput struct {
+	Input RevokePaymentPointerKeyInput `json:"input"`
+}
+
+// GetInput returns __RevokePaymentPointerKeyInput.Input, and is useful for accessing the field via an interface.
+func (v *__RevokePaymentPointerKeyInput) GetInput() RevokePaymentPointerKeyInput { return v.Input }
 
 // The query or mutation executed by CreatePaymentPointer.
 const CreatePaymentPointer_Operation = `
@@ -206,6 +364,43 @@ func CreatePaymentPointer(
 	return &data, err
 }
 
+// The query or mutation executed by CreatePaymentPointerKey.
+const CreatePaymentPointerKey_Operation = `
+mutation CreatePaymentPointerKey ($input: CreatePaymentPointerKeyInput!) {
+	createPaymentPointerKey(input: $input) {
+		code
+		success
+		message
+	}
+}
+`
+
+func CreatePaymentPointerKey(
+	ctx context.Context,
+	client graphql.Client,
+	input CreatePaymentPointerKeyInput,
+) (*CreatePaymentPointerKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "CreatePaymentPointerKey",
+		Query:  CreatePaymentPointerKey_Operation,
+		Variables: &__CreatePaymentPointerKeyInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data CreatePaymentPointerKeyResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
 // The query or mutation executed by DepositEventLiquidity.
 const DepositEventLiquidity_Operation = `
 mutation DepositEventLiquidity ($input: DepositEventLiquidityInput!) {
@@ -233,6 +428,43 @@ func DepositEventLiquidity(
 	var err error
 
 	var data DepositEventLiquidityResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by RevokePaymentPointerKey.
+const RevokePaymentPointerKey_Operation = `
+mutation RevokePaymentPointerKey ($input: RevokePaymentPointerKeyInput!) {
+	revokePaymentPointerKey(input: $input) {
+		code
+		success
+		message
+	}
+}
+`
+
+func RevokePaymentPointerKey(
+	ctx context.Context,
+	client graphql.Client,
+	input RevokePaymentPointerKeyInput,
+) (*RevokePaymentPointerKeyResponse, error) {
+	req := &graphql.Request{
+		OpName: "RevokePaymentPointerKey",
+		Query:  RevokePaymentPointerKey_Operation,
+		Variables: &__RevokePaymentPointerKeyInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data RevokePaymentPointerKeyResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
