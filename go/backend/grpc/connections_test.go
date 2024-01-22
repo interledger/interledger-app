@@ -51,6 +51,8 @@ MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
 		nil,
 	).AnyTimes()
 
+	c.rafiki.EXPECT().CreatePaymentPointerKey(gomock.Any(), gomock.Any(), wallet.ID).Return(nil).AnyTimes()
+
 	c.limits.EXPECT().UpdatePublicKeyLimits(gomock.Any(), wallet.ID, keyID, limits.Limit{
 		Daily: currency.Amount{
 			Value:    10,
@@ -213,6 +215,7 @@ func TestDeletePublicKey(t *testing.T) {
 	}
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{w}, nil).AnyTimes()
 	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&w, nil).AnyTimes()
+	c.rafiki.EXPECT().RevokePaymentPointerKey(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 	keyID := uuid.NewString()

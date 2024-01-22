@@ -15,7 +15,7 @@ import (
 )
 
 func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) error {
-	if !env.IsDev() {
+	if env.IsProd() {
 		return nil
 	}
 
@@ -41,6 +41,18 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	keys, err := b.Keys().List(ctx, w.ID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	for _, key := range keys {
+		err := b.External().CreatePaymentPointerKey(ctx, ppID, key)
+		if err != nil {
+			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
+	}
+
 	return nil
 }
 
@@ -52,6 +64,19 @@ func LookupWalletID(ctx context.Context, b Backends, paymentPointerID string) (s
 	}
 
 	return wid, nil
+}
+
+func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (string, error) {
+	var ppID string
+	err := b.DB().GetContext(ctx, &ppID, "SELECT payment_pointer_id FROM rafiki_payment_pointers WHERE wallet_id=$1", walletID)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%w %s", rafiki.ErrNotFound, err)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return ppID, nil
 }
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
@@ -66,5 +91,32 @@ func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) erro
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	return nil
+}
+
+func CreatePaymentPointerKey(ctx context.Context, b Backends, keyID string, walletID string) error {
+	key, err := b.Keys().GetPublicKey(ctx, keyID, walletID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	ppID, err := LookupPaymentPointerID(ctx, b, walletID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	err = b.External().CreatePaymentPointerKey(ctx, ppID, *key)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return nil
+}
+
+func RevokePaymentPointerKey(ctx context.Context, b Backends, keyID string) error {
+	err := b.External().RevokePaymentPointerKey(ctx, keyID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
 	return nil
 }
