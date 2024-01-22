@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/fynbos/backend/providers/astra"
-
 	"gitlab.com/fynbos/backend/providers/pti"
+
+	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/providers/tabapay"
 
@@ -82,9 +82,9 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 	case payments.TypeDeposit:
 		transferType = transactions.TransferTypeDebitCard
 	case payments.TypePeer2Peer:
-		if la.Provider == tabapay.ProviderName || la.ProviderID == pti.ProviderName {
+		if la.Provider == tabapay.ProviderName {
 			transferType = transactions.TransferTypeDebitCard
-		} else if la.Provider == xago.ProviderName {
+		} else if la.Provider == xago.ProviderName || la.Provider == pti.ProviderName {
 			transferType = transactions.TransferTypeDebitBalance
 		}
 	case payments.TypeWebMonetization:
@@ -191,6 +191,14 @@ func (a *Activity) AddPayInRollbackTransfer(ctx context.Context, paymentID, fkID
 	typ := transactions.TransferTypeCreditCard
 	if p.Type == payments.TypeWithdrawal {
 		typ = transactions.TransferTypeCreditBalance
+	} else {
+		la, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+		if err != nil {
+			return err
+		}
+		if la.Provider == xago.ProviderName || la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			typ = transactions.TransferTypeCreditBalance
+		}
 	}
 
 	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
@@ -231,7 +239,7 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 	}
 
 	transType := transactions.TransferTypeCreditCard
-	if la.Provider == xago.ProviderName {
+	if la.Provider == xago.ProviderName || la.Provider == pti.ProviderName {
 		transType = transactions.TransferTypeCreditBalance
 	}
 

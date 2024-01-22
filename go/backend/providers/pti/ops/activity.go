@@ -303,6 +303,9 @@ func (a *Activity) GetPTITransactionByPaymentID(ctx context.Context, paymentID s
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, temporal.NewNonRetryableApplicationError("PTI transaction not found for payment", "ErrNotFound", err)
 	}
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
 
 	return a.external.GetTransaction(ctx, externalReqeustID)
 }
