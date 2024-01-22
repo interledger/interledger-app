@@ -90,15 +90,6 @@ type UserCard struct {
 	ZipCode         string `json:"zip_code"`
 }
 
-type CardBin struct {
-	Bin                 string `json:"bin"`
-	CardBrand           string `json:"card_brand"`
-	CardType            string `json:"card_type"`
-	InterchangeCategory string `json:"interchange_category"`
-	IssuerName          string `json:"issuer_name"`
-	SettlementNetwork   string `json:"settlement_network"`
-}
-
 type CreateAccountArgs struct {
 	InstitutionID   string      `json:"institution_id"`
 	BankAccountType AccountType `json:"bank_account_type"`

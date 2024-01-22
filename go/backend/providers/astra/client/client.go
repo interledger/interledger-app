@@ -64,7 +64,7 @@ func New(b Backends) astra.Client {
 		Backends: b,
 		astraExt: external.New(&http.Client{
 			Transport: otelhttp.NewTransport(
-				httplogger.NewTransport(http.DefaultTransport, b, nil),
+				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
 			),
 		}),
 	}}

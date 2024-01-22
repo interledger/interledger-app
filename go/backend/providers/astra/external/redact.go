@@ -1,4 +1,4 @@
-package client
+package external
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-var redactFields = []string{"IBAN", "BIC", "tokenValue", "fieldValue", "accountNumber", "email", "mobileNumber", "identificationNumber"}
+var redactFields = []string{"email", "ssn", "card_number"}
 
-func Redact(_ context.Context, req []byte) ([]byte, error) {
+func Redact(ctx context.Context, req []byte) ([]byte, error) {
 	js := make(map[string]interface{})
 	err := json.Unmarshal(req, &js)
 	if err != nil {
