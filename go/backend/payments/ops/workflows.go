@@ -303,6 +303,11 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 			return err
 		}
 
+		err = workflow.ExecuteActivity(ctx, a.AddDepositTransfer, paymentID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+
 		// Notify PTI of successful payout so complete the TX
 		err = workflow.ExecuteActivity(ctx, a.PTIWithdrawalComplete, paymentID, true).Get(ctx, nil)
 		if err != nil {

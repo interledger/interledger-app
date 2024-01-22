@@ -4,12 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-
-	httplogger "gitlab.com/fynbos/backend/providers/http"
-
-	"gitlab.com/fynbos/backend/twilio"
-
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/email"
 	"gitlab.com/fynbos/backend/kyc"
@@ -17,12 +11,17 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/astra/external"
+	mock_client "gitlab.com/fynbos/backend/providers/astra/external/mock"
 	"gitlab.com/fynbos/backend/providers/astra/ops"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/transactions"
+	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
+	"gitlab.com/fynbos/env"
 	"gitlab.com/fynbos/pacioli"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -59,14 +58,17 @@ type client struct {
 }
 
 func New(b Backends) astra.Client {
-
+	ex := external.New(&http.Client{
+		Transport: otelhttp.NewTransport(
+			httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
+		),
+	})
+	if env.IsLocal() {
+		ex = mock_client.SetupDevMock(nil)
+	}
 	return &client{b: opsBackends{
 		Backends: b,
-		astraExt: external.New(&http.Client{
-			Transport: otelhttp.NewTransport(
-				httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
-			),
-		}),
+		astraExt: ex,
 	}}
 }
 

@@ -2,11 +2,11 @@ package client
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"log"
 	"net/http"
 	"os"
+
+	mock_client "gitlab.com/fynbos/backend/providers/pti/external/mock"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
@@ -29,8 +29,9 @@ type Client struct {
 func New(b ops.Backends) *Client {
 	var ptiPrivateKey jwk.Key
 	var err error
+	var ptiExternal external.Client
 	if env.IsLocal() {
-		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+		/*privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -38,22 +39,23 @@ func New(b ops.Backends) *Client {
 		ptiPrivateKey, err = jwk.FromRaw(privateKey)
 		if err != nil {
 			log.Fatalln(err)
-		}
+		}*/
+		ptiExternal = mock_client.SetupDevMock(nil)
 	} else {
 		ptiPrivateKey, err = jwk.ParseKey([]byte(os.Getenv("PTI_JWK")))
 		if err != nil {
 			log.Fatalln(err)
 		}
+		ptiExternal = external.New(external.ClientArgs{
+			Transport: &http.Client{
+				Transport: otelhttp.NewTransport(
+					httplogger.NewTransport(http.DefaultTransport, b, nil),
+				),
+			},
+			ClientID:   os.Getenv("PTI_CLIENT_ID"),
+			PrivateKey: ptiPrivateKey,
+		})
 	}
-	ptiExternal := external.New(external.ClientArgs{
-		Transport: &http.Client{
-			Transport: otelhttp.NewTransport(
-				httplogger.NewTransport(http.DefaultTransport, b, nil),
-			),
-		},
-		ClientID:   os.Getenv("PTI_CLIENT_ID"),
-		PrivateKey: ptiPrivateKey,
-	})
 
 	return &Client{b: b, external: ptiExternal}
 }

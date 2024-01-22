@@ -45,8 +45,8 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
-	// No emails configured for withdrawal
-	if payment.Type == payments.TypeWithdrawal {
+	// No emails configured for withdrawal or deposit
+	if payment.Type == payments.TypeWithdrawal || payment.Type == payments.TypeDeposit {
 		return nil
 	}
 
@@ -88,8 +88,8 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
-	// No emails configured for withdrawal
-	if payment.Type == payments.TypeWithdrawal {
+	// No emails configured for withdrawal or withdrawal
+	if payment.Type == payments.TypeWithdrawal || payment.Type == payments.TypeDeposit {
 		return nil
 	}
 
@@ -104,7 +104,7 @@ func (a *Activity) CheckPaymentSuccess(ctx context.Context, paymentID string) (b
 		return false, err
 	}
 
-	if p.Type == payments.TypeWithdrawal {
+	if p.Type == payments.TypeWithdrawal || p.Type == payments.TypeDeposit {
 		if p.SendTransactionID == "" {
 			return false, nil
 		}
@@ -405,7 +405,7 @@ func (a *Activity) AddAstraCorrelation(ctx context.Context, paymentID string) er
 		return nil
 	}
 
-	_, err = update(ctx, a.b, payments.UpdateArgs{AddAstraCorrelationID: true}, nil)
+	_, err = update(ctx, a.b, payments.UpdateArgs{AddAstraCorrelationID: true, ID: paymentID}, nil)
 	return err
 }
 

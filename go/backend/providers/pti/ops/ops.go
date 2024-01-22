@@ -139,6 +139,7 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		return "", pti.ErrNotFound
 	}
 
+	fmt.Println("TTTTTTTTTTTTTTTTTT")
 	txID, err := ec.WalletWithdrawal(ctx, external.WithdrawalArgs{
 		RequestID:        args.PaymentID,
 		ScenarioID:       pti.ScenarioWithdrawal,
@@ -146,6 +147,7 @@ func WithdrawFromWallet(ctx context.Context, b Backends, ec external.Client, arg
 		ExternalWalletID: la.ProviderID,
 		Amount:           args.Amount,
 	})
+	fmt.Println("KKKKKKKKKKKKKKKKKKKKK", err)
 	if err != nil {
 		return "", fmt.Errorf("%w %s", pti.ErrInternal, err)
 	}

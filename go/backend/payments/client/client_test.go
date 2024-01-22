@@ -7,6 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/pacioli"
 
 	"gitlab.com/fynbos/backend/country"
@@ -52,14 +56,14 @@ func TestClient(t *testing.T) {
 	pc := client.New(b)
 
 	b.user.MapUserWallet(context.Background(), uuid.NewString(), wallets.WebMonetizationWalletID)
-	sendWalletID, sendLinkedAccount, sendBalance, sendBank := createTestWallet(t, b)
-	receiveWalletID, receiveLinkedAccount, receiveBalance, _ := createTestWallet(t, b)
+	sendWallet := createTestWallet(t, b)
+	recvWallet := createTestWallet(t, b)
 	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.USD)
 	require.NoError(t, err)
 
 	// adding dummy transaction so referrals don't run
 	_, err = b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-		WalletID: receiveWalletID,
+		WalletID: recvWallet.walletID,
 		Provider: transactions.Provider(tabapay.ProviderName),
 		Amount: currency.Amount{
 			Value:    10,
@@ -82,14 +86,14 @@ func TestClient(t *testing.T) {
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendLinkedAccount,
+				SenderAccount: sendWallet.tabapayLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveLinkedAccount,
+				ReceiverAccount: recvWallet.tabapayLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
@@ -117,14 +121,14 @@ func TestClient(t *testing.T) {
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendLinkedAccount,
+				SenderAccount: sendWallet.tabapayLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveLinkedAccount,
+				ReceiverAccount: recvWallet.tabapayLinkedAcc,
 				SenderAmount:    currency.FromUInt64(777, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(777, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
@@ -141,14 +145,14 @@ func TestClient(t *testing.T) {
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendLinkedAccount,
+				SenderAccount: sendWallet.tabapayLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveLinkedAccount,
+				ReceiverAccount: recvWallet.tabapayLinkedAcc,
 				SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(666, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
@@ -174,14 +178,14 @@ func TestClient(t *testing.T) {
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendLinkedAccount,
+				SenderAccount: sendWallet.tabapayLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveLinkedAccount,
+				ReceiverAccount: recvWallet.tabapayLinkedAcc,
 				SenderAmount:    currency.FromUInt64(1222, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(1222, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
@@ -197,9 +201,9 @@ func TestClient(t *testing.T) {
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendLinkedAccount,
+				SenderAccount: sendWallet.tabapayLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeSlack,
 					Identifier: "fynbos / DevTest",
@@ -236,9 +240,9 @@ func TestClient(t *testing.T) {
 				SenderAccount: webMonetizaiontLinkedAccount.ID,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveLinkedAccount,
+				ReceiverAccount: recvWallet.tabapayLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
@@ -267,14 +271,14 @@ func TestClient(t *testing.T) {
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendBalance,
+				SenderAccount: sendWallet.xagoZARLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				ReceiverAccount: sendBank,
+				ReceiverAccount: sendWallet.xagoBankLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("ZAR")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("ZAR")),
 				IPAddress:       "192.36.8.4",
@@ -300,14 +304,14 @@ func TestClient(t *testing.T) {
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendBalance,
+				SenderAccount: sendWallet.xagoZARLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveBalance,
+				ReceiverAccount: recvWallet.xagoZARLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10000, currency.ParseCurrency("ZAR")),
 				ReceiverAmount:  currency.FromUInt64(10000, currency.ParseCurrency("ZAR")),
 				IPAddress:       "192.36.8.4",
@@ -330,6 +334,72 @@ func TestClient(t *testing.T) {
 				ReceiveTransactionState: transactions.StateCompleted,
 			},
 		},
+		{
+			Name: "Golden path astra to pti deposit",
+			Args: payments.CreateArgs{
+				Type: payments.TypeDeposit,
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWallet.walletID,
+				},
+				SenderAccount: sendWallet.astraLinkedAcc,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWallet.walletID,
+				},
+				ReceiverAccount: sendWallet.ptiUSDLinkedAcc,
+				SenderAmount:    currency.FromUInt64(10000, currency.USD),
+				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
+				IPAddress:       "192.36.8.4",
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitCard,
+						State:        transactions.StateCompleted,
+					},
+					{
+						TransferType: transactions.TransferTypeCreditBalance,
+						State:        transactions.StateCompleted,
+					},
+				},
+			},
+		},
+		{
+			Name: "Golden path pti to astra withdrawal",
+			Args: payments.CreateArgs{
+				Type: payments.TypeWithdrawal,
+				Sender: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWallet.walletID,
+				},
+				SenderAccount: sendWallet.ptiUSDLinkedAcc,
+				Receiver: payments.Identity{
+					Type:       payments.IdentityTypeWalletID,
+					Identifier: sendWallet.walletID,
+				},
+				ReceiverAccount: sendWallet.astraLinkedAcc,
+				SenderAmount:    currency.FromUInt64(10000, currency.USD),
+				ReceiverAmount:  currency.FromUInt64(10000, currency.USD),
+				IPAddress:       "192.36.8.4",
+			},
+			Assertions: Assertions{
+				PaymentState:         payments.StateCompleted,
+				SendTransactionState: transactions.StateCompleted,
+				SendTransfers: []AssertTransfer{
+					{
+						TransferType: transactions.TransferTypeDebitBalance,
+						State:        transactions.StateCompleted,
+					},
+					{
+						TransferType: transactions.TransferTypeCreditCard,
+						State:        transactions.StateCompleted,
+					},
+				},
+			},
+		},
 		/*
 			Temporal test environment doesn't accurately throw Max Retry errors so cannot test the failure case
 			{
@@ -337,14 +407,14 @@ func TestClient(t *testing.T) {
 				Args: payments.CreateArgs{
 					Sender: payments.Identity{
 						Type:       payments.IdentityTypeWalletID,
-						Identifier: sendWalletID,
+						Identifier: sendWallet.walletID,
 					},
-					SenderAccount: sendBalance,
+					SenderAccount: sendWallet.xagoZARLinkedAcc,
 					Receiver: payments.Identity{
 						Type:       payments.IdentityTypeWalletID,
-						Identifier: sendWalletID,
+						Identifier: sendWallet.walletID,
 					},
-					ReceiverAccount: sendBank,
+					ReceiverAccount: sendWallet.xagoBankLinkedAcc,
 					SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("ZAR")),
 					ReceiverAmount:  currency.FromUInt64(666, currency.ParseCurrency("ZAR")),
 					IPAddress:       "192.36.8.4",
@@ -376,7 +446,7 @@ func TestClient(t *testing.T) {
 			threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
 				Amount:  tc.Args.SenderAmount,
 				OrderID: p.ID,
-				CardID:  sendLinkedAccount,
+				CardID:  sendWallet.tabapayLinkedAcc,
 			})
 			require.NoError(st, err)
 
@@ -401,7 +471,7 @@ func TestClient(t *testing.T) {
 					}
 
 					id, err := b.Identities().Add(ctx, identities.AddArgs{
-						WalletID:   receiveWalletID,
+						WalletID:   recvWallet.walletID,
 						Platform:   platform,
 						Identifier: tc.Args.Receiver.Identifier,
 					})
@@ -434,7 +504,7 @@ func TestClient(t *testing.T) {
 			if p.Type == payments.TypeWebMonetization {
 				sendTransaction, err = b.Transactions().GetTransaction(ctx, wallets.WebMonetizationWalletID, p.SendTransactionID)
 			} else {
-				sendTransaction, err = b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
+				sendTransaction, err = b.Transactions().GetTransaction(ctx, sendWallet.walletID, p.SendTransactionID)
 			}
 			require.NoError(st, err)
 			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://local.fynbos.me/"))
@@ -451,7 +521,7 @@ func TestClient(t *testing.T) {
 			assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
 
 			if tc.Assertions.ReceiveTransactionState != "" {
-				recvTransaction, err := b.Transactions().GetTransaction(ctx, receiveWalletID, p.ReceiveTransactionID)
+				recvTransaction, err := b.Transactions().GetTransaction(ctx, recvWallet.walletID, p.ReceiveTransactionID)
 				require.NoError(st, err)
 				assert.True(st, strings.HasPrefix(recvTransaction.Destination, "https://local.fynbos.me/"))
 				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://local.fynbos.me/"))
@@ -561,11 +631,11 @@ func TestReferrals(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.Name, func(st *testing.T) {
 			b.RestoreTemporalEnv()
-			sendWalletID, sendLinkedAccount, _, _ := createTestWallet(t, b)
-			receiveWalletID, receiveLinkedAccount, _, _ := createTestWallet(t, b)
+			sendWallet := createTestWallet(t, b)
+			recvWallet := createTestWallet(t, b)
 			if tc.AddIdentity {
 				id, err := b.Identities().Add(ctx, identities.AddArgs{
-					WalletID:   receiveWalletID,
+					WalletID:   recvWallet.walletID,
 					Platform:   identities.PlatformDiscord,
 					Identifier: "devdiscord",
 				})
@@ -576,7 +646,7 @@ func TestReferrals(t *testing.T) {
 
 			if tc.AddReceiverTransaction {
 				_, err := b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
-					WalletID: receiveWalletID,
+					WalletID: recvWallet.walletID,
 					Provider: transactions.Provider(tabapay.ProviderName),
 					Amount: currency.Amount{
 						Value:    10,
@@ -592,14 +662,14 @@ func TestReferrals(t *testing.T) {
 			p, err := pc.Create(ctx, payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendLinkedAccount,
+				SenderAccount: sendWallet.tabapayLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveLinkedAccount,
+				ReceiverAccount: recvWallet.tabapayLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
@@ -609,7 +679,7 @@ func TestReferrals(t *testing.T) {
 			threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
 				Amount:  tc.Args.SenderAmount,
 				OrderID: p.ID,
-				CardID:  sendLinkedAccount,
+				CardID:  sendWallet.tabapayLinkedAcc,
 			})
 			require.NoError(st, err)
 
@@ -642,7 +712,7 @@ func TestReferrals(t *testing.T) {
 			if p.Type == payments.TypeWebMonetization {
 				sendTransaction, err = b.Transactions().GetTransaction(ctx, wallets.WebMonetizationWalletID, p.SendTransactionID)
 			} else {
-				sendTransaction, err = b.Transactions().GetTransaction(ctx, sendWalletID, p.SendTransactionID)
+				sendTransaction, err = b.Transactions().GetTransaction(ctx, sendWallet.walletID, p.SendTransactionID)
 			}
 			require.NoError(st, err)
 			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://local.fynbos.me/"))
@@ -657,7 +727,7 @@ func TestReferrals(t *testing.T) {
 			assert.ElementsMatch(st, tc.Assertions.SendTransfers, sendTransfers)
 
 			if tc.Assertions.ReceiveTransactionState != "" {
-				recvTransaction, err := b.Transactions().GetTransaction(ctx, receiveWalletID, p.ReceiveTransactionID)
+				recvTransaction, err := b.Transactions().GetTransaction(ctx, recvWallet.walletID, p.ReceiveTransactionID)
 				require.NoError(st, err)
 				assert.True(st, strings.HasPrefix(recvTransaction.Destination, "https://local.fynbos.me/"))
 				assert.True(st, strings.HasPrefix(recvTransaction.Source, "https://local.fynbos.me/"))
@@ -674,7 +744,7 @@ func TestReferrals(t *testing.T) {
 				assert.Empty(st, p.ReceiveTransactionID)
 			}
 
-			receiveTxs, err := b.Transactions().ListCompleted(ctx, db.Pagination{}, sendWalletID)
+			receiveTxs, err := b.Transactions().ListCompleted(ctx, db.Pagination{}, sendWallet.walletID)
 			require.NoError(st, err)
 			var senderReferral *transactions.Transaction
 			for _, tx := range receiveTxs {
@@ -693,7 +763,7 @@ func TestReferrals(t *testing.T) {
 				assert.Nil(st, senderReferral)
 			}
 
-			recevierTxs, err := b.Transactions().ListCompleted(ctx, db.Pagination{}, receiveWalletID)
+			recevierTxs, err := b.Transactions().ListCompleted(ctx, db.Pagination{}, recvWallet.walletID)
 			require.NoError(st, err)
 			var recevierReferral *transactions.Transaction
 			for _, tx := range recevierTxs {
@@ -715,6 +785,16 @@ func TestReferrals(t *testing.T) {
 	}
 }
 
+type testWallet struct {
+	userID            string
+	walletID          string
+	tabapayLinkedAcc  string
+	xagoZARLinkedAcc  string
+	xagoBankLinkedAcc string
+	astraLinkedAcc    string
+	ptiUSDLinkedAcc   string
+}
+
 /*
 Seeds a user:
 - user client returns user for userID
@@ -724,7 +804,7 @@ Seeds a user:
 - tabapay account is created
 - xago account and balance account is created
 */
-func createTestWallet(t *testing.T, b *TestBackends) (string, string, string, string) {
+func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	userID := uuid.NewString()
 	address, err := wallets.ParseAddress(fmt.Sprintf("%s/%s", env.OpenPaymentsURL(), faker.FirstName()))
 	if err != nil {
@@ -810,5 +890,55 @@ func createTestWallet(t *testing.T, b *TestBackends) (string, string, string, st
 	})
 	require.NoError(t, err)
 
-	return wallet.ID, la.ID, xBalance.ID, xBank.ID
+	// Astra Intent
+	_, err = b.DB().Exec("INSERT INTO astra_user_intents (intent_id, wallet_id, user_id, status) VALUES ($1, $2, $3, 'unknown')", uuid.NewString(), walletID, uuid.NewString())
+	require.NoError(t, err)
+	// Astra account
+	_, err = b.DB().Exec("INSERT INTO astra_accounts(wallet_id, account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", walletID, uuid.NewString())
+	require.NoError(t, err)
+	// PTI user
+	_, err = b.DB().Exec(" INSERT INTO pti_users(external_id, wallet_id, status, assessment_status) VALUES ($1, $2, 'confirmed', 'confirmed')", uuid.NewString(), walletID)
+	require.NoError(t, err)
+
+	astraCard, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+		WalletID:        wallet.ID,
+		Name:            "astra card",
+		Provider:        astra.ProviderName,
+		ProviderID:      uuid.NewString(),
+		Type:            astra.TypeCard,
+		CanSend:         false,
+		CanReceive:      false,
+		State:           linkedaccounts.Verified,
+		SendCountry:     country.US,
+		SendCurrency:    currency.USD,
+		ReceiveCountry:  country.US,
+		ReceiveCurrency: currency.USD,
+	})
+	require.NoError(t, err)
+
+	ptiBal, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
+		WalletID:        wallet.ID,
+		Name:            "pti balance",
+		Provider:        pti.ProviderName,
+		ProviderID:      uuid.NewString(),
+		Type:            pti.AccTypeBalance,
+		CanSend:         true,
+		CanReceive:      true,
+		State:           linkedaccounts.Verified,
+		SendCountry:     country.US,
+		SendCurrency:    currency.USD,
+		ReceiveCountry:  country.US,
+		ReceiveCurrency: currency.USD,
+	})
+	require.NoError(t, err)
+
+	return testWallet{
+		userID:            userID,
+		walletID:          walletID,
+		tabapayLinkedAcc:  la.ID,
+		xagoZARLinkedAcc:  xBalance.ID,
+		xagoBankLinkedAcc: xBank.ID,
+		astraLinkedAcc:    astraCard.ID,
+		ptiUSDLinkedAcc:   ptiBal.ID,
+	}
 }
