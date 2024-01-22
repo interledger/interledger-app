@@ -48,3 +48,52 @@ from xago_transactions
 where type = 'deposit'
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
+
+-- name: CreatePTIUser :one
+INSERT INTO pti_users
+(id, type, first_name, middle_name, last_name, date_of_birth, source_of_funds, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
+
+-- name: CreatePTIUserEmail :copyfrom
+INSERT INTO pti_user_emails (user_id, address, is_default) VALUES ($1, $2, $3);
+
+-- name: ListPTIUserEmails :many
+SELECT * FROM pti_user_emails WHERE id = $1;
+
+-- name: ListPTIUserAddresses :many
+SELECT * FROM pti_user_addresses WHERE id = $1;
+
+-- name: CreatePTIUserAddress :copyfrom
+INSERT INTO pti_user_addresses (user_id, street, postal_code, state_code, country, is_default) VALUES ($1, $2, $3, $4, $5, $6);
+
+-- name: CreatePTIUserPhone :copyfrom
+INSERT INTO pti_User_phones (user_id, number, is_default) VALUES ($1, $2, $3);
+
+-- name: CreatePTIWallet :one
+INSERT INTO pti_wallets (id, user_id, currency) VALUES ($1, $2, $3) RETURNING *;
+
+-- name: GetPTIUser :one
+SELECT * FROM pti_users WHERE id=$1;
+
+-- name: GetPTIUserEmails :many
+SELECT * FROM pti_user_emails WHERE user_id=$1;
+
+-- name: GetPTIUserAddresses :many
+SELECT * FROM pti_user_addresses WHERE user_id=$1;
+
+-- name: GetPTIUserWallet :one
+SELECT * FROM pti_wallets WHERE id=$1 AND user_id=$2;
+
+-- name: GetPTIWallet :one
+SELECT * FROM pti_wallets WHERE id=$1;
+
+-- name: GetPTIUserPhones :many
+SELECT * FROM pti_user_phones WHERE user_id=$1;
+
+-- name: CreatePTITransaction :one
+INSERT INTO pti_transactions (request_id, user_id, client_id, date, status, transaction_type, payment_method, payment_status_provider_response_code, payment_status_provider_response_category, amount, currency, total_amount, total_currency, fee_amount, fee_currency, subtotal_amount, subtotal_currency) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *;
+
+-- name: AdjustPTIWalletBalance :exec
+UPDATE pti_wallets SET balance=balance+$1 WHERE id=$2;
+
+-- name: GetPTITransactionByRequestID :one
+SELECT * FROM pti_transactions WHERE request_id=$1;
