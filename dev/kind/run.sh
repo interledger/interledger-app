@@ -8,6 +8,10 @@ ctlptl apply -f "$(dirname "$0")/config.yaml"
 docker build "$(dirname "$0")/../../go/" -f "$(dirname "$0")/../../go/backend/Dockerfile" -t localhost:5005/backend:latest
 docker push localhost:5005/backend:latest
 
+# Build backend base docker and upload to cluster
+docker build "$(dirname "$0")/../../go/" -f "$(dirname "$0")/../../go/mockbos/Dockerfile" -t localhost:5005/mockbos:latest
+docker push localhost:5005/mockbos:latest
+
 # Build protea base docker and upload to cluster
 docker build "$(dirname "$0")/../../typescript/protea" -f "$(dirname "$0")/../../typescript/protea/Dockerfile" --target dev -t localhost:5005/protea:latest
 docker push localhost:5005/protea:latest

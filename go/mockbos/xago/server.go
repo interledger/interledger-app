@@ -1,0 +1,576 @@
+package xago
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	"gitlab.com/fynbos/backend/providers/xago/external"
+	"gitlab.com/fynbos/backend/providers/xago/ops"
+	"gitlab.com/fynbos/log"
+	"gitlab.com/fynbos/mockbos/db"
+	"gitlab.com/fynbos/mockbos/utils"
+	"go.uber.org/zap"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+)
+
+type Server struct {
+	db         *db.Queries
+	webhookUrl string
+}
+
+type TransactionType string
+
+const (
+	Withdrawal TransactionType = "withdrawal"
+	Deposit    TransactionType = "deposit"
+)
+
+func New(db *db.Queries) *Server {
+	webhookUrl := os.Getenv("XAGO_WEBHOOK_URL")
+	if webhookUrl == "" {
+		log.Warn("xago: webhook url not set")
+	}
+	return &Server{db: db, webhookUrl: webhookUrl}
+}
+
+func (s *Server) CreateSubAccount() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req external.SubAccountReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		dob, err := intToDate(req.DateOfBirth)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		sa, err := s.db.CreateXagoSubAccount(r.Context(), db.CreateXagoSubAccountParams{
+			DepositTag:                 "",
+			FirstName:                  req.FirstName,
+			LastName:                   req.LastName,
+			Email:                      req.Email,
+			MobileNumber:               req.MobileNumber,
+			Country:                    req.Country,
+			Nationality:                req.Nationality,
+			IdentificationDocumentType: req.IdentificationDocumentType,
+			IdentificationNumber:       req.IdentificationNumber,
+			Address:                    req.Address,
+			City:                       req.City,
+			District:                   req.District,
+			PostalCode:                 req.PostalCode,
+			AddressDocumentType:        req.AddressDocumentType,
+			DateOfBirth:                dob,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Mock response
+		resp := external.SubAccount{
+			AccountID:      utils.BytesToUUID(sa.Bytes),
+			DepositAddress: "rF2132313cCDsdcCaasdaeed",
+			DepositTag:     91273812,
+			DepositDetails: map[string][]external.DepositDetails{
+				"ZAR": {
+					{
+						BankName:       "Capitec Business",
+						AccountName:    "Xago Technologies PTY LTD",
+						AccountNumber:  "1050835450",
+						BankAddress:    "142 West Street, Sandown, 2196",
+						AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
+						BranchCode:     "450105",
+					},
+					{
+						BankName:       "Bidvest Bank",
+						AccountName:    "Xago Technologies PTY LTD",
+						AccountNumber:  "13874093401",
+						BankAddress:    "142 West Street, Sandown, 2196",
+						AccountAddress: "The Matrix, Bridgeway, Century City, 7441, South Africa",
+						BranchCode:     "462005",
+					},
+				},
+			},
+			Beneficiaries: []external.Beneficiaries{
+				{
+					BeneficiaryID:    "d7df4a5d-0294-4280-bf09-7651f335ace5",
+					BeneficiaryType:  "rollup",
+					DepositReference: "testDW85PQ",
+				},
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			// At this point, since the header and possibly part of the body are already written,
+			// you cannot send a new status code or additional headers.
+			// Log the error for server-side diagnostics.
+			log.Warn("Failed to encode JSON response: %v", zap.Error(err))
+			// Consider how you want to handle this knowing you can't change the response sent to the client.
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func intToDate(intDate int) (pgtype.Date, error) {
+	year := intDate / 10000
+	month := (intDate % 10000) / 100
+	day := intDate % 100
+
+	// Construct time.Time object
+	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
+
+	// Convert time.Time to pgtypes.Date
+	var date pgtype.Date
+	err := date.Scan(t)
+	if err != nil {
+		return date, err
+	}
+
+	return date, nil
+}
+
+func (s *Server) AddBeneficiary() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req external.CreateBeneficiaryReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		_, err := s.db.CreateXagoBeneficiary(r.Context(), db.CreateXagoBeneficiaryParams{
+			Name:                       pgtype.Text{String: req.Name, Valid: true},
+			Scope:                      pgtype.Text{String: req.Scope, Valid: true},
+			CurrencyCode:               pgtype.Text{String: req.CurrencyCode, Valid: true},
+			AccountNumber:              pgtype.Text{String: req.AccountNumber, Valid: true},
+			BranchCode:                 pgtype.Text{String: req.BranchCode, Valid: true},
+			BankName:                   pgtype.Text{String: req.BankName, Valid: true},
+			BankCountry:                pgtype.Text{String: req.BankCountry, Valid: true},
+			AccountName:                pgtype.Text{String: req.AccountName, Valid: true},
+			BankBeneficiaryType:        pgtype.Text{String: req.BankBeneficiaryType, Valid: true},
+			Reference:                  pgtype.Text{String: req.Reference, Valid: true},
+			Iban:                       pgtype.Text{String: req.Iban, Valid: true},
+			Bic:                        pgtype.Text{String: req.Bic, Valid: true},
+			BeneficiaryPhysicalAddress: pgtype.Text{String: req.BeneficiaryPhysicalAddress, Valid: true},
+			BeneficiaryCity:            pgtype.Text{String: req.BeneficiaryCity, Valid: true},
+			BeneficiaryCountry:         pgtype.Text{String: req.BeneficiaryCountry, Valid: true},
+			BeneficiaryPostalCode:      pgtype.Text{String: req.BeneficiaryPostalCode, Valid: true},
+			BeneficiaryAddress:         pgtype.Text{String: req.BeneficiaryAddress, Valid: true},
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		//Get all beneficaries
+		ben, err := s.db.ListXagoBeneficiaries(r.Context())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var bs []external.AccountBeneficiaries
+
+		for _, beneficiary := range ben {
+			bs = append(bs, external.AccountBeneficiaries{
+				ID:                 utils.BytesToUUID(beneficiary.ID.Bytes),
+				BranchCode:         beneficiary.BranchCode.String,
+				Reference:          beneficiary.Reference.String,
+				BeneficiaryAddress: beneficiary.BeneficiaryPhysicalAddress.String,
+				BankName:           beneficiary.BankName.String,
+				AccountNumber:      beneficiary.AccountNumber.String,
+				Status:             "active",
+				CurrencyCode:       beneficiary.CurrencyCode.String,
+				Name:               beneficiary.Name.String,
+				Wallet:             nil,
+			})
+		}
+
+		// Mock response
+		var resp = external.CreateBeneficiaryResp{
+			Status:        200,
+			Beneficiaries: bs,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			// At this point, since the header and possibly part of the body are already written,
+			// you cannot send a new status code or additional headers.
+			// Log the error for server-side diagnostics.
+			log.Warn("Failed to encode JSON response: %v", zap.Error(err))
+			// Consider how you want to handle this knowing you can't change the response sent to the client.
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (s *Server) CreateTransaction() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req external.CreateTransactionReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Validations
+		trx := req.Values[0]
+
+		if trx.Amount < 1.0 {
+			http.Error(w, "amount must be greater than 1.0", http.StatusBadRequest)
+			return
+		}
+		// Check if beneficiary exists
+		var beneficiaryId pgtype.UUID
+		err := beneficiaryId.Scan(trx.BeneficiaryID)
+		if err != nil {
+			http.Error(w, "beneficiaryId is not a UUID", http.StatusBadRequest)
+			return
+		}
+		b, err := s.db.GetXagoBeneficiary(r.Context(), beneficiaryId)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				http.Error(w, "beneficiary does not exist", http.StatusBadRequest)
+			} else {
+				http.Error(w, "error getting beneficiary", http.StatusBadRequest)
+			}
+			return
+		}
+
+		t, err := s.db.CreateXagoTransaction(r.Context(), db.CreateXagoTransactionParams{
+			CurrencyCode:   trx.CurrencyCode,
+			Amount:         trx.Amount,
+			OriginAmount:   trx.Amount,
+			Status:         "pending",
+			BeneficiaryID:  utils.BytesToUUID(b.ID.Bytes),
+			IdempotencyKey: trx.IdempotencyKey,
+			Type:           string(Withdrawal),
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// Mock response
+		var resp = fmt.Sprintf("\"%s\"", utils.BytesToUUID(t.ID.Bytes))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte(resp)); err != nil {
+			// At this point, since the header and possibly part of the body are already written,
+			// you cannot send a new status code or additional headers.
+			// Log the error for server-side diagnostics.
+			log.Warn("Failed to encode JSON response: %v", zap.Error(err))
+			// Consider how you want to handle this knowing you can't change the response sent to the client.
+		}
+	}
+}
+
+func (s *Server) GetTransaction() http.HandlerFunc {
+	type transaction struct {
+		Id             string    `json:"id"`
+		CurrencyCode   string    `json:"currencyCode"`
+		Commission     int       `json:"commission"`
+		Total          float64   `json:"total"`
+		Amount         float64   `json:"amount"`
+		BatchType      string    `json:"batchType"`
+		Status         string    `json:"status"`
+		AddFeeToAmount bool      `json:"addFeeToAmount"`
+		UpdatedAt      time.Time `json:"updatedAt"`
+		CreatedAt      time.Time `json:"createdAt"`
+		Reference      string    `json:"reference"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var trxId pgtype.UUID
+		err := trxId.Scan(r.URL.Query().Get("transactionId"))
+		if err != nil {
+			http.Error(w, "id is not a UUID", http.StatusBadRequest)
+			return
+		}
+
+		trx, err := s.db.GetXagoTransaction(r.Context(), trxId)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				http.Error(w, "transaction does not exist", http.StatusBadRequest)
+			} else {
+				http.Error(w, "error getting transaction", http.StatusBadRequest)
+			}
+			return
+		}
+		var resp = transaction{
+			Id:             utils.BytesToUUID(trx.ID.Bytes),
+			CurrencyCode:   trx.CurrencyCode,
+			Commission:     0,
+			Total:          trx.Amount,
+			Amount:         trx.Amount,
+			BatchType:      "transfer",
+			Status:         trx.Status,
+			AddFeeToAmount: false,
+			UpdatedAt:      trx.UpdatedAt.Time,
+			CreatedAt:      trx.CreatedAt.Time,
+			Reference:      "",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			// At this point, since the header and possibly part of the body are already written,
+			// you cannot send a new status code or additional headers.
+			// Log the error for server-side diagnostics.
+			log.Warn("Failed to encode JSON response: %v", zap.Error(err))
+			// Consider how you want to handle this knowing you can't change the response sent to the client.
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (s *Server) ListDepositTransactions() http.HandlerFunc {
+	type transaction struct {
+		TransactionId          string      `json:"transactionId"`
+		AccountId              string      `json:"accountId"`
+		OriginAmount           float64     `json:"originAmount"`
+		Amount                 float64     `json:"amount"`
+		Status                 string      `json:"status"`
+		IsRequested            bool        `json:"isRequested"`
+		IsDuplicate            bool        `json:"isDuplicate"`
+		DuplicateTransactionId interface{} `json:"duplicateTransactionId"`
+		CreatedAt              time.Time   `json:"createdAt"`
+		SettledAt              string      `json:"settledAt"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Defaults
+		page := 1
+		limit := 10
+
+		if r.URL.Query().Has("page") {
+			pageString := r.URL.Query().Get("page")
+			i, err := strconv.Atoi(pageString)
+			if err != nil {
+				http.Error(w, "invalid page", http.StatusBadRequest)
+				return
+			}
+			page = i
+		}
+
+		if r.URL.Query().Has("limit") {
+			limitString := r.URL.Query().Get("limit")
+			i, err := strconv.Atoi(limitString)
+			if err != nil {
+				http.Error(w, "invalid limit", http.StatusBadRequest)
+				return
+			}
+			limit = i
+		}
+
+		if page < 1 {
+			page = 1
+		}
+		if limit <= 0 || limit >= 50 {
+			limit = 10 // default limit
+		}
+		offset := (page - 1) * limit
+
+		d, err := s.db.ListXagoDeposits(r.Context(), db.ListXagoDepositsParams{
+			Limit:  int32(limit),
+			Offset: int32(offset),
+		})
+		if err != nil && errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "error getting deposits", http.StatusBadRequest)
+			return
+		}
+
+		resp := make([]transaction, 0)
+
+		for _, xagoTransaction := range d {
+			resp = append(resp, transaction{
+				TransactionId:          utils.BytesToUUID(xagoTransaction.ID.Bytes),
+				AccountId:              xagoTransaction.BeneficiaryID,
+				OriginAmount:           xagoTransaction.Amount,
+				Amount:                 xagoTransaction.Amount,
+				Status:                 xagoTransaction.Status,
+				IsRequested:            false,
+				IsDuplicate:            false,
+				DuplicateTransactionId: nil,
+				CreatedAt:              xagoTransaction.CreatedAt.Time,
+				SettledAt:              "",
+			})
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			// At this point, since the header and possibly part of the body are already written,
+			// you cannot send a new status code or additional headers.
+			// Log the error for server-side diagnostics.
+			log.Warn("Failed to encode JSON response: %v", zap.Error(err))
+			// Consider how you want to handle this knowing you can't change the response sent to the client.
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (s *Server) CreateDeposit() http.HandlerFunc {
+	type depositReq struct {
+		Amount    float64 `json:"amount"`
+		AccountId string  `json:"accountId"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req depositReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// Check if sub account exists
+		var subAccountId pgtype.UUID
+		err := subAccountId.Scan(req.AccountId)
+		if err != nil {
+			http.Error(w, "accountId is not a UUID", http.StatusBadRequest)
+			return
+		}
+		_, err = s.db.GetXagoSubAccount(r.Context(), subAccountId)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				http.Error(w, "account does not exist", http.StatusBadRequest)
+			} else {
+				http.Error(w, "error getting account", http.StatusBadRequest)
+			}
+			return
+		}
+
+		t, err := s.db.CreateXagoTransaction(r.Context(), db.CreateXagoTransactionParams{
+			CurrencyCode:   "ZAR",
+			Amount:         req.Amount,
+			OriginAmount:   req.Amount,
+			Status:         "Success",
+			BeneficiaryID:  req.AccountId,
+			IdempotencyKey: "",
+			Type:           string(Deposit),
+		})
+		if err != nil {
+			http.Error(w, "error creating deposit", http.StatusBadRequest)
+			return
+		}
+
+		if s.webhookUrl != "" {
+			sendWebhook(r.Context(), s.webhookUrl, t)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func sendWebhook(ctx context.Context, webhookUrl string, trx db.XagoTransaction) {
+	webhookReq := ops.Webhook{
+		AccountID:              trx.BeneficiaryID,
+		Amount:                 trx.Amount,
+		BeneficiaryID:          trx.BeneficiaryID,
+		CreatedAt:              trx.CreatedAt.Time.String(),
+		Currency:               trx.CurrencyCode,
+		DuplicateTransactionID: "",
+		IsDuplicate:            false,
+		IsRequested:            false,
+		IsRequestMatched:       false,
+		OriginAmount:           trx.OriginAmount,
+		ParentExtension:        "",
+		SettledAt:              "",
+		Code:                   200,
+		Status:                 trx.Status,
+		TransactionID:          utils.BytesToUUID(trx.ID.Bytes),
+		TransactionReference:   "",
+		RequestData: struct {
+			Amount          float64 `json:"amount"`
+			Currency        string  `json:"currencyCode"`
+			CustomRequestID string  `json:"customRequestId"`
+		}(struct {
+			Amount          float64
+			Currency        string
+			CustomRequestID string
+		}{
+			Amount:          0,
+			Currency:        "",
+			CustomRequestID: "",
+		}),
+	}
+	marshalled, err := json.Marshal(webhookReq)
+	if err != nil {
+		log.Error("xago: error marshalling webhook request")
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", webhookUrl, bytes.NewReader(marshalled))
+	if err != nil {
+		log.Error("xago: could not build request")
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := http.Client{Timeout: 5 * time.Second}
+	// send the request
+	res, err := client.Do(req)
+	if err != nil {
+		log.Error("xago: could not to send request")
+	}
+
+	defer res.Body.Close()
+}
+
+func (s *Server) CreateLogin() http.HandlerFunc {
+	type tokenResp struct {
+		Token string `json:"tokenValue"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		resp := tokenResp{Token: "randomtoken"}
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			// At this point, since the header and possibly part of the body are already written,
+			// you cannot send a new status code or additional headers.
+			// Log the error for server-side diagnostics.
+			log.Warn("Failed to encode JSON response: %v", zap.Error(err))
+			// Consider how you want to handle this knowing you can't change the response sent to the client.
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
