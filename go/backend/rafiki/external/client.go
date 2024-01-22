@@ -39,7 +39,7 @@ func New() Client {
 }
 
 func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
-	pp, err := CreatePaymentPointer(ctx, c.gcl, CreatePaymentPointerInput{
+	pp, err := CreateWalletAddress(ctx, c.gcl, CreateWalletAddressInput{
 		AssetId:        c.usdID,
 		Url:            w.AddressString(),
 		PublicName:     w.Name,
@@ -48,11 +48,11 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (str
 	if err != nil {
 		return "", err
 	}
-	if !pp.GetCreatePaymentPointer().Success {
-		return "", fmt.Errorf("error code (%s) message (%s)", pp.GetCreatePaymentPointer().Code, pp.GetCreatePaymentPointer().Message)
+	if !pp.GetCreateWalletAddress().Success {
+		return "", fmt.Errorf("error code (%s) message (%s)", pp.GetCreateWalletAddress().Code, pp.GetCreateWalletAddress().Message)
 	}
 
-	return pp.CreatePaymentPointer.PaymentPointer.Id, nil
+	return pp.CreateWalletAddress.WalletAddress.Id, nil
 }
 
 func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
@@ -68,9 +68,9 @@ func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
 	return nil
 }
 
-func (c client) CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) error {
-	r, err := CreatePaymentPointerKey(ctx, c.gcl, CreatePaymentPointerKeyInput{
-		PaymentPointerId: paymentPointerID,
+func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID string, key keys.Key) error {
+	r, err := CreateWalletAddressKey(ctx, c.gcl, CreateWalletAddressKeyInput{
+		WalletAddressId: walletAddressID,
 		Jwk: JwkInput{
 			Kid: key.ID,
 			X:   key.PublicKey,
@@ -82,22 +82,25 @@ func (c client) CreatePaymentPointerKey(ctx context.Context, paymentPointerID st
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
-	if !r.GetCreatePaymentPointerKey().Success {
-		return fmt.Errorf("error code (%s) message (%s)", r.GetCreatePaymentPointerKey().Code, r.GetCreatePaymentPointerKey().Message)
+	if !r.GetCreateWalletAddressKey().Success {
+		return fmt.Errorf("error code (%s) message (%s)", r.GetCreateWalletAddressKey().Code, r.GetCreateWalletAddressKey().Message)
 	}
 
 	return nil
 }
 
 func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
-	r, err := RevokePaymentPointerKey(ctx, c.gcl, RevokePaymentPointerKeyInput{
+	r, err := RevokeWalletAddressKey(ctx, c.gcl, RevokeWalletAddressKeyInput{
 		Id: keyID,
 	})
+
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
-	if !r.GetRevokePaymentPointerKey().Success {
-		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokePaymentPointerKey().Code, r.GetRevokePaymentPointerKey().Message)
+
+	if !r.GetRevokeWalletAddressKey().Success {
+		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokeWalletAddressKey().Code, r.GetRevokeWalletAddressKey().Message)
+
 	}
 	return nil
 }

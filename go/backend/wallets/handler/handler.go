@@ -27,7 +27,7 @@ type Backends interface {
 }
 
 // this handler handles fynbos.me redirects done by openpayments server previously
-func NewWalletRedirectHandler(b Backends) http.HandlerFunc {
+func WalletRedirectHandler(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -107,12 +107,13 @@ func NewWalletRedirectHandler(b Backends) http.HandlerFunc {
 		}
 
 		jsonResponse := JsonResponse{
-			Id:            wallet.AddressString(),
-			PublicName:    wallet.Name,
-			Identities:    jsonIds,
-			AssetCode:     "USD",
-			AssetScale:    2,
-			AuthServerURL: env.AuthURL(),
+			Id:                wallet.AddressString(),
+			PublicName:        wallet.Name,
+			Identities:        jsonIds,
+			AssetCode:         "USD",
+			AssetScale:        2,
+			AuthServerURL:     env.AuthURL(),
+			ResourceServerURL: env.OpenPaymentsURL(),
 		}
 		if env.IsDev() {
 			jsonResponse.Identities = nil
@@ -129,7 +130,7 @@ func NewWalletRedirectHandler(b Backends) http.HandlerFunc {
 	}
 }
 
-func NewGetIdentityHandler(b Backends) http.HandlerFunc {
+func GetIdentityHandler(b Backends) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -364,10 +365,11 @@ type Jwk struct {
 	Use string `json:"use,omitempty"`
 }
 type JsonResponse struct {
-	Id            string             `json:"id"`
-	PublicName    string             `json:"publicName"`
-	Identities    []IdentityResponse `json:"identities,omitempty"`
-	AssetCode     string             `json:"assetCode"`
-	AssetScale    uint               `json:"assetScale"`
-	AuthServerURL string             `json:"authServer"`
+	Id                string             `json:"id"`
+	PublicName        string             `json:"publicName"`
+	Identities        []IdentityResponse `json:"identities,omitempty"`
+	AssetCode         string             `json:"assetCode"`
+	AssetScale        uint               `json:"assetScale"`
+	AuthServerURL     string             `json:"authServer"`
+	ResourceServerURL string             `json:"resourceServer"`
 }
