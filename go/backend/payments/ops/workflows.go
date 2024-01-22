@@ -354,7 +354,13 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 		if err != nil {
 			return "", false, err
 		}
+
 		err = workflow.ExecuteActivity(ctx, ptiA.CreateWalletTransfer, paymentID, txID).Get(ctx, nil)
+		if err != nil {
+			return "", false, err
+		}
+
+		err = workflow.ExecuteActivity(ctx, ptiA.SavePTITransaction, paymentID, txID).Get(ctx, nil)
 		if err != nil {
 			return "", false, err
 		}

@@ -88,7 +88,7 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
-	// No emails configured for withdrawal or withdrawal
+	// No emails configured for withdrawal or deposit
 	if payment.Type == payments.TypeWithdrawal || payment.Type == payments.TypeDeposit {
 		return nil
 	}
