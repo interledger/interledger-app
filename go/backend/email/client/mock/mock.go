@@ -97,6 +97,18 @@ func (mr *MockClientMockRecorder) SendConnectedAccountEmail(ctx, la interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendConnectedAccountEmail", reflect.TypeOf((*MockClient)(nil).SendConnectedAccountEmail), ctx, la)
 }
 
+// SendDepositFailedEmail mocks base method.
+func (m *MockClient) SendDepositFailedEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendDepositFailedEmail", ctx, walletID)
+}
+
+// SendDepositFailedEmail indicates an expected call of SendDepositFailedEmail.
+func (mr *MockClientMockRecorder) SendDepositFailedEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendDepositFailedEmail", reflect.TypeOf((*MockClient)(nil).SendDepositFailedEmail), ctx, walletID)
+}
+
 // SendDepositReceivedEmail mocks base method.
 func (m *MockClient) SendDepositReceivedEmail(ctx context.Context, walletID string, amt currency.Amount) {
 	m.ctrl.T.Helper()
@@ -155,4 +167,28 @@ func (m *MockClient) SendPaymentSentEmailV2(ctx context.Context, walletID string
 func (mr *MockClientMockRecorder) SendPaymentSentEmailV2(ctx, walletID, payment interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPaymentSentEmailV2", reflect.TypeOf((*MockClient)(nil).SendPaymentSentEmailV2), ctx, walletID, payment)
+}
+
+// SendWithdrawalEmail mocks base method.
+func (m *MockClient) SendWithdrawalEmail(ctx context.Context, walletID string, amt currency.Amount) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendWithdrawalEmail", ctx, walletID, amt)
+}
+
+// SendWithdrawalEmail indicates an expected call of SendWithdrawalEmail.
+func (mr *MockClientMockRecorder) SendWithdrawalEmail(ctx, walletID, amt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendWithdrawalEmail", reflect.TypeOf((*MockClient)(nil).SendWithdrawalEmail), ctx, walletID, amt)
+}
+
+// SendWithdrawalFailedEmail mocks base method.
+func (m *MockClient) SendWithdrawalFailedEmail(ctx context.Context, walletID string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SendWithdrawalFailedEmail", ctx, walletID)
+}
+
+// SendWithdrawalFailedEmail indicates an expected call of SendWithdrawalFailedEmail.
+func (mr *MockClientMockRecorder) SendWithdrawalFailedEmail(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendWithdrawalFailedEmail", reflect.TypeOf((*MockClient)(nil).SendWithdrawalFailedEmail), ctx, walletID)
 }

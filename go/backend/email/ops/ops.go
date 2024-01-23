@@ -334,6 +334,81 @@ func SendDepositReceivedEmail(ctx context.Context, b Backends, walletID string, 
 	}
 }
 
+func SendWithdrawalEmail(ctx context.Context, b Backends, walletID string, amt currency.Amount) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Withdrawal complete", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "Withdrawal complete",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your withdrawal has been processed"},
+			{
+				"table": []map[string]interface{}{
+					{"label": "Amount", "text": amt.Format(), "large": true},
+				}},
+		},
+		"cta": map[string]interface{}{
+			"text": "View new Balance",
+			"url":  env.GetUrl(),
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal processed email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendWithdrawalFailedEmail(ctx context.Context, b Backends, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send withdrawal failed email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Withdrawal unsuccessful", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "Withdrawal unsuccessful",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your recent withdrawal was unsuccessful"},
+			{"paragraph": "Please try again or contact support using the details below."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Try again",
+			"url":  env.GetUrl(),
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send withdrawal failed email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
+func SendDepositFailedEmail(ctx context.Context, b Backends, walletID string) {
+	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
+	if err != nil {
+		log.Error("Failed to send deposit failed email.", zap.Error(err), zap.String("walletID", walletID))
+		return
+	}
+
+	err = b.External().SendTemplate(ctx, "Deposit unsuccessful", sendTo, oneTemplateID, map[string]interface{}{
+		"subject": "Deposit unsuccessful",
+		"data": []map[string]interface{}{
+			{"paragraph": greeting},
+			{"heading": "Your recent deposit was unsuccessful"},
+			{"paragraph": "Please try again or contact support using the details below."},
+		},
+		"cta": map[string]interface{}{
+			"text": "Try again",
+			"url":  env.GetUrl(),
+		},
+	}, nil)
+	if err != nil {
+		log.Error("Failed to send deposit failed email.", zap.Error(err), zap.String("walletID", walletID))
+	}
+}
+
 func SendLimitsExceededEmail(ctx context.Context, b Backends, walletID string) {
 	sendTo, greeting, err := getEmailsAndGreeting(ctx, b, walletID)
 	if err != nil {

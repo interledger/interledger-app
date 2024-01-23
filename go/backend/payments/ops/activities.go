@@ -45,6 +45,16 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return err
 	}
 
+	if payment.Type == payments.TypeDeposit {
+		a.b.Email().SendDepositReceivedEmail(ctx, payment.Sender.WalletID, payment.SenderAmount)
+		return nil
+	}
+
+	if payment.Type == payments.TypeWithdrawal {
+		a.b.Email().SendDepositReceivedEmail(ctx, payment.Sender.WalletID, payment.SenderAmount)
+		return nil
+	}
+
 	// No emails configured for withdrawal or deposit
 	if payment.Type == payments.TypeWithdrawal || payment.Type == payments.TypeDeposit {
 		return nil
@@ -88,8 +98,13 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 		return err
 	}
 
-	// No emails configured for withdrawal or deposit
-	if payment.Type == payments.TypeWithdrawal || payment.Type == payments.TypeDeposit {
+	if payment.Type == payments.TypeWithdrawal {
+		a.b.Email().SendWithdrawalFailedEmail(ctx, payment.Sender.WalletID)
+		return nil
+	}
+
+	if payment.Type == payments.TypeDeposit {
+		a.b.Email().SendDepositFailedEmail(ctx, payment.Sender.WalletID)
 		return nil
 	}
 
