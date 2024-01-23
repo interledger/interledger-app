@@ -1,13 +1,10 @@
 import type { PartialMessage } from '@bufbuild/protobuf'
-import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
 import { redirect } from '@remix-run/node'
 import { route } from 'routes-gen'
 import type {
-  Amount,
   Features,
   GetPublicWalletDetailsResponse,
   KYCStatusResponse,
-  LinkedAccount,
   ListTransactionsResponse,
   PaginationRequest,
   PublicWalletInfo,
@@ -15,14 +12,6 @@ import type {
 } from '~/generated/connect/backend/v1/backend_pb'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
-
-export const PAYMENT_POINTER_BASE = process.env.PAYMENT_POINTER_BASE
-
-export const formatAmount = (amount?: Amount): string => {
-  if (typeof amount == 'undefined') return '$ 0.00'
-  const symbol = amount.asset == 'USD' ? '$' : amount.asset
-  return `${symbol} ${(Number(amount.amount) / 100).toFixed(amount.assetScale)}`
-}
 
 export async function getKycStatus(
   request: Request
@@ -86,163 +75,6 @@ export async function getWalletInfo(request: Request): Promise<WalletInfo> {
   }
 
   return response
-}
-
-export type FormattedLinkedAccount = {
-  name: string
-  type: string
-  icon: string
-  enabled?: boolean
-} & PlainMessage<LinkedAccount>
-
-type LinkedAccountsResponse = {
-  bankAccounts: Array<FormattedLinkedAccount>
-  cardAccounts: Array<FormattedLinkedAccount>
-  balanceAccounts: Array<FormattedLinkedAccount>
-}
-
-export async function getLinkedAccount(
-  request: Request,
-  id: string
-): Promise<FormattedLinkedAccount> {
-  const response = await grpc.getLinkedAccount(request, {
-    id
-  })
-
-  if (isConnectError(response)) throw response.errorResponse
-
-  return formatLinkedAccount(response)
-}
-
-export async function getLinkedAccounts(
-  request: Request
-): Promise<LinkedAccountsResponse> {
-  const [xagoBalances, accounts, ptiBalances] = await Promise.all([
-    grpc.getXagoBalances(request, {}),
-    grpc.getLinkedAccounts(request, {}),
-    grpc.getPtiBalances(request, {})
-  ])
-
-  if (isConnectError(xagoBalances)) throw xagoBalances.errorResponse
-  if (isConnectError(accounts)) throw accounts.errorResponse
-  if (isConnectError(ptiBalances)) throw ptiBalances.errorResponse
-
-  const linkedAccounts = accounts.linkedAccounts.map((account) =>
-    formatLinkedAccount(account)
-  )
-  const balanceAccounts = linkedAccounts
-    .filter(({ type }) => type == 'wallet')
-    .map((acc) => {
-      if (acc.sendCurrencyCode == "ZAR") {
-        let balance = xagoBalances.balances.find(
-          (balance) => balance.linkedAccount == acc.id
-        )
-        if (balance) {
-          acc.name = balance.formattedAvailableBalance
-        }
-
-        return acc
-      } else {
-        let balance = ptiBalances.balances.find(
-          (balance) => balance.linkedAccount == acc.id
-        )
-        if (balance) {
-          acc.name = balance.formattedBalance
-        }
-
-        return acc
-      }
-    })
-
-  return {
-    bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
-    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card'),
-    balanceAccounts
-  }
-}
-
-export async function getLinkedAccountsForPayment(
-  request: Request,
-  id: string
-): Promise<LinkedAccountsResponse> {
-  const [xagoBalances, accounts, ptiBalances] = await Promise.all([
-    grpc.getXagoBalances(request, {}),
-    grpc.getLinkedAccountsForPayment(request, { paymentId: id }),
-    grpc.getPtiBalances(request, {})
-  ])
-
-  if (isConnectError(xagoBalances)) throw xagoBalances.errorResponse
-  if (isConnectError(accounts)) throw accounts.errorResponse
-  if (isConnectError(ptiBalances)) throw ptiBalances.errorResponse
-
-  const linkedAccounts = accounts.linkedAccounts.map((account) =>
-    formatLinkedAccount(account.details!, account.enabled)
-  )
-  const balanceAccounts = linkedAccounts
-    .filter(({ type }) => type == 'wallet')
-    .map((acc) => {
-      if (acc.sendCurrencyCode == "ZAR") {
-        let balance = xagoBalances.balances.find(
-          (balance) => balance.linkedAccount == acc.id
-        )
-        if (balance) {
-          acc.name = balance.formattedAvailableBalance
-        }
-
-        return acc
-      } else {
-        let balance = ptiBalances.balances.find(
-          (balance) => balance.linkedAccount == acc.id
-        )
-        if (balance) {
-          acc.name = balance.formattedBalance
-        }
-
-        return acc
-      }
-    })
-
-  return {
-    bankAccounts: linkedAccounts.filter(({ type }) => type == 'bank'),
-    cardAccounts: linkedAccounts.filter(({ type }) => type == 'card'),
-    balanceAccounts
-  }
-}
-
-const formatLinkedAccount = (
-  linkedAccount: LinkedAccount,
-  enabled?: boolean
-): FormattedLinkedAccount => {
-  let type = '',
-    name = '',
-    icon = ''
-  switch (linkedAccount.type) {
-    case 'card':
-    case 'sendCard':
-      type = 'card'
-      name = linkedAccount.title
-      icon = 'credit_card'
-      break
-    case 'bank_account':
-    case 'bankAccount':
-      type = 'bank'
-      name = linkedAccount.title
-      icon = 'account_balance'
-      break
-    case 'balance':
-    case 'wallet':
-      type = 'wallet'
-      name = 'Cash balance'
-      icon = 'wallet'
-      break
-  }
-  return {
-    ...linkedAccount,
-    name,
-    type,
-    icon,
-    enabled
-  }
 }
 
 export type Transaction = {

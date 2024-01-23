@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type { InputHTMLAttributes, ReactNode } from 'react'
 import { Fragment, forwardRef, useImperativeHandle, useRef } from 'react'
 import { Icon } from '~/components'
-import type { FormattedLinkedAccount } from '~/data/wallet.server'
+import type { FormattedLinkedAccount } from '~/data/accounts.server'
 
 interface PayTextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   // Override the `className` of the root `div` of the Input. Defaults to **min-w-full**.

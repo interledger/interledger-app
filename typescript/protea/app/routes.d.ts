@@ -24,6 +24,7 @@ declare module "routes-gen" {
     "/contact": Record<string, never>;
     "/contact/success": Record<string, never>;
     "/deposit": Record<string, never>;
+    "/deposit/:paymentId": { "paymentId": string };
     "/discord": Record<string, never>;
     "/docs": Record<string, never>;
     "/docs/:slug": { "slug": string };
@@ -99,6 +100,7 @@ declare module "routes-gen" {
       | ["/contact"]
       | ["/contact/success"]
       | ["/deposit"]
+      | ["/deposit/:paymentId", RouteParams["/deposit/:paymentId"]]
       | ["/discord"]
       | ["/docs"]
       | ["/docs/:slug", RouteParams["/docs/:slug"]]

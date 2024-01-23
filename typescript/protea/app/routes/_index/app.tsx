@@ -138,17 +138,15 @@ export function AppPage() {
               <CTACards />
             </div>
             {balances.map((method) => (
-              <Card key={method.id}>
+              <Card key={method.linkedAccount}>
                 <CardContent className='flex items-center justify-between'>
                   <div className='flex items-center space-x-3'>
-                    <div
-                      className={`flag:${method.receiveCurrencyCountryCode}`}
-                    />
+                    <div className={`flag:${method.countryCode}`} />
                     <span className='text-lg font-medium capitalize text-strong'>
-                      {method.sendCurrencyCode}
+                      {method.currency}
                     </span>
                   </div>
-                  <span className='text-2xl'>{method.name}</span>
+                  <span className='text-2xl'>{method.formattedBalance}</span>
                 </CardContent>
               </Card>
             ))}

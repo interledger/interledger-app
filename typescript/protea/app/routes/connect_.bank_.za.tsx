@@ -30,8 +30,13 @@ import { redirectWithSnackbar } from '~/lib/snackbar.server'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const getXagoBalancesResponse = await grpc.getXagoBalances(request, {})
-  if (isConnectError(getXagoBalancesResponse)) throw redirect(route('/'))
+  const balancesResponse = await grpc.getBalances(request, {})
+  if (
+    isConnectError(balancesResponse) ||
+    balancesResponse.balances.filter((bal) => bal.countryCode == 'ZA').length ==
+      0
+  )
+    throw redirect(route('/'))
 
   const banks: SelectOptions[] = [
     { id: '632005', name: 'Absa Bank' },

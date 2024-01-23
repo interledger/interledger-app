@@ -26,8 +26,8 @@ import {
   TextButton
 } from '~/components'
 import { Label } from '~/components/Label'
-import type { FormattedLinkedAccount } from '~/data/wallet.server'
-import { getLinkedAccount } from '~/data/wallet.server'
+import type { FormattedLinkedAccount } from '~/data/accounts.server'
+import { getLinkedAccount } from '~/data/accounts.server'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -48,10 +48,6 @@ export async function loader(args: LoaderFunctionArgs) {
     return bankLoader(args, account)
   }
 
-  if (account.type == 'balance' || account.type == 'wallet') {
-    return depositDetailsLoader(args, account)
-  }
-
   throw json({}, { status: 404 })
 }
 
@@ -61,24 +57,6 @@ async function bankLoader(
 ) {
   return jsonWithCSRF(request, {
     account
-  })
-}
-async function depositDetailsLoader(
-  { request, params }: LoaderFunctionArgs,
-  account: FormattedLinkedAccount
-) {
-  let details = await grpc.getXagoDepositDetails(request, {
-    linkedAccount: account.id
-  })
-  if (isConnectError(details)) throw details.errorResponse
-
-  let ret = details.details.filter(
-    (d) => d.currency == account.receiveCurrencyCode
-  )
-
-  return jsonWithCSRF(request, {
-    account,
-    depositDetails: ret[0]
   })
 }
 
@@ -154,7 +132,6 @@ export default function Page() {
     <>
       {account.type == 'card' && <CardDetailsPage />}
       {account.type == 'bank' && <BankDetailsPage />}
-      {account.type == 'wallet' && <DepositDetails />}
     </>
   )
 }
@@ -187,92 +164,6 @@ function BankDetailsPage() {
           <Icon>navigate_next</Icon>
         </CardLink>
       </Card>
-    </>
-  )
-}
-
-function DepositDetails() {
-  const { depositDetails, account, csrfToken } =
-    useLoaderData<typeof depositDetailsLoader>()
-  const updateAccountFetcher = useFetcher<typeof action>()
-
-  const _onChangeLinkedAccount = useCallback(
-    (updateType: 'defaultSend' | 'defaultReceive') => {
-      updateAccountFetcher.submit(
-        {
-          formName: updateType,
-          accountType: 'wallet',
-          csrfToken
-        },
-        { method: 'post' }
-      )
-    },
-    [csrfToken, updateAccountFetcher]
-  )
-
-  return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>EFT details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <span>Arrives 1-2 business days.</span>
-          <div className='flex w-full flex-col justify-between space-y-1'>
-            <span className='text-weak'>Bank</span>
-            <span className='text-medium'>{depositDetails.bankName}</span>
-          </div>
-          <div className='mt-4 flex w-full flex-col space-y-1'>
-            <span className='text-weak'>Branch code</span>
-            <span className='text-medium'>{depositDetails.branchCode}</span>
-          </div>
-          <div className='mt-4 flex w-full flex-col space-y-1'>
-            <span className='text-weak'>Account number</span>
-            <span className='text-medium'>{depositDetails.accountNumber}</span>
-          </div>
-          <div className='mt-4 flex w-full flex-col space-y-1'>
-            <span className='text-weak'>Reference</span>
-            <span className='text-medium'>
-              {depositDetails.depositReference}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent>
-          <p>Set as the default for sending or receiving payments.</p>
-          {account.canSend && (
-            <Checkbox
-              className='mt-6 flex items-center'
-              disabled={account.defaultSend}
-              checked={account.defaultSend}
-              onChange={() => _onChangeLinkedAccount('defaultSend')}
-            >
-              <span className='text-sm'>Default send</span>
-            </Checkbox>
-          )}
-          {account.canReceive && (
-            <Checkbox
-              className='mt-6 flex items-center'
-              disabled={account.defaultReceive}
-              checked={account.defaultReceive}
-              onChange={() => _onChangeLinkedAccount('defaultReceive')}
-            >
-              <span className='text-sm'>Default receive</span>
-            </Checkbox>
-          )}
-        </CardContent>
-      </Card>
-      <Alert>
-        <Icon>error</Icon>
-        <AlertContent className='items-start'>
-          <AlertTitle>Important</AlertTitle>
-          <AlertBody>
-            Use the reference above when depositing for secure and faster
-            processing.
-          </AlertBody>
-        </AlertContent>
-      </Alert>
     </>
   )
 }
