@@ -56,7 +56,7 @@ func (la *LinkedAccount) CanPay(recvAcc LinkedAccount) bool {
 
 	return recvAcc.State == Verified &&
 		recvAcc.CanReceive &&
-		(recvAcc.ReceiveCurrency == la.SendCurrency || la.SendCurrency == currency.USD)
+		recvAcc.ReceiveCurrency == la.SendCurrency
 }
 
 type CreateArgs struct {
