@@ -19,7 +19,7 @@ type Client interface {
 	ListMXBankAccounts(ctx context.Context) ([]LinkedAccount, error)
 	ListByProviderID(ctx context.Context, provider, providerID string) ([]LinkedAccount, error)
 	SetNickname(ctx context.Context, id, nickname string) (*LinkedAccount, error)
-	Requires3DS(ctx context.Context, id string) (bool, error)
+
 	GetDefaultReceive(ctx context.Context, walletID string, cc currency.Currency) (*LinkedAccount, error)
 	GetDefaultSend(ctx context.Context, walletID string, cc currency.Currency) (*LinkedAccount, error)
 	SetDefaultReceive(ctx context.Context, id string) (*LinkedAccount, error)

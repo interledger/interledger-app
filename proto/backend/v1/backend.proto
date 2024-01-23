@@ -100,13 +100,6 @@ service BackendService {
   rpc GetMXWidget(Empty) returns (MXWidgetResponse);
   rpc CreateMXBankAccounts(CreateMXBankAccountsRequest) returns (CreateMXBankAccountsResponse);
 
-  // GMT
-  rpc OnboardGMTUser(Empty) returns (Empty);
-
-  // Tabapay 3DS
-  rpc Init3DS(Init3DSRequest) returns (Init3DSResponse);
-  rpc Lookup3DS(Lookup3DSRequest) returns (Lookup3DSResponse);
-  rpc Authenticate3DS(Authenticate3DSRequest) returns (Authenticate3DSResponse);
 
   // Basistheory
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
@@ -449,45 +442,6 @@ message InitQuote3DSRequest {
   string quoteID = 1;
 }
 
-message Init3DSRequest {
-  string paymentID = 1;
-}
-
-message Init3DSResponse {
-  string id = 1;
-  string jwt = 2;
-  string deviceCollectionURL = 3;
-  string songbirdURL = 4;
-}
-
-message Lookup3DSResponse {
-  string processorTransactionID = 1;
-  string challengeURL = 2;
-  string payload = 3;
-}
-
-message Lookup3DSRequest {
-  string threeDSID = 1;
-  bool  javascriptEnabled = 2;
-  string userAgent = 3;
-  string header = 4;
-  bool javaEnabled = 5;
-  string language = 6;
-  string colorDepth = 7;
-  string screenHeight =8;
-  string screenWidth = 9;
-  string timezone = 10;
-  string ipAddress = 12;
-}
-
-message Authenticate3DSRequest {
-  string threeDSID = 1;
-  string jwt = 2;
-}
-
-message Authenticate3DSResponse {
-  string status = 1;
-}
 
 message CreateMXBankAccountsRequest {
   string sessionGuid = 1;

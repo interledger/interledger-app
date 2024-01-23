@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 
@@ -184,8 +184,8 @@ func TestFeatures(t *testing.T) {
 			for i := 0; i < tc.numCards; i++ {
 				lal = append(lal, linkedaccounts.LinkedAccount{
 					State:    linkedaccounts.Verified,
-					Provider: tabapay.ProviderName,
-					Type:     tabapay.TypeCard,
+					Provider: astra.ProviderName,
+					Type:     astra.TypeCard,
 				})
 			}
 

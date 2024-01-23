@@ -14,9 +14,7 @@ import (
 	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	asta_workflows "gitlab.com/fynbos/backend/providers/astra/ops"
-	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
-	tabapay_workflows "gitlab.com/fynbos/backend/providers/tabapay/workflows"
 	xago_workflows "gitlab.com/fynbos/backend/providers/xago/ops"
 	rafiki_workflows "gitlab.com/fynbos/backend/rafiki/ops"
 	twitter_workflows "gitlab.com/fynbos/backend/twitter/workflows"
@@ -39,34 +37,14 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w.RegisterActivity(twitter_workflows.NewActivity(b))
 	w.RegisterWorkflow(twitter_workflows.PublishTwitterProofWorkflow)
 
-	w.RegisterActivity(gmt_workflows.NewActivity(b))
-	// w.RegisterWorkflow(gmt_workflows.PollNotificationsWorkflow) // disabled until we support ACH
-	w.RegisterWorkflow(gmt_workflows.OnboardUserWorkflow)
-	w.RegisterWorkflow(gmt_workflows.ACH2ACHTransferWorkflow)
-	w.RegisterWorkflow(gmt_workflows.Card2ACHTransferWorkflow)
-	w.RegisterWorkflow(gmt_workflows.ACH2CardTransferWorkflow)
-	w.RegisterWorkflow(gmt_workflows.Card2CardTransferWorkflow)
-	w.RegisterWorkflow(gmt_workflows.NotifyGMTCard2CardWorkflow)
-	w.RegisterWorkflow(gmt_workflows.RollbackTabapayPullWorkflow)
-	w.RegisterWorkflow(gmt_workflows.GMTNotifyCompleted)
-	w.RegisterWorkflow(gmt_workflows.GMTComplianceChecksWorkflow)
-
-	w.RegisterActivity(tabapay_workflows.NewActivity(b))
-	w.RegisterWorkflow(tabapay_workflows.CreateTabapayCardWorkflow)
-
-	// gmt_workflows.StartNotificationsPolling(b) // disabled until we support ACH
-
 	// Jobs
 	w.RegisterActivity(jobs.NewActivity(b))
 	w.RegisterWorkflow(jobs.AddWalletPrivateKeysWorkflow)
 	w.RegisterWorkflow(jobs.FixWalletPublicKeysWorkflow)
 	w.RegisterWorkflow(jobs.RunGMTCertification)
-	w.RegisterWorkflow(jobs.TabapayCertificationWorkflow)
-	w.RegisterWorkflow(jobs.UpdateBasisTheoryCardDetailsWorkflow)
 	w.RegisterWorkflow(jobs.MigratePaymentPointers)
 	w.RegisterWorkflow(jobs.MigrateOpenPaymentsObjects)
 	w.RegisterWorkflow(jobs.ClearOrphanedGMTTransactions)
-	w.RegisterWorkflow(jobs.BackfillLinkedCardCurrencyInfo)
 	w.RegisterWorkflow(jobs.BackfillTransactionsRefundState)
 	w.RegisterWorkflow(jobs.BackfillTransactionsTitle)
 	w.RegisterWorkflow(jobs.UpdateTransactionTypes)

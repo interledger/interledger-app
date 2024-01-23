@@ -69,15 +69,11 @@ import (
 	astra_client "gitlab.com/fynbos/backend/providers/astra/client"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_client "gitlab.com/fynbos/backend/providers/basistheory/client"
-	"gitlab.com/fynbos/backend/providers/gmt"
-	gmt_client "gitlab.com/fynbos/backend/providers/gmt/client"
 	"gitlab.com/fynbos/backend/providers/mx"
 	mx_client "gitlab.com/fynbos/backend/providers/mx/client"
 	"gitlab.com/fynbos/backend/providers/pti"
 	pti_client "gitlab.com/fynbos/backend/providers/pti/client"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/backend/providers/tabapay"
-	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
 	"gitlab.com/fynbos/backend/providers/xago"
 	xago_client "gitlab.com/fynbos/backend/providers/xago/client"
 	"gitlab.com/fynbos/backend/rafiki"
@@ -427,8 +423,6 @@ type backends struct {
 	limits         limits.Client
 	ident          identities.Client
 	mx             mx.Client
-	gmt            gmt.Client
-	tabapay        tabapay.Client
 	vault          vault.Client
 	basistheory    basistheory.Client
 	feat           features.Client
@@ -591,14 +585,6 @@ func (b backends) MX() mx.Client {
 	return b.mx
 }
 
-func (b backends) GMT() gmt.Client {
-	return b.gmt
-}
-
-func (b backends) Tabapay() tabapay.Client {
-	return b.tabapay
-}
-
 func (b backends) Keys() keys.Client {
 	return b.keys
 }
@@ -739,21 +725,6 @@ func NewBackends(args *cli.StartArgs, isWorker bool) *backends {
 	b.contacts = contacts_client.New(b)
 
 	b.mx = mx_client.New(args.MxClientID, args.MxApiKey, b)
-
-	b.gmt = gmt_client.New(b)
-
-	tabapayClient, err := tabapay_client.New(tabapay_client.NewClientArgs{
-		BasisTheoryProxyApiKey: args.BasisTheoryApiKey,
-		ClientID:               args.TabapayClientID,
-		BearerToken:            args.TabapayBearerToken,
-		SettlementAccountID:    args.TabapaySettlementAccountID,
-		SubClientID:            args.TabapaySubClientID,
-		SubClientIDNonUSD:      args.TabapaySubClientIDNonUSD,
-	}, b)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	b.tabapay = tabapayClient
 
 	b.img = img_client.New(b)
 

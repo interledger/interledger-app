@@ -8,8 +8,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/astra"
 
-	"gitlab.com/fynbos/backend/providers/tabapay"
-
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/payments"
@@ -70,11 +68,6 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 		return err
 	}
 
-	la, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
-	if err != nil {
-		return err
-	}
-
 	transferType := transactions.TransferTypeDebitCard
 	switch p.Type {
 	case payments.TypeWithdrawal:
@@ -82,11 +75,7 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 	case payments.TypeDeposit:
 		transferType = transactions.TransferTypeDebitCard
 	case payments.TypePeer2Peer:
-		if la.Provider == tabapay.ProviderName {
-			transferType = transactions.TransferTypeDebitCard
-		} else if la.Provider == xago.ProviderName || la.Provider == pti.ProviderName {
-			transferType = transactions.TransferTypeDebitBalance
-		}
+		transferType = transactions.TransferTypeDebitBalance
 	case payments.TypeWebMonetization:
 		transferType = transactions.TransferTypeDebitWebMonetization
 	case payments.TypeReferral:

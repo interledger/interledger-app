@@ -6,9 +6,12 @@ import (
 	"strings"
 	"sync"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -132,10 +135,10 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 			if la.Provider == mx.ProviderName {
 				hasBank = true
 			}
-			if la.Provider == tabapay.ProviderName {
+			if la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
 				hasCard = true
 			}
-			if la.Provider == xago.ProviderName {
+			if la.Provider == xago.ProviderName || (la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance) {
 				hasBalances = true
 			}
 		}

@@ -130,10 +130,6 @@ func (c client) SetNickname(ctx context.Context, id, nickname string) (*linkedac
 	return ops.Get(ctx, c.b, id)
 }
 
-func (c client) Requires3DS(ctx context.Context, id string) (bool, error) {
-	return ops.Requires3DS(ctx, c.b, id)
-}
-
 func (c client) CreateReviews(ctx context.Context, args []linkedaccounts.CreateReviewArgs) ([]linkedaccounts.Review, error) {
 	return ops.CreateReviews(ctx, c.b, args)
 }

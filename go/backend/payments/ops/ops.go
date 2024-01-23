@@ -17,8 +17,6 @@ import (
 
 	"gitlab.com/fynbos/backend/providers/astra"
 
-	"gitlab.com/fynbos/backend/providers/tabapay"
-
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"github.com/cockroachdb/cockroach-go/crdb/crdbsqlx"
@@ -343,23 +341,6 @@ func requiresOTP(ctx context.Context, b Backends, typ payments.Type, sender, rec
 	return !hasTx, nil
 }
 
-func requires3DS(ctx context.Context, b Backends, senderAcc string, typ payments.Type, sender payments.Identity) (bool, error) {
-	if sender.Identifier == wallets.WebMonetizationWalletID || sender.Identifier == wallets.ReferralsWalletID || typ == payments.TypeRafikiPeer2Peer || typ == payments.TypeRafiki2External || typ == payments.TypeWithdrawal {
-		return false, nil
-	}
-
-	if senderAcc == "" {
-		return false, nil
-	}
-
-	la, err := b.LinkedAccounts().Get(ctx, senderAcc)
-	if err != nil {
-		return false, err
-	}
-
-	return la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard, nil
-}
-
 // Create The `Sender` is the minimum required information to create a payment. If the specified identity
 // is not of type WalletID, then the walletID will be looked up and used as the `Sender`.
 func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.Payment, error) {
@@ -411,11 +392,6 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 	}
 
 	requireOTP, err := requiresOTP(ctx, b, p.Type, senderWallet, receiverWallet)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	require3DS, err := requires3DS(ctx, b, p.SenderAccount, p.Type, p.Sender)
 	if err != nil {
 		return nil, fmt.Errorf("%w %s", payments.ErrInternal, err)
 	}
@@ -479,7 +455,7 @@ func Create(ctx context.Context, b Backends, p payments.CreateArgs) (*payments.P
 		Value("receiver_amount", p.ReceiverAmount.Value).
 		Value("receiver_currency", p.ReceiverAmount.Currency).
 		Value("receiver_account", sql.NullString{String: p.ReceiverAccount, Valid: p.ReceiverAccount != ""}).
-		Value("action_three_ds_required", require3DS).
+		Value("action_three_ds_required", false).
 		Value("note", sql.NullString{String: p.Note, Valid: p.Note != ""}).
 		Value("action_otp_required", requireOTP).
 		Value("ip_address", sql.NullString{String: p.IPAddress, Valid: b.Validator().Var(p.IPAddress, "ip_addr") == nil}).
@@ -707,22 +683,7 @@ func applyFXCreate(ctx context.Context, b Backends, args payments.CreateArgs) (p
 		return args, 0, 0, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
-	fx, err := b.Tabapay().GetFXRate(ctx, receiverAcc.ReceiveCurrency)
-	if err != nil {
-		return args, 0, 0, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	rate := fx.MatercardRate
-	if strings.Contains(strings.ToLower(receiverAcc.ReceiveNetwork), "visa") {
-		rate = fx.VisaRate
-	}
-
-	if args.SenderAmount.Value > 0 {
-		args.ReceiverAmount = currency.FromFloat64(rate.FromUSD(args.SenderAmount.Float64()), receiverAcc.ReceiveCurrency)
-		return args, rate.BuyRateInv, 0, nil
-	}
-	args.SenderAmount = currency.FromFloat64(rate.ToUSD(args.ReceiverAmount.Float64()), senderAcc.SendCurrency)
-	return args, rate.SellRate, 0, nil
+	return args, 0, 0, fmt.Errorf("%w cross currency not supported", payments.ErrInternal)
 }
 
 func SetState(ctx context.Context, b Backends, id string, state payments.State) error {
@@ -1138,12 +1099,6 @@ func update(ctx context.Context, b Backends, args payments.UpdateArgs, payment *
 			return nil, err
 		}
 
-		req3ds, err := requires3DS(ctx, b, payment.SenderAccount.String, payment.Type, payments.Identity{Type: payment.SenderIDType, Identifier: payment.SenderID})
-		if err != nil {
-			return nil, err
-		}
-
-		payment.ThreeDSRequired = req3ds
 		senderAmtUpdated = true
 	}
 
@@ -1262,28 +1217,7 @@ func applyFXUpdate(ctx context.Context, b Backends, existing *dbPayment, receive
 		return existing, fmt.Errorf("%w currently only from USD to other currencies are supported", payments.ErrInternal)
 	}
 
-	fx, err := b.Tabapay().GetFXRate(ctx, receiverAcc.ReceiveCurrency)
-	if err != nil {
-		return existing, fmt.Errorf("%w %s", payments.ErrInternal, err)
-	}
-
-	rate := fx.MatercardRate
-	if strings.Contains(strings.ToLower(receiverAcc.ReceiveNetwork), "visa") {
-		rate = fx.VisaRate
-	}
-
-	if receiverAmtUpdated {
-		receiveAmt := currency.FromUInt64(existing.ReceiverAmount, receiverAcc.ReceiveCurrency)
-		existing.SenderAmount = currency.FromFloat64(rate.ToUSD(receiveAmt.Float64()), senderAcc.SendCurrency).Value
-		existing.SenderCurrency = senderAcc.SendCurrency.String()
-		existing.FXRate = sql.NullFloat64{Float64: rate.SellRate, Valid: true}
-		return existing, nil
-	}
-	sendAmt := currency.FromUInt64(existing.SenderAmount, senderAcc.SendCurrency)
-	existing.ReceiverAmount = currency.FromFloat64(rate.FromUSD(sendAmt.Float64()), receiverAcc.ReceiveCurrency).Value
-	existing.ReceiverCurrency = receiverAcc.ReceiveCurrency.String()
-	existing.FXRate = sql.NullFloat64{Float64: rate.BuyRateInv, Valid: true}
-	return existing, nil
+	return existing, fmt.Errorf("%w cross currency currently not supported", payments.ErrInternal)
 }
 
 func UpdateReceiver(ctx context.Context, b Backends, id string, identity payments.Identity) error {

@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/wallets"
 
 	"github.com/bxcodec/faker/v3"
@@ -144,11 +145,11 @@ func MakeWallet(b Backends) cli.ActionFunc {
 				WalletID:   wallet.ID,
 				Name:       "default",
 				Nickname:   "Default",
-				Provider:   tabapay.ProviderName,
+				Provider:   pti.ProviderName,
 				ProviderID: uuid.NewString(),
 				CanSend:    true,
 				CanReceive: true,
-				Type:       tabapay.TypeCard,
+				Type:       pti.AccTypeBalance,
 			})
 			if err != nil {
 				return err
@@ -159,7 +160,7 @@ func MakeWallet(b Backends) cli.ActionFunc {
 				zap.String("id", la.ID),
 				zap.Bool("canSend", la.CanSend),
 				zap.Bool("canReceive", la.CanReceive),
-				zap.String("provider", tabapay.ProviderName),
+				zap.String("provider", pti.ProviderName),
 				zap.String("providerID", la.ProviderID),
 			)
 		}

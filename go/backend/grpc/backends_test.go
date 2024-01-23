@@ -27,7 +27,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_mock "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
 	"gitlab.com/fynbos/backend/providers/gmt"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/contacts"
 	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
@@ -150,10 +149,6 @@ func (t TestContainer) BasisTheory() basistheory.Client {
 
 func (t TestContainer) Keys() keys.Client {
 	return t.keys
-}
-
-func (t TestContainer) Tabapay() tabapay.Client {
-	return nil
 }
 
 func (t TestContainer) GMT() gmt.Client {

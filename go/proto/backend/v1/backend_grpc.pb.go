@@ -95,12 +95,6 @@ type BackendServiceClient interface {
 	// MX
 	GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error)
 	CreateMXBankAccounts(ctx context.Context, in *CreateMXBankAccountsRequest, opts ...grpc.CallOption) (*CreateMXBankAccountsResponse, error)
-	// GMT
-	OnboardGMTUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
-	// Tabapay 3DS
-	Init3DS(ctx context.Context, in *Init3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error)
-	Lookup3DS(ctx context.Context, in *Lookup3DSRequest, opts ...grpc.CallOption) (*Lookup3DSResponse, error)
-	Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error)
 	// Basistheory
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error)
@@ -680,42 +674,6 @@ func (c *backendServiceClient) CreateMXBankAccounts(ctx context.Context, in *Cre
 	return out, nil
 }
 
-func (c *backendServiceClient) OnboardGMTUser(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/OnboardGMTUser", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) Init3DS(ctx context.Context, in *Init3DSRequest, opts ...grpc.CallOption) (*Init3DSResponse, error) {
-	out := new(Init3DSResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/Init3DS", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) Lookup3DS(ctx context.Context, in *Lookup3DSRequest, opts ...grpc.CallOption) (*Lookup3DSResponse, error) {
-	out := new(Lookup3DSResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/Lookup3DS", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) Authenticate3DS(ctx context.Context, in *Authenticate3DSRequest, opts ...grpc.CallOption) (*Authenticate3DSResponse, error) {
-	out := new(Authenticate3DSResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/Authenticate3DS", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
 	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateCard", in, out, opts...)
@@ -1027,12 +985,6 @@ type BackendServiceServer interface {
 	// MX
 	GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error)
 	CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error)
-	// GMT
-	OnboardGMTUser(context.Context, *Empty) (*Empty, error)
-	// Tabapay 3DS
-	Init3DS(context.Context, *Init3DSRequest) (*Init3DSResponse, error)
-	Lookup3DS(context.Context, *Lookup3DSRequest) (*Lookup3DSResponse, error)
-	Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error)
 	// Basistheory
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error)
@@ -1253,18 +1205,6 @@ func (UnimplementedBackendServiceServer) GetMXWidget(context.Context, *Empty) (*
 }
 func (UnimplementedBackendServiceServer) CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateMXBankAccounts not implemented")
-}
-func (UnimplementedBackendServiceServer) OnboardGMTUser(context.Context, *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OnboardGMTUser not implemented")
-}
-func (UnimplementedBackendServiceServer) Init3DS(context.Context, *Init3DSRequest) (*Init3DSResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Init3DS not implemented")
-}
-func (UnimplementedBackendServiceServer) Lookup3DS(context.Context, *Lookup3DSRequest) (*Lookup3DSResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Lookup3DS not implemented")
-}
-func (UnimplementedBackendServiceServer) Authenticate3DS(context.Context, *Authenticate3DSRequest) (*Authenticate3DSResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Authenticate3DS not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
@@ -2418,78 +2358,6 @@ func _BackendService_CreateMXBankAccounts_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_OnboardGMTUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).OnboardGMTUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/OnboardGMTUser",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).OnboardGMTUser(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_Init3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Init3DSRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).Init3DS(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/Init3DS",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).Init3DS(ctx, req.(*Init3DSRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_Lookup3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Lookup3DSRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).Lookup3DS(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/Lookup3DS",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).Lookup3DS(ctx, req.(*Lookup3DSRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_Authenticate3DS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Authenticate3DSRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).Authenticate3DS(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/Authenticate3DS",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).Authenticate3DS(ctx, req.(*Authenticate3DSRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateCardRequest)
 	if err := dec(in); err != nil {
@@ -3200,22 +3068,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateMXBankAccounts",
 			Handler:    _BackendService_CreateMXBankAccounts_Handler,
-		},
-		{
-			MethodName: "OnboardGMTUser",
-			Handler:    _BackendService_OnboardGMTUser_Handler,
-		},
-		{
-			MethodName: "Init3DS",
-			Handler:    _BackendService_Init3DS_Handler,
-		},
-		{
-			MethodName: "Lookup3DS",
-			Handler:    _BackendService_Lookup3DS_Handler,
-		},
-		{
-			MethodName: "Authenticate3DS",
-			Handler:    _BackendService_Authenticate3DS_Handler,
 		},
 		{
 			MethodName: "CreateCard",
