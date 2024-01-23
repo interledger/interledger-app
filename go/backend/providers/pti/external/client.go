@@ -59,7 +59,7 @@ func New(args ClientArgs) Client {
 	if args.BaseURL != "" {
 		base = args.BaseURL
 	} else if env.IsLocal() {
-		base = "http://pti.mock"
+		base = "http://mockbos.mockbos/pti"
 	}
 
 	transport := otelhttp.DefaultClient
