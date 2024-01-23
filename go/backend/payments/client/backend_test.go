@@ -61,8 +61,6 @@ import (
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/payments/ops"
 	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
-	"gitlab.com/fynbos/backend/providers/tabapay"
-	tabapay_client "gitlab.com/fynbos/backend/providers/tabapay/client"
 	"gitlab.com/fynbos/backend/signup"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	"gitlab.com/fynbos/backend/transactions"
@@ -84,7 +82,6 @@ import (
 type TestBackends struct {
 	db       *sqlx.DB
 	email    email.Client
-	tabapay  tabapay.Client
 	user     *user_client.MockClient
 	temporal temporal_client.Client
 	env      *testsuite.TestWorkflowEnvironment
@@ -126,12 +123,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	}).AnyTimes()
 	b.temporal = tp
 
-	tc, err := tabapay_client.New(tabapay_client.NewClientArgs{}, b)
-	require.NoError(t, err)
-	b.tabapay = tc
-
 	b.xgo = xago_client.New(b)
-	require.NoError(t, err)
 
 	kc := kyc_mock.NewMockClient(ctrl)
 	kc.EXPECT().GetIndividualDetails(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, walletID string) (*kyc.IndividualDetails, error) {
@@ -269,10 +261,6 @@ func (b *TestBackends) KYC() kyc.Client {
 
 func (b *TestBackends) Transactions() transactions.Client {
 	return transaction_client.New(b)
-}
-
-func (b *TestBackends) Tabapay() tabapay.Client {
-	return b.tabapay
 }
 
 func (b *TestBackends) LinkedAccounts() linkedaccounts.Client {

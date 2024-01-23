@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/providers/xago"
 
 	"gitlab.com/fynbos/backend/currency"
@@ -19,7 +21,6 @@ import (
 
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/providers/mx"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
@@ -311,7 +312,7 @@ func GetDefaultReceive(ctx context.Context, b Backends, walletID string, cc curr
 			continue
 		}
 		if la.CanReceive && la.State == linkedaccounts.Verified &&
-			(la.Provider == tabapay.ProviderName || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
+			((la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance) || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
 			((cc.Valid() && cc == la.ReceiveCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
@@ -342,7 +343,8 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string, cc currenc
 			continue
 		}
 		if la.CanSend &&
-			la.State == linkedaccounts.Verified && (la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
+			la.State == linkedaccounts.Verified &&
+			((la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance) || la.Provider == rafiki.Provider || la.Provider == "referrals" || (la.Provider == xago.ProviderName && la.Type == xago.AccTypeBalance)) &&
 			((cc.Valid() && cc == la.SendCurrency) || !cc.Valid()) {
 			return &la, nil
 		}
@@ -380,15 +382,6 @@ func SetNickname(ctx context.Context, b Backends, id, nickname string) error {
 	}
 
 	return nil
-}
-
-func Requires3DS(ctx context.Context, b Backends, id string) (bool, error) {
-	la, err := Get(ctx, b, id)
-	if err != nil {
-		return false, err
-	}
-
-	return la.Provider == tabapay.ProviderName && la.Type == tabapay.TypeCard, nil
 }
 
 type dbReview struct {
@@ -627,7 +620,7 @@ func SetDefaultReceive(ctx context.Context, b Backends, id string) (*linkedaccou
 	if la.DeletedAt.Valid {
 		return nil, linkedaccounts.ErrNotFound
 	}
-	if !la.CanReceive || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || la.Provider == xago.ProviderName) {
+	if !la.CanReceive || la.State != linkedaccounts.Verified || !(la.Provider == pti.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || la.Provider == xago.ProviderName) {
 		return nil, fmt.Errorf("%w Linked account not eligible to be set as default receive account.", linkedaccounts.ErrInternal)
 	}
 
@@ -655,7 +648,7 @@ func SetDefaultSend(ctx context.Context, b Backends, id string) (*linkedaccounts
 	if la.DeletedAt.Valid {
 		return nil, linkedaccounts.ErrNotFound
 	}
-	if !la.CanSend || la.State != linkedaccounts.Verified || !(la.Provider == tabapay.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || la.Provider == xago.ProviderName) {
+	if !la.CanSend || la.State != linkedaccounts.Verified || !(la.Provider == pti.ProviderName || la.Provider == rafiki.Provider || la.Provider == "referrals" || la.Provider == xago.ProviderName) {
 		return nil, fmt.Errorf("%w Linked account not eligible to be set as default send account.", linkedaccounts.ErrInternal)
 	}
 

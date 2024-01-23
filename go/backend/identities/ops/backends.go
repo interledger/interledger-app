@@ -20,7 +20,6 @@ import (
 	"gitlab.com/fynbos/backend/notify"
 	notify_mock "gitlab.com/fynbos/backend/notify/client/mock"
 	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
 	"gitlab.com/fynbos/backend/twitter"
@@ -73,10 +72,6 @@ func (t testBackends) LinkedAccounts() linkedaccounts.Client {
 }
 
 func (t testBackends) Transactions() transactions.Client {
-	panic("implement me")
-}
-
-func (t testBackends) Tabapay() tabapay.Client {
 	panic("implement me")
 }
 

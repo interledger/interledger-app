@@ -6,7 +6,7 @@ import (
 
 	"gitlab.com/fynbos/backend/country"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/astra"
 
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
@@ -158,7 +158,7 @@ func (s *rpcService) GetCardDetails(ctx context.Context, req *pb.GetCardDetailsR
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-	if la.WalletID != wallet.ID || la.Type != tabapay.TypeCard || la.DeletedAt.Valid {
+	if la.WalletID != wallet.ID || la.Type != astra.TypeCard || la.DeletedAt.Valid {
 		return nil, NotFoundError("ErrNotFound")
 	}
 

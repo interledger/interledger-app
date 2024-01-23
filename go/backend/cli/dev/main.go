@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/identities"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 
 	payments_client "gitlab.com/fynbos/backend/payments/client"
 
@@ -161,10 +160,6 @@ func (b *backends) Rafiki() rafiki.Client {
 }
 
 func (b *backends) Identities() identities.Client {
-	return nil
-}
-
-func (b *backends) Tabapay() tabapay.Client {
 	return nil
 }
 

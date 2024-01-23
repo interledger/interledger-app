@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/fynbos/backend/providers/tabapay"
+	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/kyc"
 
@@ -113,8 +113,8 @@ func canAddCards(ctx context.Context, b Backends, walletID string) (bool, error)
 			continue
 		}
 
-		if la.Provider == tabapay.ProviderName &&
-			la.Type == tabapay.TypeCard {
+		if la.Provider == astra.ProviderName &&
+			la.Type == astra.TypeCard {
 			cnt++
 		}
 	}

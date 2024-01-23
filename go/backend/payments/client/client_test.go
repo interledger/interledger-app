@@ -27,7 +27,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/client"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
@@ -64,7 +63,7 @@ func TestClient(t *testing.T) {
 	// adding dummy transaction so referrals don't run
 	_, err = b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID: recvWallet.walletID,
-		Provider: transactions.Provider(tabapay.ProviderName),
+		Provider: transactions.Provider(pti.ProviderName),
 		Amount: currency.Amount{
 			Value:    10,
 			Currency: currency.USD,
@@ -477,18 +476,10 @@ func TestClient(t *testing.T) {
 			b.RestoreTemporalEnv()
 			p, err := pc.Create(ctx, tc.Args)
 			require.NoError(st, err)
-			// generate 3DS session
-			threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
-				Amount:  tc.Args.SenderAmount,
-				OrderID: p.ID,
-				CardID:  sendWallet.tabapayLinkedAcc,
-			})
-			require.NoError(st, err)
 
 			p, err = pc.Update(ctx, payments.UpdateArgs{
-				ID:        p.ID,
-				ThreeDSID: threeDSSession.ID,
-				OTP:       "123456",
+				ID:  p.ID,
+				OTP: "123456",
 			})
 			require.NoError(st, err)
 
@@ -682,7 +673,7 @@ func TestReferrals(t *testing.T) {
 			if tc.AddReceiverTransaction {
 				_, err := b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 					WalletID: recvWallet.walletID,
-					Provider: transactions.Provider(tabapay.ProviderName),
+					Provider: transactions.Provider(pti.ProviderName),
 					Amount: currency.Amount{
 						Value:    10,
 						Currency: currency.USD,
@@ -710,18 +701,10 @@ func TestReferrals(t *testing.T) {
 				IPAddress:       "192.36.8.4",
 			})
 			require.NoError(st, err)
-			// generate 3DS session
-			threeDSSession, err := b.tabapay.Init3DS(ctx, tabapay.Init3DSArgs{
-				Amount:  tc.Args.SenderAmount,
-				OrderID: p.ID,
-				CardID:  sendWallet.tabapayLinkedAcc,
-			})
-			require.NoError(st, err)
 
 			p, err = pc.Update(ctx, payments.UpdateArgs{
-				ID:        p.ID,
-				ThreeDSID: threeDSSession.ID,
-				OTP:       "123456",
+				ID:  p.ID,
+				OTP: "123456",
 			})
 			require.NoError(st, err)
 
@@ -823,7 +806,6 @@ func TestReferrals(t *testing.T) {
 type testWallet struct {
 	userID            string
 	walletID          string
-	tabapayLinkedAcc  string
 	xagoZARLinkedAcc  string
 	xagoBankLinkedAcc string
 	astraLinkedAcc    string
@@ -855,19 +837,6 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	})
 	require.NoError(t, err)
 	require.Equal(t, walletID, wallet.ID)
-
-	la, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
-		WalletID:        wallet.ID,
-		Name:            "default",
-		Provider:        tabapay.ProviderName,
-		ProviderID:      uuid.NewString(),
-		CanSend:         true,
-		CanReceive:      true,
-		Type:            tabapay.TypeCard,
-		SendCurrency:    currency.USD,
-		ReceiveCurrency: currency.USD,
-	})
-	require.NoError(t, err)
 
 	xBalance, err := b.LinkedAccounts().Create(context.Background(), &linkedaccounts.CreateArgs{
 		WalletID:        wallet.ID,
@@ -970,7 +939,6 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	return testWallet{
 		userID:            userID,
 		walletID:          walletID,
-		tabapayLinkedAcc:  la.ID,
 		xagoZARLinkedAcc:  xBalance.ID,
 		xagoBankLinkedAcc: xBank.ID,
 		astraLinkedAcc:    astraCard.ID,

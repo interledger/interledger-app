@@ -4,16 +4,16 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"gitlab.com/fynbos/backend/linkedaccounts/ops"
 	"gitlab.com/fynbos/backend/wallets"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/providers/mx"
-	"gitlab.com/fynbos/backend/providers/tabapay"
-
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/mx"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -379,9 +379,9 @@ func TestDefaultSendReceive(t *testing.T) {
 		WalletID:   walletID,
 		Name:       "Test",
 		Mask:       "1234",
-		Provider:   tabapay.ProviderName,
+		Provider:   pti.ProviderName,
 		ProviderID: "1234",
-		Type:       tabapay.TypeCard,
+		Type:       pti.AccTypeBalance,
 		State:      linkedaccounts.Verified,
 		CanSend:    true,
 		CanReceive: true,
@@ -394,9 +394,9 @@ func TestDefaultSendReceive(t *testing.T) {
 		WalletID:   walletID,
 		Name:       "Test2",
 		Mask:       "4321",
-		Provider:   tabapay.ProviderName,
+		Provider:   pti.ProviderName,
 		ProviderID: "4321",
-		Type:       tabapay.TypeCard,
+		Type:       pti.AccTypeBalance,
 		State:      linkedaccounts.Verified,
 		CanSend:    true,
 		CanReceive: true,

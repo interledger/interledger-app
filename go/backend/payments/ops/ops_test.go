@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
+	"gitlab.com/fynbos/backend/providers/pti"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -20,7 +20,6 @@ import (
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/payments/ops"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
 	"gitlab.com/fynbos/backend/wallets"
@@ -42,7 +41,7 @@ func TestCreate(t *testing.T) {
 		Txc: transactions_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: tabapay.TypeCard, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: pti.AccTypeBalance, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
@@ -135,107 +134,6 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestCreateFX(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	t.Cleanup(func() {
-		ctrl.Finish()
-	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Ic:  identity_mock.NewMockClient(ctrl),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-		Tbp: tabapay_mock.NewMockClient(ctrl),
-	}
-	walletID := uuid.NewString()
-	senderAcc := uuid.NewString()
-	receiverAcc := uuid.NewString()
-
-	b.Tbp.EXPECT().GetFXRate(ctx, currency.ZAR).Return(&tabapay.FXRate{
-		Currency: currency.ZAR,
-		VisaRate: tabapay.NetworkRate{
-			BuyRate:     0.0523412,
-			BuyRateInv:  19.1054,
-			SellRate:    0.0518710,
-			SellRateInv: 19.2785,
-		},
-		MatercardRate: tabapay.NetworkRate{
-			BuyRate:     0.0523389,
-			BuyRateInv:  19.1062,
-			SellRate:    0.0518730,
-			SellRateInv: 19.2778,
-		},
-	}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, senderAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: tabapay.TypeCard, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, receiverAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: tabapay.TypeCard, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, ReceiveCurrency: currency.ZAR}, nil).AnyTimes()
-	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
-	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
-		ID: walletID,
-	}, nil).AnyTimes()
-	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes() // Require OTP
-	cases := []struct {
-		name       string
-		args       payments.CreateArgs
-		actions    []payments.RequiredActionType
-		sendAmt    currency.Amount
-		receiveAmt currency.Amount
-		err        error
-	}{
-		{
-			name: "success",
-			args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeTwitter,
-					Identifier: "@willy_wonka",
-				},
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletURL,
-					Identifier: "https://fynbos.me/charlie",
-				},
-				SenderAmount:    currency.FromFloat64(51, currency.USD),
-				SenderAccount:   senderAcc,
-				ReceiverAccount: receiverAcc,
-				Note:            "This is a NOTE!!!",
-				IPAddress:       "193.9.4.6",
-			},
-			actions:    []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeOTP},
-			sendAmt:    currency.FromFloat64(51, currency.USD),
-			receiveAmt: currency.FromFloat64(974.41, currency.ZAR),
-			err:        nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			p, err := ops.Create(ctx, b, tc.args)
-			if tc.err != nil {
-				require.ErrorIs(t, err, tc.err)
-				return
-			}
-			require.NoError(t, err)
-
-			assert.Equal(t, payments.IdentityTypeWalletID, p.Sender.Type)
-			assert.Equal(t, walletID, p.Sender.Identifier)
-			assert.Equal(t, tc.args.Receiver.Type, p.Receiver.Type)
-			assert.Equal(t, tc.args.Receiver.Identifier, p.Receiver.Identifier)
-			assert.Equal(t, tc.args.SenderAccount, p.SenderAccount)
-			assert.Equal(t, tc.args.ReceiverAccount, p.ReceiverAccount)
-			assert.Equal(t, tc.args.Note, p.Note)
-			assert.Equal(t, tc.args.IPAddress, p.IPAddress)
-			assert.Len(t, p.RequiredActions, len(tc.actions))
-			assert.Regexp(t, "^([b-z0-9]{12})$", p.PublicID)
-			for _, ra := range tc.actions {
-				assert.Contains(t, p.RequiredActions, ra)
-			}
-			assert.True(t, tc.sendAmt.IsEqual(p.SenderAmount))
-			assert.True(t, tc.receiveAmt.IsEqual(p.ReceiverAmount))
-		})
-	}
-}
-
 func TestSetState(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
@@ -250,7 +148,7 @@ func TestSetState(t *testing.T) {
 		Txc: transactions_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, ReceiveCurrency: currency.USD, SendCurrency: currency.USD}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, ReceiveCurrency: currency.USD, SendCurrency: currency.USD}, nil).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
@@ -293,7 +191,7 @@ func TestGetRequiredActions(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{WalletID: walletID, Provider: tabapay.ProviderName}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{WalletID: walletID, Provider: pti.ProviderName}, nil).AnyTimes()
 
 	p, err := ops.Create(ctx, b, payments.CreateArgs{
 		Sender: payments.Identity{
@@ -328,7 +226,7 @@ func TestConfirm(t *testing.T) {
 	}
 	walletID := uuid.NewString()
 	txID := uuid.NewString()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
 		ID: walletID,
@@ -403,14 +301,14 @@ func TestUpdate(t *testing.T) {
 	newSenderAccount := uuid.NewString()
 	newReceiverAccount := uuid.NewString()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, id string) (*linkedaccounts.LinkedAccount, error) {
-		ret := &linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}
+		ret := &linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}
 		if id == receiverAccount || id == newReceiverAccount {
 			ret.WalletID = receiverWalletID
 		}
 
 		return ret, nil
 	}).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
+	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
 	b.Wc.EXPECT().Get(ctx, receiverWalletID).Return(&wallets.Wallet{ID: receiverWalletID}, nil).AnyTimes()
 	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
@@ -538,82 +436,4 @@ func TestSellerRisk(t *testing.T) {
 		sellerRisk := ops.SellerRisk(trxs)
 		assert.Equal(t, fmt.Sprintf("%.4f", sellerRisk), risk[i])
 	}
-}
-
-func TestUpdateFX(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	t.Cleanup(func() {
-		ctrl.Finish()
-	})
-	b := &ops.TestBackends{
-		DBC: db.MigrateTestDB(t, ctx),
-		Wc:  wallets_mock.NewMockClient(ctrl),
-		Lac: linkedaccounts_mock.NewMockClient(ctrl),
-		Tbp: tabapay_mock.NewMockClient(ctrl),
-		Txc: transactions_mock.NewMockClient(ctrl),
-	}
-	walletID := uuid.NewString()
-	senderAcc := uuid.NewString()
-	receiverAcc := uuid.NewString()
-
-	b.Tbp.EXPECT().GetFXRate(ctx, currency.ZAR).Return(&tabapay.FXRate{
-		Currency: currency.ZAR,
-		VisaRate: tabapay.NetworkRate{
-			BuyRate:     0.0523412,
-			BuyRateInv:  19.1054,
-			SellRate:    0.0518710,
-			SellRateInv: 19.2785,
-		},
-		MatercardRate: tabapay.NetworkRate{
-			BuyRate:     0.0523389,
-			BuyRateInv:  19.1062,
-			SellRate:    0.0518730,
-			SellRateInv: 19.2778,
-		},
-	}, nil).AnyTimes()
-	b.Txc.EXPECT().GetHasTransacted(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, nil).AnyTimes() // Require OTP
-	b.Lac.EXPECT().Get(ctx, senderAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD}, nil).AnyTimes()
-	b.Lac.EXPECT().Get(ctx, receiverAcc).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Provider: tabapay.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, ReceiveCurrency: currency.ZAR}, nil).AnyTimes()
-	b.Wc.EXPECT().Get(ctx, walletID).Return(&wallets.Wallet{ID: walletID}, nil).AnyTimes()
-	b.Wc.EXPECT().GetFromAddress(ctx, "https://fynbos.me/charlie").Return(&wallets.Wallet{
-		ID: walletID,
-	}, nil).AnyTimes()
-
-	p, err := ops.Create(ctx, b, payments.CreateArgs{
-		Sender: payments.Identity{
-			Type:       payments.IdentityTypeWalletID,
-			Identifier: walletID,
-		},
-		Receiver: payments.Identity{
-			Type:       payments.IdentityTypeWalletURL,
-			Identifier: "https://fynbos.me/charlie",
-		},
-		ReceiverAmount:  currency.FromFloat64(500, currency.ZAR),
-		SenderAccount:   senderAcc,
-		ReceiverAccount: receiverAcc,
-	})
-	require.NoError(t, err)
-	paymentID := p.ID
-
-	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(25.93, currency.USD)))
-	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(500, currency.ZAR)))
-
-	p, err = ops.Update(ctx, b, payments.UpdateArgs{
-		ID:             paymentID,
-		ReceiverAmount: currency.FromFloat64(550, currency.ZAR),
-	})
-	require.NoError(t, err)
-
-	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(28.53, currency.USD)))
-	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(550, currency.ZAR)))
-
-	p, err = ops.Update(ctx, b, payments.UpdateArgs{
-		ID:           paymentID,
-		SenderAmount: currency.FromFloat64(101, currency.USD),
-	})
-	require.NoError(t, err)
-
-	assert.True(t, p.SenderAmount.IsEqual(currency.FromFloat64(101, currency.USD)))
-	assert.True(t, p.ReceiverAmount.IsEqual(currency.FromFloat64(1929.72, currency.ZAR)))
 }

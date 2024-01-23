@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strings"
 
+	"gitlab.com/fynbos/backend/providers/astra"
+
 	"gitlab.com/fynbos/backend/currency"
 
 	"gitlab.com/fynbos/backend/email"
@@ -14,7 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/mx"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
@@ -130,7 +131,7 @@ func SendConnectedAccountEmail(ctx context.Context, b Backends, la linkedaccount
 	}
 
 	var table []map[string]interface{}
-	if la.Provider == tabapay.ProviderName {
+	if la.Provider == astra.ProviderName {
 		table = append(table, map[string]interface{}{
 			"label": "Card ending",
 			"text":  strings.ReplaceAll(la.Mask, "*", ""),

@@ -22,8 +22,6 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linkedaccounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
 	"gitlab.com/fynbos/backend/notify"
-	"gitlab.com/fynbos/backend/providers/tabapay"
-	tabapay_mock "gitlab.com/fynbos/backend/providers/tabapay/client/mock"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	"gitlab.com/fynbos/backend/transactions"
 	transactions_mock "gitlab.com/fynbos/backend/transactions/client/mock"
@@ -42,7 +40,6 @@ type Backends interface {
 	Wallets() wallets.Client
 	Identities() identities.Client
 	LinkedAccounts() linkedaccounts.Client
-	Tabapay() tabapay.Client
 	Transactions() transactions.Client
 	Rafiki() rafiki.Client
 	Xago() xago.Client
@@ -62,7 +59,6 @@ type TestBackends struct {
 	Ic  *id_mock.MockClient
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
-	Tbp *tabapay_mock.MockClient
 }
 
 func (t TestBackends) PTI() pti.Client {
@@ -87,10 +83,6 @@ func (t TestBackends) Rafiki() rafiki.Client {
 
 func (t TestBackends) Transactions() transactions.Client {
 	return t.Txc
-}
-
-func (t TestBackends) Tabapay() tabapay.Client {
-	return t.Tbp
 }
 
 func (t TestBackends) LinkedAccounts() linkedaccounts.Client {

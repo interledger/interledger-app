@@ -9,12 +9,10 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
-	gmt_workflows "gitlab.com/fynbos/backend/providers/gmt/ops"
 	httplog "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
@@ -36,41 +34,11 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("Executing payment", "id", id)
-	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
-	})
 
 	err := workflow.ExecuteActivity(ctx, a.SetPaymentStateProcessing, id).Get(ctx, nil)
 	if err != nil {
 		logger.Error("Failed to set payment state to processing. paymentID=", id, "err", err)
 		return err
-	}
-
-	var receiverReady bool
-	err = workflow.ExecuteActivity(ctx, a.CheckReceiverReady, id).Get(ctx, &receiverReady)
-	if err != nil {
-		return err
-	}
-
-	// OFAC and compliance checks, if the receiver is ready and signed up, otherwise the AwaitReceiverWorkflow will do it.
-	if receiverReady {
-		err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, id).Get(childCtx, nil)
-		if err != nil {
-			logger.Error("GMT compliance failed for payment", "payment_id", id, "error", err)
-			innerErr := workflow.ExecuteActivity(ctx, a.SetPaymentStateFailed, id).Get(ctx, nil)
-			if innerErr != nil {
-				logger.Error("Failed to set payment status to failed. paymentID=", id, "err", innerErr)
-				return innerErr
-			}
-
-			innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, id, transactions.StateFailed).Get(ctx, nil)
-			if innerErr != nil {
-				logger.Error("Failed to set transaction status to failed. paymentID=", id, "err", innerErr)
-				return innerErr
-			}
-
-			return nil
-		}
 	}
 
 	// launch payout and payin workflows in parallel
@@ -141,19 +109,6 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 		return err
 	}
 
-	// don't set parent close policy
-	childNotifyCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID:            fmt.Sprintf(gmtNotifyCompleteFmt, id),
-		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON, // allow child workflow to continue running
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-	})
-	var we workflow.Execution
-	err = workflow.ExecuteChildWorkflow(childNotifyCtx, gmt_workflows.GMTNotifyCompleted, id).GetChildWorkflowExecution().Get(childNotifyCtx, &we)
-	// Child workflow execution has started. We can return and GMT will carry-on on its own
-	if err != nil {
-		logger.Error("Failed to notify GMT of completed payment", "err", err)
-	}
-
 	referralCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 		WorkflowID:            fmt.Sprintf(referralWorkflowFmt, id),
 		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON, // allow child workflow to continue running
@@ -214,8 +169,6 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 		var success bool
 		var txID string
 		switch la.Provider {
-		case tabapay.ProviderName:
-			txID, success, err = tabapayPayIn(ctx, accountsCtx, a, paymentID)
 		case xago.ProviderName:
 			txID, success, err = xagoPayIn(ctx, a, paymentID)
 		case astra.ProviderName:
@@ -412,52 +365,6 @@ func xagoPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, boo
 	return txID, true, nil
 }
 
-func tabapayPayIn(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	logger := workflow.GetLogger(ctx)
-
-	var externalRef string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return tabapay.NewReferenceID()
-	}).Get(&externalRef)
-	if err != nil {
-		return "", false, err
-	}
-
-	var accountTX tabapay.Transaction
-	err = workflow.ExecuteActivity(accountsCtx, a.PullFromAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
-	if err != nil {
-		return "", false, err
-	}
-
-	if tabapay.IsTransactionStatusUnknown(accountTX) {
-		// check again in 90 sec
-		_ = workflow.Sleep(ctx, time.Second*90)
-		logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
-		err = workflow.ExecuteActivity(accountsCtx, a.GetSenderCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
-		if err != nil {
-			logger.Error("failed to get tabapay send transaction", "err", err)
-			// Notify the Payout worklfow of failure
-			innerErr := workflow.SignalExternalWorkflow(ctx, fmt.Sprintf(payoutWorkflowFmt, paymentID), "", signalChanName, PaySignal{
-				PaymentID:    paymentID,
-				PayInSuccess: false,
-			}).Get(ctx, nil)
-			if innerErr != nil {
-				return "", false, innerErr
-			}
-
-			innerErr = workflow.ExecuteActivity(ctx, a.UpdatePayInTransactionState, paymentID, transactions.StateFailed).Get(ctx, nil)
-			if innerErr != nil {
-				logger.Error("Failed to set transaction status to failed. paymentID=", paymentID, "err", innerErr)
-				return "", false, innerErr
-			}
-
-			return "", false, err
-		}
-	}
-
-	return accountTX.ID, tabapay.IsSuccessfulTransaction(accountTX), nil
-}
-
 func astraPayIn(ctx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
 	// Check for deposit type
 	var pt payments.Type
@@ -620,8 +527,6 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	var success bool
 	var externalTXID string
 	switch la.Provider {
-	case tabapay.ProviderName:
-		externalTXID, success, err = tabapayPayOut(ctx, accountsCtx, a, paymentID)
 	case xago.ProviderName:
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 	case pti.ProviderName:
@@ -817,37 +722,6 @@ func astraPayOut(ctx workflow.Context, a *Activity, paymentID string) (string, b
 	}
 }
 
-func tabapayPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID string) (string, bool, error) {
-	logger := workflow.GetLogger(ctx)
-
-	var externalRef string
-	err := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
-		return tabapay.NewReferenceID()
-	}).Get(&externalRef)
-	if err != nil {
-		return "", false, err
-	}
-
-	var accountTX tabapay.Transaction
-	err = workflow.ExecuteActivity(accountsCtx, a.PushToAccount, paymentID, externalRef).Get(accountsCtx, &accountTX)
-	if err != nil {
-		return "", false, err
-	}
-
-	if tabapay.IsTransactionStatusUnknown(accountTX) {
-		// check again in 90 sec
-		_ = workflow.Sleep(ctx, time.Second*90)
-		logger.Info("Tabapay transaction status unknown. Checking again. id=", accountTX.ID)
-		err = workflow.ExecuteActivity(accountsCtx, a.GetReceiverCardTransaction, accountTX.ID, paymentID).Get(accountsCtx, &accountTX)
-		if err != nil {
-			logger.Error("failed to get tabapay receive transaction", "err", err)
-			return "", false, err
-		}
-	}
-
-	return accountTX.ID, tabapay.IsSuccessfulTransaction(accountTX), nil
-}
-
 func maybeAwaitRafikiPayout(ctx workflow.Context, a *Activity, paymentID string) (success bool, doPayout bool, err error) {
 	err = workflow.ExecuteActivity(ctx, a.ShouldPushToAccount, paymentID).Get(ctx, &doPayout)
 	if err != nil {
@@ -893,15 +767,6 @@ func RollbackPayInWorkflow(ctx workflow.Context, paymentID string) error {
 	err := workflow.ExecuteActivity(ctx, a.SetTransactionRefundState, paymentID, transactions.RefundStatePending).Get(ctx, nil)
 	if err != nil {
 		logger.Error("error updating transaction refundState", "Error", err)
-		return err
-	}
-
-	err = workflow.ExecuteActivity(ctx, a.RollbackPullFromAccount, paymentID).Get(ctx, nil)
-	if err != nil {
-		if temporal_utils.IsNonRetryableError(err) || temporal_utils.IsMaxRetryError(err) {
-			logger.Error("Final failure to rollback tabapay card transaction", "err", err, "payment_id", paymentID)
-		}
-
 		return err
 	}
 
@@ -1018,14 +883,7 @@ func AwaitReceiverWorkflow(ctx workflow.Context, paymentID string) (bool, error)
 		return false, err
 	}
 
-	// Receiver is ready, now run the compliance checks
-	childCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		ParentClosePolicy: enums.PARENT_CLOSE_POLICY_TERMINATE,
-	})
-
-	// OFAC and compliance checks, now that the receiver is ready
-	err = workflow.ExecuteChildWorkflow(childCtx, gmt_workflows.GMTComplianceChecksWorkflow, paymentID).Get(childCtx, nil)
-	return err == nil, err
+	return true, nil
 }
 
 func CreateReferralsWorkflow(ctx workflow.Context, originalPaymentID string) error {
