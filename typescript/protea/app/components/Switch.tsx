@@ -6,11 +6,15 @@ type SwitchProps = {
   // The toggled state of the switch.
   checked: boolean
   // Whether the switch is active and can be toggled.
-  disabled: boolean
+  disabled?: boolean
   onChange: any
 }
 
-export const Switch: FC<SwitchProps> = ({ checked, disabled, onChange }) => {
+export const Switch: FC<SwitchProps> = ({
+  checked,
+  disabled = false,
+  onChange
+}) => {
   return (
     <HeadlessSwitch
       checked={checked}

@@ -13,7 +13,7 @@ type CommandPaletteProps = {
 
 export const CommandPalette: FC<CommandPaletteProps> = ({
   children,
-  unmount = true
+  unmount = false
 }) => {
   const navigate = useNavigate()
   const [commandPaletteOpen, setCommandPaletteOpen] = useScaffoldStore(

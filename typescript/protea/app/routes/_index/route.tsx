@@ -12,10 +12,11 @@ import { getHomeRoute } from '~/data/content.server'
 import {
   getFeatures,
   getKycStatus,
-  getLinkedAccounts,
   getTransactionsWithPending,
   getWalletInfo
 } from '~/data/wallet.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
 import { hasUserSession } from '~/lib/kratos.server'
 import { datoMeta, mergeMeta } from '~/lib/meta'
 import { getPusherArgs } from '~/lib/pusher.server'
@@ -53,17 +54,24 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 export async function appLoader({ request }: LoaderFunctionArgs) {
-  const [walletInfo, transactions, kycStatus, pusherArgs, features, las] =
-    await Promise.all([
-      getWalletInfo(request),
-      getTransactionsWithPending(request, {
-        pageSize: 3
-      }),
-      getKycStatus(request),
-      getPusherArgs(request),
-      getFeatures(request),
-      getLinkedAccounts(request)
-    ])
+  const [
+    walletInfo,
+    transactions,
+    kycStatus,
+    pusherArgs,
+    features,
+    balanceResponse
+  ] = await Promise.all([
+    getWalletInfo(request),
+    getTransactionsWithPending(request, {
+      pageSize: 3
+    }),
+    getKycStatus(request),
+    getPusherArgs(request),
+    getFeatures(request),
+    grpc.getBalances(request, {})
+  ])
+  if (isConnectError(balanceResponse)) throw balanceResponse.error
 
   return json({
     isUser: true,
@@ -72,7 +80,7 @@ export async function appLoader({ request }: LoaderFunctionArgs) {
     kycStatus: kycStatus.kycStatus,
     pusherArgs,
     features,
-    balances: las.balanceAccounts
+    balances: balanceResponse.balances
   })
 }
 

@@ -74,34 +74,15 @@ export interface AstraWithdrawToCardRequest {
     note: string;
 }
 /**
- * @generated from protobuf message backend.v1.GetPtiBalancesResponse
+ * @generated from protobuf message backend.v1.GetLinkedAccountsForTransferRequest
  */
-export interface GetPtiBalancesResponse {
+export interface GetLinkedAccountsForTransferRequest {
     /**
-     * @generated from protobuf field: repeated backend.v1.PtiBalance balances = 1;
+     * The ID of the linked account for the balance to deposit to/withdraw from.
+     *
+     * @generated from protobuf field: string linkedAccountId = 1;
      */
-    balances: PtiBalance[];
-}
-/**
- * @generated from protobuf message backend.v1.PtiBalance
- */
-export interface PtiBalance {
-    /**
-     * @generated from protobuf field: backend.v1.Amount balance = 1;
-     */
-    balance?: Amount;
-    /**
-     * @generated from protobuf field: string currency = 2;
-     */
-    currency: string;
-    /**
-     * @generated from protobuf field: string linkedAccount = 3;
-     */
-    linkedAccount: string;
-    /**
-     * @generated from protobuf field: string formattedBalance = 4;
-     */
-    formattedBalance: string;
+    linkedAccountId: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetLinkedAccountsForPaymentRequest
@@ -178,13 +159,68 @@ export interface XagoDepositDetails {
     depositReference: string;
 }
 /**
- * @generated from protobuf message backend.v1.GetXagoBalanceRequest
+ * @generated from protobuf message backend.v1.GetBalancesResponse
  */
-export interface GetXagoBalanceRequest {
+export interface GetBalancesResponse {
     /**
-     * @generated from protobuf field: string linkedAccount = 1;
+     * @generated from protobuf field: repeated backend.v1.Balance balances = 1;
+     */
+    balances: Balance[];
+}
+/**
+ * @generated from protobuf message backend.v1.Balance
+ */
+export interface Balance {
+    /**
+     * @generated from protobuf field: backend.v1.Amount balance = 1;
+     */
+    balance?: Amount;
+    /**
+     * @generated from protobuf field: string currency = 2;
+     */
+    currency: string;
+    /**
+     * @generated from protobuf field: string countryCode = 3;
+     */
+    countryCode: string;
+    /**
+     * @generated from protobuf field: string linkedAccount = 4;
      */
     linkedAccount: string;
+    /**
+     * @generated from protobuf field: string formattedBalance = 5;
+     */
+    formattedBalance: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetPtiBalancesResponse
+ */
+export interface GetPtiBalancesResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.PtiBalance balances = 1;
+     */
+    balances: PtiBalance[];
+}
+/**
+ * @generated from protobuf message backend.v1.PtiBalance
+ */
+export interface PtiBalance {
+    /**
+     * @generated from protobuf field: backend.v1.Amount balance = 1;
+     */
+    balance?: Amount;
+    /**
+     * @generated from protobuf field: string currency = 2;
+     */
+    currency: string;
+    /**
+     * @generated from protobuf field: string linkedAccount = 3;
+     */
+    linkedAccount: string;
+    /**
+     * @generated from protobuf field: string formattedBalance = 4;
+     */
+    formattedBalance: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetXagoBalanceResponse
@@ -657,6 +693,27 @@ export interface CreatePaymentRequest {
      * @generated from protobuf field: optional bool addPaymentProtection = 9;
      */
     addPaymentProtection?: boolean;
+}
+/**
+ * @generated from protobuf message backend.v1.TransferBalanceRequest
+ */
+export interface TransferBalanceRequest {
+    /**
+     * @generated from protobuf field: string fromLinkedAccount = 1;
+     */
+    fromLinkedAccount: string;
+    /**
+     * @generated from protobuf field: string toLinkedAccount = 2;
+     */
+    toLinkedAccount: string;
+    /**
+     * @generated from protobuf field: backend.v1.Amount amount = 3;
+     */
+    amount?: Amount;
+    /**
+     * @generated from protobuf field: string note = 4;
+     */
+    note: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetCardDetailsRequest
@@ -2570,26 +2627,26 @@ class AstraWithdrawToCardRequest$Type extends MessageType<AstraWithdrawToCardReq
  */
 export const AstraWithdrawToCardRequest = new AstraWithdrawToCardRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetPtiBalancesResponse$Type extends MessageType<GetPtiBalancesResponse> {
+class GetLinkedAccountsForTransferRequest$Type extends MessageType<GetLinkedAccountsForTransferRequest> {
     constructor() {
-        super("backend.v1.GetPtiBalancesResponse", [
-            { no: 1, name: "balances", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PtiBalance }
+        super("backend.v1.GetLinkedAccountsForTransferRequest", [
+            { no: 1, name: "linkedAccountId", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<GetPtiBalancesResponse>): GetPtiBalancesResponse {
-        const message = { balances: [] };
+    create(value?: PartialMessage<GetLinkedAccountsForTransferRequest>): GetLinkedAccountsForTransferRequest {
+        const message = { linkedAccountId: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetPtiBalancesResponse>(this, message, value);
+            reflectionMergePartial<GetLinkedAccountsForTransferRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPtiBalancesResponse): GetPtiBalancesResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetLinkedAccountsForTransferRequest): GetLinkedAccountsForTransferRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated backend.v1.PtiBalance balances */ 1:
-                    message.balances.push(PtiBalance.internalBinaryRead(reader, reader.uint32(), options));
+                case /* string linkedAccountId */ 1:
+                    message.linkedAccountId = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2602,10 +2659,10 @@ class GetPtiBalancesResponse$Type extends MessageType<GetPtiBalancesResponse> {
         }
         return message;
     }
-    internalBinaryWrite(message: GetPtiBalancesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated backend.v1.PtiBalance balances = 1; */
-        for (let i = 0; i < message.balances.length; i++)
-            PtiBalance.internalBinaryWrite(message.balances[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: GetLinkedAccountsForTransferRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string linkedAccountId = 1; */
+        if (message.linkedAccountId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.linkedAccountId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -2613,77 +2670,9 @@ class GetPtiBalancesResponse$Type extends MessageType<GetPtiBalancesResponse> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetPtiBalancesResponse
+ * @generated MessageType for protobuf message backend.v1.GetLinkedAccountsForTransferRequest
  */
-export const GetPtiBalancesResponse = new GetPtiBalancesResponse$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class PtiBalance$Type extends MessageType<PtiBalance> {
-    constructor() {
-        super("backend.v1.PtiBalance", [
-            { no: 1, name: "balance", kind: "message", T: () => Amount },
-            { no: 2, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "formattedBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<PtiBalance>): PtiBalance {
-        const message = { currency: "", linkedAccount: "", formattedBalance: "" };
-        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            reflectionMergePartial<PtiBalance>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiBalance): PtiBalance {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* backend.v1.Amount balance */ 1:
-                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
-                    break;
-                case /* string currency */ 2:
-                    message.currency = reader.string();
-                    break;
-                case /* string linkedAccount */ 3:
-                    message.linkedAccount = reader.string();
-                    break;
-                case /* string formattedBalance */ 4:
-                    message.formattedBalance = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: PtiBalance, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* backend.v1.Amount balance = 1; */
-        if (message.balance)
-            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* string currency = 2; */
-        if (message.currency !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.currency);
-        /* string linkedAccount = 3; */
-        if (message.linkedAccount !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.linkedAccount);
-        /* string formattedBalance = 4; */
-        if (message.formattedBalance !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.formattedBalance);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message backend.v1.PtiBalance
- */
-export const PtiBalance = new PtiBalance$Type();
+export const GetLinkedAccountsForTransferRequest = new GetLinkedAccountsForTransferRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetLinkedAccountsForPaymentRequest$Type extends MessageType<GetLinkedAccountsForPaymentRequest> {
     constructor() {
@@ -3002,26 +2991,26 @@ class XagoDepositDetails$Type extends MessageType<XagoDepositDetails> {
  */
 export const XagoDepositDetails = new XagoDepositDetails$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetXagoBalanceRequest$Type extends MessageType<GetXagoBalanceRequest> {
+class GetBalancesResponse$Type extends MessageType<GetBalancesResponse> {
     constructor() {
-        super("backend.v1.GetXagoBalanceRequest", [
-            { no: 1, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        super("backend.v1.GetBalancesResponse", [
+            { no: 1, name: "balances", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => Balance }
         ]);
     }
-    create(value?: PartialMessage<GetXagoBalanceRequest>): GetXagoBalanceRequest {
-        const message = { linkedAccount: "" };
+    create(value?: PartialMessage<GetBalancesResponse>): GetBalancesResponse {
+        const message = { balances: [] };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
-            reflectionMergePartial<GetXagoBalanceRequest>(this, message, value);
+            reflectionMergePartial<GetBalancesResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetXagoBalanceRequest): GetXagoBalanceRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetBalancesResponse): GetBalancesResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* string linkedAccount */ 1:
-                    message.linkedAccount = reader.string();
+                case /* repeated backend.v1.Balance balances */ 1:
+                    message.balances.push(Balance.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3034,10 +3023,10 @@ class GetXagoBalanceRequest$Type extends MessageType<GetXagoBalanceRequest> {
         }
         return message;
     }
-    internalBinaryWrite(message: GetXagoBalanceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string linkedAccount = 1; */
-        if (message.linkedAccount !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.linkedAccount);
+    internalBinaryWrite(message: GetBalancesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.Balance balances = 1; */
+        for (let i = 0; i < message.balances.length; i++)
+            Balance.internalBinaryWrite(message.balances[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3045,9 +3034,199 @@ class GetXagoBalanceRequest$Type extends MessageType<GetXagoBalanceRequest> {
     }
 }
 /**
- * @generated MessageType for protobuf message backend.v1.GetXagoBalanceRequest
+ * @generated MessageType for protobuf message backend.v1.GetBalancesResponse
  */
-export const GetXagoBalanceRequest = new GetXagoBalanceRequest$Type();
+export const GetBalancesResponse = new GetBalancesResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Balance$Type extends MessageType<Balance> {
+    constructor() {
+        super("backend.v1.Balance", [
+            { no: 1, name: "balance", kind: "message", T: () => Amount },
+            { no: 2, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "countryCode", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "formattedBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<Balance>): Balance {
+        const message = { currency: "", countryCode: "", linkedAccount: "", formattedBalance: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<Balance>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Balance): Balance {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.Amount balance */ 1:
+                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
+                    break;
+                case /* string currency */ 2:
+                    message.currency = reader.string();
+                    break;
+                case /* string countryCode */ 3:
+                    message.countryCode = reader.string();
+                    break;
+                case /* string linkedAccount */ 4:
+                    message.linkedAccount = reader.string();
+                    break;
+                case /* string formattedBalance */ 5:
+                    message.formattedBalance = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: Balance, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.Amount balance = 1; */
+        if (message.balance)
+            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string currency = 2; */
+        if (message.currency !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.currency);
+        /* string countryCode = 3; */
+        if (message.countryCode !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.countryCode);
+        /* string linkedAccount = 4; */
+        if (message.linkedAccount !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.linkedAccount);
+        /* string formattedBalance = 5; */
+        if (message.formattedBalance !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.formattedBalance);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.Balance
+ */
+export const Balance = new Balance$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetPtiBalancesResponse$Type extends MessageType<GetPtiBalancesResponse> {
+    constructor() {
+        super("backend.v1.GetPtiBalancesResponse", [
+            { no: 1, name: "balances", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => PtiBalance }
+        ]);
+    }
+    create(value?: PartialMessage<GetPtiBalancesResponse>): GetPtiBalancesResponse {
+        const message = { balances: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetPtiBalancesResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetPtiBalancesResponse): GetPtiBalancesResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.PtiBalance balances */ 1:
+                    message.balances.push(PtiBalance.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetPtiBalancesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.PtiBalance balances = 1; */
+        for (let i = 0; i < message.balances.length; i++)
+            PtiBalance.internalBinaryWrite(message.balances[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetPtiBalancesResponse
+ */
+export const GetPtiBalancesResponse = new GetPtiBalancesResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PtiBalance$Type extends MessageType<PtiBalance> {
+    constructor() {
+        super("backend.v1.PtiBalance", [
+            { no: 1, name: "balance", kind: "message", T: () => Amount },
+            { no: 2, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "formattedBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<PtiBalance>): PtiBalance {
+        const message = { currency: "", linkedAccount: "", formattedBalance: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<PtiBalance>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: PtiBalance): PtiBalance {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* backend.v1.Amount balance */ 1:
+                    message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
+                    break;
+                case /* string currency */ 2:
+                    message.currency = reader.string();
+                    break;
+                case /* string linkedAccount */ 3:
+                    message.linkedAccount = reader.string();
+                    break;
+                case /* string formattedBalance */ 4:
+                    message.formattedBalance = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: PtiBalance, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* backend.v1.Amount balance = 1; */
+        if (message.balance)
+            Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string currency = 2; */
+        if (message.currency !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.currency);
+        /* string linkedAccount = 3; */
+        if (message.linkedAccount !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.linkedAccount);
+        /* string formattedBalance = 4; */
+        if (message.formattedBalance !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.formattedBalance);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.PtiBalance
+ */
+export const PtiBalance = new PtiBalance$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetXagoBalanceResponse$Type extends MessageType<GetXagoBalanceResponse> {
     constructor() {
@@ -4441,6 +4620,74 @@ class CreatePaymentRequest$Type extends MessageType<CreatePaymentRequest> {
  * @generated MessageType for protobuf message backend.v1.CreatePaymentRequest
  */
 export const CreatePaymentRequest = new CreatePaymentRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TransferBalanceRequest$Type extends MessageType<TransferBalanceRequest> {
+    constructor() {
+        super("backend.v1.TransferBalanceRequest", [
+            { no: 1, name: "fromLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "toLinkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "amount", kind: "message", T: () => Amount },
+            { no: 4, name: "note", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TransferBalanceRequest>): TransferBalanceRequest {
+        const message = { fromLinkedAccount: "", toLinkedAccount: "", note: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<TransferBalanceRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TransferBalanceRequest): TransferBalanceRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string fromLinkedAccount */ 1:
+                    message.fromLinkedAccount = reader.string();
+                    break;
+                case /* string toLinkedAccount */ 2:
+                    message.toLinkedAccount = reader.string();
+                    break;
+                case /* backend.v1.Amount amount */ 3:
+                    message.amount = Amount.internalBinaryRead(reader, reader.uint32(), options, message.amount);
+                    break;
+                case /* string note */ 4:
+                    message.note = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TransferBalanceRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string fromLinkedAccount = 1; */
+        if (message.fromLinkedAccount !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.fromLinkedAccount);
+        /* string toLinkedAccount = 2; */
+        if (message.toLinkedAccount !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.toLinkedAccount);
+        /* backend.v1.Amount amount = 3; */
+        if (message.amount)
+            Amount.internalBinaryWrite(message.amount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* string note = 4; */
+        if (message.note !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.note);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.TransferBalanceRequest
+ */
+export const TransferBalanceRequest = new TransferBalanceRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetCardDetailsRequest$Type extends MessageType<GetCardDetailsRequest> {
     constructor() {
@@ -10795,6 +11042,12 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetPayment", options: {}, I: GetPaymentRequest, O: Payment },
     { name: "ConfirmPayment", options: {}, I: ConfirmPaymentRequest, O: Payment },
     { name: "GetLinkedAccountsForPayment", options: {}, I: GetLinkedAccountsForPaymentRequest, O: GetLinkedAccountsForPaymentResponse },
+    { name: "GetBalances", options: {}, I: Empty, O: GetBalancesResponse },
+    { name: "GetBalanceDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
+    { name: "GetLinkedAccountsForWithdraw", options: {}, I: GetLinkedAccountsForTransferRequest, O: GetLinkedAccountsForPaymentResponse },
+    { name: "WithdrawBalance", options: {}, I: TransferBalanceRequest, O: Payment },
+    { name: "GetLinkedAccountsForDeposit", options: {}, I: GetLinkedAccountsForTransferRequest, O: GetLinkedAccountsForPaymentResponse },
+    { name: "DepositBalance", options: {}, I: TransferBalanceRequest, O: Payment },
     { name: "SearchWallets", options: {}, I: SearchWalletsRequest, O: SearchWalletsResponse },
     { name: "DiscordCallback", options: {}, I: DiscordCallbackRequest, O: DiscordCallbackResponse },
     { name: "CreateDiscordAuthURL", options: {}, I: Empty, O: CreateDiscordAuthURLResponse },
