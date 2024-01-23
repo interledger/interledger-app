@@ -19,11 +19,8 @@ import {
   Router,
   WalletGrid
 } from '~/components'
-import {
-  getFeatures,
-  getKycStatus,
-  getLinkedAccounts
-} from '~/data/wallet.server'
+import { getLinkedAccounts } from '~/data/accounts.server'
+import { getFeatures, getKycStatus } from '~/data/wallet.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -31,13 +28,11 @@ import { KycStatus } from '~/routes/_index/route'
 import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { bankAccounts, cardAccounts, balanceAccounts } =
-    await getLinkedAccounts(request)
+  const { bankAccounts, cardAccounts } = await getLinkedAccounts(request)
   const kycStatus = await getKycStatus(request)
 
-  const getXagoBalancesResponse = await grpc.getXagoBalances(request, {})
-  if (isConnectError(getXagoBalancesResponse))
-    throw getXagoBalancesResponse.error
+  const balancesResponse = await grpc.getBalances(request, {})
+  if (isConnectError(balancesResponse)) throw balancesResponse.error
 
   const features = await getFeatures(request)
 
@@ -46,11 +41,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     features,
     bankAccounts,
     cardAccounts,
-    balanceAccounts,
     hasCard: cardAccounts.length > 0,
     hasBank: bankAccounts.length > 0,
-    hasBalances: balanceAccounts.length > 0,
-    hasXagoBalance: getXagoBalancesResponse.balances.length > 0
+    hasZABalance:
+      balancesResponse.balances.filter((bal) => bal.countryCode == 'ZA')
+        .length > 0
   })
 }
 
@@ -82,9 +77,7 @@ export default function Page() {
     hasCard,
     hasBank,
     kycStatus,
-    // hasBalances,
-    // balanceAccounts,
-    hasXagoBalance
+    hasZABalance
   } = useLoaderData<typeof loader>()
 
   const location = useLocation()
@@ -124,30 +117,6 @@ export default function Page() {
             </CardContent>
           </Card>
         )}
-        {/*{balanceAccounts && hasBalances && (*/}
-        {/*  <Card>*/}
-        {/*    <CardHeader>*/}
-        {/*      <CardTitle>Balances</CardTitle>*/}
-        {/*    </CardHeader>*/}
-        {/*    {balanceAccounts.map((method) => (*/}
-        {/*      <CardLink*/}
-        {/*        key={method.id}*/}
-        {/*        to={route('/accounts/:accountId', {*/}
-        {/*          accountId: method.id*/}
-        {/*        })}*/}
-        {/*        className='items-center justify-between'*/}
-        {/*      >*/}
-        {/*        <div className='flex items-center space-x-3'>*/}
-        {/*          <div*/}
-        {/*            className={`flag:${method.receiveCurrencyCountryCode}`}*/}
-        {/*          />*/}
-        {/*          <span>{method.name}</span>*/}
-        {/*        </div>*/}
-        {/*        <Icon>navigate_next</Icon>*/}
-        {/*      </CardLink>*/}
-        {/*    ))}*/}
-        {/*  </Card>*/}
-        {/*)}*/}
         {cardAccounts && hasCard && (
           <Card>
             <CardHeader>
@@ -236,7 +205,7 @@ export default function Page() {
             {/*</CardContent>*/}
           </Card>
         )}
-        {kycStatus == KycStatus.Approved && !hasBank && hasXagoBalance && (
+        {kycStatus == KycStatus.Approved && !hasBank && hasZABalance && (
           <Card>
             <CardContent>
               <div className='flex items-start space-x-4'>

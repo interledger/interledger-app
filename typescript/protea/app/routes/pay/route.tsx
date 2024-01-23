@@ -20,12 +20,7 @@ import {
   Router
 } from '~/components'
 import { CommandActions } from '~/components/Scaffold/CommandActions'
-import type { FormattedLinkedAccount } from '~/data/wallet.server'
-import {
-  getFeatures,
-  getKycStatus,
-  getLinkedAccounts
-} from '~/data/wallet.server'
+import { getFeatures, getKycStatus } from '~/data/wallet.server'
 import type {
   Features,
   Payment,
@@ -68,7 +63,6 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
 
   let results: PlainMessage<SearchResult>[] = []
   let address: PlainMessage<SearchResult> | null = null
-  let sendAccounts: FormattedLinkedAccount[] = []
   let publicWalletInfo: PublicWalletInfo | null = null
   let phoneMask: string = ''
   let features: Features | null = null
@@ -82,21 +76,12 @@ export async function payLoader({ request }: LoaderFunctionArgs) {
       return redirect(route('/personal-details'))
 
     features = await getFeatures(request)
-
-    const { cardAccounts, bankAccounts, balanceAccounts } =
-      await getLinkedAccounts(request)
-    sendAccounts = [
-      ...balanceAccounts,
-      ...cardAccounts,
-      ...bankAccounts
-    ].filter((acc) => acc.canSend)
   }
 
   return jsonWithCSRF(request, {
     features,
     results,
     address,
-    sendAccounts,
     phoneMask,
     publicWalletInfo,
     fynbosEnv: process.env.FYNBOS_ENV,
@@ -118,7 +103,7 @@ export const meta: MetaFunction = mergeMeta(() => [
 ])
 
 export default function Page() {
-  const { features, sendAccounts } = useLoaderData<typeof payLoader>()
+  const { features } = useLoaderData<typeof payLoader>()
 
   if (features && !features.sendEnabled)
     return (
@@ -153,31 +138,6 @@ export default function Page() {
           </CardContent>
         </Card>
       </>
-    )
-
-  if (sendAccounts.length === 0)
-    return (
-      <Card>
-        <CardContent>
-          <div className='flex items-start space-x-4'>
-            <CardIcon>
-              <Icon>credit_card</Icon>
-            </CardIcon>
-            <div className='flex flex-col space-y-4'>
-              <p className='text-sm text-medium'>
-                To send a payment, first connect a card.
-              </p>
-              <Router
-                prefetch='render'
-                className='text-sm font-medium text-primary'
-                to={route('/accounts')}
-              >
-                Go to accounts page
-              </Router>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     )
 
   return <CommandActions />
