@@ -35,7 +35,6 @@ import (
 	linkedaccount_client "gitlab.com/fynbos/backend/linkedaccounts/client"
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
-	"gitlab.com/fynbos/backend/providers/tabapay"
 	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/transactions"
 	transaction_client "gitlab.com/fynbos/backend/transactions/client"
@@ -117,10 +116,6 @@ func (b *Backends) KYC() kyc.Client {
 
 func (b *Backends) Transactions() transactions.Client {
 	return transaction_client.New(b)
-}
-
-func (b *Backends) Tabapay() tabapay.Client {
-	return nil
 }
 
 func (b *Backends) LinkedAccounts() linkedaccounts.Client {

@@ -11,7 +11,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.16.1
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/bxcodec/faker/v3 v3.6.0
-	github.com/clbanning/mxj v1.8.4
 	github.com/cockroachdb/cockroach-go v2.0.1+incompatible
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48

@@ -315,15 +315,6 @@ export async function confirmPaymentAction({
     id: params.paymentId
   })
   if (isConnectError(response)) {
-    if (
-      response.code === Code.FailedPrecondition &&
-      response.violations.findIndex(
-        (violation) =>
-          violation.type === 'Payment' && violation.subject === 'threeDS'
-      ) > -1
-    ) {
-      return redirect(`/pay/3ds?paymentId=${params.paymentId}&init=`)
-    }
     return response.error({ errors }, {}, { action: 'Contact support' })
   }
 

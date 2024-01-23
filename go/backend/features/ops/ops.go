@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 
 	"gitlab.com/fynbos/backend/providers/astra"
 
@@ -76,13 +75,6 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 
 	if id.CountryCode == "US" {
 		res.ReceiveEnabled = true
-		res.LinkedAccEnabled = true
-		res.BanksEnabled = false
-		res.CardsEnabled = true
-		res.AddCardsEnabled = canAddCard
-	}
-	if id.Address != nil && isGMTSendState(id.Address.State) {
-		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
 		res.BanksEnabled = false
@@ -120,25 +112,4 @@ func canAddCards(ctx context.Context, b Backends, walletID string) (bool, error)
 	}
 
 	return cnt <= 3, nil
-}
-
-var gmtUSStates = []string{
-	"US-AL", "US-AK", "US-AZ", "US-AR", "US-CA", "US-CO", "US-CT", "US-DE", "US-DC", "US-FL",
-	"US-GA", "US-ID", "US-IL", "US-LA", "US-MD", "US-MA", "US-MI", "US-MN", "US-MO", "US-MT",
-	"US-NV", "US-NH", "US-NJ", "US-NM", "US-NY", "US-NC", "US-ND", "US-OR", "US-PA", "US-RI",
-	"US-SC", "US-SD", "US-TN", "US-TX", "US-UT", "US-VA", "US-WA",
-}
-
-func isGMTSendState(state string) bool {
-	// Check if the state is in format US-CA
-	if len(state) != 5 {
-		state = "US-" + state
-	}
-
-	for _, s := range gmtUSStates {
-		if strings.EqualFold(s, state) {
-			return true
-		}
-	}
-	return false
 }

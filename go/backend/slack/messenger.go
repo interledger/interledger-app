@@ -22,7 +22,6 @@ type Channel string
 
 const (
 	ChannelPersona      Channel = "C053HA9ANCF"
-	ChannelNotifyGMT    Channel = "C05A6PKHVUY"
 	ChannelNotifyReview Channel = "C05KABR3Z8U"
 	ChannelNotifyEvents Channel = "C05L0Q20RJ9"
 	ChannelNotifyForms  Channel = "C05RA9HSNKG"

@@ -60,7 +60,6 @@ import (
 	"gitlab.com/fynbos/backend/notify"
 	notify_client "gitlab.com/fynbos/backend/notify/client"
 	"gitlab.com/fynbos/backend/payments/ops"
-	gmt_ops "gitlab.com/fynbos/backend/providers/gmt/ops"
 	"gitlab.com/fynbos/backend/signup"
 	temporal_mock "gitlab.com/fynbos/backend/temporal/mock"
 	"gitlab.com/fynbos/backend/transactions"
@@ -214,9 +213,6 @@ func (b *TestBackends) RestoreTemporalEnv() {
 	env.RegisterWorkflow(ops.PayoutWorkflow)
 	env.RegisterWorkflow(ops.RollbackPayInWorkflow)
 	env.RegisterWorkflow(ops.AwaitReceiverWorkflow)
-	env.RegisterActivity(gmt_ops.NewActivity(b))
-	env.RegisterWorkflow(gmt_ops.GMTComplianceChecksWorkflow)
-	env.RegisterWorkflow(gmt_ops.GMTNotifyCompleted)
 	env.RegisterWorkflow(ops.CreateReferralsWorkflow)
 	env.RegisterActivity(pti_ops.NewActivity(b, nil))
 
