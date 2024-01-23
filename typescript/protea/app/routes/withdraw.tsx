@@ -6,7 +6,12 @@ import type {
   MetaFunction
 } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useSearchParams
+} from '@remix-run/react'
 import {
   useCallback,
   useEffect,
@@ -27,37 +32,54 @@ import {
   TextButton,
   TextField
 } from '~/components'
-import type { Amount as RpcAmount } from '~/generated/connect/backend/v1/backend_pb'
+import {
+  getBalancesForTransfer,
+  getLinkedAccountsForWithdraw,
+  type FormattedLinkedAccount
+} from '~/data/accounts.server'
+import type {
+  Balance,
+  Amount as RpcAmount
+} from '~/generated/connect/backend/v1/backend_pb'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
 import { useScaffoldStore } from '~/lib/useScaffoldStore'
-import { PayTextField } from '~/routes/pay_.$paymentId/PayTextField'
+import { PaySelect } from '~/routes/pay_.$paymentId/PaySelect'
 import styles from '~/styles/flags.css'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const balanceResponse = await grpc.getXagoBalances(request, {})
+  const url = new URL(request.url)
+
+  const balanceResponse = await grpc.getBalances(request, {})
   if (isConnectError(balanceResponse)) throw balanceResponse.error
 
-  const balanceAccount = balanceResponse.balances.find(
-    (balance) => balance.currency == 'ZAR'
-  )
+  const balances = await getBalancesForTransfer(request)
+
+  const linkedAccount = url.searchParams.get('linkedAccount')
+  let balanceAccount: Balance | undefined
+  let balance: FormattedLinkedAccount | undefined
+  if (linkedAccount) {
+    balanceAccount = balanceResponse.balances.find(
+      (acc) => acc.linkedAccount == linkedAccount
+    )
+  } else {
+    balanceAccount = balanceResponse.balances[0]
+  }
+
+  balance = balances.find((acc) => acc.id == balanceAccount?.linkedAccount)
   if (!balanceAccount) throw json({}, { status: 404 })
 
-  const linkedAccountsResponse = await grpc.getLinkedAccounts(request, {})
-  if (isConnectError(linkedAccountsResponse)) throw linkedAccountsResponse.error
-  const linkedAccounts = linkedAccountsResponse.linkedAccounts
-    .filter((account) => account.type.includes('bank'))
-    .map((account) => ({
-      id: account.id,
-      name: account.title
-    }))
+  const linkedAccounts = await getLinkedAccountsForWithdraw(
+    request,
+    balanceAccount.linkedAccount
+  )
 
   return jsonWithCSRF(request, {
-    availableBalance: balanceAccount.available,
-    formattedAvailableBalance: balanceAccount.formattedAvailableBalance,
-    fromLinkedAccount: balanceAccount.linkedAccount,
+    balanceAccount,
+    balance,
+    balances,
     linkedAccounts
   })
 }
@@ -67,7 +89,7 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       title: 'Withdraw',
-      back: '/accounts'
+      back: '/'
     }
   }
 }
@@ -132,13 +154,9 @@ const formatAmount = (amount?: PlainMessage<RpcAmount>): string => {
 }
 
 const Amount = () => {
-  const {
-    availableBalance,
-    fromLinkedAccount,
-    formattedAvailableBalance,
-    linkedAccounts,
-    csrfToken
-  } = useLoaderData<typeof loader>()
+  const { balance, balances, balanceAccount, linkedAccounts, csrfToken } =
+    useLoaderData<typeof loader>()
+  const [, setSearchParams] = useSearchParams()
   const actionData = useActionData<typeof action>()
 
   const [amount, setAmount] = useState<string>('')
@@ -152,8 +170,21 @@ const Amount = () => {
   }, [])
 
   const _maxWithdrawAmount = useCallback(() => {
-    setAmount(formatAmount(availableBalance))
-  }, [availableBalance])
+    setAmount(formatAmount(balanceAccount.balance))
+  }, [balanceAccount.balance])
+
+  const _onChangeLinkedAccount = useCallback(
+    (linkedAccount: FormattedLinkedAccount) => {
+      setSearchParams(
+        (prev) => {
+          prev.set('linkedAccount', linkedAccount.id)
+          return prev
+        },
+        { replace: true }
+      )
+    },
+    [setSearchParams]
+  )
 
   return (
     <>
@@ -177,23 +208,23 @@ const Amount = () => {
       />
       <input
         form='account-withdraw'
-        value={fromLinkedAccount}
+        value={balanceAccount.linkedAccount}
         name='fromLinkedAccount'
         type='hidden'
       />
       <Card>
-        <PayTextField
+        <PaySelect
           id='withdrawAmount'
           label='Withdraw amount'
           name='withdrawAmount'
           form='account-withdraw'
           value={amount}
           onChange={_onChangeWithdrawAmount}
+          linkedAccount={balance}
+          linkedAccountOptions={balances || []}
+          onChangeLinkedAccount={_onChangeLinkedAccount}
           placeholder='0.00'
-          prefixIcon={
-            // TODO Need to get the country code from the linked account
-            <div className={`flag:ZA`} />
-          }
+          prefixIcon={<div className={`flag:${balanceAccount.countryCode}`} />}
           type='number'
           min='0'
           step='0.01'
@@ -209,7 +240,7 @@ const Amount = () => {
           <span>
             You have{' '}
             <TextButton onClick={_maxWithdrawAmount}>
-              {formattedAvailableBalance}
+              {balanceAccount.formattedBalance}
             </TextButton>{' '}
             available in your balance.
           </span>
@@ -281,7 +312,7 @@ export async function action({ request }: ActionFunctionArgs) {
     note: ''
   }
 
-  const withdrawResponse = await grpc.withdrawXagoBalance(request, {
+  const withdrawResponse = await grpc.withdrawBalance(request, {
     fromLinkedAccount: fromLinkedAccount,
     toLinkedAccount: toLinkedAccount,
     amount: {
