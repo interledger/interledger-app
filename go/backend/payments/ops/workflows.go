@@ -425,13 +425,12 @@ type PaySignal struct {
 }
 
 const (
-	signalChanName       = "payment_signals"
-	identityChanName     = "payment_identity_account_signals"
-	payinWorkflowFmt     = "payment_pay_in_%s"
-	payoutWorkflowFmt    = "payment_pay_out_%s"
-	gmtNotifyCompleteFmt = "payment_gmt_notify_complete_%s"
-	referralWorkflowFmt  = "referrals_%s"
-	astraNotifyChanName  = "payment_astra_signals"
+	signalChanName      = "payment_signals"
+	identityChanName    = "payment_identity_account_signals"
+	payinWorkflowFmt    = "payment_pay_in_%s"
+	payoutWorkflowFmt   = "payment_pay_out_%s"
+	referralWorkflowFmt = "referrals_%s"
+	astraNotifyChanName = "payment_astra_signals"
 )
 
 func PayoutWorkflow(ctx workflow.Context, paymentID string) error {

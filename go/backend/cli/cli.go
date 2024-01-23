@@ -162,16 +162,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		return nil, errors.New("ZENDESK_TOKEN is required")
 	}
 
-	gmtUser := os.Getenv("GMT_USER")
-	if gmtUser == "" && env.IsProd() {
-		return nil, errors.New("GMT_USER is required in prod")
-	}
-
-	gmtPassword := os.Getenv("GMT_PASSWORD")
-	if gmtPassword == "" && env.IsProd() {
-		return nil, errors.New("GMT_PASSWORD is required in prod")
-	}
-
 	personaToken := os.Getenv("PERSONA_TOKEN")
 	if personaToken == "" && env.IsProd() {
 		return nil, errors.New("PERSONA_TOKEN is required in prod")

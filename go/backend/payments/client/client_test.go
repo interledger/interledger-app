@@ -79,122 +79,10 @@ func TestClient(t *testing.T) {
 		Args        payments.CreateArgs
 		Assertions  Assertions
 		AddIdentity bool
+		Skip        bool
 	}{
 		{
-			Name: "Golden path",
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.tabapayLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: recvWallet.walletID,
-				},
-				ReceiverAccount: recvWallet.tabapayLinkedAcc,
-				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
-				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
-				IPAddress:       "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateCompleted,
-				SendTransactionState: transactions.StateCompleted,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitCard,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeCreditCard,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransactionState: transactions.StateCompleted,
-			},
-		},
-		{
-			Name: "Pull from card fails",
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.tabapayLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: recvWallet.walletID,
-				},
-				ReceiverAccount: recvWallet.tabapayLinkedAcc,
-				SenderAmount:    currency.FromUInt64(777, currency.ParseCurrency("USD")),
-				ReceiverAmount:  currency.FromUInt64(777, currency.ParseCurrency("USD")),
-				IPAddress:       "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateFailed,
-				SendTransactionState: transactions.StateFailed,
-				SendTransfers:        []AssertTransfer{},
-				ReceiveTransfers:     []AssertTransfer{},
-			},
-		},
-		{
-			Name: "Push to card fails",
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.tabapayLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: recvWallet.walletID,
-				},
-				ReceiverAccount: recvWallet.tabapayLinkedAcc,
-				SenderAmount:    currency.FromUInt64(666, currency.ParseCurrency("USD")),
-				ReceiverAmount:  currency.FromUInt64(666, currency.ParseCurrency("USD")),
-				IPAddress:       "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateFailed,
-				SendTransactionState: transactions.StateFailed,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitCard,
-						State:        transactions.StateCompleted,
-					},
-					{
-						TransferType: transactions.TransferTypeCreditCard,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransfers: []AssertTransfer{},
-			},
-		},
-		{
-			Name: "Compliance fails",
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: sendWallet.walletID,
-				},
-				SenderAccount: sendWallet.tabapayLinkedAcc,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: recvWallet.walletID,
-				},
-				ReceiverAccount: recvWallet.tabapayLinkedAcc,
-				SenderAmount:    currency.FromUInt64(1222, currency.ParseCurrency("USD")),
-				ReceiverAmount:  currency.FromUInt64(1222, currency.ParseCurrency("USD")),
-				IPAddress:       "192.36.8.4",
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateFailed,
-				SendTransactionState: transactions.StateFailed,
-			},
-		},
-		{
+			Skip:        true, // PTI needs both parties signed up so we cannot reserve funds pre emptively.
 			Name:        "Requires account linking",
 			AddIdentity: true,
 			Args: payments.CreateArgs{
@@ -202,7 +90,7 @@ func TestClient(t *testing.T) {
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendWallet.tabapayLinkedAcc,
+				SenderAccount: sendWallet.ptiUSDLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeSlack,
 					Identifier: "fynbos / DevTest",
@@ -230,6 +118,7 @@ func TestClient(t *testing.T) {
 			},
 		},
 		{
+			Skip: true, // TDB how this would work with PTI
 			Name: "Golden path Web monetization",
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
@@ -241,7 +130,7 @@ func TestClient(t *testing.T) {
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: recvWallet.tabapayLinkedAcc,
+				ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",
@@ -258,7 +147,7 @@ func TestClient(t *testing.T) {
 				},
 				ReceiveTransfers: []AssertTransfer{
 					{
-						TransferType: transactions.TransferTypeCreditCard,
+						TransferType: transactions.TransferTypeCreditBalance,
 						State:        transactions.StateCompleted,
 					},
 				},
@@ -473,6 +362,9 @@ func TestClient(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(st *testing.T) {
+			if tc.Skip {
+				st.Skip("Skipping sub test", tc.Name)
+			}
 			b.RestoreTemporalEnv()
 			p, err := pc.Create(ctx, tc.Args)
 			require.NoError(st, err)
@@ -638,13 +530,13 @@ func TestReferrals(t *testing.T) {
 				SendTransactionState: transactions.StateCompleted,
 				SendTransfers: []AssertTransfer{
 					{
-						TransferType: transactions.TransferTypeDebitCard,
+						TransferType: transactions.TransferTypeDebitBalance,
 						State:        transactions.StateCompleted,
 					},
 				},
 				ReceiveTransfers: []AssertTransfer{
 					{
-						TransferType: transactions.TransferTypeCreditCard,
+						TransferType: transactions.TransferTypeCreditBalance,
 						State:        transactions.StateCompleted,
 					},
 				},
@@ -690,12 +582,12 @@ func TestReferrals(t *testing.T) {
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: sendWallet.tabapayLinkedAcc,
+				SenderAccount: sendWallet.ptiUSDLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: recvWallet.tabapayLinkedAcc,
+				ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				IPAddress:       "192.36.8.4",

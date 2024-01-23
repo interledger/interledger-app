@@ -245,64 +245,6 @@ func ListLimits(ctx context.Context, b Backends, walletID string) ([]limits.Limi
 	return resp, nil
 }
 
-func ExceedsGMTLimits(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, error) {
-	// L2 Limits:
-	// Transaction 	$10,000.00
-	// 24-Hour    	$10,000.00
-	// 30-Day 		$20,000.00
-	// 180-Day 		$30,000.00
-
-	// Short circuit.
-	if amount.Float64() >= 10_000.0 {
-		return true, nil
-	}
-
-	stmt, err := b.DB().PreparexContext(ctx, "SELECT sum(amount) FROM transactions WHERE wallet_id=$1 AND created_at>$2 AND state IN ($3,$4)")
-	if err != nil {
-		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
-	}
-	defer stmt.Close()
-
-	var used sql.NullInt64
-	err = stmt.GetContext(ctx, &used,
-		walletID, time.Now().Add(time.Hour*-24), transactions.StatePending, transactions.StateCompleted)
-	if err != nil {
-		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
-	}
-
-	// The user has no transactions
-	if !used.Valid {
-		return false, nil
-	}
-
-	if uint64(used.Int64)+amount.Value >= uint64(10_000_00) {
-		return true, nil
-	}
-
-	err = stmt.GetContext(ctx, &used,
-		walletID, time.Now().Add(time.Hour*-24*30), transactions.StatePending, transactions.StateCompleted)
-	if err != nil {
-		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
-	}
-
-	if uint64(used.Int64)+amount.Value >= uint64(20_000_00) {
-		return true, nil
-	}
-
-	err = stmt.GetContext(ctx, &used,
-		walletID, time.Now().Add(time.Hour*-24*180), transactions.StatePending, transactions.StateCompleted)
-	if err != nil {
-		return false, fmt.Errorf("%w %s", limits.ErrInternal, err)
-	}
-
-	if uint64(used.Int64)+amount.Value >= uint64(30_000_00) {
-		return true, nil
-	}
-
-	return false, nil
-
-}
-
 func ExceedsKYCLimits(ctx context.Context, b Backends, walletID string, amount currency.Amount) (bool, limits.LimitType, error) {
 	switch amount.Currency {
 	case currency.USD:

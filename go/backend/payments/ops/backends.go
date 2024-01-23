@@ -3,9 +3,9 @@ package ops
 import (
 	"testing"
 
-	"gitlab.com/fynbos/backend/providers/pti"
-
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/pti"
+	pti_mock "gitlab.com/fynbos/backend/providers/pti/client/mock"
 
 	"gitlab.com/fynbos/backend/limits"
 
@@ -59,10 +59,11 @@ type TestBackends struct {
 	Ic  *id_mock.MockClient
 	Lac *linkedaccounts_mock.MockClient
 	Txc *transactions_mock.MockClient
+	Pti *pti_mock.MockClient
 }
 
 func (t TestBackends) PTI() pti.Client {
-	return nil
+	return t.Pti
 }
 
 func (t TestBackends) Astra() astra.Client {

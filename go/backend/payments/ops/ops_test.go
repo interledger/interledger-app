@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	pti_mock "gitlab.com/fynbos/backend/providers/pti/client/mock"
+
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"github.com/golang/mock/gomock"
@@ -39,8 +41,10 @@ func TestCreate(t *testing.T) {
 		Wc:  wallets_mock.NewMockClient(ctrl),
 		Lac: linkedaccounts_mock.NewMockClient(ctrl),
 		Txc: transactions_mock.NewMockClient(ctrl),
+		Pti: pti_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
+	b.Pti.EXPECT().GetWallet(ctx, gomock.Any()).Return(&pti.Wallet{Balance: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: pti.AccTypeBalance, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()
@@ -74,7 +78,7 @@ func TestCreate(t *testing.T) {
 				Note:            "This is a NOTE!!!",
 				IPAddress:       "193.9.4.6",
 			},
-			actions: []payments.RequiredActionType{payments.RequiredActionTypeThreeDS, payments.RequiredActionTypeOTP},
+			actions: []payments.RequiredActionType{payments.RequiredActionTypeOTP},
 			err:     nil,
 		},
 		{

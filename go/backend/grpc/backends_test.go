@@ -22,15 +22,13 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 	wallets_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 
+	"gitlab.com/fynbos/backend/contacts"
+	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
+	"gitlab.com/fynbos/backend/identities"
 	"gitlab.com/fynbos/backend/keys"
 	keys_mock "gitlab.com/fynbos/backend/keys/client/mock"
 	"gitlab.com/fynbos/backend/providers/basistheory"
 	bt_mock "gitlab.com/fynbos/backend/providers/basistheory/client/mock"
-	"gitlab.com/fynbos/backend/providers/gmt"
-
-	"gitlab.com/fynbos/backend/contacts"
-	contacts_mock "gitlab.com/fynbos/backend/contacts/client/mock"
-	"gitlab.com/fynbos/backend/identities"
 
 	"gitlab.com/fynbos/backend/limits"
 	limit_mock "gitlab.com/fynbos/backend/limits/client/mock"
@@ -149,10 +147,6 @@ func (t TestContainer) BasisTheory() basistheory.Client {
 
 func (t TestContainer) Keys() keys.Client {
 	return t.keys
-}
-
-func (t TestContainer) GMT() gmt.Client {
-	return nil
 }
 
 func (t TestContainer) Identities() identities.Client {

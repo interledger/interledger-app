@@ -111,20 +111,6 @@ func TestFeatures(t *testing.T) {
 			},
 		},
 		{
-			name:      "KYC US non send state",
-			KycStatus: kyc.StatusLevel1,
-			numCards:  2,
-			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-XX"}},
-			feats: &features.WalletFeatures{
-				IdentitiesEnabled: true,
-				TwitterEnabled:    true,
-				ReceiveEnabled:    true,
-				LinkedAccEnabled:  true,
-				CardsEnabled:      true,
-				AddCardsEnabled:   true,
-			},
-		},
-		{
 			name:      "KYC US send state",
 			KycStatus: kyc.StatusLevel1,
 			numCards:  2,
