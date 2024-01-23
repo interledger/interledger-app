@@ -21,12 +21,9 @@ import {
   Layouts,
   Router
 } from '~/components'
-import type { FormattedLinkedAccount } from '~/data/wallet.server'
-import {
-  getFeatures,
-  getKycStatus,
-  getLinkedAccountsForPayment
-} from '~/data/wallet.server'
+import type { FormattedLinkedAccount } from '~/data/accounts.server'
+import { getLinkedAccountsForPayment } from '~/data/accounts.server'
+import { getFeatures, getKycStatus } from '~/data/wallet.server'
 import type {
   Features,
   Payment,
@@ -122,10 +119,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   } else publicWalletInfo = publicWalletInfoResponse
 
-  const { cardAccounts, bankAccounts, balanceAccounts } =
-    await getLinkedAccountsForPayment(request, params.paymentId as string)
-  sendAccounts = [...balanceAccounts, ...cardAccounts, ...bankAccounts].filter(
-    (acc) => acc.canSend
+  sendAccounts = await getLinkedAccountsForPayment(
+    request,
+    params.paymentId as string
   )
 
   if (payment.senderAccount) {

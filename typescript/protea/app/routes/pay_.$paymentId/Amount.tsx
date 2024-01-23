@@ -13,7 +13,7 @@ import {
 import { PayStep, usePayStore } from '~/lib/usePayStore'
 
 import type { PlainMessage } from '@bufbuild/protobuf/dist/types/message'
-import type { FormattedLinkedAccount } from '~/data/wallet.server'
+import type { FormattedLinkedAccount } from '~/data/accounts.server'
 import type {
   Payment,
   Amount as RpcAmount
