@@ -30,6 +30,7 @@ func (s *Server) Register(r chi.Router) {
 	r.Post("/users/assessments", s.StartUserAssessment)
 	r.Get("/users/{userID}/assessments", s.GetUserAssessment)
 	r.Post("/users/{userID}/wallets", s.CreateUserWalletHandler)
+	r.Get("/users/{userID}/wallets", s.ListUserWallets)
 	r.Get("/users/{userID}/wallets/{walletID}", s.GetUserWalletHandler)
 	r.Post("/transactions/transfers", s.CreateTransfer)
 	r.Post("/transactions/deposits", s.CreateDeposit)
@@ -223,6 +224,37 @@ func (s *Server) GetUserWalletHandler(w http.ResponseWriter, r *http.Request) {
 		WalletID: wallet.ID,
 		Currency: cc.String(),
 		Balance:  amt.Float64(),
+	}
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server) ListUserWallets(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	parsedUserID, err := uuid.Parse(chi.URLParam(r, "userID"))
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	wallets, err := s.q.GetPTIUserWallets(ctx, pgtype.UUID{Bytes: [16]byte(parsedUserID), Valid: true})
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	resp := []external.Wallet{}
+	for _, w := range wallets {
+		cc := currency.ParseCurrency(w.Currency.String)
+		amt := currency.FromUInt64(uint64(w.Balance.Int64), cc)
+		resp = append(resp, external.Wallet{
+			WalletID: w.ID,
+			Currency: w.Currency.String,
+			Balance:  amt.Float64(),
+		})
 	}
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
