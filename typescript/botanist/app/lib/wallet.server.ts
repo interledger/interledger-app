@@ -6,7 +6,7 @@ import type {
   LinkedAccount,
   LinkedAccountReview,
   LinkedAccountReviews,
-  ListAuditResponse,
+  ListAuditResponse, ListCountriesResponse,
   ListWalletsResponse,
   PaginationRequest,
   User,
@@ -714,4 +714,27 @@ export async function EnablePtiWalletBalance(
   }
 
   return rpc.response
+}
+
+
+export async function ListCountries(
+    request: Request
+): Promise<ListCountriesResponse> {
+  const cookie = String(request.headers.get('cookie'))
+  let response = await grpcClient
+      .listCountries(
+          { },
+          {
+            meta: {
+              cookies: cookie || ''
+            }
+          }
+      )
+      .then((v) => v)
+      .catch(StatusError)
+  if (isGrpcError(response)) {
+    throw json({}, httpMapping(response.code))
+  }
+
+  return response.response
 }

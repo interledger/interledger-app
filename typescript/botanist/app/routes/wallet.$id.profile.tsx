@@ -5,23 +5,22 @@ import { Form, useFetcher, useLoaderData } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
 import { route } from 'routes-gen'
 import { Autocomplete, GridCard, Switch } from '~/components'
-import { grpcClient } from '~/lib/proto.server'
 import {
   GetWalletDetails,
   GetWalletFeatures,
   SetWalletFeatures,
-  setWalletCountry
+  setWalletCountry, ListCountries
 } from '~/lib/wallet.server'
 
 export async function loader({ request, params }: LoaderArgs) {
   const wallet = await GetWalletDetails(request, params.id as string)
   const features = await GetWalletFeatures(request, params.id as string)
-  const countries = await grpcClient.listCountries({})
+  const countries = await ListCountries(request)
 
   return json({
     wallet,
     features,
-    countries: countries.response.countries.map((value) => ({
+    countries: countries.countries.map((value) => ({
       id: value.code,
       name: value.name
     }))
