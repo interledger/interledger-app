@@ -15,7 +15,6 @@ import (
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
@@ -134,11 +133,6 @@ func SendConnectedAccountEmail(ctx context.Context, b Backends, la linkedaccount
 	if la.Provider == astra.ProviderName {
 		table = append(table, map[string]interface{}{
 			"label": "Card ending",
-			"text":  strings.ReplaceAll(la.Mask, "*", ""),
-		})
-	} else if la.Provider == mx.ProviderName {
-		table = append(table, map[string]interface{}{
-			"label": "Account ending",
 			"text":  strings.ReplaceAll(la.Mask, "*", ""),
 		})
 	} else if la.Provider == xago.ProviderName && la.Type == xago.AccTypeBank {

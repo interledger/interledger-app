@@ -15,7 +15,6 @@ import (
 
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/mx"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/go-playground/validator/v10"
@@ -168,10 +167,6 @@ func (b *Backends) Email() email.Client {
 
 func (b *Backends) Wallets() wallets.Client {
 	return wallet_client.New(b)
-}
-
-func (b *Backends) MX() mx.Client {
-	return nil
 }
 
 func (b *Backends) Limits() limits.Client {

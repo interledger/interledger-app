@@ -20,8 +20,6 @@ import (
 	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/providers/mx"
-
 	"gitlab.com/fynbos/backend/notify"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
@@ -351,21 +349,6 @@ func GetDefaultSend(ctx context.Context, b Backends, walletID string, cc currenc
 	}
 
 	return nil, fmt.Errorf("%w no send account configured", linkedaccounts.ErrNotFound)
-}
-
-func ListMXBankAccounts(ctx context.Context, b Backends) ([]linkedaccounts.LinkedAccount, error) {
-	var linkedAccounts []linkedaccounts.LinkedAccount
-	err := b.DB().SelectContext(
-		ctx,
-		&linkedAccounts,
-		fmt.Sprintf("SELECT %s FROM linked_accounts WHERE provider=$1 AND type=$2;", allFields),
-		mx.ProviderName, mx.TypeBankAccount,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("%w %s", linkedaccounts.ErrInternal, err)
-	}
-
-	return linkedAccounts, nil
 }
 
 func SetNickname(ctx context.Context, b Backends, id, nickname string) error {

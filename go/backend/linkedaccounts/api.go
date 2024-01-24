@@ -16,7 +16,6 @@ type Client interface {
 	MarkNotDeleted(ctx context.Context, id string) (*LinkedAccount, error)
 	GetByProviderID(ctx context.Context, args GetByProviderIDArgs) (*LinkedAccount, error)
 	ListByWalletId(ctx context.Context, walletID string) ([]LinkedAccount, error)
-	ListMXBankAccounts(ctx context.Context) ([]LinkedAccount, error)
 	ListByProviderID(ctx context.Context, provider, providerID string) ([]LinkedAccount, error)
 	SetNickname(ctx context.Context, id, nickname string) (*LinkedAccount, error)
 

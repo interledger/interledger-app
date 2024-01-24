@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/fynbos/backend/db"
 	"gitlab.com/fynbos/backend/linkedaccounts"
-	"gitlab.com/fynbos/backend/providers/mx"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -33,8 +32,8 @@ func TestLinkedAccounts(s *testing.T) {
 			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
-			Provider:   "mx",
-			Type:       "bank",
+			Provider:   pti.ProviderName,
+			Type:       pti.AccTypeBalance,
 			CanSend:    true,
 			CanReceive: true,
 			State:      linkedaccounts.OwnershipReviewRequired,
@@ -42,9 +41,9 @@ func TestLinkedAccounts(s *testing.T) {
 		require.NoError(t, err)
 
 		assert.NotNil(t, linkedAccount)
-		assert.Equal(t, linkedAccount.Provider, "mx")
+		assert.Equal(t, linkedAccount.Provider, pti.ProviderName)
 		assert.Equal(t, linkedAccount.ProviderID, "")
-		assert.Equal(t, linkedAccount.Type, "bank")
+		assert.Equal(t, linkedAccount.Type, pti.AccTypeBalance)
 		assert.Equal(t, linkedAccount.WalletID, walletID)
 		assert.True(t, linkedAccount.CanSend)
 		assert.True(t, linkedAccount.CanReceive)
@@ -57,8 +56,8 @@ func TestLinkedAccounts(s *testing.T) {
 			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
-			Provider:   "mx",
-			Type:       "bank",
+			Provider:   pti.ProviderName,
+			Type:       pti.AccTypeBalance,
 			CanSend:    true,
 			CanReceive: true,
 			State:      linkedaccounts.Verified,
@@ -66,9 +65,9 @@ func TestLinkedAccounts(s *testing.T) {
 		require.NoError(t, err)
 
 		assert.NotNil(t, linkedAccount)
-		assert.Equal(t, linkedAccount.Provider, "mx")
+		assert.Equal(t, linkedAccount.Provider, pti.ProviderName)
 		assert.Equal(t, linkedAccount.ProviderID, "")
-		assert.Equal(t, linkedAccount.Type, "bank")
+		assert.Equal(t, linkedAccount.Type, pti.AccTypeBalance)
 		assert.Equal(t, linkedAccount.WalletID, walletID)
 		assert.True(t, linkedAccount.CanSend)
 		assert.True(t, linkedAccount.CanReceive)
@@ -81,9 +80,9 @@ func TestLinkedAccounts(s *testing.T) {
 			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
-			Provider:   "mx",
+			Provider:   pti.ProviderName,
 			ProviderID: "123",
-			Type:       "bank",
+			Type:       pti.AccTypeBalance,
 			CanSend:    true,
 			CanReceive: true,
 		})
@@ -98,7 +97,7 @@ func TestLinkedAccounts(s *testing.T) {
 		assert.Equal(t, "123", fs.ProviderID)
 
 		laByProviderID, err := c.LinkedAccounts.GetByProviderID(ctx, linkedaccounts.GetByProviderIDArgs{
-			Provider:   "mx",
+			Provider:   pti.ProviderName,
 			ProviderID: "123",
 			WalletID:   walletID,
 		})
@@ -117,8 +116,8 @@ func TestLinkedAccounts(s *testing.T) {
 			WalletID:   walletID,
 			Name:       "Test",
 			Mask:       "1234",
-			Provider:   "mx",
-			Type:       "bank",
+			Provider:   pti.ProviderName,
+			Type:       pti.AccTypeBalance,
 			CanSend:    true,
 			CanReceive: true,
 		})
@@ -149,8 +148,8 @@ func TestDelete(t *testing.T) {
 		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
-		Provider: "mx",
-		Type:     "bank",
+		Provider: pti.ProviderName,
+		Type:     pti.AccTypeBalance,
 	})
 	require.NoError(t, err)
 
@@ -178,58 +177,6 @@ func TestDelete(t *testing.T) {
 	assert.ErrorIs(t, err, linkedaccounts.ErrNotFound)
 }
 
-func TestListMXBankAccounts(t *testing.T) {
-	ctx := context.Background()
-	c, err := NewTestContainer(ctx, t)
-	require.NoError(t, err)
-	c.Ec.EXPECT().SendConnectedAccountEmail(ctx, gomock.Any()).AnyTimes()
-	walletID := uuid.NewString()
-
-	linkedAccounts, err := c.LinkedAccounts.CreateBatch(ctx, []linkedaccounts.CreateArgs{
-		{
-			WalletID:   walletID,
-			Name:       "Test",
-			Nickname:   "TestNickname",
-			Mask:       "1234",
-			Provider:   mx.ProviderName,
-			Type:       mx.TypeBankAccount,
-			ProviderID: "2345",
-			CanSend:    true,
-			CanReceive: true,
-		},
-		{
-			WalletID:   walletID,
-			Name:       "Test2",
-			Nickname:   "Test2Nickname",
-			Mask:       "4321",
-			Provider:   mx.ProviderName,
-			Type:       mx.TypeBankAccount,
-			ProviderID: "5432",
-		},
-	})
-	require.NoError(t, err)
-	require.Len(t, linkedAccounts, 2)
-
-	mxBankAccounts, err := c.LinkedAccounts.ListMXBankAccounts(ctx)
-	require.NoError(t, err)
-	require.Len(t, mxBankAccounts, 2)
-	for _, la := range mxBankAccounts {
-		if la.ProviderID == "2345" {
-			assert.Equal(t, "Test", la.Name)
-			assert.Equal(t, "TestNickname", la.Nickname)
-			assert.Equal(t, "1234", la.Mask)
-			assert.True(t, la.CanReceive)
-			assert.True(t, la.CanSend)
-		} else {
-			assert.Equal(t, "Test2", la.Name)
-			assert.Equal(t, "Test2Nickname", la.Nickname)
-			assert.Equal(t, "4321", la.Mask)
-			assert.False(t, la.CanReceive)
-			assert.False(t, la.CanSend)
-		}
-	}
-}
-
 func TestSetNickname(s *testing.T) {
 	ctx := context.Background()
 	c, err := NewTestContainer(ctx, s)
@@ -241,8 +188,8 @@ func TestSetNickname(s *testing.T) {
 		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
-		Provider: "mx",
-		Type:     "bank",
+		Provider: pti.ProviderName,
+		Type:     pti.AccTypeBalance,
 	})
 	require.NoError(s, err)
 	assert.Equal(s, "", la.Nickname)
@@ -276,8 +223,8 @@ func TestReviews(t *testing.T) {
 		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
-		Provider: "mx",
-		Type:     "bank",
+		Provider: pti.ProviderName,
+		Type:     pti.AccTypeBalance,
 	})
 	require.NoError(t, err)
 
@@ -328,8 +275,8 @@ func TestListReviews(t *testing.T) {
 		WalletID: walletID,
 		Name:     "Test",
 		Mask:     "1234",
-		Provider: "mx",
-		Type:     "bank",
+		Provider: pti.ProviderName,
+		Type:     pti.AccTypeBalance,
 	})
 	require.NoError(t, err)
 

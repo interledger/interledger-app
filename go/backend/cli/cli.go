@@ -60,8 +60,6 @@ type StartArgs struct {
 	KratosAdminUrl      string
 	LogLevel            string
 	LogOutputPath       string
-	MxClientID          string
-	MxApiKey            string
 	TemporalUrl         string
 	TwilioSid           string
 	TwilioSecret        string
@@ -201,8 +199,6 @@ func ParseStartArgs() (*StartArgs, error) {
 		KratosAdminUrl:      kratosAdminUrl,
 		LogLevel:            logLevel,
 		LogOutputPath:       logOutputPath,
-		MxClientID:          os.Getenv("MX_CLIENT_ID"),
-		MxApiKey:            os.Getenv("MX_API_KEY"),
 		TemporalUrl:         temporalUrl,
 		TwilioSid:           TwilioSid,
 		TwilioSecret:        TwilioSecret,

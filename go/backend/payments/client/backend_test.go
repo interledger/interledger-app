@@ -39,7 +39,6 @@ import (
 
 	"gitlab.com/fynbos/backend/limits"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/providers/mx"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/golang/mock/gomock"
@@ -309,10 +308,6 @@ func (b *TestBackends) Email() email.Client {
 
 func (b *TestBackends) Wallets() wallets.Client {
 	return wallet_client.New(b)
-}
-
-func (b *TestBackends) MX() mx.Client {
-	return nil
 }
 
 func (b *TestBackends) Limits() limits.Client {
