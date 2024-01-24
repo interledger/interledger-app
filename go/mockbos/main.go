@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
-	"gitlab.com/fynbos/mockbos/db"
-	"gitlab.com/fynbos/mockbos/xago"
 	"net/http"
 	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
+	"gitlab.com/fynbos/mockbos/astra"
+	"gitlab.com/fynbos/mockbos/db"
+	"gitlab.com/fynbos/mockbos/pti"
+	"gitlab.com/fynbos/mockbos/xago"
 )
 
 func main() {
@@ -36,6 +39,8 @@ func main() {
 
 	sDb := db.New(conn)
 	xs := xago.New(sDb)
+	ps := pti.New(conn)
+	as := astra.New(conn)
 
 	// setup a new http server using a chi router
 	router := chi.NewRouter()
@@ -50,6 +55,10 @@ func main() {
 	router.Post("/xago/v1/login", xs.CreateLogin())
 
 	router.Post("/admin/xago/deposit", xs.CreateDeposit())
+
+	router.Route("/pti", ps.Register)
+	router.Route("/astra", as.Register)
+	router.Route("/admin/astra", as.RegisterAdmin)
 
 	// start the server
 	err = http.ListenAndServe(":8080", router)

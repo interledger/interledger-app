@@ -4,7 +4,6 @@ import { route } from 'routes-gen'
 import {
   Alert,
   AlertBody,
-  AnimatedSchedule,
   Card,
   CardContent,
   CardCopy,
@@ -139,17 +138,15 @@ export function AppPage() {
               <CTACards />
             </div>
             {balances.map((method) => (
-              <Card key={method.id}>
+              <Card key={method.linkedAccount}>
                 <CardContent className='flex items-center justify-between'>
                   <div className='flex items-center space-x-3'>
-                    <div
-                      className={`flag:${method.receiveCurrencyCountryCode}`}
-                    />
+                    <div className={`flag:${method.countryCode}`} />
                     <span className='text-lg font-medium capitalize text-strong'>
-                      {method.sendCurrencyCode}
+                      {method.currency}
                     </span>
                   </div>
-                  <span className='text-2xl'>{method.name}</span>
+                  <span className='text-2xl'>{method.formattedBalance}</span>
                 </CardContent>
               </Card>
             ))}
@@ -185,7 +182,7 @@ export function AppPage() {
                   className='justify-between'
                 >
                   <div className='flex space-x-1'>
-                    {transaction.state == 'Pending' && <AnimatedSchedule />}
+                    {transaction.state == 'Pending' && <Icon>schedule</Icon>}
                     {transaction.state == 'Failed' && (
                       <Icon className='text-error'>exclamation</Icon>
                     )}
@@ -214,6 +211,11 @@ export function AppPage() {
                             <SlackIcon />
                           )}
                         </>
+                      )}
+                    {transaction.state != 'Pending' &&
+                      transaction.state != 'Failed' &&
+                      transaction.destinationIdentityType == 'Unknown' && (
+                        <Icon>account_circle</Icon>
                       )}
                     <div className='flex flex-col space-y-1'>
                       <span className='text-medium'>{transaction.title}</span>
