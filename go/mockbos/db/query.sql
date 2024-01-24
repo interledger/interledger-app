@@ -71,6 +71,9 @@ INSERT INTO pti_User_phones (user_id, number, is_default) VALUES ($1, $2, $3);
 -- name: CreatePTIWallet :one
 INSERT INTO pti_wallets (id, user_id, currency) VALUES ($1, $2, $3) RETURNING *;
 
+-- name: GetPTIUserWallets :many
+SELECT * FROM pti_wallets WHERE user_id=$1;
+
 -- name: GetPTIUser :one
 SELECT * FROM pti_users WHERE id=$1;
 
