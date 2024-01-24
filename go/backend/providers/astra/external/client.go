@@ -50,7 +50,12 @@ func New(transport *http.Client) Client {
 		baseURL = "https://api.astra.finance/v1"
 		secureBaseURL = "https://secure.api.astra.finance/v1"
 		institutionID = "astra_ins_131" // TODO
+	} else if env.IsLocal() {
+		baseURL = "http://mockbos.mockbos/astra/v1"
+		secureBaseURL = "http://mockbos.mockbos/astra/v1"
+		institutionID = "astra_ins_131" // TODO
 	}
+
 	if transport == nil {
 		transport = otelhttp.DefaultClient
 	}
