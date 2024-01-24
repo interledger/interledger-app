@@ -2,13 +2,14 @@ package ops
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-
-	mock_client "gitlab.com/fynbos/backend/providers/pti/external/mock"
 
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -31,7 +32,24 @@ type Activity struct {
 func NewActivity(b Backends, privateKey jwk.Key) *Activity {
 	var ex external.Client
 	if env.IsLocal() {
-		ex = mock_client.SetupDevMock(nil)
+		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		ptiPrivateKey, err := jwk.FromRaw(privateKey)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		ex = external.New(external.ClientArgs{
+			Transport: &http.Client{
+				Transport: otelhttp.NewTransport(
+					httplogger.NewTransport(http.DefaultTransport, b, nil),
+				),
+			},
+			ClientID:   "LOCAL",
+			PrivateKey: ptiPrivateKey,
+		})
 	} else {
 		ex = external.New(external.ClientArgs{
 			Transport: &http.Client{
