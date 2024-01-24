@@ -27,8 +27,7 @@ import (
 )
 
 var errorStatus = map[error]error{
-	user.ErrNoUserFound: status.Error(codes.Unauthenticated, "Unauthenticated"),
-	//mx.ErrNotFound:       status.Error(codes.NotFound, "Bank account not found"),
+	user.ErrNoUserFound:           status.Error(codes.Unauthenticated, "Unauthenticated"),
 	twilio.ErrInvalidOTP:          NewValidationError("OTP", "Could not validate OTP"),
 	wallets.ErrDuplicateWallet:    status.Error(codes.AlreadyExists, "Wallet already exists"),
 	linkedaccounts.ErrNotFound:    NotFoundError("linked account not found"),

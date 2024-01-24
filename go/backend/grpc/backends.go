@@ -21,7 +21,6 @@ import (
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/providers/astra"
 	"gitlab.com/fynbos/backend/providers/basistheory"
-	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki"
@@ -59,7 +58,6 @@ type Backends interface {
 	Limits() limits.Client
 	Contacts() contacts.Client
 	Identities() identities.Client
-	MX() mx.Client
 	Keys() keys.Client
 	BasisTheory() basistheory.Client
 	Features() features.Client

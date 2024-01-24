@@ -11,7 +11,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/astra"
 
 	"gitlab.com/fynbos/backend/db"
-	"gitlab.com/fynbos/backend/providers/mx"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/user"
 	pb "gitlab.com/fynbos/proto/backend/v1"
@@ -130,10 +129,6 @@ func (s *rpcService) GetWalletInfo(ctx context.Context, _ *pb.Empty) (*pb.Wallet
 		for _, la := range lal {
 			if la.DeletedAt.Valid {
 				continue
-			}
-
-			if la.Provider == mx.ProviderName {
-				hasBank = true
 			}
 			if la.Provider == astra.ProviderName && la.Type == astra.TypeCard {
 				hasCard = true

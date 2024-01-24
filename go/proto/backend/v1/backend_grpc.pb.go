@@ -92,9 +92,6 @@ type BackendServiceClient interface {
 	SetKYCStatusPending(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	StartKYC(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 	GetPersonaInquiry(ctx context.Context, in *KYCPersonaInquiryRequest, opts ...grpc.CallOption) (*KYCPersonaInquiryResponse, error)
-	// MX
-	GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error)
-	CreateMXBankAccounts(ctx context.Context, in *CreateMXBankAccountsRequest, opts ...grpc.CallOption) (*CreateMXBankAccountsResponse, error)
 	// Basistheory
 	CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error)
 	GetCardDetails(ctx context.Context, in *GetCardDetailsRequest, opts ...grpc.CallOption) (*CardDetails, error)
@@ -656,24 +653,6 @@ func (c *backendServiceClient) GetPersonaInquiry(ctx context.Context, in *KYCPer
 	return out, nil
 }
 
-func (c *backendServiceClient) GetMXWidget(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MXWidgetResponse, error) {
-	out := new(MXWidgetResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/GetMXWidget", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *backendServiceClient) CreateMXBankAccounts(ctx context.Context, in *CreateMXBankAccountsRequest, opts ...grpc.CallOption) (*CreateMXBankAccountsResponse, error) {
-	out := new(CreateMXBankAccountsResponse)
-	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateMXBankAccounts", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *backendServiceClient) CreateCard(ctx context.Context, in *CreateCardRequest, opts ...grpc.CallOption) (*LinkedAccount, error) {
 	out := new(LinkedAccount)
 	err := c.cc.Invoke(ctx, "/backend.v1.BackendService/CreateCard", in, out, opts...)
@@ -982,9 +961,6 @@ type BackendServiceServer interface {
 	SetKYCStatusPending(context.Context, *Empty) (*Empty, error)
 	StartKYC(context.Context, *Empty) (*Empty, error)
 	GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error)
-	// MX
-	GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error)
-	CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error)
 	// Basistheory
 	CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error)
 	GetCardDetails(context.Context, *GetCardDetailsRequest) (*CardDetails, error)
@@ -1199,12 +1175,6 @@ func (UnimplementedBackendServiceServer) StartKYC(context.Context, *Empty) (*Emp
 }
 func (UnimplementedBackendServiceServer) GetPersonaInquiry(context.Context, *KYCPersonaInquiryRequest) (*KYCPersonaInquiryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPersonaInquiry not implemented")
-}
-func (UnimplementedBackendServiceServer) GetMXWidget(context.Context, *Empty) (*MXWidgetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMXWidget not implemented")
-}
-func (UnimplementedBackendServiceServer) CreateMXBankAccounts(context.Context, *CreateMXBankAccountsRequest) (*CreateMXBankAccountsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateMXBankAccounts not implemented")
 }
 func (UnimplementedBackendServiceServer) CreateCard(context.Context, *CreateCardRequest) (*LinkedAccount, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCard not implemented")
@@ -2322,42 +2292,6 @@ func _BackendService_GetPersonaInquiry_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BackendService_GetMXWidget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).GetMXWidget(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/GetMXWidget",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).GetMXWidget(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _BackendService_CreateMXBankAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMXBankAccountsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BackendServiceServer).CreateMXBankAccounts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/backend.v1.BackendService/CreateMXBankAccounts",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServiceServer).CreateMXBankAccounts(ctx, req.(*CreateMXBankAccountsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _BackendService_CreateCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateCardRequest)
 	if err := dec(in); err != nil {
@@ -3060,14 +2994,6 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPersonaInquiry",
 			Handler:    _BackendService_GetPersonaInquiry_Handler,
-		},
-		{
-			MethodName: "GetMXWidget",
-			Handler:    _BackendService_GetMXWidget_Handler,
-		},
-		{
-			MethodName: "CreateMXBankAccounts",
-			Handler:    _BackendService_CreateMXBankAccounts_Handler,
 		},
 		{
 			MethodName: "CreateCard",

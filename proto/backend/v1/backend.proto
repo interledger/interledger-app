@@ -96,11 +96,6 @@ service BackendService {
   rpc StartKYC(Empty) returns (Empty);
   rpc GetPersonaInquiry(KYCPersonaInquiryRequest) returns (KYCPersonaInquiryResponse);
 
-  // MX
-  rpc GetMXWidget(Empty) returns (MXWidgetResponse);
-  rpc CreateMXBankAccounts(CreateMXBankAccountsRequest) returns (CreateMXBankAccountsResponse);
-
-
   // Basistheory
   rpc CreateCard(CreateCardRequest) returns (LinkedAccount);
   rpc GetCardDetails(GetCardDetailsRequest) returns (CardDetails);
@@ -440,21 +435,6 @@ message CreateCardRequest {
 
 message InitQuote3DSRequest {
   string quoteID = 1;
-}
-
-
-message CreateMXBankAccountsRequest {
-  string sessionGuid = 1;
-  string userGuid = 2;
-  string memberGuid = 3;
-}
-
-message CreateMXBankAccountsResponse {
-  repeated LinkedAccount linkedAccounts = 1;
-}
-
-message MXWidgetResponse {
-  string url = 1;
 }
 
 message ConnectionLimits {

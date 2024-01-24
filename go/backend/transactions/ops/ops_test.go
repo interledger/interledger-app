@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"gitlab.com/fynbos/backend/providers/pti"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -143,7 +145,7 @@ func TestCreateTransaction(t *testing.T) {
 				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "gmt",
+				Provider:   pti.ProviderName,
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -294,7 +296,7 @@ func TestListWithPendingTransaction(t *testing.T) {
 				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "gmt",
+				Provider:   pti.ProviderName,
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -465,7 +467,7 @@ func TestSetTransactionForeignIDs(t *testing.T) {
 				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "gmt",
+				Provider:   pti.ProviderName,
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -546,7 +548,7 @@ func TestSetTransferForeignID(t *testing.T) {
 				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "gmt",
+				Provider:   pti.ProviderName,
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -623,7 +625,7 @@ func TestSetTransactionState(t *testing.T) {
 				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "gmt",
+				Provider:   pti.ProviderName,
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})
@@ -704,7 +706,7 @@ func TestSetTransferState(t *testing.T) {
 				WalletID:   walletID,
 				Name:       "test",
 				Mask:       "ladida",
-				Provider:   "gmt",
+				Provider:   pti.ProviderName,
 				ProviderID: uuid.NewString(),
 				Type:       "test",
 			})

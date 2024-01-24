@@ -246,21 +246,6 @@ func (mr *MockClientMockRecorder) ListIncompleteReviews(ctx, pagination interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIncompleteReviews", reflect.TypeOf((*MockClient)(nil).ListIncompleteReviews), ctx, pagination)
 }
 
-// ListMXBankAccounts mocks base method.
-func (m *MockClient) ListMXBankAccounts(ctx context.Context) ([]linkedaccounts.LinkedAccount, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListMXBankAccounts", ctx)
-	ret0, _ := ret[0].([]linkedaccounts.LinkedAccount)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListMXBankAccounts indicates an expected call of ListMXBankAccounts.
-func (mr *MockClientMockRecorder) ListMXBankAccounts(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMXBankAccounts", reflect.TypeOf((*MockClient)(nil).ListMXBankAccounts), ctx)
-}
-
 // ListReviews mocks base method.
 func (m *MockClient) ListReviews(ctx context.Context, pagination db.Pagination) ([]linkedaccounts.Review, error) {
 	m.ctrl.T.Helper()
