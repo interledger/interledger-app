@@ -1266,6 +1266,37 @@ func (q *Queries) GetPTIUserWallet(ctx context.Context, arg GetPTIUserWalletPara
 	return i, err
 }
 
+const getPTIUserWallets = `-- name: GetPTIUserWallets :many
+SELECT id, user_id, balance, currency, created_at, updated_at FROM pti_wallets WHERE user_id=$1
+`
+
+func (q *Queries) GetPTIUserWallets(ctx context.Context, userID pgtype.UUID) ([]PtiWallet, error) {
+	rows, err := q.db.Query(ctx, getPTIUserWallets, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PtiWallet
+	for rows.Next() {
+		var i PtiWallet
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Balance,
+			&i.Currency,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPTIWallet = `-- name: GetPTIWallet :one
 SELECT id, user_id, balance, currency, created_at, updated_at FROM pti_wallets WHERE id=$1
 `
