@@ -51,7 +51,14 @@ func NewActivity(b Backends, privateKey jwk.Key) *Activity {
 }
 
 func (a *Activity) GetPtiUser(ctx context.Context, walletID string) (*pti.User, error) {
-	return GetUser(ctx, a.b, walletID)
+	u, err := GetUser(ctx, a.b, walletID)
+	if err != nil {
+		if errors.Is(err, pti.ErrNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return u, err
 }
 
 func (a *Activity) CreatePtiUser(ctx context.Context, walletID string) (string, error) {
