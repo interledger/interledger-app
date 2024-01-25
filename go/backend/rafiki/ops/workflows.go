@@ -50,6 +50,11 @@ func PayoutIncomingPaymentsWorkflow(ctx workflow.Context) error {
 	}
 
 	for _, p := range payouts {
+		// Only do payouts larger than 1USD / 1ZAR
+		if p.ReceivedAmount < 100 {
+			continue
+		}
+
 		var paymentID string
 		err = workflow.ExecuteActivity(ctx, a.CreatePayoutPayment, p).Get(ctx, &paymentID)
 		if err != nil {
