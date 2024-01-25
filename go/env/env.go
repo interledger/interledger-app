@@ -20,6 +20,7 @@ var allowedEnvs = []string{
 	"sandbox", // Semi public testing env
 	"dev",     // Internal testing environment
 	"local",   // For local development
+	"test",    // Go testing env
 }
 
 func SetEnv(t *testing.T, env string) {
@@ -72,6 +73,10 @@ func IsProd() bool {
 	return GetEnv() == "prod"
 }
 
+func IsTest() bool {
+	return GetEnv() == "test"
+}
+
 func GetUrl() string {
 	if IsLocal() {
 		return localUrl
@@ -95,7 +100,7 @@ func OpenPaymentsURL() string {
 				openPaymentsURL = "https://fynbos.me"
 			} else if IsDev() {
 				openPaymentsURL = "https://eu1.fynbos.me"
-			} else if IsLocal() {
+			} else if IsLocal() || IsTest() {
 				openPaymentsURL = "https://local.fynbos.me"
 			} else {
 				openPaymentsURL = "https://eu1.fynbos.me"
@@ -117,7 +122,7 @@ func AuthURL() string {
 				authURL = "https://auth.fynbos.app"
 			} else if IsDev() {
 				authURL = "https://auth.eu1.fynbos.dev"
-			} else if IsLocal() {
+			} else if IsLocal() || IsTest() {
 				authURL = "https://auth.fynbos.test"
 			} else {
 				authURL = "https://auth.eu1.fynbos.dev"
@@ -139,7 +144,7 @@ func AdminURL() string {
 				adminURL = "https://admin.mgnt.fynbos.dev"
 			} else if IsDev() {
 				adminURL = "https://admin-dev.mgnt.fynbos.dev"
-			} else if IsLocal() {
+			} else if IsLocal() || IsTest() {
 				adminURL = "https://admin.fynbos.test"
 			} else {
 				adminURL = "https://admin-dev.mgnt.fynbos.dev"
