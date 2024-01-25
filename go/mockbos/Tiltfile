@@ -1,0 +1,14 @@
+
+docker_build('fynbos/mockbos', '../', dockerfile="./Dockerfile")
+
+# see https://docs.tilt.dev/snippets.html?k8s_custom_deploy#snip_docker_build_existing_k8s_resource
+k8s_custom_deploy(
+  "mockbos",
+  apply_cmd="""
+    kubectl -v=0 --namespace mockbos set image deployment/mockbos mockbos=$TILT_IMAGE_0 > /dev/null && \
+    kubectl get --namespace mockbos deployment/mockbos -o yaml && \
+  """,
+  delete_cmd="echo mockbos managed outside of Tilt",
+  image_deps=["fynbos/mockbos"],
+  deps=[],
+)
