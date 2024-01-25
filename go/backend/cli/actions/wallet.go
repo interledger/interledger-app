@@ -125,7 +125,7 @@ func MakeWallet(b Backends) cli.ActionFunc {
 					City:        "Santa Clara",
 					ZipCode:     "95053",
 					Line1:       "500 El Camino Real Santa Clara",
-					CountryCode: "GH",
+					CountryCode: "US",
 					State:       "US-CA",
 				},
 				IPAddress: "10.10.10.10",
