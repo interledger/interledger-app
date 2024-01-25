@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"gitlab.com/fynbos/env"
 	"math/rand"
 	"regexp"
 	"strconv"
 	"time"
+
+	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/kyc/persona"
@@ -107,6 +108,10 @@ func GetPersonaInquiry(ctx context.Context, b Backends, cl persona.Client, walle
 }
 
 func GetPersonaIDNumbers(ctx context.Context, b Backends, cl persona.Client, walletID string) (*kyc.PersonaIDNumbers, error) {
+	if env.IsLocal() {
+		return generateLocalIDNumbers(), nil
+	}
+
 	// Lookup the latest "approved" inquiry.
 	var inqID string
 	err := b.DB().GetContext(ctx, &inqID, "SELECT external_id FROM kyc_persona_inquiries WHERE wallet_id=$1 AND state=$2 ORDER BY updated_at DESC ",
@@ -233,6 +238,17 @@ func calculateZAIDChecksum(idBody string) int {
 	}
 
 	return (10 - (sum % 10)) % 10
+}
+
+func generateLocalIDNumbers() *kyc.PersonaIDNumbers {
+	return &kyc.PersonaIDNumbers{
+		SocialSecurity:       "123456789",
+		IssuingCountry:       "US",
+		IssuingState:         "CA",
+		IdentificationClass:  "1",
+		IdentificationNumber: "123456789",
+		ExpirationDate:       time.Now().Add(365 * 24 * time.Hour),
+	}
 }
 
 func generateLocalTestIdNumber(gender string, isCitizen bool) string {
