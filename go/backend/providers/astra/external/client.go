@@ -336,7 +336,11 @@ func (c client) AddCard(ctx context.Context, token string, args CreateCardArgs) 
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, basisTheoryProxyUrl, bytes.NewReader(reqJs))
+	proxyURL := basisTheoryProxyUrl
+	if env.IsLocal() {
+		proxyURL = fmt.Sprintf("%s/cards", c.baseURL)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, proxyURL, bytes.NewReader(reqJs))
 	if err != nil {
 		return nil, err
 	}
