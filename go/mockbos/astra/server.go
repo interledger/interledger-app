@@ -88,6 +88,7 @@ func (s *Server) CreateUserIntent(w http.ResponseWriter, r *http.Request) {
 	resp := external.CreateIntentResp{
 		ID: utils.BytesToUUID(userIntent.ID.Bytes),
 	}
+	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		log.Error("failed to return response", zap.Error(err))
@@ -731,6 +732,7 @@ func (s *Server) AccountToCard(w http.ResponseWriter, r *http.Request) {
 	resp := external.CardToAccountResp{
 		ID: utils.BytesToUUID(trx.ID.Bytes),
 	}
+	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		log.Error("failed to return response", zap.Error(err))
@@ -835,6 +837,7 @@ func (s *Server) CardToAccount(w http.ResponseWriter, r *http.Request) {
 	resp := external.CardToAccountResp{
 		ID: utils.BytesToUUID(trx.ID.Bytes),
 	}
+	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		log.Error("failed to return response", zap.Error(err))
