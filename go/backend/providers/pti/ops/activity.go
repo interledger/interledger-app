@@ -19,6 +19,7 @@ import (
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
+	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
@@ -31,7 +32,9 @@ type Activity struct {
 
 func NewActivity(b Backends, privateKey jwk.Key) *Activity {
 	var ex external.Client
-	if env.IsLocal() {
+	if env.IsTest() {
+		ex = external_mock.SetupDevMock(nil)
+	} else if env.IsLocal() {
 		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
 			log.Fatalln(err)

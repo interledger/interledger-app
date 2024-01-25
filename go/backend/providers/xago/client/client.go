@@ -63,7 +63,7 @@ func New(b Backends) xago.Client {
 			httplogger.NewTransport(http.DefaultTransport, b, Redact),
 		),
 	}, b.DB())
-	if env.IsLocal() {
+	if env.IsTest() {
 		ex = mock_client.SetupDevMock(nil)
 	}
 

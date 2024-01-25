@@ -116,7 +116,7 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	})
 
 	referralFuture := workflow.ExecuteChildWorkflow(referralCtx, CreateReferralsWorkflow, id)
-	if env.IsLocal() { // run sync to help with payments engine test harness
+	if env.IsLocal() || env.IsTest() { // run sync to help with payments engine test harness
 		err = referralFuture.Get(referralCtx, nil)
 	} else {
 		var referralWe workflow.Execution
