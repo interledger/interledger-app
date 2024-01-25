@@ -8,9 +8,11 @@ import (
 	"time"
 
 	httplogger "gitlab.com/fynbos/backend/providers/http"
+	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"gitlab.com/fynbos/backend/providers/astra/external"
+	mock_client "gitlab.com/fynbos/backend/providers/astra/external/mock"
 	"gitlab.com/fynbos/log"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -37,6 +39,10 @@ func NewActivity(ab ActivityBackends) *Activity {
 			httplogger.NewTransport(http.DefaultTransport, ab, external.Redact),
 		),
 	})
+
+	if env.IsTest() {
+		ex = mock_client.SetupDevMock(nil)
+	}
 
 	return &Activity{b: &opsBackends{
 		ActivityBackends: ab,

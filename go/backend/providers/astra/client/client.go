@@ -63,7 +63,7 @@ func New(b Backends) astra.Client {
 			httplogger.NewTransport(http.DefaultTransport, b, external.Redact),
 		),
 	})
-	if env.IsLocal() {
+	if env.IsTest() {
 		ex = mock_client.SetupDevMock(nil)
 	}
 	return &client{b: opsBackends{

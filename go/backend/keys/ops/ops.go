@@ -7,9 +7,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"time"
+
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
-	"time"
 
 	"github.com/google/uuid"
 	"gitlab.com/fynbos/backend/keys"
@@ -36,7 +37,7 @@ func GeneratePrivateKey(ctx context.Context, b Backends, walletID string) error 
 	}
 
 	// Local env generate and store in DB
-	if env.IsLocal() {
+	if env.IsLocal() || env.IsTest() {
 		publicKey, privateKey, err := ed25519.GenerateKey(nil)
 		if err != nil {
 			return fmt.Errorf("%w %s", keys.ErrInternal, err)
@@ -159,7 +160,7 @@ func Sign(ctx context.Context, b Backends, keyID string, walletID string, messag
 		return nil, fmt.Errorf("%w can only sign with custodial keys", keys.ErrInternal)
 	}
 
-	if env.IsLocal() {
+	if env.IsLocal() || env.IsTest() {
 		refBytes, err := base64.StdEncoding.DecodeString(k.Reference.String)
 		if err != nil {
 			return nil, err
@@ -193,7 +194,7 @@ func Verify(ctx context.Context, b Backends, keyID string, walletID string, mess
 	}
 
 	// If local we need to pull the private key out of reference
-	if env.IsLocal() {
+	if env.IsLocal() || env.IsTest() {
 		refBytes, err := base64.StdEncoding.DecodeString(k.Reference.String)
 		if err != nil {
 			return false, err

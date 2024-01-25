@@ -14,6 +14,7 @@ import (
 	httplogger "gitlab.com/fynbos/backend/providers/http"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
+	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/backend/providers/pti/ops"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -30,7 +31,9 @@ func New(b ops.Backends) *Client {
 	var ptiPrivateKey jwk.Key
 	var err error
 	var ptiExternal external.Client
-	if env.IsLocal() {
+	if env.IsTest() {
+		ptiExternal = external_mock.SetupDevMock(nil)
+	} else if env.IsLocal() {
 		privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
 			log.Fatalln(err)

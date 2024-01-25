@@ -22,7 +22,7 @@ type client struct {
 func NewClient() (Client, error) {
 
 	// Only login to vault on non-local environments.
-	if !env.IsLocal() {
+	if !(env.IsLocal() || env.IsTest()) {
 		addr := os.Getenv("VAULT_ADDR")
 		mountPath := os.Getenv("VAULT_AUTH_PATH")
 		transitEnginePath := os.Getenv("VAULT_TRANSIT_ENGINE_PATH")

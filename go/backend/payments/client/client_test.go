@@ -48,7 +48,7 @@ type AssertTransfer struct {
 }
 
 func TestClient(t *testing.T) {
-	env.SetEnv(t, "local")
+	env.SetEnv(t, "test")
 	ctx := context.Background()
 	b := NewTestBackends(t)
 
@@ -461,7 +461,7 @@ func TestClient(t *testing.T) {
 }
 
 func TestReferrals(t *testing.T) {
-	env.SetEnv(t, "local")
+	env.SetEnv(t, "test")
 	ctx := context.Background()
 	b := NewTestBackends(t)
 
