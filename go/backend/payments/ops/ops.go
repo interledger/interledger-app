@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/astra"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/rafiki"
 
 	"gitlab.com/fynbos/backend/providers/xago"

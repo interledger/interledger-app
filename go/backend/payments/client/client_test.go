@@ -166,9 +166,9 @@ func TestClient(t *testing.T) {
 				SenderAccount: webMonetizaiontLinkedAccountZAR.ID,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: receiveWalletID,
+					Identifier: recvWallet.walletID,
 				},
-				ReceiverAccount: receiveBalance,
+				ReceiverAccount: recvWallet.xagoZARLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ZAR),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ZAR),
 				IPAddress:       "192.36.8.4",
