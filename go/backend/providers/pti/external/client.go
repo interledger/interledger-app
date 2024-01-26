@@ -1069,7 +1069,7 @@ func (c client) WalletWithdrawal(ctx context.Context, args WithdrawalArgs) (stri
 		return "", fmt.Errorf("%w %s", ErrInternal, err)
 	}
 
-	reqArgs := internalCreateWithdrawalArgs{
+	reqArgs := InternalCreateWithdrawalArgs{
 		Initiator: Initiator{
 			UserID: args.UserID,
 			Type:   "PERSON",

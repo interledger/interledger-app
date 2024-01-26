@@ -543,7 +543,7 @@ func (s *Server) CreateWithdrawal(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var payload CreateWithdrawalArgs
+	var payload external.InternalCreateWithdrawalArgs
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error("failed to unmarshal payload", zap.Error(err))
@@ -558,7 +558,7 @@ func (s *Server) CreateWithdrawal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if utils.BytesToUUID(sourceWallet.UserID.Bytes) != payload.Initiator.ID {
+	if utils.BytesToUUID(sourceWallet.UserID.Bytes) != payload.Initiator.UserID {
 		log.Error("wallet does not belong to user", zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
