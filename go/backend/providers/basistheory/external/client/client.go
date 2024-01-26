@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"gitlab.com/fynbos/env"
+
 	"github.com/Basis-Theory/basistheory-go/v3"
 	bt "gitlab.com/fynbos/backend/providers/basistheory"
 	"gitlab.com/fynbos/backend/providers/basistheory/external"
@@ -17,6 +19,15 @@ var _ external.Client = &Client{}
 func New(apiKey string) *Client {
 	configuration := basistheory.NewConfiguration()
 	configuration.HTTPClient = otelhttp.DefaultClient
+
+	if env.IsLocal() {
+		configuration.Servers = basistheory.ServerConfigurations{
+			{
+				URL:         "http://mockbos.mockbos/basistheory",
+				Description: "No description provided",
+			},
+		}
+	}
 
 	return &Client{
 		api:    basistheory.NewAPIClient(configuration),

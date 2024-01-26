@@ -1,6 +1,7 @@
 package astra
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -161,29 +162,44 @@ func (s *Server) AdminConvertIntentToUser(w http.ResponseWriter, r *http.Request
 	}
 
 	ctx := r.Context()
+	userID, err := s.convertIntentToUser(ctx, payload.ID, payload.Status, payload.KycType)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	resp := map[string]string{
+		"userId": userID,
+	}
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		log.Error("failed to return response", zap.Error(err))
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server) convertIntentToUser(ctx context.Context, intentID, status, kycType string) (string, error) {
 	tx, err := s.conn.Begin(ctx)
 	if err != nil {
 		log.Error("failed to start transaction", zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return "", err
 	}
 	defer func() {
 		_ = tx.Rollback(ctx)
 	}()
 
-	parsedUUID, err := uuid.Parse(payload.ID)
+	parsedUUID, err := uuid.Parse(intentID)
 	if err != nil {
 		log.Error("failed to parse intent id", zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return "", err
 	}
 
 	q := s.q.WithTx(tx)
 	intent, err := q.GetAstraIntent(ctx, pgtype.UUID{Bytes: [16]byte(parsedUUID), Valid: true})
 	if err != nil {
 		log.Error("failed to get intent", zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return "", err
 	}
 
 	usr, err := q.CreateAstraUser(ctx, db.CreateAstraUserParams{
@@ -199,13 +215,12 @@ func (s *Server) AdminConvertIntentToUser(w http.ResponseWriter, r *http.Request
 		DateOfBirth: intent.DateOfBirth,
 		Ssn:         intent.Ssn,
 		IpAddress:   intent.IpAddress,
-		Status:      pgtype.Text{String: payload.Status, Valid: true},
-		KycType:     pgtype.Text{String: payload.KycType, Valid: true},
+		Status:      pgtype.Text{String: status, Valid: true},  //"approved"
+		KycType:     pgtype.Text{String: kycType, Valid: true}, //"verified"
 	})
 	if err != nil {
 		log.Error("failed to create user", zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return "", err
 	}
 
 	err = q.UpdateAstraUserIntentUserID(ctx, db.UpdateAstraUserIntentUserIDParams{
@@ -214,26 +229,16 @@ func (s *Server) AdminConvertIntentToUser(w http.ResponseWriter, r *http.Request
 	})
 	if err != nil {
 		log.Error("failed to update intent with userID", zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return "", err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
 		log.Error("failed to commit transaction", zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		return "", err
 	}
 
-	resp := map[string]string{
-		"userId": utils.BytesToUUID(usr.ID.Bytes),
-	}
-	err = json.NewEncoder(w).Encode(resp)
-	if err != nil {
-		log.Error("failed to return response", zap.Error(err))
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+	return utils.BytesToUUID(usr.ID.Bytes), nil
 }
 
 func (s *Server) CreateAccessTokenCode(w http.ResponseWriter, r *http.Request) {
@@ -264,6 +269,15 @@ func (s *Server) CreateAccessTokenCode(w http.ResponseWriter, r *http.Request) {
 		log.Error("failed to get user intent id", zap.Error(err))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
+	}
+
+	if !intent.UserID.Valid {
+		_, err = s.convertIntentToUser(r.Context(), parsedIntentID.String(), "approved", "verified")
+		if err != nil {
+			log.Error("failed to auto convert user intent to user", zap.Error(err))
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	token, err := s.q.CreateAstraAccessToken(r.Context(), db.CreateAstraAccessTokenParams{

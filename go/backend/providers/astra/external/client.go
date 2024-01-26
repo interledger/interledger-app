@@ -30,7 +30,7 @@ type Client interface {
 	GetTransfer(ctx context.Context, token, transferID string) (*Transaction, error)
 }
 
-const basisTheoryProxyUrl = "https://api.basistheory.com/proxy"
+var basisTheoryProxyUrl = "https://api.basistheory.com/proxy"
 
 type client struct {
 	api               *http.Client
@@ -54,6 +54,7 @@ func New(transport *http.Client) Client {
 		baseURL = "http://mockbos.mockbos/astra/v1"
 		secureBaseURL = "http://mockbos.mockbos/astra/v1"
 		institutionID = "astra_ins_131" // TODO
+		basisTheoryProxyUrl = "http://mockbos.mockbos/basistheory"
 	}
 
 	if transport == nil {
@@ -254,7 +255,7 @@ func (c client) CreateIntent(ctx context.Context, args CreateIntentReq) (string,
 		return "", err
 	}
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("failed to create astra user intent (%d - %s - %s)", resp.StatusCode, resp.Status, string(respBody))
 	}
 
