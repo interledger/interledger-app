@@ -117,19 +117,6 @@ export default function Page() {
             <CardTitle>Support details</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>
-              Our telephone support lines are open Monday to Friday between 9am
-              and 5pm EST.
-            </p>
-            <div className='mt-4 flex items-center space-x-2 text-medium'>
-              <Icon>call</Icon>
-              <AnchorRouter
-                to='tel:+1 (856) 249-3067'
-                className='text-sm text-primary'
-              >
-                +1 (856) 249-3067
-              </AnchorRouter>
-            </div>
             <div className='mt-4 flex items-center space-x-2 text-medium'>
               <Icon>mail</Icon>
               <AnchorRouter

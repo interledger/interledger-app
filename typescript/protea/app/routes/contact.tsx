@@ -185,19 +185,6 @@ export default function Page() {
             </div>
             <div className='col-span-full mt-10 flex flex-col justify-end pt-4 sm:col-span-6 sm:col-start-2 lg:col-start-4'>
               <h2 className='font-display font-medium text-strong'>Support</h2>
-              <span className='mt-4 text-sm'>
-                Our telephone support lines are open Monday to Friday between
-                9am and 5pm EST.
-              </span>
-              <div className='mt-3 flex items-center space-x-2 text-medium'>
-                <Icon>call</Icon>
-                <AnchorRouter
-                  to='tel:+1 (856) 249-3067'
-                  className='text-sm text-primary'
-                >
-                  +1 (856) 249-3067
-                </AnchorRouter>
-              </div>
               <div className='mt-2 flex items-center space-x-2 text-medium'>
                 <Icon>mail</Icon>
                 <AnchorRouter
