@@ -36,6 +36,7 @@ func (s *Server) Register(r chi.Router) {
 	r.Post("/transactions/deposits", s.CreateDeposit)
 	r.Post("/transactions/withdrawals", s.CreateWithdrawal)
 	r.Get("/transactions/{requestID}", s.GetTransaction)
+	r.Post("/transactions/{requestID}/updates", s.UpdateTransactionStatus)
 }
 
 func New(conn *pgx.Conn) *Server {
@@ -693,6 +694,18 @@ func (s *Server) GetUserAssessment(w http.ResponseWriter, r *http.Request) {
 		RequestID:    r.Header.Get("x-pti-request-id"),
 		Date:         time.Now().Format(http.TimeFormat),
 		Assessment:   "ACCEPTED",
+	}
+	err := json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server) UpdateTransactionStatus(w http.ResponseWriter, r *http.Request) {
+	resp := external.CreateTxResponse{
+		ID:   uuid.NewString(),
+		Link: "yo mamma",
 	}
 	err := json.NewEncoder(w).Encode(resp)
 	if err != nil {
