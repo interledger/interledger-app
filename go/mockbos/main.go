@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"gitlab.com/fynbos/mockbos/basistheory"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"gitlab.com/fynbos/mockbos/astra"
@@ -59,6 +61,7 @@ func main() {
 	router.Route("/pti", ps.Register)
 	router.Route("/astra", as.Register)
 	router.Route("/admin/astra", as.RegisterAdmin)
+	router.Route("/basistheory", basistheory.Register)
 
 	// start the server
 	err = http.ListenAndServe(":8080", router)
