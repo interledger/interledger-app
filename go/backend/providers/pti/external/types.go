@@ -180,7 +180,7 @@ type (
 		Link string `json:"link,omitempty"`
 	}
 
-	internalCreateWithdrawalArgs struct {
+	InternalCreateWithdrawalArgs struct {
 		Initiator         Initiator                   `json:"initiator,omitempty"`
 		SourceMethod      SourceMethod                `json:"sourceMethod,omitempty"`
 		DestinationMethod WithdrawalDestinationMethod `json:"destinationMethod,omitempty"`
@@ -204,7 +204,7 @@ type (
 		Date              string            `json:"date,omitempty"`
 	}
 	Initiator struct {
-		UserID string `json:"userId,omitempty"`
+		UserID string `json:"id,omitempty"`
 		Type   string `json:"type,omitempty"`
 	}
 	SourceMethod struct {
