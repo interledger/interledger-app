@@ -69,6 +69,7 @@ func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
 }
 
 func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID string, key keys.Key) error {
+	fmt.Println("CreatePaymentPointerKey Key ID:" + key.ID)
 	r, err := CreateWalletAddressKey(ctx, c.gcl, CreateWalletAddressKeyInput{
 		WalletAddressId: walletAddressID,
 		Jwk: JwkInput{
@@ -86,6 +87,8 @@ func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID str
 		return fmt.Errorf("error code (%s) message (%s)", r.GetCreateWalletAddressKey().Code, r.GetCreateWalletAddressKey().Message)
 	}
 
+  fmt.Println(r.CreateWalletAddressKey.GetWalletAddressKey())
+
 	return nil
 }
 
@@ -93,14 +96,12 @@ func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	r, err := RevokeWalletAddressKey(ctx, c.gcl, RevokeWalletAddressKeyInput{
 		Id: keyID,
 	})
-
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
 	if !r.GetRevokeWalletAddressKey().Success {
 		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokeWalletAddressKey().Code, r.GetRevokeWalletAddressKey().Message)
-
 	}
 	return nil
 }

@@ -21,6 +21,13 @@ mutation CreateWalletAddressKey($input: CreateWalletAddressKeyInput!){
         code
         success
         message
+        walletAddressKey {
+            id
+            walletAddressId
+            jwk {
+                kid
+            }
+        }
     }
 }
 mutation RevokeWalletAddressKey($input: RevokeWalletAddressKeyInput!){
