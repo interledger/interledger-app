@@ -78,9 +78,10 @@ func (v *CreateWalletAddressInput) GetIdempotencyKey() string { return v.Idempot
 
 // CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse includes the requested fields of the GraphQL type CreateWalletAddressKeyMutationResponse.
 type CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse struct {
-	Code    string `json:"code"`
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Code             string                                                                                             `json:"code"`
+	Success          bool                                                                                               `json:"success"`
+	Message          string                                                                                             `json:"message"`
+	WalletAddressKey CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey `json:"walletAddressKey"`
 }
 
 // GetCode returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Code, and is useful for accessing the field via an interface.
@@ -96,6 +97,47 @@ func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutat
 // GetMessage returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.Message, and is useful for accessing the field via an interface.
 func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetMessage() string {
 	return v.Message
+}
+
+// GetWalletAddressKey returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse.WalletAddressKey, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponse) GetWalletAddressKey() CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey {
+	return v.WalletAddressKey
+}
+
+// CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey includes the requested fields of the GraphQL type WalletAddressKey.
+type CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey struct {
+	// Internal id of key
+	Id string `json:"id"`
+	// Id of the wallet address to which this key belongs to
+	WalletAddressId string `json:"walletAddressId"`
+	// Public key
+	Jwk CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKeyJwk `json:"jwk"`
+}
+
+// GetId returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey.Id, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey) GetId() string {
+	return v.Id
+}
+
+// GetWalletAddressId returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey.WalletAddressId, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey) GetWalletAddressId() string {
+	return v.WalletAddressId
+}
+
+// GetJwk returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey.Jwk, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKey) GetJwk() CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKeyJwk {
+	return v.Jwk
+}
+
+// CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKeyJwk includes the requested fields of the GraphQL type Jwk.
+type CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKeyJwk struct {
+	// Key id
+	Kid string `json:"kid"`
+}
+
+// GetKid returns CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKeyJwk.Kid, and is useful for accessing the field via an interface.
+func (v *CreateWalletAddressKeyCreateWalletAddressKeyCreateWalletAddressKeyMutationResponseWalletAddressKeyJwk) GetKid() string {
+	return v.Kid
 }
 
 type CreateWalletAddressKeyInput struct {
@@ -371,6 +413,13 @@ mutation CreateWalletAddressKey ($input: CreateWalletAddressKeyInput!) {
 		code
 		success
 		message
+		walletAddressKey {
+			id
+			walletAddressId
+			jwk {
+				kid
+			}
+		}
 	}
 }
 `
