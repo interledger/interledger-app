@@ -74,6 +74,11 @@ func (s *rpcService) CreateConnection(
 		return nil, toGRPCError(err)
 	}
 
+	err = s.b.Rafiki().CreatePaymentPointerKey(ctx, key.ID, wallet.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
 	return &backendv1.Empty{}, nil
 }
 
@@ -246,6 +251,11 @@ func (s *rpcService) DeleteConnection(ctx context.Context, req *backendv1.Delete
 	}
 
 	err = s.b.Keys().DeletePublicKey(ctx, key.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	err = s.b.Rafiki().RevokePaymentPointerKey(ctx, key.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
