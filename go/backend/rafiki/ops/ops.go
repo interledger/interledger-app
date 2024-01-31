@@ -116,7 +116,7 @@ func CreatePaymentPointerKey(ctx context.Context, b Backends, keyID string, wall
 func RevokePaymentPointerKey(ctx context.Context, b Backends, keyID string) error {
 	err := b.External().RevokePaymentPointerKey(ctx, keyID)
 	if err != nil {
-		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		return fmt.Errorf("%w %s ", rafiki.ErrInternal, err)
 	}
 	return nil
 }
