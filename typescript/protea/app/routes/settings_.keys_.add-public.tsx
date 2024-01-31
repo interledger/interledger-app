@@ -11,8 +11,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   Layouts,
   TextArea,
   TextField
@@ -63,14 +61,11 @@ export default function Page() {
       />
       <Card>
         <CardContent>
-          <p>
-            Add the public key of the external application that is connecting to
-            your wallet.
-          </p>
+          <p>Add a public key to connect to your wallet.</p>
         </CardContent>
         <TextField
           id='applicationName'
-          label='Application Name'
+          label='Nickname'
           name='applicationName'
           form='add-public-key'
           type='text'
@@ -94,7 +89,6 @@ export default function Page() {
           label='Public key'
           name='publicKey'
           className='mt-4'
-          placeholder='-----BEGIN PUBLIC KEY-----'
           aria-invalid={Boolean(actionData?.errors.publicKey) || undefined}
           aria-describedby={
             actionData?.errors.publicKey ? 'publicKey-error' : undefined
@@ -104,76 +98,8 @@ export default function Page() {
         />
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Limits</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            Providing access to your Fynbos wallet allows the external
-            application to make payments. Set the limits below.
-          </p>
-        </CardContent>
-        <TextField
-          id='dailyLimit'
-          label='Daily'
-          name='dailyLimit'
-          form='add-public-key'
-          type='number'
-          min='0'
-          step='0.01'
-          className='mt-2'
-          defaultValue={100}
-          prefix='$'
-          aria-invalid={Boolean(actionData?.errors.dailyLimit) || undefined}
-          aria-describedby={
-            actionData?.errors.dailyLimit ? 'dailyLimit-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.dailyLimit}
-        />
-
-        <TextField
-          id='monthlyLimit'
-          label='Monthly'
-          name='monthlyLimit'
-          form='add-public-key'
-          type='number'
-          min='0'
-          step='0.01'
-          defaultValue={1000}
-          prefix='$'
-          className='mt-4'
-          aria-invalid={Boolean(actionData?.errors.monthlyLimit) || undefined}
-          aria-describedby={
-            actionData?.errors.monthlyLimit ? 'monthlyLimit-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.monthlyLimit}
-        />
-
-        <TextField
-          id='overallLimit'
-          label='Overall'
-          name='overallLimit'
-          form='add-public-key'
-          type='number'
-          min='0'
-          step='0.01'
-          defaultValue={10000}
-          prefix='$'
-          className='mt-4'
-          aria-invalid={Boolean(actionData?.errors.overallLimit) || undefined}
-          aria-describedby={
-            actionData?.errors.overallLimit ? 'overallLimit-error' : undefined
-          }
-          required
-          errorMessage={actionData?.errors.overallLimit}
-        />
-      </Card>
-
       <Button form='add-public-key' type='submit'>
-        Add key
+        Save
       </Button>
     </>
   )
@@ -187,46 +113,38 @@ export async function action({ request }: ActionFunctionArgs) {
   const errors = {
     form: '',
     applicationName: '',
-    publicKey: '',
-    dailyLimit: '',
-    monthlyLimit: '',
-    overallLimit: ''
+    publicKey: ''
   }
 
   const response = await grpc.createConnection(request, {
     applicationName: form.get('applicationName') as string,
     publicKey: form.get('publicKey') as string,
     dailyLimit: {
-      amount: BigInt(
-        Math.floor(parseFloat(form.get('dailyLimit') as string) * 100)
-      ),
+      amount: 10000n,
       asset: 'USD',
       assetScale: 2
     },
     monthlyLimit: {
-      amount: BigInt(
-        Math.floor(parseFloat(form.get('monthlyLimit') as string) * 100)
-      ),
+      amount: 10000n,
       asset: 'USD',
       assetScale: 2
     },
     overallLimit: {
-      amount: BigInt(
-        Math.floor(parseFloat(form.get('overallLimit') as string) * 100)
-      ),
+      amount: 10000n,
       asset: 'USD',
       assetScale: 2
     }
   })
 
   if (isConnectError(response)) {
+    console.log(response)
     if (response.code == Code.InvalidArgument) {
       return response.error({ errors })
     } else return response.error({ errors }, {}, { action: 'Contact support' })
   }
 
   return redirectWithSnackbar(request, route('/settings/keys'), {
-    message: 'Public key was added.',
+    message: 'Public key added successfully.',
     icon: 'close'
   })
 }

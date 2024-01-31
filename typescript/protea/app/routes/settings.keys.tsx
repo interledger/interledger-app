@@ -3,7 +3,14 @@ import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Layouts } from '~/components'
+import {
+  ButtonRouter,
+  Card,
+  CardContent,
+  CardLink,
+  Icon,
+  Layouts
+} from '~/components'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
 import { mergeMeta } from '~/lib/meta'
@@ -44,32 +51,34 @@ export default function Page() {
             Connect external applications to your wallet by uploading their
             keys.
           </p>
-          {keys.length > 0 &&
-            keys.map((k) => (
-              // <CardLink
-              //   to={route('/settings/keys/:keyId', {
-              //     keyId: k.id
-              //   })}
-              //   className='flex justify-between'
-              //   key={k.id}
-              // >
-              <div key={k.id} className='mt-4 flex-col rounded-xl bg-nav p-4'>
-                <p className='font-medium text-medium'>{k.applicationName}</p>
-                <p className='mt-2 text-sm text-medium'>Added {k.createdAt}</p>
+        </CardContent>
+        {keys.length > 0 &&
+          keys.map((key) => (
+            <CardLink
+              to={route('/settings/keys/:keyId', {
+                keyId: key.id
+              })}
+              className='flex items-center justify-between'
+              key={key.id}
+            >
+              <div key={key.id} className='flex-col'>
+                <p className='font-medium text-medium'>{key.applicationName}</p>
+                <p className='mt-2 text-sm text-medium'>
+                  Added {key.createdAt}
+                </p>
                 {/*TODO: implement last used*/}
                 {/*<p className='mt-1 text-sm text-purple-500'>
                                       Last used {conn.lastUsedAt}
                                     </p>*/}
               </div>
-              //   <Icon>navigate_next</Icon>
-              // </CardLink>
-            ))}
-        </CardContent>
+              <Icon>navigate_next</Icon>
+            </CardLink>
+          ))}
       </Card>
 
-      {/*<ButtonRouter to={route('/settings/keys/add-public')}>*/}
-      {/*  Add a public key*/}
-      {/*</ButtonRouter>*/}
+      <ButtonRouter to={route('/settings/keys/add-public')}>
+        Add a public key
+      </ButtonRouter>
     </>
   )
 }
