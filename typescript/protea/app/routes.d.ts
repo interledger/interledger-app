@@ -13,7 +13,6 @@ declare module "routes-gen" {
     "/blog": Record<string, never>;
     "/blog/:slug": { "slug": string };
     "/collectables": Record<string, never>;
-    "/connect/bank": Record<string, never>;
     "/connect/bank/za": Record<string, never>;
     "/connect/card": Record<string, never>;
     "/connect/discord": Record<string, never>;
@@ -40,7 +39,6 @@ declare module "routes-gen" {
     "/otp/challenge": Record<string, never>;
     "/pay": Record<string, never>;
     "/pay/:paymentId": { "paymentId": string };
-    "/pay/3ds": Record<string, never>;
     "/payments": Record<string, never>;
     "/payments/:paymentId": { "paymentId": string };
     "/personal-details": Record<string, never>;
@@ -48,6 +46,8 @@ declare module "routes-gen" {
     "/recovery/password": Record<string, never>;
     "/referral": Record<string, never>;
     "/settings": Record<string, never>;
+    "/settings/grants": Record<string, never>;
+    "/settings/grants/:grantId": { "grantId": string };
     "/settings/keys": Record<string, never>;
     "/settings/keys/:keyId": { "keyId": string };
     "/settings/keys/add-public": Record<string, never>;
@@ -89,7 +89,6 @@ declare module "routes-gen" {
       | ["/blog"]
       | ["/blog/:slug", RouteParams["/blog/:slug"]]
       | ["/collectables"]
-      | ["/connect/bank"]
       | ["/connect/bank/za"]
       | ["/connect/card"]
       | ["/connect/discord"]
@@ -116,7 +115,6 @@ declare module "routes-gen" {
       | ["/otp/challenge"]
       | ["/pay"]
       | ["/pay/:paymentId", RouteParams["/pay/:paymentId"]]
-      | ["/pay/3ds"]
       | ["/payments"]
       | ["/payments/:paymentId", RouteParams["/payments/:paymentId"]]
       | ["/personal-details"]
@@ -124,6 +122,8 @@ declare module "routes-gen" {
       | ["/recovery/password"]
       | ["/referral"]
       | ["/settings"]
+      | ["/settings/grants"]
+      | ["/settings/grants/:grantId", RouteParams["/settings/grants/:grantId"]]
       | ["/settings/keys"]
       | ["/settings/keys/:keyId", RouteParams["/settings/keys/:keyId"]]
       | ["/settings/keys/add-public"]
