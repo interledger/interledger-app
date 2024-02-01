@@ -37,17 +37,17 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // CreatePaymentPointer mocks base method.
-func (m *MockClient) CreatePaymentPointer(ctx context.Context, address wallets.Wallet) error {
+func (m *MockClient) CreatePaymentPointer(ctx context.Context, address wallets.Wallet, assetCode string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePaymentPointer", ctx, address)
+	ret := m.ctrl.Call(m, "CreatePaymentPointer", ctx, address, assetCode)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreatePaymentPointer indicates an expected call of CreatePaymentPointer.
-func (mr *MockClientMockRecorder) CreatePaymentPointer(ctx, address interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) CreatePaymentPointer(ctx, address, assetCode interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePaymentPointer", reflect.TypeOf((*MockClient)(nil).CreatePaymentPointer), ctx, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePaymentPointer", reflect.TypeOf((*MockClient)(nil).CreatePaymentPointer), ctx, address, assetCode)
 }
 
 // CreatePaymentPointerKey mocks base method.
