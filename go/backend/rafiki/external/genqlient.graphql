@@ -57,14 +57,13 @@ query GetGrant ($id: ID!) {
     }
 }
 
-query ListGrants ($after: String, $before: String, $first: Int, $last: Int, $filter: GrantFilter, $sortOrder: SortOrder) {
+query ListGrants ($after: String, $before: String, $first: Int, $last: Int, $filter: GrantFilter) {
     grants (
         after: $after,
         before: $before,
         first: $first,
         last: $last,
-        filter: $filter,
-        sortOrder: $sortOrder
+        filter: $filter
     ) {
         pageInfo {
             endCursor

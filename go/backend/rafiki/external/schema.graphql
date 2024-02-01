@@ -11,8 +11,6 @@ type Query {
         last: Int
         "Filter grants based on specific criteria."
         filter: GrantFilter
-        "Ascending or descending order of creation."
-        sortOrder: SortOrder
     ): GrantsConnection!
 
     "Fetch a grant"
@@ -1269,13 +1267,6 @@ enum GrantFinalization {
     REVOKED
     "grant was rejected"
     REJECTED
-}
-
-enum SortOrder {
-    "Choose ascending order for results."
-    ASC
-    "Choose descending order for results."
-    DESC
 }
 
 scalar UInt8
