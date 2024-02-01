@@ -66,3 +66,15 @@ func (c *client) CreatePaymentPointerKey(ctx context.Context, keyID string, wall
 func (c *client) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
 	return ops.RevokePaymentPointerKey(ctx, c.b, keyID)
 }
+
+func (c *client) ListGrants(ctx context.Context, walletID string) ([]rafiki.Grant, error) {
+	return ops.ListGrants(ctx, c.b, walletID)
+}
+
+func (c *client) GetGrant(ctx context.Context, grantID string) (*rafiki.Grant, error) {
+	return ops.GetGrant(ctx, c.b, grantID)
+}
+
+func (c *client) RevokeGrant(ctx context.Context, grantID string) error {
+	return ops.RevokeGrant(ctx, c.b, grantID)
+}

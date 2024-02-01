@@ -18,12 +18,16 @@ type Client interface {
 	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) error
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	FundOutgoingPayment(ctx context.Context, eventID string) error
+	ListGrants(ctx context.Context, paymentPointer string) ([]ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error)
+	GetGrant(ctx context.Context, grantID string) (*GetGrantGrant, error)
+	RevokeGrant(ctx context.Context, grantID string) error
 }
 
 type client struct {
-	gcl   graphql.Client
-	usdID string
-	zarID string
+	backendClient graphql.Client
+	authClient    graphql.Client
+	usdID         string
+	zarID         string
 }
 
 func New() Client {
@@ -41,7 +45,9 @@ func New() Client {
 		assetZAR = "9913bb55-64a2-41c8-a20a-1d607ef8267a"
 	}
 
-	return &client{gcl: cl, usdID: assetUSD, zarID: assetZAR}
+	authCl := graphql.NewClient("http://rafiki-rafiki-auth.rafiki:3003/graphql", otelhttp.DefaultClient)
+
+	return &client{backendClient: cl, usdID: assetUSD, authClient: authCl, zarID: assetZAR}
 }
 
 func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) (string, error) {
@@ -55,7 +61,7 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, asse
 		return "", fmt.Errorf("%w: asset code (%s) not found", rafiki.ErrInternal, assetCode)
 	}
 
-	pp, err := CreateWalletAddress(ctx, c.gcl, CreateWalletAddressInput{
+	pp, err := CreateWalletAddress(ctx, c.backendClient, CreateWalletAddressInput{
 		AssetId:        assetID,
 		Url:            w.AddressString(),
 		PublicName:     w.Name,
@@ -72,7 +78,7 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, asse
 }
 
 func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
-	r, err := DepositEventLiquidity(ctx, c.gcl, DepositEventLiquidityInput{
+	r, err := DepositEventLiquidity(ctx, c.backendClient, DepositEventLiquidityInput{
 		EventId: eventID,
 	})
 	if err != nil {
@@ -119,5 +125,44 @@ func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	if !r.GetRevokeWalletAddressKey().Success {
 		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokeWalletAddressKey().Code, r.GetRevokeWalletAddressKey().Message)
 	}
+	return nil
+}
+
+func (c client) ListGrants(ctx context.Context, paymentPointer string) ([]ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error) {
+	r, err := ListGrants(ctx, c.authClient, "", "", 100, 0, GrantFilter{
+		Identifier: FilterString{In: []string{paymentPointer}},
+		State:      FilterGrantState{In: []GrantState{GrantStateApproved, GrantStatePending, GrantStateApproved}},
+	}, SortOrderDesc)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp []ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant
+	for _, ge := range r.GetGrants().Edges {
+		resp = append(resp, ge.GetNode())
+	}
+
+	return resp, nil
+}
+
+func (c client) GetGrant(ctx context.Context, grantID string) (*GetGrantGrant, error) {
+	r, err := GetGrant(ctx, c.authClient, grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r.Grant, nil
+}
+
+func (c client) RevokeGrant(ctx context.Context, grantID string) error {
+	r, err := RevokeGrant(ctx, c.authClient, RevokeGrantInput{GrantId: grantID})
+	if err != nil {
+		return err
+	}
+
+	if !r.GetRevokeGrant().Success {
+		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokeGrant().Code, r.GetRevokeGrant().Message)
+	}
+
 	return nil
 }

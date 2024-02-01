@@ -37,3 +37,50 @@ mutation RevokeWalletAddressKey($input: RevokeWalletAddressKeyInput!){
         message
     }
 }
+mutation RevokeGrant ($input: RevokeGrantInput!) {
+    revokeGrant (
+        input: $input
+    ) {
+        code
+        success
+        message
+    }
+}
+
+query GetGrant ($id: ID!) {
+    grant (id: $id) {
+        id
+        client
+        state
+        finalizationReason
+        createdAt
+    }
+}
+
+query ListGrants ($after: String, $before: String, $first: Int, $last: Int, $filter: GrantFilter, $sortOrder: SortOrder) {
+    grants (
+        after: $after,
+        before: $before,
+        first: $first,
+        last: $last,
+        filter: $filter,
+        sortOrder: $sortOrder
+    ) {
+        pageInfo {
+            endCursor
+            hasNextPage
+            hasPreviousPage
+            startCursor
+        }
+        edges {
+            node {
+                id
+                client
+                state
+                finalizationReason
+                createdAt
+            }
+            cursor
+        }
+    }
+}
