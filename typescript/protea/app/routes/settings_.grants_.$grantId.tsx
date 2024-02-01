@@ -1,0 +1,98 @@
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction
+} from '@remix-run/node'
+import type { UIMatch } from '@remix-run/react'
+import { Form, useLoaderData } from '@remix-run/react'
+import { route } from 'routes-gen'
+import type { ApplicationProps } from '~/components'
+import { Card, CardContent, Layouts, OutlineButton } from '~/components'
+import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
+import { isConnectError } from '~/lib/error.server'
+import { grpc } from '~/lib/grpc.server'
+import { mergeMeta } from '~/lib/meta'
+import { redirectWithSnackbar } from '~/lib/snackbar.server'
+
+export const handle: ApplicationProps = {
+  layout: Layouts.Focus,
+  scaffold: {
+    header: {
+      back: '/settings/keys',
+      title: (match: UIMatch<typeof loader>) => match.data.grant.client
+    }
+  }
+}
+
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => [
+  {
+    title: data?.grant.client || 'Grant'
+  }
+])
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  const grant = await grpc.getRafikiGrant(request, {
+    id: params.grantId as string
+  })
+
+  if (isConnectError(grant)) throw grant.errorResponse
+
+  return jsonWithCSRF(request, {
+    grant
+  })
+}
+
+export default function Page() {
+  const { grant, csrfToken } = useLoaderData<typeof loader>()
+
+  return (
+    <>
+      <Form
+        id='key-id'
+        action={`/settings/keys/${grant.id}`}
+        method='post'
+        className='hidden'
+      />
+      <input form='key-id' value={csrfToken} name='csrfToken' type='hidden' />
+      <Card>
+        <CardContent className='mt-2 flex flex-col gap-y-4'>
+          <div className='flex w-full justify-between'>
+            <span className='text-weak'>Client</span>
+            <span className='text-medium'>{grant.client}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <OutlineButton
+        className='text-red-700 outline-red-700 focus-visible:outline-red-800'
+        form='key-id'
+        type='submit'
+      >
+        Revoke grant
+      </OutlineButton>
+    </>
+  )
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const form = await request.formData()
+
+  await validateCSRFToken(request, form)
+
+  const errors = {
+    form: ''
+  }
+
+  const response = await grpc.revokeRafikiGrant(request, {
+    id: params.grantId as string
+  })
+
+  if (isConnectError(response)) {
+    return response.error({ errors })
+  }
+
+  return redirectWithSnackbar(request, route('/settings/keys'), {
+    message: 'Grant was revoked.',
+    icon: 'close'
+  })
+}
