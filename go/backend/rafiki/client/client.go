@@ -47,8 +47,8 @@ func New(b Backends) rafiki.Client {
 	return &client{b: &opsBackends{Backends: b, rafikiExt: se}}
 }
 
-func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) error {
-	return ops.CreatePaymentPointer(ctx, c.b, w)
+func (c *client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) error {
+	return ops.CreatePaymentPointer(ctx, c.b, w, assetCode)
 }
 
 func (c *client) WebhookHandler() http.HandlerFunc {
