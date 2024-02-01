@@ -132,7 +132,7 @@ func (c client) ListGrants(ctx context.Context, paymentPointer string) ([]ListGr
 	r, err := ListGrants(ctx, c.authClient, "", "", 100, 0, GrantFilter{
 		Identifier: FilterString{In: []string{paymentPointer}},
 		State:      FilterGrantState{In: []GrantState{GrantStateApproved, GrantStatePending, GrantStateApproved}},
-	}, SortOrderDesc)
+	})
 	if err != nil {
 		return nil, err
 	}
