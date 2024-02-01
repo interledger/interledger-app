@@ -237,6 +237,112 @@ func (v *DepositEventLiquidityResponse) GetDepositEventLiquidity() DepositEventL
 	return v.DepositEventLiquidity
 }
 
+type FilterFinalizationReason struct {
+	In    []GrantFinalization `json:"in"`
+	NotIn []GrantFinalization `json:"notIn"`
+}
+
+// GetIn returns FilterFinalizationReason.In, and is useful for accessing the field via an interface.
+func (v *FilterFinalizationReason) GetIn() []GrantFinalization { return v.In }
+
+// GetNotIn returns FilterFinalizationReason.NotIn, and is useful for accessing the field via an interface.
+func (v *FilterFinalizationReason) GetNotIn() []GrantFinalization { return v.NotIn }
+
+type FilterGrantState struct {
+	In    []GrantState `json:"in"`
+	NotIn []GrantState `json:"notIn"`
+}
+
+// GetIn returns FilterGrantState.In, and is useful for accessing the field via an interface.
+func (v *FilterGrantState) GetIn() []GrantState { return v.In }
+
+// GetNotIn returns FilterGrantState.NotIn, and is useful for accessing the field via an interface.
+func (v *FilterGrantState) GetNotIn() []GrantState { return v.NotIn }
+
+type FilterString struct {
+	In []string `json:"in"`
+}
+
+// GetIn returns FilterString.In, and is useful for accessing the field via an interface.
+func (v *FilterString) GetIn() []string { return v.In }
+
+// GetGrantGrant includes the requested fields of the GraphQL type Grant.
+type GetGrantGrant struct {
+	// Grant id
+	Id string `json:"id"`
+	// Wallet address of the grantee's account
+	Client string `json:"client"`
+	// State of the grant
+	State GrantState `json:"state"`
+	// Reason a grant was finalized
+	FinalizationReason GrantFinalization `json:"finalizationReason"`
+	// Date-time of creation
+	CreatedAt string `json:"createdAt"`
+}
+
+// GetId returns GetGrantGrant.Id, and is useful for accessing the field via an interface.
+func (v *GetGrantGrant) GetId() string { return v.Id }
+
+// GetClient returns GetGrantGrant.Client, and is useful for accessing the field via an interface.
+func (v *GetGrantGrant) GetClient() string { return v.Client }
+
+// GetState returns GetGrantGrant.State, and is useful for accessing the field via an interface.
+func (v *GetGrantGrant) GetState() GrantState { return v.State }
+
+// GetFinalizationReason returns GetGrantGrant.FinalizationReason, and is useful for accessing the field via an interface.
+func (v *GetGrantGrant) GetFinalizationReason() GrantFinalization { return v.FinalizationReason }
+
+// GetCreatedAt returns GetGrantGrant.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetGrantGrant) GetCreatedAt() string { return v.CreatedAt }
+
+// GetGrantResponse is returned by GetGrant on success.
+type GetGrantResponse struct {
+	// Fetch a grant
+	Grant GetGrantGrant `json:"grant"`
+}
+
+// GetGrant returns GetGrantResponse.Grant, and is useful for accessing the field via an interface.
+func (v *GetGrantResponse) GetGrant() GetGrantGrant { return v.Grant }
+
+type GrantFilter struct {
+	Identifier         FilterString             `json:"identifier"`
+	State              FilterGrantState         `json:"state"`
+	FinalizationReason FilterFinalizationReason `json:"finalizationReason"`
+}
+
+// GetIdentifier returns GrantFilter.Identifier, and is useful for accessing the field via an interface.
+func (v *GrantFilter) GetIdentifier() FilterString { return v.Identifier }
+
+// GetState returns GrantFilter.State, and is useful for accessing the field via an interface.
+func (v *GrantFilter) GetState() FilterGrantState { return v.State }
+
+// GetFinalizationReason returns GrantFilter.FinalizationReason, and is useful for accessing the field via an interface.
+func (v *GrantFilter) GetFinalizationReason() FilterFinalizationReason { return v.FinalizationReason }
+
+type GrantFinalization string
+
+const (
+	// grant was issued
+	GrantFinalizationIssued GrantFinalization = "ISSUED"
+	// grant was revoked
+	GrantFinalizationRevoked GrantFinalization = "REVOKED"
+	// grant was rejected
+	GrantFinalizationRejected GrantFinalization = "REJECTED"
+)
+
+type GrantState string
+
+const (
+	// grant request is determining what state to enter next
+	GrantStateProcessing GrantState = "PROCESSING"
+	// grant request is awaiting interaction
+	GrantStatePending GrantState = "PENDING"
+	// grant was approved
+	GrantStateApproved GrantState = "APPROVED"
+	// grant was finalized and no more access tokens or interactions can be made on it
+	GrantStateFinalized GrantState = "FINALIZED"
+)
+
 type JwkInput struct {
 	// Key id
 	Kid string `json:"kid"`
@@ -287,6 +393,140 @@ const (
 	LiquidityErrorUnknownpeer            LiquidityError = "UnknownPeer"
 	LiquidityErrorUnknowntransfer        LiquidityError = "UnknownTransfer"
 )
+
+// ListGrantsGrantsGrantsConnection includes the requested fields of the GraphQL type GrantsConnection.
+type ListGrantsGrantsGrantsConnection struct {
+	PageInfo ListGrantsGrantsGrantsConnectionPageInfo         `json:"pageInfo"`
+	Edges    []ListGrantsGrantsGrantsConnectionEdgesGrantEdge `json:"edges"`
+}
+
+// GetPageInfo returns ListGrantsGrantsGrantsConnection.PageInfo, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnection) GetPageInfo() ListGrantsGrantsGrantsConnectionPageInfo {
+	return v.PageInfo
+}
+
+// GetEdges returns ListGrantsGrantsGrantsConnection.Edges, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnection) GetEdges() []ListGrantsGrantsGrantsConnectionEdgesGrantEdge {
+	return v.Edges
+}
+
+// ListGrantsGrantsGrantsConnectionEdgesGrantEdge includes the requested fields of the GraphQL type GrantEdge.
+type ListGrantsGrantsGrantsConnectionEdgesGrantEdge struct {
+	Node   ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant `json:"node"`
+	Cursor string                                                  `json:"cursor"`
+}
+
+// GetNode returns ListGrantsGrantsGrantsConnectionEdgesGrantEdge.Node, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdge) GetNode() ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant {
+	return v.Node
+}
+
+// GetCursor returns ListGrantsGrantsGrantsConnectionEdgesGrantEdge.Cursor, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdge) GetCursor() string { return v.Cursor }
+
+// ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant includes the requested fields of the GraphQL type Grant.
+type ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant struct {
+	// Grant id
+	Id string `json:"id"`
+	// Wallet address of the grantee's account
+	Client string `json:"client"`
+	// State of the grant
+	State GrantState `json:"state"`
+	// Reason a grant was finalized
+	FinalizationReason GrantFinalization `json:"finalizationReason"`
+	// Date-time of creation
+	CreatedAt string `json:"createdAt"`
+}
+
+// GetId returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.Id, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetId() string { return v.Id }
+
+// GetClient returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.Client, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetClient() string { return v.Client }
+
+// GetState returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.State, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetState() GrantState {
+	return v.State
+}
+
+// GetFinalizationReason returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.FinalizationReason, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetFinalizationReason() GrantFinalization {
+	return v.FinalizationReason
+}
+
+// GetCreatedAt returns ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant.CreatedAt, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant) GetCreatedAt() string {
+	return v.CreatedAt
+}
+
+// ListGrantsGrantsGrantsConnectionPageInfo includes the requested fields of the GraphQL type PageInfo.
+type ListGrantsGrantsGrantsConnectionPageInfo struct {
+	// Paginating forwards: the cursor to continue.
+	EndCursor string `json:"endCursor"`
+	// Paginating forwards: Are there more pages?
+	HasNextPage bool `json:"hasNextPage"`
+	// Paginating backwards: Are there more pages?
+	HasPreviousPage bool `json:"hasPreviousPage"`
+	// Paginating backwards: the cursor to continue.
+	StartCursor string `json:"startCursor"`
+}
+
+// GetEndCursor returns ListGrantsGrantsGrantsConnectionPageInfo.EndCursor, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionPageInfo) GetEndCursor() string { return v.EndCursor }
+
+// GetHasNextPage returns ListGrantsGrantsGrantsConnectionPageInfo.HasNextPage, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionPageInfo) GetHasNextPage() bool { return v.HasNextPage }
+
+// GetHasPreviousPage returns ListGrantsGrantsGrantsConnectionPageInfo.HasPreviousPage, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionPageInfo) GetHasPreviousPage() bool {
+	return v.HasPreviousPage
+}
+
+// GetStartCursor returns ListGrantsGrantsGrantsConnectionPageInfo.StartCursor, and is useful for accessing the field via an interface.
+func (v *ListGrantsGrantsGrantsConnectionPageInfo) GetStartCursor() string { return v.StartCursor }
+
+// ListGrantsResponse is returned by ListGrants on success.
+type ListGrantsResponse struct {
+	// Fetch a page of grants.
+	Grants ListGrantsGrantsGrantsConnection `json:"grants"`
+}
+
+// GetGrants returns ListGrantsResponse.Grants, and is useful for accessing the field via an interface.
+func (v *ListGrantsResponse) GetGrants() ListGrantsGrantsGrantsConnection { return v.Grants }
+
+type RevokeGrantInput struct {
+	GrantId string `json:"grantId"`
+}
+
+// GetGrantId returns RevokeGrantInput.GrantId, and is useful for accessing the field via an interface.
+func (v *RevokeGrantInput) GetGrantId() string { return v.GrantId }
+
+// RevokeGrantResponse is returned by RevokeGrant on success.
+type RevokeGrantResponse struct {
+	// Revoke Grant
+	RevokeGrant RevokeGrantRevokeGrantRevokeGrantMutationResponse `json:"revokeGrant"`
+}
+
+// GetRevokeGrant returns RevokeGrantResponse.RevokeGrant, and is useful for accessing the field via an interface.
+func (v *RevokeGrantResponse) GetRevokeGrant() RevokeGrantRevokeGrantRevokeGrantMutationResponse {
+	return v.RevokeGrant
+}
+
+// RevokeGrantRevokeGrantRevokeGrantMutationResponse includes the requested fields of the GraphQL type RevokeGrantMutationResponse.
+type RevokeGrantRevokeGrantRevokeGrantMutationResponse struct {
+	Code    string `json:"code"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+// GetCode returns RevokeGrantRevokeGrantRevokeGrantMutationResponse.Code, and is useful for accessing the field via an interface.
+func (v *RevokeGrantRevokeGrantRevokeGrantMutationResponse) GetCode() string { return v.Code }
+
+// GetSuccess returns RevokeGrantRevokeGrantRevokeGrantMutationResponse.Success, and is useful for accessing the field via an interface.
+func (v *RevokeGrantRevokeGrantRevokeGrantMutationResponse) GetSuccess() bool { return v.Success }
+
+// GetMessage returns RevokeGrantRevokeGrantRevokeGrantMutationResponse.Message, and is useful for accessing the field via an interface.
+func (v *RevokeGrantRevokeGrantRevokeGrantMutationResponse) GetMessage() string { return v.Message }
 
 type RevokeWalletAddressKeyInput struct {
 	// Internal id of key
@@ -357,6 +597,46 @@ type __DepositEventLiquidityInput struct {
 
 // GetInput returns __DepositEventLiquidityInput.Input, and is useful for accessing the field via an interface.
 func (v *__DepositEventLiquidityInput) GetInput() DepositEventLiquidityInput { return v.Input }
+
+// __GetGrantInput is used internally by genqlient
+type __GetGrantInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __GetGrantInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetGrantInput) GetId() string { return v.Id }
+
+// __ListGrantsInput is used internally by genqlient
+type __ListGrantsInput struct {
+	After  string      `json:"after"`
+	Before string      `json:"before"`
+	First  int         `json:"first"`
+	Last   int         `json:"last"`
+	Filter GrantFilter `json:"filter"`
+}
+
+// GetAfter returns __ListGrantsInput.After, and is useful for accessing the field via an interface.
+func (v *__ListGrantsInput) GetAfter() string { return v.After }
+
+// GetBefore returns __ListGrantsInput.Before, and is useful for accessing the field via an interface.
+func (v *__ListGrantsInput) GetBefore() string { return v.Before }
+
+// GetFirst returns __ListGrantsInput.First, and is useful for accessing the field via an interface.
+func (v *__ListGrantsInput) GetFirst() int { return v.First }
+
+// GetLast returns __ListGrantsInput.Last, and is useful for accessing the field via an interface.
+func (v *__ListGrantsInput) GetLast() int { return v.Last }
+
+// GetFilter returns __ListGrantsInput.Filter, and is useful for accessing the field via an interface.
+func (v *__ListGrantsInput) GetFilter() GrantFilter { return v.Filter }
+
+// __RevokeGrantInput is used internally by genqlient
+type __RevokeGrantInput struct {
+	Input RevokeGrantInput `json:"input"`
+}
+
+// GetInput returns __RevokeGrantInput.Input, and is useful for accessing the field via an interface.
+func (v *__RevokeGrantInput) GetInput() RevokeGrantInput { return v.Input }
 
 // __RevokeWalletAddressKeyInput is used internally by genqlient
 type __RevokeWalletAddressKeyInput struct {
@@ -477,6 +757,140 @@ func DepositEventLiquidity(
 	var err error
 
 	var data DepositEventLiquidityResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by GetGrant.
+const GetGrant_Operation = `
+query GetGrant ($id: ID!) {
+	grant(id: $id) {
+		id
+		client
+		state
+		finalizationReason
+		createdAt
+	}
+}
+`
+
+func GetGrant(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*GetGrantResponse, error) {
+	req := &graphql.Request{
+		OpName: "GetGrant",
+		Query:  GetGrant_Operation,
+		Variables: &__GetGrantInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data GetGrantResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by ListGrants.
+const ListGrants_Operation = `
+query ListGrants ($after: String, $before: String, $first: Int, $last: Int, $filter: GrantFilter) {
+	grants(after: $after, before: $before, first: $first, last: $last, filter: $filter) {
+		pageInfo {
+			endCursor
+			hasNextPage
+			hasPreviousPage
+			startCursor
+		}
+		edges {
+			node {
+				id
+				client
+				state
+				finalizationReason
+				createdAt
+			}
+			cursor
+		}
+	}
+}
+`
+
+func ListGrants(
+	ctx context.Context,
+	client graphql.Client,
+	after string,
+	before string,
+	first int,
+	last int,
+	filter GrantFilter,
+) (*ListGrantsResponse, error) {
+	req := &graphql.Request{
+		OpName: "ListGrants",
+		Query:  ListGrants_Operation,
+		Variables: &__ListGrantsInput{
+			After:  after,
+			Before: before,
+			First:  first,
+			Last:   last,
+			Filter: filter,
+		},
+	}
+	var err error
+
+	var data ListGrantsResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by RevokeGrant.
+const RevokeGrant_Operation = `
+mutation RevokeGrant ($input: RevokeGrantInput!) {
+	revokeGrant(input: $input) {
+		code
+		success
+		message
+	}
+}
+`
+
+func RevokeGrant(
+	ctx context.Context,
+	client graphql.Client,
+	input RevokeGrantInput,
+) (*RevokeGrantResponse, error) {
+	req := &graphql.Request{
+		OpName: "RevokeGrant",
+		Query:  RevokeGrant_Operation,
+		Variables: &__RevokeGrantInput{
+			Input: input,
+		},
+	}
+	var err error
+
+	var data RevokeGrantResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
