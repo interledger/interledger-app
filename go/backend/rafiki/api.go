@@ -9,7 +9,7 @@ import (
 
 type Client interface {
 	WebhookHandler() http.HandlerFunc
-	CreatePaymentPointer(ctx context.Context, address wallets.Wallet) error
+	CreatePaymentPointer(ctx context.Context, address wallets.Wallet, assetCode string) error
 	CreatePaymentPointerKey(ctx context.Context, keyID string, walletID string) error
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	FundOutgoingPayment(ctx context.Context, paymentID string) error
