@@ -14,7 +14,7 @@ import (
 	"gitlab.com/fynbos/backend/wallets"
 )
 
-func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) error {
+func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet, assetCode string) error {
 	if env.IsProd() {
 		return nil
 	}
@@ -28,7 +28,7 @@ func CreatePaymentPointer(ctx context.Context, b Backends, w wallets.Wallet) err
 		return nil
 	}
 
-	ppID, err = b.External().CreatePaymentPointer(ctx, w)
+	ppID, err = b.External().CreatePaymentPointer(ctx, w, assetCode)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}

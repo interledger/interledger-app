@@ -14,7 +14,7 @@ import (
 )
 
 type Client interface {
-	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet) (string, error)
+	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet, assetCode string) (string, error)
 	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) error
 	RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	FundOutgoingPayment(ctx context.Context, eventID string) error
@@ -23,6 +23,7 @@ type Client interface {
 type client struct {
 	gcl   graphql.Client
 	usdID string
+	zarID string
 }
 
 func New() Client {
@@ -35,12 +36,27 @@ func New() Client {
 		assetUSD = "80d80585-5341-413a-acaf-169779b4642c"
 	}
 
-	return &client{gcl: cl, usdID: assetUSD}
+	assetZAR := os.Getenv("RAFIKI_ZAR_ASSET")
+	if assetZAR == "" && env.IsDev() {
+		assetZAR = "9913bb55-64a2-41c8-a20a-1d607ef8267a"
+	}
+
+	return &client{gcl: cl, usdID: assetUSD, zarID: assetZAR}
 }
 
-func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
+func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) (string, error) {
+	var assetID string
+	switch assetCode {
+	case "USD":
+		assetID = c.usdID
+	case "ZAR":
+		assetID = c.zarID
+	default:
+		return "", fmt.Errorf("%w: asset code (%s) not found", rafiki.ErrInternal, assetCode)
+	}
+
 	pp, err := CreateWalletAddress(ctx, c.gcl, CreateWalletAddressInput{
-		AssetId:        c.usdID,
+		AssetId:        assetID,
 		Url:            w.AddressString(),
 		PublicName:     w.Name,
 		IdempotencyKey: w.ID,
@@ -87,7 +103,7 @@ func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID str
 		return fmt.Errorf("error code (%s) message (%s)", r.GetCreateWalletAddressKey().Code, r.GetCreateWalletAddressKey().Message)
 	}
 
-  fmt.Println(r.CreateWalletAddressKey.GetWalletAddressKey())
+	fmt.Println(r.CreateWalletAddressKey.GetWalletAddressKey())
 
 	return nil
 }
