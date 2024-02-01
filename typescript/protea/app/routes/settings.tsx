@@ -106,6 +106,18 @@ export default function Page() {
             end
             preventScrollReset
             prefetch='intent'
+            to={route('/settings/grants')}
+          >
+            <div className='mr-auto flex space-x-3'>
+              <Icon>request_quote</Icon>
+              <span>Grants</span>
+            </div>
+            <Icon>navigate_next</Icon>
+          </CardLink>
+          <CardLink
+            end
+            preventScrollReset
+            prefetch='intent'
             to={route('/settings/keys')}
           >
             <div className='mr-auto flex space-x-3'>
