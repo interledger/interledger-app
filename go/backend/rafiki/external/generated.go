@@ -608,24 +608,8 @@ func (v *__GetGrantInput) GetId() string { return v.Id }
 
 // __ListGrantsInput is used internally by genqlient
 type __ListGrantsInput struct {
-	After  string      `json:"after"`
-	Before string      `json:"before"`
-	First  int         `json:"first"`
-	Last   int         `json:"last"`
 	Filter GrantFilter `json:"filter"`
 }
-
-// GetAfter returns __ListGrantsInput.After, and is useful for accessing the field via an interface.
-func (v *__ListGrantsInput) GetAfter() string { return v.After }
-
-// GetBefore returns __ListGrantsInput.Before, and is useful for accessing the field via an interface.
-func (v *__ListGrantsInput) GetBefore() string { return v.Before }
-
-// GetFirst returns __ListGrantsInput.First, and is useful for accessing the field via an interface.
-func (v *__ListGrantsInput) GetFirst() int { return v.First }
-
-// GetLast returns __ListGrantsInput.Last, and is useful for accessing the field via an interface.
-func (v *__ListGrantsInput) GetLast() int { return v.Last }
 
 // GetFilter returns __ListGrantsInput.Filter, and is useful for accessing the field via an interface.
 func (v *__ListGrantsInput) GetFilter() GrantFilter { return v.Filter }
@@ -809,8 +793,8 @@ func GetGrant(
 
 // The query or mutation executed by ListGrants.
 const ListGrants_Operation = `
-query ListGrants ($after: String, $before: String, $first: Int, $last: Int, $filter: GrantFilter) {
-	grants(after: $after, before: $before, first: $first, last: $last, filter: $filter) {
+query ListGrants ($filter: GrantFilter) {
+	grants(filter: $filter) {
 		pageInfo {
 			endCursor
 			hasNextPage
@@ -834,20 +818,12 @@ query ListGrants ($after: String, $before: String, $first: Int, $last: Int, $fil
 func ListGrants(
 	ctx context.Context,
 	client graphql.Client,
-	after string,
-	before string,
-	first int,
-	last int,
 	filter GrantFilter,
 ) (*ListGrantsResponse, error) {
 	req := &graphql.Request{
 		OpName: "ListGrants",
 		Query:  ListGrants_Operation,
 		Variables: &__ListGrantsInput{
-			After:  after,
-			Before: before,
-			First:  first,
-			Last:   last,
 			Filter: filter,
 		},
 	}
