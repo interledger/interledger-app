@@ -95,6 +95,17 @@ func ListKeys(ctx context.Context, b Backends, walletID string) ([]keys.Key, err
 	return publicKeys, nil
 }
 
+func GetPublicKey(ctx context.Context, b Backends, id string, walletID string) (*keys.Key, error) {
+	keyDb, err := getKey(ctx, b, id, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", keys.ErrInternal, err)
+	}
+
+	key := convertToKeyPublic(*keyDb)
+
+	return &key, nil
+}
+
 func AddPublicKey(ctx context.Context, b Backends, walletID string, publicKeyBase64 string, name string) (*keys.Key, error) {
 	var id string
 	err := b.DB().GetContext(ctx, &id,

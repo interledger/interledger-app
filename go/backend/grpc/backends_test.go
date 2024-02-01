@@ -57,6 +57,7 @@ import (
 	kyc_mock "gitlab.com/fynbos/backend/kyc/client/mock"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	linked_accounts_mock "gitlab.com/fynbos/backend/linkedaccounts/client/mock"
+	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
 	"gitlab.com/fynbos/backend/signup"
 	signup_mock "gitlab.com/fynbos/backend/signup/client/mock"
 	"gitlab.com/fynbos/backend/supporttickets"
@@ -100,6 +101,7 @@ type TestContainer struct {
 	TwitterClient      *twitter_mock.MockClient
 	walletImpl         *wallets_mock.MockClient
 	dynamicforms       *dynamicforms_mock.MockClient
+	rafiki             *rafiki_mock.MockClient
 }
 
 func (t TestContainer) Astra() astra.Client {
@@ -111,7 +113,7 @@ func (t TestContainer) Xago() xago.Client {
 }
 
 func (t TestContainer) Rafiki() rafiki.Client {
-	return nil
+	return t.rafiki
 }
 
 func (t TestContainer) Slack() slack.Client {
@@ -265,6 +267,7 @@ func NewTestContainer(t *testing.T, ctrl *gomock.Controller, opts ...TestContain
 		TwitterClient:      twitter_mock.NewMockClient(ctrl),
 		walletImpl:         wallets_mock.NewMockClient(ctrl),
 		dynamicforms:       dynamicforms_mock.NewMockClient(ctrl),
+		rafiki:             rafiki_mock.NewMockClient(ctrl),
 	}
 
 	for _, opt := range opts {

@@ -6,19 +6,24 @@ import (
 	"os"
 
 	"github.com/Khan/genqlient/graphql"
+	"gitlab.com/fynbos/backend/keys"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/env"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Client interface {
-	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet) (string, error)
+	CreatePaymentPointer(ctx context.Context, wallet wallets.Wallet, assetCode string) (string, error)
+	CreatePaymentPointerKey(ctx context.Context, paymentPointerID string, key keys.Key) error
+	RevokePaymentPointerKey(ctx context.Context, keyID string) error
 	FundOutgoingPayment(ctx context.Context, eventID string) error
 }
 
 type client struct {
 	gcl   graphql.Client
 	usdID string
+	zarID string
 }
 
 func New() Client {
@@ -31,12 +36,27 @@ func New() Client {
 		assetUSD = "80d80585-5341-413a-acaf-169779b4642c"
 	}
 
-	return &client{gcl: cl, usdID: assetUSD}
+	assetZAR := os.Getenv("RAFIKI_ZAR_ASSET")
+	if assetZAR == "" && env.IsDev() {
+		assetZAR = "9913bb55-64a2-41c8-a20a-1d607ef8267a"
+	}
+
+	return &client{gcl: cl, usdID: assetUSD, zarID: assetZAR}
 }
 
-func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (string, error) {
-	pp, err := CreatePaymentPointer(ctx, c.gcl, CreatePaymentPointerInput{
-		AssetId:        c.usdID,
+func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, assetCode string) (string, error) {
+	var assetID string
+	switch assetCode {
+	case "USD":
+		assetID = c.usdID
+	case "ZAR":
+		assetID = c.zarID
+	default:
+		return "", fmt.Errorf("%w: asset code (%s) not found", rafiki.ErrInternal, assetCode)
+	}
+
+	pp, err := CreateWalletAddress(ctx, c.gcl, CreateWalletAddressInput{
+		AssetId:        assetID,
 		Url:            w.AddressString(),
 		PublicName:     w.Name,
 		IdempotencyKey: w.ID,
@@ -44,11 +64,11 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet) (str
 	if err != nil {
 		return "", err
 	}
-	if !pp.GetCreatePaymentPointer().Success {
-		return "", fmt.Errorf("error code (%s) message (%s)", pp.GetCreatePaymentPointer().Code, pp.GetCreatePaymentPointer().Message)
+	if !pp.GetCreateWalletAddress().Success {
+		return "", fmt.Errorf("error code (%s) message (%s)", pp.GetCreateWalletAddress().Code, pp.GetCreateWalletAddress().Message)
 	}
 
-	return pp.CreatePaymentPointer.PaymentPointer.Id, nil
+	return pp.CreateWalletAddress.WalletAddress.Id, nil
 }
 
 func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
@@ -60,6 +80,44 @@ func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
 	}
 	if !r.GetDepositEventLiquidity().Success {
 		return fmt.Errorf("error code (%s) message (%s)", r.GetDepositEventLiquidity().Code, r.GetDepositEventLiquidity().Message)
+	}
+	return nil
+}
+
+func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID string, key keys.Key) error {
+	fmt.Println("CreatePaymentPointerKey Key ID:" + key.ID)
+	r, err := CreateWalletAddressKey(ctx, c.gcl, CreateWalletAddressKeyInput{
+		WalletAddressId: walletAddressID,
+		Jwk: JwkInput{
+			Kid: key.ID,
+			X:   key.PublicKey,
+			Alg: "EdDSA",
+			Kty: "OKP",
+			Crv: "Ed25519",
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+	if !r.GetCreateWalletAddressKey().Success {
+		return fmt.Errorf("error code (%s) message (%s)", r.GetCreateWalletAddressKey().Code, r.GetCreateWalletAddressKey().Message)
+	}
+
+	fmt.Println(r.CreateWalletAddressKey.GetWalletAddressKey())
+
+	return nil
+}
+
+func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
+	r, err := RevokeWalletAddressKey(ctx, c.gcl, RevokeWalletAddressKeyInput{
+		Id: keyID,
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	if !r.GetRevokeWalletAddressKey().Success {
+		return fmt.Errorf("error code (%s) message (%s)", r.GetRevokeWalletAddressKey().Code, r.GetRevokeWalletAddressKey().Message)
 	}
 	return nil
 }

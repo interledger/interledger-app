@@ -13,6 +13,7 @@ ROOIBOS_DIR=$(dirname "$0")/../../../rooibos
 [ -d $ROOIBOS_DIR/botanist/envs/local ] && while ! kubectl apply -k $ROOIBOS_DIR/botanist/envs/local; do echo "Retrying to apply botanist resources in 5s."; sleep 5; done
 [ -d $ROOIBOS_DIR/temporal/envs/local ] && while ! kubectl apply -k $ROOIBOS_DIR/temporal/envs/local; do echo "Retrying to apply temporal resources in 5s."; sleep 5; done
 [ -d $ROOIBOS_DIR/mockbos/envs/local ] && while ! kubectl apply -k $ROOIBOS_DIR/mockbos/envs/local; do echo "Retrying to apply mockbos resources in 5s."; sleep 5; done
+[ -d $ROOIBOS_DIR/rafiki/envs/local ] && while ! kubectl apply -k $ROOIBOS_DIR/rafiki/envs/local; do echo "Retrying to apply rafiki resources in 5s."; sleep 5; done
 
 
 # update coredns config to resolve local.fynbos.me to emissary

@@ -2,6 +2,7 @@ package ops
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/rafiki/external"
@@ -16,6 +17,7 @@ type Backends interface {
 	Temporal() temporal.Client
 	LinkedAccounts() linkedaccounts.Client
 	Wallets() wallets.Client
+	Keys() keys.Client
 }
 
 type ActivityBackends interface {

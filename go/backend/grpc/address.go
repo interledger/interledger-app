@@ -38,7 +38,15 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 		return nil, toGRPCError(err)
 	}
 
-	err = g.b.Rafiki().CreatePaymentPointer(ctx, *wallet)
+	var assetCode string
+	switch wallet.Country.String() {
+	case "ZA":
+		assetCode = "ZAR"
+	case "US":
+		assetCode = "USD"
+	}
+
+	err = g.b.Rafiki().CreatePaymentPointer(ctx, *wallet, assetCode)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
