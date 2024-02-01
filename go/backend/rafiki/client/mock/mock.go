@@ -10,6 +10,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	rafiki "gitlab.com/fynbos/backend/rafiki"
 	wallets "gitlab.com/fynbos/backend/wallets"
 )
 
@@ -76,6 +77,50 @@ func (m *MockClient) FundOutgoingPayment(ctx context.Context, paymentID string) 
 func (mr *MockClientMockRecorder) FundOutgoingPayment(ctx, paymentID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FundOutgoingPayment", reflect.TypeOf((*MockClient)(nil).FundOutgoingPayment), ctx, paymentID)
+}
+
+// GetGrant mocks base method.
+func (m *MockClient) GetGrant(ctx context.Context, grantID string) (*rafiki.Grant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGrant", ctx, grantID)
+	ret0, _ := ret[0].(*rafiki.Grant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGrant indicates an expected call of GetGrant.
+func (mr *MockClientMockRecorder) GetGrant(ctx, grantID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGrant", reflect.TypeOf((*MockClient)(nil).GetGrant), ctx, grantID)
+}
+
+// ListGrants mocks base method.
+func (m *MockClient) ListGrants(ctx context.Context, walletID string) ([]rafiki.Grant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListGrants", ctx, walletID)
+	ret0, _ := ret[0].([]rafiki.Grant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListGrants indicates an expected call of ListGrants.
+func (mr *MockClientMockRecorder) ListGrants(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGrants", reflect.TypeOf((*MockClient)(nil).ListGrants), ctx, walletID)
+}
+
+// RevokeGrant mocks base method.
+func (m *MockClient) RevokeGrant(ctx context.Context, grantID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RevokeGrant", ctx, grantID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeGrant indicates an expected call of RevokeGrant.
+func (mr *MockClientMockRecorder) RevokeGrant(ctx, grantID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeGrant", reflect.TypeOf((*MockClient)(nil).RevokeGrant), ctx, grantID)
 }
 
 // RevokePaymentPointerKey mocks base method.

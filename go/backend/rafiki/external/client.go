@@ -92,7 +92,7 @@ func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
 
 func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID string, key keys.Key) error {
 	fmt.Println("CreatePaymentPointerKey Key ID:" + key.ID)
-	r, err := CreateWalletAddressKey(ctx, c.gcl, CreateWalletAddressKeyInput{
+	r, err := CreateWalletAddressKey(ctx, c.backendClient, CreateWalletAddressKeyInput{
 		WalletAddressId: walletAddressID,
 		Jwk: JwkInput{
 			Kid: key.ID,
@@ -115,7 +115,7 @@ func (c client) CreatePaymentPointerKey(ctx context.Context, walletAddressID str
 }
 
 func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error {
-	r, err := RevokeWalletAddressKey(ctx, c.gcl, RevokeWalletAddressKeyInput{
+	r, err := RevokeWalletAddressKey(ctx, c.backendClient, RevokeWalletAddressKeyInput{
 		Id: keyID,
 	})
 	if err != nil {
