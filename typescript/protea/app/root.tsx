@@ -88,6 +88,7 @@ export const meta: MetaFunction = () => [
 
 export const links: LinksFunction = () => {
   return [
+    { rel: 'monetization', href: 'https://eu1.fynbos.me/yourunclebob' },
     { rel: 'stylesheet', href: styles },
     { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico?v=2' }
   ]

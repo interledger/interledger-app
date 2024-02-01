@@ -194,8 +194,8 @@ func start(args *cli.StartArgs) {
 	router.Handle("/webhooks/pti", ptiWebhook)
 	router.Handle("/webhooks/astra/updates", b.Astra().WebhookHandler())
 	router.Handle("/webhooks/astra/wallet/{id}", b.Astra().TrustedAuthInfoWebhook())
-	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.NewGetIdentityHandler(b))
-	router.NotFound(wallet_handler.NewWalletRedirectHandler(b))
+	router.Handle("/{wallet_id}/identities/{identity_sig_hash}", wallet_handler.GetIdentityHandler(b))
+	router.NotFound(wallet_handler.WalletRedirectHandler(b))
 
 	var wg sync.WaitGroup
 	serveHTTP(&http.Server{Addr: ":" + args.AuthorisationPort, Handler: auth_http.AuthorisationHTTPHandler(b)}, &wg)
@@ -268,7 +268,7 @@ func serveHTTP(server *http.Server, wg *sync.WaitGroup) {
 	go func() {
 		err := server.ListenAndServe()
 		// http.ErrServerClosed is returned immediately after Shutdown is called.
-		//Don't panic and let the HTTP shutdown inside the 30-second timeout.
+		// Don't panic and let the HTTP shutdown inside the 30-second timeout.
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal("failed to start HTTP server", zap.Error(err))
 		}
@@ -462,7 +462,6 @@ func (b backends) AWS() aws.Client {
 
 func (b backends) DynamicForms() dynamicforms.Client {
 	return b.dynamicforms
-
 }
 
 func (b backends) Slack() slack.Client {

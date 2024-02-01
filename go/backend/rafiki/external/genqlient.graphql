@@ -1,9 +1,9 @@
-mutation CreatePaymentPointer($input: CreatePaymentPointerInput!){
-    createPaymentPointer(input: $input) {
+mutation CreateWalletAddress($input: CreateWalletAddressInput!){
+    createWalletAddress(input: $input) {
         code
         success
         message
-        paymentPointer {
+        walletAddress {
             id
         }
     }
@@ -12,6 +12,27 @@ mutation DepositEventLiquidity($input: DepositEventLiquidityInput!) {
     depositEventLiquidity(input: $input) {
         code
         error
+        success
+        message
+    }
+}
+mutation CreateWalletAddressKey($input: CreateWalletAddressKeyInput!){
+    createWalletAddressKey(input: $input) {
+        code
+        success
+        message
+        walletAddressKey {
+            id
+            walletAddressId
+            jwk {
+                kid
+            }
+        }
+    }
+}
+mutation RevokeWalletAddressKey($input: RevokeWalletAddressKeyInput!){
+    revokeWalletAddressKey(input: $input) {
+        code
         success
         message
     }
