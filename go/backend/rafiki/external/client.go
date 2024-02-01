@@ -129,7 +129,7 @@ func (c client) RevokePaymentPointerKey(ctx context.Context, keyID string) error
 }
 
 func (c client) ListGrants(ctx context.Context, paymentPointer string) ([]ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error) {
-	r, err := ListGrants(ctx, c.authClient, "", "", 100, 0, GrantFilter{
+	r, err := ListGrants(ctx, c.authClient, GrantFilter{
 		Identifier: FilterString{In: []string{paymentPointer}},
 		State:      FilterGrantState{In: []GrantState{GrantStateApproved, GrantStatePending, GrantStateApproved}},
 	})

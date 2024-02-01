@@ -57,12 +57,8 @@ query GetGrant ($id: ID!) {
     }
 }
 
-query ListGrants ($after: String, $before: String, $first: Int, $last: Int, $filter: GrantFilter) {
+query ListGrants ($filter: GrantFilter) {
     grants (
-        after: $after,
-        before: $before,
-        first: $first,
-        last: $last,
         filter: $filter
     ) {
         pageInfo {
