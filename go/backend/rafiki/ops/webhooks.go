@@ -233,10 +233,12 @@ func incomingPaymentHandle(ctx context.Context, b Backends, hookType string, dat
 	completed := payment.Payment.Completed || hookType == "incoming_payment.completed" || hookType == "incoming_payment.expired"
 
 	var amt uint64
-	amt, err = strconv.ParseUint(payment.Payment.ReceivedAmount.Value, 10, 64)
-	if err != nil {
-		log.Error("failed to convert rafiki incoming payment amount", zap.Error(err))
-		return err
+	if payment.Payment.ReceivedAmount.Value != "" {
+		amt, err = strconv.ParseUint(payment.Payment.ReceivedAmount.Value, 10, 64)
+		if err != nil {
+			log.Error("failed to convert rafiki incoming payment amount", zap.Error(err))
+			return err
+		}
 	}
 
 	_, err = b.DB().ExecContext(ctx, `INSERT INTO rafiki_incoming_payments 
@@ -246,6 +248,7 @@ func incomingPaymentHandle(ctx context.Context, b Backends, hookType string, dat
     DO UPDATE SET 
                 completed = EXCLUDED.completed, 
                 received_amount = EXCLUDED.received_amount,
+      			received_amount_asset = EXCLUDED.received_amount_asset,
                 updated_at = now()`, payment.Payment.ID, payment.Payment.PaymentPointerID, completed, amt, payment.Payment.ReceivedAmount.AssetCode)
 	if err != nil {
 		log.Error("failed to upsert rafiki incoming payment", zap.Error(err))
