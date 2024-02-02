@@ -143,14 +143,6 @@ func main() {
 		if err != nil {
 			return err
 		}
-		err = CreateUser(ctx, "omer", pulumi.StringArray{
-			userSelfMgmtGroup.Name,
-			accSharedReadAccessGroup.Name,
-			accDevFullAccessGroup.Name,
-		}, "keybase:omertoast", provider)
-		if err != nil {
-			return err
-		}
 
 		err = CreateUser(ctx, "barnard", pulumi.StringArray{
 			userSelfMgmtGroup.Name,
