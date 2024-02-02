@@ -36,7 +36,7 @@ type AccessAction =
   | 'list'
   | 'list-all'
 
-export async function GetInteraction(
+export async function getInteraction(
   interactionId: string,
   nonce: string
 ): Promise<Access[]> {
@@ -51,7 +51,7 @@ export async function GetInteraction(
   return body.access
 }
 
-export async function Consent(
+export async function consent(
   interactionId: string,
   nonce: string,
   userDecision: 'accept' | 'reject'
