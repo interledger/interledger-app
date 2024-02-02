@@ -120,3 +120,52 @@ func RevokePaymentPointerKey(ctx context.Context, b Backends, keyID string) erro
 	}
 	return nil
 }
+
+func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Grant, error) {
+	w, err := b.Wallets().Get(ctx, walletID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	grants, err := b.External().ListGrants(ctx, w.AddressString())
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	var resp []rafiki.Grant
+	for _, g := range grants {
+		resp = append(resp, rafiki.Grant{
+			Id:                 g.Id,
+			Client:             g.Client,
+			State:              string(g.State),
+			FinalizationReason: string(g.FinalizationReason),
+			CreatedAt:          g.CreatedAt,
+		})
+	}
+
+	return resp, err
+}
+
+func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, error) {
+	g, err := b.External().GetGrant(ctx, grantID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return &rafiki.Grant{
+		Id:                 g.Id,
+		Client:             g.Client,
+		State:              string(g.State),
+		FinalizationReason: string(g.FinalizationReason),
+		CreatedAt:          g.CreatedAt,
+	}, nil
+}
+
+func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
+	err := b.External().RevokeGrant(ctx, grantID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	return nil
+}

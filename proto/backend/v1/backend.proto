@@ -154,6 +154,31 @@ service BackendService {
   // Astra
   rpc AstraDepositFromCard(AstraDepositFromCardRequest) returns (Payment);
   rpc AstraWithdrawToCard(AstraWithdrawToCardRequest) returns (Payment);
+
+  // Rafiki
+  rpc ListRafikiGrants(Empty) returns (ListRafikiGrantsResponse);
+  rpc GetRafikiGrant(GetRafikiGrantRequest) returns (RafikiGrant);
+  rpc RevokeRafikiGrant(RevokeRafikiGrantRequest) returns (Empty);
+}
+
+message RevokeRafikiGrantRequest {
+  string id = 1;
+}
+
+message GetRafikiGrantRequest{
+  string id = 1;
+}
+
+message ListRafikiGrantsResponse {
+  repeated RafikiGrant grants = 1;
+}
+
+message RafikiGrant {
+  string id = 1;
+  string client = 2;
+  string state = 3;
+  string finalizationReason = 4;
+  string createdAt = 5;
 }
 
 message AstraDepositFromCardRequest {

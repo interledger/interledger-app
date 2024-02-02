@@ -107,6 +107,9 @@ const (
 	BackendService_GetPtiBalances_FullMethodName                 = "/backend.v1.BackendService/GetPtiBalances"
 	BackendService_AstraDepositFromCard_FullMethodName           = "/backend.v1.BackendService/AstraDepositFromCard"
 	BackendService_AstraWithdrawToCard_FullMethodName            = "/backend.v1.BackendService/AstraWithdrawToCard"
+	BackendService_ListRafikiGrants_FullMethodName               = "/backend.v1.BackendService/ListRafikiGrants"
+	BackendService_GetRafikiGrant_FullMethodName                 = "/backend.v1.BackendService/GetRafikiGrant"
+	BackendService_RevokeRafikiGrant_FullMethodName              = "/backend.v1.BackendService/RevokeRafikiGrant"
 )
 
 // BackendServiceClient is the client API for BackendService service.
@@ -227,6 +230,10 @@ type BackendServiceClient interface {
 	// Astra
 	AstraDepositFromCard(ctx context.Context, in *AstraDepositFromCardRequest, opts ...grpc.CallOption) (*Payment, error)
 	AstraWithdrawToCard(ctx context.Context, in *AstraWithdrawToCardRequest, opts ...grpc.CallOption) (*Payment, error)
+	// Rafiki
+	ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error)
+	GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error)
+	RevokeRafikiGrant(ctx context.Context, in *RevokeRafikiGrantRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type backendServiceClient struct {
@@ -1029,6 +1036,33 @@ func (c *backendServiceClient) AstraWithdrawToCard(ctx context.Context, in *Astr
 	return out, nil
 }
 
+func (c *backendServiceClient) ListRafikiGrants(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ListRafikiGrantsResponse, error) {
+	out := new(ListRafikiGrantsResponse)
+	err := c.cc.Invoke(ctx, BackendService_ListRafikiGrants_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) GetRafikiGrant(ctx context.Context, in *GetRafikiGrantRequest, opts ...grpc.CallOption) (*RafikiGrant, error) {
+	out := new(RafikiGrant)
+	err := c.cc.Invoke(ctx, BackendService_GetRafikiGrant_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendServiceClient) RevokeRafikiGrant(ctx context.Context, in *RevokeRafikiGrantRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, BackendService_RevokeRafikiGrant_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServiceServer is the server API for BackendService service.
 // All implementations should embed UnimplementedBackendServiceServer
 // for forward compatibility
@@ -1147,6 +1181,10 @@ type BackendServiceServer interface {
 	// Astra
 	AstraDepositFromCard(context.Context, *AstraDepositFromCardRequest) (*Payment, error)
 	AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error)
+	// Rafiki
+	ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error)
+	GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error)
+	RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error)
 }
 
 // UnimplementedBackendServiceServer should be embedded to have forward compatible implementations.
@@ -1416,6 +1454,15 @@ func (UnimplementedBackendServiceServer) AstraDepositFromCard(context.Context, *
 }
 func (UnimplementedBackendServiceServer) AstraWithdrawToCard(context.Context, *AstraWithdrawToCardRequest) (*Payment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AstraWithdrawToCard not implemented")
+}
+func (UnimplementedBackendServiceServer) ListRafikiGrants(context.Context, *Empty) (*ListRafikiGrantsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRafikiGrants not implemented")
+}
+func (UnimplementedBackendServiceServer) GetRafikiGrant(context.Context, *GetRafikiGrantRequest) (*RafikiGrant, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRafikiGrant not implemented")
+}
+func (UnimplementedBackendServiceServer) RevokeRafikiGrant(context.Context, *RevokeRafikiGrantRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeRafikiGrant not implemented")
 }
 
 // UnsafeBackendServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -3013,6 +3060,60 @@ func _BackendService_AstraWithdrawToCard_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackendService_ListRafikiGrants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).ListRafikiGrants(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_ListRafikiGrants_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).ListRafikiGrants(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_GetRafikiGrant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRafikiGrantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).GetRafikiGrant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_GetRafikiGrant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).GetRafikiGrant(ctx, req.(*GetRafikiGrantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BackendService_RevokeRafikiGrant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeRafikiGrantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServiceServer).RevokeRafikiGrant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackendService_RevokeRafikiGrant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServiceServer).RevokeRafikiGrant(ctx, req.(*RevokeRafikiGrantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackendService_ServiceDesc is the grpc.ServiceDesc for BackendService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -3371,6 +3472,18 @@ var BackendService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AstraWithdrawToCard",
 			Handler:    _BackendService_AstraWithdrawToCard_Handler,
+		},
+		{
+			MethodName: "ListRafikiGrants",
+			Handler:    _BackendService_ListRafikiGrants_Handler,
+		},
+		{
+			MethodName: "GetRafikiGrant",
+			Handler:    _BackendService_GetRafikiGrant_Handler,
+		},
+		{
+			MethodName: "RevokeRafikiGrant",
+			Handler:    _BackendService_RevokeRafikiGrant_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

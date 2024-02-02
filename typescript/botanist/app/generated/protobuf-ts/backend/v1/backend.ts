@@ -32,6 +32,58 @@ export interface PaginationRequest {
 export interface Empty {
 }
 /**
+ * @generated from protobuf message backend.v1.RevokeRafikiGrantRequest
+ */
+export interface RevokeRafikiGrantRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.GetRafikiGrantRequest
+ */
+export interface GetRafikiGrantRequest {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+}
+/**
+ * @generated from protobuf message backend.v1.ListRafikiGrantsResponse
+ */
+export interface ListRafikiGrantsResponse {
+    /**
+     * @generated from protobuf field: repeated backend.v1.RafikiGrant grants = 1;
+     */
+    grants: RafikiGrant[];
+}
+/**
+ * @generated from protobuf message backend.v1.RafikiGrant
+ */
+export interface RafikiGrant {
+    /**
+     * @generated from protobuf field: string id = 1;
+     */
+    id: string;
+    /**
+     * @generated from protobuf field: string client = 2;
+     */
+    client: string;
+    /**
+     * @generated from protobuf field: string state = 3;
+     */
+    state: string;
+    /**
+     * @generated from protobuf field: string finalizationReason = 4;
+     */
+    finalizationReason: string;
+    /**
+     * @generated from protobuf field: string createdAt = 5;
+     */
+    createdAt: string;
+}
+/**
  * @generated from protobuf message backend.v1.AstraDepositFromCardRequest
  */
 export interface AstraDepositFromCardRequest {
@@ -2337,6 +2389,222 @@ class Empty$Type extends MessageType<Empty> {
  * @generated MessageType for protobuf message backend.v1.Empty
  */
 export const Empty = new Empty$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RevokeRafikiGrantRequest$Type extends MessageType<RevokeRafikiGrantRequest> {
+    constructor() {
+        super("backend.v1.RevokeRafikiGrantRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<RevokeRafikiGrantRequest>): RevokeRafikiGrantRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RevokeRafikiGrantRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RevokeRafikiGrantRequest): RevokeRafikiGrantRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RevokeRafikiGrantRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.RevokeRafikiGrantRequest
+ */
+export const RevokeRafikiGrantRequest = new RevokeRafikiGrantRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GetRafikiGrantRequest$Type extends MessageType<GetRafikiGrantRequest> {
+    constructor() {
+        super("backend.v1.GetRafikiGrantRequest", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<GetRafikiGrantRequest>): GetRafikiGrantRequest {
+        const message = { id: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<GetRafikiGrantRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetRafikiGrantRequest): GetRafikiGrantRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: GetRafikiGrantRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.GetRafikiGrantRequest
+ */
+export const GetRafikiGrantRequest = new GetRafikiGrantRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListRafikiGrantsResponse$Type extends MessageType<ListRafikiGrantsResponse> {
+    constructor() {
+        super("backend.v1.ListRafikiGrantsResponse", [
+            { no: 1, name: "grants", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => RafikiGrant }
+        ]);
+    }
+    create(value?: PartialMessage<ListRafikiGrantsResponse>): ListRafikiGrantsResponse {
+        const message = { grants: [] };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<ListRafikiGrantsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ListRafikiGrantsResponse): ListRafikiGrantsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated backend.v1.RafikiGrant grants */ 1:
+                    message.grants.push(RafikiGrant.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: ListRafikiGrantsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated backend.v1.RafikiGrant grants = 1; */
+        for (let i = 0; i < message.grants.length; i++)
+            RafikiGrant.internalBinaryWrite(message.grants[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.ListRafikiGrantsResponse
+ */
+export const ListRafikiGrantsResponse = new ListRafikiGrantsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RafikiGrant$Type extends MessageType<RafikiGrant> {
+    constructor() {
+        super("backend.v1.RafikiGrant", [
+            { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "client", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "finalizationReason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<RafikiGrant>): RafikiGrant {
+        const message = { id: "", client: "", state: "", finalizationReason: "", createdAt: "" };
+        globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            reflectionMergePartial<RafikiGrant>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RafikiGrant): RafikiGrant {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string id */ 1:
+                    message.id = reader.string();
+                    break;
+                case /* string client */ 2:
+                    message.client = reader.string();
+                    break;
+                case /* string state */ 3:
+                    message.state = reader.string();
+                    break;
+                case /* string finalizationReason */ 4:
+                    message.finalizationReason = reader.string();
+                    break;
+                case /* string createdAt */ 5:
+                    message.createdAt = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: RafikiGrant, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string id = 1; */
+        if (message.id !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.id);
+        /* string client = 2; */
+        if (message.client !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.client);
+        /* string state = 3; */
+        if (message.state !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.state);
+        /* string finalizationReason = 4; */
+        if (message.finalizationReason !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.finalizationReason);
+        /* string createdAt = 5; */
+        if (message.createdAt !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.createdAt);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message backend.v1.RafikiGrant
+ */
+export const RafikiGrant = new RafikiGrant$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class AstraDepositFromCardRequest$Type extends MessageType<AstraDepositFromCardRequest> {
     constructor() {
@@ -10352,5 +10620,8 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "GetXagoDepositDetails", options: {}, I: GetXagoDepositDetailsRequest, O: GetXagoDepositDetailsResponse },
     { name: "GetPtiBalances", options: {}, I: Empty, O: GetPtiBalancesResponse },
     { name: "AstraDepositFromCard", options: {}, I: AstraDepositFromCardRequest, O: Payment },
-    { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment }
+    { name: "AstraWithdrawToCard", options: {}, I: AstraWithdrawToCardRequest, O: Payment },
+    { name: "ListRafikiGrants", options: {}, I: Empty, O: ListRafikiGrantsResponse },
+    { name: "GetRafikiGrant", options: {}, I: GetRafikiGrantRequest, O: RafikiGrant },
+    { name: "RevokeRafikiGrant", options: {}, I: RevokeRafikiGrantRequest, O: Empty }
 ]);
