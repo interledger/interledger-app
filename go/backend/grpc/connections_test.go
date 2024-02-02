@@ -33,10 +33,7 @@ func TestCreatePublicKey(t *testing.T) {
 	}
 	c.walletImpl.EXPECT().List(gomock.Any(), u.ID).Return([]wallets.Wallet{wallet}, nil).AnyTimes()
 	c.walletImpl.EXPECT().ForContext(gomock.Any()).Return(&wallet, nil).AnyTimes()
-
-	pemEncodedPublicKey := `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
------END PUBLIC KEY-----`
+	base64EncodedJWK := "ewogICJrdHkiOiAiT0tQIiwKICAiY3J2IjogIkVkMjU1MTkiLAogICJraWQiOiAidGVzdC1rZXktZWQyNTUxOSIsCiAgImQiOiAibjROaS1IcElTcFZPYm5RTVcwd09oQ0tST2FJS3FLdFdfMlpZYjJwOUtjVSIsCiAgIngiOiAiSnJRTGo1UF84OWlYRVM5LXZGZ3JJeTI5Y2xGOUNDX29QUHN3M2M1RDBicyIKfQ=="
 	base64PublicKey := "JrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs="
 
 	keyID := uuid.NewString()
@@ -73,7 +70,7 @@ MCowBQYDK2VwAyEAJrQLj5P/89iXES9+vFgrIy29clF9CC/oPPsw3c5D0bs=
 
 	_, err := client.CreateConnection(user_mock.ActingAsContext(t, context.Background(), u), &backendv1.CreateConnectionRequest{
 		ApplicationName: "FynTest",
-		PublicKey:       pemEncodedPublicKey,
+		PublicKey:       base64EncodedJWK,
 		DailyLimit: &backendv1.Amount{
 			Asset:      "USD",
 			AssetScale: 2,
