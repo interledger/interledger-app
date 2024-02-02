@@ -2,11 +2,12 @@ package grpc
 
 import (
 	"context"
-	"crypto/ed25519"
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
+	"errors"
+	"fmt"
+	"strings"
 
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/limits"
@@ -44,23 +45,32 @@ func (s *rpcService) CreateConnection(
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
-
-	pemBlock, _ := pem.Decode([]byte(req.GetPublicKey()))
-	if pemBlock.Type != "PUBLIC KEY" {
-		return nil, NewValidationError("PublicKey", "Must be an Ed25519 public key in pem format.")
-	}
-
-	pub, err := x509.ParsePKIXPublicKey(pemBlock.Bytes)
+	jsonJWK, err := base64.StdEncoding.DecodeString(req.GetPublicKey())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
-	ed25519PubKey, ok := pub.(ed25519.PublicKey)
-	if !ok {
-		return nil, NewValidationError("PublicKey", "Must be an Ed25519 public key in pem format.")
+	parsedKey, err := jwk.ParseKey(jsonJWK)
+	if err != nil {
+		return nil, toGRPCError(err)
 	}
 
-	key, err := s.b.Keys().AddPublicKey(ctx, wallet.ID, base64.StdEncoding.EncodeToString(ed25519PubKey), req.GetApplicationName())
+	rawAlg, ok := parsedKey.Get("crv")
+	if !ok {
+		return nil, toGRPCError(errors.New("Failed to parse jwk"))
+	}
+
+	if !strings.EqualFold(fmt.Sprintf("%+v", rawAlg), "Ed25519") {
+		return nil, NewValidationError("PublicKey", "Must be an Ed25519 public key.")
+	}
+
+	n, _ := parsedKey.Get("x")
+	nn, ok := n.([]byte)
+	if !ok {
+		return nil, toGRPCError(errors.New("Failed to parse jwk"))
+	}
+
+	key, err := s.b.Keys().AddPublicKey(ctx, wallet.ID, base64.StdEncoding.EncodeToString(nn), req.GetApplicationName())
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
