@@ -7,7 +7,14 @@ import type { UIMatch } from '@remix-run/react'
 import { Form, useLoaderData } from '@remix-run/react'
 import { route } from 'routes-gen'
 import type { ApplicationProps } from '~/components'
-import { Card, CardContent, Layouts, OutlineButton } from '~/components'
+import {
+  Card,
+  CardContent,
+  Chip,
+  ChipColor,
+  Layouts,
+  OutlineButton
+} from '~/components'
 import { jsonWithCSRF, validateCSRFToken } from '~/lib/csrf.server'
 import { isConnectError } from '~/lib/error.server'
 import { grpc } from '~/lib/grpc.server'
@@ -19,7 +26,33 @@ export const handle: ApplicationProps = {
   scaffold: {
     header: {
       back: '/settings/keys',
-      title: (match: UIMatch<typeof loader>) => match.data.grant.client
+      title: (match: UIMatch<typeof loader>) => match.data.grant.client,
+      actions: (match: UIMatch<typeof loader>) => {
+        switch (match.data.grant.state) {
+          case 'GRANTED':
+            return {
+              key: 'Approved',
+              nodes: <Chip color={ChipColor.green}>Approved</Chip>
+            }
+          case 'PENDING':
+            return {
+              key: 'Pending',
+              nodes: <Chip color={ChipColor.orange}>Pending</Chip>
+            }
+          case 'REJECTED':
+            return {
+              key: 'Rejected',
+              nodes: <Chip color={ChipColor.red}>Rejected</Chip>
+            }
+          case 'REVOKED':
+            return {
+              key: 'Revoked',
+              nodes: <Chip color={ChipColor.red}>Revoked</Chip>
+            }
+          default:
+            return null
+        }
+      }
     }
   }
 }
