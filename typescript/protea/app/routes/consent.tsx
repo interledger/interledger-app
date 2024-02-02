@@ -18,7 +18,7 @@ import {
 import { getWalletInfo } from '~/data/wallet.server'
 import { mergeMeta } from '~/lib/meta'
 import type { Amount } from '~/lib/rafikiauth'
-import { Consent, GetInteraction } from '~/lib/rafikiauth'
+import { consent, getInteraction } from '~/lib/rafikiauth'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   if (process.env.FYNBOS_ENV == 'prod') {
@@ -30,24 +30,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let nonce = url.searchParams.get('nonce') || ''
   let clientName = url.searchParams.get('clientName') || ''
   let clientUri = url.searchParams.get('clientUri') || ''
-  let grants = await GetInteraction(interactId, nonce)
+  let grants = await getInteraction(interactId, nonce)
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
     throw json({}, 404)
-  }
-
-  let walletInfo = await getWalletInfo(request)
-  let ownsResource = true
-  grants.forEach((a) => {
-    if (!a.identifier) {
-      ownsResource = false
-    } else if (!a.identifier.includes(walletInfo.url)) {
-      ownsResource = false
-    }
-  })
-  if (!ownsResource) {
-    throw json({}, 403)
   }
 
   return json({
@@ -206,7 +193,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const interactId = String(form.get('interactId') || '')
   const nonce = String(form.get('nonce') || '')
 
-  let grants = await GetInteraction(interactId, nonce)
+  let grants = await getInteraction(interactId, nonce)
 
   // there should be a grant. Throw 404 for now.
   if (grants.length < 1) {
@@ -228,7 +215,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   let userDecision: 'accept' | 'reject' =
     action == 'approve' ? 'accept' : 'reject'
-  await Consent(interactId, nonce, userDecision)
+  await consent(interactId, nonce, userDecision)
 
   let publicOpenPaymentsAuthHost = 'fynbos.me'
   if (process.env.FYNBOS_ENV == 'dev') {
