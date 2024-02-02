@@ -60,6 +60,10 @@ export default function Page() {
             <span className='text-weak'>Client</span>
             <span className='text-medium'>{grant.client}</span>
           </div>
+          <div className='flex w-full justify-between'>
+            <span className='text-weak'>Created</span>
+            <span className='text-medium'>{grant.createdAt}</span>
+          </div>
         </CardContent>
       </Card>
 

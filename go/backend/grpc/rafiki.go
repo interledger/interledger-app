@@ -29,6 +29,7 @@ func (s *rpcService) ListRafikiGrants(ctx context.Context, _ *pb.Empty) (*pb.Lis
 			Client:             g.Client,
 			State:              g.State,
 			FinalizationReason: g.FinalizationReason,
+			CreatedAt:          g.CreatedAt,
 		}
 	}
 
@@ -56,6 +57,7 @@ func (s *rpcService) GetRafikiGrant(ctx context.Context, req *pb.GetRafikiGrantR
 		Client:             g.Client,
 		State:              g.State,
 		FinalizationReason: g.FinalizationReason,
+		CreatedAt:          g.CreatedAt,
 	}, nil
 }
 

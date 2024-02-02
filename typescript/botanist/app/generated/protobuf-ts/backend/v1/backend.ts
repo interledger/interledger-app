@@ -78,6 +78,10 @@ export interface RafikiGrant {
      * @generated from protobuf field: string finalizationReason = 4;
      */
     finalizationReason: string;
+    /**
+     * @generated from protobuf field: string createdAt = 5;
+     */
+    createdAt: string;
 }
 /**
  * @generated from protobuf message backend.v1.AstraDepositFromCardRequest
@@ -2533,11 +2537,12 @@ class RafikiGrant$Type extends MessageType<RafikiGrant> {
             { no: 1, name: "id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "client", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "state", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "finalizationReason", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 4, name: "finalizationReason", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "createdAt", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<RafikiGrant>): RafikiGrant {
-        const message = { id: "", client: "", state: "", finalizationReason: "" };
+        const message = { id: "", client: "", state: "", finalizationReason: "", createdAt: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<RafikiGrant>(this, message, value);
@@ -2559,6 +2564,9 @@ class RafikiGrant$Type extends MessageType<RafikiGrant> {
                     break;
                 case /* string finalizationReason */ 4:
                     message.finalizationReason = reader.string();
+                    break;
+                case /* string createdAt */ 5:
+                    message.createdAt = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -2584,6 +2592,9 @@ class RafikiGrant$Type extends MessageType<RafikiGrant> {
         /* string finalizationReason = 4; */
         if (message.finalizationReason !== "")
             writer.tag(4, WireType.LengthDelimited).string(message.finalizationReason);
+        /* string createdAt = 5; */
+        if (message.createdAt !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.createdAt);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
