@@ -10,4 +10,5 @@ type Grant struct {
 	Client             string
 	State              string
 	FinalizationReason string
+	CreatedAt          string
 }

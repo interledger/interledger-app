@@ -178,6 +178,7 @@ message RafikiGrant {
   string client = 2;
   string state = 3;
   string finalizationReason = 4;
+  string createdAt = 5;
 }
 
 message AstraDepositFromCardRequest {

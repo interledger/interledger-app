@@ -139,6 +139,7 @@ func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Gran
 			Client:             g.Client,
 			State:              string(g.State),
 			FinalizationReason: string(g.FinalizationReason),
+			CreatedAt:          g.CreatedAt,
 		})
 	}
 
@@ -156,6 +157,7 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 		Client:             g.Client,
 		State:              string(g.State),
 		FinalizationReason: string(g.FinalizationReason),
+		CreatedAt:          g.CreatedAt,
 	}, nil
 }
 
