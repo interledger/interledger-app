@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"gitlab.com/fynbos/env"
 
@@ -25,14 +26,17 @@ type webhook struct {
 }
 
 type incomingPaymentData struct {
-	Payment struct {
-		ID               string `json:"id"`
-		PaymentPointerID string `json:"paymentPointerId"`
-		CreatedAt        string `json:"createdAt"`
-		ExpiresAt        string `json:"expiresAt"`
-		ReceivedAmount   amount `json:"receivedAmount"`
-		Completed        bool   `json:"completed"`
-	} `json:"incomingPayment"`
+	ID              string    `json:"id"`
+	WalletAddressID string    `json:"walletAddressId"`
+	CreatedAt       time.Time `json:"createdAt"`
+	ExpiresAt       time.Time `json:"expiresAt"`
+	ReceivedAmount  amount    `json:"receivedAmount"`
+	Completed       bool      `json:"completed"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	IncomingAmount  amount    `json:"incomingAmount"`
+	Metadata        struct {
+		Description string `json:"description"`
+	} `json:"metadata"`
 }
 
 type outgoingPaymentData struct {
@@ -236,11 +240,11 @@ func incomingPaymentHandle(ctx context.Context, b Backends, hookType string, dat
 		return err
 	}
 
-	completed := payment.Payment.Completed || hookType == "incoming_payment.completed" || hookType == "incoming_payment.expired"
+	completed := payment.Completed || hookType == "incoming_payment.completed" || hookType == "incoming_payment.expired"
 
 	var amt uint64
-	if payment.Payment.ReceivedAmount.Value != "" {
-		amt, err = strconv.ParseUint(payment.Payment.ReceivedAmount.Value, 10, 64)
+	if payment.ReceivedAmount.Value != "" {
+		amt, err = strconv.ParseUint(payment.ReceivedAmount.Value, 10, 64)
 		if err != nil {
 			log.Error("failed to convert rafiki incoming payment amount", zap.Error(err))
 			return err
@@ -255,7 +259,7 @@ func incomingPaymentHandle(ctx context.Context, b Backends, hookType string, dat
                 completed = EXCLUDED.completed, 
                 received_amount = EXCLUDED.received_amount,
       			received_amount_asset = EXCLUDED.received_amount_asset,
-                updated_at = now()`, payment.Payment.ID, payment.Payment.PaymentPointerID, completed, amt, payment.Payment.ReceivedAmount.AssetCode)
+                updated_at = now()`, payment.ID, payment.WalletAddressID, completed, amt, payment.ReceivedAmount.AssetCode)
 	if err != nil {
 		log.Error("failed to upsert rafiki incoming payment", zap.Error(err))
 		return err
