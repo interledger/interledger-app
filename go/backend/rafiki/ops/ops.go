@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.com/fynbos/backend/db"
 
@@ -134,11 +135,14 @@ func ListGrants(ctx context.Context, b Backends, walletID string) ([]rafiki.Gran
 
 	var resp []rafiki.Grant
 	for _, g := range grants {
+		// 2024-02-01T14:17:12.219Z - comes from rafiki like this
+		createdAt, _ := time.Parse(time.RFC3339, g.CreatedAt)
 		resp = append(resp, rafiki.Grant{
 			Id:                 g.Id,
 			Client:             g.Client,
 			State:              string(g.State),
 			FinalizationReason: string(g.FinalizationReason),
+			CreatedAt:          createdAt.Format("2 Jan 2006 - 15:04"),
 		})
 	}
 
@@ -151,11 +155,14 @@ func GetGrant(ctx context.Context, b Backends, grantID string) (*rafiki.Grant, e
 		return nil, fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
+	createdAt, _ := time.Parse(time.RFC3339, g.CreatedAt)
+
 	return &rafiki.Grant{
 		Id:                 g.Id,
 		Client:             g.Client,
 		State:              string(g.State),
 		FinalizationReason: string(g.FinalizationReason),
+		CreatedAt:          createdAt.Format("2 Jan 2006 - 15:04"),
 	}, nil
 }
 

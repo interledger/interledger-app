@@ -58,7 +58,7 @@ export default function Page() {
               <div key={grant.id} className='flex-col'>
                 <p className='font-medium text-medium'>{grant.client}</p>
                 <p className='mt-2 text-sm text-medium'>
-                  Created {grant.finalizationReason}
+                  Created {grant.createdAt}
                 </p>
               </div>
               <Icon>navigate_next</Icon>
