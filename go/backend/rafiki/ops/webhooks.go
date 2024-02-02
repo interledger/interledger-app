@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"gitlab.com/fynbos/env"
+
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/wallets"
@@ -66,6 +68,10 @@ func EventWebhook(b Backends) http.HandlerFunc {
 			log.Error("failed to read rafiki webhook body", zap.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
+		}
+
+		if !env.IsProd() {
+			log.Info("rafiki webhook dump", zap.String("json", string(raw)))
 		}
 
 		var hook webhook
