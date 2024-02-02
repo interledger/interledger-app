@@ -89,6 +89,7 @@ export default function Page() {
           label='Public key'
           name='publicKey'
           className='mt-4'
+          placeholder='ewogICJrdHkiOiAiT0tQIiwKICAiY3J2IjogIkVkMjU1MTkiLAogICJraWQiOiAidGVzdC1rZXktZWQyNTUxOSIsCiAgImQiOiAibjROaS1IcElTcFZPYm5RTVcwd09oQ0tST2FJS3FLdFdfMlpZYjJwOUtjVSIsCiAgIngiOiAiSnJRTGo1UF84OWlYRVM5LXZGZ3JJeTI5Y2xGOUNDX29QUHN3M2M1RDBicyIKfQ=='
           aria-invalid={Boolean(actionData?.errors.publicKey) || undefined}
           aria-describedby={
             actionData?.errors.publicKey ? 'publicKey-error' : undefined
