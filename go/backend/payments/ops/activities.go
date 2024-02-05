@@ -55,14 +55,12 @@ func (a *Activity) SetPaymentStateComplete(ctx context.Context, id string) error
 		return nil
 	}
 
-	// No emails configured for withdrawal or deposit
-	if payment.Type == payments.TypeWithdrawal || payment.Type == payments.TypeDeposit {
+	// No emails for web monetization
+	if payments.TypeWebMonetization == payment.Type {
 		return nil
 	}
 
-	if payment.Type != payments.TypeWebMonetization {
-		a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
-	}
+	a.b.Email().SendPaymentSentEmailV2(ctx, payment.Sender.WalletID, payment)
 
 	a.b.Email().SendPaymentReceivedEmailV2(ctx, payment.Receiver.WalletID, payment)
 
@@ -105,6 +103,10 @@ func (a *Activity) SetPaymentStateFailed(ctx context.Context, id string) error {
 
 	if payment.Type == payments.TypeDeposit {
 		a.b.Email().SendDepositFailedEmail(ctx, payment.Sender.WalletID)
+		return nil
+	}
+
+	if payment.Type == payments.TypeWebMonetization {
 		return nil
 	}
 
