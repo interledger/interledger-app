@@ -7,6 +7,7 @@ import {
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
+import { captureMessage } from '@sentry/remix'
 
 const token = process.env.DATO_API_TOKEN || ''
 
@@ -30,6 +31,13 @@ const authLink = setContext((_, { headers }) => {
 })
 
 const errorLink = onError((err) => {
+  captureMessage('Error received in apollo client', {
+    extra: {
+      operation: err.operation,
+      graphQLErrors: err.graphQLErrors,
+      networkError: err.networkError
+    }
+  })
   if (err.graphQLErrors) {
     err.graphQLErrors.map(({ extensions }) => {
       if (extensions && extensions.code === 'UNAUTHENTICATED') {
