@@ -21,6 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti/external"
 	external_mock "gitlab.com/fynbos/backend/providers/pti/external/mock"
 	"gitlab.com/fynbos/env"
+	"gitlab.com/fynbos/pacioli"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/temporal"
 )
@@ -340,4 +341,30 @@ func (a *Activity) GetPTITransactionByPaymentID(ctx context.Context, paymentID s
 
 func (a *Activity) GetPTITransaction(ctx context.Context, requestID string) (*external.TransactionStatus, error) {
 	return a.external.GetTransaction(ctx, requestID)
+}
+
+func (a *Activity) CreatePTIBalanceAccount(ctx context.Context, id string) error {
+	accs, err := a.b.Pacioli().ConfigureAccounts(ctx, []pacioli.ConfigureAccountArgs{
+		{
+			ID:                         id,
+			LedgerID:                   pti.LedgerIDUSD,
+			Code:                       1,
+			DebitsMustNotExceedCredits: true,
+			CreditsMustNotExceedDebits: false,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(accs) == 0 {
+		// No error codes to speak of
+		return nil
+	}
+
+	if accs[0].Code != pacioli.AccountOK && accs[0].Code != pacioli.AccountExists {
+		return fmt.Errorf("%w failed to setup account status(%s)", pti.ErrInternal, accs[0].Code)
+	}
+
+	return nil
 }

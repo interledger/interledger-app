@@ -266,9 +266,13 @@ func PayinWorkflow(ctx workflow.Context, paymentID string) error {
 }
 
 func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID string) (string, bool, error) {
-	// Check for deposit type
 	var pt payments.Type
 	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
+	if err != nil {
+		return "", false, err
+	}
+
+	err = workflow.ExecuteActivity(ctx, a.ReserveBalance, paymentID).Get(ctx, nil)
 	if err != nil {
 		return "", false, err
 	}
@@ -281,7 +285,9 @@ func ptiPayIn(ctx workflow.Context, a *Activity, ptiA *pti_ops.Activity, payment
 		}
 
 		return txID, true, nil
-	} else if pt == payments.TypePeer2Peer {
+
+		// Webmonetization is assumed to be Fynbos to Fynbos
+	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
 		var txID string
 		err = workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 			return uuid.NewString()
@@ -511,7 +517,7 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	case xago.ProviderName:
 		externalTXID, success, err = xagoPayOut(ctx, accountsCtx, a, paymentID, txID)
 	case pti.ProviderName:
-		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID)
+		externalTXID, success, err = ptiPayOut(ctx, accountsCtx, a, ptiActivity, paymentID, txID)
 	case astra.ProviderName:
 		externalTXID, success, err = astraPayOut(ctx, a, paymentID)
 	default:
@@ -571,30 +577,27 @@ func PayoutWorkflow(ctx workflow.Context, paymentID string) error {
 	return nil
 }
 
-func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID string) (string, bool, error) {
-	// Check for withdrawal type
+func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Activity, paymentID, trxID string) (string, bool, error) {
 	var pt payments.Type
 	err := workflow.ExecuteActivity(ctx, a.GetPaymentType, paymentID).Get(ctx, &pt)
 	if err != nil {
 		return "", false, err
 	}
 
+	var externalTxID string
 	if pt == payments.TypeDeposit {
 		// Create Deposit
-		var txID string
-		err = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &txID)
+		err = workflow.ExecuteActivity(ctx, a.PTIDeposit, paymentID).Get(ctx, &externalTxID)
 		if err != nil {
 			return "", false, err
 		}
 
 		// Mark deposit as completed, pay in was successful
-		err = workflow.ExecuteActivity(ctx, a.PTIDepositComplete, paymentID, txID, true).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.PTIDepositComplete, paymentID, externalTxID, true).Get(ctx, nil)
 		if err != nil {
 			return "", false, err
 		}
-
-		return txID, true, nil
-	} else if pt == payments.TypePeer2Peer {
+	} else if pt == payments.TypePeer2Peer || pt == payments.TypeWebMonetization {
 		var ptiTrx external.TransactionStatus
 		err = workflow.ExecuteActivity(accountsCtx, ptiA.GetPTITransactionByPaymentID, paymentID).Get(ctx, &ptiTrx)
 		if err != nil {
@@ -607,10 +610,24 @@ func ptiPayOut(ctx, accountsCtx workflow.Context, a *Activity, ptiA *pti_ops.Act
 			return "", false, temporal.NewNonRetryableApplicationError("PTI transaction failed", "ErrInternal", pti.ErrInternal)
 		}
 
-		return ptiTrx.RequestID, true, nil
+		externalTxID = ptiTrx.RequestID
 	}
 
-	return "", false, temporal.NewNonRetryableApplicationError("incorrect payment type for pti pay out flow", "InvalidArgument", pti.ErrInternal, "paymentID", paymentID, "type", pt)
+	// Commit balances for transfers and withdrawals
+	err = workflow.ExecuteActivity(ctx, a.FinalizeBalance, paymentID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	// Assign balances for deposits and p2p receiver
+	err = workflow.ExecuteActivity(ctx, a.AssignBalance, paymentID, trxID).Get(ctx, nil)
+	if err != nil {
+		return "", false, err
+	}
+
+	// TODO: commit all pacioli ledger entries for webmonetization
+
+	return externalTxID, true, nil
 }
 
 func xagoPayOut(ctx, accountsCtx workflow.Context, a *Activity, paymentID, txID string) (string, bool, error) {

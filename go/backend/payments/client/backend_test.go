@@ -165,6 +165,12 @@ func NewTestBackends(t *testing.T) *TestBackends {
 			Asset: currency.USD.String(),
 			Scale: uint8(currency.USD.Scale()),
 		},
+		{
+			ID:    pti.LedgerIDUSD,
+			Name:  "PTI USD Ledger",
+			Asset: currency.USD.String(),
+			Scale: uint8(currency.USD.Scale()),
+		},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -193,6 +199,13 @@ func NewTestBackends(t *testing.T) *TestBackends {
 		{
 			ID:                         rafiki.ZARBalanceAccount,
 			LedgerID:                   xago.LedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         pti.USDOpsAccount,
+			LedgerID:                   pti.LedgerIDUSD,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,

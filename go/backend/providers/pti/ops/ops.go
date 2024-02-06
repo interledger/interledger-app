@@ -10,6 +10,8 @@ import (
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/pti/external"
+	"gitlab.com/fynbos/backend/providers/xago"
+	"gitlab.com/fynbos/pacioli"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
@@ -165,4 +167,144 @@ func UpdateTransactionStatus(ctx context.Context, b Backends, ex external.Client
 	}
 
 	return nil
+}
+
+func ReserveBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*pti.Balance, error) {
+	if amt.Currency != currency.USD {
+		return nil, fmt.Errorf("%w %s not supported.", pti.ErrInternal, amt.Currency)
+	}
+
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, err
+	}
+	if la.Provider != pti.ProviderName || la.Type != pti.AccTypeBalance {
+		return nil, fmt.Errorf("%w Not a PTI linked account", pti.ErrInternal)
+	}
+
+	opsAcc := pti.USDOpsAccount
+	ledger := pti.LedgerIDUSD
+	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              txID,
+			Amount:          amt.Value,
+			DebitAccountID:  la.ID,
+			CreditAccountID: opsAcc,
+			Pending:         true,
+			Code:            1,
+			Timeout:         uint64(timeout),
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return nil, fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", pti.ErrNotFound)
+	}
+
+	return &pti.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
+}
+
+func FinaliseReserve(ctx context.Context, b Backends, trxID string) error {
+	tx, err := b.Pacioli().PostTransfers(ctx, []string{trxID})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) == 0 {
+		return nil
+	}
+	if tx[0].Code == pacioli.TransferPendingTransferAlreadyPosted {
+		return nil
+	}
+	if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+		return fmt.Errorf("%w insufficiens balance cod (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+	}
+	if tx[0].Code != 0 {
+		return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+	}
+
+	return nil
+}
+
+func RollbackReserve(ctx context.Context, b Backends, txID string) error {
+	tx, err := b.Pacioli().VoidTransfers(ctx, []string{txID})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) == 0 {
+		return nil
+	}
+	if tx[0].Code != 0 {
+		return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+	}
+
+	return nil
+}
+
+func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string, amt currency.Amount) (*pti.Balance, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if la.Provider != pti.ProviderName || la.Type != pti.AccTypeBalance {
+		return nil, fmt.Errorf("%w linked account not correct type", pti.ErrNotFound)
+	}
+
+	opsAcc := pti.USDOpsAccount
+	ledger := pti.LedgerIDUSD
+	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              txID,
+			Amount:          amt.Value,
+			CreditAccountID: la.ID,
+			DebitAccountID:  opsAcc,
+			Pending:         false,
+			Code:            1,
+			Ledger:          ledger,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) != 0 {
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return nil, fmt.Errorf("%w insufficiens balance cod (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return nil, fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", xago.ErrNotFound)
+	}
+
+	return &pti.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
+	}, nil
 }

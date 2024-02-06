@@ -866,6 +866,16 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	})
 	require.NoError(t, err)
 
+	accs, err = b.pac.ConfigureAccounts(context.Background(), []pacioli.ConfigureAccountArgs{
+		{
+			ID:       ptiBal.ID,
+			LedgerID: pti.LedgerIDUSD,
+			Code:     1,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, accs, 0)
+
 	return testWallet{
 		userID:            userID,
 		walletID:          walletID,

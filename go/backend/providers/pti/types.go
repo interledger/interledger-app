@@ -14,6 +14,9 @@ const (
 	ScenarioTransfer   = "fynbos_transfer"
 	ScenarioDeposit    = "fynbos_deposit"
 	ScenarioWithdrawal = "fynbos_withdrawal"
+
+	LedgerIDUSD   uint32 = 784873 // Spells ptiusd on a Nokia 3320 keyboard
+	USDOpsAccount        = "fb4713ba-94c5-4a56-a5bf-82b551e9bd40"
 )
 
 type TransactionFeedback string
@@ -73,4 +76,9 @@ type TransactionStatusArgs struct {
 	PaymentID     string
 	TransactionID string
 	Status        TransactionFeedback
+}
+
+type Balance struct {
+	Total     currency.Amount
+	Available currency.Amount
 }

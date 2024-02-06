@@ -7,6 +7,7 @@ package mock
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	currency "gitlab.com/fynbos/backend/currency"
@@ -34,6 +35,21 @@ func NewMockClient(ctrl *gomock.Controller) *MockClient {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClient) EXPECT() *MockClientMockRecorder {
 	return m.recorder
+}
+
+// AssignBalance mocks base method.
+func (m *MockClient) AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*pti.Balance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AssignBalance", ctx, linkedAccountID, txID, amt)
+	ret0, _ := ret[0].(*pti.Balance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AssignBalance indicates an expected call of AssignBalance.
+func (mr *MockClientMockRecorder) AssignBalance(ctx, linkedAccountID, txID, amt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBalance", reflect.TypeOf((*MockClient)(nil).AssignBalance), ctx, linkedAccountID, txID, amt)
 }
 
 // CreateWallet mocks base method.
@@ -66,6 +82,20 @@ func (mr *MockClientMockRecorder) DepositToWallet(ctx, args interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DepositToWallet", reflect.TypeOf((*MockClient)(nil).DepositToWallet), ctx, args)
 }
 
+// FinaliseReserve mocks base method.
+func (m *MockClient) FinaliseReserve(ctx context.Context, txID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FinaliseReserve", ctx, txID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FinaliseReserve indicates an expected call of FinaliseReserve.
+func (mr *MockClientMockRecorder) FinaliseReserve(ctx, txID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinaliseReserve", reflect.TypeOf((*MockClient)(nil).FinaliseReserve), ctx, txID)
+}
+
 // GetWallet mocks base method.
 func (m *MockClient) GetWallet(ctx context.Context, linkedAccountID string) (*pti.Wallet, error) {
 	m.ctrl.T.Helper()
@@ -79,6 +109,35 @@ func (m *MockClient) GetWallet(ctx context.Context, linkedAccountID string) (*pt
 func (mr *MockClientMockRecorder) GetWallet(ctx, linkedAccountID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWallet", reflect.TypeOf((*MockClient)(nil).GetWallet), ctx, linkedAccountID)
+}
+
+// ReserveBalance mocks base method.
+func (m *MockClient) ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*pti.Balance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReserveBalance", ctx, linkedAccountID, txID, amt, timeout)
+	ret0, _ := ret[0].(*pti.Balance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReserveBalance indicates an expected call of ReserveBalance.
+func (mr *MockClientMockRecorder) ReserveBalance(ctx, linkedAccountID, txID, amt, timeout interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReserveBalance", reflect.TypeOf((*MockClient)(nil).ReserveBalance), ctx, linkedAccountID, txID, amt, timeout)
+}
+
+// RollbackReserve mocks base method.
+func (m *MockClient) RollbackReserve(ctx context.Context, txID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RollbackReserve", ctx, txID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RollbackReserve indicates an expected call of RollbackReserve.
+func (mr *MockClientMockRecorder) RollbackReserve(ctx, txID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RollbackReserve", reflect.TypeOf((*MockClient)(nil).RollbackReserve), ctx, txID)
 }
 
 // UpdateTransactionStatus mocks base method.

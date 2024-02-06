@@ -86,5 +86,10 @@ func CreateWalletWorkflow(ctx workflow.Context, args pti.CreateWalletArgs) (*lin
 		return nil, err
 	}
 
+	err = workflow.ExecuteActivity(ctx, a.CreatePTIBalanceAccount, la.ID).Get(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
 	return &la, nil
 }
