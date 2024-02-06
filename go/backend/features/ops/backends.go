@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"gitlab.com/fynbos/backend/wallets"
 	"testing"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
@@ -13,12 +14,14 @@ type Backends interface {
 	DB() *sqlx.DB
 	KYC() kyc.Client
 	LinkedAccounts() linkedaccounts.Client
+	Wallets() wallets.Client
 }
 
 type testBackends struct {
 	db  *sqlx.DB
 	kyc kyc.Client
 	la  linkedaccounts.Client
+	w   wallets.Client
 }
 
 func (t testBackends) LinkedAccounts() linkedaccounts.Client {
@@ -33,6 +36,10 @@ func (t testBackends) KYC() kyc.Client {
 	return t.kyc
 }
 
-func NewTestBackends(t *testing.T, db *sqlx.DB, kyc kyc.Client, la linkedaccounts.Client) Backends {
-	return &testBackends{db: db, kyc: kyc, la: la}
+func (t testBackends) Wallets() wallets.Client {
+	return t.w
+}
+
+func NewTestBackends(t *testing.T, db *sqlx.DB, kyc kyc.Client, la linkedaccounts.Client, w wallets.Client) Backends {
+	return &testBackends{db: db, kyc: kyc, la: la, w: w}
 }
