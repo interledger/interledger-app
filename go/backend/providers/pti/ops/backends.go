@@ -6,6 +6,7 @@ import (
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/payments"
 	"gitlab.com/fynbos/backend/user"
+	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -16,4 +17,5 @@ type Backends interface {
 	Users() user.Client
 	Temporal() temporal.Client
 	Payments() payments.Client
+	Pacioli() pacioli.Client
 }

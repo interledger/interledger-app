@@ -15,6 +15,7 @@ import (
 	payments_mock "gitlab.com/fynbos/backend/payments/client/mock"
 	"gitlab.com/fynbos/backend/user"
 	user_mock "gitlab.com/fynbos/backend/user/client/mock"
+	"gitlab.com/fynbos/pacioli"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -47,6 +48,10 @@ func (b Backends) Users() user.Client {
 }
 
 func (b Backends) Temporal() temporal.Client {
+	return nil
+}
+
+func (b Backends) Pacioli() pacioli.Client {
 	return nil
 }
 

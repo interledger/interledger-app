@@ -319,12 +319,27 @@ func (a *Activity) ReserveBalance(ctx context.Context, paymentID string) error {
 
 	timeout := time.Hour * 24 * 365 // Pending transfers must have a timeout.
 
-	_, err = a.b.Xago().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount, timeout)
-	if errors.Is(err, xago.ErrInsufficientBalance) {
-		return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
+	linkedAccount, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("sending linked account not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
 	}
 
-	return nil
+	if linkedAccount.Provider == pti.ProviderName {
+		_, err = a.b.PTI().ReserveBalance(ctx, linkedAccount.ID, p.SendTransactionID, p.SenderAmount, timeout)
+		if errors.Is(err, pti.ErrInsufficientBalance) {
+			return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
+		}
+	} else if linkedAccount.Provider == xago.ProviderName {
+		_, err = a.b.Xago().ReserveBalance(ctx, p.SenderAccount, p.SendTransactionID, p.SenderAmount, timeout)
+		if errors.Is(err, xago.ErrInsufficientBalance) {
+			return temporal.NewNonRetryableApplicationError("insufficient balance to service withdrawal", "insufficient_balance", err, "withdrawal", p.SenderAmount.Format())
+		}
+	}
+
+	return err
 }
 
 func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) error {
@@ -333,11 +348,24 @@ func (a *Activity) AssignBalance(ctx context.Context, paymentID, txID string) er
 		return err
 	}
 
-	if p.Type != payments.TypePeer2Peer {
+	if p.Type != payments.TypePeer2Peer && p.Type != payments.TypeDeposit {
 		return nil
 	}
 
-	_, err = a.b.Xago().AssignBalance(ctx, p.ReceiverAccount, txID, p.ReceiverAmount)
+	linkedAccount, err := a.b.LinkedAccounts().Get(ctx, p.ReceiverAccount)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("sending linked account not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	if linkedAccount.Provider == xago.ProviderName {
+		_, err = a.b.Xago().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
+	} else if linkedAccount.Provider == pti.ProviderName {
+		_, err = a.b.PTI().AssignBalance(ctx, linkedAccount.ID, txID, p.ReceiverAmount)
+	}
+
 	return err
 }
 
@@ -351,7 +379,21 @@ func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error 
 		return nil
 	}
 
-	return a.b.Xago().FinaliseReserve(ctx, p.SendTransactionID)
+	linkedAccount, err := a.b.LinkedAccounts().Get(ctx, p.SenderAccount)
+	if errors.Is(err, linkedaccounts.ErrNotFound) {
+		return temporal.NewNonRetryableApplicationError("sending linked account not found", "ErrNotFound", err)
+	}
+	if err != nil {
+		return err
+	}
+
+	if linkedAccount.Provider == xago.ProviderName {
+		err = a.b.Xago().FinaliseReserve(ctx, p.SendTransactionID)
+	} else if linkedAccount.Provider == pti.ProviderName {
+		err = a.b.PTI().FinaliseReserve(ctx, p.SendTransactionID)
+	}
+
+	return err
 }
 
 func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error {
@@ -368,11 +410,13 @@ func (a *Activity) RollbackBalance(ctx context.Context, paymentID string) error 
 	if err != nil {
 		return err
 	}
-	if la.Provider != xago.ProviderName {
-		return nil
+	if la.Provider == xago.ProviderName {
+		err = a.b.Xago().RollbackReserve(ctx, p.SendTransactionID)
+	} else if la.Provider == pti.ProviderName {
+		err = a.b.PTI().RollbackReserve(ctx, p.SendTransactionID)
 	}
 
-	return a.b.Xago().RollbackReserve(ctx, p.SendTransactionID)
+	return err
 }
 
 func (a *Activity) CheckReceiverLimits(ctx context.Context, paymentID string) error {

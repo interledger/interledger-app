@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
@@ -94,4 +95,20 @@ func (c Client) WithdrawalFromWallet(ctx context.Context, args pti.TransactionAr
 
 func (c Client) UpdateTransactionStatus(ctx context.Context, args pti.TransactionStatusArgs) error {
 	return ops.UpdateTransactionStatus(ctx, c.b, c.external, args)
+}
+
+func (c Client) ReserveBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount, timeout time.Duration) (*pti.Balance, error) {
+	return ops.ReserveBalance(ctx, c.b, linkedAccountID, txID, amt, timeout)
+}
+
+func (c Client) FinaliseReserve(ctx context.Context, trxID string) error {
+	return ops.FinaliseReserve(ctx, c.b, trxID)
+}
+
+func (c Client) AssignBalance(ctx context.Context, linkedAccountID string, txID string, amt currency.Amount) (*pti.Balance, error) {
+	return ops.AssignBalance(ctx, c.b, linkedAccountID, txID, amt)
+}
+
+func (c Client) RollbackReserve(ctx context.Context, trxID string) error {
+	return ops.RollbackReserve(ctx, c.b, trxID)
 }
