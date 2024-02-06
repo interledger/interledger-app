@@ -16,7 +16,6 @@ import (
 	"gitlab.com/fynbos/backend/providers/xago"
 	temporal_utils "gitlab.com/fynbos/backend/temporal/utils"
 	"gitlab.com/fynbos/backend/transactions"
-	"gitlab.com/fynbos/env"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
@@ -107,23 +106,6 @@ func PaymentWorkflow(ctx workflow.Context, id string) error {
 	if err != nil {
 		logger.Error("Failed to set state payment to complete. paymentID=", id, "err", err)
 		return err
-	}
-
-	referralCtx := workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID:            fmt.Sprintf(referralWorkflowFmt, id),
-		ParentClosePolicy:     enums.PARENT_CLOSE_POLICY_ABANDON, // allow child workflow to continue running
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING,
-	})
-
-	referralFuture := workflow.ExecuteChildWorkflow(referralCtx, CreateReferralsWorkflow, id)
-	if env.IsLocal() || env.IsTest() { // run sync to help with payments engine test harness
-		err = referralFuture.Get(referralCtx, nil)
-	} else {
-		var referralWe workflow.Execution
-		err = referralFuture.GetChildWorkflowExecution().Get(referralCtx, &referralWe)
-	}
-	if err != nil {
-		logger.Error("Failed to create referrals workflow", "err", err)
 	}
 
 	return nil
