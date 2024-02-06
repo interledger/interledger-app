@@ -41,7 +41,7 @@ func (g *rpcService) CreateWalletAddress(ctx context.Context, req *pb.CreateWall
 	var assetCode string
 	switch wallet.Country.String() {
 	case "ZA":
-		assetCode = "ZAR"
+		assetCode = "USD"
 	case "US":
 		assetCode = "USD"
 	}

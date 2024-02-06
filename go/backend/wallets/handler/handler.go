@@ -345,12 +345,12 @@ func listKeys(b Backends, walletID string, w http.ResponseWriter, req *http.Requ
 }
 
 func convertToBase64Url(publicKey string) string {
-  bufferKey, err := base64.StdEncoding.DecodeString(publicKey)
-  if err != nil {
-    return publicKey
-  }
+	bufferKey, err := base64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		return publicKey
+	}
 
-  return base64.RawURLEncoding.EncodeToString(bufferKey)
+	return base64.RawURLEncoding.EncodeToString(bufferKey)
 }
 
 type IdentityResponse struct {
