@@ -5,6 +5,7 @@ import (
 	"gitlab.com/fynbos/backend/keys"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/providers/basistheory"
+	"gitlab.com/fynbos/backend/rafiki"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
@@ -18,6 +19,7 @@ type Backends interface {
 	BasisTheory() basistheory.Client
 	Wallets() wallets.Client
 	Transactions() transactions.Client
+	Rafiki() rafiki.Client
 }
 
 type Activity struct {
