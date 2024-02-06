@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"gitlab.com/fynbos/backend/country"
 
 	"gitlab.com/fynbos/backend/providers/astra"
 
@@ -63,7 +64,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		TwitterEnabled:    true,
 	}
 
-	id, err := b.KYC().GetIndividualDetails(ctx, walletID)
+	w, err := b.Wallets().Get(ctx, walletID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		return nil, err
 	}
 
-	if id.CountryCode == "US" {
+	if w.Country == country.US {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true
@@ -81,7 +82,7 @@ func Features(ctx context.Context, b Backends, walletID string) (*features.Walle
 		res.CardsEnabled = true
 		res.AddCardsEnabled = canAddCard
 	}
-	if id.CountryCode == "ZA" {
+	if w.Country == country.ZA {
 		res.ReceiveEnabled = true
 		res.SendEnabled = true
 		res.LinkedAccEnabled = true

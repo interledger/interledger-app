@@ -2,6 +2,8 @@ package ops_test
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/wallets"
+	wallet_mock "gitlab.com/fynbos/backend/wallets/client/mock"
 	"testing"
 
 	"gitlab.com/fynbos/backend/providers/astra"
@@ -29,7 +31,7 @@ func TestSetFeatures(t *testing.T) {
 	ctx := context.Background()
 	db := db.MigrateTestDB(t, ctx)
 
-	b := ops.NewTestBackends(t, db, nil, nil)
+	b := ops.NewTestBackends(t, db, nil, nil, nil)
 
 	cases := []struct {
 		name  string
@@ -86,13 +88,14 @@ func TestFeatures(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	kc := kyc_mock.NewMockClient(ctrl)
 	fc := linked_accounts_mock.NewMockClient(ctrl)
+	wc := wallet_mock.NewMockClient(ctrl)
 
-	b := ops.NewTestBackends(t, db, kc, fc)
+	b := ops.NewTestBackends(t, db, kc, fc, wc)
 
 	cases := []struct {
 		name      string
 		KycStatus kyc.Status
-		id        *kyc.IndividualDetails
+		wallet    *wallets.Wallet
 		feats     *features.WalletFeatures
 		numCards  int
 	}{
@@ -104,7 +107,7 @@ func TestFeatures(t *testing.T) {
 		{
 			name:      "KYC NON US only identities",
 			KycStatus: kyc.StatusLevel1,
-			id:        &kyc.IndividualDetails{CountryCode: "UG"},
+			wallet:    &wallets.Wallet{Country: "UG"},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
 				TwitterEnabled:    true,
@@ -114,7 +117,7 @@ func TestFeatures(t *testing.T) {
 			name:      "KYC US send state",
 			KycStatus: kyc.StatusLevel1,
 			numCards:  2,
-			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-SD"}},
+			wallet:    &wallets.Wallet{Country: "US"},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
 				TwitterEnabled:    true,
@@ -129,7 +132,7 @@ func TestFeatures(t *testing.T) {
 			name:      "KYC US send state, max cards added",
 			KycStatus: kyc.StatusLevel1,
 			numCards:  4,
-			id:        &kyc.IndividualDetails{CountryCode: "US", Address: &kyc.Address{State: "US-SD"}},
+			wallet:    &wallets.Wallet{Country: "US"},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
 				TwitterEnabled:    true,
@@ -144,7 +147,7 @@ func TestFeatures(t *testing.T) {
 			name:      "KYC ZA",
 			KycStatus: kyc.StatusLevel1,
 			numCards:  4,
-			id:        &kyc.IndividualDetails{CountryCode: "ZA"},
+			wallet:    &wallets.Wallet{Country: "ZA"},
 			feats: &features.WalletFeatures{
 				IdentitiesEnabled: true,
 				TwitterEnabled:    true,
@@ -162,8 +165,8 @@ func TestFeatures(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			wid := uuid.NewString()
 			kc.EXPECT().GetKYCStatus(ctx, wid).Return(tc.KycStatus, nil)
-			if tc.id != nil {
-				kc.EXPECT().GetIndividualDetails(ctx, wid).Return(tc.id, nil)
+			if tc.wallet != nil {
+				wc.EXPECT().Get(ctx, wid).Return(tc.wallet, nil)
 			}
 
 			var lal []linkedaccounts.LinkedAccount
