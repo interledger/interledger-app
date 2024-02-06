@@ -96,6 +96,21 @@ func (mr *MockClientMockRecorder) FinaliseReserve(ctx, txID interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinaliseReserve", reflect.TypeOf((*MockClient)(nil).FinaliseReserve), ctx, txID)
 }
 
+// GetBalance mocks base method.
+func (m *MockClient) GetBalance(ctx context.Context, linkedAccountID string) (*pti.Balance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBalance", ctx, linkedAccountID)
+	ret0, _ := ret[0].(*pti.Balance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBalance indicates an expected call of GetBalance.
+func (mr *MockClientMockRecorder) GetBalance(ctx, linkedAccountID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockClient)(nil).GetBalance), ctx, linkedAccountID)
+}
+
 // GetWallet mocks base method.
 func (m *MockClient) GetWallet(ctx context.Context, linkedAccountID string) (*pti.Wallet, error) {
 	m.ctrl.T.Helper()

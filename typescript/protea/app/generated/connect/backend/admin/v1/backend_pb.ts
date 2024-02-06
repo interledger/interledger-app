@@ -52,6 +52,11 @@ export class GetPTIBalanceResponse extends Message<GetPTIBalanceResponse> {
    */
   balance?: Amount;
 
+  /**
+   * @generated from field: backend.admin.v1.Amount available = 2;
+   */
+  available?: Amount;
+
   constructor(data?: PartialMessage<GetPTIBalanceResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -61,6 +66,7 @@ export class GetPTIBalanceResponse extends Message<GetPTIBalanceResponse> {
   static readonly typeName = "backend.admin.v1.GetPTIBalanceResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "balance", kind: "message", T: Amount },
+    { no: 2, name: "available", kind: "message", T: Amount },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPTIBalanceResponse {

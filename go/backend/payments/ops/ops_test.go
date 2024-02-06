@@ -44,7 +44,7 @@ func TestCreate(t *testing.T) {
 		Pti: pti_mock.NewMockClient(ctrl),
 	}
 	walletID := uuid.NewString()
-	b.Pti.EXPECT().GetWallet(ctx, gomock.Any()).Return(&pti.Wallet{Balance: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
+	b.Pti.EXPECT().GetBalance(ctx, gomock.Any()).Return(&pti.Balance{Available: currency.FromFloat64(1000, currency.USD), Total: currency.FromFloat64(1000, currency.USD)}, nil).AnyTimes()
 	b.Lac.EXPECT().Get(ctx, gomock.Any()).Return(&linkedaccounts.LinkedAccount{CanSend: true, CanReceive: true, Type: pti.AccTypeBalance, Provider: pti.ProviderName, State: linkedaccounts.Verified, WalletID: walletID, SendCurrency: currency.USD, ReceiveCurrency: currency.USD}, nil).AnyTimes()
 	b.Lac.EXPECT().GetDefaultReceive(ctx, gomock.Any(), gomock.Any()).Return(nil, errors.New("not found")).AnyTimes()
 	b.Ic.EXPECT().GetByIdentifier(ctx, gomock.Any()).Return(&identities.Identity{WalletID: walletID, Platform: identities.PlatformTwitter}, nil).AnyTimes()

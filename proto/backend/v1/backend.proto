@@ -247,9 +247,11 @@ message GetPtiBalancesResponse {
 
 message PtiBalance {
   Amount balance = 1;
-  string currency = 2;
-  string linkedAccount = 3;
-  string formattedBalance = 4;
+  Amount available = 2;
+  string currency = 3;
+  string linkedAccount = 4;
+  string formattedBalance = 5;
+  string formattedAvailableBalance = 6;
 }
 
 message GetXagoBalanceResponse {

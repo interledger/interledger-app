@@ -46,8 +46,7 @@ type Wallet struct {
 	UserID    string            `db:"external_user_id"`
 	Reference string            `db:"reference"`
 	Currency  currency.Currency `db:"currency"`
-	Balance   currency.Amount
-	CreatedAt time.Time `db:"created_at"`
+	CreatedAt time.Time         `db:"created_at"`
 }
 
 type Await func(ctx context.Context, result interface{}) error

@@ -77,12 +77,13 @@ func (s *AdminRpcService) GetPTIBalance(
 		return nil, NotFoundError("balance not found")
 	}
 
-	b, err := s.b.PTI().GetWallet(ctx, ptiLa.ID)
+	b, err := s.b.PTI().GetBalance(ctx, ptiLa.ID)
 	if err != nil {
 		return nil, toGRPCError(err)
 	}
 
 	return &adminv1.GetPTIBalanceResponse{
-		Balance: b.Balance.ToAdminPB(),
+		Balance:   b.Total.ToAdminPB(),
+		Available: b.Available.ToAdminPB(),
 	}, nil
 }

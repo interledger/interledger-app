@@ -3,12 +3,13 @@ package grpc
 import (
 	"context"
 	"errors"
+	"sort"
+
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/proto/backend/v1"
 	pb "gitlab.com/fynbos/proto/backend/v1"
-	"sort"
 )
 
 func (s *rpcService) GetBalances(ctx context.Context, req *backend.Empty) (*backend.GetBalancesResponse, error) {
@@ -30,17 +31,17 @@ func (s *rpcService) GetBalances(ctx context.Context, req *backend.Empty) (*back
 	var resp []*pb.Balance
 	for _, la := range lal {
 		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
-			ptiWallet, err := s.b.PTI().GetWallet(ctx, la.ID)
+			ptiBalance, err := s.b.PTI().GetBalance(ctx, la.ID)
 			if err != nil {
 				return nil, toGRPCError(err)
 			}
 
 			resp = append(resp, &pb.Balance{
-				Balance:          ptiWallet.Balance.ToPB(),
+				Balance:          ptiBalance.Available.ToPB(),
 				Currency:         la.SendCurrency.String(),
 				CountryCode:      la.ReceiveCountry.String(),
 				LinkedAccount:    la.ID,
-				FormattedBalance: ptiWallet.Balance.Format(),
+				FormattedBalance: ptiBalance.Available.Format(),
 			})
 		}
 

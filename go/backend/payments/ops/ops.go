@@ -506,12 +506,12 @@ func validateSendBalances(ctx context.Context, b Backends, sendAccID string, amt
 			return fmt.Errorf("%w insufficient balance", payments.ErrInsufficientFunds)
 		}
 	} else if sa.Provider == pti.ProviderName {
-		w, err := b.PTI().GetWallet(ctx, sa.ID)
+		w, err := b.PTI().GetBalance(ctx, sa.ID)
 		if err != nil {
 			return fmt.Errorf("%w failed to get pti wallet for balance validation", err)
 		}
 
-		if w.Balance.Value < amt.Value {
+		if w.Available.Value < amt.Value {
 			return fmt.Errorf("%w insufficient balance", payments.ErrInsufficientFunds)
 		}
 	}
