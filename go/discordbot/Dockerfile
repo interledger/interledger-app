@@ -12,6 +12,7 @@ COPY log ./log
 COPY tracing ./tracing
 COPY httpmessagesignatures ./httpmessagesignatures
 COPY discordbot ./discordbot
+COPY pacioli ./pacioli
 
 FROM base as builder
 
