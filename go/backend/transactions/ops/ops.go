@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -312,11 +313,39 @@ func listTransaction(ctx context.Context, b Backends, page db.Pagination, sqlStm
 		return nil, nil
 	}
 
-	resp := make([]transactions.Transaction, len(txs))
+	webmoTX := make(map[string]transactions.Transaction)
+	keyFmt := "%s|%s"
 
-	for i, t := range txs {
-		resp[i] = transformTransaction(t)
+	var resp []transactions.Transaction
+
+	for _, t := range txs {
+		if t.Amount < 100 && t.Asset == currency.USD.String() &&
+			(t.Type == transactions.TransactionTypeOpenOutgoingPayment || t.Type == transactions.TransactionTypeSent) {
+			// Ignore failed web monetization transactions
+			if t.State == transactions.StateFailed {
+				continue
+			}
+			key := fmt.Sprintf(keyFmt, t.Destination.String, t.Timestamp.Format(time.DateOnly))
+			tx, ok := webmoTX[key]
+			if !ok {
+				webmoTX[key] = transformTransaction(t)
+				continue
+			}
+			tx.Amount.Value += t.Amount
+			webmoTX[key] = tx
+			continue
+		}
+
+		resp = append(resp, transformTransaction(t))
 	}
+
+	for _, t := range webmoTX {
+		resp = append(resp, t)
+	}
+
+	sort.Slice(resp, func(i, j int) bool {
+		return resp[i].Timestamp.After(resp[j].Timestamp)
+	})
 
 	return resp, err
 }

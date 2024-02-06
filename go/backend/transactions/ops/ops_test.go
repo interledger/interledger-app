@@ -426,6 +426,119 @@ func TestListWithPendingPagination(t *testing.T) {
 	}
 }
 
+func TestListWithWebMonetizationGroupings(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	dbc := db.MigrateTestDB(t, ctx)
+
+	b := ops.NewTestBackends(t, dbc)
+
+	cases := []struct {
+		name     string
+		args     []transactions.CreateTransactionArgs
+		len      int
+		expected []transactions.Transaction
+	}{
+		{
+			name: "no groupings",
+			len:  1,
+			args: []transactions.CreateTransactionArgs{{
+				WalletID:    uuid.NewString(),
+				ForeignID:   uuid.NewString(),
+				ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+				Provider:    transactions.ProviderPaymentsEngine,
+				State:       transactions.StatePending,
+				Source:      "$fynbos.me/alice",
+				Destination: "$fynbos.me/bob",
+				Amount: currency.Amount{
+					Value:    1000,
+					Currency: currency.USD,
+					Scale:    2,
+				},
+			}},
+			expected: []transactions.Transaction{
+				{
+					Source:      "$fynbos.me/alice",
+					Destination: "$fynbos.me/bob",
+					Amount: currency.Amount{
+						Value:    1000,
+						Currency: currency.USD,
+						Scale:    2,
+					},
+				},
+			},
+		},
+		{
+			name: "1 group",
+			len:  1,
+			args: []transactions.CreateTransactionArgs{
+				{
+					ForeignID:   uuid.NewString(),
+					ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+					Provider:    transactions.ProviderPaymentsEngine,
+					State:       transactions.StatePending,
+					Source:      "$fynbos.me/alice",
+					Destination: "$fynbos.me/bob",
+					Amount: currency.Amount{
+						Value:    10,
+						Currency: currency.USD,
+						Scale:    2,
+					},
+				},
+				{
+					ForeignID:   uuid.NewString(),
+					ForeignType: transactions.TransactionTypeOpenOutgoingPayment,
+					Provider:    transactions.ProviderPaymentsEngine,
+					State:       transactions.StatePending,
+					Source:      "$fynbos.me/alice",
+					Destination: "$fynbos.me/bob",
+					Amount: currency.Amount{
+						Value:    20,
+						Currency: currency.USD,
+						Scale:    2,
+					},
+				}},
+			expected: []transactions.Transaction{
+				{
+					Source:      "$fynbos.me/alice",
+					Destination: "$fynbos.me/bob",
+					Amount: currency.Amount{
+						Value:    30,
+						Currency: currency.USD,
+						Scale:    2,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			walletID := uuid.NewString()
+			for _, a := range tc.args {
+				a.WalletID = walletID
+
+				_, err := ops.CreateTransaction(ctx, b, a)
+				require.NoError(t, err)
+			}
+
+			txs, err := ops.ListWithPending(ctx, b, walletID, db.Pagination{})
+			require.NoError(t, err)
+			require.Len(t, txs, tc.len)
+
+			if len(txs) == 0 {
+				return
+			}
+
+			for _, tx := range txs {
+				assert.Equal(t, tc.expected[0].Source, tx.Source)
+				assert.Equal(t, tc.expected[0].Destination, tx.Destination)
+				assert.Equal(t, tc.expected[0].Amount.Value, tx.Amount.Value)
+			}
+		})
+	}
+}
+
 func TestSetTransactionForeignIDs(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()

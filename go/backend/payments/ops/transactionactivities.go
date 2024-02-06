@@ -93,23 +93,6 @@ func (a *Activity) AddPayInTransfer(ctx context.Context, paymentID, fkID string)
 	})
 }
 
-func (a *Activity) AddWebMonetizationPayInTransfer(ctx context.Context, paymentID string) error {
-	p, err := Lookup(ctx, a.b, paymentID)
-	if err != nil {
-		return err
-	}
-
-	return a.b.Transactions().AddTransfers(ctx, p.SendTransactionID, []transactions.TransferArgs{
-		{
-			LinkedAccountID: p.SenderAccount,
-			ForeignID:       paymentID,
-			Type:            transactions.TransferTypeDebitWebMonetization,
-			Amount:          p.SenderAmount,
-			State:           transactions.StateCompleted,
-		},
-	})
-}
-
 func (a *Activity) AddWithdrawalTransfer(ctx context.Context, paymentID string) error {
 	p, err := Lookup(ctx, a.b, paymentID)
 	if err != nil {
