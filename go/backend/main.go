@@ -330,6 +330,12 @@ func migrate(args *cli.MigrationArgs) {
 			Asset: currency.USD.String(),
 			Scale: uint8(currency.USD.Scale()),
 		},
+		{
+			ID:    pti.LedgerIDUSD,
+			Name:  "PTI USD Ledger",
+			Asset: currency.USD.String(),
+			Scale: uint8(currency.USD.Scale()),
+		},
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -358,6 +364,13 @@ func migrate(args *cli.MigrationArgs) {
 		{
 			ID:                         rafiki.ZARBalanceAccount,
 			LedgerID:                   xago.LedgerIDZAR,
+			Code:                       1,
+			DebitsMustNotExceedCredits: false,
+			CreditsMustNotExceedDebits: false,
+		},
+		{
+			ID:                         pti.USDOpsAccount,
+			LedgerID:                   pti.LedgerIDUSD,
 			Code:                       1,
 			DebitsMustNotExceedCredits: false,
 			CreditsMustNotExceedDebits: false,
