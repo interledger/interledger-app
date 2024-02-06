@@ -876,6 +876,21 @@ func createTestWallet(t *testing.T, b *TestBackends) testWallet {
 	require.NoError(t, err)
 	require.Len(t, accs, 0)
 
+	tr, err = b.pac.CreateTransfers(context.Background(), []pacioli.CreateTransferArgs{
+		{
+			ID:              uuid.NewString(),
+			Amount:          100000,
+			DebitAccountID:  pti.USDOpsAccount,
+			CreditAccountID: ptiBal.ID,
+			Pending:         false,
+			Code:            1,
+			Timeout:         0,
+			Ledger:          pti.LedgerIDUSD,
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, tr, 0)
+
 	return testWallet{
 		userID:            userID,
 		walletID:          walletID,

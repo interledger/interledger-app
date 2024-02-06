@@ -85,6 +85,10 @@ func (c Client) GetWallet(ctx context.Context, linkedAccountID string) (*pti.Wal
 	return ops.GetWallet(ctx, c.b, c.external, linkedAccountID)
 }
 
+func (c Client) GetBalance(ctx context.Context, linkedAccountID string) (*pti.Balance, error) {
+	return ops.GetBalance(ctx, c.b, linkedAccountID)
+}
+
 func (c Client) DepositToWallet(ctx context.Context, args pti.TransactionArgs) (string, error) {
 	return ops.DepositToWallet(ctx, c.b, c.external, args)
 }

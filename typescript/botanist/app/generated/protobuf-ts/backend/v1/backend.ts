@@ -262,17 +262,25 @@ export interface PtiBalance {
      */
     balance?: Amount;
     /**
-     * @generated from protobuf field: string currency = 2;
+     * @generated from protobuf field: backend.v1.Amount available = 2;
+     */
+    available?: Amount;
+    /**
+     * @generated from protobuf field: string currency = 3;
      */
     currency: string;
     /**
-     * @generated from protobuf field: string linkedAccount = 3;
+     * @generated from protobuf field: string linkedAccount = 4;
      */
     linkedAccount: string;
     /**
-     * @generated from protobuf field: string formattedBalance = 4;
+     * @generated from protobuf field: string formattedBalance = 5;
      */
     formattedBalance: string;
+    /**
+     * @generated from protobuf field: string formattedAvailableBalance = 6;
+     */
+    formattedAvailableBalance: string;
 }
 /**
  * @generated from protobuf message backend.v1.GetXagoBalanceResponse
@@ -3279,13 +3287,15 @@ class PtiBalance$Type extends MessageType<PtiBalance> {
     constructor() {
         super("backend.v1.PtiBalance", [
             { no: 1, name: "balance", kind: "message", T: () => Amount },
-            { no: 2, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "formattedBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "available", kind: "message", T: () => Amount },
+            { no: 3, name: "currency", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 5, name: "formattedBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 6, name: "formattedAvailableBalance", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<PtiBalance>): PtiBalance {
-        const message = { currency: "", linkedAccount: "", formattedBalance: "" };
+        const message = { currency: "", linkedAccount: "", formattedBalance: "", formattedAvailableBalance: "" };
         globalThis.Object.defineProperty(message, MESSAGE_TYPE, { enumerable: false, value: this });
         if (value !== undefined)
             reflectionMergePartial<PtiBalance>(this, message, value);
@@ -3299,14 +3309,20 @@ class PtiBalance$Type extends MessageType<PtiBalance> {
                 case /* backend.v1.Amount balance */ 1:
                     message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
                     break;
-                case /* string currency */ 2:
+                case /* backend.v1.Amount available */ 2:
+                    message.available = Amount.internalBinaryRead(reader, reader.uint32(), options, message.available);
+                    break;
+                case /* string currency */ 3:
                     message.currency = reader.string();
                     break;
-                case /* string linkedAccount */ 3:
+                case /* string linkedAccount */ 4:
                     message.linkedAccount = reader.string();
                     break;
-                case /* string formattedBalance */ 4:
+                case /* string formattedBalance */ 5:
                     message.formattedBalance = reader.string();
+                    break;
+                case /* string formattedAvailableBalance */ 6:
+                    message.formattedAvailableBalance = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -3323,15 +3339,21 @@ class PtiBalance$Type extends MessageType<PtiBalance> {
         /* backend.v1.Amount balance = 1; */
         if (message.balance)
             Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
-        /* string currency = 2; */
+        /* backend.v1.Amount available = 2; */
+        if (message.available)
+            Amount.internalBinaryWrite(message.available, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        /* string currency = 3; */
         if (message.currency !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.currency);
-        /* string linkedAccount = 3; */
+            writer.tag(3, WireType.LengthDelimited).string(message.currency);
+        /* string linkedAccount = 4; */
         if (message.linkedAccount !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.linkedAccount);
-        /* string formattedBalance = 4; */
+            writer.tag(4, WireType.LengthDelimited).string(message.linkedAccount);
+        /* string formattedBalance = 5; */
         if (message.formattedBalance !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.formattedBalance);
+            writer.tag(5, WireType.LengthDelimited).string(message.formattedBalance);
+        /* string formattedAvailableBalance = 6; */
+        if (message.formattedAvailableBalance !== "")
+            writer.tag(6, WireType.LengthDelimited).string(message.formattedAvailableBalance);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

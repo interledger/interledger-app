@@ -95,7 +95,31 @@ func GetWallet(ctx context.Context, b Backends, external external.Client, linked
 		ID:        w.WalletID,
 		UserID:    externalUser.ExternalID,
 		Reference: w.Reference,
-		Balance:   currency.FromFloat64(w.Balance, currency.ParseCurrency(w.Currency)),
+	}, nil
+}
+
+func GetBalance(ctx context.Context, b Backends, linkedAccountID string) (*pti.Balance, error) {
+	la, err := b.LinkedAccounts().Get(ctx, linkedAccountID)
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if la.Provider != pti.ProviderName || la.Type != pti.AccTypeBalance {
+		return nil, fmt.Errorf("%w linked account not correct type", pti.ErrNotFound)
+	}
+
+	accs, err := b.Pacioli().GetAccounts(ctx, []string{la.ID})
+	if err != nil {
+		return nil, fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+
+	if len(accs) != 1 {
+		return nil, fmt.Errorf("%w account not found", pti.ErrNotFound)
+	}
+
+	return &pti.Balance{
+		Total:     currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted, la.SendCurrency),
+		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
 	}, nil
 }
 

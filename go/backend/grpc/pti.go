@@ -32,16 +32,18 @@ func (s *rpcService) GetPtiBalances(ctx context.Context, req *backend.Empty) (*b
 			continue
 		}
 
-		ptiWallet, err := s.b.PTI().GetWallet(ctx, la.ID)
+		ptiBalance, err := s.b.PTI().GetBalance(ctx, la.ID)
 		if err != nil {
 			return nil, toGRPCError(err)
 		}
 
 		resp = append(resp, &pb.PtiBalance{
-			Balance:          ptiWallet.Balance.ToPB(),
-			Currency:         la.SendCurrency.String(),
-			LinkedAccount:    la.ID,
-			FormattedBalance: ptiWallet.Balance.Format(),
+			Balance:                   ptiBalance.Total.ToPB(),
+			Available:                 ptiBalance.Available.ToPB(),
+			Currency:                  la.SendCurrency.String(),
+			LinkedAccount:             la.ID,
+			FormattedBalance:          ptiBalance.Total.Format(),
+			FormattedAvailableBalance: ptiBalance.Available.Format(),
 		})
 	}
 

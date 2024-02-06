@@ -806,19 +806,29 @@ export class PtiBalance extends Message<PtiBalance> {
   balance?: Amount;
 
   /**
-   * @generated from field: string currency = 2;
+   * @generated from field: backend.v1.Amount available = 2;
+   */
+  available?: Amount;
+
+  /**
+   * @generated from field: string currency = 3;
    */
   currency = "";
 
   /**
-   * @generated from field: string linkedAccount = 3;
+   * @generated from field: string linkedAccount = 4;
    */
   linkedAccount = "";
 
   /**
-   * @generated from field: string formattedBalance = 4;
+   * @generated from field: string formattedBalance = 5;
    */
   formattedBalance = "";
+
+  /**
+   * @generated from field: string formattedAvailableBalance = 6;
+   */
+  formattedAvailableBalance = "";
 
   constructor(data?: PartialMessage<PtiBalance>) {
     super();
@@ -829,9 +839,11 @@ export class PtiBalance extends Message<PtiBalance> {
   static readonly typeName = "backend.v1.PtiBalance";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "balance", kind: "message", T: Amount },
-    { no: 2, name: "currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "linkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "formattedBalance", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "available", kind: "message", T: Amount },
+    { no: 3, name: "currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "linkedAccount", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "formattedBalance", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "formattedAvailableBalance", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PtiBalance {

@@ -49,6 +49,7 @@ message GetPTIBalanceRequest {
 
 message GetPTIBalanceResponse {
   Amount balance = 1;
+  Amount available = 2;
 }
 
 message EnablePTIBalanceRequest {

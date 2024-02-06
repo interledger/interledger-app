@@ -31,6 +31,10 @@ export interface GetPTIBalanceResponse {
      * @generated from protobuf field: backend.admin.v1.Amount balance = 1;
      */
     balance?: Amount;
+    /**
+     * @generated from protobuf field: backend.admin.v1.Amount available = 2;
+     */
+    available?: Amount;
 }
 /**
  * @generated from protobuf message backend.admin.v1.EnablePTIBalanceRequest
@@ -1023,7 +1027,8 @@ export const GetPTIBalanceRequest = new GetPTIBalanceRequest$Type();
 class GetPTIBalanceResponse$Type extends MessageType<GetPTIBalanceResponse> {
     constructor() {
         super("backend.admin.v1.GetPTIBalanceResponse", [
-            { no: 1, name: "balance", kind: "message", T: () => Amount }
+            { no: 1, name: "balance", kind: "message", T: () => Amount },
+            { no: 2, name: "available", kind: "message", T: () => Amount }
         ]);
     }
     create(value?: PartialMessage<GetPTIBalanceResponse>): GetPTIBalanceResponse {
@@ -1041,6 +1046,9 @@ class GetPTIBalanceResponse$Type extends MessageType<GetPTIBalanceResponse> {
                 case /* backend.admin.v1.Amount balance */ 1:
                     message.balance = Amount.internalBinaryRead(reader, reader.uint32(), options, message.balance);
                     break;
+                case /* backend.admin.v1.Amount available */ 2:
+                    message.available = Amount.internalBinaryRead(reader, reader.uint32(), options, message.available);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -1056,6 +1064,9 @@ class GetPTIBalanceResponse$Type extends MessageType<GetPTIBalanceResponse> {
         /* backend.admin.v1.Amount balance = 1; */
         if (message.balance)
             Amount.internalBinaryWrite(message.balance, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* backend.admin.v1.Amount available = 2; */
+        if (message.available)
+            Amount.internalBinaryWrite(message.available, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
