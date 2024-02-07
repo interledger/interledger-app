@@ -259,7 +259,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const email = form.get('email') as string
   const country = form.get('country') as string
   const betaOptIn = form.get('beta') as string
-  const mugId = form.get('mugId') as string
 
   await validateCSRFToken(request, form)
 
@@ -275,7 +274,6 @@ export async function action({ request }: ActionFunctionArgs) {
     countryCode: country,
     fullName,
     betaOptIn: betaOptIn != null,
-    mugId
   })
 
   if (isConnectError(response)) {
