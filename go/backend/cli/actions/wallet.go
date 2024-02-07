@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"time"
 
+	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/wallets"
 
 	"github.com/bxcodec/faker/v3"
-	"github.com/google/uuid"
 	kratos "github.com/ory/kratos-client-go"
 	"github.com/urfave/cli/v2"
 	"gitlab.com/fynbos/backend/kyc"
@@ -141,27 +141,25 @@ func MakeWallet(b Backends) cli.ActionFunc {
 		}
 
 		if cCtx.Bool("linkedaccount") {
-			la, err := b.LinkedAccounts().Create(cCtx.Context, &linkedaccounts.CreateArgs{
-				WalletID:   wallet.ID,
-				Name:       "default",
-				Nickname:   "Default",
-				Provider:   pti.ProviderName,
-				ProviderID: uuid.NewString(),
-				CanSend:    true,
-				CanReceive: true,
-				Type:       pti.AccTypeBalance,
-			})
+			a, err := b.PTI().CreateWallet(cCtx.Context, wallet.ID, currency.USD)
+			if err != nil {
+				return err
+			}
+
+			var la linkedaccounts.LinkedAccount
+			err = a(cCtx.Context, &la)
 			if err != nil {
 				return err
 			}
 
 			log.Info(
-				"Created linked account.",
+				"Created balance account.",
 				zap.String("id", la.ID),
 				zap.Bool("canSend", la.CanSend),
 				zap.Bool("canReceive", la.CanReceive),
 				zap.String("provider", pti.ProviderName),
 				zap.String("providerID", la.ProviderID),
+				zap.String("currency", currency.USD.String()),
 			)
 		}
 

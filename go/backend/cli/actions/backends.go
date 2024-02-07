@@ -6,6 +6,7 @@ import (
 	kratos "github.com/ory/kratos-client-go"
 	"gitlab.com/fynbos/backend/kyc"
 	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/user"
 	"gitlab.com/fynbos/backend/wallets"
 )
@@ -18,4 +19,5 @@ type Backends interface {
 	Users() user.Client
 	Validator() *validator.Validate
 	Wallets() wallets.Client
+	PTI() pti.Client
 }
