@@ -18,22 +18,22 @@ func StartRafikiIncomingPaymentsPolling(b ActivityBackends) {
 		return
 	}
 	// This workflow ID can be user business logic identifier as well.
-	workflowID := "cron_rafiki_web_monetization_payouts"
+	workflowID := "cron_rafiki_web_monetization_payouts_pti"
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                    workflowID,
 		TaskQueue:             "backend",
-		CronSchedule:          "0 */6 * * *",                                       // Every 6 hours
+		CronSchedule:          "0 0 * * *",                                         // Every day at midnight
 		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_TERMINATE_IF_RUNNING, // There can be only one
 	}
 
-	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, PayoutIncomingPaymentsWorkflow)
+	we, err := b.Temporal().ExecuteWorkflow(context.Background(), workflowOptions, WebMonetizationPaymentsWorkflow)
 	if err != nil {
 		log.Fatal("Unable to execute workflow", zap.Error(err))
 	}
 	log.Info("Started workflow", zap.String("WorkflowID", we.GetID()), zap.String("RunID", we.GetRunID()))
 }
 
-func PayoutIncomingPaymentsWorkflow(ctx workflow.Context) error {
+func WebMonetizationPaymentsWorkflow(ctx workflow.Context) error {
 	var a *Activity
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 20 * time.Second,
@@ -42,35 +42,30 @@ func PayoutIncomingPaymentsWorkflow(ctx workflow.Context) error {
 
 	logger := workflow.GetLogger(ctx)
 
-	var payouts []Payout
-	err := workflow.ExecuteActivity(ctx, a.ListPayouts).Get(ctx, &payouts)
+	var payouts []Payment
+	err := workflow.ExecuteActivity(ctx, a.ListPaymentsToMake).Get(ctx, &payouts)
 	if err != nil {
-		logger.Error("failed to list incoming payments set for payout", "err", err)
+		logger.Error("failed to list outgoing payments set for payout", "err", err)
 		return err
 	}
 
 	for _, p := range payouts {
-		// Only do payouts larger than 1USD / 1ZAR
-		if p.ReceivedAmount < 100 {
-			continue
-		}
-
 		var paymentID string
-		err = workflow.ExecuteActivity(ctx, a.CreatePayoutPayment, p).Get(ctx, &paymentID)
+		err = workflow.ExecuteActivity(ctx, a.CreateWebMonetizationPayment, p).Get(ctx, &paymentID)
 		if err != nil {
-			logger.Error("failed to create payment for payout", "err", err)
+			logger.Error("failed to create payment for web monetization", "err", err)
 			// Don't return try the next one, we'll come back later and retry
 			continue
 		}
 
 		err = workflow.ExecuteActivity(ctx, a.ConfirmPayment, paymentID).Get(ctx, nil)
 		if err != nil {
-			logger.Error("failed to create payment for payout", "err", err)
+			logger.Error("failed to confirm payment for web monetization", "err", err)
 			// Don't return try the next one, we'll come back later and retry
 			continue
 		}
 
-		err = workflow.ExecuteActivity(ctx, a.AddPaymentRef, p, paymentID).Get(ctx, nil)
+		err = workflow.ExecuteActivity(ctx, a.AddWebMonetizationPayment, p, paymentID).Get(ctx, nil)
 		if err != nil {
 			logger.Error("failed to add payment ref to incoming payment payout", "err", err)
 			return err

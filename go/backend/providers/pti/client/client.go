@@ -116,3 +116,7 @@ func (c Client) AssignBalance(ctx context.Context, linkedAccountID string, txID 
 func (c Client) RollbackReserve(ctx context.Context, trxID string) error {
 	return ops.RollbackReserve(ctx, c.b, trxID)
 }
+
+func (c Client) ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error {
+	return ops.ReserveTransfer(ctx, c.b, fromAccount, toAccount, txID, amt, timeout)
+}

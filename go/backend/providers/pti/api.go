@@ -19,4 +19,6 @@ type Client interface {
 	FinaliseReserve(ctx context.Context, txID string) error
 	RollbackReserve(ctx context.Context, txID string) error
 	AssignBalance(ctx context.Context, linkedAccountID, txID string, amt currency.Amount) (*Balance, error)
+
+	ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error
 }
