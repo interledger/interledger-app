@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -22,6 +23,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Wallets() wallets.Client
 	Keys() keys.Client
+	PTI() pti.Client
 }
 
 var _ ops.Backends = opsBackends{}

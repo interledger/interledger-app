@@ -57,13 +57,9 @@ func TestClient(t *testing.T) {
 	b.user.MapUserWallet(context.Background(), uuid.NewString(), wallets.WebMonetizationWalletID)
 	sendWallet := createTestWallet(t, b)
 	recvWallet := createTestWallet(t, b)
-	webMonetizaiontLinkedAccount, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.USD)
-	require.NoError(t, err)
-	webMonetizaiontLinkedAccountZAR, err := b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.ZAR)
-	require.NoError(t, err)
 
 	// adding dummy transaction so referrals don't run
-	_, err = b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
+	_, err := b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		WalletID: recvWallet.walletID,
 		Provider: transactions.Provider(pti.ProviderName),
 		Amount: currency.Amount{
@@ -120,14 +116,13 @@ func TestClient(t *testing.T) {
 			},
 		},
 		{
-			Skip: true, // TDB how this would work with PTI
 			Name: "Golden path Web monetization",
 			Args: payments.CreateArgs{
 				Sender: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
-					Identifier: wallets.WebMonetizationWalletID,
+					Identifier: sendWallet.walletID,
 				},
-				SenderAccount: webMonetizaiontLinkedAccount.ID,
+				SenderAccount: sendWallet.ptiUSDLinkedAcc,
 				Receiver: payments.Identity{
 					Type:       payments.IdentityTypeWalletID,
 					Identifier: recvWallet.walletID,
@@ -135,42 +130,6 @@ func TestClient(t *testing.T) {
 				ReceiverAccount: recvWallet.ptiUSDLinkedAcc,
 				SenderAmount:    currency.FromUInt64(10, currency.ParseCurrency("USD")),
 				ReceiverAmount:  currency.FromUInt64(10, currency.ParseCurrency("USD")),
-				IPAddress:       "192.36.8.4",
-				Type:            payments.TypeWebMonetization,
-			},
-			Assertions: Assertions{
-				PaymentState:         payments.StateCompleted,
-				SendTransactionState: transactions.StateCompleted,
-				SendTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeDebitWebMonetization,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransfers: []AssertTransfer{
-					{
-						TransferType: transactions.TransferTypeCreditBalance,
-						State:        transactions.StateCompleted,
-					},
-				},
-				ReceiveTransactionState: transactions.StateCompleted,
-			},
-		},
-		{
-			Name: "Golden path ZAR Web monetization",
-			Args: payments.CreateArgs{
-				Sender: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: wallets.WebMonetizationWalletID,
-				},
-				SenderAccount: webMonetizaiontLinkedAccountZAR.ID,
-				Receiver: payments.Identity{
-					Type:       payments.IdentityTypeWalletID,
-					Identifier: recvWallet.walletID,
-				},
-				ReceiverAccount: recvWallet.xagoZARLinkedAcc,
-				SenderAmount:    currency.FromUInt64(10, currency.ZAR),
-				ReceiverAmount:  currency.FromUInt64(10, currency.ZAR),
 				IPAddress:       "192.36.8.4",
 				Type:            payments.TypeWebMonetization,
 			},
@@ -456,12 +415,7 @@ func TestClient(t *testing.T) {
 			require.NoError(st, err)
 			assert.Equal(st, tc.Assertions.PaymentState, p.State)
 
-			var sendTransaction *transactions.Transaction
-			if p.Type == payments.TypeWebMonetization {
-				sendTransaction, err = b.Transactions().GetTransaction(ctx, wallets.WebMonetizationWalletID, p.SendTransactionID)
-			} else {
-				sendTransaction, err = b.Transactions().GetTransaction(ctx, sendWallet.walletID, p.SendTransactionID)
-			}
+			sendTransaction, err := b.Transactions().GetTransaction(ctx, sendWallet.walletID, p.SendTransactionID)
 			require.NoError(st, err)
 			assert.True(st, strings.HasPrefix(sendTransaction.Destination, "https://local.fynbos.me/"))
 			assert.True(st, strings.HasPrefix(sendTransaction.Source, "https://local.fynbos.me/"))
