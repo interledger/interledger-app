@@ -2764,6 +2764,22 @@ table "rafiki_outgoing_payments" {
     null = true
     type = uuid
   }
+  column "from_wallet" {
+    null = false
+    type = uuid
+  }
+  column "to_wallet" {
+    null = false
+    type = uuid
+  }
+  column "amount" {
+    null = false
+    type = bigint
+  }
+  column "amount_asset" {
+    null = false
+    type = text
+  }
   column "created_at" {
     null    = false
     type    = timestamp

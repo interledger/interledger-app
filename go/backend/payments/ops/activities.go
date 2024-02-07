@@ -234,7 +234,12 @@ func (a *Activity) ShouldPullFromAccount(ctx context.Context, paymentID string) 
 		return false, err
 	}
 
-	return p.Type == payments.TypePeer2Peer || p.Type == payments.TypeRafikiPeer2Peer || p.Type == payments.TypeRafiki2External || p.Type == payments.TypeWithdrawal || p.Type == payments.TypeDeposit, nil
+	return p.Type == payments.TypePeer2Peer ||
+		p.Type == payments.TypeRafikiPeer2Peer ||
+		p.Type == payments.TypeRafiki2External ||
+		p.Type == payments.TypeWithdrawal ||
+		p.Type == payments.TypeDeposit ||
+		p.Type == payments.TypeWebMonetization, nil
 }
 
 func (a *Activity) ConfirmPaymentsEnginePayment(ctx context.Context, id string) ([]payments.RequiredActionType, error) {
@@ -248,7 +253,7 @@ func (a *Activity) SignalRafikiPayIn(ctx context.Context, paymentID string) erro
 		return err
 	}
 
-	if p.Type != payments.TypeRafiki2External && p.Type != payments.TypeRafikiPeer2Peer {
+	if p.Type != payments.TypeRafiki2External && p.Type != payments.TypeRafikiPeer2Peer && p.Type != payments.TypeWebMonetization {
 		return nil
 	}
 

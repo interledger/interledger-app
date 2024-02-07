@@ -7,8 +7,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"gitlab.com/fynbos/backend/wallets"
-
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 
@@ -24,60 +22,59 @@ func NewActivity(b ActivityBackends) *Activity {
 	return &Activity{b}
 }
 
-type Payout struct {
-	IDs            []string
-	WalletID       string
-	ReceivedAmount uint64
-	Asset          string
+type dbPayment struct {
+	ID           string `db:"id"`
+	FromWalletID string `db:"from_wallet"`
+	ToWalletID   string `db:"from_wallet"`
+	Amount       uint64 `db:"amount"`
+	Asset        string `db:"amount_asset"`
 }
 
-type dbPayout struct {
-	ID             string `db:"id"`
-	WalletID       string `db:"wallet_id"`
-	ReceivedAmount uint64 `db:"received_amount"`
-	Asset          string `db:"received_amount_asset"`
+type Payment struct {
+	IDs          []string
+	FromWalletID string
+	ToWalletID   string
+	Asset        string
+	Amount       uint64
 }
 
-func (a *Activity) ListPayouts(ctx context.Context) ([]Payout, error) {
-	var payouts []dbPayout
-	err := a.b.DB().SelectContext(ctx, &payouts, `SELECT ip.id, ip.received_amount, ip.received_amount_asset, pp.wallet_id FROM rafiki_incoming_payments ip 
-		INNER JOIN rafiki_payment_pointers pp ON pp.payment_pointer_id=ip.payment_pointer_id 
-		WHERE ip.completed=true AND payment_id is null`)
+func (a *Activity) ListPaymentsToMake(ctx context.Context) ([]Payment, error) {
+	var dbPayments []dbPayment
+	err := a.b.DB().SelectContext(ctx, &dbPayments, `SELECT id, from_wallet, to_wallet, amount, amount_asset FROM rafiki_outgoing_payments
+		WHERE payment_id is null`)
 	if err != nil {
 		return nil, err
 	}
 
-	// Group by walletID
-	walletPayouts := make(map[string]Payout)
-	for _, p := range payouts {
-		key := fmt.Sprintf("%s|%s", p.WalletID, p.Asset)
-		payout, ok := walletPayouts[key]
+	walletPayments := make(map[string]Payment)
+	for _, p := range dbPayments {
+		payment, ok := walletPayments[p.FromWalletID]
 		if ok {
-			payout.ReceivedAmount += p.ReceivedAmount
-			payout.IDs = append(payout.IDs, p.ID)
-			walletPayouts[key] = payout
+			payment.Amount += p.Amount
+			payment.IDs = append(payment.IDs, p.ID)
+			walletPayments[p.FromWalletID] = payment
 			continue
 		}
-		walletPayouts[key] = Payout{
-			IDs:            []string{p.ID},
-			WalletID:       p.WalletID,
-			ReceivedAmount: p.ReceivedAmount,
-			Asset:          p.Asset,
+		walletPayments[p.FromWalletID] = Payment{
+			IDs:          []string{p.ID},
+			FromWalletID: p.FromWalletID,
+			ToWalletID:   p.ToWalletID,
+			Amount:       p.Amount,
+			Asset:        p.Asset,
 		}
 	}
 
 	// Flatten into array
-	var resp []Payout
-	for _, v := range walletPayouts {
+	var resp []Payment
+	for _, v := range walletPayments {
 		resp = append(resp, v)
 	}
 
 	return resp, nil
 }
 
-func (a *Activity) CreatePayoutPayment(ctx context.Context, payout Payout) (string, error) {
-
-	senderAcc, err := a.b.LinkedAccounts().GetDefaultSend(ctx, wallets.WebMonetizationWalletID, currency.Currency(payout.Asset))
+func (a *Activity) CreateWebMonetizationPayment(ctx context.Context, payment Payment) (string, error) {
+	senderAcc, err := a.b.LinkedAccounts().GetDefaultSend(ctx, payment.FromWalletID, currency.Currency(payment.Asset))
 	if err != nil {
 		return "", err
 	}
@@ -85,17 +82,17 @@ func (a *Activity) CreatePayoutPayment(ctx context.Context, payout Payout) (stri
 	p, err := a.b.Payments().Create(ctx, payments.CreateArgs{
 		Sender: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
-			Identifier: wallets.WebMonetizationWalletID,
+			Identifier: payment.FromWalletID,
 		},
 		Receiver: payments.Identity{
 			Type:       payments.IdentityTypeWalletID,
-			Identifier: payout.WalletID,
+			Identifier: payment.ToWalletID,
 		},
 		SenderAccount:  senderAcc.ID,
 		Type:           payments.TypeWebMonetization,
-		SenderAmount:   currency.FromUInt64(payout.ReceivedAmount, currency.ParseCurrency(payout.Asset)),
-		ReceiverAmount: currency.FromUInt64(payout.ReceivedAmount, currency.ParseCurrency(payout.Asset)),
-		Note:           "Web Monetization payout",
+		SenderAmount:   currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
+		ReceiverAmount: currency.FromUInt64(payment.Amount, currency.ParseCurrency(payment.Asset)),
+		Note:           "Web Monetization payment",
 		IPAddress:      "198.0.0.2", // TODO: Add a our static IP Address
 	})
 
@@ -114,8 +111,8 @@ func (a *Activity) ConfirmPayment(ctx context.Context, id string) error {
 	return err
 }
 
-func (a *Activity) AddPaymentRef(ctx context.Context, payout Payout, paymentID string) error {
-	query, args, err := sqlx.In("UPDATE rafiki_incoming_payments SET payment_id=? WHERE id IN (?)", paymentID, payout.IDs)
+func (a *Activity) AddWebMonetizationPayment(ctx context.Context, payout Payment, paymentID string) error {
+	query, args, err := sqlx.In("UPDATE rafiki_outgoing_payments SET payment_id=? WHERE id IN (?)", paymentID, payout.IDs)
 	if err != nil {
 		return err
 	}

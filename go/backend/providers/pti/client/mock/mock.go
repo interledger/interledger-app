@@ -141,6 +141,20 @@ func (mr *MockClientMockRecorder) ReserveBalance(ctx, linkedAccountID, txID, amt
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReserveBalance", reflect.TypeOf((*MockClient)(nil).ReserveBalance), ctx, linkedAccountID, txID, amt, timeout)
 }
 
+// ReserveTransfer mocks base method.
+func (m *MockClient) ReserveTransfer(ctx context.Context, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReserveTransfer", ctx, fromAccount, toAccount, txID, amt, timeout)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReserveTransfer indicates an expected call of ReserveTransfer.
+func (mr *MockClientMockRecorder) ReserveTransfer(ctx, fromAccount, toAccount, txID, amt, timeout interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReserveTransfer", reflect.TypeOf((*MockClient)(nil).ReserveTransfer), ctx, fromAccount, toAccount, txID, amt, timeout)
+}
+
 // RollbackReserve mocks base method.
 func (m *MockClient) RollbackReserve(ctx context.Context, txID string) error {
 	m.ctrl.T.Helper()
