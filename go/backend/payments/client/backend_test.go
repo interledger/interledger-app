@@ -157,6 +157,7 @@ func NewTestBackends(t *testing.T) *TestBackends {
 
 	raf := rafiki_mock.NewMockClient(ctrl)
 	raf.EXPECT().FundOutgoingPayment(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	raf.EXPECT().FinalizeWebMonetization(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	b.raf = raf
 
 	ledgers, err := b.pac.ConfigureLedgers(context.Background(), []pacioli.ConfigureLedgerArgs{

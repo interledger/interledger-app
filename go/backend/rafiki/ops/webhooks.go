@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/rafiki"
-	"gitlab.com/fynbos/backend/temporal/utils"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -78,8 +77,6 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		}
 
 		switch hook.Type {
-		case "outgoing_payment.completed", "outgoing_payment.failed":
-			err = outgoingPaymentCompleteHandle(r.Context(), b, hook)
 		case "outgoing_payment.created":
 			err = outgoingPayment(r.Context(), b, hook)
 		default:
@@ -103,44 +100,6 @@ func extractWalletURL(receiver string) string {
 	}
 
 	return receiver
-}
-
-func outgoingPaymentCompleteHandle(ctx context.Context, b Backends, hook webhook) error {
-	var op outgoingPaymentData
-	err := json.Unmarshal(hook.Data, &op)
-	if err != nil {
-		log.Error("failed to unmarshal rafiki outgoing payment", zap.Error(err))
-		return err
-	}
-
-	var paymentID string
-	err = b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM rafiki_outgoing_payments WHERE id=$1", op.ID)
-	if err != nil {
-		return err
-	}
-
-	success := strings.EqualFold(hook.Type, "outgoing_payment.completed")
-	err = b.Payments().SignalExternalPayoutComplete(ctx, paymentID, success)
-	if err != nil && !utils.IsNotFoundError(err) {
-		return err
-	}
-
-	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_outgoing_payments SET completed=true WHERE id=$1", op.ID)
-	if err != nil {
-		return err
-	}
-
-	// Finalize the reserve of funds on pacioli one way or the other
-	if success {
-		err = b.PTI().FinaliseReserve(ctx, op.ID)
-	} else {
-		err = b.PTI().RollbackReserve(ctx, op.ID)
-	}
-	if err != nil {
-		return err
-	}
-
-	return err
 }
 
 func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*linkedaccounts.LinkedAccount, *linkedaccounts.LinkedAccount, error) {
@@ -256,7 +215,7 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 		return nil
 	}
 
-	// More than 1 USD execute imediatly
+	// More than 1 USD execute immediately
 	if amt >= 100 {
 		return immediatePayment(ctx, b, op)
 	}
@@ -275,6 +234,12 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, event_id, from_wallet, to_wallet, amount, amount_asset) VALUES ($1, $2, $3, $4, $5, $6)", op.ID, hook.ID, senderAcc.WalletID, receiverAcc.WalletID, op.DebitAmount.Value, op.DebitAmount.AssetCode)
 	if err != nil {
 		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
+		return err
+	}
+
+	// Tell rafiki the payment is successful, we'll actually action it later but the fund are reserved
+	err = b.External().FundOutgoingPayment(ctx, hook.ID)
+	if err != nil {
 		return err
 	}
 
