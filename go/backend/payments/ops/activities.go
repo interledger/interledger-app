@@ -380,6 +380,10 @@ func (a *Activity) FinalizeBalance(ctx context.Context, paymentID string) error 
 		return err
 	}
 
+	if p.Type == payments.TypeWebMonetization {
+		return a.b.Rafiki().FinalizeWebMonetization(ctx, paymentID)
+	}
+
 	if p.Type != payments.TypeWithdrawal && p.Type != payments.TypePeer2Peer {
 		return nil
 	}

@@ -65,6 +65,20 @@ func (mr *MockClientMockRecorder) CreatePaymentPointerKey(ctx, keyID, walletID i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePaymentPointerKey", reflect.TypeOf((*MockClient)(nil).CreatePaymentPointerKey), ctx, keyID, walletID)
 }
 
+// FinalizeWebMonetization mocks base method.
+func (m *MockClient) FinalizeWebMonetization(ctx context.Context, paymentID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FinalizeWebMonetization", ctx, paymentID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FinalizeWebMonetization indicates an expected call of FinalizeWebMonetization.
+func (mr *MockClientMockRecorder) FinalizeWebMonetization(ctx, paymentID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinalizeWebMonetization", reflect.TypeOf((*MockClient)(nil).FinalizeWebMonetization), ctx, paymentID)
+}
+
 // FundOutgoingPayment mocks base method.
 func (m *MockClient) FundOutgoingPayment(ctx context.Context, paymentID string) error {
 	m.ctrl.T.Helper()

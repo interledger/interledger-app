@@ -61,6 +61,10 @@ func (c *client) FundOutgoingPayment(ctx context.Context, paymentID string) erro
 	return ops.FundOutgoingPayment(ctx, c.b, paymentID)
 }
 
+func (c *client) FinalizeWebMonetization(ctx context.Context, paymentID string) error {
+	return ops.FinalizeWebMonetization(ctx, c.b, paymentID)
+}
+
 func (c *client) CreatePaymentPointerKey(ctx context.Context, keyID string, walletID string) error {
 	return ops.CreatePaymentPointerKey(ctx, c.b, keyID, walletID)
 }
