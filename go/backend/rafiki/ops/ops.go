@@ -81,15 +81,34 @@ func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (s
 }
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
-	var eventID string
-	err := b.DB().GetContext(ctx, &eventID, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	var eventIDs []string
+	err := b.DB().GetContext(ctx, &eventIDs, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
 
-	err = b.External().FundOutgoingPayment(ctx, eventID)
+	for _, id := range eventIDs {
+		err = b.External().FundOutgoingPayment(ctx, id)
+		if err != nil {
+			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
+	}
+
+	return nil
+}
+
+func FinalizeWebMonetization(ctx context.Context, b Backends, paymentID string) error {
+	var reserveIDs []string
+	err := b.DB().GetContext(ctx, &reserveIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	for _, id := range reserveIDs {
+		err = b.PTI().FinaliseReserve(ctx, id)
+		if err != nil {
+			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
 	}
 
 	return nil

@@ -332,3 +332,51 @@ func AssignBalance(ctx context.Context, b Backends, linkedAccountID, txID string
 		Available: currency.FromUInt64(accs[0].CreditsPosted-accs[0].DebitsPosted-accs[0].DebitsPending, la.SendCurrency),
 	}, nil
 }
+
+func ReserveTransfer(ctx context.Context, b Backends, fromAccount, toAccount, txID string, amt currency.Amount, timeout time.Duration) error {
+	if amt.Currency != currency.USD {
+		return fmt.Errorf("%w %s not supported.", pti.ErrInternal, amt.Currency)
+	}
+
+	fromAcc, err := b.LinkedAccounts().Get(ctx, fromAccount)
+	if err != nil {
+		return err
+	}
+	if fromAcc.Provider != pti.ProviderName || fromAcc.Type != pti.AccTypeBalance {
+		return fmt.Errorf("%w from account not a PTI linked account", pti.ErrInternal)
+	}
+
+	toAcc, err := b.LinkedAccounts().Get(ctx, toAccount)
+	if err != nil {
+		return err
+	}
+	if toAcc.Provider != pti.ProviderName || toAcc.Type != pti.AccTypeBalance {
+		return fmt.Errorf("%w to account not a PTI linked account", pti.ErrInternal)
+	}
+
+	tx, err := b.Pacioli().CreateTransfers(ctx, []pacioli.CreateTransferArgs{
+		{
+			ID:              txID,
+			Amount:          amt.Value,
+			DebitAccountID:  toAccount,
+			CreditAccountID: fromAccount,
+			Pending:         true,
+			Code:            1,
+			Timeout:         uint64(timeout),
+			Ledger:          pti.LedgerIDUSD,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("%w %s", pti.ErrInternal, err)
+	}
+	if len(tx) > 0 {
+		if tx[0].Code == pacioli.TransferExceedsCredits || tx[0].Code == pacioli.TransferExceedsDebits || tx[0].Code == pacioli.TransferExceedsPendingTransferAmount {
+			return fmt.Errorf("%w insufficiens balance cod (%s)", pti.ErrInsufficientBalance, tx[0].Code.String())
+		}
+		if tx[0].Code != 0 {
+			return fmt.Errorf("%w non success code (%s)", pti.ErrInternal, tx[0].Code.String())
+		}
+	}
+
+	return nil
+}

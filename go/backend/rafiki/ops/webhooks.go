@@ -4,19 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"gitlab.com/fynbos/backend/temporal/utils"
+	"gitlab.com/fynbos/backend/rafiki"
+
+	"gitlab.com/fynbos/backend/linkedaccounts"
+	"gitlab.com/fynbos/backend/providers/pti"
 
 	"gitlab.com/fynbos/env"
 
 	"gitlab.com/fynbos/backend/currency"
 	"gitlab.com/fynbos/backend/payments"
-	"gitlab.com/fynbos/backend/wallets"
 	"gitlab.com/fynbos/log"
 	"go.uber.org/zap"
 )
@@ -25,18 +28,6 @@ type webhook struct {
 	ID   string          `json:"id"`
 	Type string          `json:"type"`
 	Data json.RawMessage `json:"data"`
-}
-
-type incomingPaymentData struct {
-	ID              string          `json:"id"`
-	WalletAddressID string          `json:"walletAddressId"`
-	CreatedAt       time.Time       `json:"createdAt"`
-	ExpiresAt       time.Time       `json:"expiresAt"`
-	ReceivedAmount  amount          `json:"receivedAmount"`
-	Completed       bool            `json:"completed"`
-	UpdatedAt       time.Time       `json:"updatedAt"`
-	IncomingAmount  amount          `json:"incomingAmount"`
-	Metadata        json.RawMessage `json:"metadata"`
 }
 
 type outgoingPaymentData struct {
@@ -86,12 +77,8 @@ func EventWebhook(b Backends) http.HandlerFunc {
 		}
 
 		switch hook.Type {
-		case "incoming_payment.created", "incoming_payment.completed", "incoming_payment.expired":
-			err = incomingPaymentHandle(r.Context(), b, hook.Type, hook.Data)
-		case "outgoing_payment.completed", "outgoing_payment.failed":
-			err = outgoingPaymentCompleteHandle(r.Context(), b, hook)
 		case "outgoing_payment.created":
-			err = outgoingPaymentCreatedHandle(r.Context(), b, hook)
+			err = outgoingPayment(r.Context(), b, hook)
 		default:
 			log.Info("rafiki unsupported webhook type", zap.String("type", hook.Type))
 			w.WriteHeader(http.StatusOK)
@@ -115,67 +102,79 @@ func extractWalletURL(receiver string) string {
 	return receiver
 }
 
-func extractIncomingPaymentID(receiver string) string {
-	const urlPart = "incoming-payments"
-	if strings.Contains(receiver, urlPart) {
-		return receiver[strings.Index(receiver, urlPart)+len(urlPart)+1:]
+func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*linkedaccounts.LinkedAccount, *linkedaccounts.LinkedAccount, error) {
+	senderWallet, err := LookupWalletID(ctx, b, op.WalletAddressID)
+	if err != nil {
+		log.Error("failed to lookup wallet ID from rafiki payment pointer ID", zap.Error(err))
+		return nil, nil, err
 	}
 
-	return receiver
+	receiverWallet, err := b.Wallets().GetFromAddress(ctx, extractWalletURL(op.Receiver))
+	if err != nil {
+		log.Error("failed to lookup wallet ID from rafiki receiver wallet address", zap.Error(err))
+		return nil, nil, err
+	}
+
+	senderAccs, err := b.LinkedAccounts().ListByWalletId(ctx, senderWallet)
+	if err != nil {
+		log.Error("failed to lookup default send account", zap.Error(err))
+		return nil, nil, err
+	}
+	var senderAcc linkedaccounts.LinkedAccount
+	for _, la := range senderAccs {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			senderAcc = la
+			break
+		}
+	}
+	if senderAcc.ID == "" {
+		return nil, nil, fmt.Errorf("%w fialed to find sender PTI account", rafiki.ErrNotFound)
+	}
+
+	receiverAccs, err := b.LinkedAccounts().ListByWalletId(ctx, receiverWallet.ID)
+	if err != nil {
+		log.Error("failed to lookup default receive account", zap.Error(err))
+		return nil, nil, err
+	}
+	var receiverAcc linkedaccounts.LinkedAccount
+	for _, la := range receiverAccs {
+		if la.Provider == pti.ProviderName && la.Type == pti.AccTypeBalance {
+			receiverAcc = la
+			break
+		}
+	}
+	if receiverAcc.ID == "" {
+		return nil, nil, fmt.Errorf("%w fialed to find receiver PTI account", rafiki.ErrNotFound)
+	}
+
+	return &senderAcc, &receiverAcc, nil
 }
 
-func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook) error {
-	var op outgoingPaymentData
-	err := json.Unmarshal(hook.Data, &op)
-	if err != nil {
-		log.Error("failed to unmarshal rafiki outgoing payment", zap.Error(err))
-		return err
-	}
+func immediatePayment(ctx context.Context, b Backends, op outgoingPaymentData) error {
 
-	var amt uint64
-	amt, err = strconv.ParseUint(op.DebitAmount.Value, 10, 64)
+	amt, err := strconv.ParseUint(op.DebitAmount.Value, 10, 64)
 	if err != nil {
 		log.Error("failed to convert rafiki outgoing payment amount", zap.Error(err))
 		return err
 	}
-	// Nothing to do
-	if amt == 0 {
-		return nil
-	}
 
-	typ := payments.TypeRafikiPeer2Peer
-	receiverID := payments.Identity{Type: payments.IdentityTypeWalletURL, Identifier: extractWalletURL(op.Receiver)}
-	_, err = b.Wallets().GetFromAddress(ctx, receiverID.Identifier)
-	if errors.Is(err, wallets.ErrNoWalletFound) {
-		typ = payments.TypeRafiki2External
-		receiverID.Type = payments.IdentityTypeExternalWalletURL
-	} else if err != nil {
-		return err
-	}
-
-	senderWallet, err := LookupWalletID(ctx, b, op.WalletAddressID)
+	senderAcc, receiverAcc, err := getAccounts(ctx, b, op)
 	if err != nil {
-		log.Error("failed to lookup wallet ID from rafiki payment pointer ID", zap.Error(err))
-		return err
-	}
-
-	senderAcc, err := b.LinkedAccounts().GetDefaultSend(ctx, senderWallet, currency.ParseCurrency(op.DebitAmount.AssetCode))
-	if err != nil {
-		log.Error("failed to lookup default send account", zap.Error(err))
 		return err
 	}
 
 	p, err := b.Payments().Lookup(ctx, op.ID)
 	if errors.Is(err, payments.ErrNotFound) {
 		p, err = b.Payments().Create(ctx, payments.CreateArgs{
-			IdempotencyKey: op.ID,
-			Sender:         payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: senderWallet},
-			Receiver:       receiverID,
-			SenderAmount:   currency.FromUInt64(amt, currency.ParseCurrency(op.DebitAmount.AssetCode)),
-			SenderAccount:  senderAcc.ID,
-			ReceiverAmount: currency.FromUInt64(amt, currency.ParseCurrency(op.ReceiveAmount.AssetCode)),
-			IPAddress:      "41.71.7.104", // TODO: get IP address from somewhere
-			Type:           typ,
+			IdempotencyKey:  op.ID,
+			Sender:          payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: senderAcc.WalletID},
+			Receiver:        payments.Identity{Type: payments.IdentityTypeWalletID, Identifier: receiverAcc.WalletID},
+			SenderAmount:    currency.FromUInt64(amt, currency.ParseCurrency(op.DebitAmount.AssetCode)),
+			SenderAccount:   senderAcc.ID,
+			ReceiverAccount: receiverAcc.ID,
+			ReceiverAmount:  currency.FromUInt64(amt, currency.ParseCurrency(op.ReceiveAmount.AssetCode)),
+			IPAddress:       "41.71.7.104", // TODO: get IP address from somewhere
+			Type:            payments.TypeRafikiPeer2Peer,
 		})
 		if err != nil {
 			log.Error("failed to create payment from rafiki outoing payment")
@@ -194,20 +193,10 @@ func outgoingPaymentCreatedHandle(ctx context.Context, b Backends, hook webhook)
 		}
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, payment_id, event_id) VALUES ($1, $2, $3)", op.ID, p.ID, hook.ID)
-	if err != nil {
-		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
-	}
-
-	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_incoming_payments SET payment_id=$1 WHERE id=$2", p.ID, extractIncomingPaymentID(op.Receiver))
-	if err != nil {
-		log.Error("failed to set incoming payment ID for rafiki outgoing payment", zap.Error(err))
-	}
-
 	return nil
 }
 
-func outgoingPaymentCompleteHandle(ctx context.Context, b Backends, hook webhook) error {
+func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 	var op outgoingPaymentData
 	err := json.Unmarshal(hook.Data, &op)
 	if err != nil {
@@ -215,52 +204,42 @@ func outgoingPaymentCompleteHandle(ctx context.Context, b Backends, hook webhook
 		return err
 	}
 
-	var paymentID string
-	err = b.DB().GetContext(ctx, &paymentID, "SELECT payment_id FROM rafiki_outgoing_payments WHERE id=$1", op.ID)
-	if err != nil {
-		return err
-	}
-
-	success := strings.EqualFold(hook.Type, "outgoing_payment.completed")
-	err = b.Payments().SignalExternalPayoutComplete(ctx, paymentID, success)
-	if err != nil && !utils.IsNotFoundError(err) {
-		return err
-	}
-
-	_, err = b.DB().ExecContext(ctx, "UPDATE rafiki_outgoing_payments SET completed=true WHERE id=$1", op.ID)
-	return err
-}
-
-func incomingPaymentHandle(ctx context.Context, b Backends, hookType string, data json.RawMessage) error {
-	var payment incomingPaymentData
-	err := json.Unmarshal(data, &payment)
-	if err != nil {
-		log.Error("failed to unmarshal rafiki incoming payment", zap.Error(err))
-		return err
-	}
-
-	completed := payment.Completed || hookType == "incoming_payment.completed" || hookType == "incoming_payment.expired"
-
 	var amt uint64
-	if payment.ReceivedAmount.Value != "" {
-		amt, err = strconv.ParseUint(payment.ReceivedAmount.Value, 10, 64)
-		if err != nil {
-			log.Error("failed to convert rafiki incoming payment amount", zap.Error(err))
-			return err
-		}
+	amt, err = strconv.ParseUint(op.DebitAmount.Value, 10, 64)
+	if err != nil {
+		log.Error("failed to convert rafiki outgoing payment amount", zap.Error(err))
+		return err
+	}
+	// Nothing to do
+	if amt == 0 {
+		return nil
 	}
 
-	_, err = b.DB().ExecContext(ctx, `INSERT INTO rafiki_incoming_payments 
-  (id, payment_pointer_id, completed, received_amount, received_amount_asset) 
-	VALUES 
-  ($1, $2, $3, $4, $5) ON CONFLICT (id) 
-    DO UPDATE SET 
-                completed = EXCLUDED.completed, 
-                received_amount = EXCLUDED.received_amount,
-      			received_amount_asset = EXCLUDED.received_amount_asset,
-                updated_at = now()`, payment.ID, payment.WalletAddressID, completed, amt, payment.ReceivedAmount.AssetCode)
+	// More than 1 USD execute immediately
+	if amt >= 100 {
+		return immediatePayment(ctx, b, op)
+	}
+
+	senderAcc, receiverAcc, err := getAccounts(ctx, b, op)
 	if err != nil {
-		log.Error("failed to upsert rafiki incoming payment", zap.Error(err))
+		return err
+	}
+
+	// Reserve the funds for 26 hours, Cron runs every 24.
+	err = b.PTI().ReserveTransfer(ctx, senderAcc.ID, receiverAcc.ID, op.ID, currency.FromUInt64(amt, currency.USD), time.Hour*26)
+	if err != nil {
+		return err
+	}
+
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, event_id, from_wallet, to_wallet, amount, amount_asset) VALUES ($1, $2, $3, $4, $5, $6)", op.ID, hook.ID, senderAcc.WalletID, receiverAcc.WalletID, op.DebitAmount.Value, op.DebitAmount.AssetCode)
+	if err != nil {
+		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
+		return err
+	}
+
+	// Tell rafiki the payment is successful, we'll actually action it later but the fund are reserved
+	err = b.External().FundOutgoingPayment(ctx, hook.ID)
+	if err != nil {
 		return err
 	}
 

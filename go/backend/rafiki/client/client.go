@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"gitlab.com/fynbos/backend/providers/pti"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -22,6 +23,7 @@ type Backends interface {
 	LinkedAccounts() linkedaccounts.Client
 	Wallets() wallets.Client
 	Keys() keys.Client
+	PTI() pti.Client
 }
 
 var _ ops.Backends = opsBackends{}
@@ -57,6 +59,10 @@ func (c *client) WebhookHandler() http.HandlerFunc {
 
 func (c *client) FundOutgoingPayment(ctx context.Context, paymentID string) error {
 	return ops.FundOutgoingPayment(ctx, c.b, paymentID)
+}
+
+func (c *client) FinalizeWebMonetization(ctx context.Context, paymentID string) error {
+	return ops.FinalizeWebMonetization(ctx, c.b, paymentID)
 }
 
 func (c *client) CreatePaymentPointerKey(ctx context.Context, keyID string, walletID string) error {

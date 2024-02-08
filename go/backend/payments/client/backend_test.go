@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	rafiki_mock "gitlab.com/fynbos/backend/rafiki/client/mock"
+
 	pti_ops "gitlab.com/fynbos/backend/providers/pti/ops"
 
 	"gitlab.com/fynbos/backend/providers/basistheory"
@@ -86,6 +88,7 @@ type TestBackends struct {
 	kyc      kyc.Client
 	xgo      xago.Client
 	pac      pacioli.Client
+	raf      rafiki.Client
 }
 
 func NewTestBackends(t *testing.T) *TestBackends {
@@ -151,6 +154,11 @@ func NewTestBackends(t *testing.T) *TestBackends {
 	kc.EXPECT().GetKYCStatus(gomock.Any(), gomock.Any()).Return(kyc.StatusLevel1, nil).AnyTimes()
 
 	b.kyc = kc
+
+	raf := rafiki_mock.NewMockClient(ctrl)
+	raf.EXPECT().FundOutgoingPayment(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	raf.EXPECT().FinalizeWebMonetization(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	b.raf = raf
 
 	ledgers, err := b.pac.ConfigureLedgers(context.Background(), []pacioli.ConfigureLedgerArgs{
 		{
@@ -259,7 +267,7 @@ func (b *TestBackends) Twilio() twilio.Service {
 }
 
 func (b *TestBackends) Rafiki() rafiki.Client {
-	return nil
+	return b.raf
 }
 
 func (b *TestBackends) Signup() signup.Client {
