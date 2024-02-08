@@ -97,6 +97,23 @@ func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) erro
 	return nil
 }
 
+func FinalizeWebMonetization(ctx context.Context, b Backends, paymentID string) error {
+	var reserveIDs []string
+	err := b.DB().GetContext(ctx, &reserveIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	if err != nil {
+		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+	}
+
+	for _, id := range reserveIDs {
+		err = b.PTI().FinaliseReserve(ctx, id)
+		if err != nil {
+			return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
+		}
+	}
+
+	return nil
+}
+
 func CreatePaymentPointerKey(ctx context.Context, b Backends, keyID string, walletID string) error {
 	key, err := b.Keys().GetPublicKey(ctx, keyID, walletID)
 	if err != nil {
