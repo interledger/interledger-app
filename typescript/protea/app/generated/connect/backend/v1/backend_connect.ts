@@ -342,6 +342,15 @@ export const BackendService = {
       kind: MethodKind.Unary,
     },
     /**
+     * @generated from rpc backend.v1.BackendService.ListPendingWebMonetization
+     */
+    listPendingWebMonetization: {
+      name: "ListPendingWebMonetization",
+      I: Empty,
+      O: ListTransactionsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
      * Limits GNAP
      *
      * @generated from rpc backend.v1.BackendService.ListLimits

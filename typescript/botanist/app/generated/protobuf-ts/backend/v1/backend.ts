@@ -10590,6 +10590,7 @@ export const BackendService = new ServiceType("backend.v1.BackendService", [
     { name: "ListTransactionsCompleted", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "ListTransactionsWithPending", options: {}, I: PaginationRequest, O: ListTransactionsResponse },
     { name: "LookupTransaction", options: {}, I: LookupTransactionRequest, O: Transaction },
+    { name: "ListPendingWebMonetization", options: {}, I: Empty, O: ListTransactionsResponse },
     { name: "ListLimits", options: {}, I: Empty, O: ListLimitsResponse },
     { name: "UpdateClientLimits", options: {}, I: UpdateClientLimitsRequest, O: Empty },
     { name: "CreateConnection", options: {}, I: CreateConnectionRequest, O: Empty },

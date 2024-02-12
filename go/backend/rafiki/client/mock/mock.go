@@ -11,6 +11,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	rafiki "gitlab.com/fynbos/backend/rafiki"
+	transactions "gitlab.com/fynbos/backend/transactions"
 	wallets "gitlab.com/fynbos/backend/wallets"
 )
 
@@ -121,6 +122,21 @@ func (m *MockClient) ListGrants(ctx context.Context, walletID string) ([]rafiki.
 func (mr *MockClientMockRecorder) ListGrants(ctx, walletID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListGrants", reflect.TypeOf((*MockClient)(nil).ListGrants), ctx, walletID)
+}
+
+// ListPendingTransactions mocks base method.
+func (m *MockClient) ListPendingTransactions(ctx context.Context, walletID string) ([]transactions.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPendingTransactions", ctx, walletID)
+	ret0, _ := ret[0].([]transactions.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPendingTransactions indicates an expected call of ListPendingTransactions.
+func (mr *MockClientMockRecorder) ListPendingTransactions(ctx, walletID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPendingTransactions", reflect.TypeOf((*MockClient)(nil).ListPendingTransactions), ctx, walletID)
 }
 
 // RevokeGrant mocks base method.

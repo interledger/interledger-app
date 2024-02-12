@@ -232,11 +232,16 @@ func (a *Activity) CreatePayoutTransaction(ctx context.Context, paymentID, txID,
 		transType = transactions.TransferTypeCreditBalance
 	}
 
+	txType := transactions.TransactionTypeReceived
+	if p.Type == payments.TypeWebMonetization {
+		txType = transactions.TransactionTypeWebMonetizationIncoming
+	}
+
 	return a.b.Transactions().CreateTransaction(ctx, transactions.CreateTransactionArgs{
 		ID:                      txID,
 		WalletID:                receiverWallet.ID,
 		ForeignID:               paymentID,
-		ForeignType:             transactions.TransactionTypeReceived,
+		ForeignType:             txType,
 		Provider:                transactions.ProviderPaymentsEngine,
 		State:                   transactions.StatePending,
 		Note:                    p.Note,

@@ -3,6 +3,8 @@ package grpc
 import (
 	"context"
 
+	"gitlab.com/fynbos/backend/db"
+
 	pb "gitlab.com/fynbos/proto/backend/v1"
 )
 
@@ -78,4 +80,23 @@ func (s *rpcService) RevokeRafikiGrant(ctx context.Context, req *pb.RevokeRafiki
 	}
 
 	return &pb.Empty{}, nil
+}
+
+func (s *rpcService) ListPendingWebMonetization(ctx context.Context, _ *pb.Empty) (*pb.ListTransactionsResponse, error) {
+	_, err := s.b.Users().UserForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	w, err := s.b.Wallets().ForContext(ctx)
+	if err != nil {
+		return nil, UnauthenticatedError("Unauthenticated.")
+	}
+
+	txs, err := s.b.Rafiki().ListPendingTransactions(ctx, w.ID)
+	if err != nil {
+		return nil, toGRPCError(err)
+	}
+
+	return transformTransactions(txs, db.Pagination{PageSize: len(txs)}), nil
 }

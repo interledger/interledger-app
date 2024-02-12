@@ -2793,6 +2793,14 @@ table "rafiki_outgoing_payments" {
   primary_key {
     columns = [column.id]
   }
+  index "rafiki_outgoing_payments_from_wallet_idx" {
+    unique  = true
+    columns = [column.from_wallet]
+  }
+  index "rafiki_outgoing_payments_to_wallet_idx" {
+    unique  = true
+    columns = [column.to_wallet]
+  }
 }
 
 table "rafiki_incoming_payments" {
