@@ -405,8 +405,9 @@ func (s *Server) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	requestID := r.Header.Get("x-pti-request-id")
 	_, err = q.CreatePTITransaction(ctx, db.CreatePTITransactionParams{
-		RequestID:        payload.RequestID,
+		RequestID:        requestID,
 		UserID:           sourceWallet.UserID,
 		ClientID:         "TEST",
 		Date:             pgtype.Text{String: time.Now().Format(time.RFC3339), Valid: true},
@@ -434,7 +435,7 @@ func (s *Server) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := external.IDResponse{
-		ID: payload.RequestID,
+		ID: requestID,
 	}
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
