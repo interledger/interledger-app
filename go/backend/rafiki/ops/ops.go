@@ -89,7 +89,7 @@ func LookupPaymentPointerID(ctx context.Context, b Backends, walletID string) (s
 
 func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) error {
 	var eventIDs []string
-	err := b.DB().GetContext(ctx, &eventIDs, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	err := b.DB().SelectContext(ctx, &eventIDs, "SELECT event_id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
@@ -106,7 +106,7 @@ func FundOutgoingPayment(ctx context.Context, b Backends, paymentID string) erro
 
 func FinalizeWebMonetization(ctx context.Context, b Backends, paymentID string) error {
 	var reserveIDs []string
-	err := b.DB().GetContext(ctx, &reserveIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
+	err := b.DB().SelectContext(ctx, &reserveIDs, "SELECT id FROM rafiki_outgoing_payments WHERE payment_id=$1", paymentID)
 	if err != nil {
 		return fmt.Errorf("%w %s", rafiki.ErrInternal, err)
 	}
