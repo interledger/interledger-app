@@ -79,3 +79,13 @@ query ListGrants ($filter: GrantFilter) {
         }
     }
 }
+
+query GetIncomingPayment ($id: String!) {
+    incomingPayment(id: $id) {
+        id
+        walletAddressId
+        state
+        expiresAt
+        createdAt
+    }
+}

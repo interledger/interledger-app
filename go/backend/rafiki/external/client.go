@@ -21,6 +21,7 @@ type Client interface {
 	ListGrants(ctx context.Context, paymentPointer string) ([]ListGrantsGrantsGrantsConnectionEdgesGrantEdgeNodeGrant, error)
 	GetGrant(ctx context.Context, grantID string) (*GetGrantGrant, error)
 	RevokeGrant(ctx context.Context, grantID string) error
+	GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error)
 }
 
 type client struct {
@@ -165,4 +166,13 @@ func (c client) RevokeGrant(ctx context.Context, grantID string) error {
 	}
 
 	return nil
+}
+
+func (c client) GetIncomingPayment(ctx context.Context, id string) (*GetIncomingPaymentIncomingPayment, error) {
+	r, err := GetIncomingPayment(ctx, c.backendClient, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r.IncomingPayment, nil
 }

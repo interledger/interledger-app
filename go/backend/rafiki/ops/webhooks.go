@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"gitlab.com/fynbos/backend/rafiki"
+	"gitlab.com/fynbos/backend/wallets"
 
 	"gitlab.com/fynbos/backend/linkedaccounts"
 	"gitlab.com/fynbos/backend/providers/pti"
@@ -102,6 +103,29 @@ func extractWalletURL(receiver string) string {
 	return receiver
 }
 
+func getReceiverWalletFromIncomingPayment(ctx context.Context, b Backends, incomingPaymentURL string) (*wallets.Wallet, error) {
+	const urlPart = "incoming-payments"
+	id := incomingPaymentURL
+	if strings.Contains(incomingPaymentURL, urlPart) {
+		parts := strings.Split(incomingPaymentURL, "/")
+		id = parts[len(parts)-1]
+	}
+
+	ip, err := b.External().GetIncomingPayment(ctx, id)
+	if err != nil {
+		log.Error("failed to get incoming payment", zap.Error(err))
+		return nil, err
+	}
+
+	walletID, err := LookupWalletID(ctx, b, ip.WalletAddressId)
+	if err != nil {
+		log.Error("failed to lookup receiver wallet ID from incoming payment", zap.Error(err))
+		return nil, err
+	}
+
+	return b.Wallets().Get(ctx, walletID)
+}
+
 func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*linkedaccounts.LinkedAccount, *linkedaccounts.LinkedAccount, error) {
 	senderWallet, err := LookupWalletID(ctx, b, op.WalletAddressID)
 	if err != nil {
@@ -109,7 +133,7 @@ func getAccounts(ctx context.Context, b Backends, op outgoingPaymentData) (*link
 		return nil, nil, err
 	}
 
-	receiverWallet, err := b.Wallets().GetFromAddress(ctx, extractWalletURL(op.Receiver))
+	receiverWallet, err := getReceiverWalletFromIncomingPayment(ctx, b, op.Receiver)
 	if err != nil {
 		log.Error("failed to lookup wallet ID from rafiki receiver wallet address", zap.Error(err))
 		return nil, nil, err
