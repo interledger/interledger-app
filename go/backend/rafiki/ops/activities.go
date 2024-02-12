@@ -26,7 +26,7 @@ func NewActivity(b ActivityBackends) *Activity {
 type dbPayment struct {
 	ID           string    `db:"id"`
 	FromWalletID string    `db:"from_wallet"`
-	ToWalletID   string    `db:"from_wallet"`
+	ToWalletID   string    `db:"to_wallet"`
 	Amount       uint64    `db:"amount"`
 	Asset        string    `db:"amount_asset"`
 	Timestamp    time.Time `db:"created_at"`

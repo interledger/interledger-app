@@ -80,7 +80,8 @@ func (c client) CreatePaymentPointer(ctx context.Context, w wallets.Wallet, asse
 
 func (c client) FundOutgoingPayment(ctx context.Context, eventID string) error {
 	r, err := DepositEventLiquidity(ctx, c.backendClient, DepositEventLiquidityInput{
-		EventId: eventID,
+		EventId:        eventID,
+		IdempotencyKey: eventID,
 	})
 	if err != nil {
 		return err
