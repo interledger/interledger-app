@@ -94,15 +94,6 @@ func EventWebhook(b Backends) http.HandlerFunc {
 	}
 }
 
-func extractWalletURL(receiver string) string {
-	const urlPart = "incoming-payments"
-	if strings.Contains(receiver, urlPart) {
-		return receiver[:strings.Index(receiver, urlPart)]
-	}
-
-	return receiver
-}
-
 func getReceiverWalletFromIncomingPayment(ctx context.Context, b Backends, incomingPaymentURL string) (*wallets.Wallet, error) {
 	const urlPart = "incoming-payments"
 	id := incomingPaymentURL
