@@ -246,7 +246,7 @@ func outgoingPayment(ctx context.Context, b Backends, hook webhook) error {
 		return err
 	}
 
-	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, event_id, from_wallet, to_wallet, amount, amount_asset) VALUES ($1, $2, $3, $4, $5, $6)", op.ID, hook.ID, senderAcc.WalletID, receiverAcc.WalletID, op.DebitAmount.Value, op.DebitAmount.AssetCode)
+	_, err = b.DB().ExecContext(ctx, "INSERT INTO rafiki_outgoing_payments(id, event_id, from_wallet, to_wallet, amount, amount_asset) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING;", op.ID, hook.ID, senderAcc.WalletID, receiverAcc.WalletID, op.DebitAmount.Value, op.DebitAmount.AssetCode)
 	if err != nil {
 		log.Error("failed to add outgoing payment from rafiki outoing payment hook", zap.Error(err))
 		return err

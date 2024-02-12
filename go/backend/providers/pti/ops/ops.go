@@ -358,8 +358,8 @@ func ReserveTransfer(ctx context.Context, b Backends, fromAccount, toAccount, tx
 		{
 			ID:              txID,
 			Amount:          amt.Value,
-			DebitAccountID:  toAccount,
-			CreditAccountID: fromAccount,
+			DebitAccountID:  fromAccount,
+			CreditAccountID: toAccount,
 			Pending:         true,
 			Code:            1,
 			Timeout:         uint64(timeout),
