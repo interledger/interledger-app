@@ -253,7 +253,7 @@ func (a *Activity) SignalRafikiPayIn(ctx context.Context, paymentID string) erro
 		return err
 	}
 
-	if p.Type != payments.TypeRafiki2External && p.Type != payments.TypeRafikiPeer2Peer && p.Type != payments.TypeWebMonetization {
+	if p.Type != payments.TypeRafiki2External && p.Type != payments.TypeRafikiPeer2Peer {
 		return nil
 	}
 
