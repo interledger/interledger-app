@@ -304,6 +304,46 @@ type GetGrantResponse struct {
 // GetGrant returns GetGrantResponse.Grant, and is useful for accessing the field via an interface.
 func (v *GetGrantResponse) GetGrant() GetGrantGrant { return v.Grant }
 
+// GetIncomingPaymentIncomingPayment includes the requested fields of the GraphQL type IncomingPayment.
+type GetIncomingPaymentIncomingPayment struct {
+	// Incoming Payment id
+	Id string `json:"id"`
+	// Id of the wallet address under which this incoming payment was created
+	WalletAddressId string `json:"walletAddressId"`
+	// Incoming payment state
+	State IncomingPaymentState `json:"state"`
+	// Date-time of expiry. After this time, the incoming payment will not accept further payments made to it.
+	ExpiresAt string `json:"expiresAt"`
+	// Date-time of creation
+	CreatedAt string `json:"createdAt"`
+}
+
+// GetId returns GetIncomingPaymentIncomingPayment.Id, and is useful for accessing the field via an interface.
+func (v *GetIncomingPaymentIncomingPayment) GetId() string { return v.Id }
+
+// GetWalletAddressId returns GetIncomingPaymentIncomingPayment.WalletAddressId, and is useful for accessing the field via an interface.
+func (v *GetIncomingPaymentIncomingPayment) GetWalletAddressId() string { return v.WalletAddressId }
+
+// GetState returns GetIncomingPaymentIncomingPayment.State, and is useful for accessing the field via an interface.
+func (v *GetIncomingPaymentIncomingPayment) GetState() IncomingPaymentState { return v.State }
+
+// GetExpiresAt returns GetIncomingPaymentIncomingPayment.ExpiresAt, and is useful for accessing the field via an interface.
+func (v *GetIncomingPaymentIncomingPayment) GetExpiresAt() string { return v.ExpiresAt }
+
+// GetCreatedAt returns GetIncomingPaymentIncomingPayment.CreatedAt, and is useful for accessing the field via an interface.
+func (v *GetIncomingPaymentIncomingPayment) GetCreatedAt() string { return v.CreatedAt }
+
+// GetIncomingPaymentResponse is returned by GetIncomingPayment on success.
+type GetIncomingPaymentResponse struct {
+	// Fetch an Open Payments incoming payment
+	IncomingPayment GetIncomingPaymentIncomingPayment `json:"incomingPayment"`
+}
+
+// GetIncomingPayment returns GetIncomingPaymentResponse.IncomingPayment, and is useful for accessing the field via an interface.
+func (v *GetIncomingPaymentResponse) GetIncomingPayment() GetIncomingPaymentIncomingPayment {
+	return v.IncomingPayment
+}
+
 type GrantFilter struct {
 	Identifier         FilterString             `json:"identifier"`
 	State              FilterGrantState         `json:"state"`
@@ -341,6 +381,19 @@ const (
 	GrantStateApproved GrantState = "APPROVED"
 	// grant was finalized and no more access tokens or interactions can be made on it
 	GrantStateFinalized GrantState = "FINALIZED"
+)
+
+type IncomingPaymentState string
+
+const (
+	// The payment has a state of PENDING when it is initially created.
+	IncomingPaymentStatePending IncomingPaymentState = "PENDING"
+	// As soon as payment has started (funds have cleared into the account) the state moves to PROCESSING
+	IncomingPaymentStateProcessing IncomingPaymentState = "PROCESSING"
+	// The payment is either auto-completed once the received amount equals the expected `incomingAmount`, or it is completed manually via an API call.
+	IncomingPaymentStateCompleted IncomingPaymentState = "COMPLETED"
+	// If the payment expires before it is completed then the state will move to EXPIRED and no further payments will be accepted.
+	IncomingPaymentStateExpired IncomingPaymentState = "EXPIRED"
 )
 
 type JwkInput struct {
@@ -606,6 +659,14 @@ type __GetGrantInput struct {
 // GetId returns __GetGrantInput.Id, and is useful for accessing the field via an interface.
 func (v *__GetGrantInput) GetId() string { return v.Id }
 
+// __GetIncomingPaymentInput is used internally by genqlient
+type __GetIncomingPaymentInput struct {
+	Id string `json:"id"`
+}
+
+// GetId returns __GetIncomingPaymentInput.Id, and is useful for accessing the field via an interface.
+func (v *__GetIncomingPaymentInput) GetId() string { return v.Id }
+
 // __ListGrantsInput is used internally by genqlient
 type __ListGrantsInput struct {
 	Filter GrantFilter `json:"filter"`
@@ -780,6 +841,45 @@ func GetGrant(
 	var err error
 
 	var data GetGrantResponse
+	resp := &graphql.Response{Data: &data}
+
+	err = client.MakeRequest(
+		ctx,
+		req,
+		resp,
+	)
+
+	return &data, err
+}
+
+// The query or mutation executed by GetIncomingPayment.
+const GetIncomingPayment_Operation = `
+query GetIncomingPayment ($id: String!) {
+	incomingPayment(id: $id) {
+		id
+		walletAddressId
+		state
+		expiresAt
+		createdAt
+	}
+}
+`
+
+func GetIncomingPayment(
+	ctx context.Context,
+	client graphql.Client,
+	id string,
+) (*GetIncomingPaymentResponse, error) {
+	req := &graphql.Request{
+		OpName: "GetIncomingPayment",
+		Query:  GetIncomingPayment_Operation,
+		Variables: &__GetIncomingPaymentInput{
+			Id: id,
+		},
+	}
+	var err error
+
+	var data GetIncomingPaymentResponse
 	resp := &graphql.Response{Data: &data}
 
 	err = client.MakeRequest(
