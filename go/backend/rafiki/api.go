@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"gitlab.com/fynbos/backend/transactions"
+
 	"gitlab.com/fynbos/backend/wallets"
 )
 
@@ -17,4 +19,5 @@ type Client interface {
 	ListGrants(ctx context.Context, walletID string) ([]Grant, error)
 	GetGrant(ctx context.Context, grantID string) (*Grant, error)
 	RevokeGrant(ctx context.Context, grantID string) error
+	ListPendingTransactions(ctx context.Context, walletID string) ([]transactions.Transaction, error)
 }

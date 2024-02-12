@@ -9,13 +9,15 @@ import (
 type TransactionType string
 
 const (
-	TransactionTypeOpenPaymentIncoming TransactionType = "open_payments_incoming"
-	TransactionTypeOpenOutgoingPayment TransactionType = "open_payments_outgoing"
-	TransactionTypeReceived            TransactionType = "received"
-	TransactionTypeSent                TransactionType = "sent"
-	TransactionTypeWithdrawal          TransactionType = "withdrawal"
-	TransactionTypeTransfer            TransactionType = "transfer"
-	TransactionTypeDeposit             TransactionType = "deposit"
+	TransactionTypeOpenPaymentIncoming     TransactionType = "open_payments_incoming"
+	TransactionTypeOpenOutgoingPayment     TransactionType = "open_payments_outgoing"
+	TransactionTypeReceived                TransactionType = "received"
+	TransactionTypeSent                    TransactionType = "sent"
+	TransactionTypeWithdrawal              TransactionType = "withdrawal"
+	TransactionTypeTransfer                TransactionType = "transfer"
+	TransactionTypeDeposit                 TransactionType = "deposit"
+	TransactionTypeWebMonetizationIncoming TransactionType = "web_monetization_incoming"
+	TransactionTypeWebMonetizationOutgoing TransactionType = "web_monetization_outgoing"
 )
 
 type State string

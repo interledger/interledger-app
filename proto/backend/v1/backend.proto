@@ -61,6 +61,7 @@ service BackendService {
   rpc ListTransactionsCompleted(PaginationRequest) returns (ListTransactionsResponse);
   rpc ListTransactionsWithPending(PaginationRequest) returns (ListTransactionsResponse);
   rpc LookupTransaction(LookupTransactionRequest) returns (Transaction);
+  rpc ListPendingWebMonetization(Empty) returns (ListTransactionsResponse);
 
   // Limits GNAP
   rpc ListLimits(Empty) returns (ListLimitsResponse);

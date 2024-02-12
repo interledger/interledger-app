@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 
@@ -23,11 +24,12 @@ func NewActivity(b ActivityBackends) *Activity {
 }
 
 type dbPayment struct {
-	ID           string `db:"id"`
-	FromWalletID string `db:"from_wallet"`
-	ToWalletID   string `db:"from_wallet"`
-	Amount       uint64 `db:"amount"`
-	Asset        string `db:"amount_asset"`
+	ID           string    `db:"id"`
+	FromWalletID string    `db:"from_wallet"`
+	ToWalletID   string    `db:"from_wallet"`
+	Amount       uint64    `db:"amount"`
+	Asset        string    `db:"amount_asset"`
+	Timestamp    time.Time `db:"created_at"`
 }
 
 type Payment struct {
@@ -40,7 +42,7 @@ type Payment struct {
 
 func (a *Activity) ListPaymentsToMake(ctx context.Context) ([]Payment, error) {
 	var dbPayments []dbPayment
-	err := a.b.DB().SelectContext(ctx, &dbPayments, `SELECT id, from_wallet, to_wallet, amount, amount_asset FROM rafiki_outgoing_payments
+	err := a.b.DB().SelectContext(ctx, &dbPayments, `SELECT id, from_wallet, to_wallet, amount, amount_asset, created_at FROM rafiki_outgoing_payments
 		WHERE payment_id is null`)
 	if err != nil {
 		return nil, err

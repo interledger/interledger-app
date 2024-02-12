@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
-	"gitlab.com/fynbos/backend/providers/pti"
 	"net/http"
+
+	"gitlab.com/fynbos/backend/providers/pti"
+	"gitlab.com/fynbos/backend/transactions"
 
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/fynbos/backend/keys"
@@ -83,4 +85,8 @@ func (c *client) GetGrant(ctx context.Context, grantID string) (*rafiki.Grant, e
 
 func (c *client) RevokeGrant(ctx context.Context, grantID string) error {
 	return ops.RevokeGrant(ctx, c.b, grantID)
+}
+
+func (c *client) ListPendingTransactions(ctx context.Context, walletID string) ([]transactions.Transaction, error) {
+	return ops.ListPendingWebMonetization(ctx, c.b, walletID)
 }

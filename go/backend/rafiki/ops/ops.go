@@ -5,7 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
+
+	"gitlab.com/fynbos/backend/providers/pti"
+
+	"gitlab.com/fynbos/backend/currency"
+
+	"gitlab.com/fynbos/backend/transactions"
 
 	"gitlab.com/fynbos/backend/db"
 
@@ -192,4 +199,112 @@ func RevokeGrant(ctx context.Context, b Backends, grantID string) error {
 	}
 
 	return nil
+}
+
+func ListPendingWebMonetization(ctx context.Context, b Backends, walletID string) ([]transactions.Transaction, error) {
+	var dbPayments []dbPayment
+	err := b.DB().SelectContext(ctx, &dbPayments, `SELECT id, from_wallet, to_wallet, amount, amount_asset, created_at FROM rafiki_outgoing_payments
+		WHERE payment_id is null AND (from_wallet=$1 OR to_wallet=$1) ORDER BY created_at desc`, walletID)
+	if err != nil {
+		return nil, err
+	}
+
+	fromTxs := make(map[string]transactions.Transaction)
+	toTxs := make(map[string]transactions.Transaction)
+
+	wList := make(map[string]*wallets.Wallet)
+
+	lookup := func(id string) (*wallets.Wallet, error) {
+		w, ok := wList[id]
+		if ok {
+			return w, nil
+		}
+
+		w, err := b.Wallets().Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		wList[id] = w
+		return w, nil
+	}
+
+	for _, p := range dbPayments {
+		if p.FromWalletID == walletID {
+			// Outgoing transactions
+			tx, ok := fromTxs[p.ToWalletID]
+			if ok {
+				tx.Amount = currency.FromUInt64(tx.Amount.Value+p.Amount, currency.ParseCurrency(p.Asset))
+				fromTxs[p.ToWalletID] = tx
+				continue
+			}
+
+			to, err := lookup(p.ToWalletID)
+			if err != nil {
+				return nil, err
+			}
+			from, err := lookup(p.FromWalletID)
+			if err != nil {
+				return nil, err
+			}
+
+			fromTxs[p.ToWalletID] = transactions.Transaction{
+				ID:                      p.ID,
+				ForeignID:               p.ID,
+				Source:                  from.AddressString(),
+				Destination:             to.AddressString(),
+				Title:                   "Pending outgoing Web Monetization",
+				Type:                    transactions.TransactionTypeWebMonetizationOutgoing,
+				Timestamp:               p.Timestamp,
+				Provider:                pti.ProviderName,
+				State:                   transactions.StatePending,
+				Amount:                  currency.FromUInt64(p.Amount, currency.ParseCurrency(p.Asset)),
+				DestinationIdentity:     to.ID,
+				DestinationIdentityType: "WalletID",
+			}
+			continue
+		}
+		// Incoming transactions
+		tx, ok := toTxs[p.FromWalletID]
+		if ok {
+			tx.Amount = currency.FromUInt64(tx.Amount.Value+p.Amount, currency.ParseCurrency(p.Asset))
+			toTxs[p.FromWalletID] = tx
+			continue
+		}
+		to, err := lookup(p.ToWalletID)
+		if err != nil {
+			return nil, err
+		}
+		from, err := lookup(p.FromWalletID)
+		if err != nil {
+			return nil, err
+		}
+		toTxs[p.FromWalletID] = transactions.Transaction{
+			ID:                      p.ID,
+			ForeignID:               p.ID,
+			Source:                  from.AddressString(),
+			Destination:             to.AddressString(),
+			Title:                   "Pending incoming Web Monetization",
+			Type:                    transactions.TransactionTypeWebMonetizationIncoming,
+			Timestamp:               p.Timestamp,
+			Provider:                pti.ProviderName,
+			State:                   transactions.StatePending,
+			Amount:                  currency.FromUInt64(p.Amount, currency.ParseCurrency(p.Asset)),
+			DestinationIdentity:     to.ID,
+			DestinationIdentityType: "WalletID",
+		}
+	}
+
+	var resp []transactions.Transaction
+	for _, v := range fromTxs {
+		resp = append(resp, v)
+	}
+	for _, v := range toTxs {
+		resp = append(resp, v)
+	}
+	sort.Slice(resp, func(i, j int) bool {
+		return resp[i].Timestamp.After(resp[j].Timestamp)
+	})
+
+	return resp, nil
 }
