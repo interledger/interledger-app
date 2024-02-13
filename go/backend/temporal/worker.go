@@ -11,7 +11,7 @@ import (
 
 	"gitlab.com/fynbos/backend/identities/platforms"
 	"gitlab.com/fynbos/backend/jobs"
-	kyc_workflows "gitlab.com/fynbos/backend/kyc/workflows"
+	kyc_workflows "gitlab.com/fynbos/backend/kyc/ops"
 	payments_workflows "gitlab.com/fynbos/backend/payments/ops"
 	asta_workflows "gitlab.com/fynbos/backend/providers/astra/ops"
 	pti_workflows "gitlab.com/fynbos/backend/providers/pti/ops"
@@ -25,7 +25,7 @@ func NewTemporalWorker(b Backends) (worker.Worker, error) {
 	w := worker.New(b.Temporal(), "backend", worker.Options{})
 
 	w.RegisterActivity(kyc_workflows.NewActivity(b))
-	w.RegisterWorkflow(kyc_workflows.StartKYC)
+	w.RegisterWorkflow(kyc_workflows.SetKYCStatusWorkflow)
 
 	//Identities
 	w.RegisterActivity(platforms.NewTwitterActivity(b))

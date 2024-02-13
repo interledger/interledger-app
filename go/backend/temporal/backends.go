@@ -21,6 +21,7 @@ import (
 	"gitlab.com/fynbos/backend/providers/pti"
 	"gitlab.com/fynbos/backend/providers/xago"
 	"gitlab.com/fynbos/backend/rafiki"
+	"gitlab.com/fynbos/backend/signup"
 	"gitlab.com/fynbos/backend/statements"
 	"gitlab.com/fynbos/backend/transactions"
 	"gitlab.com/fynbos/backend/twilio"
@@ -60,4 +61,5 @@ type Backends interface {
 	Pacioli() pacioli.Client
 	Astra() astra.Client
 	PTI() pti.Client
+	Signup() signup.Client
 }
